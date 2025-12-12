@@ -77,7 +77,7 @@ const AnimatedNumber = ({
     }, duration / steps);
     return () => clearInterval(timer);
   }, [value]);
-  return <span>{count}{suffix}</span>;
+  return <span className="text-4xl">{count}{suffix}</span>;
 };
 interface FeatureBoxProps {
   icon: React.ElementType;
@@ -267,7 +267,7 @@ const Auth = () => {
             <div className="h-10" />
             
             {/* Main content */}
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex-1 flex flex-col justify-center gap-0 pb-[20px]">
               {/* Eyebrow */}
               <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
                 <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
@@ -278,10 +278,10 @@ const Auth = () => {
 
               {/* Large Typography */}
               <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-light text-background/60 tracking-tight leading-none">
+                <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
                   {slide.title}
                 </h2>
-                <h1 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-background tracking-tight leading-none">
+                <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
                   {slide.highlight}
                 </h1>
               </div>
