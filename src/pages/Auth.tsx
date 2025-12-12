@@ -261,11 +261,15 @@ const Auth = () => {
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
           }} />
 
-          {/* Sliding Text Content */}
-          <div className="absolute inset-0 flex items-center p-5 md:p-5 lg:p-10 pt-[15px] md:pt-[15px] pb-[25px] md:pb-[30px]">
-            <div>
+          {/* Sliding Content - Text, Stats, Features */}
+          <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
+            {/* Top spacer */}
+            <div className="h-10" />
+            
+            {/* Main content */}
+            <div className="flex-1 flex flex-col justify-center">
               {/* Eyebrow */}
-              <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] md:py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px]">
+              <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
                 <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                 <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                   {slide.eyebrow}
@@ -282,9 +286,26 @@ const Auth = () => {
                 </h1>
               </div>
 
-              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap">
+              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-5 lg:mb-[30px]">
                 {slide.description}
               </p>
+
+              {/* Stats Row - Slides with content */}
+              <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
+                {stats.map((stat, i) => <div key={i} className="text-center">
+                    <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
+                      <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                    </div>
+                    <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
+                      {stat.label}
+                    </div>
+                  </div>)}
+              </div>
+
+              {/* Feature Pills - Slides with content */}
+              <div className="hidden xl:flex flex-wrap gap-2.5">
+                {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+              </div>
             </div>
           </div>
         </div>
@@ -302,68 +323,45 @@ const Auth = () => {
           }} />
         </div>
 
-        {/* Fixed Content Overlay */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-5 md:p-5 lg:p-10 overflow-hidden pointer-events-none">
-          {/* Logo - Fixed */}
-          <div className="flex items-center gap-[5px] md:gap-2.5 pointer-events-auto flex-shrink-0">
-            <div className="w-[25px] md:w-[30px] h-[25px] md:h-[30px] rounded-[10px] bg-background/10 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="w-[15px] md:w-[15px] h-[15px] md:h-[15px] text-background" />
-            </div>
-            <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
+        {/* Fixed Logo */}
+        <div className="absolute top-5 md:top-5 lg:top-10 left-5 md:left-5 lg:left-10 z-10 flex items-center gap-[5px] md:gap-2.5">
+          <div className="w-[25px] md:w-[30px] h-[25px] md:h-[30px] rounded-[10px] bg-background/10 backdrop-blur-sm flex items-center justify-center">
+            <Sparkles className="w-[15px] h-[15px] text-background" />
+          </div>
+          <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
+        </div>
+
+        {/* Fixed Bottom Navigation */}
+        <div className="absolute bottom-5 md:bottom-5 lg:bottom-10 left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 z-10 flex items-center justify-between">
+          {/* Slide Indicators */}
+          <div className="flex gap-2.5">
+            {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
           </div>
 
-          {/* Spacer for middle content */}
-          <div className="flex-1 min-h-0" />
-
-          {/* Stats Row - Fixed */}
-          <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-[15px] md:mb-5 lg:mb-[25px] flex-shrink-0">
-            {stats.map((stat, i) => <div key={i} className="text-center">
-                <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
-                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                </div>
-                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
-                  {stat.label}
-                </div>
-              </div>)}
+          {/* Trust Badge - visible on all sizes */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
+            <div className="flex -space-x-[5px]">
+              {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
+                background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
+              }} />)}
+            </div>
+            <span className="text-xs text-background/50">10K+ pros</span>
           </div>
 
-          {/* Feature Pills - Fixed, hidden on tablet and short heights */}
-          <div className="hidden xl:flex flex-wrap gap-2.5 mb-5 lg:mb-[25px] pointer-events-auto flex-shrink-0">
-            {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
-          </div>
-
-          {/* Bottom Navigation - Fixed */}
-          <div className="flex items-center justify-between pointer-events-auto flex-shrink-0">
-            {/* Slide Indicators */}
-            <div className="flex gap-2.5">
-              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
-            </div>
-
-            {/* Trust Badge - visible on all sizes */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
-              <div className="flex -space-x-[5px]">
-                {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
-                  background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
-                }} />)}
-              </div>
-              <span className="text-xs text-background/50">10K+ pros</span>
-            </div>
-
-            {/* Nav Arrows - Desktop */}
-            <div className="hidden lg:flex gap-2.5">
-              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-                <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
-              </button>
-              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-                <ChevronRight className="w-[15px] h-[15px] text-background/70" />
-              </button>
-            </div>
+          {/* Nav Arrows - Desktop */}
+          <div className="hidden lg:flex gap-2.5">
+            <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
+            </button>
+            <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <ChevronRight className="w-[15px] h-[15px] text-background/70" />
+            </button>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10 lg:hidden">
+        {/* Progress Bar - Mobile/Tablet only */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10 lg:hidden z-10">
           <div className="h-full bg-background/60 transition-all duration-500" style={{
             width: `${(currentSlide + 1) / slides.length * 100}%`
           }} />
