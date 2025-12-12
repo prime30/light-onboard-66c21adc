@@ -220,20 +220,20 @@ const Auth = () => {
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <div className="min-h-screen flex items-center justify-center p-5 lg:p-10">
+  return <div className="min-h-screen flex items-center justify-center p-2.5 sm:p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
       {/* Modal Container */}
-      <div className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row" style={{
+      <div className="relative z-10 w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px] bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row" style={{
       animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
     }}>
         {/* Close Button */}
-        <button onClick={() => navigate("/")} className="absolute top-5 right-5 z-20 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
+        <button onClick={() => navigate("/")} className="absolute top-2.5 sm:top-5 right-2.5 sm:right-5 z-20 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
           <X className="w-5 h-5 text-foreground" />
         </button>
         {/* Left Panel - Hero/Branding */}
-        <div className="relative hidden md:flex lg:w-1/2 md:min-h-[280px] lg:min-h-0 bg-foreground overflow-hidden flex-col m-[15px] md:m-5 lg:m-5 rounded-[15px] md:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative hidden md:flex lg:w-1/2 md:w-2/5 md:min-h-[250px] lg:min-h-0 bg-foreground overflow-hidden flex-col m-2.5 sm:m-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -327,8 +327,8 @@ const Auth = () => {
               </div>)}
           </div>
 
-          {/* Feature Pills - Fixed, hidden on shorter heights */}
-          <div className="hidden lg:flex flex-wrap gap-2.5 mb-5 lg:mb-[25px] pointer-events-auto flex-shrink-0">
+          {/* Feature Pills - Fixed, hidden on tablet and short heights */}
+          <div className="hidden xl:flex flex-wrap gap-2.5 mb-5 lg:mb-[25px] pointer-events-auto flex-shrink-0">
             {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
           </div>
 
@@ -341,7 +341,7 @@ const Auth = () => {
 
             {/* Trust Badge - visible on all sizes */}
             <div className="flex items-center gap-2.5">
-              <span className="text-xs text-background/40">Loved by</span>
+              <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
               <div className="flex -space-x-[5px]">
                 {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
                   background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
@@ -373,13 +373,13 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="flex items-center justify-between p-5 md:p-5 lg:p-[25px]">
+        <header className="flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
           {/* Auth Toggle */}
           <div className="inline-flex bg-muted rounded-full p-[5px]">
-            <button onClick={() => handleModeChange("signup")} className={cn("px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            <button onClick={() => handleModeChange("signin")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign in
             </button>
           </div>
@@ -393,7 +393,7 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center md:px-[25px] lg:px-[30px] py-[25px] pt-0 px-5 pb-0">
+        <main className="flex-1 flex items-center justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 pt-0 pb-0">
           <div className="w-full max-w-lg">
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
@@ -406,8 +406,8 @@ const Auth = () => {
         </main>
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-5 md:p-5 lg:p-[25px] pt-0 px-5 pb-[30px]">
-            <div className="max-w-md mx-auto flex gap-[15px]">
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]">
+            <div className="max-w-lg mx-auto flex gap-[15px]">
               {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[50px] px-5 rounded-[15px] border-border">
                   <ArrowLeft className="w-[15px] h-[15px]" />
                 </Button>}
@@ -436,10 +436,10 @@ const SignInForm = ({
   onPasswordChange: (value: string) => void;
 }) => <div className="space-y-[25px] animate-fade-in">
     <div className="space-y-2.5">
-      <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Welcome back
       </h1>
-      <p className="text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground">
         Sign in to access your pro account
       </p>
     </div>
@@ -453,7 +453,7 @@ const SignInForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
@@ -465,7 +465,7 @@ const SignInForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
             <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
@@ -500,15 +500,15 @@ const OnboardingForm = ({
     </div>
 
     <div className="space-y-2.5">
-      <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Ready to join?
       </h1>
-      <p className="text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground">
         Create your pro account in just a few steps
       </p>
     </div>
 
-    <div className="grid gap-[15px] pt-5">
+    <div className="grid gap-2.5 sm:gap-[15px] pt-5">
       {[{
       icon: User,
       label: "Choose your account type",
@@ -521,8 +521,8 @@ const OnboardingForm = ({
       icon: Gift,
       label: "Start saving",
       desc: "Unlock wholesale pricing"
-    }].map((item, i) => <div key={i} className="flex items-center gap-5 p-5 rounded-[15px] bg-muted/50 border border-border/50 text-left">
-          <div className="w-10 h-10 rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0">
+    }].map((item, i) => <div key={i} className="flex items-center gap-[15px] sm:gap-5 p-[15px] sm:p-5 rounded-[15px] bg-muted/50 border border-border/50 text-left">
+          <div className="w-10 h-10 rounded-[10px] sm:rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0">
             <item.icon className="w-5 h-5 text-background" />
           </div>
           <div>
@@ -562,29 +562,29 @@ const AccountTypeForm = ({
     description: "Currently enrolled",
     features: ["Student pricing", "Learning resources", "Community access"]
   }];
-  return <div className="space-y-[25px] animate-fade-in">
+  return <div className="space-y-5 sm:space-y-[25px] animate-fade-in">
       <div className="space-y-2.5 text-center">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
             Step 1
           </span>
         </div>
-        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
           Choose your path
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Select the account type that fits you best
         </p>
       </div>
 
-      <div className="space-y-[15px]">
-        {types.map(type => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-5 rounded-[20px] border-2 transition-all duration-200 text-left group", selectedType === type.id ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
-            {selectedType === type.id && <div className="absolute top-5 right-5 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+      <div className="space-y-2.5 sm:space-y-[15px]">
+        {types.map(type => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 transition-all duration-200 text-left group", selectedType === type.id ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+            {selectedType === type.id && <div className="absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                 <Check className="w-[15px] h-[15px] text-background" />
               </div>}
 
-            <div className="flex items-start gap-5">
-              <div className={cn("w-10 h-10 rounded-[15px] flex items-center justify-center flex-shrink-0 transition-colors", selectedType === type.id ? "bg-foreground" : "bg-muted")}>
+            <div className="flex items-start gap-[15px] sm:gap-5">
+              <div className={cn("w-10 h-10 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-colors", selectedType === type.id ? "bg-foreground" : "bg-muted")}>
                 <type.icon className={cn("w-5 h-5 transition-colors", selectedType === type.id ? "text-background" : "text-foreground")} />
               </div>
               
@@ -656,10 +656,10 @@ const LicenseForm = ({
             <MapPin className="w-[15px] h-[15px] text-muted-foreground" />
           </div>
           <Select value={state} onValueChange={onStateChange}>
-            <SelectTrigger className="h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50">
+            <SelectTrigger className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50">
               <SelectValue placeholder="Select your state" />
             </SelectTrigger>
-            <SelectContent className="rounded-[15px]">
+            <SelectContent className="rounded-[15px] bg-background border border-border z-50">
               {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px]">
                   {s}
                 </SelectItem>)}
@@ -703,18 +703,18 @@ const PersonalInfoForm = ({
     </div>
 
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-[15px]">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-[15px]">
         <div className="space-y-2.5">
           <Label htmlFor="firstName" className="text-sm font-medium">
             First name
           </Label>
-          <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
         </div>
         <div className="space-y-2.5">
           <Label htmlFor="lastName" className="text-sm font-medium">
             Last name
           </Label>
-          <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
         </div>
       </div>
 
