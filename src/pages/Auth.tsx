@@ -233,7 +233,7 @@ const Auth = () => {
           <X className="w-5 h-5 text-foreground" />
         </button>
         {/* Left Panel - Hero/Branding */}
-        <div className="relative lg:w-1/2 min-h-[300px] lg:min-h-0 bg-foreground overflow-hidden flex flex-col m-[20px] lg:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative hidden md:flex lg:w-1/2 md:min-h-[280px] lg:min-h-0 bg-foreground overflow-hidden flex-col m-3 md:m-4 lg:m-[20px] rounded-[16px] md:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -241,16 +241,16 @@ const Auth = () => {
           {/* Animated gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground" />
           
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full blur-[120px] animate-pulse" style={{
+          <div className="absolute top-0 right-0 w-[200px] md:w-[300px] lg:w-[400px] h-[200px] md:h-[300px] lg:h-[400px] rounded-full blur-[80px] md:blur-[100px] lg:blur-[120px] animate-pulse" style={{
             background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
             animationDuration: '4s'
           }} />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full blur-[100px] animate-pulse" style={{
+          <div className="absolute bottom-0 left-0 w-[150px] md:w-[200px] lg:w-[300px] h-[150px] md:h-[200px] lg:h-[300px] rounded-full blur-[60px] md:blur-[80px] lg:blur-[100px] animate-pulse" style={{
             background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
             animationDuration: '5s',
             animationDelay: '1s'
           }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[150px] animate-pulse" style={{
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[350px] lg:w-[500px] h-[250px] md:h-[350px] lg:h-[500px] rounded-full blur-[100px] md:blur-[120px] lg:blur-[150px] animate-pulse" style={{
             background: 'radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%)',
             animationDuration: '6s',
             animationDelay: '2s'
@@ -262,27 +262,27 @@ const Auth = () => {
           }} />
 
           {/* Sliding Text Content */}
-          <div className="absolute inset-0 flex items-center p-6 md:p-8 lg:p-10 pt-16 pb-32">
+          <div className="absolute inset-0 flex items-center p-4 md:p-6 lg:p-10 pt-12 md:pt-16 pb-24 md:pb-32">
             <div>
               {/* Eyebrow */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
-                <Sparkles className="w-3 h-3 text-background/80" />
-                <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-4 md:mb-6">
+                <Sparkles className="w-2.5 md:w-3 h-2.5 md:h-3 text-background/80" />
+                <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                   {slide.eyebrow}
                 </span>
               </div>
 
               {/* Large Typography */}
-              <div className="space-y-1 mb-4">
-                <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-background/60 tracking-tight leading-none">
+              <div className="space-y-0.5 md:space-y-1 mb-3 md:mb-4">
+                <h2 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-background/60 tracking-tight leading-none">
                   {slide.title}
                 </h2>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-background tracking-tight leading-none">
+                <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold text-background tracking-tight leading-none">
                   {slide.highlight}
                 </h1>
               </div>
 
-              <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap">
+              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap">
                 {slide.description}
               </p>
             </div>
@@ -303,32 +303,32 @@ const Auth = () => {
         </div>
 
         {/* Fixed Content Overlay */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-10 pointer-events-none">
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-4 md:p-6 lg:p-10 pointer-events-none">
           {/* Logo - Fixed */}
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-background" />
+          <div className="flex items-center gap-1.5 md:gap-2 pointer-events-auto">
+            <div className="w-6 md:w-8 h-6 md:h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
+              <Sparkles className="w-3 md:w-4 h-3 md:h-4 text-background" />
             </div>
-            <span className="text-lg font-semibold text-background">ProBeauty</span>
+            <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
           </div>
 
           {/* Spacer for middle content */}
           <div className="flex-1" />
 
           {/* Stats Row - Fixed */}
-          <div className="flex gap-8 mb-8">
+          <div className="flex gap-4 md:gap-6 lg:gap-8 mb-4 md:mb-6 lg:mb-8">
             {stats.map((stat, i) => <div key={i} className="text-center">
-                <div className="text-2xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight">
+                <div className="text-lg md:text-2xl lg:text-3xl font-semibold text-background tracking-tight">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-                <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
+                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-0.5 md:mt-1">
                   {stat.label}
                 </div>
               </div>)}
           </div>
 
           {/* Feature Pills - Fixed */}
-          <div className="hidden lg:flex flex-wrap gap-3 mb-8 pointer-events-auto">
+          <div className="hidden lg:flex flex-wrap gap-2 lg:gap-3 mb-6 lg:mb-8 pointer-events-auto">
             {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
           </div>
 
