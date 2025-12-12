@@ -157,7 +157,7 @@
     opacity: 0;
   }
 
-  /* Ultra-modern input styling */
+  /* Ultra-modern input styling with haptic feedback */
   .input-ultra {
     position: relative;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -189,7 +189,117 @@
       0 0 0 1px hsl(var(--foreground) / 0.1),
       0 4px 20px hsl(var(--foreground) / 0.06),
       0 8px 40px hsl(var(--foreground) / 0.03);
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.01);
+    animation: hapticBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Input glow with haptic feedback */
+  .input-glow {
+    position: relative;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .input-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.15), hsl(var(--foreground) / 0.05));
+    opacity: 0;
+    z-index: -1;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: blur(8px);
+  }
+
+  .input-glow:focus-within::before {
+    opacity: 1;
+    inset: -4px;
+  }
+
+  .input-glow:focus-within {
+    transform: translateY(-2px) scale(1.008);
+    animation: hapticBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Haptic press effect for buttons and interactive elements */
+  .haptic-press {
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .haptic-press:active {
+    transform: scale(0.97);
+  }
+
+  .haptic-press:focus {
+    animation: hapticBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Input focus ripple effect */
+  .input-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .input-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), hsl(var(--foreground) / 0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .input-ripple:focus-within::after {
+    opacity: 1;
+    animation: ripplePulse 1.5s ease-out infinite;
+  }
+
+  /* Icon bounce on input focus */
+  .icon-haptic {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .group:focus-within .icon-haptic,
+  .input-ultra:focus-within .icon-haptic,
+  .input-glow:focus-within .icon-haptic {
+    animation: iconBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Label float animation */
+  .label-float {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .group:focus-within .label-float {
+    transform: translateY(-2px);
+    color: hsl(var(--foreground));
+  }
+
+  /* Border draw animation */
+  .border-draw {
+    position: relative;
+  }
+
+  .border-draw::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground)), transparent);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(-50%);
+  }
+
+  .border-draw:focus-within::after {
+    width: 100%;
+  }
+
+  /* Subtle shake for validation feedback */
+  .shake-subtle {
+    animation: shakeSubtle 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
   }
 
   /* Floating label effect */
@@ -462,5 +572,83 @@
   }
   50% {
     border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+@keyframes hapticBounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-3px) scale(1.015);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  70% {
+    transform: translateY(-2.5px) scale(1.008);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.008);
+  }
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(-3deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  75% {
+    transform: scale(1.12) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1.1) rotate(0deg);
+  }
+}
+
+@keyframes ripplePulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+@keyframes shakeSubtle {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--foreground) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px hsl(var(--foreground) / 0.08);
   }
 }
