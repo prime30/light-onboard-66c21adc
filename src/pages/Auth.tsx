@@ -244,7 +244,7 @@ const Auth = () => {
       <div className={cn(
         "relative z-10 bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300",
         mode === "signin" 
-          ? "w-auto max-w-md h-auto" 
+          ? "w-[90vw] sm:w-[420px] lg:w-[460px] h-auto px-6 sm:px-10 lg:px-12 py-8 sm:py-10 lg:py-12" 
           : "w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px]"
       )} style={{
       animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
