@@ -270,10 +270,15 @@ const Auth = () => {
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row p-0 lg:p-[20px]">
-      {/* Left Panel - Hero/Branding */}
-      <div 
-        className="relative lg:w-1/2 lg:min-h-0 lg:h-[calc(100vh-40px)] bg-foreground overflow-hidden flex flex-col lg:rounded-[20px]"
+    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8">
+      {/* Blurred darkened backdrop */}
+      <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md" />
+      
+      {/* Modal Container */}
+      <div className="relative z-10 w-full max-w-[80%] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+        {/* Left Panel - Hero/Branding */}
+        <div 
+          className="relative lg:w-1/2 min-h-[300px] lg:min-h-0 bg-foreground overflow-hidden flex flex-col m-[20px] lg:rounded-[20px]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -455,7 +460,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex flex-col min-h-screen lg:min-h-0 bg-background">
+      <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
         <header className="flex items-center justify-between p-4 md:p-6 lg:p-8">
           {/* Auth Toggle */}
@@ -585,6 +590,7 @@ const Auth = () => {
             </div>
           </footer>
         )}
+      </div>
       </div>
     </div>
   );
