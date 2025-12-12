@@ -341,6 +341,7 @@ const Auth = () => {
 
             {/* Trust Badge - visible on all sizes */}
             <div className="flex items-center gap-2">
+              <span className="text-xs text-background/40">Loved by</span>
               <div className="flex -space-x-1.5">
                 {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
                   background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
