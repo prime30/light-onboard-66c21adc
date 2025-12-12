@@ -392,7 +392,7 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Centered absolutely - Ultra Modern */}
+          {/* Step Indicator - Centered absolutely - Ultra Modern with red accent */}
           {showStepIndicator && <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-[10px]">
               {Array.from({
               length: getTotalSteps()
@@ -404,9 +404,9 @@ const Auth = () => {
                     ? "w-[30px] h-[30px]" 
                     : "w-[10px] h-[10px]"
                 )}>
-                  {/* Active step ring */}
+                  {/* Active step ring with subtle red glow */}
                   {i + 1 === getCurrentStepNumber() && (
-                    <div className="absolute inset-0 rounded-full border-2 border-foreground/20 animate-pulse" />
+                    <div className="absolute inset-0 rounded-full border border-accent-red/30 animate-pulse" style={{ boxShadow: '0 0 12px hsl(var(--accent-red) / 0.15)' }} />
                   )}
                   <div className={cn(
                     "rounded-full transition-all duration-500 flex items-center justify-center",
@@ -483,17 +483,17 @@ const SignInForm = ({
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
 }) => <div className="space-y-[30px]">
-    <div className="space-y-[10px] animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted/80 border border-border/30 mb-[5px]">
-        <div className="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" />
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+    <div className="space-y-[12px] animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red animate-pulse" />
+        <span className="text-[10px] font-medium text-accent-red/80 uppercase tracking-[0.15em]">
           Secure Login
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-tight leading-[1.1]">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Welcome back
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/80">
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
         Sign in to access your pro account
       </p>
     </div>
@@ -560,11 +560,11 @@ const SignInForm = ({
 
     <div className="flex items-center justify-center gap-[15px] text-xs text-muted-foreground/60 pt-[10px] animate-stagger-4">
       <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-green-500/80 animate-pulse" />
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" />
         <span className="text-[10px] uppercase tracking-wider">Encrypted</span>
       </div>
       <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-green-500/80 animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
         <span className="text-[10px] uppercase tracking-wider">256-bit SSL</span>
       </div>
     </div>
@@ -573,19 +573,19 @@ const OnboardingForm = ({
   onContinue
 }: {
   onContinue: () => void;
-}) => <div className="space-y-[25px] animate-fade-in text-center">
-    <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-      <Sparkles className="w-[15px] h-[15px] text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+}) => <div className="space-y-[30px] text-center">
+    <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-2.5 animate-stagger-1">
+      <Sparkles className="w-[14px] h-[14px] text-accent-red/70" />
+      <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
         Getting Started
       </span>
     </div>
 
-    <div className="space-y-2.5">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+    <div className="space-y-[10px] animate-stagger-1">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Ready to join?
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
         Create your pro account in just a few steps
       </p>
     </div>
@@ -644,17 +644,17 @@ const AccountTypeForm = ({
     description: "Currently enrolled",
     features: ["Student pricing", "Learning resources", "Community access"]
   }];
-  return <div className="space-y-5 sm:space-y-[25px] animate-fade-in">
-      <div className="space-y-2.5 text-center">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+  return <div className="space-y-5 sm:space-y-[30px]">
+      <div className="space-y-[10px] text-center animate-stagger-1">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
+          <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
             Step 1
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           Choose your path
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
           Select the account type that fits you best
         </p>
       </div>
@@ -694,17 +694,17 @@ const LicenseForm = ({
   state: string;
   onLicenseChange: (value: string) => void;
   onStateChange: (value: string) => void;
-}) => <div className="space-y-[25px] animate-fade-in">
-    <div className="space-y-2.5 text-center">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+}) => <div className="space-y-[30px]">
+    <div className="space-y-[10px] text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
+        <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
           Step 2
         </span>
       </div>
-      <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Verify your license
       </h1>
-      <p className="text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
         Enter your cosmetology license details
       </p>
     </div>

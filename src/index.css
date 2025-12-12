@@ -27,6 +27,10 @@
     --accent: 0 0% 92%;
     --accent-foreground: 0 0% 8%;
 
+    /* Elegant red accent - warm, sophisticated */
+    --accent-red: 0 72% 51%;
+    --accent-red-soft: 0 60% 60%;
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
