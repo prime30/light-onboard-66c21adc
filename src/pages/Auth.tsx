@@ -107,6 +107,8 @@ const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("signup");
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -180,34 +182,48 @@ const Auth = () => {
       navigate("/");
       return;
     }
-    switch (currentStep) {
-      case "onboarding":
-        setCurrentStep("account-type");
-        break;
-      case "account-type":
-        setCurrentStep(accountType === "student" ? "personal-info" : "license");
-        break;
-      case "license":
-        setCurrentStep("personal-info");
-        break;
-      case "personal-info":
-        setCurrentStep("success");
-        toast.success("Account created successfully!");
-        break;
-    }
+    
+    setTransitionDirection("forward");
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      switch (currentStep) {
+        case "onboarding":
+          setCurrentStep("account-type");
+          break;
+        case "account-type":
+          setCurrentStep(accountType === "student" ? "personal-info" : "license");
+          break;
+        case "license":
+          setCurrentStep("personal-info");
+          break;
+        case "personal-info":
+          setCurrentStep("success");
+          toast.success("Account created successfully!");
+          break;
+      }
+      setIsTransitioning(false);
+    }, 150);
   };
+  
   const handleBack = () => {
-    switch (currentStep) {
-      case "account-type":
-        setCurrentStep("onboarding");
-        break;
-      case "license":
-        setCurrentStep("account-type");
-        break;
-      case "personal-info":
-        setCurrentStep(accountType === "student" ? "account-type" : "license");
-        break;
-    }
+    setTransitionDirection("backward");
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      switch (currentStep) {
+        case "account-type":
+          setCurrentStep("onboarding");
+          break;
+        case "license":
+          setCurrentStep("account-type");
+          break;
+        case "personal-info":
+          setCurrentStep(accountType === "student" ? "account-type" : "license");
+          break;
+      }
+      setIsTransitioning(false);
+    }, 150);
   };
   const getTotalSteps = () => {
     return accountType === "student" ? 3 : 4;
@@ -439,8 +455,20 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 pt-0 pb-0">
-          <div className="w-full max-w-lg">
+        <main className="flex-1 flex items-center justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 pt-0 pb-0 overflow-hidden">
+          <div 
+            key={currentStep}
+            className={cn(
+              "w-full max-w-lg",
+              isTransitioning 
+                ? transitionDirection === "forward" 
+                  ? "animate-step-exit-left" 
+                  : "animate-step-exit-right"
+                : transitionDirection === "forward"
+                  ? "animate-step-enter-right"
+                  : "animate-step-enter-left"
+            )}
+          >
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
