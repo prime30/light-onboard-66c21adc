@@ -270,10 +270,10 @@ const Auth = () => {
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row p-0 lg:p-[20px]">
       {/* Left Panel - Hero/Branding */}
       <div 
-        className="relative lg:w-1/2 lg:min-h-screen bg-foreground overflow-hidden flex flex-col"
+        className="relative lg:w-1/2 lg:min-h-0 lg:h-[calc(100vh-40px)] bg-foreground overflow-hidden flex flex-col lg:rounded-[20px]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
