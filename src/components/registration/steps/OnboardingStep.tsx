@@ -109,23 +109,23 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         {/* Decorative elements with slide transition */}
         <div 
           key={currentSlide}
-          className="absolute inset-0 flex items-center justify-center animate-fade-in"
+          className="absolute inset-0 flex items-center justify-center animate-slide-in-right"
         >
           {slide.decorative}
-        </div>
-        
-        {/* Sparkle decorations */}
-        <Sparkles className="absolute top-6 right-8 w-6 h-6 text-accent" />
-        <Sparkles className="absolute bottom-8 left-10 w-4 h-4 text-accent/60" />
-        
-        {/* Floating badge */}
-        <div className="absolute bottom-12 right-4 bg-background rounded-full px-3 py-1.5 shadow-card flex items-center gap-1.5">
-          <SlideIcon className="w-4 h-4 text-accent fill-accent" />
-          <span className="text-xs font-medium">{slide.badge}</span>
+          
+          {/* Sparkle decorations */}
+          <Sparkles className="absolute top-6 right-8 w-6 h-6 text-accent" />
+          <Sparkles className="absolute bottom-8 left-10 w-4 h-4 text-accent/60" />
+          
+          {/* Floating badge */}
+          <div className="absolute bottom-12 right-4 bg-background rounded-full px-3 py-1.5 shadow-card flex items-center gap-1.5">
+            <SlideIcon className="w-4 h-4 text-accent fill-accent" />
+            <span className="text-xs font-medium">{slide.badge}</span>
+          </div>
         </div>
 
-        {/* Dot indicators inside carousel */}
-        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2">
+        {/* Dot indicators - stays fixed */}
+        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -142,8 +142,8 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         </div>
       </div>
 
-      {/* Content with slide transition */}
-      <div key={`content-${currentSlide}`} className="text-center mb-8 animate-fade-in">
+      {/* Content with rising fade transition */}
+      <div key={`content-${currentSlide}`} className="text-center mb-8 animate-rise-fade-in">
         <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
           {slide.title}
         </h1>
