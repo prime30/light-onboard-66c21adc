@@ -246,7 +246,7 @@ const Auth = () => {
         </div>
 
         {/* Left Panel - Hero/Branding */}
-        <div className="relative flex flex-col w-full lg:w-1/2 min-h-[280px] sm:min-h-[320px] lg:min-h-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative flex flex-col w-full lg:w-1/2 min-h-[280px] sm:min-h-[320px] lg:min-h-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
