@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Sparkles, Star, Truck, Gift, Palette, Users, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +54,16 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setProgress(0);
+  }, []);
+
+  const goToPrevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
     setProgress(0);
   }, []);
 
@@ -88,6 +95,38 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
     };
   }, [currentSlide, goToNextSlide, isPaused]);
 
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) {
+      setIsPaused(false);
+      return;
+    }
+
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+
+    if (Math.abs(diff) > minSwipeDistance) {
+      if (diff > 0) {
+        goToNextSlide();
+      } else {
+        goToPrevSlide();
+      }
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+    setIsPaused(false);
+  };
+
   const slide = slides[currentSlide];
   const SlideIcon = slide.icon;
 
@@ -95,10 +134,13 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
     <div className="animate-fade-in">
       {/* Hero carousel */}
       <div 
-        className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden cursor-pointer"
+        className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden cursor-pointer touch-pan-y"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onClick={() => setIsPaused((prev) => !prev)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Decorative elements with slide transition */}
         <div 
