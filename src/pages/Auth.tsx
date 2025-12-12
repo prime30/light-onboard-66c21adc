@@ -278,8 +278,15 @@ const Auth = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Animated gradient background */}
-        <div className="absolute inset-0">
+        {/* Sliding Background + Content Container */}
+        <div 
+          key={currentSlide}
+          className="absolute inset-0"
+          style={{
+            animation: 'slideIn 0.5s ease-out forwards'
+          }}
+        >
+          {/* Animated gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground" />
           
           <div 
@@ -313,89 +320,83 @@ const Auth = () => {
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
             }}
           />
+
+          {/* Sliding Text Content */}
+          <div className="absolute inset-0 flex items-center p-6 md:p-8 lg:p-12 pt-20">
+            <div>
+              {/* Eyebrow */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
+                <Sparkles className="w-3 h-3 text-background/80" />
+                <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
+                  {slide.eyebrow}
+                </span>
+              </div>
+
+              {/* Large Typography */}
+              <div className="space-y-1 mb-4">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-background/60 tracking-tight leading-none">
+                  {slide.title}
+                </h2>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-background tracking-tight leading-none">
+                  {slide.highlight}
+                </h1>
+              </div>
+
+              <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap">
+                {slide.description}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Floating decorations */}
+        {/* Floating decorations - Fixed */}
         <div className="absolute top-8 right-8 flex gap-2 z-10">
           <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '0s' }} />
           <div className="w-2 h-2 rounded-full bg-background/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
           <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-12">
+        {/* Fixed Content Overlay */}
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-12 pointer-events-none">
           {/* Logo - Fixed */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pointer-events-auto">
             <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-background" />
             </div>
             <span className="text-lg font-semibold text-background">ProBeauty</span>
           </div>
 
-          {/* Middle Section */}
-          <div className="flex-1 flex flex-col justify-center py-8 lg:py-0">
-            {/* Sliding Carousel Content */}
-            <div className="relative overflow-hidden">
-              <div 
-                key={currentSlide} 
-                className="animate-slide-in"
-                style={{
-                  animation: 'slideIn 0.4s ease-out forwards'
-                }}
-              >
-                {/* Eyebrow */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
-                  <Sparkles className="w-3 h-3 text-background/80" />
-                  <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
-                    {slide.eyebrow}
-                  </span>
-                </div>
+          {/* Spacer for middle content */}
+          <div className="flex-1" />
 
-                {/* Large Typography */}
-                <div className="space-y-1 mb-4">
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-background/60 tracking-tight leading-none">
-                    {slide.title}
-                  </h2>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-background tracking-tight leading-none">
-                    {slide.highlight}
-                  </h1>
+          {/* Stats Row - Fixed */}
+          <div className="flex gap-8 mb-8">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight">
+                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-
-                <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap mb-8">
-                  {slide.description}
-                </p>
+                <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
+                  {stat.label}
+                </div>
               </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Stats Row - Fixed */}
-            <div className="flex gap-8 mb-8">
-              {stats.map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-2xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                  </div>
-                  <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Feature Pills - Fixed */}
-            <div className="hidden lg:flex flex-wrap gap-3">
-              {features.map((feature, i) => (
-                <MagneticFeatureBox
-                  key={i}
-                  icon={feature.icon}
-                  label={feature.label}
-                  desc={feature.desc}
-                />
-              ))}
-            </div>
+          {/* Feature Pills - Fixed */}
+          <div className="hidden lg:flex flex-wrap gap-3 mb-8 pointer-events-auto">
+            {features.map((feature, i) => (
+              <MagneticFeatureBox
+                key={i}
+                icon={feature.icon}
+                label={feature.label}
+                desc={feature.desc}
+              />
+            ))}
           </div>
 
           {/* Bottom Navigation - Fixed */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pointer-events-auto">
             {/* Slide Indicators */}
             <div className="flex gap-2">
               {slides.map((_, i) => (
