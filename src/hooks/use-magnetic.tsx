@@ -4,12 +4,12 @@ interface MagneticOptions {
   strength?: number;
 }
 
-export const useMagnetic = ({ strength = 0.3 }: MagneticOptions = {}) => {
-  const ref = useRef<HTMLDivElement>(null);
+export const useMagnetic = <T extends HTMLElement = HTMLDivElement>({ strength = 0.3 }: MagneticOptions = {}) => {
+  const ref = useRef<T>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: React.MouseEvent<T>) => {
       if (!ref.current) return;
 
       const rect = ref.current.getBoundingClientRect();
