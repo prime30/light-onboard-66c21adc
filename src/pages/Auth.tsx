@@ -102,6 +102,26 @@ const MagneticFeatureBox = ({
       </div>
     </div>;
 };
+
+const SignInFeatureBox = ({
+  icon: Icon,
+  label,
+  desc
+}: FeatureBoxProps) => {
+  const magnetic = useMagnetic({
+    strength: 0.12
+  });
+  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-muted/50 border border-border/30 hover:border-border/50 hover:bg-muted/80 transition-all cursor-default">
+      <div className="w-[30px] h-[30px] rounded-[10px] bg-foreground flex items-center justify-center flex-shrink-0">
+        <Icon className="w-[15px] h-[15px] text-background" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground/70">{desc}</span>
+      </div>
+    </div>;
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>("signup");
@@ -573,6 +593,12 @@ const SignInForm = ({
         <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
         <span className="text-[10px] uppercase tracking-wider">256-bit SSL</span>
       </div>
+    </div>
+
+    <div className="flex flex-wrap justify-center gap-2.5 pt-[15px] animate-stagger-5">
+      {features.map((feature, index) => (
+        <SignInFeatureBox key={index} icon={feature.icon} label={feature.label} desc={feature.desc} />
+      ))}
     </div>
   </div>;
 const OnboardingForm = ({
@@ -1075,4 +1101,5 @@ const SuccessForm = ({
       <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
     </Button>
   </div>;
+
 export default Auth;
