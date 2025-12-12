@@ -283,7 +283,7 @@ const Auth = () => {
                 </h1>
               </div>
 
-              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-5 lg:mb-[30px]">
+              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
                 {slide.description}
               </p>
 
