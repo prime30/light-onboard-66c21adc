@@ -280,7 +280,7 @@ const Auth = () => {
       
       {/* Modal Container */}
       <div 
-        className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[32px] shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         style={{
           animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
         }}
