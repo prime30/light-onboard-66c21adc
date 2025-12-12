@@ -405,7 +405,7 @@ const Auth = () => {
         </main>
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-4 md:p-5 lg:p-6 pt-0 px-0">
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-4 md:p-5 lg:p-6 pt-0 px-0 py-[6px] pb-[60px]">
             <div className="max-w-md mx-auto flex gap-3">
               {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-12 px-5 rounded-xl border-border">
                   <ArrowLeft className="w-4 h-4" />
