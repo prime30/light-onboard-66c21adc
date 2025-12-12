@@ -14,7 +14,7 @@ interface MagneticIconBoxProps {
 }
 
 const MagneticIconBox = ({ icon: Icon, title, subtitle }: MagneticIconBoxProps) => {
-  const magnetic = useMagnetic({ strength: 0.4 });
+  const magnetic = useMagnetic({ strength: 0.15 });
 
   return (
     <div
