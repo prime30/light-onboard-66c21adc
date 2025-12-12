@@ -18,15 +18,21 @@ const MagneticFeatureBox = ({ icon: Icon, label, desc }: FeatureBoxProps) => {
       style={magnetic.style}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="group/pill flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/80 border border-border/50 hover:border-foreground/20 hover:bg-muted transition-all cursor-default w-full sm:w-auto"
+      className="group/pill relative flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/80 border border-border/50 hover:border-foreground/30 hover:bg-muted transition-all duration-300 cursor-default w-full sm:w-auto overflow-hidden hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/5"
     >
-      <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 text-background" />
+      {/* Subtle gradient overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.02] to-transparent opacity-0 group-hover/pill:opacity-100 transition-opacity duration-500" />
+      
+      <div className="relative w-8 h-8 rounded-lg bg-foreground flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover/pill:scale-110 group-hover/pill:rotate-3">
+        <Icon className="w-4 h-4 text-background transition-transform duration-300 group-hover/pill:scale-110" />
       </div>
-      <div className="flex flex-col">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="text-xs text-muted-foreground">{desc}</span>
+      <div className="relative flex flex-col">
+        <span className="text-sm font-medium text-foreground transition-colors duration-300 group-hover/pill:text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground transition-colors duration-300 group-hover/pill:text-muted-foreground/80">{desc}</span>
       </div>
+      
+      {/* Shine effect on hover */}
+      <div className="absolute inset-0 -translate-x-full group-hover/pill:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-foreground/5 to-transparent skew-x-12" />
     </div>
   );
 };
