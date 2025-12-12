@@ -14,7 +14,7 @@ export const AuthToggle = ({ mode, onModeChange }: AuthToggleProps) => {
             : "text-muted-foreground hover:text-foreground"
         }`}
       >
-        Apply
+        Sign up
       </button>
       <button
         onClick={() => onModeChange("signin")}
@@ -24,7 +24,7 @@ export const AuthToggle = ({ mode, onModeChange }: AuthToggleProps) => {
             : "text-muted-foreground hover:text-foreground"
         }`}
       >
-        Login
+        Sign in
       </button>
     </div>
   );
