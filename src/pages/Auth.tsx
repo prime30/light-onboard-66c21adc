@@ -479,7 +479,7 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="flex items-center justify-between p-4 md:p-6 lg:p-8">
+        <header className="flex items-center justify-between p-4 md:p-5 lg:p-6">
           {/* Auth Toggle */}
           <div className="inline-flex bg-muted rounded-full p-1">
             <button
@@ -527,7 +527,7 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center px-4 md:px-8 lg:px-12 py-8">
+        <main className="flex-1 flex items-center justify-center px-4 md:px-6 lg:px-8 py-6">
           <div className="w-full max-w-md">
             {mode === "signin" ? (
               <SignInForm 
@@ -577,7 +577,7 @@ const Auth = () => {
 
         {/* Footer */}
         {(mode === "signin" || (mode === "signup" && currentStep !== "success")) && (
-          <footer className="p-4 md:p-6 lg:p-8 pt-0">
+          <footer className="p-4 md:p-5 lg:p-6 pt-0">
             <div className="max-w-md mx-auto flex gap-3">
               {mode === "signup" && currentStep !== "onboarding" && (
                 <Button
