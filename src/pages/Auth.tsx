@@ -273,7 +273,10 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 lg:p-8">
       {/* Blurred darkened backdrop */}
-      <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md" />
+      <div 
+        className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" 
+        onClick={() => navigate("/")}
+      />
       
       {/* Modal Container */}
       <div 
