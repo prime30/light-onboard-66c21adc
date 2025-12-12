@@ -37,9 +37,9 @@ const stats = [
 ];
 
 const features = [
-  { icon: Gift, label: "Rewards" },
-  { icon: Truck, label: "Free Ship" },
-  { icon: Star, label: "Wholesale" },
+  { icon: Gift, label: "Rewards", desc: "On every order" },
+  { icon: Truck, label: "Free Shipping", desc: "2-day delivery on $250+" },
+  { icon: Star, label: "Wholesale", desc: "Pro pricing" },
 ];
 
 const AnimatedNumber = ({ value, suffix }: { value: number; suffix: string }) => {
@@ -231,16 +231,19 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       </div>
 
       {/* Feature Pills */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch justify-center gap-2 w-full">
         {features.map((feature, i) => (
           <div
             key={i}
-            className="group/pill flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted/80 border border-border/50 hover:border-foreground/20 hover:bg-muted transition-all cursor-default"
+            className="group/pill flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/80 border border-border/50 hover:border-foreground/20 hover:bg-muted transition-all cursor-default w-full sm:w-auto"
           >
-            <div className="w-6 h-6 rounded-full bg-foreground flex items-center justify-center">
-              <feature.icon className="w-3 h-3 text-background" />
+            <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center flex-shrink-0">
+              <feature.icon className="w-4 h-4 text-background" />
             </div>
-            <span className="text-sm font-medium text-foreground">{feature.label}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-foreground">{feature.label}</span>
+              <span className="text-xs text-muted-foreground">{feature.desc}</span>
+            </div>
           </div>
         ))}
       </div>
