@@ -23,14 +23,14 @@ const MagneticIconBox = ({ icon: Icon, title, subtitle }: MagneticIconBoxProps) 
       style={magnetic.style}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/50 md:flex-col md:text-center md:p-3"
+      className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 md:flex-col md:text-center md:p-3 md:rounded-xl"
     >
-      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-background flex items-center justify-center shadow-soft flex-shrink-0">
-        <Icon className="w-4 h-4 md:w-5 md:h-5 text-accent" />
+      <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-background flex items-center justify-center shadow-soft flex-shrink-0">
+        <Icon className="w-3.5 h-3.5 md:w-5 md:h-5 text-accent" />
       </div>
       <div className="md:space-y-0.5">
-        <p className="text-xs font-medium text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <p className="text-[11px] md:text-xs font-medium text-foreground leading-tight">{title}</p>
+        <p className="text-[10px] md:text-xs text-muted-foreground leading-tight">{subtitle}</p>
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProp
     <div className="animate-fade-in">
       {/* Hero carousel */}
       <div 
-        className="group relative h-56 md:h-64 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden touch-pan-y"
+        className="group relative h-40 md:h-64 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-4 md:mb-8 overflow-hidden touch-pan-y"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -153,13 +153,13 @@ export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProp
           {slide.decorative}
           
           {/* Sparkle decorations */}
-          <Sparkles className="absolute top-6 right-8 w-6 h-6 text-accent" />
-          <Sparkles className="absolute bottom-8 left-10 w-4 h-4 text-accent/60" />
+          <Sparkles className="absolute top-4 right-6 w-5 h-5 md:w-6 md:h-6 text-accent" />
+          <Sparkles className="absolute bottom-6 left-8 w-3 h-3 md:w-4 md:h-4 text-accent/60" />
           
           {/* Floating badge */}
-          <div className="absolute bottom-12 right-4 bg-background rounded-full px-3 py-1.5 shadow-card flex items-center gap-1.5">
-            <SlideIcon className="w-4 h-4 text-accent fill-accent" />
-            <span className="text-xs font-medium">{slide.badge}</span>
+          <div className="absolute bottom-8 right-3 md:bottom-12 md:right-4 bg-background rounded-full px-2.5 py-1 md:px-3 md:py-1.5 shadow-card flex items-center gap-1">
+            <SlideIcon className="w-3 h-3 md:w-4 md:h-4 text-accent fill-accent" />
+            <span className="text-[10px] md:text-xs font-medium">{slide.badge}</span>
           </div>
         </div>
 
@@ -180,7 +180,7 @@ export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProp
         </button>
 
         {/* Dot indicators - stays fixed */}
-        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
+        <div className="absolute bottom-2 md:bottom-4 left-4 right-4 flex items-center gap-2 z-10">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -198,17 +198,17 @@ export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProp
       </div>
 
       {/* Content with rising fade transition */}
-      <div key={`content-${currentSlide}`} className="text-center mb-8 animate-rise-fade-in">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
+      <div key={`content-${currentSlide}`} className="text-center mb-4 md:mb-8 animate-rise-fade-in">
+        <h1 className="text-xl md:text-3xl font-semibold text-foreground mb-1.5 md:mb-3">
           {slide.title}
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
           {slide.description}
         </p>
       </div>
 
-      {/* Feature highlights */}
-      <div className="flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4 max-w-lg mx-auto">
+      {/* Feature highlights - horizontal on mobile, grid on desktop */}
+      <div className="grid grid-cols-3 gap-2 md:gap-4 max-w-lg mx-auto">
         <MagneticIconBox icon={Gift} title="Rewards" subtitle="On every order" />
         <MagneticIconBox icon={Truck} title="Free Shipping" subtitle="2-day delivery" />
         <MagneticIconBox icon={Star} title="Wholesale" subtitle="Pro pricing" />
