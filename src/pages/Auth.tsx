@@ -324,7 +324,7 @@ const Auth = () => {
 
         {/* Content */}
         <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-12">
-          {/* Logo */}
+          {/* Logo - Fixed */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-background" />
@@ -332,31 +332,42 @@ const Auth = () => {
             <span className="text-lg font-semibold text-background">ProBeauty</span>
           </div>
 
-          {/* Carousel Content */}
-          <div key={currentSlide} className="animate-fade-in py-8 lg:py-0">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
-              <Sparkles className="w-3 h-3 text-background/80" />
-              <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
-                {slide.eyebrow}
-              </span>
+          {/* Middle Section */}
+          <div className="flex-1 flex flex-col justify-center py-8 lg:py-0">
+            {/* Sliding Carousel Content */}
+            <div className="relative overflow-hidden">
+              <div 
+                key={currentSlide} 
+                className="animate-slide-in"
+                style={{
+                  animation: 'slideIn 0.4s ease-out forwards'
+                }}
+              >
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
+                  <Sparkles className="w-3 h-3 text-background/80" />
+                  <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
+                    {slide.eyebrow}
+                  </span>
+                </div>
+
+                {/* Large Typography */}
+                <div className="space-y-1 mb-4">
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-background/60 tracking-tight leading-none">
+                    {slide.title}
+                  </h2>
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-background tracking-tight leading-none">
+                    {slide.highlight}
+                  </h1>
+                </div>
+
+                <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap mb-8">
+                  {slide.description}
+                </p>
+              </div>
             </div>
 
-            {/* Large Typography */}
-            <div className="space-y-1 mb-4">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-background/60 tracking-tight leading-none">
-                {slide.title}
-              </h2>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-background tracking-tight leading-none">
-                {slide.highlight}
-              </h1>
-            </div>
-
-            <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap mb-8">
-              {slide.description}
-            </p>
-
-            {/* Stats Row */}
+            {/* Stats Row - Fixed */}
             <div className="flex gap-8 mb-8">
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
@@ -370,7 +381,7 @@ const Auth = () => {
               ))}
             </div>
 
-            {/* Feature Pills - Desktop */}
+            {/* Feature Pills - Fixed */}
             <div className="hidden lg:flex flex-wrap gap-3">
               {features.map((feature, i) => (
                 <MagneticFeatureBox
@@ -383,7 +394,7 @@ const Auth = () => {
             </div>
           </div>
 
-          {/* Bottom Navigation */}
+          {/* Bottom Navigation - Fixed */}
           <div className="flex items-center justify-between">
             {/* Slide Indicators */}
             <div className="flex gap-2">
