@@ -383,20 +383,55 @@ const Auth = () => {
         {/* Header */}
         <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
           {/* Auth Toggle - Desktop only */}
-          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px]">
-            <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+          <div className="hidden lg:inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
+            <button onClick={() => handleModeChange("signup")} className={cn("px-[20px] py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signup" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            <button onClick={() => handleModeChange("signin")} className={cn("px-[20px] py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signin" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign in
             </button>
           </div>
           
-          {/* Step Indicator - Centered absolutely */}
-          {showStepIndicator && <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2.5">
+          {/* Step Indicator - Centered absolutely - Ultra Modern */}
+          {showStepIndicator && <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-[10px]">
               {Array.from({
               length: getTotalSteps()
-            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
+            }, (_, i) => (
+              <div key={i} className="flex items-center gap-[10px]">
+                <div className={cn(
+                  "relative flex items-center justify-center transition-all duration-500",
+                  i + 1 === getCurrentStepNumber() 
+                    ? "w-[30px] h-[30px]" 
+                    : "w-[10px] h-[10px]"
+                )}>
+                  {/* Active step ring */}
+                  {i + 1 === getCurrentStepNumber() && (
+                    <div className="absolute inset-0 rounded-full border-2 border-foreground/20 animate-pulse" />
+                  )}
+                  <div className={cn(
+                    "rounded-full transition-all duration-500 flex items-center justify-center",
+                    i + 1 === getCurrentStepNumber() 
+                      ? "w-[20px] h-[20px] bg-foreground progress-dot active" 
+                      : i + 1 < getCurrentStepNumber() 
+                        ? "w-[10px] h-[10px] bg-foreground" 
+                        : "w-[10px] h-[10px] bg-border"
+                  )}>
+                    {i + 1 < getCurrentStepNumber() && (
+                      <Check className="w-[6px] h-[6px] text-background" strokeWidth={3} />
+                    )}
+                    {i + 1 === getCurrentStepNumber() && (
+                      <span className="text-[8px] font-bold text-background">{i + 1}</span>
+                    )}
+                  </div>
+                </div>
+                {i < getTotalSteps() - 1 && (
+                  <div className={cn(
+                    "w-[20px] h-[2px] rounded-full transition-all duration-500",
+                    i + 1 < getCurrentStepNumber() ? "bg-foreground" : "bg-border/50"
+                  )} />
+                )}
+              </div>
+            ))}
             </div>}
           
           {/* Spacer for right side */}
@@ -419,12 +454,14 @@ const Auth = () => {
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]">
             <div className="max-w-lg mx-auto flex gap-[15px]">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[50px] px-5 rounded-[15px] border-border hover:bg-muted/50 transition-all duration-300">
-                  <ArrowLeft className="w-[15px] h-[15px]" />
+              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group">
+                  <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                 </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 btn-magnetic transition-all duration-300">
-                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
-                <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
+              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide">
+                <span className="relative z-10 flex items-center justify-center gap-[10px]">
+                  {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
+                  <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                </span>
               </Button>
             </div>
           </footer>}
@@ -445,20 +482,26 @@ const SignInForm = ({
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-[25px]">
-    <div className="space-y-2.5 animate-stagger-1">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+}) => <div className="space-y-[30px]">
+    <div className="space-y-[10px] animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted/80 border border-border/30 mb-[5px]">
+        <div className="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse" />
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Secure Login
+        </span>
+      </div>
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-tight leading-[1.1]">
         Welcome back
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground/80">
         Sign in to access your pro account
       </p>
     </div>
 
-    {/* Social Login Buttons */}
+    {/* Social Login Buttons - Ultra Modern */}
     <div className="grid grid-cols-2 gap-[15px] animate-stagger-2">
-      <button className="group flex items-center justify-center gap-2.5 h-[50px] rounded-[15px] border border-border/50 bg-background hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300">
-        <svg className="w-5 h-5" viewBox="0 0 24 24">
+      <button className="social-btn group flex items-center justify-center gap-2.5 h-[55px] rounded-[15px] border border-border/40 bg-background/80 backdrop-blur-sm">
+        <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24">
           <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -466,61 +509,63 @@ const SignInForm = ({
         </svg>
         <span className="text-sm font-medium text-foreground">Google</span>
       </button>
-      <button className="group flex items-center justify-center gap-2.5 h-[50px] rounded-[15px] border border-border/50 bg-background hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300">
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <button className="social-btn group flex items-center justify-center gap-2.5 h-[55px] rounded-[15px] border border-border/40 bg-background/80 backdrop-blur-sm">
+        <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
         </svg>
         <span className="text-sm font-medium text-foreground">Apple</span>
       </button>
     </div>
 
-    {/* Divider */}
+    {/* Divider - Refined */}
     <div className="relative flex items-center gap-5 animate-stagger-2">
-      <div className="flex-1 h-px bg-border" />
-      <span className="text-xs text-muted-foreground uppercase tracking-widest">or continue with email</span>
-      <div className="flex-1 h-px bg-border" />
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.2em] font-medium">or</span>
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </div>
 
-    <div className="space-y-5 animate-stagger-3">
+    <div className="space-y-[20px] animate-stagger-3">
       <div className="space-y-2.5">
-        <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
-          Email
+        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
+          Email address
         </Label>
-        <div className="relative group input-glow rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+        <div className="relative group input-ultra rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:rotate-3">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40" />
         </div>
       </div>
 
       <div className="space-y-2.5">
-        <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
+        <Label htmlFor="login-password" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
           Password
         </Label>
-        <div className="relative group input-glow rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+        <div className="relative group input-ultra rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:-rotate-3">
             <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
+          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40" />
         </div>
       </div>
 
-      <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-colors">
-        Forgot password?
-        <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+      <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
+        <span className="relative">
+          Forgot password?
+          <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+        </span>
+        <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
       </button>
     </div>
 
-    <div className="flex items-center justify-center gap-5 text-xs text-muted-foreground pt-5 animate-stagger-4">
-      <div className="flex items-center gap-[5px]">
-        <div className="w-[5px] h-[5px] rounded-full bg-green-500 animate-pulse" />
-        <span>Secure login</span>
+    <div className="flex items-center justify-center gap-[15px] text-xs text-muted-foreground/60 pt-[10px] animate-stagger-4">
+      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
+        <div className="w-[6px] h-[6px] rounded-full bg-green-500/80 animate-pulse" />
+        <span className="text-[10px] uppercase tracking-wider">Encrypted</span>
       </div>
-      <div className="w-[5px] h-[5px] rounded-full bg-border" />
-      <div className="flex items-center gap-[5px]">
-        <div className="w-[5px] h-[5px] rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.5s' }} />
-        <span>256-bit encryption</span>
+      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
+        <div className="w-[6px] h-[6px] rounded-full bg-green-500/80 animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <span className="text-[10px] uppercase tracking-wider">256-bit SSL</span>
       </div>
     </div>
   </div>;

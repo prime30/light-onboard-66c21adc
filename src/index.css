@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -93,7 +93,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -119,69 +124,200 @@
   }
 
   .animate-stagger-1 {
-    animation: staggerFadeIn 0.5s ease-out forwards;
-    animation-delay: 0.1s;
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.05s;
     opacity: 0;
   }
 
   .animate-stagger-2 {
-    animation: staggerFadeIn 0.5s ease-out forwards;
-    animation-delay: 0.2s;
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.15s;
     opacity: 0;
   }
 
   .animate-stagger-3 {
-    animation: staggerFadeIn 0.5s ease-out forwards;
-    animation-delay: 0.3s;
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.25s;
     opacity: 0;
   }
 
   .animate-stagger-4 {
-    animation: staggerFadeIn 0.5s ease-out forwards;
-    animation-delay: 0.4s;
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.35s;
     opacity: 0;
   }
 
-  /* Modern gradient glow input focus effect */
-  .input-glow {
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  .animate-stagger-5 {
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.45s;
+    opacity: 0;
   }
 
-  .input-glow::before {
+  /* Ultra-modern input styling */
+  .input-ultra {
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .input-ultra::before {
     content: '';
     position: absolute;
-    inset: -2px;
+    inset: -1px;
     border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, hsl(var(--foreground) / 0), hsl(var(--foreground) / 0));
+    padding: 1px;
+    background: linear-gradient(135deg, transparent, transparent);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .input-glow:focus-within::before {
-    background: linear-gradient(135deg, hsl(var(--foreground) / 0.3), hsl(var(--foreground) / 0.1));
+  .input-ultra:focus-within::before {
+    opacity: 1;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.4), hsl(var(--foreground) / 0.1), hsl(var(--foreground) / 0.2));
   }
 
-  .input-glow:focus-within {
-    box-shadow: 0 0 20px hsl(var(--foreground) / 0.08), 0 0 40px hsl(var(--foreground) / 0.04);
+  .input-ultra:focus-within {
+    box-shadow: 
+      0 0 0 1px hsl(var(--foreground) / 0.1),
+      0 4px 20px hsl(var(--foreground) / 0.06),
+      0 8px 40px hsl(var(--foreground) / 0.03);
+    transform: translateY(-1px);
   }
 
-  /* Magnetic button effect */
-  .btn-magnetic {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Floating label effect */
+  .floating-label {
+    position: absolute;
+    left: 55px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
   }
 
-  .btn-magnetic:hover {
-    box-shadow: 0 10px 30px hsl(var(--foreground) / 0.15), 0 5px 15px hsl(var(--foreground) / 0.1);
+  .floating-label.active {
+    top: 8px;
+    transform: translateY(0);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(var(--foreground));
   }
 
-  .btn-magnetic:active {
-    transform: scale(0.98);
+  /* Premium button with shine effect */
+  .btn-premium {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--background) / 0.2),
+      transparent
+    );
+    transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-premium:hover::before {
+    left: 100%;
+  }
+
+  .btn-premium:hover {
+    box-shadow: 
+      0 10px 40px hsl(var(--foreground) / 0.2),
+      0 5px 20px hsl(var(--foreground) / 0.15);
+    transform: translateY(-2px);
+  }
+
+  .btn-premium:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Glass morphism card */
+  .glass-card {
+    background: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Subtle grain texture overlay */
+  .grain-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Social button hover effect */
+  .social-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .social-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.03), hsl(var(--foreground) / 0.08));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .social-btn:hover::before {
+    opacity: 1;
+  }
+
+  .social-btn:hover {
+    border-color: hsl(var(--foreground) / 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px hsl(var(--foreground) / 0.08);
+  }
+
+  /* Morphing progress indicator */
+  .progress-dot {
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .progress-dot.active {
+    animation: progressPulse 2s ease-in-out infinite;
+  }
+
+  /* Text shimmer effect */
+  .text-shimmer {
+    background: linear-gradient(
+      120deg,
+      hsl(var(--foreground)) 0%,
+      hsl(var(--foreground) / 0.6) 50%,
+      hsl(var(--foreground)) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: textShimmer 3s ease-in-out infinite;
+  }
+
+  /* Magnetic hover container */
+  .magnetic-container {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
@@ -252,18 +388,18 @@
 @keyframes modalEnter {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96) translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 @keyframes staggerFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -286,5 +422,41 @@
   }
   50% {
     opacity: 1;
+  }
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--foreground) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px hsl(var(--foreground) / 0);
+  }
+}
+
+@keyframes textShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes morphBlob {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
   }
 }
