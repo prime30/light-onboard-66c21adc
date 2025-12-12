@@ -204,7 +204,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
               </h1>
             </div>
 
-            <p className="text-sm md:text-base text-background/50 whitespace-nowrap">
+            <p className="text-sm md:text-base text-background/50 md:whitespace-nowrap">
               {slide.description}
             </p>
           </div>
