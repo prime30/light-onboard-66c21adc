@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Sparkles, Star, Truck, Gift, Palette, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStepProps {
   onContinue: () => void;
 }
+
+const AUTO_PROGRESS_DURATION = 4000; // 4 seconds per slide
 
 const slides = [
   {
@@ -50,6 +52,38 @@ const slides = [
 
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const goToNextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setProgress(0);
+  }, []);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    setProgress(0);
+  };
+
+  // Auto-progression with progress tracking
+  useEffect(() => {
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return prev;
+        }
+        return prev + (100 / (AUTO_PROGRESS_DURATION / 50));
+      });
+    }, 50);
+
+    const slideTimeout = setTimeout(() => {
+      goToNextSlide();
+    }, AUTO_PROGRESS_DURATION);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearTimeout(slideTimeout);
+    };
+  }, [currentSlide, goToNextSlide]);
 
   const slide = slides[currentSlide];
   const SlideIcon = slide.icon;
@@ -57,7 +91,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   return (
     <div className="animate-fade-in">
       {/* Hero carousel */}
-      <div className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-4 overflow-hidden">
+      <div className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300">
           {slide.decorative}
@@ -68,27 +102,37 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         <Sparkles className="absolute bottom-8 left-10 w-4 h-4 text-accent/60" />
         
         {/* Floating badge */}
-        <div className="absolute bottom-4 right-4 bg-background rounded-full px-3 py-1.5 shadow-card flex items-center gap-1.5">
+        <div className="absolute bottom-12 right-4 bg-background rounded-full px-3 py-1.5 shadow-card flex items-center gap-1.5">
           <SlideIcon className="w-4 h-4 text-accent fill-accent" />
           <span className="text-xs font-medium">{slide.badge}</span>
         </div>
-      </div>
 
-      {/* Dot navigation */}
-      <div className="flex items-center justify-center gap-2 mb-6">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentSlide(index)}
-            className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              index === currentSlide
-                ? "w-6 bg-foreground"
-                : "w-2 bg-border hover:bg-muted-foreground/50"
-            )}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+        {/* Progress bar indicators inside carousel */}
+        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className="flex-1 h-1 rounded-full bg-background/40 overflow-hidden"
+              aria-label={`Go to slide ${index + 1}`}
+            >
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  index < currentSlide
+                    ? "w-full bg-foreground"
+                    : index === currentSlide
+                    ? "bg-foreground"
+                    : "w-0"
+                )}
+                style={{
+                  width: index === currentSlide ? `${progress}%` : index < currentSlide ? "100%" : "0%",
+                  transition: index === currentSlide ? "width 50ms linear" : "width 300ms ease-out"
+                }}
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
