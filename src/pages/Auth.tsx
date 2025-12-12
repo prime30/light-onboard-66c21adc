@@ -29,7 +29,8 @@ import {
   Heart,
   ArrowUpRight,
   Building2,
-  GraduationCap
+  GraduationCap,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -276,6 +277,14 @@ const Auth = () => {
       
       {/* Modal Container */}
       <div className="relative z-10 w-full max-w-[80%] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+        {/* Close Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </button>
         {/* Left Panel - Hero/Branding */}
         <div 
           className="relative lg:w-1/2 min-h-[300px] lg:min-h-0 bg-foreground overflow-hidden flex flex-col m-[20px] lg:rounded-[20px]"
