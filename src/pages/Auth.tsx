@@ -276,7 +276,12 @@ const Auth = () => {
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md" />
       
       {/* Modal Container */}
-      <div className="relative z-10 w-full max-w-[80%] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+      <div 
+        className="relative z-10 w-full max-w-[80%] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        style={{
+          animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+        }}
+      >
         {/* Close Button */}
         <button
           onClick={() => navigate("/")}
