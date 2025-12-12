@@ -142,12 +142,15 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         </VisuallyHidden>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-b border-border/50">
-          <AuthToggle mode={mode} onModeChange={handleModeChange} />
+        <div className="flex flex-col gap-4 p-4 md:p-6 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <AuthToggle mode={mode} onModeChange={handleModeChange} />
+          </div>
           {showStepIndicator && (
-            <StepIndicator currentStep={getCurrentStepNumber()} totalSteps={getTotalSteps()} />
+            <div className="flex justify-center">
+              <StepIndicator currentStep={getCurrentStepNumber()} totalSteps={getTotalSteps()} />
+            </div>
           )}
-          {!showStepIndicator && <div />}
         </div>
 
         {/* Content */}
