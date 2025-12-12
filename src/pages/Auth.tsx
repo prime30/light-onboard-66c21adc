@@ -262,12 +262,9 @@ const Auth = () => {
           }} />
 
           {/* Sliding Content - Text, Stats, Features */}
-          <div className="absolute inset-0 flex flex-col justify-between p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
-            {/* Top spacer */}
-            <div className="h-10" />
-            
+          <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
             {/* Main content */}
-            <div className="flex-1 flex flex-col justify-center gap-0 pb-[20px]">
+            <div className="flex flex-col gap-0 pb-[20px]">
               {/* Eyebrow */}
               <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
                 <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
