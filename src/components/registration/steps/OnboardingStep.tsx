@@ -1,6 +1,35 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Sparkles, Star, Truck, Gift, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMagnetic } from "@/hooks/use-magnetic";
+
+interface FeatureBoxProps {
+  icon: React.ElementType;
+  label: string;
+  desc: string;
+}
+
+const MagneticFeatureBox = ({ icon: Icon, label, desc }: FeatureBoxProps) => {
+  const magnetic = useMagnetic({ strength: 0.12 });
+
+  return (
+    <div
+      ref={magnetic.ref}
+      style={magnetic.style}
+      onMouseMove={magnetic.onMouseMove}
+      onMouseLeave={magnetic.onMouseLeave}
+      className="group/pill flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/80 border border-border/50 hover:border-foreground/20 hover:bg-muted transition-all cursor-default w-full sm:w-auto"
+    >
+      <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 text-background" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">{desc}</span>
+      </div>
+    </div>
+  );
+};
 
 interface OnboardingStepProps {
   onContinue: () => void;
@@ -233,18 +262,12 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       {/* Feature Pills */}
       <div className="flex flex-col sm:flex-row items-stretch justify-center gap-2 w-full">
         {features.map((feature, i) => (
-          <div
+          <MagneticFeatureBox
             key={i}
-            className="group/pill flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/80 border border-border/50 hover:border-foreground/20 hover:bg-muted transition-all cursor-default w-full sm:w-auto"
-          >
-            <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center flex-shrink-0">
-              <feature.icon className="w-4 h-4 text-background" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">{feature.label}</span>
-              <span className="text-xs text-muted-foreground">{feature.desc}</span>
-            </div>
-          </div>
+            icon={feature.icon}
+            label={feature.label}
+            desc={feature.desc}
+          />
         ))}
       </div>
 
