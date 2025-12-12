@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Sparkles, Star, Truck, Gift, Palette, Users } from "lucide-react";
+import { Sparkles, Star, Truck, Gift, Palette, Users, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStepProps {
@@ -103,6 +103,22 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         {/* Decorative elements */}
         <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300">
           {slide.decorative}
+        </div>
+
+        {/* Pause/Play indicator */}
+        <div 
+          className={cn(
+            "absolute inset-0 flex items-center justify-center bg-foreground/10 transition-opacity duration-200",
+            isPaused ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+        >
+          <div className="w-12 h-12 rounded-full bg-background/90 shadow-card flex items-center justify-center">
+            {isPaused ? (
+              <Play className="w-5 h-5 text-foreground ml-0.5" />
+            ) : (
+              <Pause className="w-5 h-5 text-foreground" />
+            )}
+          </div>
         </div>
         
         {/* Sparkle decorations */}
