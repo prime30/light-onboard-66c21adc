@@ -127,6 +127,23 @@
     animation: riseFadeIn 0.5s ease-out forwards;
   }
 
+  /* Step transition animations */
+  .animate-step-enter-right {
+    animation: stepEnterRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-step-enter-left {
+    animation: stepEnterLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-step-exit-left {
+    animation: stepExitLeft 0.15s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  .animate-step-exit-right {
+    animation: stepExitRight 0.15s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
   .animate-stagger-1 {
     animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     animation-delay: 0.05s;
@@ -650,5 +667,58 @@
   }
   50% {
     box-shadow: 0 0 20px 4px hsl(var(--foreground) / 0.08);
+  }
+}
+
+/* Step transition keyframes */
+@keyframes stepEnterRight {
+  0% {
+    opacity: 0;
+    transform: translateX(40px) scale(0.98);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes stepEnterLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.98);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes stepExitLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.98);
+    filter: blur(2px);
+  }
+}
+
+@keyframes stepExitRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(20px) scale(0.98);
+    filter: blur(2px);
   }
 }
