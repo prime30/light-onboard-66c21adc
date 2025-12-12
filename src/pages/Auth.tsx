@@ -656,27 +656,90 @@ const AccountTypeForm = ({
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]">
-        {types.map(type => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 transition-all duration-200 text-left group", selectedType === type.id ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
-            {selectedType === type.id && <div className="absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                <Check className="w-[15px] h-[15px] text-background" />
-              </div>}
+        {types.map((type, index) => (
+          <button 
+            key={type.id} 
+            onClick={() => onSelect(type.id)} 
+            className={cn(
+              "relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden",
+              "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+              "hover:-translate-y-0.5 active:scale-[0.98]",
+              selectedType === type.id 
+                ? "border-foreground bg-foreground/5 shadow-lg shadow-foreground/5" 
+                : "border-border hover:border-foreground/30 hover:bg-muted/50 hover:shadow-md hover:shadow-foreground/5"
+            )}
+            style={{ 
+              animationDelay: `${index * 0.05}s`,
+              transform: selectedType === type.id ? 'translateY(-2px)' : undefined
+            }}
+          >
+            {/* Selection ripple effect */}
+            <div className={cn(
+              "absolute inset-0 bg-gradient-to-r from-foreground/5 via-foreground/10 to-foreground/5 opacity-0 transition-opacity duration-500",
+              selectedType === type.id && "opacity-100"
+            )} />
+            
+            {/* Shine sweep on selection */}
+            <div className={cn(
+              "absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent skew-x-12 transition-transform duration-700",
+              selectedType === type.id && "translate-x-full"
+            )} />
 
-            <div className="flex items-start gap-[15px] sm:gap-5">
-              <div className={cn("w-10 h-10 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-colors", selectedType === type.id ? "bg-foreground" : "bg-muted")}>
-                <type.icon className={cn("w-5 h-5 transition-colors", selectedType === type.id ? "text-background" : "text-foreground")} />
+            {/* Check mark with bounce animation */}
+            <div className={cn(
+              "absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-6 h-6 rounded-full bg-foreground flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+              selectedType === type.id 
+                ? "scale-100 opacity-100" 
+                : "scale-0 opacity-0"
+            )}>
+              <Check className={cn(
+                "w-[14px] h-[14px] text-background transition-transform duration-300 delay-100",
+                selectedType === type.id ? "scale-100" : "scale-0"
+              )} strokeWidth={3} />
+            </div>
+
+            <div className="relative flex items-start gap-[15px] sm:gap-5">
+              {/* Icon with haptic bounce */}
+              <div className={cn(
+                "w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+                selectedType === type.id 
+                  ? "bg-foreground scale-110 shadow-lg shadow-foreground/20" 
+                  : "bg-muted group-hover:scale-105 group-hover:bg-muted/80"
+              )}>
+                <type.icon className={cn(
+                  "w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300",
+                  selectedType === type.id 
+                    ? "text-background scale-110" 
+                    : "text-foreground group-hover:scale-105"
+                )} />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{type.title}</p>
-                <p className="text-xs text-muted-foreground mb-2.5">{type.description}</p>
+                <p className={cn(
+                  "text-sm sm:text-base font-medium text-foreground transition-all duration-300",
+                  selectedType === type.id && "translate-x-0.5"
+                )}>{type.title}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2.5">{type.description}</p>
                 <div className="flex flex-wrap gap-[5px]">
-                  {type.features.map((feature, i) => <span key={i} className="text-[10px] px-2.5 py-[5px] rounded-full bg-muted text-muted-foreground">
+                  {type.features.map((feature, i) => (
+                    <span 
+                      key={i} 
+                      className={cn(
+                        "text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300",
+                        selectedType === type.id 
+                          ? "bg-foreground/10 text-foreground" 
+                          : "bg-muted text-muted-foreground"
+                      )}
+                      style={{ transitionDelay: `${i * 50}ms` }}
+                    >
                       {feature}
-                    </span>)}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
-          </button>)}
+          </button>
+        ))}
       </div>
     </div>;
 };
