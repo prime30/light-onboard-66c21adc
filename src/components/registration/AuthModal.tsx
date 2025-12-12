@@ -119,18 +119,17 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   };
 
   const getTotalSteps = () => {
-    return accountType === "student" ? 4 : 5;
+    return accountType === "student" ? 3 : 4;
   };
 
   const getCurrentStepNumber = () => {
-    if (currentStep === "onboarding") return 1;
-    if (currentStep === "account-type") return 2;
-    if (currentStep === "license") return 3;
-    if (currentStep === "personal-info") return accountType === "student" ? 3 : 4;
-    return accountType === "student" ? 4 : 5;
+    if (currentStep === "account-type") return 1;
+    if (currentStep === "license") return 2;
+    if (currentStep === "personal-info") return accountType === "student" ? 2 : 3;
+    return accountType === "student" ? 3 : 4;
   };
 
-  const showStepIndicator = mode === "signup" && currentStep !== "success";
+  const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
