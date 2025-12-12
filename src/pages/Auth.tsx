@@ -339,6 +339,16 @@ const Auth = () => {
               {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-1.5 rounded-full transition-all duration-300", i === currentSlide ? "w-8 bg-background/60" : "w-1.5 bg-background/20")} />)}
             </div>
 
+            {/* Trust Badge - visible on all sizes */}
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-1.5">
+                {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
+                  background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
+                }} />)}
+              </div>
+              <span className="text-xs text-background/50">10K+ pros</span>
+            </div>
+
             {/* Nav Arrows - Desktop */}
             <div className="hidden lg:flex gap-2">
               <button onClick={goToPrevSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
@@ -347,16 +357,6 @@ const Auth = () => {
               <button onClick={goToNextSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
                 <ChevronRight className="w-4 h-4 text-background/70" />
               </button>
-            </div>
-
-            {/* Trust Badge */}
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="flex -space-x-1.5">
-                {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
-                  background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
-                }} />)}
-              </div>
-              <span className="text-xs text-background/50">10K+ pros</span>
             </div>
           </div>
         </div>
