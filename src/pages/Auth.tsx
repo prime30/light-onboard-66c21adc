@@ -241,7 +241,12 @@ const Auth = () => {
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
       {/* Modal Container */}
-      <div className="relative z-10 w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px] bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row" style={{
+      <div className={cn(
+        "relative z-10 bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300",
+        mode === "signin" 
+          ? "w-auto max-w-md h-auto" 
+          : "w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px]"
+      )} style={{
       animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
     }}>
         {/* Close Button */}
