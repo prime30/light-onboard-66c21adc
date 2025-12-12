@@ -100,8 +100,11 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         onMouseLeave={() => setIsPaused(false)}
         onClick={() => setIsPaused((prev) => !prev)}
       >
-        {/* Decorative elements */}
-        <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300">
+        {/* Decorative elements with slide transition */}
+        <div 
+          key={currentSlide}
+          className="absolute inset-0 flex items-center justify-center animate-fade-in"
+        >
           {slide.decorative}
         </div>
 
@@ -159,12 +162,12 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3 transition-all duration-300">
+      {/* Content with slide transition */}
+      <div key={`content-${currentSlide}`} className="text-center mb-8 animate-fade-in">
+        <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
           {slide.title}
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto transition-all duration-300">
+        <p className="text-muted-foreground max-w-md mx-auto">
           {slide.description}
         </p>
       </div>
