@@ -381,16 +381,9 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="flex flex-col gap-2.5 p-2.5 sm:p-5 lg:p-[25px]">
-          {/* Step Indicator - Centered at top */}
-          {showStepIndicator && <div className="flex items-center justify-center gap-2.5 pb-2.5">
-              {Array.from({
-              length: getTotalSteps()
-            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
-            </div>}
-          
+        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
           {/* Auth Toggle - Desktop only */}
-          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px] w-fit">
+          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px]">
             <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
@@ -398,6 +391,16 @@ const Auth = () => {
               Sign in
             </button>
           </div>
+          
+          {/* Step Indicator - Centered absolutely */}
+          {showStepIndicator && <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2.5">
+              {Array.from({
+              length: getTotalSteps()
+            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
+            </div>}
+          
+          {/* Spacer for right side */}
+          <div className="w-10" />
         </header>
 
         {/* Form Content */}
