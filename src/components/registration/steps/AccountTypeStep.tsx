@@ -34,23 +34,15 @@ const accountTypes = [
 
 export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps) => {
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Modern header */}
-      <div className="relative overflow-hidden rounded-2xl bg-foreground p-6">
+    <div className="animate-fade-in space-y-3">
+      {/* Modern header - compact */}
+      <div className="relative overflow-hidden rounded-xl bg-foreground p-4">
         {/* Animated gradient orbs */}
         <div 
-          className="absolute top-0 right-0 w-[180px] h-[180px] rounded-full blur-[70px] animate-pulse"
+          className="absolute top-0 right-0 w-[120px] h-[120px] rounded-full blur-[50px] animate-pulse"
           style={{ 
             background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
             animationDuration: '4s'
-          }}
-        />
-        <div 
-          className="absolute bottom-0 left-0 w-[120px] h-[120px] rounded-full blur-[50px] animate-pulse"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-            animationDuration: '5s',
-            animationDelay: '1s'
           }}
         />
         
@@ -62,24 +54,23 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
           }}
         />
 
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-4">
-            <Sparkles className="w-3 h-3 text-background/80" />
-            <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
-              Getting started
-            </span>
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm border border-background/10 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-background/80" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
-            Choose your account type
-          </h1>
-          <p className="text-sm text-background/50 mt-2">
-            Select the option that best describes you
-          </p>
+          <div>
+            <h1 className="text-lg font-semibold text-background tracking-tight">
+              Choose your account type
+            </h1>
+            <p className="text-xs text-background/50">
+              Select the option that best describes you
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Account type cards */}
-      <div className="grid gap-3 md:grid-cols-3">
+      {/* Account type cards - stacked on mobile */}
+      <div className="grid gap-2 md:grid-cols-3">
         {accountTypes.map((type) => (
           <AccountTypeCard
             key={type.id}
@@ -95,9 +86,9 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
       </div>
 
       {/* Trust indicator */}
-      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-        <span>You can change this later in settings</span>
+      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <div className="w-1 h-1 rounded-full bg-green-500" />
+        <span>You can change this later</span>
       </div>
     </div>
   );

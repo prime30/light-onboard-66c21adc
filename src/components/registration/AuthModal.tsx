@@ -119,7 +119,7 @@ export const AuthModal = ({
         </VisuallyHidden>
 
         {/* Header */}
-        <div className="flex flex-col gap-3 p-4 md:px-6 md:pt-6 md:pb-0">
+        <div className="flex flex-col gap-2 p-3 md:px-6 md:pt-5 md:pb-0">
           <div className="flex items-center justify-between">
             <AuthToggle mode={mode} onModeChange={handleModeChange} />
           </div>
@@ -129,7 +129,7 @@ export const AuthModal = ({
         </div>
 
         {/* Content */}
-        <div className="p-4 md:p-6">
+        <div className="p-3 md:p-5">
           {mode === "signin" ? <LoginStep email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
               {currentStep === "onboarding" && <OnboardingStep onContinue={handleNext} />}
               {currentStep === "account-type" && <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />}
@@ -140,12 +140,12 @@ export const AuthModal = ({
         </div>
 
         {/* Footer */}
-        {(mode === "signin" || currentStep !== "success") && <div className="p-4 md:p-6 border-t border-border/50">
-            <div className="flex gap-3">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-12 px-6 rounded-xl border-border">
+        {(mode === "signin" || currentStep !== "success") && <div className="p-3 md:p-5 border-t border-border/50">
+            <div className="flex gap-2">
+              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-11 px-5 rounded-xl border-border">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
+              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
                 {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
