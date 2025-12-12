@@ -280,7 +280,7 @@ const Auth = () => {
       
       {/* Modal Container */}
       <div 
-        className="relative z-10 w-full max-w-[80%] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[20px] shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         style={{
           animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
         }}
@@ -344,7 +344,7 @@ const Auth = () => {
           />
 
           {/* Sliding Text Content */}
-          <div className="absolute inset-0 flex items-center p-6 md:p-8 lg:p-12 pt-20">
+          <div className="absolute inset-0 flex items-center p-6 md:p-8 lg:p-10 pt-16 pb-32">
             <div>
               {/* Eyebrow */}
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
@@ -379,7 +379,7 @@ const Auth = () => {
         </div>
 
         {/* Fixed Content Overlay */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-12 pointer-events-none">
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-6 md:p-8 lg:p-10 pointer-events-none">
           {/* Logo - Fixed */}
           <div className="flex items-center gap-2 pointer-events-auto">
             <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
