@@ -1,12 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, Star, Truck, Gift, Palette, Users, Pause, Play } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { Sparkles, Star, Truck, Gift, Palette, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OnboardingStepProps {
   onContinue: () => void;
 }
-
-const AUTO_PROGRESS_DURATION = 4000; // 4 seconds per slide
 
 const slides = [
   {
@@ -52,53 +50,24 @@ const slides = [
 
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
-    setProgress(0);
   }, []);
 
   const goToPrevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    setProgress(0);
   }, []);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
-    setProgress(0);
   };
-
-  // Auto-progression with progress tracking
-  useEffect(() => {
-    if (isPaused) return;
-
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          return prev;
-        }
-        return prev + (100 / (AUTO_PROGRESS_DURATION / 50));
-      });
-    }, 50);
-
-    const slideTimeout = setTimeout(() => {
-      goToNextSlide();
-    }, AUTO_PROGRESS_DURATION);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearTimeout(slideTimeout);
-    };
-  }, [currentSlide, goToNextSlide, isPaused]);
 
   // Swipe gesture handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
-    setIsPaused(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -107,7 +76,6 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
   const handleTouchEnd = () => {
     if (touchStartX.current === null || touchEndX.current === null) {
-      setIsPaused(false);
       return;
     }
 
@@ -124,7 +92,6 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
     touchStartX.current = null;
     touchEndX.current = null;
-    setIsPaused(false);
   };
 
   const slide = slides[currentSlide];
@@ -134,10 +101,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
     <div className="animate-fade-in">
       {/* Hero carousel */}
       <div 
-        className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden cursor-pointer touch-pan-y"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onClick={() => setIsPaused((prev) => !prev)}
+        className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden touch-pan-y"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -148,22 +112,6 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           className="absolute inset-0 flex items-center justify-center animate-fade-in"
         >
           {slide.decorative}
-        </div>
-
-        {/* Pause/Play indicator */}
-        <div 
-          className={cn(
-            "absolute inset-0 flex items-center justify-center bg-foreground/10 transition-opacity duration-200",
-            isPaused ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="w-12 h-12 rounded-full bg-background/90 shadow-card flex items-center justify-center">
-            {isPaused ? (
-              <Play className="w-5 h-5 text-foreground ml-0.5" />
-            ) : (
-              <Pause className="w-5 h-5 text-foreground" />
-            )}
-          </div>
         </div>
         
         {/* Sparkle decorations */}
@@ -176,30 +124,20 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           <span className="text-xs font-medium">{slide.badge}</span>
         </div>
 
-        {/* Progress bar indicators inside carousel */}
+        {/* Dot indicators inside carousel */}
         <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className="flex-1 h-1 rounded-full bg-background/40 overflow-hidden"
+              className={cn(
+                "flex-1 h-1 rounded-full transition-all duration-300",
+                index <= currentSlide
+                  ? "bg-foreground"
+                  : "bg-background/40"
+              )}
               aria-label={`Go to slide ${index + 1}`}
-            >
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  index < currentSlide
-                    ? "w-full bg-foreground"
-                    : index === currentSlide
-                    ? "bg-foreground"
-                    : "w-0"
-                )}
-                style={{
-                  width: index === currentSlide ? `${progress}%` : index < currentSlide ? "100%" : "0%",
-                  transition: index === currentSlide ? "width 50ms linear" : "width 300ms ease-out"
-                }}
-              />
-            </button>
+            />
           ))}
         </div>
       </div>
