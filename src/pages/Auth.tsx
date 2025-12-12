@@ -265,7 +265,7 @@ const Auth = () => {
           <div className="absolute inset-0 flex items-center p-4 md:p-6 lg:p-10 pt-12 md:pt-16 pb-24 md:pb-32">
             <div>
               {/* Eyebrow */}
-              <div className="inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-4 md:mb-6">
+              <div className="inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-3 md:mb-4 lg:mb-6">
                 <Sparkles className="w-2.5 md:w-3 h-2.5 md:h-3 text-background/80" />
                 <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                   {slide.eyebrow}
@@ -273,11 +273,11 @@ const Auth = () => {
               </div>
 
               {/* Large Typography */}
-              <div className="space-y-0.5 md:space-y-1 mb-3 md:mb-4">
-                <h2 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-background/60 tracking-tight leading-none">
+              <div className="space-y-0.5 md:space-y-1 mb-2 md:mb-3 lg:mb-4">
+                <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-light text-background/60 tracking-tight leading-none">
                   {slide.title}
                 </h2>
-                <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold text-background tracking-tight leading-none">
+                <h1 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-background tracking-tight leading-none">
                   {slide.highlight}
                 </h1>
               </div>
@@ -290,7 +290,7 @@ const Auth = () => {
         </div>
 
         {/* Floating decorations - Fixed */}
-        <div className="absolute top-8 right-8 flex gap-2 z-10">
+        <div className="absolute top-4 md:top-6 lg:top-8 right-4 md:right-6 lg:right-8 flex gap-2 z-10">
           <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{
             animationDelay: '0s'
           }} />
@@ -303,9 +303,9 @@ const Auth = () => {
         </div>
 
         {/* Fixed Content Overlay */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-4 md:p-6 lg:p-10 pointer-events-none">
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-4 md:p-5 lg:p-8 overflow-hidden pointer-events-none">
           {/* Logo - Fixed */}
-          <div className="flex items-center gap-1.5 md:gap-2 pointer-events-auto">
+          <div className="flex items-center gap-1.5 md:gap-2 pointer-events-auto flex-shrink-0">
             <div className="w-6 md:w-8 h-6 md:h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
               <Sparkles className="w-3 md:w-4 h-3 md:h-4 text-background" />
             </div>
@@ -313,27 +313,27 @@ const Auth = () => {
           </div>
 
           {/* Spacer for middle content */}
-          <div className="flex-1" />
+          <div className="flex-1 min-h-0" />
 
           {/* Stats Row - Fixed */}
-          <div className="flex gap-4 md:gap-6 lg:gap-8 mb-4 md:mb-6 lg:mb-8">
+          <div className="flex gap-3 md:gap-4 lg:gap-6 mb-3 md:mb-4 lg:mb-6 flex-shrink-0">
             {stats.map((stat, i) => <div key={i} className="text-center">
-                <div className="text-lg md:text-2xl lg:text-3xl font-semibold text-background tracking-tight">
+                <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-0.5 md:mt-1">
+                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-0.5">
                   {stat.label}
                 </div>
               </div>)}
           </div>
 
-          {/* Feature Pills - Fixed */}
-          <div className="hidden lg:flex flex-wrap gap-2 lg:gap-3 mb-6 lg:mb-8 pointer-events-auto">
+          {/* Feature Pills - Fixed, hidden on shorter heights */}
+          <div className="hidden lg:flex flex-wrap gap-2 mb-4 lg:mb-6 pointer-events-auto flex-shrink-0">
             {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
           </div>
 
           {/* Bottom Navigation - Fixed */}
-          <div className="flex items-center justify-between pointer-events-auto">
+          <div className="flex items-center justify-between pointer-events-auto flex-shrink-0">
             {/* Slide Indicators */}
             <div className="flex gap-2">
               {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-1.5 rounded-full transition-all duration-300", i === currentSlide ? "w-8 bg-background/60" : "w-1.5 bg-background/20")} />)}
@@ -341,10 +341,10 @@ const Auth = () => {
 
             {/* Nav Arrows - Desktop */}
             <div className="hidden lg:flex gap-2">
-              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <button onClick={goToPrevSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
                 <ChevronLeft className="w-4 h-4 text-background/70" />
               </button>
-              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <button onClick={goToNextSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
                 <ChevronRight className="w-4 h-4 text-background/70" />
               </button>
             </div>
