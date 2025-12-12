@@ -145,7 +145,7 @@ export const AuthModal = ({
         {/* Footer */}
         {(mode === "signin" || currentStep !== "success") && (
           <div className={cn(
-            "p-4 md:p-6 border-t border-border/50 transition-all duration-300",
+            "px-4 pb-4 md:px-6 md:pb-6 transition-all duration-300",
             mode === "signup" && currentStep === "onboarding" && !isOnboardingComplete 
               ? "opacity-0 pointer-events-none" 
               : "opacity-100 animate-fade-in"
