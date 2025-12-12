@@ -232,8 +232,21 @@ const Auth = () => {
         <button onClick={() => navigate("/")} className="absolute top-2.5 sm:top-5 right-2.5 sm:right-5 z-20 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
           <X className="w-5 h-5 text-foreground" />
         </button>
+
+        {/* Mobile/Tablet Auth Toggle - Above black panel */}
+        <div className="flex lg:hidden justify-center p-2.5 sm:p-5">
+          <div className="inline-flex bg-muted rounded-full p-[5px]">
+            <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+              Sign up
+            </button>
+            <button onClick={() => handleModeChange("signin")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+              Sign in
+            </button>
+          </div>
+        </div>
+
         {/* Left Panel - Hero/Branding */}
-        <div className="relative flex flex-col w-full lg:w-1/2 min-h-[280px] sm:min-h-[320px] lg:min-h-0 bg-foreground overflow-hidden m-2.5 sm:m-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative flex flex-col w-full lg:w-1/2 min-h-[280px] sm:min-h-[320px] lg:min-h-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -369,8 +382,8 @@ const Auth = () => {
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
         <header className="flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
-          {/* Auth Toggle */}
-          <div className="inline-flex bg-muted rounded-full p-[5px]">
+          {/* Auth Toggle - Desktop only */}
+          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px]">
             <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
@@ -378,6 +391,8 @@ const Auth = () => {
               Sign in
             </button>
           </div>
+          {/* Spacer for mobile/tablet when toggle is hidden */}
+          <div className="lg:hidden" />
 
           {/* Step Indicator */}
           {showStepIndicator && <div className="flex items-center gap-2.5">
