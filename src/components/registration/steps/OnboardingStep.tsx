@@ -130,7 +130,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const slide = slides[currentSlide];
 
   return (
-    <div className="animate-fade-in space-y-4 w-full overflow-hidden">
+    <div className="animate-fade-in space-y-4">
       {/* Hero Section */}
       <div
         className="group relative overflow-hidden rounded-3xl bg-foreground h-[320px] md:h-[360px] touch-pan-y"
@@ -195,23 +195,23 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
             </div>
 
             {/* Large Typography */}
-            <div className="space-y-0.5 mb-3">
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-light text-background/60 tracking-tight leading-none">
+            <div className="space-y-1 mb-4">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-background/60 tracking-tight leading-none">
                 {slide.title}
               </h2>
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-semibold text-background tracking-tight leading-none">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-background tracking-tight leading-none">
                 {slide.highlight}
               </h1>
             </div>
 
-            <p className="text-xs md:text-sm text-background/50 truncate md:whitespace-nowrap">
+            <p className="text-sm md:text-base text-background/50 whitespace-nowrap">
               {slide.description}
             </p>
           </div>
 
           {/* Stats Row */}
           <div className="flex items-end justify-between mt-8">
-            <div className="flex gap-4 md:gap-6">
+            <div className="flex gap-6">
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
                   <div className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
