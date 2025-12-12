@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { AuthToggle } from "./AuthToggle";
 import { StepIndicator } from "./StepIndicator";
 import { OnboardingStep } from "./steps/OnboardingStep";
@@ -30,6 +31,7 @@ export const AuthModal = ({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -39,6 +41,7 @@ export const AuthModal = ({
     setLastName("");
     setEmail("");
     setPassword("");
+    setIsOnboardingComplete(false);
   };
   const handleModeChange = (newMode: "signup" | "signin") => {
     setMode(newMode);
@@ -131,7 +134,7 @@ export const AuthModal = ({
         {/* Content */}
         <div className="p-4 md:p-6">
           {mode === "signin" ? <LoginStep email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
-              {currentStep === "onboarding" && <OnboardingStep onContinue={handleNext} />}
+              {currentStep === "onboarding" && <OnboardingStep onContinue={handleNext} onSlideChange={setIsOnboardingComplete} />}
               {currentStep === "account-type" && <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />}
               {currentStep === "license" && <LicenseStep licenseNumber={licenseNumber} state={state} onLicenseChange={setLicenseNumber} onStateChange={setState} />}
               {currentStep === "personal-info" && <PersonalInfoStep firstName={firstName} lastName={lastName} email={email} password={password} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onEmailChange={setEmail} onPasswordChange={setPassword} />}
@@ -140,7 +143,13 @@ export const AuthModal = ({
         </div>
 
         {/* Footer */}
-        {(mode === "signin" || currentStep !== "success") && <div className="p-4 md:p-6 border-t border-border/50">
+        {(mode === "signin" || currentStep !== "success") && (
+          <div className={cn(
+            "p-4 md:p-6 border-t border-border/50 transition-all duration-300",
+            mode === "signup" && currentStep === "onboarding" && !isOnboardingComplete 
+              ? "opacity-0 pointer-events-none" 
+              : "opacity-100 animate-fade-in"
+          )}>
             <div className="flex gap-3">
               {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-12 px-6 rounded-xl border-border">
                   <ArrowLeft className="w-4 h-4" />
@@ -150,7 +159,8 @@ export const AuthModal = ({
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-          </div>}
+          </div>
+        )}
       </DialogContent>
     </Dialog>;
 };

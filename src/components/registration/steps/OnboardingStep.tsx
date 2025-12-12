@@ -5,6 +5,7 @@ import { useMagnetic } from "@/hooks/use-magnetic";
 
 interface OnboardingStepProps {
   onContinue: () => void;
+  onSlideChange?: (isLastSlide: boolean) => void;
 }
 
 interface MagneticIconBoxProps {
@@ -75,21 +76,30 @@ const slides = [
   },
 ];
 
-export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
+export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const isLastSlide = currentSlide === slides.length - 1;
+
+  // Notify parent of slide changes
+  const updateSlide = useCallback((newSlide: number) => {
+    setCurrentSlide(newSlide);
+    onSlideChange?.(newSlide === slides.length - 1);
+  }, [onSlideChange]);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
   const goToNextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  }, []);
+    const newSlide = (currentSlide + 1) % slides.length;
+    updateSlide(newSlide);
+  }, [currentSlide, updateSlide]);
 
   const goToPrevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  }, []);
+    const newSlide = (currentSlide - 1 + slides.length) % slides.length;
+    updateSlide(newSlide);
+  }, [currentSlide, updateSlide]);
 
   const goToSlide = (index: number) => {
-    setCurrentSlide(index);
+    updateSlide(index);
   };
 
   // Swipe gesture handlers
