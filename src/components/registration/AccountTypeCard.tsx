@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, LucideIcon } from "lucide-react";
 
 interface AccountTypeCardProps {
   title: string;
   description: string;
   badge?: string;
   features: string[];
+  icon?: LucideIcon;
   selected: boolean;
   onSelect: () => void;
 }
@@ -15,6 +16,7 @@ export const AccountTypeCard = ({
   description,
   badge,
   features,
+  icon: Icon,
   selected,
   onSelect,
 }: AccountTypeCardProps) => {
@@ -41,9 +43,16 @@ export const AccountTypeCard = ({
         {selected && <Check className="w-3 h-3 text-card" strokeWidth={3} />}
       </div>
 
+      {/* Icon */}
+      {Icon && (
+        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+          <Icon className="w-6 h-6 text-accent" />
+        </div>
+      )}
+
       {/* Badge */}
       {badge && (
-        <span className="inline-block px-2.5 py-0.5 text-xs font-medium rounded-md bg-muted text-muted-foreground mb-3">
+        <span className="inline-block px-2.5 py-0.5 text-xs font-medium rounded-md bg-accent/10 text-accent mb-3">
           {badge}
         </span>
       )}
@@ -60,8 +69,8 @@ export const AccountTypeCard = ({
       <ul className="space-y-2">
         {features.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 text-sm text-secondary-foreground">
-            <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center mt-0.5 shrink-0">
-              <Check className="w-2.5 h-2.5 text-muted-foreground" />
+            <div className="w-4 h-4 rounded-full bg-accent/10 flex items-center justify-center mt-0.5 shrink-0">
+              <Check className="w-2.5 h-2.5 text-accent" />
             </div>
             {feature}
           </li>

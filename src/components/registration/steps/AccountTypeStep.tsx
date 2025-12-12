@@ -1,4 +1,5 @@
 import { AccountTypeCard } from "../AccountTypeCard";
+import { Scissors, Building2, GraduationCap } from "lucide-react";
 
 interface AccountTypeStepProps {
   selectedType: string | null;
@@ -12,6 +13,7 @@ const accountTypes = [
     badge: "Pro",
     description: "For licensed cosmetologists who purchase hair for their clientele.",
     features: ["Rewards on every order", "Free 2-day shipping", "Wholesale pricing"],
+    icon: Scissors,
   },
   {
     id: "salon",
@@ -19,12 +21,14 @@ const accountTypes = [
     badge: "Pro",
     description: "For salon owners who purchase hair for multiple stylists.",
     features: ["1.25x rewards multiplier", "Free 2-day shipping", "Volume discounts"],
+    icon: Building2,
   },
   {
     id: "student",
     title: "Student",
     description: "For cosmetology students working towards their license.",
     features: ["Training discounts", "Free ground shipping", "Student perks"],
+    icon: GraduationCap,
   },
 ];
 
@@ -46,6 +50,7 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
             description={type.description}
             badge={type.badge}
             features={type.features}
+            icon={type.icon}
             selected={selectedType === type.id}
             onSelect={() => onSelect(type.id)}
           />
