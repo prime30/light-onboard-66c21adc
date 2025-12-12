@@ -133,7 +133,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
     <div className="animate-fade-in space-y-4">
       {/* Hero Section */}
       <div
-        className="group relative overflow-hidden rounded-3xl bg-foreground min-h-[320px] md:min-h-[360px] touch-pan-y"
+        className="group relative overflow-hidden rounded-3xl bg-foreground h-[320px] md:h-[360px] touch-pan-y"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
