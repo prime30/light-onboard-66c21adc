@@ -392,8 +392,8 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center px-4 md:px-6 lg:px-[10px] py-[20px]">
-          <div className="w-full max-w-md">
+        <main className="flex-1 flex items-center justify-center px-4 md:px-6 lg:px-8 py-6">
+          <div className="w-full max-w-lg">
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
