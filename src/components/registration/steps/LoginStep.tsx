@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Sparkles } from "lucide-react";
 
 interface LoginStepProps {
   email: string;
@@ -17,11 +17,17 @@ export const LoginStep = ({
 }: LoginStepProps) => {
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl font-semibold text-foreground">Welcome back</h2>
-        <p className="text-muted-foreground mt-1">
-          Sign in to your account
-        </p>
+      {/* Visual header */}
+      <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-muted to-accent/10">
+        <div className="w-14 h-14 rounded-xl bg-background shadow-soft flex items-center justify-center">
+          <Sparkles className="w-7 h-7 text-accent" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Welcome back</h2>
+          <p className="text-sm text-muted-foreground">
+            Sign in to access your pro account
+          </p>
+        </div>
       </div>
 
       <div className="space-y-4">

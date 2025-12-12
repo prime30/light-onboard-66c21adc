@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AuthToggle } from "./AuthToggle";
 import { StepIndicator } from "./StepIndicator";
+import { OnboardingStep } from "./steps/OnboardingStep";
 import { AccountTypeStep } from "./steps/AccountTypeStep";
 import { LicenseStep } from "./steps/LicenseStep";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
@@ -16,7 +17,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
-type Step = "account-type" | "license" | "personal-info" | "success";
+type Step = "onboarding" | "account-type" | "license" | "personal-info" | "success";
 
 interface AuthModalProps {
   open: boolean;
@@ -25,7 +26,7 @@ interface AuthModalProps {
 
 export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [currentStep, setCurrentStep] = useState<Step>("account-type");
+  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [accountType, setAccountType] = useState<string | null>(null);
   const [licenseNumber, setLicenseNumber] = useState("");
   const [state, setState] = useState("");
@@ -35,7 +36,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [password, setPassword] = useState("");
 
   const resetForm = () => {
-    setCurrentStep("account-type");
+    setCurrentStep("onboarding");
     setAccountType(null);
     setLicenseNumber("");
     setState("");
@@ -56,6 +57,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
 
     switch (currentStep) {
+      case "onboarding":
+        return true;
       case "account-type":
         return accountType !== null;
       case "license":
@@ -85,6 +88,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
 
     switch (currentStep) {
+      case "onboarding":
+        setCurrentStep("account-type");
+        break;
       case "account-type":
         setCurrentStep(accountType === "student" ? "personal-info" : "license");
         break;
@@ -100,6 +106,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   const handleBack = () => {
     switch (currentStep) {
+      case "account-type":
+        setCurrentStep("onboarding");
+        break;
       case "license":
         setCurrentStep("account-type");
         break;
@@ -110,15 +119,18 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   };
 
   const getTotalSteps = () => {
-    return accountType === "student" ? 3 : 4;
+    return accountType === "student" ? 4 : 5;
   };
 
   const getCurrentStepNumber = () => {
-    if (currentStep === "account-type") return 1;
-    if (currentStep === "license") return 2;
-    if (currentStep === "personal-info") return accountType === "student" ? 2 : 3;
-    return accountType === "student" ? 3 : 4;
+    if (currentStep === "onboarding") return 1;
+    if (currentStep === "account-type") return 2;
+    if (currentStep === "license") return 3;
+    if (currentStep === "personal-info") return accountType === "student" ? 3 : 4;
+    return accountType === "student" ? 4 : 5;
   };
+
+  const showStepIndicator = mode === "signup" && currentStep !== "success";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,10 +144,10 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-border/50">
           <AuthToggle mode={mode} onModeChange={handleModeChange} />
-          {mode === "signup" && currentStep !== "success" && (
+          {showStepIndicator && (
             <StepIndicator currentStep={getCurrentStepNumber()} totalSteps={getTotalSteps()} />
           )}
-          {mode === "signin" && <div />}
+          {!showStepIndicator && <div />}
         </div>
 
         {/* Content */}
@@ -149,6 +161,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             />
           ) : (
             <>
+              {currentStep === "onboarding" && (
+                <OnboardingStep onContinue={handleNext} />
+              )}
               {currentStep === "account-type" && (
                 <AccountTypeStep
                   selectedType={accountType}
@@ -184,7 +199,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         {(mode === "signin" || currentStep !== "success") && (
           <div className="p-4 md:p-6 border-t border-border/50">
             <div className="flex gap-3">
-              {mode === "signup" && currentStep !== "account-type" && (
+              {mode === "signup" && currentStep !== "onboarding" && (
                 <Button
                   variant="outline"
                   size="lg"
@@ -202,6 +217,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               >
                 {mode === "signin"
                   ? "Sign in"
+                  : currentStep === "onboarding"
+                  ? "Get Started"
                   : currentStep === "personal-info"
                   ? "Create Account"
                   : "Continue"}
