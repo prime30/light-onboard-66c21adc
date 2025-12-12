@@ -92,9 +92,9 @@ const MagneticFeatureBox = ({
   const magnetic = useMagnetic({
     strength: 0.12
   });
-  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-3 px-4 py-3 rounded-xl bg-background/5 border border-background/10 hover:border-background/20 hover:bg-background/10 transition-all cursor-default">
-      <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 text-foreground" />
+  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-background/5 border border-background/10 hover:border-background/20 hover:bg-background/10 transition-all cursor-default">
+      <div className="w-[30px] h-[30px] rounded-[10px] bg-background flex items-center justify-center flex-shrink-0">
+        <Icon className="w-[15px] h-[15px] text-foreground" />
       </div>
       <div className="flex flex-col">
         <span className="text-sm font-medium text-background">{label}</span>
@@ -220,20 +220,20 @@ const Auth = () => {
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <div className="min-h-screen flex items-center justify-center p-4 lg:p-8">
+  return <div className="min-h-screen flex items-center justify-center p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
       {/* Modal Container */}
-      <div className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[32px] shadow-2xl overflow-hidden flex flex-col lg:flex-row" style={{
+      <div className="relative z-10 w-[90vw] h-[90vh] bg-background rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row" style={{
       animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
     }}>
         {/* Close Button */}
-        <button onClick={() => navigate("/")} className="absolute top-4 right-4 z-20 p-2 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
+        <button onClick={() => navigate("/")} className="absolute top-5 right-5 z-20 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
           <X className="w-5 h-5 text-foreground" />
         </button>
         {/* Left Panel - Hero/Branding */}
-        <div className="relative hidden md:flex lg:w-1/2 md:min-h-[280px] lg:min-h-0 bg-foreground overflow-hidden flex-col m-3 md:m-4 lg:m-[20px] rounded-[16px] md:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative hidden md:flex lg:w-1/2 md:min-h-[280px] lg:min-h-0 bg-foreground overflow-hidden flex-col m-[15px] md:m-5 lg:m-5 rounded-[15px] md:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -262,18 +262,18 @@ const Auth = () => {
           }} />
 
           {/* Sliding Text Content */}
-          <div className="absolute inset-0 flex items-center p-4 md:p-6 lg:p-10 pt-12 md:pt-16 pb-24 md:pb-32">
+          <div className="absolute inset-0 flex items-center p-5 md:p-5 lg:p-10 pt-[15px] md:pt-[15px] pb-[25px] md:pb-[30px]">
             <div>
               {/* Eyebrow */}
-              <div className="inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-3 md:mb-4 lg:mb-6">
-                <Sparkles className="w-2.5 md:w-3 h-2.5 md:h-3 text-background/80" />
+              <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] md:py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px]">
+                <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                 <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                   {slide.eyebrow}
                 </span>
               </div>
 
               {/* Large Typography */}
-              <div className="space-y-0.5 md:space-y-1 mb-2 md:mb-3 lg:mb-4">
+              <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
                 <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-light text-background/60 tracking-tight leading-none">
                   {slide.title}
                 </h2>
@@ -290,24 +290,24 @@ const Auth = () => {
         </div>
 
         {/* Floating decorations - Fixed */}
-        <div className="absolute top-4 md:top-6 lg:top-8 right-4 md:right-6 lg:right-8 flex gap-2 z-10">
-          <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{
+        <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 flex gap-2.5 z-10">
+          <div className="w-2.5 h-2.5 rounded-full bg-background/20 animate-pulse" style={{
             animationDelay: '0s'
           }} />
-          <div className="w-2 h-2 rounded-full bg-background/30 animate-pulse" style={{
+          <div className="w-2.5 h-2.5 rounded-full bg-background/30 animate-pulse" style={{
             animationDelay: '0.5s'
           }} />
-          <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{
+          <div className="w-2.5 h-2.5 rounded-full bg-background/20 animate-pulse" style={{
             animationDelay: '1s'
           }} />
         </div>
 
         {/* Fixed Content Overlay */}
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-4 md:p-5 lg:p-8 overflow-hidden pointer-events-none">
+        <div className="relative z-10 flex-1 flex flex-col justify-between p-5 md:p-5 lg:p-10 overflow-hidden pointer-events-none">
           {/* Logo - Fixed */}
-          <div className="flex items-center gap-1.5 md:gap-2 pointer-events-auto flex-shrink-0">
-            <div className="w-6 md:w-8 h-6 md:h-8 rounded-lg bg-background/10 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="w-3 md:w-4 h-3 md:h-4 text-background" />
+          <div className="flex items-center gap-[5px] md:gap-2.5 pointer-events-auto flex-shrink-0">
+            <div className="w-[25px] md:w-[30px] h-[25px] md:h-[30px] rounded-[10px] bg-background/10 backdrop-blur-sm flex items-center justify-center">
+              <Sparkles className="w-[15px] md:w-[15px] h-[15px] md:h-[15px] text-background" />
             </div>
             <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
           </div>
@@ -316,33 +316,33 @@ const Auth = () => {
           <div className="flex-1 min-h-0" />
 
           {/* Stats Row - Fixed */}
-          <div className="flex gap-3 md:gap-4 lg:gap-6 mb-3 md:mb-4 lg:mb-6 flex-shrink-0">
+          <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-[15px] md:mb-5 lg:mb-[25px] flex-shrink-0">
             {stats.map((stat, i) => <div key={i} className="text-center">
                 <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-0.5">
+                <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
                   {stat.label}
                 </div>
               </div>)}
           </div>
 
           {/* Feature Pills - Fixed, hidden on shorter heights */}
-          <div className="hidden lg:flex flex-wrap gap-2 mb-4 lg:mb-6 pointer-events-auto flex-shrink-0">
+          <div className="hidden lg:flex flex-wrap gap-2.5 mb-5 lg:mb-[25px] pointer-events-auto flex-shrink-0">
             {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
           </div>
 
           {/* Bottom Navigation - Fixed */}
           <div className="flex items-center justify-between pointer-events-auto flex-shrink-0">
             {/* Slide Indicators */}
-            <div className="flex gap-2">
-              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-1.5 rounded-full transition-all duration-300", i === currentSlide ? "w-8 bg-background/60" : "w-1.5 bg-background/20")} />)}
+            <div className="flex gap-2.5">
+              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
             </div>
 
             {/* Trust Badge - visible on all sizes */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span className="text-xs text-background/40">Loved by</span>
-              <div className="flex -space-x-1.5">
+              <div className="flex -space-x-[5px]">
                 {[...Array(3)].map((_, i) => <div key={i} className="w-5 h-5 rounded-full border-2 border-foreground" style={{
                   background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
                 }} />)}
@@ -351,12 +351,12 @@ const Auth = () => {
             </div>
 
             {/* Nav Arrows - Desktop */}
-            <div className="hidden lg:flex gap-2">
-              <button onClick={goToPrevSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-                <ChevronLeft className="w-4 h-4 text-background/70" />
+            <div className="hidden lg:flex gap-2.5">
+              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+                <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
               </button>
-              <button onClick={goToNextSlide} className="p-2 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-                <ChevronRight className="w-4 h-4 text-background/70" />
+              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+                <ChevronRight className="w-[15px] h-[15px] text-background/70" />
               </button>
             </div>
           </div>
@@ -373,27 +373,27 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="flex items-center justify-between p-4 md:p-5 lg:p-6">
+        <header className="flex items-center justify-between p-5 md:p-5 lg:p-[25px]">
           {/* Auth Toggle */}
-          <div className="inline-flex bg-muted rounded-full p-1">
-            <button onClick={() => handleModeChange("signup")} className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+          <div className="inline-flex bg-muted rounded-full p-[5px]">
+            <button onClick={() => handleModeChange("signup")} className={cn("px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            <button onClick={() => handleModeChange("signin")} className={cn("px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign in
             </button>
           </div>
 
           {/* Step Indicator */}
-          {showStepIndicator && <div className="flex items-center gap-2">
+          {showStepIndicator && <div className="flex items-center gap-2.5">
               {Array.from({
               length: getTotalSteps()
-            }, (_, i) => <div key={i} className={cn("h-1.5 rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-8 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-1.5 bg-foreground" : "w-1.5 bg-border")} />)}
+            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
             </div>}
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center md:px-6 lg:px-8 py-6 pt-0 px-[20px] pb-0 pl-[20px] pr-[20px]">
+        <main className="flex-1 flex items-center justify-center md:px-[25px] lg:px-[30px] py-[25px] pt-0 px-5 pb-0">
           <div className="w-full max-w-lg">
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
@@ -406,14 +406,14 @@ const Auth = () => {
         </main>
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-4 md:p-5 lg:p-6 pt-0 py-[6px] px-[20px] pb-[30px]">
-            <div className="max-w-md mx-auto flex gap-3">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-12 px-5 rounded-xl border-border">
-                  <ArrowLeft className="w-4 h-4" />
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-5 md:p-5 lg:p-[25px] pt-0 px-5 pb-[30px]">
+            <div className="max-w-md mx-auto flex gap-[15px]">
+              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[50px] px-5 rounded-[15px] border-border">
+                  <ArrowLeft className="w-[15px] h-[15px]" />
                 </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
+              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
                 {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
               </Button>
             </div>
           </footer>}
@@ -434,8 +434,8 @@ const SignInForm = ({
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-6 animate-fade-in">
-    <div className="space-y-2">
+}) => <div className="space-y-[25px] animate-fade-in">
+    <div className="space-y-2.5">
       <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Welcome back
       </h1>
@@ -444,45 +444,45 @@ const SignInForm = ({
       </p>
     </div>
 
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-5">
+      <div className="space-y-2.5">
         <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
           Email
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Mail className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
           Password
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Lock className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
-      <button className="group inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-colors">
         Forgot password?
-        <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+        <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
       </button>
     </div>
 
-    <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-4">
-      <div className="flex items-center gap-1.5">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+    <div className="flex items-center justify-center gap-5 text-xs text-muted-foreground pt-5">
+      <div className="flex items-center gap-[5px]">
+        <div className="w-[5px] h-[5px] rounded-full bg-green-500" />
         <span>Secure login</span>
       </div>
-      <div className="w-1 h-1 rounded-full bg-border" />
-      <div className="flex items-center gap-1.5">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+      <div className="w-[5px] h-[5px] rounded-full bg-border" />
+      <div className="flex items-center gap-[5px]">
+        <div className="w-[5px] h-[5px] rounded-full bg-green-500" />
         <span>256-bit encryption</span>
       </div>
     </div>
@@ -491,15 +491,15 @@ const OnboardingForm = ({
   onContinue
 }: {
   onContinue: () => void;
-}) => <div className="space-y-6 animate-fade-in text-center">
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
-      <Sparkles className="w-3 h-3 text-muted-foreground" />
+}) => <div className="space-y-[25px] animate-fade-in text-center">
+    <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+      <Sparkles className="w-[15px] h-[15px] text-muted-foreground" />
       <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
         Getting Started
       </span>
     </div>
 
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Ready to join?
       </h1>
@@ -508,7 +508,7 @@ const OnboardingForm = ({
       </p>
     </div>
 
-    <div className="grid gap-3 pt-4">
+    <div className="grid gap-[15px] pt-5">
       {[{
       icon: User,
       label: "Choose your account type",
@@ -521,8 +521,8 @@ const OnboardingForm = ({
       icon: Gift,
       label: "Start saving",
       desc: "Unlock wholesale pricing"
-    }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50 text-left">
-          <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
+    }].map((item, i) => <div key={i} className="flex items-center gap-5 p-5 rounded-[15px] bg-muted/50 border border-border/50 text-left">
+          <div className="w-10 h-10 rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0">
             <item.icon className="w-5 h-5 text-background" />
           </div>
           <div>
@@ -532,7 +532,7 @@ const OnboardingForm = ({
         </div>)}
     </div>
 
-    <p className="text-xs text-muted-foreground pt-4">
+    <p className="text-xs text-muted-foreground pt-5">
       Already have an account? Use the toggle above to sign in
     </p>
   </div>;
@@ -562,9 +562,9 @@ const AccountTypeForm = ({
     description: "Currently enrolled",
     features: ["Student pricing", "Learning resources", "Community access"]
   }];
-  return <div className="space-y-6 animate-fade-in">
-      <div className="space-y-2 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
+  return <div className="space-y-[25px] animate-fade-in">
+      <div className="space-y-2.5 text-center">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
             Step 1
           </span>
@@ -577,22 +577,22 @@ const AccountTypeForm = ({
         </p>
       </div>
 
-      <div className="space-y-3">
-        {types.map(type => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-4 rounded-2xl border-2 transition-all duration-200 text-left group", selectedType === type.id ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
-            {selectedType === type.id && <div className="absolute top-4 right-4 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                <Check className="w-3 h-3 text-background" />
+      <div className="space-y-[15px]">
+        {types.map(type => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-5 rounded-[20px] border-2 transition-all duration-200 text-left group", selectedType === type.id ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+            {selectedType === type.id && <div className="absolute top-5 right-5 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                <Check className="w-[15px] h-[15px] text-background" />
               </div>}
 
-            <div className="flex items-start gap-4">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors", selectedType === type.id ? "bg-foreground" : "bg-muted")}>
+            <div className="flex items-start gap-5">
+              <div className={cn("w-10 h-10 rounded-[15px] flex items-center justify-center flex-shrink-0 transition-colors", selectedType === type.id ? "bg-foreground" : "bg-muted")}>
                 <type.icon className={cn("w-5 h-5 transition-colors", selectedType === type.id ? "text-background" : "text-foreground")} />
               </div>
               
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">{type.title}</p>
-                <p className="text-xs text-muted-foreground mb-2">{type.description}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {type.features.map((feature, i) => <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                <p className="text-xs text-muted-foreground mb-2.5">{type.description}</p>
+                <div className="flex flex-wrap gap-[5px]">
+                  {type.features.map((feature, i) => <span key={i} className="text-[10px] px-2.5 py-[5px] rounded-full bg-muted text-muted-foreground">
                       {feature}
                     </span>)}
                 </div>
@@ -612,9 +612,9 @@ const LicenseForm = ({
   state: string;
   onLicenseChange: (value: string) => void;
   onStateChange: (value: string) => void;
-}) => <div className="space-y-6 animate-fade-in">
-    <div className="space-y-2 text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
+}) => <div className="space-y-[25px] animate-fade-in">
+    <div className="space-y-2.5 text-center">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
           Step 2
         </span>
@@ -627,40 +627,40 @@ const LicenseForm = ({
       </p>
     </div>
 
-    <div className="flex gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
-      <FileCheck className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+      <FileCheck className="w-5 h-5 text-muted-foreground shrink-0 mt-[5px]" />
       <p className="text-sm text-muted-foreground leading-relaxed">
         We display professional wholesale pricing. Please enter your license exactly as it appears from the state.
       </p>
     </div>
 
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-5">
+      <div className="space-y-2.5">
         <Label htmlFor="license" className="text-sm font-medium">
           License number
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <FileCheck className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+            <FileCheck className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="license" type="text" placeholder="Enter your license number" value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="license" type="text" placeholder="Enter your license number" value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <Label htmlFor="state" className="text-sm font-medium">
           State / Province
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center z-10">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center z-10">
+            <MapPin className="w-[15px] h-[15px] text-muted-foreground" />
           </div>
           <Select value={state} onValueChange={onStateChange}>
-            <SelectTrigger className="h-14 pl-14 rounded-xl border-border/50 bg-muted/50">
+            <SelectTrigger className="h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50">
               <SelectValue placeholder="Select your state" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {states.map(s => <SelectItem key={s} value={s} className="rounded-lg">
+            <SelectContent className="rounded-[15px]">
+              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px]">
                   {s}
                 </SelectItem>)}
             </SelectContent>
@@ -687,9 +687,9 @@ const PersonalInfoForm = ({
   onLastNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-6 animate-fade-in">
-    <div className="space-y-2 text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
+}) => <div className="space-y-[25px] animate-fade-in">
+    <div className="space-y-2.5 text-center">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
           Final Step
         </span>
@@ -702,43 +702,43 @@ const PersonalInfoForm = ({
       </p>
     </div>
 
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-[15px]">
+        <div className="space-y-2.5">
           <Label htmlFor="firstName" className="text-sm font-medium">
             First name
           </Label>
-          <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-12 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <Label htmlFor="lastName" className="text-sm font-medium">
             Last name
           </Label>
-          <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-12 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <Label htmlFor="email" className="text-sm font-medium">
           Email
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Mail className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <Label htmlFor="password" className="text-sm font-medium">
           Password
         </Label>
         <div className="relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Lock className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
           </div>
-          <Input id="password" type="password" placeholder="Create a password" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="password" type="password" placeholder="Create a password" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
         </div>
         <p className="text-xs text-muted-foreground">
           Must be at least 8 characters
@@ -750,37 +750,37 @@ const SuccessForm = ({
   onContinue
 }: {
   onContinue: () => void;
-}) => <div className="space-y-6 animate-fade-in text-center">
+}) => <div className="space-y-[25px] animate-fade-in text-center">
     {/* Success Icon */}
-    <div className="relative h-32 mb-4">
+    <div className="relative h-[130px] mb-5">
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-muted to-accent/20 opacity-60" />
+        <div className="w-[100px] h-[100px] rounded-full bg-gradient-to-br from-muted to-accent/20 opacity-60" />
       </div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-foreground flex items-center justify-center">
-          <Check className="w-8 h-8 text-background" strokeWidth={2.5} />
+        <div className="w-[65px] h-[65px] rounded-full bg-foreground flex items-center justify-center">
+          <Check className="w-[30px] h-[30px] text-background" strokeWidth={2.5} />
         </div>
       </div>
       
       {/* Floating decorations */}
-      <div className="absolute top-2 left-1/4 w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
+      <div className="absolute top-2.5 left-1/4 w-[30px] h-[30px] rounded-[10px] bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
       animationDelay: "0.2s"
     }}>
-        <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+        <ShoppingBag className="w-[15px] h-[15px] text-muted-foreground" />
       </div>
-      <div className="absolute top-4 right-1/4 w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
+      <div className="absolute top-5 right-1/4 w-[25px] h-[25px] rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
       animationDelay: "0.4s"
     }}>
-        <Heart className="w-3 h-3 text-muted-foreground" />
+        <Heart className="w-[15px] h-[15px] text-muted-foreground" />
       </div>
-      <div className="absolute bottom-2 right-1/3 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
+      <div className="absolute bottom-2.5 right-1/3 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in" style={{
       animationDelay: "0.6s"
     }}>
         <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
       </div>
     </div>
 
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         You're all set!
       </h1>
@@ -789,10 +789,10 @@ const SuccessForm = ({
       </p>
     </div>
 
-    <div className="p-4 rounded-2xl bg-muted/50 border border-border/50">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
-          <Sparkles className="w-6 h-6 text-background" />
+    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
+      <div className="flex items-center gap-5">
+        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
+          <Sparkles className="w-[25px] h-[25px] text-background" />
         </div>
         <div className="text-left">
           <p className="text-sm font-medium text-foreground">Pro Member</p>
@@ -803,9 +803,9 @@ const SuccessForm = ({
       </div>
     </div>
 
-    <Button size="lg" onClick={onContinue} className="w-full h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90">
+    <Button size="lg" onClick={onContinue} className="w-full h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90">
       Start Shopping
-      <ArrowRight className="w-4 h-4 ml-2" />
+      <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
     </Button>
   </div>;
 export default Auth;
