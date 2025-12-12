@@ -574,7 +574,7 @@ const Auth = () => {
 
         {/* Footer */}
         {(mode === "signin" || (mode === "signup" && currentStep !== "success")) && (
-          <footer className="p-4 md:p-6 lg:p-8 border-t border-border/50">
+          <footer className="p-4 md:p-6 lg:p-8 pt-0">
             <div className="max-w-md mx-auto flex gap-3">
               {mode === "signup" && currentStep !== "onboarding" && (
                 <Button
