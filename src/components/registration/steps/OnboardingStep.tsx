@@ -22,7 +22,7 @@ const MagneticIconBox = ({ icon: Icon, title, subtitle }: MagneticIconBoxProps) 
       style={magnetic.style}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="text-center p-4 rounded-xl bg-muted/50 cursor-pointer"
+      className="text-center p-4 rounded-xl bg-muted/50"
     >
       <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
         <Icon className="w-5 h-5 text-accent" />
