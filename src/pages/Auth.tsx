@@ -526,14 +526,14 @@ const SignInForm = ({
 
     <div className="space-y-[20px] animate-stagger-3">
       <div className="space-y-2.5">
-        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
+        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground">
           Email address
         </Label>
-        <div className="relative group input-ultra rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:rotate-3">
-            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
+        <div className="relative group input-ultra input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -714,31 +714,31 @@ const LicenseForm = ({
 
     <div className="space-y-5">
       <div className="space-y-2.5">
-        <Label htmlFor="license" className="text-sm font-medium">
+        <Label htmlFor="license" className="text-sm font-medium label-float">
           License number
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <FileCheck className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <FileCheck className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="license" type="text" placeholder="Enter your license number" value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="license" type="text" placeholder="Enter your license number" value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
       <div className="space-y-2.5">
-        <Label htmlFor="state" className="text-sm font-medium">
+        <Label htmlFor="state" className="text-sm font-medium label-float">
           State / Province
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center z-10">
-            <MapPin className="w-[15px] h-[15px] text-muted-foreground" />
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center z-10 transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
           <Select value={state} onValueChange={onStateChange}>
-            <SelectTrigger className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50">
+            <SelectTrigger className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
               <SelectValue placeholder="Select your state" />
             </SelectTrigger>
             <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px]">
+              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
                   {s}
                 </SelectItem>)}
             </SelectContent>
@@ -770,22 +770,22 @@ const PasswordInputField = ({
   return (
     <div className="space-y-2.5">
       <Label htmlFor={id} className={cn(
-        "font-medium",
+        "font-medium label-float transition-all duration-300",
         isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm"
       )}>
         {label}
       </Label>
       <div className={cn(
-        "relative group rounded-[15px]",
+        "relative group rounded-[15px] input-ripple",
         isSignin ? "input-ultra" : "input-glow"
       )}>
         <div className={cn(
-          "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500",
+          "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
           isSignin 
-            ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:-rotate-3"
-            : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground group-focus-within:scale-110"
+            ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80"
+            : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground"
         )}>
-          <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
+          <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
         <Input 
           id={id} 
@@ -794,7 +794,7 @@ const PasswordInputField = ({
           value={value} 
           onChange={e => onChange(e.target.value)} 
           className={cn(
-            "pr-[50px] rounded-[15px] transition-all duration-500 text-base",
+            "pr-[50px] rounded-[15px] transition-all duration-500 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
             isSignin 
               ? "h-[60px] pl-[60px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40"
               : "h-[55px] pl-[55px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background"
@@ -803,7 +803,7 @@ const PasswordInputField = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 focus:outline-none"
+          className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 focus:outline-none haptic-press"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
@@ -897,33 +897,33 @@ const PersonalInfoForm = ({
 
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-2.5 sm:gap-[15px] animate-stagger-2">
-        <div className="space-y-2.5">
-          <Label htmlFor="firstName" className="text-sm font-medium">
+        <div className="space-y-2.5 group">
+          <Label htmlFor="firstName" className="text-sm font-medium label-float">
             First name
           </Label>
-          <div className="input-glow rounded-[10px] sm:rounded-[15px]">
-            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300" />
+          <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
+            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
-        <div className="space-y-2.5">
-          <Label htmlFor="lastName" className="text-sm font-medium">
+        <div className="space-y-2.5 group">
+          <Label htmlFor="lastName" className="text-sm font-medium label-float">
             Last name
           </Label>
-          <div className="input-glow rounded-[10px] sm:rounded-[15px]">
-            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300" />
+          <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
+            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
       </div>
 
-      <div className="space-y-2.5 animate-stagger-3">
-        <Label htmlFor="email" className="text-sm font-medium">
+      <div className="space-y-2.5 animate-stagger-3 group">
+        <Label htmlFor="email" className="text-sm font-medium label-float">
           Email
         </Label>
-        <div className="relative group input-glow rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
-            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
