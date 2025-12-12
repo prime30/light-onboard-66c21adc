@@ -418,10 +418,10 @@ const Auth = () => {
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]">
             <div className="max-w-lg mx-auto flex gap-[15px]">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[50px] px-5 rounded-[15px] border-border">
+              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[50px] px-5 rounded-[15px] border-border hover:bg-muted/50 transition-all duration-300">
                   <ArrowLeft className="w-[15px] h-[15px]" />
                 </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
+              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 btn-magnetic transition-all duration-300">
                 {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
                 <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
               </Button>
@@ -444,8 +444,8 @@ const SignInForm = ({
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-[25px] animate-fade-in">
-    <div className="space-y-2.5">
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 animate-stagger-1">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Welcome back
       </h1>
@@ -454,16 +454,42 @@ const SignInForm = ({
       </p>
     </div>
 
-    <div className="space-y-5">
+    {/* Social Login Buttons */}
+    <div className="grid grid-cols-2 gap-[15px] animate-stagger-2">
+      <button className="group flex items-center justify-center gap-2.5 h-[50px] rounded-[15px] border border-border/50 bg-background hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300">
+        <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span className="text-sm font-medium text-foreground">Google</span>
+      </button>
+      <button className="group flex items-center justify-center gap-2.5 h-[50px] rounded-[15px] border border-border/50 bg-background hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300">
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        <span className="text-sm font-medium text-foreground">Apple</span>
+      </button>
+    </div>
+
+    {/* Divider */}
+    <div className="relative flex items-center gap-5 animate-stagger-2">
+      <div className="flex-1 h-px bg-border" />
+      <span className="text-xs text-muted-foreground uppercase tracking-widest">or continue with email</span>
+      <div className="flex-1 h-px bg-border" />
+    </div>
+
+    <div className="space-y-5 animate-stagger-3">
       <div className="space-y-2.5">
         <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
           Email
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
+        <div className="relative group input-glow rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
         </div>
       </div>
 
@@ -471,11 +497,11 @@ const SignInForm = ({
         <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
           Password
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
+        <div className="relative group input-glow rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
         </div>
       </div>
 
@@ -485,14 +511,14 @@ const SignInForm = ({
       </button>
     </div>
 
-    <div className="flex items-center justify-center gap-5 text-xs text-muted-foreground pt-5">
+    <div className="flex items-center justify-center gap-5 text-xs text-muted-foreground pt-5 animate-stagger-4">
       <div className="flex items-center gap-[5px]">
-        <div className="w-[5px] h-[5px] rounded-full bg-green-500" />
+        <div className="w-[5px] h-[5px] rounded-full bg-green-500 animate-pulse" />
         <span>Secure login</span>
       </div>
       <div className="w-[5px] h-[5px] rounded-full bg-border" />
       <div className="flex items-center gap-[5px]">
-        <div className="w-[5px] h-[5px] rounded-full bg-green-500" />
+        <div className="w-[5px] h-[5px] rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.5s' }} />
         <span>256-bit encryption</span>
       </div>
     </div>
@@ -679,6 +705,51 @@ const LicenseForm = ({
       </div>
     </div>
   </div>;
+// Password strength calculator
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  
+  if (score <= 1) return { score: 1, label: "Weak", color: "bg-red-500" };
+  if (score <= 2) return { score: 2, label: "Fair", color: "bg-orange-500" };
+  if (score <= 3) return { score: 3, label: "Good", color: "bg-yellow-500" };
+  if (score <= 4) return { score: 4, label: "Strong", color: "bg-green-500" };
+  return { score: 5, label: "Excellent", color: "bg-green-600" };
+};
+
+const PasswordStrengthMeter = ({ password }: { password: string }) => {
+  const strength = getPasswordStrength(password);
+  
+  if (!password) return null;
+  
+  return (
+    <div className="space-y-2.5 animate-fade-in">
+      <div className="flex gap-[5px]">
+        {[1, 2, 3, 4, 5].map((level) => (
+          <div
+            key={level}
+            className={cn(
+              "h-[5px] flex-1 rounded-full transition-all duration-300",
+              level <= strength.score ? strength.color : "bg-border"
+            )}
+          />
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">Password strength</span>
+        <span className={cn("text-xs font-medium", 
+          strength.score <= 2 ? "text-red-500" : 
+          strength.score <= 3 ? "text-yellow-600" : "text-green-600"
+        )}>{strength.label}</span>
+      </div>
+    </div>
+  );
+};
+
 const PersonalInfoForm = ({
   firstName,
   lastName,
@@ -697,8 +768,8 @@ const PersonalInfoForm = ({
   onLastNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-[25px] animate-fade-in">
-    <div className="space-y-2.5 text-center">
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
           Final Step
@@ -713,46 +784,48 @@ const PersonalInfoForm = ({
     </div>
 
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-[15px]">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-[15px] animate-stagger-2">
         <div className="space-y-2.5">
           <Label htmlFor="firstName" className="text-sm font-medium">
             First name
           </Label>
-          <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <div className="input-glow rounded-[10px] sm:rounded-[15px]">
+            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300" />
+          </div>
         </div>
         <div className="space-y-2.5">
           <Label htmlFor="lastName" className="text-sm font-medium">
             Last name
           </Label>
-          <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all" />
+          <div className="input-glow rounded-[10px] sm:rounded-[15px]">
+            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300" />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 animate-stagger-3">
         <Label htmlFor="email" className="text-sm font-medium">
           Email
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
+        <div className="relative group input-glow rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 animate-stagger-4">
         <Label htmlFor="password" className="text-sm font-medium">
           Password
         </Label>
-        <div className="relative group">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors" />
+        <div className="relative group input-glow rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
+            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
           </div>
-          <Input id="password" type="password" placeholder="Create a password" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base" />
+          <Input id="password" type="password" placeholder="Create a password" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
         </div>
-        <p className="text-xs text-muted-foreground">
-          Must be at least 8 characters
-        </p>
+        <PasswordStrengthMeter password={password} />
       </div>
     </div>
   </div>;

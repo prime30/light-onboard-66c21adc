@@ -117,6 +117,72 @@
   .animate-rise-fade-in {
     animation: riseFadeIn 0.5s ease-out forwards;
   }
+
+  .animate-stagger-1 {
+    animation: staggerFadeIn 0.5s ease-out forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+  }
+
+  .animate-stagger-2 {
+    animation: staggerFadeIn 0.5s ease-out forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+  }
+
+  .animate-stagger-3 {
+    animation: staggerFadeIn 0.5s ease-out forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+  }
+
+  .animate-stagger-4 {
+    animation: staggerFadeIn 0.5s ease-out forwards;
+    animation-delay: 0.4s;
+    opacity: 0;
+  }
+
+  /* Modern gradient glow input focus effect */
+  .input-glow {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .input-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0), hsl(var(--foreground) / 0));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .input-glow:focus-within::before {
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.3), hsl(var(--foreground) / 0.1));
+  }
+
+  .input-glow:focus-within {
+    box-shadow: 0 0 20px hsl(var(--foreground) / 0.08), 0 0 40px hsl(var(--foreground) / 0.04);
+  }
+
+  /* Magnetic button effect */
+  .btn-magnetic {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-magnetic:hover {
+    box-shadow: 0 10px 30px hsl(var(--foreground) / 0.15), 0 5px 15px hsl(var(--foreground) / 0.1);
+  }
+
+  .btn-magnetic:active {
+    transform: scale(0.98);
+  }
 }
 
 @keyframes fadeIn {
@@ -191,5 +257,34 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
   }
 }
