@@ -525,7 +525,7 @@ const SignInForm = ({
           Secure Login
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap">
         Welcome back
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
