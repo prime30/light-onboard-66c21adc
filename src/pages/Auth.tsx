@@ -392,7 +392,7 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center px-4 md:px-6 lg:px-8 py-6 pb-[20px] pl-[10px] pr-[10px] pt-0">
+        <main className="flex-1 flex items-center justify-center md:px-6 lg:px-8 py-6 pt-0 px-[20px] pb-0 pl-[20px] pr-[20px]">
           <div className="w-full max-w-lg">
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
@@ -405,7 +405,7 @@ const Auth = () => {
         </main>
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-4 md:p-5 lg:p-6 pt-0 px-0 py-[6px] pb-[60px]">
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-4 md:p-5 lg:p-6 pt-0 py-[6px] px-[20px] pb-[30px]">
             <div className="max-w-md mx-auto flex gap-3">
               {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-12 px-5 rounded-xl border-border">
                   <ArrowLeft className="w-4 h-4" />
