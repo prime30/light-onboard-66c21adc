@@ -1,10 +1,37 @@
 import { useState, useCallback, useRef } from "react";
 import { Sparkles, Star, Truck, Gift, Palette, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMagnetic } from "@/hooks/use-magnetic";
 
 interface OnboardingStepProps {
   onContinue: () => void;
 }
+
+interface MagneticIconBoxProps {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+}
+
+const MagneticIconBox = ({ icon: Icon, title, subtitle }: MagneticIconBoxProps) => {
+  const magnetic = useMagnetic({ strength: 0.4 });
+
+  return (
+    <div
+      ref={magnetic.ref}
+      style={magnetic.style}
+      onMouseMove={magnetic.onMouseMove}
+      onMouseLeave={magnetic.onMouseLeave}
+      className="text-center p-4 rounded-xl bg-muted/50 cursor-pointer"
+    >
+      <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
+        <Icon className="w-5 h-5 text-accent" />
+      </div>
+      <p className="text-xs font-medium text-foreground">{title}</p>
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+    </div>
+  );
+};
 
 const slides = [
   {
@@ -154,29 +181,9 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
       {/* Feature highlights */}
       <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
-        <div className="text-center p-4 rounded-xl bg-muted/50">
-          <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
-            <Gift className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-xs font-medium text-foreground">Rewards</p>
-          <p className="text-xs text-muted-foreground">On every order</p>
-        </div>
-        
-        <div className="text-center p-4 rounded-xl bg-muted/50">
-          <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
-            <Truck className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-xs font-medium text-foreground">Free Shipping</p>
-          <p className="text-xs text-muted-foreground">2-day delivery</p>
-        </div>
-        
-        <div className="text-center p-4 rounded-xl bg-muted/50">
-          <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
-            <Star className="w-5 h-5 text-accent" />
-          </div>
-          <p className="text-xs font-medium text-foreground">Wholesale</p>
-          <p className="text-xs text-muted-foreground">Pro pricing</p>
-        </div>
+        <MagneticIconBox icon={Gift} title="Rewards" subtitle="On every order" />
+        <MagneticIconBox icon={Truck} title="Free Shipping" subtitle="2-day delivery" />
+        <MagneticIconBox icon={Star} title="Wholesale" subtitle="Pro pricing" />
       </div>
     </div>
   );
