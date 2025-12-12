@@ -381,9 +381,16 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
+        <header className="flex flex-col gap-2.5 p-2.5 sm:p-5 lg:p-[25px]">
+          {/* Step Indicator - Centered at top */}
+          {showStepIndicator && <div className="flex items-center justify-center gap-2.5 pb-2.5">
+              {Array.from({
+              length: getTotalSteps()
+            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
+            </div>}
+          
           {/* Auth Toggle - Desktop only */}
-          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px]">
+          <div className="hidden lg:inline-flex bg-muted rounded-full p-[5px] w-fit">
             <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
@@ -391,15 +398,6 @@ const Auth = () => {
               Sign in
             </button>
           </div>
-          {/* Spacer for mobile/tablet when toggle is hidden */}
-          <div className="lg:hidden" />
-
-          {/* Step Indicator */}
-          {showStepIndicator && <div className="flex items-center gap-2.5">
-              {Array.from({
-              length: getTotalSteps()
-            }, (_, i) => <div key={i} className={cn("h-[5px] rounded-full transition-all duration-300", i + 1 === getCurrentStepNumber() ? "w-10 bg-foreground" : i + 1 < getCurrentStepNumber() ? "w-[5px] bg-foreground" : "w-[5px] bg-border")} />)}
-            </div>}
         </header>
 
         {/* Form Content */}
