@@ -231,7 +231,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       </div>
 
       {/* Feature Pills */}
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
         {features.map((feature, i) => (
           <div
             key={i}
