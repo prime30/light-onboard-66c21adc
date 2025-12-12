@@ -23,13 +23,15 @@ const MagneticIconBox = ({ icon: Icon, title, subtitle }: MagneticIconBoxProps) 
       style={magnetic.style}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="text-center p-3 rounded-xl bg-muted/50"
+      className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/50 md:flex-col md:text-center md:p-3"
     >
-      <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center mx-auto mb-2 shadow-soft">
-        <Icon className="w-5 h-5 text-accent" />
+      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-background flex items-center justify-center shadow-soft flex-shrink-0">
+        <Icon className="w-4 h-4 md:w-5 md:h-5 text-accent" />
       </div>
-      <p className="text-xs font-medium text-foreground">{title}</p>
-      <p className="text-xs text-muted-foreground">{subtitle}</p>
+      <div className="md:space-y-0.5">
+        <p className="text-xs font-medium text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
     </div>
   );
 };
@@ -206,7 +208,7 @@ export const OnboardingStep = ({ onContinue, onSlideChange }: OnboardingStepProp
       </div>
 
       {/* Feature highlights */}
-      <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+      <div className="flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4 max-w-lg mx-auto">
         <MagneticIconBox icon={Gift} title="Rewards" subtitle="On every order" />
         <MagneticIconBox icon={Truck} title="Free Shipping" subtitle="2-day delivery" />
         <MagneticIconBox icon={Star} title="Wholesale" subtitle="Pro pricing" />
