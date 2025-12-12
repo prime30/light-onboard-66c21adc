@@ -141,7 +141,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         </VisuallyHidden>
 
         {/* Header */}
-        <div className="flex flex-col gap-4 p-4 md:p-6 border-b border-border/50">
+        <div className="flex flex-col gap-3 p-4 md:px-6 md:pt-6 md:pb-4">
           <div className="flex items-center justify-between">
             <AuthToggle mode={mode} onModeChange={handleModeChange} />
           </div>
