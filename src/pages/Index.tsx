@@ -1,25 +1,32 @@
-import { useState } from "react";
-import { AuthModal } from "@/components/registration/AuthModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 const Index = () => {
-  const [authOpen, setAuthOpen] = useState(true);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="text-center space-y-6">
-        <h1 className="text-4xl font-semibold text-foreground">Welcome</h1>
-        <p className="text-muted-foreground">Get started by creating an account</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
+          <Sparkles className="w-3 h-3 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Pro Beauty
+          </span>
+        </div>
+        <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight">Welcome</h1>
+        <p className="text-muted-foreground max-w-md">
+          Get started by creating an account or signing in to access your pro benefits
+        </p>
         <Button
           size="lg"
-          onClick={() => setAuthOpen(true)}
+          onClick={() => navigate("/auth")}
           className="h-12 px-8 rounded-xl bg-foreground text-background hover:bg-foreground/90"
         >
           Get Started
+          <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
-
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 };
