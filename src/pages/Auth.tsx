@@ -261,7 +261,8 @@ const Auth = () => {
           </div>
         </div>
 
-        {/* Left Panel - Hero/Branding */}
+        {/* Left Panel - Hero/Branding - Hidden on sign-in */}
+        {mode === "signup" && (
         <div className="relative flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
         <div key={currentSlide} className="absolute inset-0" style={{
@@ -393,6 +394,7 @@ const Auth = () => {
           }} />
         </div>
       </div>
+        )}
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
