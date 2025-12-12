@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -537,17 +537,13 @@ const SignInForm = ({
         </div>
       </div>
 
-      <div className="space-y-2.5">
-        <Label htmlFor="login-password" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
-          Password
-        </Label>
-        <div className="relative group input-ultra rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:-rotate-3">
-            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
-          </div>
-          <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40" />
-        </div>
-      </div>
+      <PasswordInputField 
+        id="login-password"
+        label="Password"
+        value={password}
+        onChange={onPasswordChange}
+        placeholder="••••••••"
+      />
 
       <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
         <span className="relative">
@@ -751,6 +747,76 @@ const LicenseForm = ({
       </div>
     </div>
   </div>;
+// Password Input with Toggle
+const PasswordInputField = ({ 
+  id, 
+  label, 
+  value, 
+  onChange, 
+  placeholder,
+  variant = "signin"
+}: { 
+  id: string; 
+  label: string; 
+  value: string; 
+  onChange: (value: string) => void; 
+  placeholder: string;
+  variant?: "signin" | "signup";
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const isSignin = variant === "signin";
+  
+  return (
+    <div className="space-y-2.5">
+      <Label htmlFor={id} className={cn(
+        "font-medium",
+        isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm"
+      )}>
+        {label}
+      </Label>
+      <div className={cn(
+        "relative group rounded-[15px]",
+        isSignin ? "input-ultra" : "input-glow"
+      )}>
+        <div className={cn(
+          "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500",
+          isSignin 
+            ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:scale-105 group-focus-within:-rotate-3"
+            : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground group-focus-within:scale-110"
+        )}>
+          <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
+        </div>
+        <Input 
+          id={id} 
+          type={showPassword ? "text" : "password"} 
+          placeholder={placeholder} 
+          value={value} 
+          onChange={e => onChange(e.target.value)} 
+          className={cn(
+            "pr-[50px] rounded-[15px] transition-all duration-500 text-base",
+            isSignin 
+              ? "h-[60px] pl-[60px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40"
+              : "h-[55px] pl-[55px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background"
+          )} 
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 focus:outline-none"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? (
+            <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
+          ) : (
+            <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Password strength calculator
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
   let score = 0;
@@ -862,15 +928,14 @@ const PersonalInfoForm = ({
       </div>
 
       <div className="space-y-2.5 animate-stagger-4">
-        <Label htmlFor="password" className="text-sm font-medium">
-          Password
-        </Label>
-        <div className="relative group input-glow rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:scale-110">
-            <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-colors duration-300" />
-          </div>
-          <Input id="password" type="password" placeholder="Create a password" value={password} onChange={e => onPasswordChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base" />
-        </div>
+        <PasswordInputField 
+          id="password"
+          label="Password"
+          value={password}
+          onChange={onPasswordChange}
+          placeholder="Create a password"
+          variant="signup"
+        />
         <PasswordStrengthMeter password={password} />
       </div>
     </div>
