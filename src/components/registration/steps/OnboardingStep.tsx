@@ -53,6 +53,7 @@ const slides = [
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -66,6 +67,8 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
   // Auto-progression with progress tracking
   useEffect(() => {
+    if (isPaused) return;
+
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -83,7 +86,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       clearInterval(progressInterval);
       clearTimeout(slideTimeout);
     };
-  }, [currentSlide, goToNextSlide]);
+  }, [currentSlide, goToNextSlide, isPaused]);
 
   const slide = slides[currentSlide];
   const SlideIcon = slide.icon;
@@ -91,7 +94,12 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   return (
     <div className="animate-fade-in">
       {/* Hero carousel */}
-      <div className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden">
+      <div 
+        className="relative h-48 md:h-56 rounded-2xl bg-gradient-to-br from-accent/30 via-muted to-accent/20 mb-8 overflow-hidden cursor-pointer"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onClick={() => setIsPaused((prev) => !prev)}
+      >
         {/* Decorative elements */}
         <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300">
           {slide.decorative}
