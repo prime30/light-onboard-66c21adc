@@ -728,43 +728,6 @@ const Auth = () => {
           <X className="w-5 h-5 text-foreground" />
         </button>
 
-        {/* Mobile/Tablet Hero Banner */}
-        <div className="lg:hidden bg-foreground rounded-[15px] m-2.5 sm:m-4 mb-0 p-4 sm:p-5 overflow-hidden relative">
-          {/* Animated orb background */}
-          <div className="absolute top-0 right-0 w-[150px] h-[150px] rounded-full blur-[60px] opacity-20" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)'
-          }} />
-          
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/10 border border-background/10 mb-2">
-                <Sparkles className="w-3 h-3 text-background/70" />
-                <span className="text-[10px] font-medium text-background/70 uppercase tracking-wider">
-                  {mode === "signin" ? "Welcome Back" : "Join Pro Network"}
-                </span>
-              </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                {mode === "signin" ? "Great to see you" : "Exclusive wholesale access"}
-              </h2>
-              <p className="text-xs text-background/50 mt-1 hidden sm:block">
-                {mode === "signin" ? "Your pro account is waiting" : "For beauty professionals"}
-              </p>
-            </div>
-            
-            {/* Mini stats */}
-            <div className="flex gap-3 sm:gap-4">
-              <div className="text-center">
-                <div className="text-base sm:text-lg font-semibold text-background">10K+</div>
-                <div className="text-[9px] text-background/40 uppercase">Pros</div>
-              </div>
-              <div className="text-center">
-                <div className="text-base sm:text-lg font-semibold text-background">30%</div>
-                <div className="text-[9px] text-background/40 uppercase">Savings</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Left Panel - Hero/Branding */}
         <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
@@ -1031,7 +994,43 @@ const Auth = () => {
           )}
         </header>
 
-        {/* Form Content */}
+        {/* Mobile/Tablet Hero Banner - Below toggle */}
+        <div className="lg:hidden bg-foreground rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
+          {/* Animated orb background */}
+          <div className="absolute top-0 right-0 w-[150px] h-[150px] rounded-full blur-[60px] opacity-20" style={{
+            background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)'
+          }} />
+          
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/10 border border-background/10 mb-2">
+                <Sparkles className="w-3 h-3 text-background/70" />
+                <span className="text-[10px] font-medium text-background/70 uppercase tracking-wider">
+                  {mode === "signin" ? "Welcome Back" : "Join Pro Network"}
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                {mode === "signin" ? "Great to see you" : "Exclusive wholesale access"}
+              </h2>
+              <p className="text-xs text-background/50 mt-1 hidden sm:block">
+                {mode === "signin" ? "Your pro account is waiting" : "For beauty professionals"}
+              </p>
+            </div>
+            
+            {/* Mini stats */}
+            <div className="flex gap-3 sm:gap-4">
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-semibold text-background">10K+</div>
+                <div className="text-[9px] text-background/40 uppercase">Pros</div>
+              </div>
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-semibold text-background">30%</div>
+                <div className="text-[9px] text-background/40 uppercase">Savings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           <div 
             key={currentStep}
