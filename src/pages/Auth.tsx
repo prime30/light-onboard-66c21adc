@@ -19,8 +19,8 @@ type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Exclusively Professional",
-  title: "Built for pros,",
-  highlight: "crafted for comfort",
+  title: "Let's get",
+  highlight: "started",
   description: "Carry the best extension line of products in your salon."
 }, {
   eyebrow: "Quality",
