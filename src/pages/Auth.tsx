@@ -1228,11 +1228,16 @@ const Auth = () => {
                   {mode === "signin" ? "Welcome Back" : "Join Pro Network"}
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                {mode === "signin" ? "Great to see you" : "Exclusive wholesale access"}
-              </h2>
+              <div className="space-y-0.5">
+                <h2 className="text-base sm:text-lg font-light text-background/50 leading-tight">
+                  {mode === "signin" ? "Great to" : "Exclusive"}
+                </h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                  {mode === "signin" ? "See You Again" : "Wholesale Access"}
+                </h2>
+              </div>
               <p className="text-xs text-background/50 mt-1 hidden sm:block">
-                {mode === "signin" ? "Your pro account is waiting" : "For beauty professionals"}
+                {mode === "signin" ? "Your pro account is waiting for you" : "For beauty professionals"}
               </p>
             </div>
             
