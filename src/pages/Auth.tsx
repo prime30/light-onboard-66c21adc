@@ -1259,7 +1259,7 @@ const AccountTypeForm = ({
     icon: Building2,
     title: "Salon Owner",
     description: "Business accounts",
-    features: ["Team accounts", "Bulk discounts", "Net 30 terms"]
+    features: ["Team accounts", "Bulk discounts", "Salon owner only community"]
   }, {
     id: "student",
     icon: GraduationCap,
