@@ -927,13 +927,13 @@ const LicenseForm = ({
         </Label>
         <div className="relative group input-glow input-ripple rounded-[15px]">
           <div className={cn(
-            "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center z-10 transition-all duration-300",
+            "absolute left-[15px] top-1/2 -translate-y-1/2 flex items-center justify-center z-10 transition-all duration-300",
             state && hasStateIcon(state) 
-              ? "bg-foreground shadow-lg shadow-foreground/10" 
-              : "bg-muted group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10"
+              ? "w-[30px] h-[30px]" 
+              : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10"
           )}>
             {state && hasStateIcon(state) ? (
-              <StateIcon state={state} size={15} className="text-background" />
+              <StateIcon state={state} size={28} className="text-foreground" />
             ) : (
               <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             )}
@@ -1064,8 +1064,8 @@ const BusinessLocationForm = ({
           </Label>
           <div className="relative">
             {state && hasStateIcon(state) && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-[8px] bg-foreground flex items-center justify-center z-10">
-                <StateIcon state={state} size={12} className="text-background" />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] flex items-center justify-center z-10">
+                <StateIcon state={state} size={22} className="text-foreground" />
               </div>
             )}
             <Select value={state} onValueChange={onStateChange}>
