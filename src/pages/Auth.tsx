@@ -244,7 +244,9 @@ const Auth = () => {
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showSpotlight, setShowSpotlight] = useState(false);
+  const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -330,25 +332,38 @@ const Auth = () => {
   // Check if form is ready to submit (on final step with all fields complete)
   const isFormReadyToSubmit = mode === "signup" && currentStep === "contact-info" && canContinue();
   
-  // Delay spotlight effect until after the 100% glow animation completes
+  // Delay spotlight effect until after the 100% glow animation completes, show once only
   useEffect(() => {
-    if (isFormReadyToSubmit) {
+    if (isFormReadyToSubmit && !hasShownSpotlight) {
       // Wait for the celebration glow animation to finish (1.5s)
       spotlightTimerRef.current = setTimeout(() => {
         setShowSpotlight(true);
+        setHasShownSpotlight(true);
+        // Auto-hide after 3 seconds
+        spotlightHideTimerRef.current = setTimeout(() => {
+          setShowSpotlight(false);
+        }, 3000);
       }, 1500);
-    } else {
+    } else if (!isFormReadyToSubmit) {
       setShowSpotlight(false);
+      // Reset hasShownSpotlight if user goes back/edits form
+      setHasShownSpotlight(false);
       if (spotlightTimerRef.current) {
         clearTimeout(spotlightTimerRef.current);
+      }
+      if (spotlightHideTimerRef.current) {
+        clearTimeout(spotlightHideTimerRef.current);
       }
     }
     return () => {
       if (spotlightTimerRef.current) {
         clearTimeout(spotlightTimerRef.current);
       }
+      if (spotlightHideTimerRef.current) {
+        clearTimeout(spotlightHideTimerRef.current);
+      }
     };
-  }, [isFormReadyToSubmit]);
+  }, [isFormReadyToSubmit, hasShownSpotlight]);
   
   // Calculate overall form progress as percentage
   const getFormProgress = () => {
