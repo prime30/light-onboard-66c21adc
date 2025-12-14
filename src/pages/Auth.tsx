@@ -2033,6 +2033,42 @@ const SuccessForm = ({
       </div>
     </div>
 
+    {/* First Purchase Upsell */}
+    <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
+      <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
+        30% OFF
+      </div>
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-background border border-border flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full border-4 border-foreground/20 relative">
+            <div className="absolute inset-1 rounded-full bg-gradient-to-br from-accent-red/40 to-accent-red/10" />
+          </div>
+        </div>
+        <div className="text-left flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
+            Recommended for you
+          </p>
+          <p className="text-sm font-semibold text-foreground">Color Ring</p>
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+            Perfect for matching colors with clients
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <Clock className="w-3 h-3 text-accent-red" />
+            <p className="text-[10px] text-accent-red font-medium">
+              48 hours only
+            </p>
+          </div>
+        </div>
+      </div>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red"
+      >
+        Claim Your Discount
+      </Button>
+    </div>
+
     <Button size="lg" onClick={onContinue} className="w-full h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90">
       Start Shopping
       <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
