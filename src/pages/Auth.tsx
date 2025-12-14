@@ -947,7 +947,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl">
+                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/50 tracking-tight leading-none xl:text-7xl">
                     Great to
                   </h2>
                   <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
@@ -980,7 +980,7 @@ const Auth = () => {
                 {/* Large Typography */}
                 <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
                   <h2 
-                    className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl opacity-0 animate-fade-in"
+                    className="text-xl md:text-3xl lg:text-4xl font-light text-background/50 tracking-tight leading-none xl:text-7xl opacity-0 animate-fade-in"
                     style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
                   >
                     {slide.title}
