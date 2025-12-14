@@ -471,10 +471,10 @@ const Auth = () => {
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
-        {/* Header */}
-        <header className="relative flex items-center justify-center p-2.5 sm:p-5 lg:p-[25px]">
-          {/* Auth Toggle - All screens - positioned absolute left */}
-          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
+        {/* Header - fixed height to keep toggle position consistent */}
+        <header className="relative flex items-center justify-center p-2.5 sm:p-5 lg:p-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+          {/* Auth Toggle - All screens - positioned absolute left, vertically centered */}
+          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] top-1/2 -translate-y-1/2 inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
             <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signup" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
