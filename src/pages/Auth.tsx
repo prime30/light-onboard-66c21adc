@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
+import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -752,12 +753,12 @@ const Auth = () => {
           >
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
-                {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
-                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} />}
-                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} />}
-                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} />}
-                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} />}
-                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} />}
+                {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
+                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? (licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "") : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
+                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
+                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
+                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
+                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                 {currentStep === "success" && <SuccessForm onContinue={() => navigate("/")} />}
               </>}
           </div>
@@ -919,10 +920,12 @@ const OnboardingForm = ({
   </div>;
 const AccountTypeForm = ({
   selectedType,
-  onSelect
+  onSelect,
+  validationStatus
 }: {
   selectedType: string | null;
   onSelect: (type: string) => void;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const types = [{
     id: "professional",
@@ -946,6 +949,7 @@ const AccountTypeForm = ({
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 1
           </span>
@@ -1059,7 +1063,8 @@ const LicenseForm = ({
   onSalonSizeChange,
   onSalonStructureChange,
   onLicenseFileChange,
-  showValidationErrors = false
+  showValidationErrors = false,
+  validationStatus
 }: {
   accountType: string | null;
   licenseNumber: string;
@@ -1071,6 +1076,7 @@ const LicenseForm = ({
   onSalonStructureChange: (value: string) => void;
   onLicenseFileChange: (file: File | null) => void;
   showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const isSalon = accountType === "salon";
   const licenseError = showValidationErrors && licenseNumber.trim() === "";
@@ -1087,6 +1093,7 @@ const LicenseForm = ({
     <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 3
           </span>
@@ -1227,7 +1234,8 @@ const BusinessLocationForm = ({
   onCityChange,
   onStateChange,
   onZipCodeChange,
-  showValidationErrors = false
+  showValidationErrors = false,
+  validationStatus
 }: {
   businessName: string;
   businessAddress: string;
@@ -1244,6 +1252,7 @@ const BusinessLocationForm = ({
   onStateChange: (value: string) => void;
   onZipCodeChange: (value: string) => void;
   showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const businessNameError = showValidationErrors && businessName.trim() === "";
   const businessAddressError = showValidationErrors && businessAddress.trim() === "";
@@ -1255,6 +1264,7 @@ const BusinessLocationForm = ({
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 2
         </span>
@@ -1367,17 +1377,20 @@ const BusinessLocationForm = ({
 const WholesaleTermsForm = ({
   agreed,
   onAgreeChange,
-  showValidationErrors = false
+  showValidationErrors = false,
+  validationStatus
 }: {
   agreed: boolean;
   onAgreeChange: (value: boolean) => void;
   showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const agreementError = showValidationErrors && !agreed;
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 4
         </span>
@@ -1433,13 +1446,15 @@ const TaxExemptionForm = ({
   taxExemptFile,
   onTaxExemptionChange,
   onTaxExemptFileChange,
-  showValidationErrors = false
+  showValidationErrors = false,
+  validationStatus
 }: {
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
   onTaxExemptionChange: (value: boolean) => void;
   onTaxExemptFileChange: (file: File | null) => void;
   showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
@@ -1454,6 +1469,7 @@ const TaxExemptionForm = ({
     <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 5
           </span>
@@ -1563,7 +1579,8 @@ const ContactInfoForm = ({
   onLastNameChange,
   onPreferredNameChange,
   onPhoneNumberChange,
-  showValidationErrors = false
+  showValidationErrors = false,
+  validationStatus
 }: {
   firstName: string;
   lastName: string;
@@ -1574,6 +1591,7 @@ const ContactInfoForm = ({
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
@@ -1582,6 +1600,7 @@ const ContactInfoForm = ({
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 6
         </span>
