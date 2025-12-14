@@ -328,6 +328,36 @@ const Auth = () => {
     if (currentStep === "contact-info") return 6;
     return 6;
   };
+  
+  const getStepFromNumber = (stepNum: number): Step => {
+    if (accountType === "student") {
+      if (stepNum === 1) return "account-type";
+      return "contact-info";
+    }
+    // Professional flow
+    switch (stepNum) {
+      case 1: return "account-type";
+      case 2: return "license";
+      case 3: return "business-location";
+      case 4: return "wholesale-terms";
+      case 5: return "tax-exemption";
+      case 6: return "contact-info";
+      default: return "account-type";
+    }
+  };
+  
+  const goToStep = (stepNum: number) => {
+    const currentNum = getCurrentStepNumber();
+    if (stepNum === currentNum) return;
+    
+    setTransitionDirection(stepNum > currentNum ? "forward" : "backward");
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentStep(getStepFromNumber(stepNum));
+      setIsTransitioning(false);
+    }, 150);
+  };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
   return <div className="min-h-screen flex items-center justify-center p-2.5 sm:p-5 lg:p-10">
@@ -539,9 +569,10 @@ const Auth = () => {
                     const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
                     
                     return (
-                      <div 
+                      <button 
                         key={i} 
-                        className="flex items-center gap-[12px]"
+                        onClick={() => goToStep(stepNum)}
+                        className="flex items-center gap-[12px] cursor-pointer hover:opacity-100 transition-opacity"
                         style={{ opacity, transform: `scale(${scale})`, transition: 'all 0.5s ease-out' }}
                       >
                         <div className={cn(
@@ -570,7 +601,7 @@ const Auth = () => {
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
