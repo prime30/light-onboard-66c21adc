@@ -178,6 +178,10 @@ const stylistAvatars = [
 const RotatingStylistAvatars = () => {
   const [visibleIndices, setVisibleIndices] = useState([0, 1, 2]);
   const [fadingIndex, setFadingIndex] = useState<number | null>(null);
+  const [floatingEmoji, setFloatingEmoji] = useState<{ position: number; emoji: string; id: number } | null>(null);
+  const emojiIdRef = useRef(0);
+  
+  const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -186,9 +190,19 @@ const RotatingStylistAvatars = () => {
         const positionToReplace = Math.floor(Math.random() * 3);
         setFadingIndex(positionToReplace);
         
+        // Trigger floating emoji when new avatar appears
+        const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
+        emojiIdRef.current += 1;
+        setFloatingEmoji({ position: positionToReplace, emoji: randomEmoji, id: emojiIdRef.current });
+        
         setTimeout(() => {
           setFadingIndex(null);
         }, 300);
+        
+        // Clear emoji after animation
+        setTimeout(() => {
+          setFloatingEmoji(null);
+        }, 1000);
         
         const newIndices = [...prev];
         newIndices[positionToReplace] = nextIndex;
@@ -204,15 +218,25 @@ const RotatingStylistAvatars = () => {
       <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
       <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
-          <img 
-            key={`${i}-${avatarIndex}`}
-            src={stylistAvatars[avatarIndex]} 
-            alt={`Stylist ${avatarIndex + 1}`}
-            className={cn(
-              "w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300",
-              fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
+          <div key={`${i}-${avatarIndex}`} className="relative">
+            <img 
+              src={stylistAvatars[avatarIndex]} 
+              alt={`Stylist ${avatarIndex + 1}`}
+              className={cn(
+                "w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300",
+                fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
+              )}
+            />
+            {/* Floating emoji reaction */}
+            {floatingEmoji && floatingEmoji.position === i && (
+              <span 
+                key={floatingEmoji.id}
+                className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none"
+              >
+                {floatingEmoji.emoji}
+              </span>
             )}
-          />
+          </div>
         ))}
       </div>
       <span className="text-xs text-background/50">10K+ pros</span>
