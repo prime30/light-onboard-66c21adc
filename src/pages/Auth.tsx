@@ -55,7 +55,7 @@ const features = [{
   label: "Free Shipping",
   desc: "2-day delivery on $250+"
 }, {
-  icon: Star,
+  icon: Tag,
   label: "Wholesale",
   desc: "Pro pricing"
 }];
