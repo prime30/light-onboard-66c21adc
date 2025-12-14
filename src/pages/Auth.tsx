@@ -1253,7 +1253,7 @@ const AccountTypeForm = ({
     icon: User,
     title: "Professional",
     description: "Licensed cosmetologists",
-    features: ["Wholesale pricing", "Priority support", "Early access"]
+    features: ["Pro wholesale pricing", "Stylist to stylist priority support", "Community access"]
   }, {
     id: "salon",
     icon: Building2,
