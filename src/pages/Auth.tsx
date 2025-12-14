@@ -153,6 +153,11 @@ const Auth = () => {
   const [hasTaxExemption, setHasTaxExemption] = useState<boolean | null>(null);
   const [preferredName, setPreferredName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  
+  // Salon-specific fields
+  const [salonSize, setSalonSize] = useState("");
+  const [salonStructure, setSalonStructure] = useState("");
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -172,6 +177,9 @@ const Auth = () => {
     setHasTaxExemption(null);
     setPreferredName("");
     setPhoneNumber("");
+    setSalonSize("");
+    setSalonStructure("");
+    setLicenseFile(null);
   };
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
@@ -208,6 +216,9 @@ const Auth = () => {
       case "account-type":
         return accountType !== null;
       case "license":
+        if (accountType === "salon") {
+          return licenseNumber.trim() !== "" && state !== "" && salonSize !== "" && salonStructure !== "";
+        }
         return licenseNumber.trim() !== "" && state !== "";
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
@@ -581,7 +592,7 @@ const Auth = () => {
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
-                {currentStep === "license" && <LicenseForm licenseNumber={licenseNumber} state={state} onLicenseChange={setLicenseNumber} onStateChange={setState} />}
+                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} state={state} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onStateChange={setState} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} />}
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} onTaxExemptionChange={setHasTaxExemption} />}
@@ -874,82 +885,159 @@ const AccountTypeForm = ({
       </div>
     </div>;
 };
+const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
+const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-operated"];
+
 const LicenseForm = ({
+  accountType,
   licenseNumber,
   state,
+  salonSize,
+  salonStructure,
+  licenseFile,
   onLicenseChange,
-  onStateChange
+  onStateChange,
+  onSalonSizeChange,
+  onSalonStructureChange,
+  onLicenseFileChange
 }: {
+  accountType: string | null;
   licenseNumber: string;
   state: string;
+  salonSize: string;
+  salonStructure: string;
+  licenseFile: File | null;
   onLicenseChange: (value: string) => void;
   onStateChange: (value: string) => void;
-}) => <div className="space-y-[30px]">
-    <div className="space-y-[10px] text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
-        <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
-          Step 2
-        </span>
-      </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Verify your license
-      </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-        Enter your cosmetology license details
-      </p>
-    </div>
-
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
-      <FileCheck className="w-5 h-5 text-muted-foreground shrink-0 mt-[5px]" />
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        We display professional wholesale pricing. Please enter your license exactly as it appears from the state.
-      </p>
-    </div>
-
-    <div className="space-y-5">
-      <div className="space-y-2.5">
-        <Label htmlFor="license" className="text-sm font-medium label-float">
-          License number
-        </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-            <FileCheck className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-          </div>
-          <Input id="license" type="text" placeholder="Enter your license number" value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+  onSalonSizeChange: (value: string) => void;
+  onSalonStructureChange: (value: string) => void;
+  onLicenseFileChange: (file: File | null) => void;
+}) => {
+  const isSalon = accountType === "salon";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onLicenseFileChange(file);
+  };
+  
+  return (
+    <div className="space-y-[30px]">
+      <div className="space-y-[10px] text-center animate-stagger-1">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
+          <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
+            Step 2
+          </span>
         </div>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+          {isSalon ? "What's your license number?" : "Verify your license"}
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+          {isSalon ? "Let's make sure you're a salon manager" : "Enter your cosmetology license details"}
+        </p>
       </div>
 
-      <div className="space-y-2.5">
-        <Label htmlFor="state" className="text-sm font-medium label-float">
-          State / Province
-        </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className={cn(
-            "absolute left-[15px] top-1/2 -translate-y-1/2 flex items-center justify-center z-10 transition-all duration-300",
-            state && hasStateIcon(state) 
-              ? "w-[30px] h-[30px]" 
-              : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10"
-          )}>
-            {state && hasStateIcon(state) ? (
-              <StateIcon state={state} size={28} className="text-foreground" />
-            ) : (
-              <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-            )}
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+        <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {isSalon 
+            ? "We are a manufacturer and supplier of professional products. The prices displayed reflect professional wholesale pricing, not available to the general public."
+            : "We display professional wholesale pricing. Please enter your license exactly as it appears from the state."}
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        {/* License Number and State - Row */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2.5">
+            <Label htmlFor="license" className="text-sm font-medium label-float">
+              {isSalon ? "Salon License #*" : "License number"}
+            </Label>
+            <div className="relative group input-glow input-ripple rounded-[15px]">
+              <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            </div>
           </div>
-          <Select value={state} onValueChange={onStateChange}>
-            <SelectTrigger className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
-              <SelectValue placeholder="Select your state" />
-            </SelectTrigger>
-            <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                  {s}
-                </SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2.5">
+            <Label htmlFor="state" className="text-sm font-medium label-float">
+              State/Province*
+            </Label>
+            <Select value={state} onValueChange={onStateChange}>
+              <SelectTrigger className="h-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+                <SelectValue placeholder="State/Province" />
+              </SelectTrigger>
+              <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                    {s}
+                  </SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {/* Salon-specific fields */}
+        {isSalon && (
+          <>
+            {/* Salon Size */}
+            <div className="flex items-center justify-between gap-4">
+              <Label className="text-sm font-medium whitespace-nowrap">
+                What's the size of your salon?*
+              </Label>
+              <Select value={salonSize} onValueChange={onSalonSizeChange}>
+                <SelectTrigger className="w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                  {salonSizes.map(size => <SelectItem key={size} value={size} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                      {size}
+                    </SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Salon Structure */}
+            <div className="flex items-center justify-between gap-4">
+              <Label className="text-sm font-medium whitespace-nowrap">
+                Select your salon structure*
+              </Label>
+              <Select value={salonStructure} onValueChange={onSalonStructureChange}>
+                <SelectTrigger className="w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                  {salonStructures.map(structure => <SelectItem key={structure} value={structure} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                      {structure}
+                    </SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* File Upload */}
+            <div className="flex items-center gap-4 pt-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50"
+              >
+                Choose File
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {licenseFile ? licenseFile.name : "Upload your salon license"}
+              </span>
+            </div>
+          </>
+        )}
       </div>
     </div>
-  </div>;
+  );
+};
 
 // Business Location Form (Step 2 for professionals)
 const countries = ["United States", "Canada"];
