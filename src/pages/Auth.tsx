@@ -129,7 +129,6 @@ const SignInFeatureBox = ({
 // Circular Progress Indicator Component
 const CircularProgress = ({ progress }: { progress: number }) => {
   const [showGlow, setShowGlow] = useState(false);
-  const [showBounce, setShowBounce] = useState(false);
   const prevProgressRef = useRef(progress);
   
   const size = 40;
@@ -142,10 +141,8 @@ const CircularProgress = ({ progress }: { progress: number }) => {
   useEffect(() => {
     if (progress >= 100 && prevProgressRef.current < 100) {
       setShowGlow(true);
-      // After glow animation ends, hide glow and show bounce
       const timer = setTimeout(() => {
         setShowGlow(false);
-        setShowBounce(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -199,10 +196,7 @@ const CircularProgress = ({ progress }: { progress: number }) => {
         />
       </svg>
       <span 
-        className={cn(
-          "absolute text-[10px] font-semibold transition-colors duration-500 z-10",
-          showBounce && "animate-bounce"
-        )}
+        className="absolute text-[10px] font-semibold transition-colors duration-500 z-10"
         style={{ color: getTextColor() }}
       >
         {Math.round(progress)}%
