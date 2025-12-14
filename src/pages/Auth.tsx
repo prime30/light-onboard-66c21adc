@@ -69,7 +69,7 @@ const testimonials = [
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
   },
   {
-    quote: "Switching to Drop Dead saved my salon 30% on supplies. The quality is top-notch.",
+    quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
     name: "Marcus Chen",
     role: "Salon Owner",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
@@ -1243,7 +1243,7 @@ const Auth = () => {
                 <div className="text-[9px] text-background/40 uppercase">Pros</div>
               </div>
               <div className="text-center">
-                <div className="text-base sm:text-lg font-semibold text-background">30%</div>
+                <div className="text-base sm:text-lg font-semibold text-background">50%</div>
                 <div className="text-[9px] text-background/40 uppercase">Savings</div>
               </div>
             </div>
@@ -2735,7 +2735,7 @@ const SuccessForm = () => {
     {/* First Purchase Upsell */}
     <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
       <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
-        30% OFF
+        50% OFF
       </div>
       <div className="flex items-start gap-4">
         <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
