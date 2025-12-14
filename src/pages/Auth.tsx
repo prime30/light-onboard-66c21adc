@@ -500,7 +500,7 @@ const Auth = () => {
           break;
         case "contact-info":
           setCurrentStep("success");
-          toast.success("Account created successfully!");
+          toast.success("Submitted. Our team will review and notify you within 24 hours.");
           break;
       }
       setIsTransitioning(false);
