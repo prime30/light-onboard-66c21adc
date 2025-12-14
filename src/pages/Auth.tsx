@@ -1031,7 +1031,7 @@ const Auth = () => {
           {/* Slide Indicators - Only on sign-up */}
           {mode === "signup" ? (
             <div className="flex gap-2.5">
-              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
+              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background" : "w-[5px] bg-background/20")} />)}
             </div>
           ) : (
             <div />
