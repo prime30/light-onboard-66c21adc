@@ -899,8 +899,8 @@ const Auth = () => {
                           {/* Active step glow ring */}
                           {isActive && (
                             <div 
-                              className="absolute inset-0 rounded-full border border-accent-red/40 animate-pulse" 
-                              style={{ boxShadow: '0 0 16px hsl(var(--accent-red) / 0.2)' }} 
+                              className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" 
+                              style={{ boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)' }} 
                             />
                           )}
                           <div className={cn(
@@ -1022,9 +1022,9 @@ const SignInForm = ({
   onSignUp: () => void;
 }) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
     <div className="space-y-[12px] animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red animate-pulse" />
-        <span className="text-[10px] font-medium text-accent-red/80 uppercase tracking-[0.15em]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-foreground/5 border border-foreground/10 mb-[5px]">
+        <div className="w-[6px] h-[6px] rounded-full bg-foreground animate-pulse" />
+        <span className="text-[10px] font-medium text-foreground/60 uppercase tracking-[0.15em]">
           Secure Login
         </span>
       </div>
@@ -1068,21 +1068,21 @@ const SignInForm = ({
     </div>
 
     <div className="flex flex-wrap items-center justify-center gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
-      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
-        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Headphones className="w-4 h-4 text-accent-red" />
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Headphones className="w-4 h-4 text-foreground/70" />
         </div>
         <span className="text-xs font-medium text-foreground/80">Stylist to Stylist Support</span>
       </div>
-      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
-        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Users className="w-4 h-4 text-accent-red" />
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Users className="w-4 h-4 text-foreground/70" />
         </div>
         <span className="text-xs font-medium text-foreground/80">Community Access</span>
       </div>
-      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
-        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Tag className="w-4 h-4 text-accent-red" />
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Tag className="w-4 h-4 text-foreground/70" />
         </div>
         <span className="text-xs font-medium text-foreground/80">Pro Pricing</span>
       </div>
@@ -1111,9 +1111,9 @@ const OnboardingForm = ({
   onContinue: () => void;
   onSignIn: () => void;
 }) => <div className="space-y-[30px] text-center">
-    <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-2.5 animate-stagger-1">
-      <Sparkles className="w-[14px] h-[14px] text-accent-red/70" />
-      <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
+    <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-foreground/5 border border-foreground/10 mb-2.5 animate-stagger-1">
+      <Sparkles className="w-[14px] h-[14px] text-foreground/50" />
+      <span className="text-[10px] font-medium text-foreground/50 uppercase tracking-[0.15em]">
         Getting Started
       </span>
     </div>
