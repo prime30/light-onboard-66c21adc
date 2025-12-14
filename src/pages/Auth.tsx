@@ -19,9 +19,9 @@ type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Welcome",
-  title: "Join the",
-  highlight: "Pro Network",
-  description: "Exclusive wholesale access for beauty professionals"
+  title: "Exclusive Access to the",
+  highlight: "Best Hair",
+  description: "Carry the best extension line of products in your salon."
 }, {
   eyebrow: "Quality",
   title: "Premium",
@@ -1484,26 +1484,23 @@ const OnboardingForm = ({
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Ready to join?
+        Apply for a pro account to unlock wholesale pricing on the industries best hair and tools.
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-        Create your pro account in just a few steps and unlock exclusive benefits
-      </p>
     </div>
 
     {/* Trust badges */}
     <div className="flex flex-wrap justify-center gap-2 animate-stagger-2">
       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
         <Check className="w-3 h-3 text-green-600" />
-        <span className="text-[11px] text-green-700 font-medium">24hr approval</span>
+        <span className="text-[11px] text-green-700 font-medium">Professional Only</span>
       </div>
       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
         <FileCheck className="w-3 h-3 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground">License verified</span>
+        <span className="text-[11px] text-muted-foreground">Exclusive community</span>
       </div>
       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
         <Lock className="w-3 h-3 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground">Secure signup</span>
+        <span className="text-[11px] text-muted-foreground">Advanced education</span>
       </div>
     </div>
 
@@ -1511,17 +1508,14 @@ const OnboardingForm = ({
     <div className="grid gap-3 pt-2">
       {[{
         icon: User,
-        label: "Choose your account type",
-        desc: "Pro, Salon, or Student"
+        label: "Choose your account type"
       }, {
         icon: FileCheck,
-        label: "Verify your license",
-        desc: "Quick verification process"
+        label: "24 Hour License Verification Process"
       }, {
         icon: Gift,
-        label: "Start saving",
-        desc: "Unlock wholesale pricing"
-      }].map((item, i) => <div 
+        label: "Unlock your professional only wholesale pricing"
+      }].map((item, i) => <div
             key={i} 
             className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in hover:border-foreground/20 hover:from-muted transition-all duration-300"
             style={{ animationDelay: `${200 + i * 100}ms`, animationFillMode: 'forwards' }}
@@ -1536,7 +1530,6 @@ const OnboardingForm = ({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-300" />
           </div>)}
