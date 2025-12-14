@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 type AuthMode = "signup" | "signin";
-type Step = "onboarding" | "account-type" | "license" | "personal-info" | "success";
+type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Welcome",
   title: "Join the",
@@ -140,6 +140,18 @@ const Auth = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  // New pro flow fields
+  const [businessName, setBusinessName] = useState("");
+  const [businessAddress, setBusinessAddress] = useState("");
+  const [suiteNumber, setSuiteNumber] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [wholesaleAgreed, setWholesaleAgreed] = useState(false);
+  const [hasTaxExemption, setHasTaxExemption] = useState<boolean | null>(null);
+  const [preferredName, setPreferredName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -149,6 +161,16 @@ const Auth = () => {
     setLastName("");
     setEmail("");
     setPassword("");
+    setBusinessName("");
+    setBusinessAddress("");
+    setSuiteNumber("");
+    setCountry("");
+    setCity("");
+    setZipCode("");
+    setWholesaleAgreed(false);
+    setHasTaxExemption(null);
+    setPreferredName("");
+    setPhoneNumber("");
   };
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
@@ -186,8 +208,14 @@ const Auth = () => {
         return accountType !== null;
       case "license":
         return licenseNumber.trim() !== "" && state !== "";
-      case "personal-info":
-        return firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && password.length >= 8;
+      case "business-location":
+        return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+      case "wholesale-terms":
+        return wholesaleAgreed;
+      case "tax-exemption":
+        return hasTaxExemption !== null;
+      case "contact-info":
+        return firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "";
       default:
         return true;
     }
@@ -212,12 +240,22 @@ const Auth = () => {
           setCurrentStep("account-type");
           break;
         case "account-type":
-          setCurrentStep(accountType === "student" ? "personal-info" : "license");
+          // Student goes directly to contact-info, professionals go through full flow
+          setCurrentStep(accountType === "student" ? "contact-info" : "license");
           break;
         case "license":
-          setCurrentStep("personal-info");
+          setCurrentStep("business-location");
           break;
-        case "personal-info":
+        case "business-location":
+          setCurrentStep("wholesale-terms");
+          break;
+        case "wholesale-terms":
+          setCurrentStep("tax-exemption");
+          break;
+        case "tax-exemption":
+          setCurrentStep("contact-info");
+          break;
+        case "contact-info":
           setCurrentStep("success");
           toast.success("Account created successfully!");
           break;
@@ -238,21 +276,40 @@ const Auth = () => {
         case "license":
           setCurrentStep("account-type");
           break;
-        case "personal-info":
-          setCurrentStep(accountType === "student" ? "account-type" : "license");
+        case "business-location":
+          setCurrentStep("license");
+          break;
+        case "wholesale-terms":
+          setCurrentStep("business-location");
+          break;
+        case "tax-exemption":
+          setCurrentStep("wholesale-terms");
+          break;
+        case "contact-info":
+          setCurrentStep(accountType === "student" ? "account-type" : "tax-exemption");
           break;
       }
       setIsTransitioning(false);
     }, 150);
   };
   const getTotalSteps = () => {
-    return accountType === "student" ? 3 : 4;
+    // Student: account-type, contact-info = 2 steps
+    // Professional: account-type, license, business-location, wholesale-terms, tax-exemption, contact-info = 6 steps
+    return accountType === "student" ? 2 : 6;
   };
   const getCurrentStepNumber = () => {
     if (currentStep === "account-type") return 1;
+    if (accountType === "student") {
+      if (currentStep === "contact-info") return 2;
+      return 2;
+    }
+    // Professional flow
     if (currentStep === "license") return 2;
-    if (currentStep === "personal-info") return accountType === "student" ? 2 : 3;
-    return accountType === "student" ? 3 : 4;
+    if (currentStep === "business-location") return 3;
+    if (currentStep === "wholesale-terms") return 4;
+    if (currentStep === "tax-exemption") return 5;
+    if (currentStep === "contact-info") return 6;
+    return 6;
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
@@ -500,7 +557,10 @@ const Auth = () => {
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
                 {currentStep === "license" && <LicenseForm licenseNumber={licenseNumber} state={state} onLicenseChange={setLicenseNumber} onStateChange={setState} />}
-                {currentStep === "personal-info" && <PersonalInfoForm firstName={firstName} lastName={lastName} email={email} password={password} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onEmailChange={setEmail} onPasswordChange={setPassword} />}
+                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} />}
+                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} />}
+                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} onTaxExemptionChange={setHasTaxExemption} />}
+                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} />}
                 {currentStep === "success" && <SuccessForm onContinue={() => navigate("/")} />}
               </>}
           </div>
@@ -514,7 +574,7 @@ const Auth = () => {
                 </Button>}
               <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide">
                 <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                  {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
+                  {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
                   <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
                 </span>
               </Button>
@@ -843,6 +903,347 @@ const LicenseForm = ({
             </SelectContent>
           </Select>
         </div>
+      </div>
+    </div>
+  </div>;
+
+// Business Location Form (Step 2 for professionals)
+const countries = ["United States", "Canada"];
+const BusinessLocationForm = ({
+  businessName,
+  businessAddress,
+  suiteNumber,
+  country,
+  city,
+  state,
+  zipCode,
+  onBusinessNameChange,
+  onBusinessAddressChange,
+  onSuiteNumberChange,
+  onCountryChange,
+  onCityChange,
+  onStateChange,
+  onZipCodeChange
+}: {
+  businessName: string;
+  businessAddress: string;
+  suiteNumber: string;
+  country: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  onBusinessNameChange: (value: string) => void;
+  onBusinessAddressChange: (value: string) => void;
+  onSuiteNumberChange: (value: string) => void;
+  onCountryChange: (value: string) => void;
+  onCityChange: (value: string) => void;
+  onStateChange: (value: string) => void;
+  onZipCodeChange: (value: string) => void;
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+          Step 2
+        </span>
+      </div>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        Where is your business located?
+      </h1>
+    </div>
+
+    <div className="space-y-4">
+      {/* Business Name */}
+      <div className="space-y-2.5">
+        <Label htmlFor="businessName" className="text-sm font-medium label-float">
+          Business or salon name*
+        </Label>
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          </div>
+          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        </div>
+      </div>
+
+      {/* Address + Suite */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="col-span-2 space-y-2.5">
+          <Label htmlFor="businessAddress" className="text-sm font-medium label-float">
+            Address*
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="businessAddress" type="text" placeholder="Address of your business or salon" value={businessAddress} onChange={e => onBusinessAddressChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+        <div className="space-y-2.5">
+          <Label htmlFor="suiteNumber" className="text-sm font-medium label-float">
+            Suite #
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="suiteNumber" type="text" placeholder="Suite #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Country */}
+      <div className="space-y-2.5">
+        <Label htmlFor="country" className="text-sm font-medium label-float">
+          Country*
+        </Label>
+        <Select value={country} onValueChange={onCountryChange}>
+          <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+            <SelectValue placeholder="Country" />
+          </SelectTrigger>
+          <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+            {countries.map(c => <SelectItem key={c} value={c} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                {c}
+              </SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* City, State, Zip */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="space-y-2.5">
+          <Label htmlFor="city" className="text-sm font-medium label-float">
+            City*
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+        <div className="space-y-2.5">
+          <Label htmlFor="stateProvince" className="text-sm font-medium label-float">
+            State/Province*
+          </Label>
+          <Select value={state} onValueChange={onStateChange}>
+            <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+              <SelectValue placeholder="State" />
+            </SelectTrigger>
+            <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                  {s}
+                </SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2.5">
+          <Label htmlFor="zipCode" className="text-sm font-medium label-float">
+            Zip code*
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="zipCode" type="text" placeholder="Zip code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>;
+
+// Wholesale Terms Form (Step 3 for professionals)
+const WholesaleTermsForm = ({
+  agreed,
+  onAgreeChange
+}: {
+  agreed: boolean;
+  onAgreeChange: (value: boolean) => void;
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+          Step 3
+        </span>
+      </div>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        Do you agree to wholesale terms?
+      </h1>
+    </div>
+
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+      <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          The pricing that you see on the website is the wholesale price for stylists. We recommend that you do not use your client's credit card to purchase hair extensions and that you manage the purchasing of hair for your business.
+        </p>
+        <p>
+          It is policy that you do not use client cards for the purchase of their products and only use your own cards. This helps us avoid fraudulent chargebacks and theft.
+        </p>
+      </div>
+    </div>
+
+    <button
+      onClick={() => onAgreeChange(!agreed)}
+      className={cn(
+        "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+        agreed 
+          ? "border-foreground bg-foreground/5" 
+          : "border-border hover:border-foreground/30 hover:bg-muted/50"
+      )}
+    >
+      <div className={cn(
+        "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+        agreed ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+      )}>
+        {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+      </div>
+      <span className="text-sm font-medium text-foreground">
+        Yes, I agree to not use my client's card to purchase.*
+      </span>
+    </button>
+  </div>;
+
+// Tax Exemption Form (Step 4 for professionals)
+const TaxExemptionForm = ({
+  hasTaxExemption,
+  onTaxExemptionChange
+}: {
+  hasTaxExemption: boolean | null;
+  onTaxExemptionChange: (value: boolean) => void;
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+          Step 4
+        </span>
+      </div>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        Do you have a tax exemption?
+      </h1>
+    </div>
+
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+      <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+        <p>
+          A resale license for tax exemption is not required to register, but it may be a good idea for you to have one. If you choose to upload a tax exemption license, you will not be charged sales tax on extensions. If you do not want to pay sales tax, and be sales tax exempt, please upload your tax exemption documentation from your state, proving that your client will be paying the sales tax when you sell the hair to them.
+        </p>
+        <p>
+          Please note that if you are exempted from paying sales tax, you still need to collect sales tax from your customers and remit it to your state.
+        </p>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        onClick={() => onTaxExemptionChange(true)}
+        className={cn(
+          "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+          hasTaxExemption === true 
+            ? "border-foreground bg-foreground/5" 
+            : "border-border hover:border-foreground/30 hover:bg-muted/50"
+        )}
+      >
+        <div className={cn(
+          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+          hasTaxExemption === true ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+        )}>
+          {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+        </div>
+        <span className="text-sm font-medium text-foreground">Yes</span>
+      </button>
+      <button
+        onClick={() => onTaxExemptionChange(false)}
+        className={cn(
+          "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+          hasTaxExemption === false 
+            ? "border-foreground bg-foreground/5" 
+            : "border-border hover:border-foreground/30 hover:bg-muted/50"
+        )}
+      >
+        <div className={cn(
+          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+          hasTaxExemption === false ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+        )}>
+          {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+        </div>
+        <span className="text-sm font-medium text-foreground">No</span>
+      </button>
+    </div>
+  </div>;
+
+// Contact Info Form (Step 5 for professionals, Step 2 for students)
+const ContactInfoForm = ({
+  firstName,
+  lastName,
+  preferredName,
+  phoneNumber,
+  onFirstNameChange,
+  onLastNameChange,
+  onPreferredNameChange,
+  onPhoneNumberChange
+}: {
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  phoneNumber: string;
+  onFirstNameChange: (value: string) => void;
+  onLastNameChange: (value: string) => void;
+  onPreferredNameChange: (value: string) => void;
+  onPhoneNumberChange: (value: string) => void;
+}) => <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+          Final Step
+        </span>
+      </div>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        Your Contact Information
+      </h1>
+    </div>
+
+    <div className="space-y-4">
+      {/* First and Last Name */}
+      <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
+        <div className="space-y-2.5 group">
+          <Label htmlFor="legalFirstName" className="text-sm font-medium label-float">
+            Legal first name*
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+        <div className="space-y-2.5 group">
+          <Label htmlFor="legalLastName" className="text-sm font-medium label-float">
+            Legal last name*
+          </Label>
+          <div className="input-glow input-ripple rounded-[15px]">
+            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Preferred Name */}
+      <div className="space-y-2.5 animate-stagger-3 group">
+        <Label htmlFor="preferredName" className="text-sm font-medium label-float">
+          Preferred name if different from legal name
+        </Label>
+        <div className="input-glow input-ripple rounded-[15px]">
+          <Input id="preferredName" type="text" placeholder="Preferred name if different from legal name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        </div>
+      </div>
+
+      {/* Phone Number */}
+      <div className="space-y-2.5 animate-stagger-4 group">
+        <Label htmlFor="phoneNumber" className="text-sm font-medium label-float">
+          Phone number*
+        </Label>
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <Phone className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          </div>
+          <Input id="phoneNumber" type="tel" placeholder="Phone number" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        </div>
+      </div>
+
+      {/* SMS Consent Notice */}
+      <div className="flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-5">
+        <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          By registering I agree to receive recurring automated marketing text messages (e.g. discounts, promos, and stock updates) at the phone number provided. Consent is not a condition to purchase. Msg & data rates may apply. Msg frequency varies. Reply HELP for help and STOP to cancel. View our{" "}
+          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Terms of Service</button>
+          {" "}and{" "}
+          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
+        </p>
       </div>
     </div>
   </div>;
