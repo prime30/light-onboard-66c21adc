@@ -492,9 +492,9 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Dial Style with fade edges */}
+          {/* Step Indicator - Dial Style with fade edges - aligned with toggle */}
           {showStepIndicator && (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="flex items-center justify-center">
               {/* Dial container with mask for fade effect */}
               <div 
                 className="relative flex items-center justify-center overflow-hidden"
@@ -560,13 +560,6 @@ const Auth = () => {
                   })}
                 </div>
               </div>
-              
-              {/* Step label below */}
-              <div className="text-center mt-1">
-                <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
-                  Step {getCurrentStepNumber()} / {getTotalSteps()}
-                </span>
-              </div>
             </div>
           )}
           
@@ -604,16 +597,26 @@ const Auth = () => {
 
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]">
-            <div className="max-w-lg mx-auto flex gap-[15px]">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group">
-                  <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
-                </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide">
-                <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                  {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
-                  <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
-                </span>
-              </Button>
+            <div className="max-w-lg mx-auto flex flex-col gap-[10px]">
+              <div className="flex gap-[15px]">
+                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group">
+                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
+                  </Button>}
+                <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide">
+                  <span className="relative z-10 flex items-center justify-center gap-[10px]">
+                    {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
+                    <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                  </span>
+                </Button>
+              </div>
+              {/* Step label below buttons */}
+              {showStepIndicator && (
+                <div className="text-center">
+                  <span className="text-[11px] text-muted-foreground/60 tracking-wider">
+                    Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
+                  </span>
+                </div>
+              )}
             </div>
           </footer>}
       </div>
