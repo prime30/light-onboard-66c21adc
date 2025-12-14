@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -567,6 +568,74 @@ const Auth = () => {
     const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
     
     return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
+  };
+  
+  // Get list of incomplete steps for tooltip display
+  const getIncompleteSteps = (): { step: number; name: string }[] => {
+    if (mode !== "signup" || !accountType) return [];
+    
+    const incomplete: { step: number; name: string }[] = [];
+    
+    // Step 1: Account Type (always complete if we're past it)
+    
+    if (accountType === "student") {
+      // Student has simpler flow
+      if (licenseNumber.trim() === "") {
+        incomplete.push({ step: 2, name: "License Verification" });
+      }
+      if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+        incomplete.push({ step: 3, name: "Contact Info" });
+      }
+      return incomplete;
+    }
+    
+    if (accountType === "salon") {
+      // Step 2: Business Location
+      if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+        incomplete.push({ step: 2, name: "Business Location" });
+      }
+      // Step 3: License
+      if (licenseNumber.trim() === "" || salonSize === "" || salonStructure === "") {
+        incomplete.push({ step: 3, name: "License Verification" });
+      }
+      // Step 4: Wholesale Terms
+      if (!wholesaleAgreed) {
+        incomplete.push({ step: 4, name: "Wholesale Terms" });
+      }
+      // Step 5: Tax Exemption
+      if (hasTaxExemption === null || (hasTaxExemption === true && !taxExemptFile)) {
+        incomplete.push({ step: 5, name: "Tax Exemption" });
+      }
+      // Step 6: Contact Info
+      if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+        incomplete.push({ step: 6, name: "Contact Info" });
+      }
+      return incomplete;
+    }
+    
+    // Professional flow
+    // Step 2: License
+    if (licenseNumber.trim() === "") {
+      incomplete.push({ step: 2, name: "License Verification" });
+    }
+    // Step 3: Business Location
+    if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+      incomplete.push({ step: 3, name: "Business Location" });
+    }
+    // Step 4: Wholesale Terms
+    if (!wholesaleAgreed) {
+      incomplete.push({ step: 4, name: "Wholesale Terms" });
+    }
+    // Step 5: Tax Exemption
+    if (hasTaxExemption === null || (hasTaxExemption === true && !taxExemptFile)) {
+      incomplete.push({ step: 5, name: "Tax Exemption" });
+    }
+    // Step 6: Contact Info
+    if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+      incomplete.push({ step: 6, name: "Contact Info" });
+    }
+    
+    return incomplete;
   };
   
   // Check if form is ready to submit (on final step with all fields complete)
@@ -1190,29 +1259,58 @@ const Auth = () => {
                 )}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
-                <Button 
-                  size="lg" 
-                  onClick={handleNext} 
-                  disabled={currentStep === "contact-info" ? (!isAllStepsValid() || isSubmitting) : (!canContinue() || isSubmitting)} 
-                  className={cn(
-                    "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
-                    showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
-                  )}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      <>
-                        {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
-                        <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
-                      </>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1">
+                        <Button 
+                          size="lg" 
+                          onClick={handleNext} 
+                          disabled={currentStep === "contact-info" ? (!isAllStepsValid() || isSubmitting) : (!canContinue() || isSubmitting)} 
+                          className={cn(
+                            "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                            showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
+                          )}
+                        >
+                          <span className="relative z-10 flex items-center justify-center gap-[10px]">
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                                Creating account...
+                              </>
+                            ) : (
+                              <>
+                                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
+                                <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
+                              </>
+                            )}
+                          </span>
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
+                      <TooltipContent 
+                        side="top" 
+                        className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[280px]"
+                      >
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
+                          <div className="space-y-1.5">
+                            {getIncompleteSteps().map(({ step, name }) => (
+                              <div key={step} className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-[10px] font-semibold">{step}</span>
+                                </div>
+                                <span className="text-sm">{name}</span>
+                                <AlertTriangle className="w-3 h-3 text-amber-400 ml-auto flex-shrink-0" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </TooltipContent>
                     )}
-                  </span>
-                </Button>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </footer>}
