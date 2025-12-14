@@ -160,6 +160,7 @@ const Auth = () => {
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -185,6 +186,7 @@ const Auth = () => {
     setLicenseFile(null);
     setTaxExemptFile(null);
     setShowValidationErrors(false);
+    setCompletedSteps(new Set());
   };
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
@@ -252,6 +254,10 @@ const Auth = () => {
       navigate("/");
       return;
     }
+    
+    // Mark current step as completed
+    const currentStepNum = getCurrentStepNumber();
+    setCompletedSteps(prev => new Set([...prev, currentStepNum]));
     
     setTransitionDirection("forward");
     setIsTransitioning(true);
@@ -595,11 +601,11 @@ const Auth = () => {
                             "rounded-full transition-all duration-500 flex items-center justify-center font-semibold",
                             isActive 
                               ? "w-[24px] h-[24px] bg-foreground text-background text-[10px]" 
-                              : isCompleted 
+                              : completedSteps.has(stepNum)
                                 ? "w-[20px] h-[20px] bg-foreground text-background" 
                                 : "w-[20px] h-[20px] bg-border/60 text-muted-foreground text-[9px]"
                           )}>
-                            {isCompleted ? (
+                            {completedSteps.has(stepNum) && !isActive ? (
                               <Check className="w-[10px] h-[10px]" strokeWidth={3} />
                             ) : (
                               <span>{stepNum}</span>
