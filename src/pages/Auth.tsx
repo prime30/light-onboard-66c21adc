@@ -983,7 +983,10 @@ const OnboardingForm = ({
           className="flex items-center gap-[15px] sm:gap-5 p-[15px] sm:p-5 rounded-[15px] bg-muted/50 border border-border/50 text-left opacity-0 animate-fade-in"
           style={{ animationDelay: `${300 + i * 150}ms`, animationFillMode: 'forwards' }}
         >
-          <div className="w-10 h-10 rounded-[10px] sm:rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0">
+          <div 
+            className="w-10 h-10 rounded-[10px] sm:rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0 icon-sequential-glow"
+            style={{ animationDelay: `${i * 1.5}s` }}
+          >
             <item.icon className="w-5 h-5 text-background" />
           </div>
           <div>
