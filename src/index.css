@@ -792,3 +792,17 @@
 .animate-celebration-glow {
   animation: celebrationGlow 1.5s ease-out forwards;
 }
+
+/* Spotlight button animation for form completion */
+@keyframes spotlightPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.animate-spotlight-button {
+  animation: spotlightPulse 2s ease-in-out infinite;
+}
