@@ -1091,10 +1091,12 @@ const LicenseForm = ({
   return (
     <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 2
-          </span>
+        <div className="inline-flex items-center justify-center">
+          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-foreground/5 border border-foreground/10 mb-[5px]">
+            <span className="text-[10px] font-medium text-foreground/70 uppercase tracking-[0.15em]">
+              Step 2
+            </span>
+          </div>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           {isSalon ? "What is your license number?" : "Verify your license"}
