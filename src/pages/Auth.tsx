@@ -131,6 +131,19 @@ const CircularProgress = ({ progress }: { progress: number }) => {
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
   
+  // Color based on progress: green when complete, amber when partial, white/gray when empty
+  const getProgressColor = () => {
+    if (progress >= 100) return "hsl(142, 76%, 45%)"; // Green
+    if (progress > 0) return "hsl(38, 92%, 55%)"; // Amber
+    return "rgba(255, 255, 255, 0.3)";
+  };
+  
+  const getTextColor = () => {
+    if (progress >= 100) return "hsl(142, 76%, 45%)";
+    if (progress > 0) return "hsl(38, 92%, 55%)";
+    return "rgba(255, 255, 255, 0.6)";
+  };
+  
   return (
     <div className="relative flex items-center justify-center">
       <svg width={size} height={size} className="transform -rotate-90">
@@ -149,7 +162,7 @@ const CircularProgress = ({ progress }: { progress: number }) => {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.6)"
+          stroke={getProgressColor()}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -157,7 +170,10 @@ const CircularProgress = ({ progress }: { progress: number }) => {
           className="transition-all duration-500 ease-out"
         />
       </svg>
-      <span className="absolute text-[10px] font-medium text-background/80">
+      <span 
+        className="absolute text-[10px] font-semibold transition-colors duration-500"
+        style={{ color: getTextColor() }}
+      >
         {Math.round(progress)}%
       </span>
     </div>
