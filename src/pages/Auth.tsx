@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -1067,18 +1067,24 @@ const SignInForm = ({
       </button>
     </div>
 
-    <div className="flex flex-wrap items-center justify-center gap-2 pt-[clamp(5px,1.5vh,10px)] animate-stagger-4">
-      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Stylist to stylist support</span>
+    <div className="flex flex-wrap items-center justify-center gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Headphones className="w-4 h-4 text-accent-red" />
+        </div>
+        <span className="text-xs font-medium text-foreground/80">Stylist to Stylist Support</span>
       </div>
-      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Community access</span>
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Users className="w-4 h-4 text-accent-red" />
+        </div>
+        <span className="text-xs font-medium text-foreground/80">Community Access</span>
       </div>
-      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Pro pricing</span>
+      <div className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-accent-red/10 to-accent-red/5 border border-accent-red/20 hover:border-accent-red/40 hover:from-accent-red/15 hover:to-accent-red/10 transition-all duration-300 cursor-default">
+        <div className="w-8 h-8 rounded-lg bg-accent-red/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Tag className="w-4 h-4 text-accent-red" />
+        </div>
+        <span className="text-xs font-medium text-foreground/80">Pro Pricing</span>
       </div>
     </div>
 
