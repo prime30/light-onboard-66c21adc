@@ -773,16 +773,22 @@
   animation: sequentialGlow 4.5s ease-in-out infinite;
 }
 
-/* Celebration glow animation for 100% progress */
+/* Celebration glow animation for 100% progress - plays once */
 @keyframes celebrationGlow {
-  0%, 100% {
-    box-shadow: 0 0 8px 2px hsl(142, 76%, 45%, 0.3);
+  0% {
+    box-shadow: 0 0 0 0 hsl(142, 76%, 45%, 0);
   }
-  50% {
-    box-shadow: 0 0 20px 6px hsl(142, 76%, 45%, 0.6);
+  30% {
+    box-shadow: 0 0 25px 8px hsl(142, 76%, 45%, 0.7);
+  }
+  60% {
+    box-shadow: 0 0 15px 4px hsl(142, 76%, 45%, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(142, 76%, 45%, 0);
   }
 }
 
 .animate-celebration-glow {
-  animation: celebrationGlow 1.5s ease-in-out infinite;
+  animation: celebrationGlow 1.5s ease-out forwards;
 }

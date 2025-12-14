@@ -128,11 +128,29 @@ const SignInFeatureBox = ({
 
 // Circular Progress Indicator Component
 const CircularProgress = ({ progress }: { progress: number }) => {
+  const [showGlow, setShowGlow] = useState(false);
+  const [showBounce, setShowBounce] = useState(false);
+  const prevProgressRef = useRef(progress);
+  
   const size = 40;
   const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
+  
+  // Trigger glow once when reaching 100%
+  useEffect(() => {
+    if (progress >= 100 && prevProgressRef.current < 100) {
+      setShowGlow(true);
+      // After glow animation ends, hide glow and show bounce
+      const timer = setTimeout(() => {
+        setShowGlow(false);
+        setShowBounce(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+    prevProgressRef.current = progress;
+  }, [progress]);
   
   // Color based on progress: green when complete, amber when partial, white/gray when empty
   const getProgressColor = () => {
@@ -149,8 +167,8 @@ const CircularProgress = ({ progress }: { progress: number }) => {
   
   return (
     <div className="relative flex items-center justify-center">
-      {/* Pulsating glow effect on 100% */}
-      {progress >= 100 && (
+      {/* Pulsating glow effect - shows once on reaching 100% */}
+      {showGlow && (
         <div 
           className="absolute inset-[-8px] rounded-full animate-celebration-glow"
         />
@@ -181,7 +199,10 @@ const CircularProgress = ({ progress }: { progress: number }) => {
         />
       </svg>
       <span 
-        className="absolute text-[10px] font-semibold transition-colors duration-500 z-10"
+        className={cn(
+          "absolute text-[10px] font-semibold transition-colors duration-500 z-10",
+          showBounce && "animate-bounce"
+        )}
         style={{ color: getTextColor() }}
       >
         {Math.round(progress)}%
