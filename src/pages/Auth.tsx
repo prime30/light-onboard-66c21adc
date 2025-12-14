@@ -204,7 +204,7 @@ const Auth = () => {
   const [businessName, setBusinessName] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
   const [suiteNumber, setSuiteNumber] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState("United States");
   const [city, setCity] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [wholesaleAgreed, setWholesaleAgreed] = useState(false);
@@ -232,7 +232,7 @@ const Auth = () => {
     setBusinessName("");
     setBusinessAddress("");
     setSuiteNumber("");
-    setCountry("");
+    setCountry("United States");
     setCity("");
     setZipCode("");
     setWholesaleAgreed(false);
