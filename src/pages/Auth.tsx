@@ -1498,11 +1498,11 @@ const OnboardingForm = ({
         <span className="text-[11px] text-green-700 font-medium">Professional Only</span>
       </div>
       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
-        <FileCheck className="w-3 h-3 text-muted-foreground" />
+        <Users className="w-3 h-3 text-muted-foreground" />
         <span className="text-[11px] text-muted-foreground">Exclusive community</span>
       </div>
       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
-        <Lock className="w-3 h-3 text-muted-foreground" />
+        <GraduationCap className="w-3 h-3 text-muted-foreground" />
         <span className="text-[11px] text-muted-foreground">Advanced education</span>
       </div>
     </div>
