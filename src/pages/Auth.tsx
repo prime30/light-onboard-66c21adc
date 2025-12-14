@@ -1085,7 +1085,7 @@ const SignInForm = ({
   onSignUp: () => void;
 }) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
     <div className="space-y-[12px] animate-stagger-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap bg-gradient-to-r from-foreground via-foreground/60 to-foreground bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-shift">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap">
         Welcome back
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -1099,11 +1099,11 @@ const SignInForm = ({
         <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
           Email address
         </Label>
-        <div className="relative group input-ultra input-ripple rounded-[15px] input-glassmorphic">
+        <div className="relative group input-ultra input-ripple rounded-[15px]">
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-background/50 backdrop-blur-sm border-border/30 focus:border-foreground/30 focus:bg-background/80 focus:backdrop-blur-md transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[0_0_30px_rgba(0,0,0,0.08),inset_0_0_20px_rgba(255,255,255,0.1)]" />
+          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -2084,7 +2084,7 @@ const PasswordInputField = ({
       </Label>
       <div className={cn(
         "relative group rounded-[15px] input-ripple",
-        isSignin ? "input-ultra input-glassmorphic" : "input-glow"
+        isSignin ? "input-ultra" : "input-glow"
       )}>
         <div className={cn(
           "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
@@ -2101,10 +2101,10 @@ const PasswordInputField = ({
           value={value} 
           onChange={e => onChange(e.target.value)} 
           className={cn(
-            "pr-[50px] rounded-[15px] transition-all duration-500 text-base",
+            "pr-[50px] rounded-[15px] transition-all duration-500 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
             isSignin 
-              ? "h-[60px] pl-[60px] bg-background/50 backdrop-blur-sm border-border/30 focus:border-foreground/30 focus:bg-background/80 focus:backdrop-blur-md placeholder:text-muted-foreground/40 focus:shadow-[0_0_30px_rgba(0,0,0,0.08),inset_0_0_20px_rgba(255,255,255,0.1)]"
-              : "h-[55px] pl-[55px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]"
+              ? "h-[60px] pl-[60px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40"
+              : "h-[55px] pl-[55px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background"
           )} 
         />
         <button
