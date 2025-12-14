@@ -945,8 +945,8 @@ const AccountTypeForm = ({
   }];
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
-          <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 1
           </span>
         </div>
@@ -1091,8 +1091,8 @@ const LicenseForm = ({
   return (
     <div className="space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
-          <span className="text-[10px] font-medium text-accent-red/70 uppercase tracking-[0.15em]">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 2
           </span>
         </div>
@@ -1283,12 +1283,12 @@ const BusinessLocationForm = ({
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Step 2
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Step 3
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Where is your business located?
       </h1>
     </div>
@@ -1406,12 +1406,12 @@ const WholesaleTermsForm = ({
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Step 3
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Step 4
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Do you agree to wholesale terms?
       </h1>
     </div>
@@ -1482,12 +1482,12 @@ const TaxExemptionForm = ({
   return (
     <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-            Step 4
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+            Step 5
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           Do you have a tax exemption?
         </h1>
       </div>
@@ -1610,12 +1610,12 @@ const ContactInfoForm = ({
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Final Step
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Step 6
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Your Contact Information
       </h1>
     </div>
