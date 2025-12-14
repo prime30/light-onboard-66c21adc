@@ -123,6 +123,47 @@ const SignInFeatureBox = ({
     </div>;
 };
 
+// Circular Progress Indicator Component
+const CircularProgress = ({ progress }: { progress: number }) => {
+  const size = 40;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+  
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.1)"
+          strokeWidth={strokeWidth}
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.6)"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-medium text-background/80">
+        {Math.round(progress)}%
+      </span>
+    </div>
+  );
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>("signup");
@@ -242,6 +283,71 @@ const Auth = () => {
         return true;
     }
   };
+  
+  // Calculate overall form progress as percentage
+  const getFormProgress = () => {
+    if (mode === "signin") {
+      let filled = 0;
+      if (email.trim() !== "") filled++;
+      if (password.length >= 8) filled++;
+      return (filled / 2) * 100;
+    }
+    
+    // For signup, calculate based on account type
+    if (accountType === "student") {
+      // Student: account-type + contact-info (firstName, lastName, phone)
+      let filled = 0;
+      const total = 4;
+      if (accountType) filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "") filled++;
+      return (filled / total) * 100;
+    }
+    
+    if (accountType === "salon") {
+      // Salon: account-type, license fields (4), business location (6), wholesale, tax, contact (3)
+      let filled = 0;
+      const total = 17;
+      if (accountType) filled++;
+      if (licenseNumber.trim() !== "") filled++;
+      if (state !== "") filled++;
+      if (salonSize !== "") filled++;
+      if (salonStructure !== "") filled++;
+      if (businessName.trim() !== "") filled++;
+      if (businessAddress.trim() !== "") filled++;
+      if (country !== "") filled++;
+      if (city.trim() !== "") filled++;
+      if (zipCode.trim() !== "") filled++;
+      if (wholesaleAgreed) filled++;
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true && taxExemptFile) filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "") filled++;
+      return (filled / total) * 100;
+    }
+    
+    // Professional: account-type, license (2), business location (6), wholesale, tax, contact (3)
+    let filled = 0;
+    const total = 14;
+    if (accountType) filled++;
+    if (licenseNumber.trim() !== "") filled++;
+    if (state !== "") filled++;
+    if (businessName.trim() !== "") filled++;
+    if (businessAddress.trim() !== "") filled++;
+    if (country !== "") filled++;
+    if (city.trim() !== "") filled++;
+    if (zipCode.trim() !== "") filled++;
+    if (wholesaleAgreed) filled++;
+    if (hasTaxExemption !== null) filled++;
+    if (hasTaxExemption === true && taxExemptFile) filled++;
+    if (firstName.trim() !== "") filled++;
+    if (lastName.trim() !== "") filled++;
+    if (phoneNumber.trim() !== "") filled++;
+    return (filled / total) * 100;
+  };
+  
   const handleNext = () => {
     if (!canContinue()) {
       setShowValidationErrors(true);
@@ -467,17 +573,9 @@ const Auth = () => {
           </div>
         </div>
 
-        {/* Floating decorations - Fixed */}
-        <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 flex gap-2.5 z-10">
-          <div className="w-2.5 h-2.5 rounded-full bg-background/20 animate-pulse" style={{
-            animationDelay: '0s'
-          }} />
-          <div className="w-2.5 h-2.5 rounded-full bg-background/30 animate-pulse" style={{
-            animationDelay: '0.5s'
-          }} />
-          <div className="w-2.5 h-2.5 rounded-full bg-background/20 animate-pulse" style={{
-            animationDelay: '1s'
-          }} />
+        {/* Circular Progress Indicator - Fixed */}
+        <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
+          <CircularProgress progress={getFormProgress()} />
         </div>
 
         {/* Fixed Logo */}
