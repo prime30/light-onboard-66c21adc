@@ -21,7 +21,7 @@ const slides = [{
   eyebrow: "Exclusively Professional",
   title: "Let's get",
   highlight: "started",
-  description: "Carry the best extension line of products in your salon."
+  description: "Cosmetology license, proof of student status, or equivalent required to shop."
 }, {
   eyebrow: "Quality",
   title: "Premium",
