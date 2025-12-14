@@ -2015,7 +2015,7 @@ const SuccessForm = ({
         You're all set!
       </h1>
       <p className="text-muted-foreground">
-        Your account has been created successfully
+        Your account has been successfully submitted. Our team will review and approve or deny your professional account within 24 hours.
       </p>
     </div>
 
@@ -2027,7 +2027,7 @@ const SuccessForm = ({
         <div className="text-left">
           <p className="text-sm font-medium text-foreground">Pro Member</p>
           <p className="text-xs text-muted-foreground">
-            Confirmation email sent to your inbox
+            Confirmation email will be sent to your inbox
           </p>
         </div>
       </div>
