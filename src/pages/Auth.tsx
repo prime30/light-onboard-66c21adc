@@ -2219,9 +2219,6 @@ const SuccessForm = () => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   
-  useEffect(() => {
-    toast.success("You're all set! Check your email for confirmation.");
-  }, []);
   
   const handleAddToCart = () => {
     setIsAddingToCart(true);
