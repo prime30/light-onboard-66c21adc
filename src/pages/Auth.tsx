@@ -481,9 +481,9 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
-        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px]">
-          {/* Auth Toggle - Desktop only */}
-          <div className="hidden lg:inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
+        <header className="relative flex items-center justify-center p-2.5 sm:p-5 lg:p-[25px]">
+          {/* Auth Toggle - Desktop only - positioned absolute left */}
+          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] hidden lg:inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
             <button onClick={() => handleModeChange("signup")} className={cn("px-[20px] py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signup" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
@@ -492,7 +492,7 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Dial Style with fade edges - aligned with toggle */}
+          {/* Step Indicator - Dial Style with fade edges - centered */}
           {showStepIndicator && (
             <div className="flex items-center justify-center">
               {/* Dial container with mask for fade effect */}
@@ -562,9 +562,6 @@ const Auth = () => {
               </div>
             </div>
           )}
-          
-          {/* Spacer for right side */}
-          <div className="w-10" />
         </header>
 
         {/* Form Content */}
@@ -598,6 +595,14 @@ const Auth = () => {
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]">
             <div className="max-w-lg mx-auto flex flex-col gap-[10px]">
+              {/* Step label above buttons */}
+              {showStepIndicator && (
+                <div className="text-center">
+                  <span className="text-[11px] text-muted-foreground/60 tracking-wider">
+                    Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
+                  </span>
+                </div>
+              )}
               <div className="flex gap-[15px]">
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
@@ -609,14 +614,6 @@ const Auth = () => {
                   </span>
                 </Button>
               </div>
-              {/* Step label below buttons */}
-              {showStepIndicator && (
-                <div className="text-center">
-                  <span className="text-[11px] text-muted-foreground/60 tracking-wider">
-                    Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
-                  </span>
-                </div>
-              )}
             </div>
           </footer>}
       </div>
