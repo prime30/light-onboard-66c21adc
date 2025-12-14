@@ -1984,6 +1984,11 @@ const SuccessForm = ({
   onContinue: () => void;
 }) => {
   const countdown = useCountdown(48);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  
+  const handleAddToCart = () => {
+    setIsAddingToCart(true);
+  };
   
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
   
@@ -2076,10 +2081,18 @@ const SuccessForm = ({
       <Button 
         variant="outline" 
         size="sm" 
-        className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group"
+        onClick={handleAddToCart}
+        disabled={isAddingToCart}
+        className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
       >
-        <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
-        Add to Cart
+        {isAddingToCart ? (
+          <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" />
+        ) : (
+          <>
+            <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
+            Add to Cart
+          </>
+        )}
       </Button>
     </div>
 
