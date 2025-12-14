@@ -158,6 +158,7 @@ const Auth = () => {
   const [salonSize, setSalonSize] = useState("");
   const [salonStructure, setSalonStructure] = useState("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -180,6 +181,7 @@ const Auth = () => {
     setSalonSize("");
     setSalonStructure("");
     setLicenseFile(null);
+    setTaxExemptFile(null);
   };
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
@@ -225,6 +227,9 @@ const Auth = () => {
       case "wholesale-terms":
         return wholesaleAgreed;
       case "tax-exemption":
+        if (hasTaxExemption === true) {
+          return taxExemptFile !== null;
+        }
         return hasTaxExemption !== null;
       case "contact-info":
         return firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "";
@@ -595,7 +600,7 @@ const Auth = () => {
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} state={state} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onStateChange={setState} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} />}
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} />}
-                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} onTaxExemptionChange={setHasTaxExemption} />}
+                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} />}
                 {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} />}
                 {currentStep === "success" && <SuccessForm onContinue={() => navigate("/")} />}
               </>}
@@ -1237,71 +1242,108 @@ const WholesaleTermsForm = ({
 // Tax Exemption Form (Step 4 for professionals)
 const TaxExemptionForm = ({
   hasTaxExemption,
-  onTaxExemptionChange
+  taxExemptFile,
+  onTaxExemptionChange,
+  onTaxExemptFileChange
 }: {
   hasTaxExemption: boolean | null;
+  taxExemptFile: File | null;
   onTaxExemptionChange: (value: boolean) => void;
-}) => <div className="space-y-[25px]">
-    <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Step 4
-        </span>
-      </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
-        Do you have a tax exemption?
-      </h1>
-    </div>
-
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
-      <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
-      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-        <p>
-          A resale license for tax exemption is not required to register, but it may be a good idea for you to have one. If you choose to upload a tax exemption license, you will not be charged sales tax on extensions. If you do not want to pay sales tax, and be sales tax exempt, please upload your tax exemption documentation from your state, proving that your client will be paying the sales tax when you sell the hair to them.
-        </p>
-        <p>
-          Please note that if you are exempted from paying sales tax, you still need to collect sales tax from your customers and remit it to your state.
-        </p>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-3">
-      <button
-        onClick={() => onTaxExemptionChange(true)}
-        className={cn(
-          "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
-          hasTaxExemption === true 
-            ? "border-foreground bg-foreground/5" 
-            : "border-border hover:border-foreground/30 hover:bg-muted/50"
-        )}
-      >
-        <div className={cn(
-          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-          hasTaxExemption === true ? "border-foreground bg-foreground" : "border-muted-foreground/50"
-        )}>
-          {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+  onTaxExemptFileChange: (file: File | null) => void;
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onTaxExemptFileChange(file);
+  };
+  
+  return (
+    <div className="space-y-[25px]">
+      <div className="space-y-2.5 text-center animate-stagger-1">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Step 4
+          </span>
         </div>
-        <span className="text-sm font-medium text-foreground">Yes</span>
-      </button>
-      <button
-        onClick={() => onTaxExemptionChange(false)}
-        className={cn(
-          "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
-          hasTaxExemption === false 
-            ? "border-foreground bg-foreground/5" 
-            : "border-border hover:border-foreground/30 hover:bg-muted/50"
-        )}
-      >
-        <div className={cn(
-          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-          hasTaxExemption === false ? "border-foreground bg-foreground" : "border-muted-foreground/50"
-        )}>
-          {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+          Do you have a tax exemption?
+        </h1>
+      </div>
+
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+        <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          A resale license for tax exemption is not required to register, but it may be a good idea for you to have one. If you choose to upload a tax exemption license, you will not be charged sales tax on extensions. If you do not want to pay sales tax, and be sales tax exempt, please upload your tax exemption documentation from your state.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => onTaxExemptionChange(true)}
+          className={cn(
+            "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+            hasTaxExemption === true 
+              ? "border-foreground bg-foreground/5" 
+              : "border-border hover:border-foreground/30 hover:bg-muted/50"
+          )}
+        >
+          <div className={cn(
+            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+            hasTaxExemption === true ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+          )}>
+            {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+          </div>
+          <span className="text-sm font-medium text-foreground">Yes</span>
+        </button>
+        <button
+          onClick={() => {
+            onTaxExemptionChange(false);
+            onTaxExemptFileChange(null);
+          }}
+          className={cn(
+            "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+            hasTaxExemption === false 
+              ? "border-foreground bg-foreground/5" 
+              : "border-border hover:border-foreground/30 hover:bg-muted/50"
+          )}
+        >
+          <div className={cn(
+            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+            hasTaxExemption === false ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+          )}>
+            {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+          </div>
+          <span className="text-sm font-medium text-foreground">No</span>
+        </button>
+      </div>
+      
+      {/* File upload - shown when Yes is selected */}
+      {hasTaxExemption === true && (
+        <div className="flex items-center gap-4 pt-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className="h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50"
+          >
+            Choose File
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {taxExemptFile ? taxExemptFile.name : "Upload your state tax-exempt license"}
+          </span>
         </div>
-        <span className="text-sm font-medium text-foreground">No</span>
-      </button>
+      )}
     </div>
-  </div>;
+  );
+};
 
 // Contact Info Form (Step 5 for professionals, Step 2 for students)
 const ContactInfoForm = ({
