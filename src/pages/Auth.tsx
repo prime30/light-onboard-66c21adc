@@ -805,7 +805,7 @@ const SignInForm = ({
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSignUp: () => void;
-}) => <div className="space-y-[clamp(15px,4vh,30px)]">
+}) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
     <div className="space-y-[12px] animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
         <div className="w-[6px] h-[6px] rounded-full bg-accent-red animate-pulse" />
