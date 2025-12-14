@@ -1096,7 +1096,7 @@ const SignInForm = ({
 
     <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
       <div className="space-y-2.5">
-        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground">
+        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
           Email address
         </Label>
         <div className="relative group input-ultra input-ripple rounded-[15px]">
@@ -2077,7 +2077,7 @@ const PasswordInputField = ({
   return (
     <div className="space-y-2.5">
       <Label htmlFor={id} className={cn(
-        "font-medium label-float transition-all duration-300",
+        "font-medium label-float transition-all duration-300 text-left block",
         isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm"
       )}>
         {label}
