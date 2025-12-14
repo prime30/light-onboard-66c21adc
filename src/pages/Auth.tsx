@@ -16,7 +16,7 @@ import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
 type AuthMode = "signup" | "signin";
-type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
+type Step = "onboarding" | "account-type" | "license" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Welcome",
   title: "Join the",
@@ -439,6 +439,10 @@ const Auth = () => {
   const [salonStructure, setSalonStructure] = useState("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
+  
+  // Student-specific fields
+  const [schoolName, setSchoolName] = useState("");
+  const [expectedGraduation, setExpectedGraduation] = useState("");
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -473,6 +477,8 @@ const Auth = () => {
     setSalonStructure("");
     setLicenseFile(null);
     setTaxExemptFile(null);
+    setSchoolName("");
+    setExpectedGraduation("");
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
   };
@@ -517,6 +523,8 @@ const Auth = () => {
         return licenseNumber.trim() !== "";
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+      case "school-info":
+        return schoolName.trim() !== "" && expectedGraduation !== "";
       case "wholesale-terms":
         return wholesaleAgreed;
       case "tax-exemption":
@@ -540,14 +548,14 @@ const Auth = () => {
     // Must have account type selected
     if (!accountType) return false;
     
-    // Student flow - simpler validation
+    // Student flow - 5 steps (account-type, business-location, school-info, wholesale-terms, contact-info)
     if (accountType === "student") {
-      return (
-        licenseNumber.trim() !== "" &&
-        firstName.trim() !== "" &&
-        lastName.trim() !== "" &&
-        isValidPhoneNumber(phoneNumber)
-      );
+      const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+      const schoolValid = schoolName.trim() !== "" && expectedGraduation !== "";
+      const wholesaleValid = wholesaleAgreed;
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+      
+      return businessValid && schoolValid && wholesaleValid && contactValid;
     }
     
     // Salon flow
@@ -580,12 +588,22 @@ const Auth = () => {
     // Step 1: Account Type (always complete if we're past it)
     
     if (accountType === "student") {
-      // Student has simpler flow
-      if (licenseNumber.trim() === "") {
-        incomplete.push({ step: 2, name: "License Verification" });
+      // Student flow: account-type, business-location, school-info, wholesale-terms, contact-info
+      // Step 2: Business Location
+      if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+        incomplete.push({ step: 2, name: "Business Location" });
       }
+      // Step 3: School Info
+      if (schoolName.trim() === "" || expectedGraduation === "") {
+        incomplete.push({ step: 3, name: "School Information" });
+      }
+      // Step 4: Wholesale Terms
+      if (!wholesaleAgreed) {
+        incomplete.push({ step: 4, name: "Wholesale Terms" });
+      }
+      // Step 5: Contact Info
       if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
-        incomplete.push({ step: 3, name: "Contact Info" });
+        incomplete.push({ step: 5, name: "Contact Info" });
       }
       return incomplete;
     }
@@ -698,10 +716,19 @@ const Auth = () => {
     
     // For signup, calculate based on account type
     if (accountType === "student") {
-      // Student: account-type + contact-info (firstName, lastName, phone)
+      // Student: account-type (1), business-location (6), school-info (2), wholesale (1), contact (3)
       let filled = 0;
-      const total = 4;
+      const total = 13;
       if (accountType) filled++;
+      if (businessName.trim() !== "") filled++;
+      if (businessAddress.trim() !== "") filled++;
+      if (country !== "") filled++;
+      if (city.trim() !== "") filled++;
+      if (state !== "") filled++;
+      if (zipCode.trim() !== "") filled++;
+      if (schoolName.trim() !== "") filled++;
+      if (expectedGraduation !== "") filled++;
+      if (wholesaleAgreed) filled++;
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
       if (phoneNumber.trim() !== "") filled++;
@@ -791,17 +818,23 @@ const Auth = () => {
           setCurrentStep("account-type");
           break;
         case "account-type":
-          // Student goes directly to contact-info, professionals go through full flow
-          setCurrentStep(accountType === "student" ? "contact-info" : "business-location");
+          // All account types go to business-location first
+          setCurrentStep("business-location");
           break;
         case "business-location":
-          setCurrentStep("license");
+          // Student goes to school-info, others go to license
+          setCurrentStep(accountType === "student" ? "school-info" : "license");
+          break;
+        case "school-info":
+          // Student only - goes to wholesale-terms
+          setCurrentStep("wholesale-terms");
           break;
         case "license":
           setCurrentStep("wholesale-terms");
           break;
         case "wholesale-terms":
-          setCurrentStep("tax-exemption");
+          // Student goes to contact-info, others go to tax-exemption
+          setCurrentStep(accountType === "student" ? "contact-info" : "tax-exemption");
           break;
         case "tax-exemption":
           setCurrentStep("contact-info");
@@ -832,32 +865,42 @@ const Auth = () => {
         case "business-location":
           setCurrentStep("account-type");
           break;
+        case "school-info":
+          // Student only
+          setCurrentStep("business-location");
+          break;
         case "license":
           setCurrentStep("business-location");
           break;
         case "wholesale-terms":
-          setCurrentStep("license");
+          // Student goes back to school-info, others go back to license
+          setCurrentStep(accountType === "student" ? "school-info" : "license");
           break;
         case "tax-exemption":
           setCurrentStep("wholesale-terms");
           break;
         case "contact-info":
-          setCurrentStep(accountType === "student" ? "account-type" : "tax-exemption");
+          // Student goes back to wholesale-terms, others go back to tax-exemption
+          setCurrentStep(accountType === "student" ? "wholesale-terms" : "tax-exemption");
           break;
       }
       setIsTransitioning(false);
     }, 150);
   };
   const getTotalSteps = () => {
-    // Student: account-type, contact-info = 2 steps
-    // Professional: account-type, license, business-location, wholesale-terms, tax-exemption, contact-info = 6 steps
-    return accountType === "student" ? 2 : 6;
+    // Student: account-type, business-location, school-info, wholesale-terms, contact-info = 5 steps
+    // Professional/Salon: 6 steps
+    return accountType === "student" ? 5 : 6;
   };
   const getCurrentStepNumber = () => {
     if (currentStep === "account-type") return 1;
     if (accountType === "student") {
-      if (currentStep === "contact-info") return 2;
-      return 2;
+      // Student flow
+      if (currentStep === "business-location") return 2;
+      if (currentStep === "school-info") return 3;
+      if (currentStep === "wholesale-terms") return 4;
+      if (currentStep === "contact-info") return 5;
+      return 5;
     }
     // Professional flow
     if (currentStep === "business-location") return 2;
@@ -870,8 +913,15 @@ const Auth = () => {
   
   const getStepFromNumber = (stepNum: number): Step => {
     if (accountType === "student") {
-      if (stepNum === 1) return "account-type";
-      return "contact-info";
+      // Student flow
+      switch (stepNum) {
+        case 1: return "account-type";
+        case 2: return "business-location";
+        case 3: return "school-info";
+        case 4: return "wholesale-terms";
+        case 5: return "contact-info";
+        default: return "account-type";
+      }
     }
     // Professional flow
     switch (stepNum) {
@@ -1219,8 +1269,9 @@ const Auth = () => {
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? (licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "") : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
-                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
-                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
+                {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
+                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} expectedGraduation={expectedGraduation} onSchoolNameChange={setSchoolName} onExpectedGraduationChange={setExpectedGraduation} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && expectedGraduation !== "", schoolName.trim() !== "" || expectedGraduation !== "", showValidationErrors)} />}
+                {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={(value) => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                 {currentStep === "success" && <SuccessForm />}
@@ -1827,6 +1878,7 @@ const LicenseForm = ({
 const countries = ["United States", "Canada"];
 const provinces = ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon"];
 const BusinessLocationForm = ({
+  accountType,
   businessName,
   businessAddress,
   suiteNumber,
@@ -1844,6 +1896,7 @@ const BusinessLocationForm = ({
   showValidationErrors = false,
   validationStatus
 }: {
+  accountType: string | null;
   businessName: string;
   businessAddress: string;
   suiteNumber: string;
@@ -1868,6 +1921,8 @@ const BusinessLocationForm = ({
   const stateError = showValidationErrors && state === "";
   const zipCodeError = showValidationErrors && zipCode.trim() === "";
   
+  const isStudent = accountType === "student";
+  
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
@@ -1877,7 +1932,7 @@ const BusinessLocationForm = ({
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Where is your business located?
+        {isStudent ? "Where are you located?" : "Where is your business located?"}
       </h1>
     </div>
 
@@ -1980,26 +2035,116 @@ const BusinessLocationForm = ({
   </div>;
 };
 
-// Wholesale Terms Form (Step 3 for professionals)
-const WholesaleTermsForm = ({
-  agreed,
-  onAgreeChange,
+// School Info Form (Step 3 for students)
+const SchoolInfoForm = ({
+  schoolName,
+  expectedGraduation,
+  onSchoolNameChange,
+  onExpectedGraduationChange,
   showValidationErrors = false,
   validationStatus
 }: {
-  agreed: boolean;
-  onAgreeChange: (value: boolean) => void;
+  schoolName: string;
+  expectedGraduation: string;
+  onSchoolNameChange: (value: string) => void;
+  onExpectedGraduationChange: (value: string) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
-  const agreementError = showValidationErrors && !agreed;
+  const schoolNameError = showValidationErrors && schoolName.trim() === "";
+  const graduationError = showValidationErrors && expectedGraduation === "";
+  
+  const graduationOptions = [
+    "2024", "2025", "2026", "2027", "2028", "2029", "2030"
+  ];
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 4
+          Step 3
+        </span>
+      </div>
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+        Tell us about your school
+      </h1>
+    </div>
+
+    <div className="space-y-4 animate-stagger-2">
+      {/* School Name */}
+      <div className="space-y-2.5">
+        <Label htmlFor="schoolName" className="text-sm font-medium label-float">
+          Cosmetology school name*
+        </Label>
+        <div className="relative group input-glow input-ripple rounded-[15px]">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+            <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          </div>
+          <Input 
+            id="schoolName" 
+            type="text" 
+            placeholder="Enter your school name" 
+            value={schoolName} 
+            onChange={e => onSchoolNameChange(e.target.value)} 
+            className={cn(
+              "h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              schoolNameError && "border-destructive/50"
+            )} 
+          />
+        </div>
+        {schoolNameError && <p className="text-xs text-destructive">School name is required</p>}
+      </div>
+
+      {/* Expected Graduation */}
+      <div className="space-y-2.5">
+        <Label htmlFor="expectedGraduation" className="text-sm font-medium label-float">
+          Expected graduation year*
+        </Label>
+        <Select value={expectedGraduation} onValueChange={onExpectedGraduationChange}>
+          <SelectTrigger className={cn(
+            "h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+            graduationError && "border-destructive/50"
+          )}>
+            <SelectValue placeholder="Select graduation year" />
+          </SelectTrigger>
+          <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+            {graduationOptions.map(year => (
+              <SelectItem key={year} value={year} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {graduationError && <p className="text-xs text-destructive">Expected graduation is required</p>}
+      </div>
+    </div>
+  </div>;
+};
+
+// Wholesale Terms Form (Step 4 for professionals, Step 4 for students)
+const WholesaleTermsForm = ({
+  accountType,
+  agreed,
+  onAgreeChange,
+  showValidationErrors = false,
+  validationStatus
+}: {
+  accountType: string | null;
+  agreed: boolean;
+  onAgreeChange: (value: boolean) => void;
+  showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
+}) => {
+  const agreementError = showValidationErrors && !agreed;
+  const isStudent = accountType === "student";
+  
+  return <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <StepValidationIcon status={validationStatus} />
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Step {isStudent ? "4" : "4"}
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
