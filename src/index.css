@@ -464,6 +464,50 @@
   .animate-float-up {
     animation: floatUp 1s ease-out forwards;
   }
+
+  /* Animated gradient text */
+  .animate-gradient-shift {
+    animation: gradientShift 4s ease-in-out infinite;
+  }
+
+  /* Glassmorphic input effect */
+  .input-glassmorphic {
+    position: relative;
+  }
+
+  .input-glassmorphic::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 15px;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--foreground) / 0.1) 0%,
+      hsl(var(--foreground) / 0.05) 50%,
+      hsl(var(--foreground) / 0.1) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .input-glassmorphic:focus-within::before {
+    opacity: 1;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes floatUp {
