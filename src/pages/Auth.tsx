@@ -771,14 +771,18 @@ const Auth = () => {
                   <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-background/90 italic leading-relaxed">
-                    "Switching to ProBeauty saved me 40% on extensions. The quality is incredible and shipping is always fast."
+                  <p className="text-sm text-white/90 italic leading-relaxed">
+                    "Switching to Drop Dead saved me 40% on extensions. The quality is incredible and shipping is always fast."
                   </p>
                   <div className="mt-3 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-background/30" />
+                    <img 
+                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
+                      alt="Sarah M." 
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
                     <div>
-                      <p className="text-xs font-medium text-background">Sarah M.</p>
-                      <p className="text-[10px] text-background/50">Licensed Stylist, Austin TX</p>
+                      <p className="text-xs font-medium text-white">Sarah M.</p>
+                      <p className="text-[10px] text-white/50">Licensed Stylist, Austin TX</p>
                     </div>
                   </div>
                 </div>
@@ -799,7 +803,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
+                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl">
                     Great to
                   </h2>
                   <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
@@ -828,7 +832,7 @@ const Auth = () => {
 
                 {/* Large Typography */}
                 <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
+                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl">
                     {slide.title}
                   </h2>
                   <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
@@ -861,7 +865,7 @@ const Auth = () => {
           <div className="w-[25px] md:w-[30px] h-[25px] md:h-[30px] rounded-[10px] bg-background/10 backdrop-blur-sm flex items-center justify-center">
             <Sparkles className="w-[15px] h-[15px] text-background" />
           </div>
-          <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
+          <span className="text-sm md:text-lg font-semibold text-background">Drop Dead</span>
         </div>
 
         {/* Fixed Bottom Navigation - Only show slide controls on sign-up */}
