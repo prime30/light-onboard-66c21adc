@@ -14,6 +14,7 @@ import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
+import logoSvg from "@/assets/logo.svg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -1019,11 +1020,8 @@ const Auth = () => {
         )}
 
         {/* Fixed Logo */}
-        <div className="absolute top-5 md:top-5 lg:top-10 left-5 md:left-5 lg:left-10 z-10 flex items-center gap-[5px] md:gap-2.5">
-          <div className="w-[25px] md:w-[30px] h-[25px] md:h-[30px] rounded-[10px] bg-background/10 backdrop-blur-sm flex items-center justify-center">
-            <Sparkles className="w-[15px] h-[15px] text-background" />
-          </div>
-          <span className="text-sm md:text-lg font-semibold text-background">Drop Dead</span>
+        <div className="absolute top-5 md:top-5 lg:top-10 left-5 md:left-5 lg:left-10 z-10">
+          <img src={logoSvg} alt="Drop Dead" className="h-4 md:h-5 w-auto" />
         </div>
 
         {/* Fixed Bottom Navigation - Only show slide controls on sign-up */}
