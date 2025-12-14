@@ -949,7 +949,7 @@ const Auth = () => {
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <div className="min-h-screen flex items-center justify-center p-2.5 sm:p-5 lg:p-10">
+  return <div className="min-h-screen flex items-center justify-center p-4 sm:p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
