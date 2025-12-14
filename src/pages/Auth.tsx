@@ -752,7 +752,7 @@ const Auth = () => {
             )}
           >
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
-                {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
+                {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? (licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "") : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
@@ -870,9 +870,11 @@ const SignInForm = ({
     </div>
   </div>;
 const OnboardingForm = ({
-  onContinue
+  onContinue,
+  onSignIn
 }: {
   onContinue: () => void;
+  onSignIn: () => void;
 }) => <div className="space-y-[30px] text-center">
     <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-2.5 animate-stagger-1">
       <Sparkles className="w-[14px] h-[14px] text-accent-red/70" />
@@ -915,7 +917,13 @@ const OnboardingForm = ({
     </div>
 
     <p className="text-xs text-muted-foreground pt-5">
-      Already have an account? Use the toggle above to sign in
+      Already have an account?{" "}
+      <button 
+        onClick={onSignIn}
+        className="text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        Sign in
+      </button>
     </p>
   </div>;
 const AccountTypeForm = ({
