@@ -512,11 +512,10 @@ const Auth = () => {
 
         {/* Mobile/Tablet Auth Toggle - Moved to right panel header for consistency */}
 
-        {/* Left Panel - Hero/Branding - Hidden on sign-in */}
-        {mode === "signup" && (
+        {/* Left Panel - Hero/Branding */}
         <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {/* Sliding Background + Content Container */}
-        <div key={currentSlide} className="absolute inset-0" style={{
+        <div key={mode === "signin" ? "signin-panel" : currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
         }}>
           {/* Animated gradient background */}
@@ -542,56 +541,100 @@ const Auth = () => {
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
           }} />
 
-          {/* Sliding Content - Text, Stats, Features */}
+          {/* Content - Different for sign-in vs sign-up */}
           <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
-            {/* Main content */}
-            <div className="flex flex-col gap-0 pb-[20px]">
-              {/* Eyebrow */}
-              <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
-                <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
-                <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-                  {slide.eyebrow}
-                </span>
-              </div>
+            {mode === "signin" ? (
+              /* Sign-in content - Static, welcoming for returning users */
+              <div className="flex flex-col gap-0 pb-[20px]">
+                <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
+                  <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+                  <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
+                    Welcome Back
+                  </span>
+                </div>
 
-              {/* Large Typography */}
-              <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
-                  {slide.title}
-                </h2>
-                <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
-                  {slide.highlight}
-                </h1>
-              </div>
+                <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
+                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
+                    Great to
+                  </h2>
+                  <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
+                    See You Again
+                  </h1>
+                </div>
 
-              <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
-                {slide.description}
-              </p>
+                <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
+                  Your pro account is waiting for you
+                </p>
 
-              {/* Stats Row - Slides with content */}
-              <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
-                {stats.map((stat, i) => <div key={i} className="text-center">
-                    <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
-                      <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                    </div>
-                    <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
-                      {stat.label}
-                    </div>
-                  </div>)}
-              </div>
+                {/* Stats Row */}
+                <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
+                  {stats.map((stat, i) => <div key={i} className="text-center">
+                      <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
+                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                      </div>
+                      <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
+                        {stat.label}
+                      </div>
+                    </div>)}
+                </div>
 
-              {/* Feature Pills - Slides with content */}
-              <div className="hidden xl:flex flex-wrap gap-2.5">
-                {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                {/* Feature Pills */}
+                <div className="hidden xl:flex flex-wrap gap-2.5">
+                  {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Sign-up content - Carousel slides */
+              <div className="flex flex-col gap-0 pb-[20px]">
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
+                  <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+                  <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
+                    {slide.eyebrow}
+                  </span>
+                </div>
+
+                {/* Large Typography */}
+                <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
+                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/60 tracking-tight leading-none xl:text-7xl">
+                    {slide.title}
+                  </h2>
+                  <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
+                    {slide.highlight}
+                  </h1>
+                </div>
+
+                <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
+                  {slide.description}
+                </p>
+
+                {/* Stats Row - Slides with content */}
+                <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
+                  {stats.map((stat, i) => <div key={i} className="text-center">
+                      <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
+                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                      </div>
+                      <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
+                        {stat.label}
+                      </div>
+                    </div>)}
+                </div>
+
+                {/* Feature Pills - Slides with content */}
+                <div className="hidden xl:flex flex-wrap gap-2.5">
+                  {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Circular Progress Indicator - Fixed */}
-        <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
-          <CircularProgress progress={getFormProgress()} />
-        </div>
+        {/* Circular Progress Indicator - Fixed - Only show on sign-up */}
+        {mode === "signup" && (
+          <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
+            <CircularProgress progress={getFormProgress()} />
+          </div>
+        )}
 
         {/* Fixed Logo */}
         <div className="absolute top-5 md:top-5 lg:top-10 left-5 md:left-5 lg:left-10 z-10 flex items-center gap-[5px] md:gap-2.5">
@@ -601,12 +644,16 @@ const Auth = () => {
           <span className="text-sm md:text-lg font-semibold text-background">ProBeauty</span>
         </div>
 
-        {/* Fixed Bottom Navigation */}
+        {/* Fixed Bottom Navigation - Only show slide controls on sign-up */}
         <div className="absolute bottom-5 md:bottom-5 lg:bottom-10 left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 z-10 flex items-center justify-between">
-          {/* Slide Indicators */}
-          <div className="flex gap-2.5">
-            {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
-          </div>
+          {/* Slide Indicators - Only on sign-up */}
+          {mode === "signup" ? (
+            <div className="flex gap-2.5">
+              {slides.map((_, i) => <button key={i} onClick={() => setCurrentSlide(i)} className={cn("h-[5px] rounded-full transition-all duration-300", i === currentSlide ? "w-10 bg-background/60" : "w-[5px] bg-background/20")} />)}
+            </div>
+          ) : (
+            <div />
+          )}
 
           {/* Trust Badge - visible on all sizes */}
           <div className="flex items-center gap-2.5">
@@ -619,25 +666,30 @@ const Auth = () => {
             <span className="text-xs text-background/50">10K+ pros</span>
           </div>
 
-          {/* Nav Arrows - Desktop */}
-          <div className="hidden lg:flex gap-2.5">
-            <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-              <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
-            </button>
-            <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
-              <ChevronRight className="w-[15px] h-[15px] text-background/70" />
-            </button>
-          </div>
+          {/* Nav Arrows - Desktop - Only on sign-up */}
+          {mode === "signup" ? (
+            <div className="hidden lg:flex gap-2.5">
+              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+                <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
+              </button>
+              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+                <ChevronRight className="w-[15px] h-[15px] text-background/70" />
+              </button>
+            </div>
+          ) : (
+            <div />
+          )}
         </div>
 
-        {/* Progress Bar - Mobile/Tablet only */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10 lg:hidden z-10">
-          <div className="h-full bg-background/60 transition-all duration-500" style={{
-            width: `${(currentSlide + 1) / slides.length * 100}%`
-          }} />
-        </div>
-      </div>
+        {/* Progress Bar - Mobile/Tablet only - Only on sign-up */}
+        {mode === "signup" && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10 lg:hidden z-10">
+            <div className="h-full bg-background/60 transition-all duration-500" style={{
+              width: `${(currentSlide + 1) / slides.length * 100}%`
+            }} />
+          </div>
         )}
+      </div>
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
