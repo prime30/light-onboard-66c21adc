@@ -917,9 +917,9 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Centered absolutely */}
+          {/* Step Indicator - Right aligned on mobile, centered on desktop */}
           {showStepIndicator && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+            <div className="absolute right-10 sm:right-12 lg:right-auto lg:left-1/2 lg:-translate-x-1/2 flex items-center justify-center">
               {/* Dial container with mask for fade effect */}
               <div 
                 className="relative flex items-center justify-center overflow-hidden"
