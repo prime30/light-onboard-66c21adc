@@ -148,13 +148,13 @@ const MagneticFeatureBox = ({
   const magnetic = useMagnetic({
     strength: 0.12
   });
-  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-background/5 border border-background/10 hover:border-background/20 hover:bg-background/10 transition-all cursor-default">
-      <div className="w-[30px] h-[30px] rounded-[10px] bg-background flex items-center justify-center flex-shrink-0">
-        <Icon className="w-[15px] h-[15px] text-foreground" />
+  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-white/10 backdrop-blur-md border border-white/20 hover:border-white/30 hover:bg-white/15 transition-all cursor-default">
+      <div className="w-[30px] h-[30px] rounded-[10px] bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+        <Icon className="w-[15px] h-[15px] text-white" />
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-background">{label}</span>
-        <span className="text-xs text-background/50">{desc}</span>
+        <span className="text-sm font-medium text-white">{label}</span>
+        <span className="text-xs text-white/60">{desc}</span>
       </div>
     </div>;
 };
@@ -763,33 +763,6 @@ const Auth = () => {
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
           }} />
           
-          {/* Testimonial quote - top area */}
-          <div className="absolute top-10 left-10 right-10 z-10">
-            <div className="bg-background/10 backdrop-blur-md rounded-2xl p-5 border border-background/20 max-w-sm">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0">
-                  <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-white/90 italic leading-relaxed">
-                    "Switching to Drop Dead saved me 40% on extensions. The quality is incredible and shipping is always fast."
-                  </p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <img 
-                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
-                      alt="Sarah M." 
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="text-xs font-medium text-white">Sarah M.</p>
-                      <p className="text-[10px] text-white/50">Licensed Stylist, Austin TX</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Content - Different for sign-in vs sign-up */}
           <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
             {mode === "signin" ? (
@@ -1003,11 +976,15 @@ const Auth = () => {
         </header>
 
         {/* Mobile/Tablet Hero Banner - Below toggle */}
-        <div className="lg:hidden bg-foreground rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
-          {/* Animated orb background */}
-          <div className="absolute top-0 right-0 w-[150px] h-[150px] rounded-full blur-[60px] opacity-20" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)'
-          }} />
+        <div className="lg:hidden rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
+          {/* Hero image background */}
+          <img 
+            src={salonHero} 
+            alt="Professional salon" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60" />
           
           <div className="relative z-10 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
