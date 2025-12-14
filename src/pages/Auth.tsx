@@ -96,35 +96,42 @@ const formatPhoneNumber = (value: string): string => {
 
 const AnimatedNumber = ({
   value,
-  suffix
+  suffix,
+  delay = 0
 }: {
   value: number;
   suffix: string;
+  delay?: number;
 }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
     const duration = 2000;
-    const startTime = performance.now();
     
     // Ease-out cubic function for natural deceleration
     const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
     
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutCubic(progress);
+    const timeoutId = setTimeout(() => {
+      const startTime = performance.now();
       
-      setCount(Math.floor(easedProgress * value));
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutCubic(progress);
+        
+        setCount(Math.floor(easedProgress * value));
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setCount(value);
+        }
+      };
       
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setCount(value);
-      }
-    };
+      requestAnimationFrame(animate);
+    }, delay);
     
-    requestAnimationFrame(animate);
-  }, [value]);
+    return () => clearTimeout(timeoutId);
+  }, [value, delay]);
   return <span>{count}{suffix}</span>;
 };
 interface FeatureBoxProps {
@@ -1278,21 +1285,21 @@ const OnboardingForm = ({
     <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={30} suffix="%" />
+          <AnimatedNumber value={30} suffix="%" delay={200} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
       </div>
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={10} suffix="K+" />
+          <AnimatedNumber value={10} suffix="K+" delay={400} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
       </div>
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={48} suffix="hr" />
+          <AnimatedNumber value={48} suffix="hr" delay={600} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Delivery</div>
       </div>
