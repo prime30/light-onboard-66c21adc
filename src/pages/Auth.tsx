@@ -1097,10 +1097,10 @@ const LicenseForm = ({
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-          {isSalon ? "What's your license number?" : "Verify your license"}
+          {isSalon ? "What is your license number?" : "Verify your license"}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          {isSalon ? "Let's make sure you're a salon manager" : "Enter your cosmetology license details"}
+          {isSalon ? "Let us make sure you are a salon manager" : "Enter your cosmetology license details"}
         </p>
       </div>
 
