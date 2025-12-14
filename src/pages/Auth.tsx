@@ -118,7 +118,7 @@ const AnimatedNumber = ({
     }, duration / steps);
     return () => clearInterval(timer);
   }, [value]);
-  return <span className="text-4xl">{count}{suffix}</span>;
+  return <span>{count}{suffix}</span>;
 };
 interface FeatureBoxProps {
   icon: React.ElementType;
@@ -781,19 +781,6 @@ const Auth = () => {
                 <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
                   Your pro account is waiting for you
                 </p>
-
-                {/* Stats Row */}
-                <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
-                  {stats.map((stat, i) => <div key={i} className="text-center">
-                      <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
-                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                      </div>
-                      <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
-                        {stat.label}
-                      </div>
-                    </div>)}
-                </div>
-
                 {/* Feature Pills */}
                 <div className="hidden xl:flex flex-wrap gap-2.5">
                   {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
@@ -823,18 +810,6 @@ const Auth = () => {
                 <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
                   {slide.description}
                 </p>
-
-                {/* Stats Row - Slides with content */}
-                <div className="flex gap-[15px] md:gap-5 lg:gap-[25px] mb-5 lg:mb-[25px]">
-                  {stats.map((stat, i) => <div key={i} className="text-center">
-                      <div className="text-base md:text-xl lg:text-2xl font-semibold text-background tracking-tight">
-                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                      </div>
-                      <div className="text-[8px] md:text-[10px] text-background/40 uppercase tracking-wider mt-[5px]">
-                        {stat.label}
-                      </div>
-                    </div>)}
-                </div>
 
                 {/* Feature Pills - Slides with content */}
                 <div className="hidden xl:flex flex-wrap gap-2.5">
@@ -1292,20 +1267,26 @@ const OnboardingForm = ({
           </div>)}
     </div>
 
-    {/* Benefits highlight */}
+    {/* Benefits highlight with animated counters */}
     <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
       <div>
-        <div className="text-2xl font-semibold text-foreground">30%</div>
+        <div className="text-2xl font-semibold text-foreground">
+          <AnimatedNumber value={30} suffix="%" />
+        </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
       </div>
       <div className="w-px bg-border" />
       <div>
-        <div className="text-2xl font-semibold text-foreground">10K+</div>
+        <div className="text-2xl font-semibold text-foreground">
+          <AnimatedNumber value={10} suffix="K+" />
+        </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
       </div>
       <div className="w-px bg-border" />
       <div>
-        <div className="text-2xl font-semibold text-foreground">48hr</div>
+        <div className="text-2xl font-semibold text-foreground">
+          <AnimatedNumber value={48} suffix="hr" />
+        </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Delivery</div>
       </div>
     </div>
