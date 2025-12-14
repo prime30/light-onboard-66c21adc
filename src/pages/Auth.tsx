@@ -281,9 +281,9 @@ const Auth = () => {
         return accountType !== null;
       case "license":
         if (accountType === "salon") {
-          return licenseNumber.trim() !== "" && state !== "" && salonSize !== "" && salonStructure !== "";
+          return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
         }
-        return licenseNumber.trim() !== "" && state !== "";
+        return licenseNumber.trim() !== "";
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       case "wholesale-terms":
@@ -391,12 +391,12 @@ const Auth = () => {
           break;
         case "account-type":
           // Student goes directly to contact-info, professionals go through full flow
-          setCurrentStep(accountType === "student" ? "contact-info" : "license");
-          break;
-        case "license":
-          setCurrentStep("business-location");
+          setCurrentStep(accountType === "student" ? "contact-info" : "business-location");
           break;
         case "business-location":
+          setCurrentStep("license");
+          break;
+        case "license":
           setCurrentStep("wholesale-terms");
           break;
         case "wholesale-terms":
@@ -423,14 +423,14 @@ const Auth = () => {
         case "account-type":
           setCurrentStep("onboarding");
           break;
-        case "license":
+        case "business-location":
           setCurrentStep("account-type");
           break;
-        case "business-location":
-          setCurrentStep("license");
+        case "license":
+          setCurrentStep("business-location");
           break;
         case "wholesale-terms":
-          setCurrentStep("business-location");
+          setCurrentStep("license");
           break;
         case "tax-exemption":
           setCurrentStep("wholesale-terms");
@@ -454,8 +454,8 @@ const Auth = () => {
       return 2;
     }
     // Professional flow
-    if (currentStep === "license") return 2;
-    if (currentStep === "business-location") return 3;
+    if (currentStep === "business-location") return 2;
+    if (currentStep === "license") return 3;
     if (currentStep === "wholesale-terms") return 4;
     if (currentStep === "tax-exemption") return 5;
     if (currentStep === "contact-info") return 6;
@@ -470,8 +470,8 @@ const Auth = () => {
     // Professional flow
     switch (stepNum) {
       case 1: return "account-type";
-      case 2: return "license";
-      case 3: return "business-location";
+      case 2: return "business-location";
+      case 3: return "license";
       case 4: return "wholesale-terms";
       case 5: return "tax-exemption";
       case 6: return "contact-info";
@@ -753,7 +753,7 @@ const Auth = () => {
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
-                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} state={state} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onStateChange={setState} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} />}
+                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} />}
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} />}
@@ -1052,12 +1052,10 @@ const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-op
 const LicenseForm = ({
   accountType,
   licenseNumber,
-  state,
   salonSize,
   salonStructure,
   licenseFile,
   onLicenseChange,
-  onStateChange,
   onSalonSizeChange,
   onSalonStructureChange,
   onLicenseFileChange,
@@ -1065,12 +1063,10 @@ const LicenseForm = ({
 }: {
   accountType: string | null;
   licenseNumber: string;
-  state: string;
   salonSize: string;
   salonStructure: string;
   licenseFile: File | null;
   onLicenseChange: (value: string) => void;
-  onStateChange: (value: string) => void;
   onSalonSizeChange: (value: string) => void;
   onSalonStructureChange: (value: string) => void;
   onLicenseFileChange: (file: File | null) => void;
@@ -1078,7 +1074,6 @@ const LicenseForm = ({
 }) => {
   const isSalon = accountType === "salon";
   const licenseError = showValidationErrors && licenseNumber.trim() === "";
-  const stateError = showValidationErrors && state === "";
   const salonSizeError = showValidationErrors && isSalon && salonSize === "";
   const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1093,7 +1088,7 @@ const LicenseForm = ({
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 2
+            Step 3
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
@@ -1114,45 +1109,21 @@ const LicenseForm = ({
       </div>
 
       <div className="space-y-5">
-        {/* License Number and State - Row */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2.5">
-            <Label htmlFor="license" className={cn(
-              "text-sm font-medium label-float",
-              licenseError && "text-destructive"
-            )}>
-              {isSalon ? "Salon License #*" : "License number*"}
-            </Label>
-            <div className="relative group input-glow input-ripple rounded-[15px]">
-              <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn(
-                "h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-                licenseError && "border-destructive/50 bg-destructive/5"
-              )} />
-            </div>
-            {licenseError && <p className="text-xs text-destructive">License number is required</p>}
+        {/* License Number */}
+        <div className="space-y-2.5">
+          <Label htmlFor="license" className={cn(
+            "text-sm font-medium label-float",
+            licenseError && "text-destructive"
+          )}>
+            {isSalon ? "Salon License #*" : "License number*"}
+          </Label>
+          <div className="relative group input-glow input-ripple rounded-[15px]">
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn(
+              "h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              licenseError && "border-destructive/50 bg-destructive/5"
+            )} />
           </div>
-          <div className="space-y-2.5">
-            <Label htmlFor="state" className={cn(
-              "text-sm font-medium label-float",
-              stateError && "text-destructive"
-            )}>
-              State/Province*
-            </Label>
-            <Select value={state} onValueChange={onStateChange}>
-              <SelectTrigger className={cn(
-                "h-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-                stateError && "border-destructive/50 bg-destructive/5"
-              )}>
-                <SelectValue placeholder="State/Province" />
-              </SelectTrigger>
-              <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                    {s}
-                  </SelectItem>)}
-              </SelectContent>
-            </Select>
-            {stateError && <p className="text-xs text-destructive">State is required</p>}
-          </div>
+          {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>
 
         {/* Salon-specific fields */}
@@ -1285,7 +1256,7 @@ const BusinessLocationForm = ({
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 3
+          Step 2
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
