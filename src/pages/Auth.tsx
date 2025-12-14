@@ -751,7 +751,7 @@ const Auth = () => {
                   : "animate-step-enter-left"
             )}
           >
-            {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
+            {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => setMode("signup")} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? (licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "") : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
@@ -799,12 +799,14 @@ const SignInForm = ({
   email,
   password,
   onEmailChange,
-  onPasswordChange
+  onPasswordChange,
+  onSignUp
 }: {
   email: string;
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
+  onSignUp: () => void;
 }) => <div className="space-y-[clamp(15px,4vh,30px)]">
     <div className="space-y-[12px] animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
@@ -868,6 +870,16 @@ const SignInForm = ({
         <SignInFeatureBox key={index} icon={feature.icon} label={feature.label} desc={feature.desc} />
       ))}
     </div>
+
+    <p className="text-xs text-muted-foreground text-center pt-2">
+      Don't have an account?{" "}
+      <button 
+        onClick={onSignUp}
+        className="text-foreground underline underline-offset-2 hover:no-underline"
+      >
+        Sign up
+      </button>
+    </p>
   </div>;
 const OnboardingForm = ({
   onContinue,
