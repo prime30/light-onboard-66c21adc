@@ -492,47 +492,83 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Centered absolutely - Ultra Modern with red accent */}
-          {showStepIndicator && <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-[10px]">
-              {Array.from({
-              length: getTotalSteps()
-            }, (_, i) => (
-              <div key={i} className="flex items-center gap-[10px]">
-                <div className={cn(
-                  "relative flex items-center justify-center transition-all duration-500",
-                  i + 1 === getCurrentStepNumber() 
-                    ? "w-[30px] h-[30px]" 
-                    : "w-[10px] h-[10px]"
-                )}>
-                  {/* Active step ring with subtle red glow */}
-                  {i + 1 === getCurrentStepNumber() && (
-                    <div className="absolute inset-0 rounded-full border border-accent-red/30 animate-pulse" style={{ boxShadow: '0 0 12px hsl(var(--accent-red) / 0.15)' }} />
-                  )}
-                  <div className={cn(
-                    "rounded-full transition-all duration-500 flex items-center justify-center",
-                    i + 1 === getCurrentStepNumber() 
-                      ? "w-[20px] h-[20px] bg-foreground progress-dot active" 
-                      : i + 1 < getCurrentStepNumber() 
-                        ? "w-[10px] h-[10px] bg-foreground" 
-                        : "w-[10px] h-[10px] bg-border"
-                  )}>
-                    {i + 1 < getCurrentStepNumber() && (
-                      <Check className="w-[6px] h-[6px] text-background" strokeWidth={3} />
-                    )}
-                    {i + 1 === getCurrentStepNumber() && (
-                      <span className="text-[8px] font-bold text-background">{i + 1}</span>
-                    )}
-                  </div>
+          {/* Step Indicator - Dial Style with fade edges */}
+          {showStepIndicator && (
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              {/* Dial container with mask for fade effect */}
+              <div 
+                className="relative flex items-center justify-center overflow-hidden"
+                style={{
+                  width: '160px',
+                  maskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)'
+                }}
+              >
+                {/* Sliding track that moves based on current step */}
+                <div 
+                  className="flex items-center gap-[12px] transition-transform duration-500 ease-out"
+                  style={{
+                    transform: `translateX(${(getTotalSteps() / 2 - getCurrentStepNumber() + 0.5) * 32}px)`
+                  }}
+                >
+                  {Array.from({ length: getTotalSteps() }, (_, i) => {
+                    const stepNum = i + 1;
+                    const currentStepNum = getCurrentStepNumber();
+                    const distance = Math.abs(stepNum - currentStepNum);
+                    const isActive = stepNum === currentStepNum;
+                    const isCompleted = stepNum < currentStepNum;
+                    
+                    // Calculate opacity based on distance from center
+                    const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
+                    // Calculate scale based on distance
+                    const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className="flex items-center gap-[12px]"
+                        style={{ opacity, transform: `scale(${scale})`, transition: 'all 0.5s ease-out' }}
+                      >
+                        <div className={cn(
+                          "relative flex items-center justify-center transition-all duration-500",
+                          isActive ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]"
+                        )}>
+                          {/* Active step glow ring */}
+                          {isActive && (
+                            <div 
+                              className="absolute inset-0 rounded-full border border-accent-red/40 animate-pulse" 
+                              style={{ boxShadow: '0 0 16px hsl(var(--accent-red) / 0.2)' }} 
+                            />
+                          )}
+                          <div className={cn(
+                            "rounded-full transition-all duration-500 flex items-center justify-center font-semibold",
+                            isActive 
+                              ? "w-[24px] h-[24px] bg-foreground text-background text-[10px]" 
+                              : isCompleted 
+                                ? "w-[20px] h-[20px] bg-foreground text-background" 
+                                : "w-[20px] h-[20px] bg-border/60 text-muted-foreground text-[9px]"
+                          )}>
+                            {isCompleted ? (
+                              <Check className="w-[10px] h-[10px]" strokeWidth={3} />
+                            ) : (
+                              <span>{stepNum}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                {i < getTotalSteps() - 1 && (
-                  <div className={cn(
-                    "w-[20px] h-[2px] rounded-full transition-all duration-500",
-                    i + 1 < getCurrentStepNumber() ? "bg-foreground" : "bg-border/50"
-                  )} />
-                )}
               </div>
-            ))}
-            </div>}
+              
+              {/* Step label below */}
+              <div className="text-center mt-1">
+                <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
+                  Step {getCurrentStepNumber()} / {getTotalSteps()}
+                </span>
+              </div>
+            </div>
+          )}
           
           {/* Spacer for right side */}
           <div className="w-10" />
