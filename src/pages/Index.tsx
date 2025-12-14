@@ -14,9 +14,9 @@ const Index = () => {
             Pro Beauty
           </span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight">Welcome</h1>
+        <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight">Only for preview purposes</h1>
         <p className="text-muted-foreground max-w-md">
-          Get started by creating an account or signing in to access your pro benefits
+          This is only for preview when the modal is closed
         </p>
         <Button
           size="lg"
