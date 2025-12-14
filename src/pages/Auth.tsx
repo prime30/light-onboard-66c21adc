@@ -472,9 +472,9 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center justify-center p-2.5 sm:p-5 lg:p-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
-          {/* Auth Toggle - All screens - positioned absolute left, vertically centered */}
-          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] top-1/2 -translate-y-1/2 inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative">
+        <header className="flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+          {/* Auth Toggle - Left aligned */}
+          <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative">
             {/* Sliding pill indicator */}
             <div 
               className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
@@ -491,8 +491,8 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Dial Style with fade edges - centered */}
-          {showStepIndicator && (
+          {/* Step Indicator - Dial Style with fade edges - right side */}
+          {showStepIndicator ? (
             <div className="flex items-center justify-center">
               {/* Dial container with mask for fade effect */}
               <div 
@@ -560,6 +560,8 @@ const Auth = () => {
                 </div>
               </div>
             </div>
+          ) : (
+            <div />
           )}
         </header>
 
