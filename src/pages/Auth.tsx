@@ -243,6 +243,8 @@ const Auth = () => {
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [showSpotlight, setShowSpotlight] = useState(false);
+  const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -327,6 +329,26 @@ const Auth = () => {
   
   // Check if form is ready to submit (on final step with all fields complete)
   const isFormReadyToSubmit = mode === "signup" && currentStep === "contact-info" && canContinue();
+  
+  // Delay spotlight effect until after the 100% glow animation completes
+  useEffect(() => {
+    if (isFormReadyToSubmit) {
+      // Wait for the celebration glow animation to finish (1.5s)
+      spotlightTimerRef.current = setTimeout(() => {
+        setShowSpotlight(true);
+      }, 1500);
+    } else {
+      setShowSpotlight(false);
+      if (spotlightTimerRef.current) {
+        clearTimeout(spotlightTimerRef.current);
+      }
+    }
+    return () => {
+      if (spotlightTimerRef.current) {
+        clearTimeout(spotlightTimerRef.current);
+      }
+    };
+  }, [isFormReadyToSubmit]);
   
   // Calculate overall form progress as percentage
   const getFormProgress = () => {
@@ -856,19 +878,19 @@ const Auth = () => {
         </main>
 
         {/* Spotlight overlay when form is ready to submit */}
-        {isFormReadyToSubmit && (
+        {showSpotlight && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-40 animate-fade-in pointer-events-none" />
         )}
 
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn(
           "p-2.5 sm:p-5 lg:p-[25px] pt-0 pb-5 sm:pb-[25px] lg:pb-[30px]",
-          isFormReadyToSubmit && "relative z-50"
+          showSpotlight && "relative z-50"
         )}>
             <div className="max-w-lg mx-auto flex flex-col gap-[10px]">
               {/* Step label above buttons */}
               {showStepIndicator && (
-                <div className={cn("text-center", isFormReadyToSubmit && "opacity-0")}>
+                <div className={cn("text-center", showSpotlight && "opacity-0")}>
                   <span className="text-[11px] text-muted-foreground/60 tracking-wider">
                     Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
                   </span>
@@ -877,7 +899,7 @@ const Auth = () => {
               <div className="flex gap-[15px]">
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn(
                   "h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group",
-                  isFormReadyToSubmit && "opacity-0 pointer-events-none"
+                  showSpotlight && "opacity-0 pointer-events-none"
                 )}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
@@ -887,7 +909,7 @@ const Auth = () => {
                   disabled={!canContinue()} 
                   className={cn(
                     "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide",
-                    isFormReadyToSubmit && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
+                    showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
                   )}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-[10px]">
