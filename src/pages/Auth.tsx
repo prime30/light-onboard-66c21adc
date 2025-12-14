@@ -1089,7 +1089,7 @@ const LicenseForm = ({
   };
   
   return (
-    <div className="space-y-[30px]">
+    <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
