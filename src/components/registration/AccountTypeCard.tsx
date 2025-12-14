@@ -34,8 +34,8 @@ export const AccountTypeCard = ({
         "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-300",
         "hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         selected
-          ? "border-foreground bg-foreground text-background shadow-xl"
-          : "border-border/50 bg-muted/30 hover:bg-muted/60 hover:border-foreground/20"
+          ? "border-foreground/60 bg-foreground/80 text-background shadow-xl backdrop-blur-sm"
+          : "border-border/40 bg-background/60 hover:bg-background/80 hover:border-foreground/20 backdrop-blur-sm"
       )}
     >
       {/* Selection indicator */}
@@ -54,11 +54,11 @@ export const AccountTypeCard = ({
       {Icon && (
         <div className={cn(
           "w-8 h-8 rounded-lg flex items-center justify-center mb-2 transition-colors duration-300",
-          selected ? "bg-background/10" : "bg-foreground"
+          selected ? "bg-background/20" : "bg-foreground/10 border border-foreground/10"
         )}>
           <Icon className={cn(
             "w-4 h-4 transition-colors duration-300",
-            selected ? "text-background" : "text-background"
+            selected ? "text-background" : "text-foreground/70"
           )} />
         </div>
       )}

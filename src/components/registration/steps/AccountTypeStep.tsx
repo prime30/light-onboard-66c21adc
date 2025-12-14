@@ -36,33 +36,24 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
   return (
     <div className="animate-fade-in space-y-3">
       {/* Modern header - compact */}
-      <div className="relative overflow-hidden rounded-xl bg-foreground p-4">
-        {/* Animated gradient orbs */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-foreground/5 to-foreground/10 border border-foreground/10 p-4">
+        {/* Subtle gradient accent */}
         <div 
-          className="absolute top-0 right-0 w-[120px] h-[120px] rounded-full blur-[50px] animate-pulse"
+          className="absolute top-0 right-0 w-[120px] h-[120px] rounded-full blur-[60px] opacity-30"
           style={{ 
-            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-            animationDuration: '4s'
-          }}
-        />
-        
-        {/* Noise texture */}
-        <div 
-          className="absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            background: 'radial-gradient(circle, hsl(var(--foreground) / 0.15) 0%, transparent 70%)'
           }}
         />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-background/10 backdrop-blur-sm border border-background/10 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-background/80" />
+          <div className="w-8 h-8 rounded-lg bg-foreground/10 border border-foreground/10 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-foreground/60" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-background tracking-tight">
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">
               Choose your account type
             </h1>
-            <p className="text-xs text-background/50">
+            <p className="text-xs text-muted-foreground">
               Select the option that best describes you
             </p>
           </div>
