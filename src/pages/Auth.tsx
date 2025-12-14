@@ -159,6 +159,8 @@ const Auth = () => {
   const [salonStructure, setSalonStructure] = useState("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
+  
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -182,6 +184,7 @@ const Auth = () => {
     setSalonStructure("");
     setLicenseFile(null);
     setTaxExemptFile(null);
+    setShowValidationErrors(false);
   };
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
@@ -239,9 +242,11 @@ const Auth = () => {
   };
   const handleNext = () => {
     if (!canContinue()) {
+      setShowValidationErrors(true);
       toast.error("Please complete all required fields");
       return;
     }
+    setShowValidationErrors(false);
     if (mode === "signin") {
       toast.success("Signed in successfully!");
       navigate("/");
@@ -628,11 +633,11 @@ const Auth = () => {
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} />}
-                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} state={state} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onStateChange={setState} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} />}
-                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} />}
-                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} />}
-                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} />}
-                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} />}
+                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} state={state} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onStateChange={setState} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} />}
+                {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} />}
+                {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} />}
+                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} />}
+                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} />}
                 {currentStep === "success" && <SuccessForm onContinue={() => navigate("/")} />}
               </>}
           </div>
@@ -935,7 +940,8 @@ const LicenseForm = ({
   onStateChange,
   onSalonSizeChange,
   onSalonStructureChange,
-  onLicenseFileChange
+  onLicenseFileChange,
+  showValidationErrors = false
 }: {
   accountType: string | null;
   licenseNumber: string;
@@ -948,8 +954,13 @@ const LicenseForm = ({
   onSalonSizeChange: (value: string) => void;
   onSalonStructureChange: (value: string) => void;
   onLicenseFileChange: (file: File | null) => void;
+  showValidationErrors?: boolean;
 }) => {
   const isSalon = accountType === "salon";
+  const licenseError = showValidationErrors && licenseNumber.trim() === "";
+  const stateError = showValidationErrors && state === "";
+  const salonSizeError = showValidationErrors && isSalon && salonSize === "";
+  const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -986,19 +997,32 @@ const LicenseForm = ({
         {/* License Number and State - Row */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2.5">
-            <Label htmlFor="license" className="text-sm font-medium label-float">
-              {isSalon ? "Salon License #*" : "License number"}
+            <Label htmlFor="license" className={cn(
+              "text-sm font-medium label-float",
+              licenseError && "text-destructive"
+            )}>
+              {isSalon ? "Salon License #*" : "License number*"}
             </Label>
             <div className="relative group input-glow input-ripple rounded-[15px]">
-              <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className="h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+              <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn(
+                "h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+                licenseError && "border-destructive/50 bg-destructive/5"
+              )} />
             </div>
+            {licenseError && <p className="text-xs text-destructive">License number is required</p>}
           </div>
           <div className="space-y-2.5">
-            <Label htmlFor="state" className="text-sm font-medium label-float">
+            <Label htmlFor="state" className={cn(
+              "text-sm font-medium label-float",
+              stateError && "text-destructive"
+            )}>
               State/Province*
             </Label>
             <Select value={state} onValueChange={onStateChange}>
-              <SelectTrigger className="h-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+              <SelectTrigger className={cn(
+                "h-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+                stateError && "border-destructive/50 bg-destructive/5"
+              )}>
                 <SelectValue placeholder="State/Province" />
               </SelectTrigger>
               <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -1007,6 +1031,7 @@ const LicenseForm = ({
                   </SelectItem>)}
               </SelectContent>
             </Select>
+            {stateError && <p className="text-xs text-destructive">State is required</p>}
           </div>
         </div>
 
@@ -1015,36 +1040,54 @@ const LicenseForm = ({
           <>
             {/* Salon Size */}
             <div className="flex items-center justify-between gap-4">
-              <Label className="text-sm font-medium whitespace-nowrap">
+              <Label className={cn(
+                "text-sm font-medium whitespace-nowrap",
+                salonSizeError && "text-destructive"
+              )}>
                 What's the size of your salon?*
               </Label>
-              <Select value={salonSize} onValueChange={onSalonSizeChange}>
-                <SelectTrigger className="w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                  {salonSizes.map(size => <SelectItem key={size} value={size} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                      {size}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col items-end gap-1">
+                <Select value={salonSize} onValueChange={onSalonSizeChange}>
+                  <SelectTrigger className={cn(
+                    "w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300",
+                    salonSizeError && "border-destructive/50 bg-destructive/5"
+                  )}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                    {salonSizes.map(size => <SelectItem key={size} value={size} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                        {size}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {salonSizeError && <p className="text-xs text-destructive">Required</p>}
+              </div>
             </div>
 
             {/* Salon Structure */}
             <div className="flex items-center justify-between gap-4">
-              <Label className="text-sm font-medium whitespace-nowrap">
+              <Label className={cn(
+                "text-sm font-medium whitespace-nowrap",
+                salonStructureError && "text-destructive"
+              )}>
                 Select your salon structure*
               </Label>
-              <Select value={salonStructure} onValueChange={onSalonStructureChange}>
-                <SelectTrigger className="w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                  {salonStructures.map(structure => <SelectItem key={structure} value={structure} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                      {structure}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col items-end gap-1">
+                <Select value={salonStructure} onValueChange={onSalonStructureChange}>
+                  <SelectTrigger className={cn(
+                    "w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300",
+                    salonStructureError && "border-destructive/50 bg-destructive/5"
+                  )}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                    {salonStructures.map(structure => <SelectItem key={structure} value={structure} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                        {structure}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {salonStructureError && <p className="text-xs text-destructive">Required</p>}
+              </div>
             </div>
 
             {/* File Upload */}
@@ -1092,7 +1135,8 @@ const BusinessLocationForm = ({
   onCountryChange,
   onCityChange,
   onStateChange,
-  onZipCodeChange
+  onZipCodeChange,
+  showValidationErrors = false
 }: {
   businessName: string;
   businessAddress: string;
@@ -1108,7 +1152,16 @@ const BusinessLocationForm = ({
   onCityChange: (value: string) => void;
   onStateChange: (value: string) => void;
   onZipCodeChange: (value: string) => void;
-}) => <div className="space-y-[25px]">
+  showValidationErrors?: boolean;
+}) => {
+  const businessNameError = showValidationErrors && businessName.trim() === "";
+  const businessAddressError = showValidationErrors && businessAddress.trim() === "";
+  const countryError = showValidationErrors && country === "";
+  const cityError = showValidationErrors && city.trim() === "";
+  const stateError = showValidationErrors && state === "";
+  const zipCodeError = showValidationErrors && zipCode.trim() === "";
+  
+  return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
@@ -1217,15 +1270,21 @@ const BusinessLocationForm = ({
       </div>
     </div>
   </div>;
+};
 
 // Wholesale Terms Form (Step 3 for professionals)
 const WholesaleTermsForm = ({
   agreed,
-  onAgreeChange
+  onAgreeChange,
+  showValidationErrors = false
 }: {
   agreed: boolean;
   onAgreeChange: (value: boolean) => void;
-}) => <div className="space-y-[25px]">
+  showValidationErrors?: boolean;
+}) => {
+  const agreementError = showValidationErrors && !agreed;
+  
+  return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
@@ -1255,33 +1314,44 @@ const WholesaleTermsForm = ({
         "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
         agreed 
           ? "border-foreground bg-foreground/5" 
-          : "border-border hover:border-foreground/30 hover:bg-muted/50"
+          : agreementError 
+            ? "border-destructive/50 bg-destructive/5"
+            : "border-border hover:border-foreground/30 hover:bg-muted/50"
       )}
     >
       <div className={cn(
         "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-        agreed ? "border-foreground bg-foreground" : "border-muted-foreground/50"
+        agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50"
       )}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
-      <span className="text-sm font-medium text-foreground">
+      <span className={cn(
+        "text-sm font-medium",
+        agreementError ? "text-destructive" : "text-foreground"
+      )}>
         Yes, I agree to not use my client's card to purchase.*
       </span>
     </button>
+    {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
   </div>;
+};
 
 // Tax Exemption Form (Step 4 for professionals)
 const TaxExemptionForm = ({
   hasTaxExemption,
   taxExemptFile,
   onTaxExemptionChange,
-  onTaxExemptFileChange
+  onTaxExemptFileChange,
+  showValidationErrors = false
 }: {
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
   onTaxExemptionChange: (value: boolean) => void;
   onTaxExemptFileChange: (file: File | null) => void;
+  showValidationErrors?: boolean;
 }) => {
+  const selectionError = showValidationErrors && hasTaxExemption === null;
+  const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1309,67 +1379,83 @@ const TaxExemptionForm = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => onTaxExemptionChange(true)}
-          className={cn(
-            "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
-            hasTaxExemption === true 
-              ? "border-foreground bg-foreground/5" 
-              : "border-border hover:border-foreground/30 hover:bg-muted/50"
-          )}
-        >
-          <div className={cn(
-            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-            hasTaxExemption === true ? "border-foreground bg-foreground" : "border-muted-foreground/50"
-          )}>
-            {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
-          </div>
-          <span className="text-sm font-medium text-foreground">Yes</span>
-        </button>
-        <button
-          onClick={() => {
-            onTaxExemptionChange(false);
-            onTaxExemptFileChange(null);
-          }}
-          className={cn(
-            "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
-            hasTaxExemption === false 
-              ? "border-foreground bg-foreground/5" 
-              : "border-border hover:border-foreground/30 hover:bg-muted/50"
-          )}
-        >
-          <div className={cn(
-            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-            hasTaxExemption === false ? "border-foreground bg-foreground" : "border-muted-foreground/50"
-          )}>
-            {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
-          </div>
-          <span className="text-sm font-medium text-foreground">No</span>
-        </button>
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => onTaxExemptionChange(true)}
+            className={cn(
+              "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+              hasTaxExemption === true 
+                ? "border-foreground bg-foreground/5" 
+                : selectionError
+                  ? "border-destructive/50 bg-destructive/5"
+                  : "border-border hover:border-foreground/30 hover:bg-muted/50"
+            )}
+          >
+            <div className={cn(
+              "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+              hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50"
+            )}>
+              {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+            </div>
+            <span className={cn("text-sm font-medium", selectionError ? "text-destructive" : "text-foreground")}>Yes</span>
+          </button>
+          <button
+            onClick={() => {
+              onTaxExemptionChange(false);
+              onTaxExemptFileChange(null);
+            }}
+            className={cn(
+              "p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4",
+              hasTaxExemption === false 
+                ? "border-foreground bg-foreground/5" 
+                : selectionError
+                  ? "border-destructive/50 bg-destructive/5"
+                  : "border-border hover:border-foreground/30 hover:bg-muted/50"
+            )}
+          >
+            <div className={cn(
+              "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+              hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50"
+            )}>
+              {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+            </div>
+            <span className={cn("text-sm font-medium", selectionError ? "text-destructive" : "text-foreground")}>No</span>
+          </button>
+        </div>
+        {selectionError && <p className="text-xs text-destructive text-center">Please select an option</p>}
       </div>
       
       {/* File upload - shown when Yes is selected */}
       {hasTaxExemption === true && (
-        <div className="flex items-center gap-4 pt-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className="h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50"
-          >
-            Choose File
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {taxExemptFile ? taxExemptFile.name : "Upload your state tax-exempt license"}
-          </span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-4 pt-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className={cn(
+                "h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50",
+                fileError && "border-destructive/50"
+              )}
+            >
+              Choose File
+            </Button>
+            <span className={cn(
+              "text-sm",
+              fileError ? "text-destructive" : "text-muted-foreground"
+            )}>
+              {taxExemptFile ? taxExemptFile.name : "Upload your state tax-exempt license"}
+            </span>
+          </div>
+          {fileError && <p className="text-xs text-destructive">Please upload your tax exemption document</p>}
         </div>
       )}
     </div>
@@ -1385,7 +1471,8 @@ const ContactInfoForm = ({
   onFirstNameChange,
   onLastNameChange,
   onPreferredNameChange,
-  onPhoneNumberChange
+  onPhoneNumberChange,
+  showValidationErrors = false
 }: {
   firstName: string;
   lastName: string;
@@ -1395,7 +1482,13 @@ const ContactInfoForm = ({
   onLastNameChange: (value: string) => void;
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
-}) => <div className="space-y-[25px]">
+  showValidationErrors?: boolean;
+}) => {
+  const firstNameError = showValidationErrors && firstName.trim() === "";
+  const lastNameError = showValidationErrors && lastName.trim() === "";
+  const phoneError = showValidationErrors && phoneNumber.trim() === "";
+  
+  return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
@@ -1411,20 +1504,34 @@ const ContactInfoForm = ({
       {/* First and Last Name */}
       <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
         <div className="space-y-2.5 group">
-          <Label htmlFor="legalFirstName" className="text-sm font-medium label-float">
+          <Label htmlFor="legalFirstName" className={cn(
+            "text-sm font-medium label-float",
+            firstNameError && "text-destructive"
+          )}>
             Legal first name*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className={cn(
+              "h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              firstNameError && "border-destructive/50 bg-destructive/5"
+            )} />
           </div>
+          {firstNameError && <p className="text-xs text-destructive">First name is required</p>}
         </div>
         <div className="space-y-2.5 group">
-          <Label htmlFor="legalLastName" className="text-sm font-medium label-float">
+          <Label htmlFor="legalLastName" className={cn(
+            "text-sm font-medium label-float",
+            lastNameError && "text-destructive"
+          )}>
             Legal last name*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className={cn(
+              "h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              lastNameError && "border-destructive/50 bg-destructive/5"
+            )} />
           </div>
+          {lastNameError && <p className="text-xs text-destructive">Last name is required</p>}
         </div>
       </div>
 
@@ -1440,15 +1547,28 @@ const ContactInfoForm = ({
 
       {/* Phone Number */}
       <div className="space-y-2.5 animate-stagger-4 group">
-        <Label htmlFor="phoneNumber" className="text-sm font-medium label-float">
+        <Label htmlFor="phoneNumber" className={cn(
+          "text-sm font-medium label-float",
+          phoneError && "text-destructive"
+        )}>
           Phone number*
         </Label>
         <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-            <Phone className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          <div className={cn(
+            "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+            phoneError ? "bg-destructive/10" : "bg-muted"
+          )}>
+            <Phone className={cn(
+              "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+              phoneError ? "text-destructive" : "text-muted-foreground"
+            )} />
           </div>
-          <Input id="phoneNumber" type="tel" placeholder="Phone number" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="phoneNumber" type="tel" placeholder="Phone number" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn(
+            "h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+            phoneError && "border-destructive/50 bg-destructive/5"
+          )} />
         </div>
+        {phoneError && <p className="text-xs text-destructive">Phone number is required</p>}
       </div>
 
       {/* SMS Consent Notice */}
@@ -1463,6 +1583,8 @@ const ContactInfoForm = ({
       </div>
     </div>
   </div>;
+};
+
 // Password Input with Toggle
 const PasswordInputField = ({ 
   id, 
