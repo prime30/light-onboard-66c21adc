@@ -950,7 +950,7 @@ const Auth = () => {
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                {currentStep === "success" && <SuccessForm />}
+                {currentStep === "success" && <SuccessForm email={email} />}
               </>}
           </div>
         </main>
@@ -2139,7 +2139,7 @@ const PersonalInfoForm = ({
       </div>
     </div>
   </div>;
-const SuccessForm = () => {
+const SuccessForm = ({ email }: { email: string }) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   
@@ -2192,6 +2192,21 @@ const SuccessForm = () => {
       </p>
     </div>
 
+    {/* Email confirmation card */}
+    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
+      <div className="flex items-center gap-4">
+        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center shrink-0">
+          <Mail className="w-[25px] h-[25px] text-background" />
+        </div>
+        <div className="text-left flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground">Confirmation email sent to</p>
+          <p className="text-sm text-muted-foreground truncate">
+            {email || "your email address"}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
       <div className="flex items-center gap-5">
         <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
@@ -2200,7 +2215,7 @@ const SuccessForm = () => {
         <div className="text-left">
           <p className="text-sm font-medium text-foreground">Pro Member</p>
           <p className="text-xs text-muted-foreground">
-            Confirmation email will be sent to your inbox
+            Account review within 24 hours
           </p>
         </div>
       </div>
