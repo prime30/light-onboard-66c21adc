@@ -58,30 +58,35 @@ const features = [{
 }];
 const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
 
-// Phone number validation - accepts formats like: +1 (555) 123-4567, +1-555-123-4567, 15551234567, etc.
+// Country codes for phone numbers
+const countryCodes = [
+  { code: "+1", country: "US", flag: "🇺🇸" },
+  { code: "+1", country: "CA", flag: "🇨🇦" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+61", country: "AU", flag: "🇦🇺" },
+  { code: "+33", country: "FR", flag: "🇫🇷" },
+  { code: "+49", country: "DE", flag: "🇩🇪" },
+  { code: "+39", country: "IT", flag: "🇮🇹" },
+  { code: "+34", country: "ES", flag: "🇪🇸" },
+  { code: "+81", country: "JP", flag: "🇯🇵" },
+  { code: "+86", country: "CN", flag: "🇨🇳" },
+  { code: "+91", country: "IN", flag: "🇮🇳" },
+  { code: "+52", country: "MX", flag: "🇲🇽" },
+  { code: "+55", country: "BR", flag: "🇧🇷" },
+];
+
+// Phone number validation - validates the local number part (without country code)
 const isValidPhoneNumber = (phone: string): boolean => {
-  // Remove all non-digit characters except +
-  const cleaned = phone.replace(/[^\d+]/g, '');
-  // Must have at least 10 digits (US number) or start with + and have 11+ digits (international)
-  if (cleaned.startsWith('+')) {
-    return cleaned.length >= 11 && cleaned.length <= 15;
-  }
-  // US/Canada number without country code
-  return cleaned.length >= 10 && cleaned.length <= 11;
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  // Must have exactly 10 digits for US/CA format
+  return cleaned.length === 10;
 };
 
-// Format phone number as user types
+// Format phone number as user types (local number only, no country code)
 const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters except +
-  const cleaned = value.replace(/[^\d+]/g, '');
-  
-  // If starts with +, keep it international format
-  if (cleaned.startsWith('+')) {
-    if (cleaned.length <= 2) return cleaned;
-    if (cleaned.length <= 5) return `${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
-    if (cleaned.length <= 8) return `${cleaned.slice(0, 2)} (${cleaned.slice(2, 5)}) ${cleaned.slice(5)}`;
-    return `${cleaned.slice(0, 2)} (${cleaned.slice(2, 5)}) ${cleaned.slice(5, 8)}-${cleaned.slice(8, 12)}`;
-  }
+  // Remove all non-digit characters
+  const cleaned = value.replace(/\D/g, '').slice(0, 10);
   
   // US format: (555) 123-4567
   if (cleaned.length <= 3) return cleaned;
@@ -324,6 +329,7 @@ const Auth = () => {
   const [hasTaxExemption, setHasTaxExemption] = useState<boolean | null>(null);
   const [preferredName, setPreferredName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
   
   // Salon-specific fields
   const [salonSize, setSalonSize] = useState("");
@@ -358,6 +364,7 @@ const Auth = () => {
     setHasTaxExemption(null);
     setPreferredName("");
     setPhoneNumber("");
+    setPhoneCountryCode("+1");
     setSalonSize("");
     setSalonStructure("");
     setLicenseFile(null);
@@ -981,7 +988,7 @@ const Auth = () => {
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={(value) => setPhoneNumber(formatPhoneNumber(value))} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
+                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={(value) => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                 {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
@@ -1862,10 +1869,12 @@ const ContactInfoForm = ({
   lastName,
   preferredName,
   phoneNumber,
+  phoneCountryCode,
   onFirstNameChange,
   onLastNameChange,
   onPreferredNameChange,
   onPhoneNumberChange,
+  onPhoneCountryCodeChange,
   showValidationErrors = false,
   validationStatus
 }: {
@@ -1873,10 +1882,12 @@ const ContactInfoForm = ({
   lastName: string;
   preferredName: string;
   phoneNumber: string;
+  phoneCountryCode: string;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
+  onPhoneCountryCodeChange: (value: string) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
@@ -1944,7 +1955,7 @@ const ContactInfoForm = ({
         </div>
       </div>
 
-      {/* Phone Number */}
+      {/* Phone Number with Country Code */}
       <div className="space-y-2.5 animate-stagger-4 group">
         <Label htmlFor="phoneNumber" className={cn(
           "text-sm font-medium label-float",
@@ -1952,23 +1963,49 @@ const ContactInfoForm = ({
         )}>
           Phone number*
         </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className={cn(
-            "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
-            phoneError ? "bg-destructive/10" : "bg-muted"
-          )}>
-            <Phone className={cn(
-              "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
-              phoneError ? "text-destructive" : "text-muted-foreground"
+        <div className="flex gap-2">
+          {/* Country Code Selector */}
+          <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
+            <SelectTrigger className={cn(
+              "w-[100px] h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300",
+              phoneError && "border-destructive/50 bg-destructive/5"
+            )}>
+              <SelectValue>
+                {countryCodes.find(c => c.code === phoneCountryCode)?.flag} {phoneCountryCode}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border z-50">
+              {countryCodes.map((country, index) => (
+                <SelectItem key={`${country.code}-${country.country}-${index}`} value={country.code}>
+                  <span className="flex items-center gap-2">
+                    <span>{country.flag}</span>
+                    <span>{country.code}</span>
+                    <span className="text-muted-foreground text-xs">({country.country})</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Phone Number Input */}
+          <div className="relative flex-1 input-glow input-ripple rounded-[15px]">
+            <div className={cn(
+              "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+              phoneError ? "bg-destructive/10" : "bg-muted"
+            )}>
+              <Phone className={cn(
+                "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+                phoneError ? "text-destructive" : "text-muted-foreground"
+              )} />
+            </div>
+            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn(
+              "h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              phoneError && "border-destructive/50 bg-destructive/5"
             )} />
           </div>
-          <Input id="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn(
-            "h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-            phoneError && "border-destructive/50 bg-destructive/5"
-          )} />
         </div>
         {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
-        {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid phone number with country code</p>}
+        {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
       </div>
 
       {/* SMS Consent Notice */}
