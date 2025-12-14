@@ -950,7 +950,7 @@ const Auth = () => {
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                {currentStep === "success" && <SuccessForm onContinue={() => navigate("/")} />}
+                {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
         </main>
@@ -2139,13 +2139,13 @@ const PersonalInfoForm = ({
       </div>
     </div>
   </div>;
-const SuccessForm = ({
-  onContinue
-}: {
-  onContinue: () => void;
-}) => {
+const SuccessForm = () => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  
+  useEffect(() => {
+    toast.success("You're all set! Check your email for confirmation.");
+  }, []);
   
   const handleAddToCart = () => {
     setIsAddingToCart(true);
@@ -2256,11 +2256,6 @@ const SuccessForm = ({
         )}
       </Button>
     </div>
-
-    <Button size="lg" onClick={onContinue} className="w-full h-[50px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90">
-      Start Shopping
-      <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
-    </Button>
   </div>;
 };
 
