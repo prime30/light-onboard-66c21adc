@@ -983,7 +983,7 @@ const OnboardingForm = ({
             <item.icon className="w-5 h-5 text-background" />
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">{item.label}</p>
+            <p className="text-sm font-medium text-foreground">{i + 1}. {item.label}</p>
             <p className="text-xs text-muted-foreground">{item.desc}</p>
           </div>
         </div>)}
