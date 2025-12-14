@@ -18,7 +18,7 @@ import logoSvg from "@/assets/logo.svg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
-  eyebrow: "Welcome",
+  eyebrow: "Exclusively Professional",
   title: "Exclusive Access to the",
   highlight: "Best Hair",
   description: "Carry the best extension line of products in your salon."
