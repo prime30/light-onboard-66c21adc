@@ -21,7 +21,7 @@ const slides = [{
   eyebrow: "Exclusively Professional",
   title: "Let's get",
   highlight: "started",
-  description: "Cosmetology license, proof of student status, or equivalent required to shop."
+  description: "Unlock wholesale prices on hair and tools made for top salons."
 }, {
   eyebrow: "Quality",
   title: "Premium",
@@ -1487,7 +1487,7 @@ const OnboardingForm = ({
         Apply for a pro account
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-        Unlock wholesale prices on hair and tools made for top salons.
+        Cosmetology license, proof of student status, or equivalent required to shop.
       </p>
     </div>
 
