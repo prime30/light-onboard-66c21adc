@@ -47,6 +47,30 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Aeonik Pro';
+  src: url('/fonts/aeonik-pro-regular-italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik Pro';
+  src: url('/fonts/aeonik-pro-medium-italic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik Pro';
+  src: url('/fonts/aeonik-pro-semibold-italic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
