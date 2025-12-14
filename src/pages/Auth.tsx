@@ -1484,8 +1484,11 @@ const OnboardingForm = ({
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Apply for a pro account to unlock wholesale pricing on the industries best hair and tools.
+        Apply for a pro account
       </h1>
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
+        Unlock wholesale prices on hair and tools made for top salons.
+      </p>
     </div>
 
     {/* Trust badges */}
