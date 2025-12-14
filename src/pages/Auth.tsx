@@ -1214,10 +1214,6 @@ const OnboardingForm = ({
 
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-foreground/5 border border-foreground/10 mb-2">
-        <Sparkles className="w-3.5 h-3.5 text-foreground/60" />
-        <span className="text-[10px] font-medium text-foreground/60 uppercase tracking-wider">Pro Network</span>
-      </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Ready to join?
       </h1>
