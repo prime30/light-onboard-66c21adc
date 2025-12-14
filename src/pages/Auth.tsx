@@ -1085,12 +1085,6 @@ const SignInForm = ({
   onSignUp: () => void;
 }) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
     <div className="space-y-[12px] animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-foreground/5 border border-foreground/10 mb-[5px]">
-        <div className="w-[6px] h-[6px] rounded-full bg-foreground animate-pulse" />
-        <span className="text-[10px] font-medium text-foreground/60 uppercase tracking-[0.15em]">
-          Secure Login
-        </span>
-      </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap">
         Welcome back
       </h1>
