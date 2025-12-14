@@ -11,6 +11,7 @@ import { useMagnetic } from "@/hooks/use-magnetic";
 import { useCountdown } from "@/hooks/use-countdown";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
+import colorRingProduct from "@/assets/color-ring-product.png";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -2045,10 +2046,12 @@ const SuccessForm = ({
         30% OFF
       </div>
       <div className="flex items-start gap-4">
-        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-background border border-border flex items-center justify-center shrink-0">
-          <div className="w-10 h-10 rounded-full border-4 border-foreground/20 relative">
-            <div className="absolute inset-1 rounded-full bg-gradient-to-br from-accent-red/40 to-accent-red/10" />
-          </div>
+        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
+          <img 
+            src={colorRingProduct} 
+            alt="Color Ring Product" 
+            className="w-full h-full object-cover"
+          />
         </div>
         <div className="text-left flex-1 min-w-0">
           <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
