@@ -915,7 +915,7 @@ const SignInForm = ({
       </div>
     </div>
 
-    <div className="flex flex-wrap justify-center gap-[clamp(6px,1.5vh,10px)] pt-[clamp(8px,2vh,15px)] animate-stagger-5">
+    <div className="flex flex-wrap justify-center gap-[clamp(6px,1.5vh,10px)] pt-[clamp(8px,2vh,15px)] animate-stagger-5 lg:hidden">
       {features.map((feature, index) => (
         <SignInFeatureBox key={index} icon={feature.icon} label={feature.label} desc={feature.desc} />
       ))}
