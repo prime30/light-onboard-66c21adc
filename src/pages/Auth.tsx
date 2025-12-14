@@ -975,7 +975,8 @@ const Auth = () => {
           )}
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Below toggle */}
+        {/* Mobile/Tablet Hero Banner - Below toggle, only on step 1 */}
+        {currentStep === 'account-type' && (
         <div className="lg:hidden rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
           {/* Hero image background */}
           <img 
@@ -1015,6 +1016,7 @@ const Auth = () => {
             </div>
           </div>
         </div>
+        )}
 
         <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           <div 
