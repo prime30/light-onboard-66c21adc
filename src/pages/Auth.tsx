@@ -1520,11 +1520,11 @@ const OnboardingForm = ({
         label: "Unlock your professional only wholesale pricing"
       }].map((item, i) => <div
             key={i} 
-            className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in hover:border-foreground/20 hover:from-muted transition-all duration-300"
+            className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in"
             style={{ animationDelay: `${200 + i * 100}ms`, animationFillMode: 'forwards' }}
           >
             <div 
-              className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
+              className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0"
             >
               <item.icon className="w-5 h-5 text-background" />
               <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-background border-2 border-foreground flex items-center justify-center">
@@ -1534,7 +1534,6 @@ const OnboardingForm = ({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">{item.label}</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-300" />
           </div>)}
     </div>
 
