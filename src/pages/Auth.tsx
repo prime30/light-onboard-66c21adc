@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, Chevro
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
+import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -925,8 +926,17 @@ const LicenseForm = ({
           State / Province
         </Label>
         <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center z-10 transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-            <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          <div className={cn(
+            "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center z-10 transition-all duration-300",
+            state && hasStateIcon(state) 
+              ? "bg-foreground shadow-lg shadow-foreground/10" 
+              : "bg-muted group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10"
+          )}>
+            {state && hasStateIcon(state) ? (
+              <StateIcon state={state} size={15} className="text-background" />
+            ) : (
+              <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+            )}
           </div>
           <Select value={state} onValueChange={onStateChange}>
             <SelectTrigger className="h-[50px] sm:h-[55px] pl-[55px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
@@ -1052,16 +1062,26 @@ const BusinessLocationForm = ({
           <Label htmlFor="stateProvince" className="text-sm font-medium label-float">
             State/Province*
           </Label>
-          <Select value={state} onValueChange={onStateChange}>
-            <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
-              <SelectValue placeholder="State" />
-            </SelectTrigger>
-            <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                  {s}
-                </SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            {state && hasStateIcon(state) && (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-[8px] bg-foreground flex items-center justify-center z-10">
+                <StateIcon state={state} size={12} className="text-background" />
+              </div>
+            )}
+            <Select value={state} onValueChange={onStateChange}>
+              <SelectTrigger className={cn(
+                "h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+                state && hasStateIcon(state) && "pl-[42px]"
+              )}>
+                <SelectValue placeholder="State" />
+              </SelectTrigger>
+              <SelectContent className="rounded-[15px] bg-background border border-border z-50">
+                {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                    {s}
+                  </SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="space-y-2.5">
           <Label htmlFor="zipCode" className="text-sm font-medium label-float">
