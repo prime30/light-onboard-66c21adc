@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, Chevro
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
+import { useCountdown } from "@/hooks/use-countdown";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 type AuthMode = "signup" | "signin";
@@ -1980,7 +1981,12 @@ const SuccessForm = ({
   onContinue
 }: {
   onContinue: () => void;
-}) => <div className="space-y-[25px] animate-fade-in text-center">
+}) => {
+  const countdown = useCountdown(48);
+  
+  const formatNumber = (num: number) => num.toString().padStart(2, '0');
+  
+  return <div className="space-y-[25px] animate-fade-in text-center">
     {/* Success Icon */}
     <div className="relative h-[130px] mb-5">
       <div className="absolute inset-0 flex items-center justify-center">
@@ -2053,10 +2059,14 @@ const SuccessForm = ({
             Perfect for matching colors with clients
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <Clock className="w-3 h-3 text-accent-red" />
-            <p className="text-[10px] text-accent-red font-medium">
-              48 hours only
-            </p>
+            <Clock className="w-3 h-3 text-accent-red animate-pulse" />
+            <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
+              <span>:</span>
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
+              <span>:</span>
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2074,5 +2084,6 @@ const SuccessForm = ({
       <ArrowRight className="w-[15px] h-[15px] ml-2.5" />
     </Button>
   </div>;
+};
 
 export default Auth;
