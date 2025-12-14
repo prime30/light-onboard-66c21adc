@@ -103,20 +103,27 @@ const AnimatedNumber = ({
 }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    const duration = 1500;
-    const steps = 40;
-    const increment = value / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setCount(value);
-        clearInterval(timer);
+    const duration = 2000;
+    const startTime = performance.now();
+    
+    // Ease-out cubic function for natural deceleration
+    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutCubic(progress);
+      
+      setCount(Math.floor(easedProgress * value));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
       } else {
-        setCount(Math.floor(current));
+        setCount(value);
       }
-    }, duration / steps);
-    return () => clearInterval(timer);
+    };
+    
+    requestAnimationFrame(animate);
   }, [value]);
   return <span>{count}{suffix}</span>;
 };
