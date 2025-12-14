@@ -736,7 +736,7 @@ const Auth = () => {
         </header>
 
         {/* Form Content */}
-        <main className="flex-1 flex items-center justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 pt-0 pb-0 overflow-hidden">
+        <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           <div 
             key={currentStep}
             className={cn(
