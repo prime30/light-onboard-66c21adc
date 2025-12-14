@@ -57,6 +57,38 @@ const features = [{
   desc: "Pro pricing"
 }];
 const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+
+// Phone number validation - accepts formats like: +1 (555) 123-4567, +1-555-123-4567, 15551234567, etc.
+const isValidPhoneNumber = (phone: string): boolean => {
+  // Remove all non-digit characters except +
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  // Must have at least 10 digits (US number) or start with + and have 11+ digits (international)
+  if (cleaned.startsWith('+')) {
+    return cleaned.length >= 11 && cleaned.length <= 15;
+  }
+  // US/Canada number without country code
+  return cleaned.length >= 10 && cleaned.length <= 11;
+};
+
+// Format phone number as user types
+const formatPhoneNumber = (value: string): string => {
+  // Remove all non-digit characters except +
+  const cleaned = value.replace(/[^\d+]/g, '');
+  
+  // If starts with +, keep it international format
+  if (cleaned.startsWith('+')) {
+    if (cleaned.length <= 2) return cleaned;
+    if (cleaned.length <= 5) return `${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
+    if (cleaned.length <= 8) return `${cleaned.slice(0, 2)} (${cleaned.slice(2, 5)}) ${cleaned.slice(5)}`;
+    return `${cleaned.slice(0, 2)} (${cleaned.slice(2, 5)}) ${cleaned.slice(5, 8)}-${cleaned.slice(8, 12)}`;
+  }
+  
+  // US format: (555) 123-4567
+  if (cleaned.length <= 3) return cleaned;
+  if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+};
+
 const AnimatedNumber = ({
   value,
   suffix
@@ -382,7 +414,7 @@ const Auth = () => {
         }
         return hasTaxExemption !== null;
       case "contact-info":
-        return firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "";
+        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
       default:
         return true;
     }
@@ -949,7 +981,7 @@ const Auth = () => {
                 {currentStep === "business-location" && <BusinessLocationForm businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
+                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={(value) => setPhoneNumber(formatPhoneNumber(value))} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                 {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
@@ -1850,7 +1882,9 @@ const ContactInfoForm = ({
 }) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
-  const phoneError = showValidationErrors && phoneNumber.trim() === "";
+  const phoneEmpty = phoneNumber.trim() === "";
+  const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
+  const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
   
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
@@ -1928,12 +1962,13 @@ const ContactInfoForm = ({
               phoneError ? "text-destructive" : "text-muted-foreground"
             )} />
           </div>
-          <Input id="phoneNumber" type="tel" placeholder="Phone number" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn(
+          <Input id="phoneNumber" type="tel" placeholder="+1 (555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn(
             "h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
             phoneError && "border-destructive/50 bg-destructive/5"
           )} />
         </div>
-        {phoneError && <p className="text-xs text-destructive">Phone number is required</p>}
+        {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
+        {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid phone number with country code</p>}
       </div>
 
       {/* SMS Consent Notice */}
