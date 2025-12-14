@@ -126,6 +126,63 @@ const SignInFeatureBox = ({
     </div>;
 };
 
+// Rotating Stylist Avatars Component
+const stylistAvatars = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop&crop=face",
+];
+
+const RotatingStylistAvatars = () => {
+  const [visibleIndices, setVisibleIndices] = useState([0, 1, 2]);
+  const [fadingIndex, setFadingIndex] = useState<number | null>(null);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisibleIndices(prev => {
+        const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
+        const positionToReplace = Math.floor(Math.random() * 3);
+        setFadingIndex(positionToReplace);
+        
+        setTimeout(() => {
+          setFadingIndex(null);
+        }, 300);
+        
+        const newIndices = [...prev];
+        newIndices[positionToReplace] = nextIndex;
+        return newIndices;
+      });
+    }, 2500);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
+      <div className="flex -space-x-[5px]">
+        {visibleIndices.map((avatarIndex, i) => (
+          <img 
+            key={`${i}-${avatarIndex}`}
+            src={stylistAvatars[avatarIndex]} 
+            alt={`Stylist ${avatarIndex + 1}`}
+            className={cn(
+              "w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300",
+              fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
+            )}
+          />
+        ))}
+      </div>
+      <span className="text-xs text-background/50">10K+ pros</span>
+    </div>
+  );
+};
+
 // Circular Progress Indicator Component
 const CircularProgress = ({ progress }: { progress: number }) => {
   const [showGlow, setShowGlow] = useState(false);
@@ -748,24 +805,7 @@ const Auth = () => {
           )}
 
           {/* Trust Badge - visible on all sizes */}
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
-            <div className="flex -space-x-[5px]">
-              {[
-                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face"
-              ].map((src, i) => (
-                <img 
-                  key={i} 
-                  src={src} 
-                  alt={`Stylist ${i + 1}`}
-                  className="w-5 h-5 rounded-full border-2 border-foreground object-cover"
-                />
-              ))}
-            </div>
-            <span className="text-xs text-background/50">10K+ pros</span>
-          </div>
+          <RotatingStylistAvatars />
 
           {/* Nav Arrows - Desktop - Only on sign-up */}
           {mode === "signup" ? (
