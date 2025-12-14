@@ -1297,13 +1297,17 @@ const Auth = () => {
                           <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
                           <div className="space-y-1.5">
                             {getIncompleteSteps().map(({ step, name }) => (
-                              <div key={step} className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0">
+                              <button 
+                                key={step} 
+                                onClick={() => goToStep(step)}
+                                className="flex items-center gap-2 w-full hover:bg-background/10 rounded-lg px-2 py-1.5 -mx-2 transition-colors cursor-pointer group/step"
+                              >
+                                <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
                                   <span className="text-[10px] font-semibold">{step}</span>
                                 </div>
                                 <span className="text-sm">{name}</span>
-                                <AlertTriangle className="w-3 h-3 text-amber-400 ml-auto flex-shrink-0" />
-                              </div>
+                                <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
+                              </button>
                             ))}
                           </div>
                         </div>
