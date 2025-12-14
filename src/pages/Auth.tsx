@@ -1115,13 +1115,27 @@ const SignInForm = ({
         placeholder="••••••••"
       />
 
-      <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
-        <span className="relative">
-          Forgot password?
-          <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
-        </span>
-        <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
-      </button>
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2.5 cursor-pointer group">
+          <div className="relative w-[18px] h-[18px]">
+            <input 
+              type="checkbox" 
+              className="peer sr-only" 
+            />
+            <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted/30 peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
+            <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+          </div>
+          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Remember me</span>
+        </label>
+
+        <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
+          <span className="relative">
+            Forgot password?
+            <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+          </span>
+          <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+        </button>
+      </div>
     </div>
 
     <div className="flex flex-wrap items-center justify-center gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
