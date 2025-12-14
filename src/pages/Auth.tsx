@@ -126,13 +126,42 @@ const SignInFeatureBox = ({
     </div>;
 };
 
+// Confetti Particle Component
+const ConfettiParticle = ({ delay, x, color }: { delay: number; x: number; color: string }) => (
+  <div
+    className="absolute w-2 h-2 rounded-full animate-confetti"
+    style={{
+      left: `${x}%`,
+      top: '50%',
+      backgroundColor: color,
+      animationDelay: `${delay}ms`,
+    }}
+  />
+);
+
 // Circular Progress Indicator Component
 const CircularProgress = ({ progress }: { progress: number }) => {
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [hasReached100, setHasReached100] = useState(false);
+  const prevProgressRef = useRef(progress);
+  
   const size = 40;
   const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
+  
+  // Detect when progress first reaches 100%
+  useEffect(() => {
+    if (progress >= 100 && prevProgressRef.current < 100 && !hasReached100) {
+      setHasReached100(true);
+      setShowCelebration(true);
+      // Hide celebration after animation completes
+      const timer = setTimeout(() => setShowCelebration(false), 1500);
+      return () => clearTimeout(timer);
+    }
+    prevProgressRef.current = progress;
+  }, [progress, hasReached100]);
   
   // Color based on progress: green when complete, amber when partial, white/gray when empty
   const getProgressColor = () => {
@@ -147,8 +176,40 @@ const CircularProgress = ({ progress }: { progress: number }) => {
     return "rgba(255, 255, 255, 0.6)";
   };
   
+  const confettiColors = [
+    "hsl(142, 76%, 45%)", // Green
+    "hsl(38, 92%, 55%)",  // Amber
+    "hsl(280, 87%, 65%)", // Purple
+    "hsl(190, 90%, 50%)", // Cyan
+    "hsl(340, 82%, 60%)", // Pink
+  ];
+  
   return (
     <div className="relative flex items-center justify-center">
+      {/* Celebration confetti */}
+      {showCelebration && (
+        <div className="absolute inset-0 overflow-visible pointer-events-none">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <ConfettiParticle
+              key={i}
+              delay={i * 50}
+              x={20 + (i % 4) * 20}
+              color={confettiColors[i % confettiColors.length]}
+            />
+          ))}
+        </div>
+      )}
+      
+      {/* Glow effect on 100% */}
+      {progress >= 100 && (
+        <div 
+          className="absolute inset-0 rounded-full animate-pulse"
+          style={{
+            boxShadow: '0 0 20px hsl(142, 76%, 45%, 0.5)',
+          }}
+        />
+      )}
+      
       <svg width={size} height={size} className="transform -rotate-90">
         {/* Background circle */}
         <circle
@@ -174,7 +235,10 @@ const CircularProgress = ({ progress }: { progress: number }) => {
         />
       </svg>
       <span 
-        className="absolute text-[10px] font-semibold transition-colors duration-500"
+        className={cn(
+          "absolute text-[10px] font-semibold transition-colors duration-500",
+          progress >= 100 && "animate-bounce"
+        )}
         style={{ color: getTextColor() }}
       >
         {Math.round(progress)}%
