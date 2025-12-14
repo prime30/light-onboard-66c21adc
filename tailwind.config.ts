@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['Aeonik Pro', 'system-ui', 'sans-serif'],
+        display: ['Aeonik Pro', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
