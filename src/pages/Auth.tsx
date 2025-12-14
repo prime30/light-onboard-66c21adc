@@ -950,7 +950,7 @@ const Auth = () => {
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={setPhoneNumber} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && phoneNumber.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                {currentStep === "success" && <SuccessForm email={email} />}
+                {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
         </main>
@@ -2139,7 +2139,7 @@ const PersonalInfoForm = ({
       </div>
     </div>
   </div>;
-const SuccessForm = ({ email }: { email: string }) => {
+const SuccessForm = () => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   
@@ -2192,21 +2192,6 @@ const SuccessForm = ({ email }: { email: string }) => {
       </p>
     </div>
 
-    {/* Email confirmation card */}
-    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
-      <div className="flex items-center gap-4">
-        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center shrink-0">
-          <Mail className="w-[25px] h-[25px] text-background" />
-        </div>
-        <div className="text-left flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground">Confirmation email sent to</p>
-          <p className="text-sm text-muted-foreground truncate">
-            {email || "your email address"}
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
       <div className="flex items-center gap-5">
         <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
@@ -2215,51 +2200,45 @@ const SuccessForm = ({ email }: { email: string }) => {
         <div className="text-left">
           <p className="text-sm font-medium text-foreground">Pro Member</p>
           <p className="text-xs text-muted-foreground">
-            Account review within 24 hours
+            Confirmation email will be sent to your inbox
           </p>
         </div>
       </div>
     </div>
 
     {/* First Purchase Upsell */}
-    <div className="space-y-2">
-      {/* Badge row with countdown */}
-      <div className="flex items-center justify-between px-1">
-        <span className="bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-full">
-          30% OFF
-        </span>
-        <div className="flex items-center gap-2">
-          <Clock className="w-3 h-3 text-accent-red animate-pulse" />
-          <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
-            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
-            <span>:</span>
-            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
-            <span>:</span>
-            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
+    <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
+      <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
+        30% OFF
+      </div>
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
+          <img 
+            src={colorRingProduct} 
+            alt="Color Ring Product" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="text-left flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
+            Recommended for you
+          </p>
+          <p className="text-sm font-semibold text-foreground">Color Ring</p>
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+            Perfect for matching colors with clients
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <Clock className="w-3 h-3 text-accent-red animate-pulse" />
+            <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
+              <span>:</span>
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
+              <span>:</span>
+              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
+            </div>
           </div>
         </div>
       </div>
-      
-      {/* Product card */}
-      <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
-            <img 
-              src={colorRingProduct} 
-              alt="Color Ring Product" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="text-left flex-1 min-w-0">
-            <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
-              Recommended for you
-            </p>
-            <p className="text-sm font-semibold text-foreground">Color Ring</p>
-            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-              Perfect for matching colors with clients
-            </p>
-          </div>
-        </div>
       <Button 
         variant="outline" 
         size="sm" 
@@ -2276,7 +2255,6 @@ const SuccessForm = ({ email }: { email: string }) => {
           </>
         )}
       </Button>
-      </div>
     </div>
   </div>;
 };
