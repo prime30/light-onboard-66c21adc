@@ -444,9 +444,11 @@ const Auth = () => {
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
+  const [highlightStep, setHighlightStep] = useState(false);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -1207,14 +1209,15 @@ const Auth = () => {
           <div 
             key={currentStep}
             className={cn(
-              "w-full max-w-lg",
+              "w-full max-w-lg relative",
               isTransitioning 
                 ? transitionDirection === "forward" 
                   ? "animate-step-exit-left" 
                   : "animate-step-exit-right"
                 : transitionDirection === "forward"
                   ? "animate-step-enter-right"
-                  : "animate-step-enter-left"
+                  : "animate-step-enter-left",
+              highlightStep && "after:absolute after:inset-0 after:rounded-2xl after:border-2 after:border-foreground/30 after:animate-pulse after:pointer-events-none after:shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:after:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             )}
           >
             {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => { setMode("signup"); setCurrentStep("onboarding"); }} /> : <>
@@ -1299,7 +1302,17 @@ const Auth = () => {
                             {getIncompleteSteps().map(({ step, name }) => (
                               <button 
                                 key={step} 
-                                onClick={() => goToStep(step)}
+                                onClick={() => {
+                                  goToStep(step);
+                                  // Trigger highlight after transition completes
+                                  if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+                                  highlightTimerRef.current = setTimeout(() => {
+                                    setHighlightStep(true);
+                                    highlightTimerRef.current = setTimeout(() => {
+                                      setHighlightStep(false);
+                                    }, 1500);
+                                  }, 200);
+                                }}
                                 className="flex items-center gap-2 w-full hover:bg-background/10 rounded-lg px-2 py-1.5 -mx-2 transition-colors cursor-pointer group/step"
                               >
                                 <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
