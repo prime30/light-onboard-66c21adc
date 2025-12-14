@@ -244,9 +244,11 @@ const Auth = () => {
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showSpotlight, setShowSpotlight] = useState(false);
+  const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -339,13 +341,19 @@ const Auth = () => {
       spotlightTimerRef.current = setTimeout(() => {
         setShowSpotlight(true);
         setHasShownSpotlight(true);
-        // Auto-hide after 3 seconds
+        // Start fade out after 3 seconds
         spotlightHideTimerRef.current = setTimeout(() => {
-          setShowSpotlight(false);
+          setIsSpotlightFadingOut(true);
+          // Remove from DOM after fade animation completes (500ms)
+          spotlightFadeTimerRef.current = setTimeout(() => {
+            setShowSpotlight(false);
+            setIsSpotlightFadingOut(false);
+          }, 500);
         }, 3000);
       }, 1500);
     } else if (!isFormReadyToSubmit) {
       setShowSpotlight(false);
+      setIsSpotlightFadingOut(false);
       // Reset hasShownSpotlight if user goes back/edits form
       setHasShownSpotlight(false);
       if (spotlightTimerRef.current) {
@@ -354,6 +362,9 @@ const Auth = () => {
       if (spotlightHideTimerRef.current) {
         clearTimeout(spotlightHideTimerRef.current);
       }
+      if (spotlightFadeTimerRef.current) {
+        clearTimeout(spotlightFadeTimerRef.current);
+      }
     }
     return () => {
       if (spotlightTimerRef.current) {
@@ -361,6 +372,9 @@ const Auth = () => {
       }
       if (spotlightHideTimerRef.current) {
         clearTimeout(spotlightHideTimerRef.current);
+      }
+      if (spotlightFadeTimerRef.current) {
+        clearTimeout(spotlightFadeTimerRef.current);
       }
     };
   }, [isFormReadyToSubmit, hasShownSpotlight]);
@@ -894,7 +908,10 @@ const Auth = () => {
 
         {/* Spotlight overlay when form is ready to submit */}
         {showSpotlight && (
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-40 animate-fade-in pointer-events-none" />
+          <div className={cn(
+            "absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500",
+            isSpotlightFadingOut ? "opacity-0" : "animate-fade-in"
+          )} />
         )}
 
         {/* Footer */}
