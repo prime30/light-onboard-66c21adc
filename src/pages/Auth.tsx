@@ -332,17 +332,7 @@ const Auth = () => {
           <X className="w-5 h-5 text-foreground" />
         </button>
 
-        {/* Mobile/Tablet Auth Toggle - Above black panel */}
-        <div className="flex lg:hidden justify-center p-2.5 sm:p-5">
-          <div className="inline-flex bg-muted rounded-full p-[5px]">
-            <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signup" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-              Sign up
-            </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("px-[15px] sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200", mode === "signin" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-              Sign in
-            </button>
-          </div>
-        </div>
+        {/* Mobile/Tablet Auth Toggle - Moved to right panel header for consistency */}
 
         {/* Left Panel - Hero/Branding - Hidden on sign-in */}
         {mode === "signup" && (
@@ -483,12 +473,12 @@ const Auth = () => {
       <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header */}
         <header className="relative flex items-center justify-center p-2.5 sm:p-5 lg:p-[25px]">
-          {/* Auth Toggle - Desktop only - positioned absolute left */}
-          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] hidden lg:inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
-            <button onClick={() => handleModeChange("signup")} className={cn("px-[20px] py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signup" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
+          {/* Auth Toggle - All screens - positioned absolute left */}
+          <div className="absolute left-2.5 sm:left-5 lg:left-[25px] inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30">
+            <button onClick={() => handleModeChange("signup")} className={cn("px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signup" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign up
             </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("px-[20px] py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signin" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
+            <button onClick={() => handleModeChange("signin")} className={cn("px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-all duration-300", mode === "signin" ? "bg-foreground text-background shadow-lg shadow-foreground/10" : "text-muted-foreground hover:text-foreground")}>
               Sign in
             </button>
           </div>
