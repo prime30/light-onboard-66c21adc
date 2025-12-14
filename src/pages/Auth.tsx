@@ -953,6 +953,7 @@ const LicenseForm = ({
 
 // Business Location Form (Step 2 for professionals)
 const countries = ["United States", "Canada"];
+const provinces = ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon"];
 const BusinessLocationForm = ({
   businessName,
   businessAddress,
@@ -1061,7 +1062,7 @@ const BusinessLocationForm = ({
             State/Province*
           </Label>
           <div className="relative">
-            {state && hasStateIcon(state) && (
+            {state && country === "United States" && hasStateIcon(state) && (
               <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] flex items-center justify-center z-10">
                 <StateIcon state={state} size={22} className="text-foreground" />
               </div>
@@ -1069,12 +1070,12 @@ const BusinessLocationForm = ({
             <Select value={state} onValueChange={onStateChange}>
               <SelectTrigger className={cn(
                 "h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-                state && hasStateIcon(state) && "pl-[42px]"
+                state && country === "United States" && hasStateIcon(state) && "pl-[42px]"
               )}>
-                <SelectValue placeholder="State" />
+                <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
               </SelectTrigger>
               <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                {(country === "Canada" ? provinces : states).map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
                     {s}
                   </SelectItem>)}
               </SelectContent>
