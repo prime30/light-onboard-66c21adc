@@ -325,42 +325,56 @@ const Auth = () => {
     }
     
     if (accountType === "salon") {
-      // Salon: account-type, license fields (4), business location (6), wholesale, tax, contact (3)
+      // Salon: account-type (1), license fields (3: licenseNumber, salonSize, salonStructure), 
+      // business location (6: businessName, businessAddress, country, city, state, zipCode), 
+      // wholesale (1), tax exemption (1 or 2), contact (3: firstName, lastName, phoneNumber)
       let filled = 0;
-      const total = 17;
+      // Base total without tax file (when hasTaxExemption is false or null)
+      let total = 15;
+      
       if (accountType) filled++;
       if (licenseNumber.trim() !== "") filled++;
-      if (state !== "") filled++;
       if (salonSize !== "") filled++;
       if (salonStructure !== "") filled++;
       if (businessName.trim() !== "") filled++;
       if (businessAddress.trim() !== "") filled++;
       if (country !== "") filled++;
       if (city.trim() !== "") filled++;
+      if (state !== "") filled++;
       if (zipCode.trim() !== "") filled++;
       if (wholesaleAgreed) filled++;
       if (hasTaxExemption !== null) filled++;
-      if (hasTaxExemption === true && taxExemptFile) filled++;
+      // Only count tax file if user selected yes for tax exemption
+      if (hasTaxExemption === true) {
+        total = 16; // Add tax file to total
+        if (taxExemptFile) filled++;
+      }
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
       if (phoneNumber.trim() !== "") filled++;
       return (filled / total) * 100;
     }
     
-    // Professional: account-type, license (2), business location (6), wholesale, tax, contact (3)
+    // Professional: account-type (1), license (1), business location (6), wholesale (1), tax (1 or 2), contact (3)
     let filled = 0;
-    const total = 14;
+    // Base total without tax file
+    let total = 13;
+    
     if (accountType) filled++;
     if (licenseNumber.trim() !== "") filled++;
-    if (state !== "") filled++;
     if (businessName.trim() !== "") filled++;
     if (businessAddress.trim() !== "") filled++;
     if (country !== "") filled++;
     if (city.trim() !== "") filled++;
+    if (state !== "") filled++;
     if (zipCode.trim() !== "") filled++;
     if (wholesaleAgreed) filled++;
     if (hasTaxExemption !== null) filled++;
-    if (hasTaxExemption === true && taxExemptFile) filled++;
+    // Only count tax file if user selected yes for tax exemption
+    if (hasTaxExemption === true) {
+      total = 14; // Add tax file to total
+      if (taxExemptFile) filled++;
+    }
     if (firstName.trim() !== "") filled++;
     if (lastName.trim() !== "") filled++;
     if (phoneNumber.trim() !== "") filled++;
