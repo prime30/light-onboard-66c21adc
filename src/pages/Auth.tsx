@@ -59,6 +59,33 @@ const features = [{
 }];
 const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
 
+const testimonials = [
+  {
+    quote: "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
+    name: "Sarah Mitchell",
+    role: "Hair Stylist, 8 years",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
+  },
+  {
+    quote: "Switching to Drop Dead saved my salon 30% on supplies. The quality is top-notch.",
+    name: "Marcus Chen",
+    role: "Salon Owner",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
+  },
+  {
+    quote: "The community here is incredible. It's like having thousands of mentors at your fingertips.",
+    name: "Jessica Torres",
+    role: "Extension Specialist",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face"
+  },
+  {
+    quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
+    name: "Amanda Brooks",
+    role: "Color Expert",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face"
+  }
+];
+
 // Country codes for phone numbers
 const countryCodes = [
   { code: "+1", country: "US", flag: "🇺🇸" },
@@ -159,23 +186,58 @@ const MagneticFeatureBox = ({
     </div>;
 };
 
-const SignInFeatureBox = ({
-  icon: Icon,
-  label,
-  desc
-}: FeatureBoxProps) => {
-  const magnetic = useMagnetic({
-    strength: 0.12
-  });
-  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-muted/50 border border-border/30 hover:border-border/50 hover:bg-muted/80 transition-all cursor-default">
-      <div className="w-[30px] h-[30px] rounded-[10px] bg-foreground flex items-center justify-center flex-shrink-0">
-        <Icon className="w-[15px] h-[15px] text-background" />
+// Testimonial Carousel for Sign-in Hero
+const TestimonialCarousel = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const testimonial = testimonials[currentIndex];
+  
+  return (
+    <div className="space-y-4">
+      <div 
+        key={currentIndex}
+        className="animate-fade-in"
+      >
+        <blockquote className="text-sm lg:text-base text-background/90 italic leading-relaxed mb-4">
+          "{testimonial.quote}"
+        </blockquote>
+        <div className="flex items-center gap-3">
+          <img 
+            src={testimonial.avatar} 
+            alt={testimonial.name}
+            className="w-10 h-10 rounded-full border-2 border-background/20 object-cover"
+          />
+          <div>
+            <p className="text-sm font-medium text-background">{testimonial.name}</p>
+            <p className="text-xs text-background/50">{testimonial.role}</p>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="text-xs text-muted-foreground/70">{desc}</span>
+      
+      {/* Carousel dots */}
+      <div className="flex gap-1.5">
+        {testimonials.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentIndex(i)}
+            className={cn(
+              "h-1 rounded-full transition-all duration-300",
+              i === currentIndex 
+                ? "w-6 bg-background/60" 
+                : "w-1 bg-background/20 hover:bg-background/30"
+            )}
+          />
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };
 
 // Rotating Stylist Avatars Component
@@ -787,9 +849,9 @@ const Auth = () => {
                 <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
                   Your pro account is waiting for you
                 </p>
-                {/* Feature Pills */}
-                <div className="hidden xl:flex flex-wrap gap-2.5">
-                  {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                {/* Testimonial Carousel */}
+                <div className="hidden xl:block">
+                  <TestimonialCarousel />
                 </div>
               </div>
             ) : (
