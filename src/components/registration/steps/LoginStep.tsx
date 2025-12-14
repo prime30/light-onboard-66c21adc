@@ -115,16 +115,19 @@ export const LoginStep = ({
         </div>
       </div>
 
-      {/* Trust indicators */}
-      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          <span>Secure login</span>
+      {/* Feature badges */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span>Stylist to stylist support</span>
         </div>
-        <div className="w-1 h-1 rounded-full bg-border" />
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          <span>256-bit encryption</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span>Community access</span>
+        </div>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <span>Pro pricing</span>
         </div>
       </div>
     </div>
