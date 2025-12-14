@@ -856,9 +856,12 @@ const Auth = () => {
               </div>
             ) : (
               /* Sign-up content - Carousel slides */
-              <div className="flex flex-col gap-0 pb-[20px]">
+              <div key={currentSlide} className="flex flex-col gap-0 pb-[20px]">
                 {/* Eyebrow */}
-                <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
+                <div 
+                  className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit opacity-0 animate-fade-in"
+                  style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
+                >
                   <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                   <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                     {slide.eyebrow}
@@ -867,21 +870,38 @@ const Auth = () => {
 
                 {/* Large Typography */}
                 <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl">
+                  <h2 
+                    className="text-xl md:text-3xl lg:text-4xl font-light text-white/50 tracking-tight leading-none xl:text-7xl opacity-0 animate-fade-in"
+                    style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
+                  >
                     {slide.title}
                   </h2>
-                  <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
+                  <h1 
+                    className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl opacity-0 animate-fade-in"
+                    style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
+                  >
                     {slide.highlight}
                   </h1>
                 </div>
 
-                <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
+                <p 
+                  className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px] opacity-0 animate-fade-in"
+                  style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}
+                >
                   {slide.description}
                 </p>
 
                 {/* Feature Pills - Slides with content */}
                 <div className="hidden xl:flex flex-wrap gap-2.5">
-                  {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                  {features.map((feature, i) => (
+                    <div 
+                      key={i}
+                      className="opacity-0 animate-fade-in"
+                      style={{ animationDelay: `${500 + i * 100}ms`, animationFillMode: 'forwards' }}
+                    >
+                      <MagneticFeatureBox icon={feature.icon} label={feature.label} desc={feature.desc} />
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
