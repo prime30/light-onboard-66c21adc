@@ -894,13 +894,7 @@ const Auth = () => {
                 {/* Feature Pills - Slides with content */}
                 <div className="hidden xl:flex flex-wrap gap-2.5">
                   {features.map((feature, i) => (
-                    <div 
-                      key={i}
-                      className="opacity-0 animate-fade-in"
-                      style={{ animationDelay: `${500 + i * 100}ms`, animationFillMode: 'forwards' }}
-                    >
-                      <MagneticFeatureBox icon={feature.icon} label={feature.label} desc={feature.desc} />
-                    </div>
+                    <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />
                   ))}
                 </div>
               </div>
