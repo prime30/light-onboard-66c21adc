@@ -1516,7 +1516,7 @@ const OnboardingForm = ({
         icon: FileCheck,
         label: "24 Hour License Verification Process"
       }, {
-        icon: Gift,
+        icon: Tag,
         label: "Unlock your professional only wholesale pricing"
       }].map((item, i) => <div
             key={i} 
