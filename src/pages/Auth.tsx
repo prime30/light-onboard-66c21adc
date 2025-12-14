@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -361,6 +361,7 @@ const Auth = () => {
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
@@ -619,8 +620,13 @@ const Auth = () => {
           setCurrentStep("contact-info");
           break;
         case "contact-info":
-          setCurrentStep("success");
-          toast.success("Submitted. Our team will review and notify you within 24 hours.");
+          setIsSubmitting(true);
+          // Simulate API call
+          setTimeout(() => {
+            setIsSubmitting(false);
+            setCurrentStep("success");
+            toast.success("Submitted. Our team will review and notify you within 24 hours.");
+          }, 1500);
           break;
       }
       setIsTransitioning(false);
@@ -722,7 +728,42 @@ const Auth = () => {
           <X className="w-5 h-5 text-foreground" />
         </button>
 
-        {/* Mobile/Tablet Auth Toggle - Moved to right panel header for consistency */}
+        {/* Mobile/Tablet Hero Banner */}
+        <div className="lg:hidden bg-foreground rounded-[15px] m-2.5 sm:m-4 mb-0 p-4 sm:p-5 overflow-hidden relative">
+          {/* Animated orb background */}
+          <div className="absolute top-0 right-0 w-[150px] h-[150px] rounded-full blur-[60px] opacity-20" style={{
+            background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)'
+          }} />
+          
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/10 border border-background/10 mb-2">
+                <Sparkles className="w-3 h-3 text-background/70" />
+                <span className="text-[10px] font-medium text-background/70 uppercase tracking-wider">
+                  {mode === "signin" ? "Welcome Back" : "Join Pro Network"}
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                {mode === "signin" ? "Great to see you" : "Exclusive wholesale access"}
+              </h2>
+              <p className="text-xs text-background/50 mt-1 hidden sm:block">
+                {mode === "signin" ? "Your pro account is waiting" : "For beauty professionals"}
+              </p>
+            </div>
+            
+            {/* Mini stats */}
+            <div className="flex gap-3 sm:gap-4">
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-semibold text-background">10K+</div>
+                <div className="text-[9px] text-background/40 uppercase">Pros</div>
+              </div>
+              <div className="text-center">
+                <div className="text-base sm:text-lg font-semibold text-background">30%</div>
+                <div className="text-[9px] text-background/40 uppercase">Savings</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Left Panel - Hero/Branding */}
         <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
@@ -1050,15 +1091,24 @@ const Auth = () => {
                 <Button 
                   size="lg" 
                   onClick={handleNext} 
-                  disabled={!canContinue()} 
+                  disabled={!canContinue() || isSubmitting} 
                   className={cn(
                     "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide",
                     showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
                   )}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                    {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
-                    <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
+                        <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                      </>
+                    )}
                   </span>
                 </Button>
               </div>
@@ -1176,60 +1226,92 @@ const OnboardingForm = ({
 }: {
   onContinue: () => void;
   onSignIn: () => void;
-}) => <div className="space-y-[30px] text-center">
+}) => <div className="space-y-6 sm:space-y-8">
 
-    <div className="space-y-[10px] animate-stagger-1">
+    {/* Hero section */}
+    <div className="text-center space-y-3 animate-stagger-1">
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-foreground/5 border border-foreground/10 mb-2">
+        <Sparkles className="w-3.5 h-3.5 text-foreground/60" />
+        <span className="text-[10px] font-medium text-foreground/60 uppercase tracking-wider">Pro Network</span>
+      </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Ready to join?
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-        Create your pro account in just a few steps
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
+        Create your pro account in just a few steps and unlock exclusive benefits
       </p>
     </div>
 
-    <div className="flex flex-wrap justify-center gap-2.5 animate-stagger-2">
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">24 hour approval</span>
+    {/* Trust badges */}
+    <div className="flex flex-wrap justify-center gap-2 animate-stagger-2">
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+        <Check className="w-3 h-3 text-green-600" />
+        <span className="text-[11px] text-green-700 font-medium">24hr approval</span>
       </div>
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-        <FileCheck className="w-3.5 h-3.5 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">Valid license required</span>
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
+        <FileCheck className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground">License verified</span>
+      </div>
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
+        <Lock className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground">Secure signup</span>
       </div>
     </div>
 
-    <div className="grid gap-2.5 sm:gap-[15px] pt-5">
+    {/* Steps preview */}
+    <div className="grid gap-3 pt-2">
       {[{
-      icon: User,
-      label: "Choose your account type",
-      desc: "Pro, Salon, or Student"
-    }, {
-      icon: FileCheck,
-      label: "Verify your license",
-      desc: "Quick verification process"
-    }, {
-      icon: Gift,
-      label: "Start saving",
-      desc: "Unlock wholesale pricing"
-    }].map((item, i) => <div 
-          key={i} 
-          className="flex items-center gap-[15px] sm:gap-5 p-[15px] sm:p-5 rounded-[15px] bg-muted/50 border border-border/50 text-left opacity-0 animate-fade-in"
-          style={{ animationDelay: `${300 + i * 150}ms`, animationFillMode: 'forwards' }}
-        >
-          <div 
-            className="w-10 h-10 rounded-[10px] sm:rounded-[15px] bg-foreground flex items-center justify-center flex-shrink-0 icon-sequential-glow"
-            style={{ animationDelay: `${i * 1.5}s` }}
+        icon: User,
+        label: "Choose your account type",
+        desc: "Pro, Salon, or Student"
+      }, {
+        icon: FileCheck,
+        label: "Verify your license",
+        desc: "Quick verification process"
+      }, {
+        icon: Gift,
+        label: "Start saving",
+        desc: "Unlock wholesale pricing"
+      }].map((item, i) => <div 
+            key={i} 
+            className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in hover:border-foreground/20 hover:from-muted transition-all duration-300"
+            style={{ animationDelay: `${200 + i * 100}ms`, animationFillMode: 'forwards' }}
           >
-            <item.icon className="w-5 h-5 text-background" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">{i + 1}. {item.label}</p>
-            <p className="text-xs text-muted-foreground">{item.desc}</p>
-          </div>
-        </div>)}
+            <div 
+              className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
+            >
+              <item.icon className="w-5 h-5 text-background" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-background border-2 border-foreground flex items-center justify-center">
+                <span className="text-[9px] font-bold text-foreground">{i + 1}</span>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">{item.label}</p>
+              <p className="text-xs text-muted-foreground">{item.desc}</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-300" />
+          </div>)}
     </div>
 
-    <p className="text-xs text-muted-foreground pt-5">
+    {/* Benefits highlight */}
+    <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
+      <div>
+        <div className="text-2xl font-semibold text-foreground">30%</div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
+      </div>
+      <div className="w-px bg-border" />
+      <div>
+        <div className="text-2xl font-semibold text-foreground">10K+</div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
+      </div>
+      <div className="w-px bg-border" />
+      <div>
+        <div className="text-2xl font-semibold text-foreground">48hr</div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Delivery</div>
+      </div>
+    </div>
+
+    <p className="text-xs text-muted-foreground text-center">
       Already have an account?{" "}
       <button 
         onClick={onSignIn}
