@@ -1067,14 +1067,18 @@ const SignInForm = ({
       </button>
     </div>
 
-    <div className="flex items-center justify-center gap-[clamp(8px,2vh,15px)] text-xs text-muted-foreground/60 pt-[clamp(5px,1.5vh,10px)] animate-stagger-4">
+    <div className="flex flex-wrap items-center justify-center gap-2 pt-[clamp(5px,1.5vh,10px)] animate-stagger-4">
       <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" />
-        <span className="text-[10px] uppercase tracking-wider">Encrypted</span>
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Stylist to stylist support</span>
       </div>
       <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
-        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
-        <span className="text-[10px] uppercase tracking-wider">256-bit SSL</span>
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Community access</span>
+      </div>
+      <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
+        <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60" />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Pro pricing</span>
       </div>
     </div>
 
