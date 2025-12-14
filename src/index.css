@@ -460,6 +460,25 @@
   .magnetic-container {
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
+  .animate-float-up {
+    animation: floatUp 1s ease-out forwards;
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-35px) scale(0.8);
+  }
 }
 
 @keyframes fadeIn {
