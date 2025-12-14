@@ -34,17 +34,17 @@ const slides = [{
   description: "Connect, learn, and scale with fellow pros"
 }];
 const stats = [{
-  value: 10,
+  value: 8,
   suffix: "K+",
   label: "Stylists"
 }, {
-  value: 30,
+  value: 50,
   suffix: "%",
   label: "Savings"
 }, {
-  value: 48,
+  value: 24,
   suffix: "hr",
-  label: "Delivery"
+  label: "Approval"
 }];
 const features = [{
   icon: Gift,
@@ -318,7 +318,7 @@ const RotatingStylistAvatars = () => {
           </div>
         ))}
       </div>
-      <span className="text-xs text-background/50">10K+ pros</span>
+      <span className="text-xs text-background/50">8K+ pros</span>
     </div>
   );
 };
@@ -1239,7 +1239,7 @@ const Auth = () => {
             {/* Mini stats */}
             <div className="flex gap-3 sm:gap-4">
               <div className="text-center">
-                <div className="text-base sm:text-lg font-semibold text-background">10K+</div>
+                <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
                 <div className="text-[9px] text-background/40 uppercase">Pros</div>
               </div>
               <div className="text-center">
@@ -1541,23 +1541,23 @@ const OnboardingForm = ({
     <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={30} suffix="%" delay={200} />
+          <AnimatedNumber value={50} suffix="%" delay={200} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
       </div>
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={10} suffix="K+" delay={400} />
+          <AnimatedNumber value={8} suffix="K+" delay={400} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
       </div>
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={48} suffix="hr" delay={600} />
+          <AnimatedNumber value={24} suffix="hr" delay={600} />
         </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Delivery</div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
       </div>
     </div>
 
