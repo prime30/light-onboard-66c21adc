@@ -2222,38 +2222,44 @@ const SuccessForm = ({ email }: { email: string }) => {
     </div>
 
     {/* First Purchase Upsell */}
-    <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
-      <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
-        30% OFF
-      </div>
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
-          <img 
-            src={colorRingProduct} 
-            alt="Color Ring Product" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="text-left flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
-            Recommended for you
-          </p>
-          <p className="text-sm font-semibold text-foreground">Color Ring</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-            Perfect for matching colors with clients
-          </p>
-          <div className="flex items-center gap-2 mt-2">
-            <Clock className="w-3 h-3 text-accent-red animate-pulse" />
-            <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
-            </div>
+    <div className="space-y-2">
+      {/* Badge row with countdown */}
+      <div className="flex items-center justify-between px-1">
+        <span className="bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-full">
+          30% OFF
+        </span>
+        <div className="flex items-center gap-2">
+          <Clock className="w-3 h-3 text-accent-red animate-pulse" />
+          <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
+            <span>:</span>
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
+            <span>:</span>
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
           </div>
         </div>
       </div>
+      
+      {/* Product card */}
+      <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20">
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
+            <img 
+              src={colorRingProduct} 
+              alt="Color Ring Product" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="text-left flex-1 min-w-0">
+            <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
+              Recommended for you
+            </p>
+            <p className="text-sm font-semibold text-foreground">Color Ring</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+              Perfect for matching colors with clients
+            </p>
+          </div>
+        </div>
       <Button 
         variant="outline" 
         size="sm" 
@@ -2270,6 +2276,7 @@ const SuccessForm = ({ email }: { email: string }) => {
           </>
         )}
       </Button>
+      </div>
     </div>
   </div>;
 };
