@@ -1081,7 +1081,7 @@ const Auth = () => {
                   onClick={handleNext} 
                   disabled={!canContinue() || isSubmitting} 
                   className={cn(
-                    "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide",
+                    "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                     showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
                   )}
                 >
@@ -1094,7 +1094,7 @@ const Auth = () => {
                     ) : (
                       <>
                         {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
-                        <ArrowRight className="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                        <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
                       </>
                     )}
                   </span>
