@@ -12,6 +12,7 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import colorRingProduct from "@/assets/color-ring-product.png";
+import salonHero from "@/assets/salon-hero.jpg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -748,28 +749,42 @@ const Auth = () => {
         <div key={mode === "signin" ? "signin-panel" : currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
         }}>
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground" />
-          
-          <div className="absolute top-0 right-0 w-[200px] md:w-[300px] lg:w-[400px] h-[200px] md:h-[300px] lg:h-[400px] rounded-full blur-[80px] md:blur-[100px] lg:blur-[120px] animate-pulse" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-            animationDuration: '4s'
-          }} />
-          <div className="absolute bottom-0 left-0 w-[150px] md:w-[200px] lg:w-[300px] h-[150px] md:h-[200px] lg:h-[300px] rounded-full blur-[60px] md:blur-[80px] lg:blur-[100px] animate-pulse" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
-            animationDuration: '5s',
-            animationDelay: '1s'
-          }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[350px] lg:w-[500px] h-[250px] md:h-[350px] lg:h-[500px] rounded-full blur-[100px] md:blur-[120px] lg:blur-[150px] animate-pulse" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%)',
-            animationDuration: '6s',
-            animationDelay: '2s'
-          }} />
+          {/* Hero image background */}
+          <img 
+            src={salonHero} 
+            alt="Professional salon interior" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
           
           {/* Noise texture */}
-          <div className="absolute inset-0 opacity-[0.15]" style={{
+          <div className="absolute inset-0 opacity-[0.1]" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
           }} />
+          
+          {/* Testimonial quote - top area */}
+          <div className="absolute top-10 left-10 right-10 z-10">
+            <div className="bg-background/10 backdrop-blur-md rounded-2xl p-5 border border-background/20 max-w-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-background/20 flex items-center justify-center flex-shrink-0">
+                  <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-background/90 italic leading-relaxed">
+                    "Switching to ProBeauty saved me 40% on extensions. The quality is incredible and shipping is always fast."
+                  </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-background/30" />
+                    <div>
+                      <p className="text-xs font-medium text-background">Sarah M.</p>
+                      <p className="text-[10px] text-background/50">Licensed Stylist, Austin TX</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Content - Different for sign-in vs sign-up */}
           <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
