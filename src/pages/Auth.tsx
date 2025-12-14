@@ -537,7 +537,7 @@ const SignInForm = ({
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
-}) => <div className="space-y-[30px]">
+}) => <div className="space-y-[clamp(15px,4vh,30px)]">
     <div className="space-y-[12px] animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-accent-red/5 border border-accent-red/10 mb-[5px]">
         <div className="w-[6px] h-[6px] rounded-full bg-accent-red animate-pulse" />
@@ -554,7 +554,7 @@ const SignInForm = ({
     </div>
 
 
-    <div className="space-y-[20px] animate-stagger-3">
+    <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
       <div className="space-y-2.5">
         <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground">
           Email address
@@ -584,7 +584,7 @@ const SignInForm = ({
       </button>
     </div>
 
-    <div className="flex items-center justify-center gap-[15px] text-xs text-muted-foreground/60 pt-[10px] animate-stagger-4">
+    <div className="flex items-center justify-center gap-[clamp(8px,2vh,15px)] text-xs text-muted-foreground/60 pt-[clamp(5px,1.5vh,10px)] animate-stagger-4">
       <div className="flex items-center gap-[8px] px-[12px] py-[6px] rounded-full bg-muted/30 border border-border/20">
         <div className="w-[6px] h-[6px] rounded-full bg-accent-red/60 animate-pulse" />
         <span className="text-[10px] uppercase tracking-wider">Encrypted</span>
@@ -595,7 +595,7 @@ const SignInForm = ({
       </div>
     </div>
 
-    <div className="flex flex-wrap justify-center gap-2.5 pt-[15px] animate-stagger-5">
+    <div className="flex flex-wrap justify-center gap-[clamp(6px,1.5vh,10px)] pt-[clamp(8px,2vh,15px)] animate-stagger-5">
       {features.map((feature, index) => (
         <SignInFeatureBox key={index} icon={feature.icon} label={feature.label} desc={feature.desc} />
       ))}
