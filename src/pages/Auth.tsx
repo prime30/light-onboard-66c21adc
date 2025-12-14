@@ -529,8 +529,48 @@ const Auth = () => {
     }
   };
   
+  // Check if ALL steps in the form are valid (for final submission)
+  const isAllStepsValid = () => {
+    if (mode === "signin") {
+      return email.trim() !== "" && password.length >= 8;
+    }
+    
+    // Must have account type selected
+    if (!accountType) return false;
+    
+    // Student flow - simpler validation
+    if (accountType === "student") {
+      return (
+        licenseNumber.trim() !== "" &&
+        firstName.trim() !== "" &&
+        lastName.trim() !== "" &&
+        isValidPhoneNumber(phoneNumber)
+      );
+    }
+    
+    // Salon flow
+    if (accountType === "salon") {
+      const licenseValid = licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
+      const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+      const wholesaleValid = wholesaleAgreed;
+      const taxValid = hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+      
+      return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
+    }
+    
+    // Professional flow
+    const licenseValid = licenseNumber.trim() !== "";
+    const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+    const wholesaleValid = wholesaleAgreed;
+    const taxValid = hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+    
+    return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
+  };
+  
   // Check if form is ready to submit (on final step with all fields complete)
-  const isFormReadyToSubmit = mode === "signup" && currentStep === "contact-info" && canContinue();
+  const isFormReadyToSubmit = mode === "signup" && currentStep === "contact-info" && isAllStepsValid();
   
   // Delay spotlight effect until after the 100% glow animation completes, show once only
   useEffect(() => {
@@ -1153,7 +1193,7 @@ const Auth = () => {
                 <Button 
                   size="lg" 
                   onClick={handleNext} 
-                  disabled={!canContinue() || isSubmitting} 
+                  disabled={currentStep === "contact-info" ? (!isAllStepsValid() || isSubmitting) : (!canContinue() || isSubmitting)} 
                   className={cn(
                     "btn-premium flex-1 h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                     showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]"
