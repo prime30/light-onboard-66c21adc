@@ -34,31 +34,31 @@ export const AccountTypeCard = ({
         "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-300",
         "hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         selected
-          ? "border-foreground/60 bg-foreground/80 text-background shadow-xl backdrop-blur-sm"
-          : "border-border/40 bg-background/60 hover:bg-background/80 hover:border-foreground/20 backdrop-blur-sm"
+          ? "border-foreground/30 bg-foreground/10 shadow-lg backdrop-blur-sm"
+          : "border-border/30 bg-background/40 hover:bg-background/60 hover:border-foreground/15 backdrop-blur-sm"
       )}
     >
       {/* Selection indicator */}
       <div
         className={cn(
-          "absolute top-3 right-3 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+          "absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
           selected
-            ? "border-background bg-background"
+            ? "border-foreground bg-foreground"
             : "border-foreground/20"
         )}
       >
-        {selected && <Check className="w-2.5 h-2.5 text-foreground" strokeWidth={3} />}
+        {selected && <Check className="w-3 h-3 text-background" strokeWidth={3} />}
       </div>
 
       {/* Icon */}
       {Icon && (
         <div className={cn(
-          "w-8 h-8 rounded-lg flex items-center justify-center mb-2 transition-colors duration-300",
-          selected ? "bg-background/20" : "bg-foreground/10 border border-foreground/10"
+          "w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors duration-300 border",
+          selected ? "bg-background border-foreground/20" : "bg-background/80 border-foreground/10"
         )}>
           <Icon className={cn(
-            "w-4 h-4 transition-colors duration-300",
-            selected ? "text-background" : "text-foreground/70"
+            "w-5 h-5 transition-colors duration-300",
+            selected ? "text-foreground" : "text-foreground/60"
           )} />
         </div>
       )}
@@ -75,43 +75,32 @@ export const AccountTypeCard = ({
 
       {/* Title */}
       <h3 className={cn(
-        "text-sm font-semibold mb-1 pr-6 transition-colors duration-300",
-        selected ? "text-background" : "text-foreground"
+        "text-sm font-semibold mb-1 pr-6 transition-colors duration-300 text-foreground"
       )}>
         {title}
       </h3>
 
       {/* Description */}
-      <p className={cn(
-        "text-[11px] mb-2 leading-relaxed transition-colors duration-300",
-        selected ? "text-background/60" : "text-muted-foreground"
-      )}>
+      <p className="text-[11px] mb-2 leading-relaxed transition-colors duration-300 text-muted-foreground">
         {description}
       </p>
 
       {/* Features */}
-      <ul className="space-y-1">
+      <div className="flex flex-wrap gap-1.5">
         {features.map((feature, index) => (
-          <li 
+          <span 
             key={index} 
             className={cn(
-              "flex items-center gap-1.5 text-[11px] transition-colors duration-300",
-              selected ? "text-background/80" : "text-foreground/70"
+              "inline-flex items-center px-2 py-0.5 text-[10px] rounded-full border transition-colors duration-300",
+              selected 
+                ? "bg-foreground/5 border-foreground/15 text-foreground/80" 
+                : "bg-background/60 border-foreground/10 text-foreground/60"
             )}
           >
-            <div className={cn(
-              "w-3 h-3 rounded-full flex items-center justify-center shrink-0 transition-colors duration-300",
-              selected ? "bg-background/20" : "bg-foreground/10"
-            )}>
-              <Check className={cn(
-                "w-1.5 h-1.5 transition-colors duration-300",
-                selected ? "text-background" : "text-foreground"
-              )} />
-            </div>
             {feature}
-          </li>
+          </span>
         ))}
-      </ul>
+      </div>
 
       {/* Subtle gradient overlay when selected */}
       {selected && (
