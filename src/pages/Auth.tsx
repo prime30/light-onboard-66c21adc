@@ -1111,12 +1111,6 @@ const OnboardingForm = ({
   onContinue: () => void;
   onSignIn: () => void;
 }) => <div className="space-y-[30px] text-center">
-    <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-foreground/5 border border-foreground/10 mb-2.5 animate-stagger-1">
-      <Sparkles className="w-[14px] h-[14px] text-foreground/50" />
-      <span className="text-[10px] font-medium text-foreground/50 uppercase tracking-[0.15em]">
-        Getting Started
-      </span>
-    </div>
 
     <div className="space-y-[10px] animate-stagger-1">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
