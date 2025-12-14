@@ -2076,9 +2076,10 @@ const SuccessForm = ({
       <Button 
         variant="outline" 
         size="sm" 
-        className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red"
+        className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group"
       >
-        Claim Your Discount
+        <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
+        Add to Cart
       </Button>
     </div>
 
