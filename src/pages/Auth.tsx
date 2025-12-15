@@ -1448,7 +1448,7 @@ const Auth = () => {
                   animationDelay: '100ms',
                   animationFillMode: 'backwards'
                 }}>
-                    <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight">
+                    <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
                       {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                     </h2>
                   </div>
@@ -1597,7 +1597,7 @@ const SignInForm = ({
   onSignUp: () => void;
 }) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
     <div className="space-y-[12px] animate-stagger-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
         Welcome back
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -1680,7 +1680,7 @@ const OnboardingForm = ({
 
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
         Let's get started
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
