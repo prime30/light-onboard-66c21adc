@@ -1193,7 +1193,7 @@ const Auth = () => {
           !isClosing && modalDragOffset === 0 && "animate-modal-enter",
           isClosing && "animate-modal-exit"
         )}
-        style={{
+        style={isClosing ? undefined : {
           transform: modalDragOffset > 0 
             ? `translateY(${modalDragOffset}px) scale(${1 - Math.min(modalDragOffset * 0.0003, 0.03)})` 
             : undefined,
@@ -1201,7 +1201,7 @@ const Auth = () => {
             ? 'none' 
             : isBouncingBack 
               ? 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out' 
-              : 'transform 0.3s ease-out',
+              : undefined,
           opacity: modalDragOffset > 0 ? Math.max(1 - modalDragOffset * 0.002, 0.85) : undefined
         }}
       >
