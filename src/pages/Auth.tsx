@@ -1702,8 +1702,8 @@ const SignInForm = ({
 }) => {
   if (showForgotPassword) {
     return (
-      <div className="space-y-[clamp(15px,4vh,30px)] text-center">
-        <div className="space-y-[12px] animate-stagger-1">
+      <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
+        <div className="space-y-[12px]">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
             Reset password
           </h1>
@@ -1712,7 +1712,7 @@ const SignInForm = ({
           </p>
         </div>
 
-        <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
+        <div className="space-y-[clamp(12px,2.5vh,20px)]">
           <div className="space-y-2.5">
             <Label htmlFor="reset-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
               Email address
@@ -1743,9 +1743,9 @@ const SignInForm = ({
 
         <button
           onClick={onForgotPasswordToggle}
-          className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2"
+          className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
           Back to sign in
         </button>
       </div>
@@ -1753,8 +1753,8 @@ const SignInForm = ({
   }
 
   return (
-    <div className="space-y-[clamp(15px,4vh,30px)] text-center">
-      <div className="space-y-[12px] animate-stagger-1">
+    <div key="sign-in" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left">
+      <div className="space-y-[12px]">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
           Welcome back
         </h1>
