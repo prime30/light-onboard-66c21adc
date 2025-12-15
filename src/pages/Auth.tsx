@@ -1201,17 +1201,24 @@ const Auth = () => {
           opacity: modalDragOffset > 0 ? Math.max(1 - modalDragOffset * 0.002, 0.85) : undefined
         }}
       >
-        {/* Drag Handle - Mobile Only */}
+        {/* Drag Handle Zone - Mobile Only - Larger touch area */}
         <div 
-          className={cn(
-            "sm:hidden absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full z-10 transition-all duration-150",
-            modalDragOffset >= 100 
-              ? "bg-destructive/60 w-12 scale-110" 
-              : modalDragOffset > 50 
-                ? "bg-muted-foreground/50 w-11" 
-                : "bg-muted-foreground/30"
-          )}
-        />
+          className="sm:hidden absolute top-0 left-0 right-0 h-8 z-20 flex items-center justify-center cursor-grab active:cursor-grabbing"
+          onTouchStart={handleModalTouchStart}
+          onTouchMove={handleModalTouchMove}
+          onTouchEnd={handleModalTouchEnd}
+        >
+          <div 
+            className={cn(
+              "w-10 h-1.5 rounded-full transition-all duration-150",
+              modalDragOffset >= 100 
+                ? "bg-destructive/60 w-14 scale-110" 
+                : modalDragOffset > 50 
+                  ? "bg-muted-foreground/50 w-12" 
+                  : "bg-muted-foreground/40"
+            )}
+          />
+        </div>
 
         {/* Left Panel - Hero/Branding */}
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
