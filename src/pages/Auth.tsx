@@ -1516,13 +1516,13 @@ const OnboardingForm = ({
     <div className="grid gap-3 pt-2">
       {[{
         icon: User,
-        label: "Choose your account type"
+        label: "Tell us who you are"
       }, {
         icon: FileCheck,
-        label: "24 Hour License Verification Process"
+        label: "Provide your license number"
       }, {
         icon: Tag,
-        label: "Unlock your professional only wholesale pricing"
+        label: "Follow post-approval instructions to finalize account"
       }].map((item, i) => <div
             key={i} 
             className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in"
