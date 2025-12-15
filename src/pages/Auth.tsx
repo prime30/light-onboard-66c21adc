@@ -1613,7 +1613,7 @@ const AccountTypeForm = ({
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-          Choose your path
+          Tell us who you are
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
           Select the account type that fits you best
@@ -1753,11 +1753,11 @@ const LicenseForm = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 3
+            Step 2
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-          {isSalon ? "What is your license number?" : "Verify your license"}
+          Provide your license number
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
           {isSalon ? "Let us make sure you are a salon manager" : "Enter your cosmetology license details"}
@@ -2067,7 +2067,7 @@ const SchoolInfoForm = ({
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Tell us about your school
+        Follow post-approval instructions
       </h1>
     </div>
 

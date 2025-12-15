@@ -38,9 +38,9 @@ export const LicenseStep = ({
   return (
     <div className="animate-slide-in-right max-w-md mx-auto">
       <div className="text-center mb-8">
-        <p className="text-sm text-muted-foreground mb-2">Step 1 of 3</p>
+        <p className="text-sm text-muted-foreground mb-2">Step 2 of 3</p>
         <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-          Verify your license
+          Provide your license number
         </h1>
       </div>
 

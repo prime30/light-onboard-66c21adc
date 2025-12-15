@@ -51,7 +51,7 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
           </div>
           <div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">
-              Choose your account type
+              Tell us who you are
             </h1>
             <p className="text-xs text-muted-foreground">
               Select the option that best describes you
