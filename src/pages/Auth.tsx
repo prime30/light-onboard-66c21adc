@@ -2114,6 +2114,14 @@ const BusinessLocationForm = ({
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
+  const [predictions, setPredictions] = useState<Array<{ description: string; place_id: string }>>([]);
+  const [showPredictions, setShowPredictions] = useState(false);
+  const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
+  const [sessionToken] = useState(() => crypto.randomUUID());
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const predictionsRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
   const businessNameError = showValidationErrors && businessName.trim() === "";
   const businessAddressError = showValidationErrors && businessAddress.trim() === "";
   const countryError = showValidationErrors && country === "";
@@ -2122,6 +2130,129 @@ const BusinessLocationForm = ({
   const zipCodeError = showValidationErrors && zipCode.trim() === "";
   const isStudent = accountType === "student";
   const stepNumber = accountType === "professional" ? 4 : 2;
+
+  // Fetch address predictions
+  const fetchPredictions = async (input: string) => {
+    if (input.length < 3) {
+      setPredictions([]);
+      return;
+    }
+
+    setIsLoadingPredictions(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-autocomplete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          input,
+          sessionToken,
+          country: country || undefined,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.predictions) {
+        setPredictions(data.predictions);
+        setShowPredictions(data.predictions.length > 0);
+      }
+    } catch (error) {
+      console.error('Error fetching address predictions:', error);
+      setPredictions([]);
+    } finally {
+      setIsLoadingPredictions(false);
+    }
+  };
+
+  // Fetch place details and auto-fill form
+  const selectPrediction = async (placeId: string, description: string) => {
+    setShowPredictions(false);
+    onBusinessAddressChange(description);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          placeId,
+          sessionToken,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.details) {
+        const { streetAddress, city: detailCity, state: detailState, country: detailCountry, postalCode } = data.details;
+        
+        // Update form fields with parsed address
+        if (streetAddress) onBusinessAddressChange(streetAddress);
+        if (detailCity) onCityChange(detailCity);
+        if (postalCode) onZipCodeChange(postalCode);
+        
+        // Set country first so state dropdown updates
+        if (detailCountry) {
+          const mappedCountry = detailCountry === 'United States' || detailCountry === 'US' 
+            ? 'United States' 
+            : detailCountry === 'Canada' || detailCountry === 'CA' 
+              ? 'Canada' 
+              : detailCountry;
+          if (countries.includes(mappedCountry)) {
+            onCountryChange(mappedCountry);
+          }
+        }
+        
+        // Set state/province
+        if (detailState) {
+          // Try to match the full state name
+          const stateList = detailCountry === 'Canada' ? provinces : states;
+          const matchedState = stateList.find(s => 
+            s.toLowerCase() === detailState.toLowerCase() || 
+            s.toLowerCase() === data.details.stateShort?.toLowerCase()
+          );
+          if (matchedState) {
+            onStateChange(matchedState);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error);
+    }
+  };
+
+  // Handle address input change with debounce
+  const handleAddressChange = (value: string) => {
+    onBusinessAddressChange(value);
+    
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      fetchPredictions(value);
+    }, 300);
+  };
+
+  // Close predictions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        predictionsRef.current && 
+        !predictionsRef.current.contains(event.target as Node) &&
+        addressInputRef.current &&
+        !addressInputRef.current.contains(event.target as Node)
+      ) {
+        setShowPredictions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -2155,8 +2286,51 @@ const BusinessLocationForm = ({
           <Label htmlFor="businessAddress" className="text-sm font-medium label-float">
             Address*
           </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="businessAddress" type="text" placeholder="Address of your business or salon" value={businessAddress} onChange={e => onBusinessAddressChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <div className="relative">
+            <div className="relative group input-glow input-ripple rounded-[15px]">
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              </div>
+              <Input 
+                ref={addressInputRef}
+                id="businessAddress" 
+                type="text" 
+                placeholder="Start typing your address..." 
+                value={businessAddress} 
+                onChange={e => handleAddressChange(e.target.value)} 
+                onFocus={() => predictions.length > 0 && setShowPredictions(true)}
+                autoComplete="off"
+                className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+              />
+              {isLoadingPredictions && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            
+            {/* Predictions Dropdown */}
+            {showPredictions && predictions.length > 0 && (
+              <div 
+                ref={predictionsRef}
+                className="absolute z-50 w-full mt-1 bg-background border border-border rounded-[15px] shadow-lg overflow-hidden animate-fade-in"
+              >
+                {predictions.map((prediction, index) => (
+                  <button
+                    key={prediction.place_id}
+                    type="button"
+                    onClick={() => selectPrediction(prediction.place_id, prediction.description)}
+                    className={cn(
+                      "w-full px-4 py-3 text-left text-sm hover:bg-muted/80 transition-colors duration-150 flex items-start gap-3",
+                      index !== predictions.length - 1 && "border-b border-border/50"
+                    )}
+                  >
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">{prediction.description}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="space-y-2.5">
