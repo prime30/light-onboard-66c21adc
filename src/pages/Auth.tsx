@@ -1268,17 +1268,22 @@ const Auth = () => {
             </div>}
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
+        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, slides in on scroll up */}
         {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && (
           <div 
             className={cn(
-              "lg:hidden transition-all duration-300 ease-out overflow-hidden",
+              "lg:hidden transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden",
               mobileHeroVisible 
-                ? "max-h-[200px] opacity-100 mb-0" 
-                : "max-h-0 opacity-0 mb-0"
+                ? "max-h-[200px] opacity-100" 
+                : "max-h-0 opacity-0"
             )}
           >
-            <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
+            <div 
+              className={cn(
+                "rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+                mobileHeroVisible ? "translate-y-0" : "-translate-y-4"
+              )}
+            >
               {/* Hero image background */}
               <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
               {/* Dark overlay */}
