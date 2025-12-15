@@ -1,6 +1,6 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck } from "lucide-react";
+import { Upload, X, FileCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
@@ -22,10 +22,54 @@ export const FileUpload = ({
 }: FileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  // Simulate file processing with progress
+  useEffect(() => {
+    if (!pendingFile) return;
+
+    setIsProcessing(true);
+    setProgress(0);
+
+    // Calculate processing time based on file size (larger files = longer animation)
+    const fileSizeKB = pendingFile.size / 1024;
+    const baseTime = 300; // minimum time in ms
+    const sizeMultiplier = Math.min(fileSizeKB / 500, 1); // max multiplier at 500KB
+    const totalTime = baseTime + (sizeMultiplier * 700); // 300-1000ms total
+    const steps = 20;
+    const stepTime = totalTime / steps;
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      currentStep++;
+      // Ease-out progress curve
+      const linearProgress = currentStep / steps;
+      const easedProgress = 1 - Math.pow(1 - linearProgress, 3);
+      setProgress(Math.round(easedProgress * 100));
+
+      if (currentStep >= steps) {
+        clearInterval(interval);
+        setIsProcessing(false);
+        setProgress(100);
+        onFileChange(pendingFile);
+        setPendingFile(null);
+      }
+    }, stepTime);
+
+    return () => clearInterval(interval);
+  }, [pendingFile, onFileChange]);
+
+  const processFile = (selectedFile: File) => {
+    setPendingFile(selectedFile);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
-    onFileChange(selectedFile);
+    if (selectedFile) {
+      processFile(selectedFile);
+    }
   };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -52,16 +96,23 @@ export const FileUpload = ({
       const fileExt = `.${droppedFile.name.split(".").pop()?.toLowerCase()}`;
       
       if (acceptedTypes.some(type => fileExt === type || droppedFile.type.includes(type.replace(".", "")))) {
-        onFileChange(droppedFile);
+        processFile(droppedFile);
       }
     }
-  }, [accept, onFileChange]);
+  }, [accept]);
 
   const handleRemoveFile = () => {
     onFileChange(null);
+    setProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -71,24 +122,57 @@ export const FileUpload = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "relative flex items-center gap-4 p-4 rounded-[15px] border-2 border-dashed transition-all duration-300",
+          "relative flex items-center gap-4 p-4 rounded-[15px] border-2 border-dashed transition-all duration-300 overflow-hidden",
           isDragOver 
             ? "border-foreground bg-foreground/5 scale-[1.01]" 
             : error 
               ? "border-destructive/50 bg-destructive/5" 
-              : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
-          file && !error && "border-foreground/30 bg-foreground/5"
+              : isProcessing
+                ? "border-foreground/50 bg-foreground/5"
+                : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
+          file && !error && !isProcessing && "border-foreground/30 bg-foreground/5"
         )}
       >
+        {/* Progress bar background */}
+        {isProcessing && (
+          <div 
+            className="absolute inset-0 bg-foreground/10 transition-all duration-100 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        )}
+
         <input
           ref={fileInputRef}
           type="file"
           accept={accept}
           onChange={handleFileChange}
           className="hidden"
+          disabled={isProcessing}
         />
         
-        {file ? (
+        {isProcessing ? (
+          <>
+            <div className="relative w-10 h-10 rounded-[10px] bg-foreground/10 flex items-center justify-center flex-shrink-0">
+              <Loader2 className="w-5 h-5 text-foreground animate-spin" />
+            </div>
+            <div className="relative flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">
+                {pendingFile?.name}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex-1 h-1.5 bg-border/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-foreground rounded-full transition-all duration-100 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-foreground tabular-nums">
+                  {progress}%
+                </span>
+              </div>
+            </div>
+          </>
+        ) : file ? (
           <>
             <div className="w-10 h-10 rounded-[10px] bg-foreground/10 flex items-center justify-center flex-shrink-0">
               <FileCheck className="w-5 h-5 text-foreground" />
@@ -96,7 +180,7 @@ export const FileUpload = ({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
               <p className="text-xs text-muted-foreground">
-                {(file.size / 1024).toFixed(1)} KB
+                {formatFileSize(file.size)}
               </p>
             </div>
             <Button
