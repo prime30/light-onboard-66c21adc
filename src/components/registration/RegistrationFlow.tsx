@@ -148,7 +148,7 @@ export const RegistrationFlow = () => {
                 disabled={!canContinue()}
                 className="flex-1 h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
               >
-                {currentStep === "personal-info" ? "Create Account" : "Continue"}
+                {currentStep === "personal-info" ? "Submit Application" : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
