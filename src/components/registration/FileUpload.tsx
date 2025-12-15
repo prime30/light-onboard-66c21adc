@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck, Loader2 } from "lucide-react";
+import { Upload, X, FileCheck, Loader2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
@@ -11,6 +11,11 @@ interface FileUploadProps {
   error?: boolean;
   errorMessage?: string;
 }
+
+const isImageFile = (file: File) => {
+  return file.type.startsWith("image/") || 
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+};
 
 export const FileUpload = ({
   file,
@@ -25,6 +30,18 @@ export const FileUpload = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Generate preview URL for image files
+  useEffect(() => {
+    if (file && isImageFile(file)) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [file]);
 
   // Simulate file processing with progress
   useEffect(() => {
@@ -104,6 +121,7 @@ export const FileUpload = ({
   const handleRemoveFile = () => {
     onFileChange(null);
     setProgress(0);
+    setPreviewUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -174,9 +192,23 @@ export const FileUpload = ({
           </>
         ) : file ? (
           <>
-            <div className="w-10 h-10 rounded-[10px] bg-foreground/10 flex items-center justify-center flex-shrink-0">
-              <FileCheck className="w-5 h-5 text-foreground" />
-            </div>
+            {previewUrl ? (
+              <div className="w-12 h-12 rounded-[10px] overflow-hidden flex-shrink-0 border border-border/50">
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-[10px] bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                {file.type === "application/pdf" ? (
+                  <FileText className="w-5 h-5 text-foreground" />
+                ) : (
+                  <FileCheck className="w-5 h-5 text-foreground" />
+                )}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
               <p className="text-xs text-muted-foreground">
