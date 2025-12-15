@@ -1252,11 +1252,11 @@ const Auth = () => {
             
             {/* Mini stats */}
             <div className="flex gap-3 sm:gap-4">
-              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'backwards' }}>
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
                 <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
                 <div className="text-[9px] text-background/40 uppercase">Pros</div>
               </div>
-              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'backwards' }}>
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
                 <div className="text-base sm:text-lg font-semibold text-background">50%</div>
                 <div className="text-[9px] text-background/40 uppercase">Savings</div>
               </div>
