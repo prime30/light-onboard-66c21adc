@@ -12,6 +12,7 @@ import { useMagnetic } from "@/hooks/use-magnetic";
 import { useCountdown } from "@/hooks/use-countdown";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
+import { FileUpload } from "@/components/registration/FileUpload";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -1631,11 +1632,6 @@ const LicenseForm = ({
   const licenseError = showValidationErrors && licenseNumber.trim() === "";
   const salonSizeError = showValidationErrors && isSalon && salonSize === "";
   const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    onLicenseFileChange(file);
-  };
   const stepNumber = accountType === "salon" ? 3 : 2;
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
@@ -1715,16 +1711,11 @@ const LicenseForm = ({
             </div>
 
             {/* File Upload */}
-            <div className="flex items-center gap-4 pt-2">
-              <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
-              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50">
-                <Upload className="w-4 h-4 mr-2" />
-                Choose File
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {licenseFile ? licenseFile.name : "Upload your salon license"}
-              </span>
-            </div>
+            <FileUpload
+              file={licenseFile}
+              onFileChange={onLicenseFileChange}
+              placeholder="Upload your salon license"
+            />
           </>}
       </div>
     </div>;
@@ -2004,12 +1995,6 @@ const SchoolInfoForm = ({
   const schoolNameError = showValidationErrors && schoolName.trim() === "";
   const stateError = showValidationErrors && schoolState === "";
   const fileError = showValidationErrors && enrollmentProofFile === null;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    onEnrollmentProofFileChange(file);
-  };
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
@@ -2077,17 +2062,13 @@ const SchoolInfoForm = ({
         <p className="text-xs text-muted-foreground">
           (school ID, apprenticeship license, etc.)
         </p>
-        <div className="flex items-center gap-4 pt-1">
-          <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
-          <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className={cn("h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50", fileError && "border-destructive/50")}>
-            <Upload className="w-4 h-4 mr-2" />
-            Choose File
-          </Button>
-          <span className={cn("text-sm truncate", fileError ? "text-destructive" : "text-muted-foreground")}>
-            {enrollmentProofFile ? enrollmentProofFile.name : "No file chosen"}
-          </span>
-        </div>
-        {fileError && <p className="text-xs text-destructive">Please upload proof of enrollment or apprenticeship</p>}
+        <FileUpload
+          file={enrollmentProofFile}
+          onFileChange={onEnrollmentProofFileChange}
+          placeholder="Upload proof of enrollment"
+          error={fileError}
+          errorMessage="Please upload proof of enrollment or apprenticeship"
+        />
       </div>
     </div>
   </div>;
@@ -2168,11 +2149,6 @@ const TaxExemptionForm = ({
 }) => {
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    onTaxExemptFileChange(file);
-  };
   // Step number varies by account type: professional=6, salon=5
   const stepNumber = accountType === "professional" ? 6 : 5;
   return <div className="space-y-[25px]">
@@ -2217,19 +2193,15 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      {hasTaxExemption === true && <div className="space-y-2">
-          <div className="flex items-center gap-4 pt-2">
-            <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
-            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className={cn("h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50", fileError && "border-destructive/50")}>
-              <Upload className="w-4 h-4 mr-2" />
-              Choose File
-            </Button>
-            <span className={cn("text-sm", fileError ? "text-destructive" : "text-muted-foreground")}>
-              {taxExemptFile ? taxExemptFile.name : "Upload your state tax-exempt license"}
-            </span>
-          </div>
-          {fileError && <p className="text-xs text-destructive">Please upload your tax exemption document</p>}
-        </div>}
+      {hasTaxExemption === true && (
+        <FileUpload
+          file={taxExemptFile}
+          onFileChange={onTaxExemptFileChange}
+          placeholder="Upload your state tax-exempt license"
+          error={fileError}
+          errorMessage="Please upload your tax exemption document"
+        />
+      )}
     </div>;
 };
 
