@@ -1268,7 +1268,7 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-hidden">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pr-12 sm:pr-16 lg:pr-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(3rem,env(safe-area-inset-right))] sm:pr-[max(4rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
           <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
             {/* Sliding pill indicator */}
@@ -1425,7 +1425,7 @@ const Auth = () => {
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
             <div className={cn("max-w-lg mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
               {/* Step label above buttons */}
               {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
