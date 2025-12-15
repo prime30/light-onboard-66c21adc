@@ -1271,8 +1271,8 @@ const Auth = () => {
                 {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                 {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} expectedGraduation={expectedGraduation} onSchoolNameChange={setSchoolName} onExpectedGraduationChange={setExpectedGraduation} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && expectedGraduation !== "", schoolName.trim() !== "" || expectedGraduation !== "", showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
-                {currentStep === "tax-exemption" && <TaxExemptionForm hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
+                {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
+                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                 {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
@@ -1648,12 +1648,13 @@ const LicenseForm = ({
     const file = e.target.files?.[0] || null;
     onLicenseFileChange(file);
   };
+  const stepNumber = accountType === "salon" ? 3 : 2;
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 2
+            Step {stepNumber}
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
@@ -1883,12 +1884,13 @@ const BusinessLocationForm = ({
   const stateError = showValidationErrors && state === "";
   const zipCodeError = showValidationErrors && zipCode.trim() === "";
   const isStudent = accountType === "student";
+  const stepNumber = accountType === "professional" ? 4 : 2;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 2
+          Step {stepNumber}
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
@@ -2058,7 +2060,7 @@ const SchoolInfoForm = ({
   </div>;
 };
 
-// Wholesale Terms Form (Step 4 for professionals, Step 4 for students)
+// Wholesale Terms Form
 const WholesaleTermsForm = ({
   accountType,
   agreed,
@@ -2074,12 +2076,14 @@ const WholesaleTermsForm = ({
 }) => {
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
+  // Step number varies by account type: professional=5, salon=4, student=4
+  const stepNumber = accountType === "professional" ? 5 : 4;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step {isStudent ? "4" : "4"}
+          Step {stepNumber}
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
@@ -2111,8 +2115,9 @@ const WholesaleTermsForm = ({
   </div>;
 };
 
-// Tax Exemption Form (Step 4 for professionals)
+// Tax Exemption Form
 const TaxExemptionForm = ({
+  accountType,
   hasTaxExemption,
   taxExemptFile,
   onTaxExemptionChange,
@@ -2120,6 +2125,7 @@ const TaxExemptionForm = ({
   showValidationErrors = false,
   validationStatus
 }: {
+  accountType: string | null;
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
   onTaxExemptionChange: (value: boolean) => void;
@@ -2134,12 +2140,14 @@ const TaxExemptionForm = ({
     const file = e.target.files?.[0] || null;
     onTaxExemptFileChange(file);
   };
+  // Step number varies by account type: professional=6, salon=5
+  const stepNumber = accountType === "professional" ? 6 : 5;
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 5
+            Step {stepNumber}
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
@@ -2191,8 +2199,9 @@ const TaxExemptionForm = ({
     </div>;
 };
 
-// Contact Info Form (Step 5 for professionals, Step 2 for students)
+// Contact Info Form
 const ContactInfoForm = ({
+  accountType,
   firstName,
   lastName,
   preferredName,
@@ -2206,6 +2215,7 @@ const ContactInfoForm = ({
   showValidationErrors = false,
   validationStatus
 }: {
+  accountType: string | null;
   firstName: string;
   lastName: string;
   preferredName: string;
@@ -2224,12 +2234,14 @@ const ContactInfoForm = ({
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
+  // Step number varies by account type: professional=7, salon=6, student=5
+  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 6
+          Step {stepNumber}
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
