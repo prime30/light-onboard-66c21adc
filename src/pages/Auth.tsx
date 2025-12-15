@@ -428,7 +428,7 @@ const Auth = () => {
   // Mobile hero scroll behavior
   const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const mainContentRef = useRef<HTMLElement | null>(null);
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
   
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
@@ -1191,7 +1191,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
+      <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header - fixed height to keep toggle position consistent */}
         <header className="relative flex items-center p-2.5 sm:p-5 lg:p-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
@@ -1304,7 +1304,7 @@ const Auth = () => {
           </div>
         )}
 
-        <main ref={mainContentRef} className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
+        <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           {isTransitioning ? (
             <div className="w-full max-w-lg">
               <FormSkeleton variant={
