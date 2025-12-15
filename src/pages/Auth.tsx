@@ -1162,7 +1162,7 @@ const Auth = () => {
                   </h1>
                 </div>
 
-                <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px]">
+                <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap">
                   Your pro account is waiting for you
                 </p>
                 {/* Testimonial Carousel */}
