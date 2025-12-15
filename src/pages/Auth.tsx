@@ -13,6 +13,7 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
+import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -397,7 +398,7 @@ const Auth = () => {
   // Student-specific fields
   const [schoolName, setSchoolName] = useState("");
   const [schoolState, setSchoolState] = useState("");
-  const [enrollmentProofFile, setEnrollmentProofFile] = useState<File | null>(null);
+  const [enrollmentProofFiles, setEnrollmentProofFiles] = useState<File[]>([]);
   
   // Licensed stylist-specific fields
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
@@ -437,7 +438,7 @@ const Auth = () => {
     setTaxExemptFile(null);
     setSchoolName("");
     setSchoolState("");
-    setEnrollmentProofFile(null);
+    setEnrollmentProofFiles([]);
     setBusinessOperationType(null);
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
@@ -486,7 +487,7 @@ const Auth = () => {
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       case "school-info":
-        return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null;
+        return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       case "wholesale-terms":
         return wholesaleAgreed;
       case "tax-exemption":
@@ -512,7 +513,7 @@ const Auth = () => {
 
     // Student flow - 4 steps (account-type, school-info, wholesale-terms, contact-info)
     if (accountType === "student") {
-      const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null;
+      const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
       const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
       return schoolValid && wholesaleValid && contactValid;
@@ -554,7 +555,7 @@ const Auth = () => {
     if (accountType === "student") {
       // Student flow: account-type, school-info, wholesale-terms, contact-info
       // Step 2: School Info
-      if (schoolName.trim() === "" || schoolState === "" || enrollmentProofFile === null) {
+      if (schoolName.trim() === "" || schoolState === "" || enrollmentProofFiles.length === 0) {
         incomplete.push({
           step: 2,
           name: "School Information"
@@ -720,13 +721,13 @@ const Auth = () => {
 
     // For signup, calculate based on account type
     if (accountType === "student") {
-    // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFile), wholesale (1), contact (3)
+    // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), wholesale (1), contact (3)
       let filled = 0;
       const total = 8;
       if (accountType) filled++;
       if (schoolName.trim() !== "") filled++;
       if (schoolState !== "") filled++;
-      if (enrollmentProofFile !== null) filled++;
+      if (enrollmentProofFiles.length > 0) filled++;
       if (wholesaleAgreed) filled++;
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
@@ -1258,7 +1259,7 @@ const Auth = () => {
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                 {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
                 {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
-                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFile={enrollmentProofFile} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFileChange={setEnrollmentProofFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFile !== null, showValidationErrors)} />}
+                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
@@ -1976,25 +1977,25 @@ const BusinessLocationForm = ({
 const SchoolInfoForm = ({
   schoolName,
   schoolState,
-  enrollmentProofFile,
+  enrollmentProofFiles,
   onSchoolNameChange,
   onSchoolStateChange,
-  onEnrollmentProofFileChange,
+  onEnrollmentProofFilesChange,
   showValidationErrors = false,
   validationStatus
 }: {
   schoolName: string;
   schoolState: string;
-  enrollmentProofFile: File | null;
+  enrollmentProofFiles: File[];
   onSchoolNameChange: (value: string) => void;
   onSchoolStateChange: (value: string) => void;
-  onEnrollmentProofFileChange: (file: File | null) => void;
+  onEnrollmentProofFilesChange: (files: File[]) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const schoolNameError = showValidationErrors && schoolName.trim() === "";
   const stateError = showValidationErrors && schoolState === "";
-  const fileError = showValidationErrors && enrollmentProofFile === null;
+  const fileError = showValidationErrors && enrollmentProofFiles.length === 0;
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
@@ -2054,20 +2055,21 @@ const SchoolInfoForm = ({
         {stateError && <p className="text-xs text-destructive">State/Province is required</p>}
       </div>
 
-      {/* File Upload */}
+      {/* Multi-File Upload */}
       <div className="space-y-2.5">
         <Label className="text-sm font-medium">
           Upload proof of enrollment or apprenticeship*
         </Label>
         <p className="text-xs text-muted-foreground">
-          (school ID, apprenticeship license, etc.)
+          Upload school ID, apprenticeship license, enrollment letter, etc.
         </p>
-        <FileUpload
-          file={enrollmentProofFile}
-          onFileChange={onEnrollmentProofFileChange}
-          placeholder="Upload proof of enrollment"
+        <MultiFileUpload
+          files={enrollmentProofFiles}
+          onFilesChange={onEnrollmentProofFilesChange}
+          placeholder="Upload your documents"
+          maxFiles={5}
           error={fileError}
-          errorMessage="Please upload proof of enrollment or apprenticeship"
+          errorMessage="Please upload at least one proof of enrollment or apprenticeship"
         />
       </div>
     </div>
