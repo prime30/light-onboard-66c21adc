@@ -424,6 +424,36 @@ const Auth = () => {
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Mobile hero scroll behavior
+  const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const mainContentRef = useRef<HTMLElement | null>(null);
+  
+  // Track scroll direction for mobile hero hide/show
+  useEffect(() => {
+    const mainElement = mainContentRef.current;
+    if (!mainElement) return;
+    
+    const handleScroll = () => {
+      const currentScrollY = mainElement.scrollTop;
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrollThreshold = 10; // Minimum scroll distance to trigger
+      
+      if (Math.abs(currentScrollY - lastScrollY.current) > scrollThreshold) {
+        if (scrollingDown && currentScrollY > 50) {
+          setMobileHeroVisible(false);
+        } else if (!scrollingDown) {
+          setMobileHeroVisible(true);
+        }
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+    
+    mainElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => mainElement.removeEventListener('scroll', handleScroll);
+  }, []);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -1225,46 +1255,56 @@ const Auth = () => {
             </div>}
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Below toggle, for sign-in, onboarding, or sign-up step 1 */}
-        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && <div className="lg:hidden rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
-          {/* Hero image background */}
-          <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60" />
-          
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
-                <BadgeCheck className="w-2 h-2 text-background/80" />
-                <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                  {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
-                </span>
-              </div>
-              <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
-                <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                  {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
-                </h2>
-              </div>
-              <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
-                {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
-              </p>
-            </div>
+        {/* Mobile/Tablet Hero Banner - Sticky on scroll up, hides on scroll down */}
+        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && (
+          <div 
+            className={cn(
+              "lg:hidden rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative z-20",
+              "sticky top-0 transition-all duration-300 ease-out",
+              mobileHeroVisible 
+                ? "opacity-100 translate-y-0" 
+                : "opacity-0 -translate-y-full pointer-events-none"
+            )}
+          >
+            {/* Hero image background */}
+            <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
             
-            {/* Mini stats */}
-            <div className="flex gap-3 sm:gap-4">
-              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
-                <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
-                <div className="text-[9px] text-background/40 uppercase">Pros</div>
+            <div className="relative z-10 flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
+                  <BadgeCheck className="w-2 h-2 text-background/80" />
+                  <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
+                    {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
+                  </span>
+                </div>
+                <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+                  <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                    {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
+                  </h2>
+                </div>
+                <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+                  {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
+                </p>
               </div>
-              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
-                <div className="text-base sm:text-lg font-semibold text-background">50%</div>
-                <div className="text-[9px] text-background/40 uppercase">Savings</div>
+              
+              {/* Mini stats */}
+              <div className="flex gap-3 sm:gap-4">
+                <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+                  <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
+                  <div className="text-[9px] text-background/40 uppercase">Pros</div>
+                </div>
+                <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+                  <div className="text-base sm:text-lg font-semibold text-background">50%</div>
+                  <div className="text-[9px] text-background/40 uppercase">Savings</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>}
+        )}
 
-        <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
+        <main ref={mainContentRef} className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           {isTransitioning ? (
             <div className="w-full max-w-lg">
               <FormSkeleton variant={
