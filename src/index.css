@@ -287,6 +287,11 @@
     font-family: 'Aeonik Pro', system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
+
+  /* Termina font global letter-spacing */
+  .font-termina {
+    letter-spacing: -0.006em;
+  }
 }
 
 @layer utilities {

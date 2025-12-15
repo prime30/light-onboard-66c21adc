@@ -1272,14 +1272,14 @@ const Auth = () => {
                   </div>
 
                   {/* Large Typography */}
-                  <div className="space-y-1 md:space-y-1.5 mb-2.5 md:mb-[15px] lg:mb-5">
-                    <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2.5rem)] md:text-[clamp(1.75rem,3.5vw,3rem)] lg:text-[clamp(2rem,4vw,3.5rem)] xl:text-[clamp(2.5rem,4.5vw,4.5rem)] text-background/50 tracking-[0.08em] leading-[1.1] opacity-0 animate-fade-in" style={{
+                  <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
+                    <h2 className="font-termina font-medium uppercase text-[clamp(1.5rem,5vw,3rem)] md:text-[clamp(2rem,4.5vw,3.5rem)] lg:text-[clamp(2.5rem,5vw,4rem)] xl:text-[clamp(3.5rem,5.5vw,5.5rem)] text-background/50 tracking-[-0.006em] leading-[1] opacity-0 animate-fade-in" style={{
                     animationDelay: '200ms',
                     animationFillMode: 'forwards'
                   }}>
                       {slide.title}
                     </h2>
-                    <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2.5rem)] md:text-[clamp(1.75rem,3.5vw,3rem)] lg:text-[clamp(2rem,4vw,3.5rem)] xl:text-[clamp(2.5rem,4.5vw,4.5rem)] text-background tracking-[0.08em] leading-[1.1] opacity-0 animate-fade-in" style={{
+                    <h1 className="font-termina font-medium uppercase text-[clamp(1.5rem,5vw,3rem)] md:text-[clamp(2rem,4.5vw,3.5rem)] lg:text-[clamp(2.5rem,5vw,4rem)] xl:text-[clamp(3.5rem,5.5vw,5.5rem)] text-background tracking-[-0.006em] leading-[1] opacity-0 animate-fade-in" style={{
                     animationDelay: '300ms',
                     animationFillMode: 'forwards'
                   }}>
