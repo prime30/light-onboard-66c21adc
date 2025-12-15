@@ -1121,10 +1121,6 @@ const Auth = () => {
       <div className={cn("relative z-10 bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300", "w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px]")} style={{
       animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
     }}>
-        {/* Close Button */}
-        <button onClick={() => navigate("/")} className="absolute top-2.5 sm:top-5 right-2.5 sm:right-5 z-20 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
-          <X className="w-5 h-5 text-foreground" />
-        </button>
 
         {/* Left Panel - Hero/Branding */}
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
@@ -1268,7 +1264,7 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-hidden">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(3rem,env(safe-area-inset-right))] sm:pr-[max(4rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+        <header className="relative flex items-center gap-2 sm:gap-4 p-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
           <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
             {/* Sliding pill indicator */}
@@ -1285,7 +1281,7 @@ const Auth = () => {
           </div>
           
           {/* Step Indicator - Centered with flex-1 wrapper */}
-          {showStepIndicator && <div className="flex-1 flex items-center justify-center ml-2 sm:ml-4 lg:ml-0 mr-12 sm:mr-16 lg:mr-0 h-[50px]">
+          {showStepIndicator && <div className="flex-1 flex items-center justify-center lg:justify-center h-[50px]">
               {/* Dial container with mask for fade effect */}
               <div className="relative flex items-center justify-center overflow-visible" style={{
               width: '160px',
@@ -1329,6 +1325,14 @@ const Auth = () => {
                 </div>
               </div>
             </div>}
+          
+          {/* Spacer when no step indicator */}
+          {!showStepIndicator && <div className="flex-1" />}
+          
+          {/* Close Button */}
+          <button onClick={() => navigate("/")} className="flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
+            <X className="w-5 h-5 text-foreground" />
+          </button>
         </header>
 
         {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
