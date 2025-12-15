@@ -1230,11 +1230,11 @@ const Auth = () => {
               </div>
               <div className="space-y-0.5">
                 <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                  {mode === "signin" ? "Great to See You Again" : "Let's get started"}
+                  {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                 </h2>
               </div>
               <p className="text-xs text-background/50 mt-1 hidden sm:block">
-                {mode === "signin" ? "Your pro account is waiting for you" : "Unlock wholesale pricing on the industries best hair and tools."}
+                {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
               </p>
             </div>
             
