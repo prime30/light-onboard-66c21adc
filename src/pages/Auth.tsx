@@ -1165,7 +1165,13 @@ const Auth = () => {
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
   return <div className="min-h-screen flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
-      <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
+      <div 
+        className="fixed inset-0 backdrop-blur-md cursor-pointer transition-colors duration-150" 
+        style={{
+          backgroundColor: `hsl(var(--foreground) / ${Math.max(0.6 - modalDragOffset * 0.003, 0.2)})`
+        }}
+        onClick={() => navigate("/")} 
+      />
       
       {/* Modal Container */}
       <div 
