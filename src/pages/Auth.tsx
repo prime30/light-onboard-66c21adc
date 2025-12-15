@@ -1268,7 +1268,7 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-hidden">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pr-12 sm:pr-16 lg:pr-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pr-12 sm:pr-16 lg:pr-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
           <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
             {/* Sliding pill indicator */}
