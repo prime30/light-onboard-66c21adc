@@ -50,43 +50,49 @@ export const AccountTypeCard = ({
         {selected && <Check className="w-3 h-3 text-background" strokeWidth={3} />}
       </div>
 
-      {/* Icon */}
-      {Icon && (
-        <div className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors duration-300 border",
-          selected ? "bg-background border-foreground/20" : "bg-background/80 border-foreground/10"
-        )}>
-          <Icon className={cn(
-            "w-5 h-5 transition-colors duration-300",
-            selected ? "text-foreground" : "text-foreground/60"
-          )} />
+      {/* Mobile: Horizontal layout with icon + content */}
+      <div className="flex gap-3 sm:block">
+        {/* Icon */}
+        {Icon && (
+          <div className={cn(
+            "w-10 h-10 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-2 transition-colors duration-300 border",
+            selected ? "bg-background border-foreground/20" : "bg-background/80 border-foreground/10"
+          )}>
+            <Icon className={cn(
+              "w-5 h-5 transition-colors duration-300",
+              selected ? "text-foreground" : "text-foreground/60"
+            )} />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Badge */}
+          {badge && (
+            <span className={cn(
+              "inline-block px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded mb-1 sm:mb-2 transition-colors duration-300",
+              selected ? "bg-background/20 text-background" : "bg-foreground/10 text-foreground"
+            )}>
+              {badge}
+            </span>
+          )}
+
+          {/* Title */}
+          <h3 className={cn(
+            "text-sm font-semibold mb-0.5 sm:mb-1 pr-6 transition-colors duration-300 text-foreground"
+          )}>
+            {title}
+          </h3>
+
+          {/* Description */}
+          <p className="text-[11px] leading-relaxed transition-colors duration-300 text-muted-foreground">
+            {description}
+          </p>
         </div>
-      )}
+      </div>
 
-      {/* Badge */}
-      {badge && (
-        <span className={cn(
-          "inline-block px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded mb-2 transition-colors duration-300",
-          selected ? "bg-background/20 text-background" : "bg-foreground/10 text-foreground"
-        )}>
-          {badge}
-        </span>
-      )}
-
-      {/* Title */}
-      <h3 className={cn(
-        "text-sm font-semibold mb-1 pr-6 transition-colors duration-300 text-foreground"
-      )}>
-        {title}
-      </h3>
-
-      {/* Description */}
-      <p className="text-[11px] mb-2 leading-relaxed transition-colors duration-300 text-muted-foreground">
-        {description}
-      </p>
-
-      {/* Features */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Features - Full width row on mobile */}
+      <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border/30 sm:border-0 sm:pt-0 sm:mt-2">
         {features.map((feature, index) => (
           <span 
             key={index} 
