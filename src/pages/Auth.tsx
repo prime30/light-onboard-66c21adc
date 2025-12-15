@@ -622,10 +622,7 @@ const Auth = () => {
     if (modalTouchStartY.current === null) return;
     // If dragged more than 100px, close the modal
     if (modalDragOffset > 100) {
-      setIsClosing(true);
-      setTimeout(() => {
-        navigate("/");
-      }, 300);
+      handleCloseModal();
     } else if (modalDragOffset > 0) {
       // Snap back with bounce
       setIsBouncingBack(true);
@@ -636,6 +633,13 @@ const Auth = () => {
     }
     modalTouchStartY.current = null;
   };
+
+  const handleCloseModal = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      navigate("/");
+    }, 300);
+  }, [navigate]);
   
   const canContinue = () => {
     if (mode === "signin") {
@@ -1175,7 +1179,7 @@ const Auth = () => {
         style={{
           backgroundColor: `hsl(var(--foreground) / ${Math.max(0.6 - modalDragOffset * 0.003, 0.2)})`
         }}
-        onClick={() => navigate("/")} 
+        onClick={handleCloseModal} 
       />
       
       {/* Modal Container */}
@@ -1420,8 +1424,8 @@ const Auth = () => {
           {!showStepIndicator && <div className="flex-1" />}
           
           {/* Close Button */}
-          <button onClick={() => navigate("/")} className="flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors" aria-label="Close">
-            <X className="w-5 h-5 text-foreground" />
+          <button onClick={handleCloseModal} className="flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors group" aria-label="Close">
+            <X className="w-5 h-5 text-foreground transition-transform duration-200 group-hover:rotate-90 group-active:scale-75" />
           </button>
         </header>
 
