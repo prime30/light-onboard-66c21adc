@@ -1241,9 +1241,9 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center p-2.5 sm:p-5 lg:p-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+        <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pr-12 sm:pr-16 lg:pr-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
-          <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative">
+          <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
             {/* Sliding pill indicator */}
             <div className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" style={{
               left: mode === "signup" ? "5px" : "50%",
@@ -1257,8 +1257,8 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Right aligned on mobile, centered on desktop */}
-          {showStepIndicator && <div className="absolute right-10 sm:right-12 lg:right-auto lg:left-1/2 lg:-translate-x-1/2 flex items-center justify-center">
+          {/* Step Indicator - Centered with flex-1 wrapper */}
+          {showStepIndicator && <div className="flex-1 flex items-center justify-center mx-2 sm:mx-4 lg:mx-0">
               {/* Dial container with mask for fade effect */}
               <div className="relative flex items-center justify-center overflow-hidden" style={{
               width: '160px',
