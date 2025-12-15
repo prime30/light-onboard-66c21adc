@@ -1492,7 +1492,7 @@ const OnboardingForm = ({
         Apply for a pro account
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-        Cosmetology license, proof of student status, or equivalent required to shop.
+        Unlock wholesale pricing on the industries best hair and tools.
       </p>
     </div>
 
