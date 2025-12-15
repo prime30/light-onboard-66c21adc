@@ -1383,8 +1383,14 @@ const Auth = () => {
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-5 sm:pb-[25px] lg:pb-[30px] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
             <div className={cn("max-w-lg mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
               {/* Step label above buttons */}
-              {showStepIndicator && <div className={cn("text-center -mt-0.5", showSpotlight && "opacity-0")}>
-                  <span className="text-[10px] text-muted-foreground/50 tracking-wider">
+              {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
+                  <span 
+                    key={currentStep} 
+                    className={cn(
+                      "inline-block text-[10px] text-muted-foreground/50 tracking-wider",
+                      transitionDirection === "forward" ? "animate-slide-up-fade" : "animate-slide-down-fade"
+                    )}
+                  >
                     Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
                   </span>
                 </div>}
