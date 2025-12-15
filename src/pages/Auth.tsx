@@ -2211,12 +2211,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button onClick={() => {
-      if (!agreed) {
-        toast.success("Thank you! This protects your margins if you ever want to raise prices for your services.");
-      }
-      onAgreeChange(!agreed);
-    }} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    <button onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -2224,6 +2219,16 @@ const WholesaleTermsForm = ({
         Yes, I agree to not use my client's card to purchase.*
       </span>
     </button>
+    
+    {agreed && (
+      <div className="flex gap-3 p-4 rounded-xl bg-status-green/10 border border-status-green/20 animate-slide-up-fade">
+        <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
+        <p className="text-sm text-status-green">
+          Thank you! This protects your margins if you ever want to raise prices for your services.
+        </p>
+      </div>
+    )}
+    
     {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
   </div>;
 };
