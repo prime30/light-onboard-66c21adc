@@ -460,7 +460,6 @@
   /* Input focus ripple effect */
   .input-ripple {
     position: relative;
-    overflow: hidden;
   }
 
   .input-ripple::after {
