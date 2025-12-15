@@ -1238,12 +1238,12 @@ const Auth = () => {
                   {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
                 </span>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
                 <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
                   {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                 </h2>
               </div>
-              <p className="text-xs text-background/50 mt-1 hidden sm:block">
+              <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
                 {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
               </p>
             </div>
