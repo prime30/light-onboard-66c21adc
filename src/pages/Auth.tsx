@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -404,6 +405,11 @@ const Auth = () => {
   // Licensed stylist-specific fields
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
   
+  // Subscription preferences
+  const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
+  const [subscribeMarketing, setSubscribeMarketing] = useState(false);
+  const [subscribePromotions, setSubscribePromotions] = useState(false);
+  
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -441,6 +447,9 @@ const Auth = () => {
     setSchoolState("");
     setEnrollmentProofFiles([]);
     setBusinessOperationType(null);
+    setSubscribeOrderUpdates(true);
+    setSubscribeMarketing(false);
+    setSubscribePromotions(false);
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
   };
@@ -1263,7 +1272,7 @@ const Auth = () => {
                 {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
+                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
                   ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
                   ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
                   ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
@@ -2225,6 +2234,12 @@ const ContactInfoForm = ({
   onPreferredNameChange,
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
+  subscribeOrderUpdates,
+  subscribeMarketing,
+  subscribePromotions,
+  onSubscribeOrderUpdatesChange,
+  onSubscribeMarketingChange,
+  onSubscribePromotionsChange,
   showValidationErrors = false,
   validationStatus,
   uploadedFiles = []
@@ -2240,6 +2255,12 @@ const ContactInfoForm = ({
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onPhoneCountryCodeChange: (value: string) => void;
+  subscribeOrderUpdates: boolean;
+  subscribeMarketing: boolean;
+  subscribePromotions: boolean;
+  onSubscribeOrderUpdatesChange: (value: boolean) => void;
+  onSubscribeMarketingChange: (value: boolean) => void;
+  onSubscribePromotionsChange: (value: boolean) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
   uploadedFiles?: { file: File; label: string }[];
@@ -2340,8 +2361,48 @@ const ContactInfoForm = ({
         </div>
       )}
 
+      {/* Subscription Preferences */}
+      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/30 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-6" : "animate-stagger-5")}>
+        <p className="text-sm font-medium text-foreground">Communication Preferences</p>
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <Checkbox
+              checked={subscribeOrderUpdates}
+              onCheckedChange={onSubscribeOrderUpdatesChange}
+              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Order updates</span>
+              <p className="text-xs text-muted-foreground">Receive shipping notifications and order status updates</p>
+            </div>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <Checkbox
+              checked={subscribeMarketing}
+              onCheckedChange={onSubscribeMarketingChange}
+              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Marketing emails</span>
+              <p className="text-xs text-muted-foreground">Get tips, tutorials, and industry insights</p>
+            </div>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <Checkbox
+              checked={subscribePromotions}
+              onCheckedChange={onSubscribePromotionsChange}
+              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Promotions & deals</span>
+              <p className="text-xs text-muted-foreground">Exclusive discounts, sales, and special offers</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
       {/* SMS Consent Notice */}
-      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-6" : "animate-stagger-5")}>
+      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           By registering I agree to receive recurring automated marketing text messages (e.g. discounts, promos, and stock updates) at the phone number provided. Consent is not a condition to purchase. Msg & data rates may apply. Msg frequency varies. Reply HELP for help and STOP to cancel. View our{" "}
