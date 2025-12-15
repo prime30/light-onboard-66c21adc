@@ -377,6 +377,7 @@ const Auth = () => {
   const modalTouchStartY = useRef<number | null>(null);
   const [modalDragOffset, setModalDragOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
+  const [isBouncingBack, setIsBouncingBack] = useState(false);
 
   // Form state
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -625,9 +626,13 @@ const Auth = () => {
       setTimeout(() => {
         navigate("/");
       }, 300);
-    } else {
-      // Snap back
+    } else if (modalDragOffset > 0) {
+      // Snap back with bounce
+      setIsBouncingBack(true);
       setModalDragOffset(0);
+      setTimeout(() => {
+        setIsBouncingBack(false);
+      }, 500);
     }
     modalTouchStartY.current = null;
   };
@@ -1188,7 +1193,11 @@ const Auth = () => {
           transform: modalDragOffset > 0 
             ? `translateY(${modalDragOffset}px) scale(${1 - Math.min(modalDragOffset * 0.0003, 0.03)})` 
             : undefined,
-          transition: modalDragOffset > 0 ? 'none' : 'transform 0.3s ease-out',
+          transition: modalDragOffset > 0 
+            ? 'none' 
+            : isBouncingBack 
+              ? 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out' 
+              : 'transform 0.3s ease-out',
           opacity: modalDragOffset > 0 ? Math.max(1 - modalDragOffset * 0.002, 0.85) : undefined
         }}
       >
