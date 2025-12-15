@@ -1520,8 +1520,9 @@ const OnboardingForm = ({
 
     <p className="text-xs text-muted-foreground text-center">
       Already have an account?{" "}
-      <button onClick={onSignIn} className="text-foreground underline underline-offset-2 hover:no-underline">
+      <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
         Sign in
+        <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </button>
     </p>
   </div>;
