@@ -429,14 +429,21 @@ const Auth = () => {
   const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
   const lastScrollY = useRef(0);
   const mainContentRef = useRef<HTMLDivElement | null>(null);
+  const mainScrollRef = useRef<HTMLElement | null>(null);
   
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
-    const mainElement = mainContentRef.current;
-    if (!mainElement) return;
-    
+    const wrapperEl = mainContentRef.current;
+    const mainEl = mainScrollRef.current;
+
+    const scrollEl = wrapperEl && wrapperEl.scrollHeight > wrapperEl.clientHeight + 1
+      ? wrapperEl
+      : (mainEl ?? wrapperEl);
+
+    if (!scrollEl) return;
+
     const handleScroll = () => {
-      const currentScrollY = mainElement.scrollTop;
+      const currentScrollY = scrollEl.scrollTop;
       const scrollingDown = currentScrollY > lastScrollY.current;
       const scrollThreshold = 10; // Minimum scroll distance to trigger
       
@@ -451,8 +458,8 @@ const Auth = () => {
       lastScrollY.current = currentScrollY;
     };
     
-    mainElement.addEventListener('scroll', handleScroll, { passive: true });
-    return () => mainElement.removeEventListener('scroll', handleScroll);
+    scrollEl.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollEl.removeEventListener('scroll', handleScroll);
   }, []);
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -1304,7 +1311,7 @@ const Auth = () => {
           </div>
         )}
 
-        <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
+        <main ref={mainScrollRef} className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
           {isTransitioning ? (
             <div className="w-full max-w-lg">
               <FormSkeleton variant={
