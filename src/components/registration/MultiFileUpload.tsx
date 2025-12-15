@@ -11,7 +11,16 @@ interface MultiFileUploadProps {
   error?: boolean;
   errorMessage?: string;
   maxFiles?: number;
+  maxFileSize?: number; // in bytes, default 10MB
 }
+
+const MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024; // 10MB
+
+const formatFileSizeLimit = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+};
 
 const isImageFile = (file: File) => {
   return file.type.startsWith("image/") || 
@@ -100,6 +109,7 @@ export const MultiFileUpload = ({
   error = false,
   errorMessage,
   maxFiles = 10,
+  maxFileSize = MAX_FILE_SIZE_DEFAULT,
 }: MultiFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -173,28 +183,38 @@ export const MultiFileUpload = ({
 
   const processFiles = (newFiles: File[]) => {
     const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
+    const invalidTypeFiles: string[] = [];
+    const oversizedFiles: string[] = [];
 
     for (const file of newFiles) {
-      if (validateFileType(file)) {
-        validFiles.push(file);
+      if (!validateFileType(file)) {
+        invalidTypeFiles.push(file.name);
+      } else if (file.size > maxFileSize) {
+        oversizedFiles.push(file.name);
       } else {
-        invalidFiles.push(file.name);
+        validFiles.push(file);
       }
     }
 
-    if (invalidFiles.length > 0) {
+    // Build error message
+    const errors: string[] = [];
+    if (invalidTypeFiles.length > 0) {
       const acceptedFormats = formatAcceptedTypes(accept);
-      setFileTypeError(
-        `Invalid file${invalidFiles.length > 1 ? "s" : ""}: ${invalidFiles.join(", ")}. Accepted: ${acceptedFormats}`
-      );
+      errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
+    }
+    if (oversizedFiles.length > 0) {
+      errors.push(`Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`);
     }
 
     // Check max files limit
     const availableSlots = maxFiles - files.length;
     if (validFiles.length > availableSlots) {
-      setFileTypeError(`Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`);
+      errors.push(`Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`);
       validFiles.splice(availableSlots);
+    }
+
+    if (errors.length > 0) {
+      setFileTypeError(errors.join(" • "));
     }
 
     if (validFiles.length > 0) {
