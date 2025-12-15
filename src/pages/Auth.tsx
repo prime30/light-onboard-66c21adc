@@ -2437,9 +2437,9 @@ const ContactInfoForm = ({
       <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          By registering I agree to receive recurring automated marketing text messages (e.g. discounts, promos, and stock updates) at the phone number provided. Consent is not a condition to purchase. Msg & data rates may apply. Msg frequency varies. Reply HELP for help and STOP to cancel. View our{" "}
-          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Terms of Service</button>
-          {" "}and{" "}
+          You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
+          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
+          {" & "}
           <button className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
         </p>
       </div>
