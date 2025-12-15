@@ -9,15 +9,15 @@ interface AccountTypeStepProps {
 const accountTypes = [
   {
     id: "stylist",
-    title: "Stylist",
+    title: "Licensed Stylist",
     badge: "Pro",
-    description: "For licensed cosmetologists who purchase hair for their clientele.",
+    description: "Commission, or Independent Stylist",
     features: ["Rewards on every order", "Free 2-day shipping", "Wholesale pricing"],
     icon: Scissors,
   },
   {
     id: "salon",
-    title: "Salon Manager",
+    title: "Salon Owner or Manager",
     badge: "Pro",
     description: "For salon owners who purchase hair for multiple stylists.",
     features: ["1.25x rewards multiplier", "Free 2-day shipping", "Volume discounts"],
@@ -54,7 +54,7 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
               Tell us who you are
             </h1>
             <p className="text-xs text-muted-foreground">
-              Select the option that best describes you
+              Select the account type that fits you best.
             </p>
           </div>
         </div>
@@ -80,6 +80,17 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <div className="w-1 h-1 rounded-full bg-green-500" />
         <span>You can change this later</span>
+      </div>
+
+      {/* Non-professional link */}
+      <div className="text-center text-sm text-muted-foreground">
+        Not a professional?{" "}
+        <a 
+          href="#" 
+          className="text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+        >
+          Find a licensed drop dead provider here
+        </a>
       </div>
     </div>
   );
