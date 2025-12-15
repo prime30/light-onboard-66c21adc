@@ -1,1 +1,7 @@
 project_id = "qsunfiextzzdxnsyrkkc"
+
+[functions.address-autocomplete]
+verify_jwt = false
+
+[functions.address-details]
+verify_jwt = false
