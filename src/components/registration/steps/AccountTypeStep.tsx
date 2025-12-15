@@ -1,5 +1,5 @@
 import { AccountTypeCard } from "../AccountTypeCard";
-import { Scissors, Building2, GraduationCap, Sparkles } from "lucide-react";
+import { Scissors, Building2, GraduationCap, Sparkles, ArrowUpRight } from "lucide-react";
 
 interface AccountTypeStepProps {
   selectedType: string | null;
@@ -87,10 +87,11 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
         Not a professional? Find a stylist/retailer{" "}
         <a 
           href="#" 
-          className="text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+          className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group"
         >
           here
-        </a>.
+          <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </a>
       </div>
     </div>
   );
