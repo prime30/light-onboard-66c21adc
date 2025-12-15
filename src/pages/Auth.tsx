@@ -14,6 +14,7 @@ import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
+import { FileSummary } from "@/components/registration/FileSummary";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -1262,7 +1263,11 @@ const Auth = () => {
                 {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
+                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
+                  ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
+                  ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
+                  ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
+                ]} />}
                 {currentStep === "success" && <SuccessForm />}
               </>}
           </div>
@@ -2221,7 +2226,8 @@ const ContactInfoForm = ({
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
   showValidationErrors = false,
-  validationStatus
+  validationStatus,
+  uploadedFiles = []
 }: {
   accountType: string | null;
   firstName: string;
@@ -2236,6 +2242,7 @@ const ContactInfoForm = ({
   onPhoneCountryCodeChange: (value: string) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
+  uploadedFiles?: { file: File; label: string }[];
 }) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
@@ -2326,8 +2333,15 @@ const ContactInfoForm = ({
         {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
       </div>
 
+      {/* Uploaded Files Summary */}
+      {uploadedFiles.length > 0 && (
+        <div className="animate-stagger-5">
+          <FileSummary files={uploadedFiles} title="Your Uploaded Documents" />
+        </div>
+      )}
+
       {/* SMS Consent Notice */}
-      <div className="flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-5">
+      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted/50 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-6" : "animate-stagger-5")}>
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           By registering I agree to receive recurring automated marketing text messages (e.g. discounts, promos, and stock updates) at the phone number provided. Consent is not a condition to purchase. Msg & data rates may apply. Msg frequency varies. Reply HELP for help and STOP to cancel. View our{" "}
