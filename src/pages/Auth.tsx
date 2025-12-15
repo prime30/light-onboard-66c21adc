@@ -436,9 +436,14 @@ const Auth = () => {
     if (!els.length) return;
 
     const lastByEl = new WeakMap<HTMLElement, number>();
-    els.forEach((el) => lastByEl.set(el, el.scrollTop));
+    const accumByEl = new WeakMap<HTMLElement, number>();
 
-    const scrollThreshold = 6; // Minimum scroll distance to trigger
+    els.forEach((el) => {
+      lastByEl.set(el, el.scrollTop);
+      accumByEl.set(el, 0);
+    });
+
+    const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
     const hideAfter = 20; // Start hiding once content is scrolled
 
     const onScroll = (e: Event) => {
@@ -453,12 +458,18 @@ const Auth = () => {
       if (current <= hideAfter) {
         setMobileHeroVisible(true);
         lastByEl.set(el, current);
+        accumByEl.set(el, 0);
         return;
       }
 
-      if (Math.abs(delta) > scrollThreshold) {
-        if (delta > 0) setMobileHeroVisible(false);
+      const nextAccum = (accumByEl.get(el) ?? 0) + delta;
+      accumByEl.set(el, nextAccum);
+
+      // Trigger once enough movement has accumulated (fixes slow scrolling never crossing threshold).
+      if (Math.abs(nextAccum) >= scrollThreshold) {
+        if (nextAccum > 0) setMobileHeroVisible(false);
         else setMobileHeroVisible(true);
+        accumByEl.set(el, 0);
       }
 
       lastByEl.set(el, current);
