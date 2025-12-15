@@ -1147,7 +1147,7 @@ const Auth = () => {
             {mode === "signin" ? (/* Sign-in content - Static, welcoming for returning users */
             <div className="flex flex-col gap-0 pb-[20px]">
                 <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
-                  <Sparkles className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+                  <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                   <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
                     Exclusively Professional
                   </span>
