@@ -1179,22 +1179,24 @@ const Auth = () => {
                     {slide.description}
                   </p>
                 </div>
-
-                {/* Feature Pills - Outside keyed container so they don't re-animate */}
-                <div className="hidden xl:flex flex-wrap gap-2.5">
-                  {features.map((feature, i) => (
-                    <div 
-                      key={i} 
-                      className="animate-haptic-pop"
-                      style={{ animationDelay: `${600 + i * 100}ms`, animationFillMode: 'both' }}
-                    >
-                      <MagneticFeatureBox icon={feature.icon} label={feature.label} desc={feature.desc} />
-                    </div>
-                  ))}
-                </div>
               </div>)}
           </div>
         </div>
+
+        {/* Feature Pills - Fixed (do not re-animate on carousel) */}
+        {mode === "signup" && (
+          <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[70px] lg:bottom-[80px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
+            {features.map((feature, i) => (
+              <div
+                key={i}
+                className="pointer-events-auto animate-haptic-pop"
+                style={{ animationDelay: `${600 + i * 100}ms`, animationFillMode: 'both' }}
+              >
+                <MagneticFeatureBox icon={feature.icon} label={feature.label} desc={feature.desc} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Circular Progress Indicator - Fixed - Only show on sign-up */}
         {mode === "signup" && <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
