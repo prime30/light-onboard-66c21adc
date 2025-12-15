@@ -457,7 +457,7 @@ const Auth = () => {
         const current = el.scrollTop;
         const delta = current - prev;
         const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
-        const nearBottom = current >= maxScrollTop - bottomLockPx;
+        const inBottomZone = current >= maxScrollTop - showFromBottomBufferPx;
 
         // Always show when at (or near) the top.
         if (current <= hideAfter) {
@@ -467,8 +467,8 @@ const Auth = () => {
           return;
         }
 
-        // If we're at the very bottom and already hidden, ignore bounce/momentum that would re-show it.
-        if (nearBottom && !mobileHeroVisibleRef.current) {
+        // If we're within the bottom "bounce zone" and already hidden, ignore elastic bounce/momentum.
+        if (inBottomZone && !mobileHeroVisibleRef.current) {
           lastByEl.set(el, current);
           accumByEl.set(el, 0);
           return;
@@ -482,14 +482,13 @@ const Auth = () => {
             setMobileHeroVisible(false);
             accumByEl.set(el, 0);
           } else {
-            // When coming off the bottom, require a meaningful upward scroll before showing again.
-            if (!nearBottom || current <= maxScrollTop - showFromBottomBufferPx) {
+            // Require a meaningful upward scroll away from the bottom zone before showing.
+            if (!inBottomZone) {
               setMobileHeroVisible(true);
               accumByEl.set(el, 0);
             }
           }
         }
-        lastByEl.set(el, current);
       };
       els.forEach(el => el.addEventListener("scroll", onScroll, {
         passive: true
