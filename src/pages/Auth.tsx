@@ -1115,7 +1115,7 @@ const Auth = () => {
           }} />
           
           {/* Content - Different for sign-in vs sign-up */}
-          <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]">
+          <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px] xl:pb-[180px]">
             {mode === "signin" ? (/* Sign-in content - Static, welcoming for returning users */
             <div className="flex flex-col gap-0 pb-[20px]">
                 <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit">
@@ -1172,7 +1172,7 @@ const Auth = () => {
                     </h1>
                   </div>
 
-                  <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-10 lg:mb-[60px] opacity-0 animate-fade-in" style={{
+                  <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0 opacity-0 animate-fade-in" style={{
                   animationDelay: '400ms',
                   animationFillMode: 'forwards'
                 }}>
