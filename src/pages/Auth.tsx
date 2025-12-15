@@ -2206,17 +2206,17 @@ const WholesaleTermsForm = ({
 
     <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
       <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
-      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-        <p>
-          The pricing that you see on the website is the wholesale price for stylists. We recommend that you do not use your client's credit card to purchase hair extensions and that you manage the purchasing of hair for your business.
-        </p>
-        <p>
-          It is policy that you do not use client cards for the purchase of their products and only use your own cards. This helps us avoid fraudulent chargebacks and theft.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
+      </p>
     </div>
 
-    <button onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    <button onClick={() => {
+      if (!agreed) {
+        toast.success("Thank you! This protects your margins if you ever want to raise prices for your services.");
+      }
+      onAgreeChange(!agreed);
+    }} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
