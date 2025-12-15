@@ -84,13 +84,13 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
 
       {/* Non-professional link */}
       <div className="text-center text-sm text-muted-foreground">
-        Not a professional?{" "}
+        Not a professional? Find a stylist/retailer{" "}
         <a 
           href="#" 
           className="text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
         >
-          Find a licensed drop dead provider here
-        </a>
+          here
+        </a>.
       </div>
     </div>
   );
