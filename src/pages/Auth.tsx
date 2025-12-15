@@ -1113,14 +1113,12 @@ const Auth = () => {
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <div className="min-h-screen flex items-center justify-center p-4 sm:p-5 lg:p-10">
+  return <div className="min-h-screen flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
       {/* Modal Container */}
-      <div className={cn("relative z-10 bg-background rounded-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300", "w-full sm:w-[95vw] lg:w-[90vw] h-[95vh] sm:h-[90vh] max-w-[1400px]")} style={{
-      animation: 'modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-    }}>
+      <div className={cn("relative z-10 bg-background rounded-t-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300 animate-modal-enter", "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]")}>
 
         {/* Left Panel - Hero/Branding */}
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
