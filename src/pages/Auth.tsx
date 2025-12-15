@@ -1799,7 +1799,7 @@ const AccountTypeForm = ({
             Step 1
           </span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           Tell us who you are
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -1911,7 +1911,7 @@ const LicenseForm = ({
             Step {stepNumber}
           </span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           Provide your license number
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2023,7 +2023,7 @@ const BusinessOperationForm = ({
           Step 3
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         How do you operate your business?
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2260,7 +2260,7 @@ const BusinessLocationForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         {isStudent ? "Where are you located?" : "Where is your business located?"}
       </h1>
     </div>
@@ -2433,7 +2433,7 @@ const SchoolInfoForm = ({
           Step 2
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         What cosmetology school do you attend?
       </h1>
     </div>
@@ -2538,7 +2538,7 @@ const WholesaleTermsForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Do you agree to wholesale terms?
       </h1>
     </div>
@@ -2621,7 +2621,7 @@ const TaxExemptionForm = ({
             Step {stepNumber}
           </span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
           Do you have a tax exemption?
         </h1>
       </div>
@@ -2732,7 +2732,7 @@ const ContactInfoForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
         Your Contact Information
       </h1>
     </div>
