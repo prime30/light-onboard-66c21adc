@@ -2220,14 +2220,19 @@ const WholesaleTermsForm = ({
       </span>
     </button>
     
-    {agreed && (
-      <div className="flex gap-3 p-4 rounded-xl bg-status-green/10 border border-status-green/20 animate-slide-up-fade">
-        <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
-        <p className="text-sm text-status-green">
-          Thank you! This protects your margins if you ever want to raise prices for your services.
-        </p>
+    <div className={cn(
+      "grid transition-all duration-300 ease-out",
+      agreed ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+    )}>
+      <div className="overflow-hidden">
+        <div className="flex gap-3 p-4 rounded-xl bg-status-green/10 border border-status-green/20 mt-0">
+          <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
+          <p className="text-sm text-status-green">
+            Thank you! This protects your margins if you ever want to raise prices for your services.
+          </p>
+        </div>
       </div>
-    )}
+    </div>
     
     {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
   </div>;
