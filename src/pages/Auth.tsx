@@ -395,7 +395,8 @@ const Auth = () => {
 
   // Student-specific fields
   const [schoolName, setSchoolName] = useState("");
-  const [expectedGraduation, setExpectedGraduation] = useState("");
+  const [schoolState, setSchoolState] = useState("");
+  const [enrollmentProofFile, setEnrollmentProofFile] = useState<File | null>(null);
   
   // Licensed stylist-specific fields
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
@@ -434,7 +435,8 @@ const Auth = () => {
     setLicenseFile(null);
     setTaxExemptFile(null);
     setSchoolName("");
-    setExpectedGraduation("");
+    setSchoolState("");
+    setEnrollmentProofFile(null);
     setBusinessOperationType(null);
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
@@ -483,7 +485,7 @@ const Auth = () => {
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       case "school-info":
-        return schoolName.trim() !== "" && expectedGraduation !== "";
+        return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null;
       case "wholesale-terms":
         return wholesaleAgreed;
       case "tax-exemption":
@@ -507,13 +509,12 @@ const Auth = () => {
     // Must have account type selected
     if (!accountType) return false;
 
-    // Student flow - 5 steps (account-type, business-location, school-info, wholesale-terms, contact-info)
+    // Student flow - 4 steps (account-type, school-info, wholesale-terms, contact-info)
     if (accountType === "student") {
-      const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
-      const schoolValid = schoolName.trim() !== "" && expectedGraduation !== "";
+      const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null;
       const wholesaleValid = wholesaleAgreed;
       const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
-      return businessValid && schoolValid && wholesaleValid && contactValid;
+      return schoolValid && wholesaleValid && contactValid;
     }
 
     // Salon flow
@@ -550,32 +551,25 @@ const Auth = () => {
     // Step 1: Account Type (always complete if we're past it)
 
     if (accountType === "student") {
-      // Student flow: account-type, business-location, school-info, wholesale-terms, contact-info
-      // Step 2: Business Location
-      if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+      // Student flow: account-type, school-info, wholesale-terms, contact-info
+      // Step 2: School Info
+      if (schoolName.trim() === "" || schoolState === "" || enrollmentProofFile === null) {
         incomplete.push({
           step: 2,
-          name: "Business Location"
-        });
-      }
-      // Step 3: School Info
-      if (schoolName.trim() === "" || expectedGraduation === "") {
-        incomplete.push({
-          step: 3,
           name: "School Information"
         });
       }
-      // Step 4: Wholesale Terms
+      // Step 3: Wholesale Terms
       if (!wholesaleAgreed) {
         incomplete.push({
-          step: 4,
+          step: 3,
           name: "Wholesale Terms"
         });
       }
-      // Step 5: Contact Info
+      // Step 4: Contact Info
       if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
         incomplete.push({
-          step: 5,
+          step: 4,
           name: "Contact Info"
         });
       }
@@ -725,18 +719,13 @@ const Auth = () => {
 
     // For signup, calculate based on account type
     if (accountType === "student") {
-      // Student: account-type (1), business-location (6), school-info (2), wholesale (1), contact (3)
+    // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFile), wholesale (1), contact (3)
       let filled = 0;
-      const total = 13;
+      const total = 8;
       if (accountType) filled++;
-      if (businessName.trim() !== "") filled++;
-      if (businessAddress.trim() !== "") filled++;
-      if (country !== "") filled++;
-      if (city.trim() !== "") filled++;
-      if (state !== "") filled++;
-      if (zipCode.trim() !== "") filled++;
       if (schoolName.trim() !== "") filled++;
-      if (expectedGraduation !== "") filled++;
+      if (schoolState !== "") filled++;
+      if (enrollmentProofFile !== null) filled++;
       if (wholesaleAgreed) filled++;
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
@@ -822,16 +811,18 @@ const Auth = () => {
           setCurrentStep("account-type");
           break;
         case "account-type":
-          // All account types go to business-location first, except professional goes to license
-          if (accountType === "professional") {
+          // Student goes to school-info, professional goes to license, salon goes to business-location
+          if (accountType === "student") {
+            setCurrentStep("school-info");
+          } else if (accountType === "professional") {
             setCurrentStep("license");
           } else {
             setCurrentStep("business-location");
           }
           break;
         case "business-location":
-          // Student goes to school-info, salon goes to license
-          setCurrentStep(accountType === "student" ? "school-info" : "license");
+          // Salon goes to license (professional goes here from business-operation)
+          setCurrentStep("license");
           break;
         case "school-info":
           // Student only - goes to wholesale-terms
@@ -882,12 +873,12 @@ const Auth = () => {
           setCurrentStep("license");
           break;
         case "business-location":
-          // Professional comes from business-operation, student/salon from account-type
+          // Professional comes from business-operation, salon from account-type
           setCurrentStep(accountType === "professional" ? "business-operation" : "account-type");
           break;
         case "school-info":
-          // Student only
-          setCurrentStep("business-location");
+          // Student only - goes back to account-type
+          setCurrentStep("account-type");
           break;
         case "wholesale-terms":
           // Student goes back to school-info, professional goes back to business-location, salon goes back to license
@@ -911,10 +902,10 @@ const Auth = () => {
     }, 150);
   };
   const getTotalSteps = () => {
-    // Student: account-type, business-location, school-info, wholesale-terms, contact-info = 5 steps
+    // Student: account-type, school-info, wholesale-terms, contact-info = 4 steps
     // Professional: 7 steps (account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info)
     // Salon: 6 steps
-    if (accountType === "student") return 5;
+    if (accountType === "student") return 4;
     if (accountType === "professional") return 7;
     return 6;
   };
@@ -922,11 +913,10 @@ const Auth = () => {
     if (currentStep === "account-type") return 1;
     if (accountType === "student") {
       // Student flow
-      if (currentStep === "business-location") return 2;
-      if (currentStep === "school-info") return 3;
-      if (currentStep === "wholesale-terms") return 4;
-      if (currentStep === "contact-info") return 5;
-      return 5;
+      if (currentStep === "school-info") return 2;
+      if (currentStep === "wholesale-terms") return 3;
+      if (currentStep === "contact-info") return 4;
+      return 4;
     }
     if (accountType === "professional") {
       // Professional flow: account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info
@@ -953,12 +943,10 @@ const Auth = () => {
         case 1:
           return "account-type";
         case 2:
-          return "business-location";
-        case 3:
           return "school-info";
-        case 4:
+        case 3:
           return "wholesale-terms";
-        case 5:
+        case 4:
           return "contact-info";
         default:
           return "account-type";
@@ -1269,7 +1257,7 @@ const Auth = () => {
                 {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                 {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
                 {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
-                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} expectedGraduation={expectedGraduation} onSchoolNameChange={setSchoolName} onExpectedGraduationChange={setExpectedGraduation} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && expectedGraduation !== "", schoolName.trim() !== "" || expectedGraduation !== "", showValidationErrors)} />}
+                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFile={enrollmentProofFile} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFileChange={setEnrollmentProofFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFile !== null, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFile !== null, showValidationErrors)} />}
                 {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                 {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
@@ -1992,69 +1980,112 @@ const BusinessLocationForm = ({
   </div>;
 };
 
-// School Info Form (Step 3 for students)
+// School Info Form (Step 2 for students)
 const SchoolInfoForm = ({
   schoolName,
-  expectedGraduation,
+  schoolState,
+  enrollmentProofFile,
   onSchoolNameChange,
-  onExpectedGraduationChange,
+  onSchoolStateChange,
+  onEnrollmentProofFileChange,
   showValidationErrors = false,
   validationStatus
 }: {
   schoolName: string;
-  expectedGraduation: string;
+  schoolState: string;
+  enrollmentProofFile: File | null;
   onSchoolNameChange: (value: string) => void;
-  onExpectedGraduationChange: (value: string) => void;
+  onSchoolStateChange: (value: string) => void;
+  onEnrollmentProofFileChange: (file: File | null) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const schoolNameError = showValidationErrors && schoolName.trim() === "";
-  const graduationError = showValidationErrors && expectedGraduation === "";
-  const graduationOptions = ["2024", "2025", "2026", "2027", "2028", "2029", "2030"];
+  const stateError = showValidationErrors && schoolState === "";
+  const fileError = showValidationErrors && enrollmentProofFile === null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    onEnrollmentProofFileChange(file);
+  };
+
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 3
+          Step 2
         </span>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Follow post-approval instructions
+        What cosmetology school do you attend?
       </h1>
     </div>
 
     <div className="space-y-4 animate-stagger-2">
-      {/* School Name */}
+      {/* School/Apprenticeship Name */}
       <div className="space-y-2.5">
         <Label htmlFor="schoolName" className="text-sm font-medium label-float">
-          Cosmetology school name*
+          School/Apprenticeship Name*
         </Label>
         <div className="relative group input-glow input-ripple rounded-[15px]">
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="schoolName" type="text" placeholder="Enter your school name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
+          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
         </div>
-        {schoolNameError && <p className="text-xs text-destructive">School name is required</p>}
+        {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
       </div>
 
-      {/* Expected Graduation */}
+      {/* State/Province */}
       <div className="space-y-2.5">
-        <Label htmlFor="expectedGraduation" className="text-sm font-medium label-float">
-          Expected graduation year*
+        <Label htmlFor="schoolState" className="text-sm font-medium label-float">
+          State/Province*
         </Label>
-        <Select value={expectedGraduation} onValueChange={onExpectedGraduationChange}>
-          <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", graduationError && "border-destructive/50")}>
-            <SelectValue placeholder="Select graduation year" />
-          </SelectTrigger>
-          <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-            {graduationOptions.map(year => <SelectItem key={year} value={year} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
-                {year}
-              </SelectItem>)}
-          </SelectContent>
-        </Select>
-        {graduationError && <p className="text-xs text-destructive">Expected graduation is required</p>}
+        <div className="relative group">
+          <Select value={schoolState} onValueChange={onSchoolStateChange}>
+            <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
+              <div className="flex items-center gap-3">
+                {schoolState && hasStateIcon(schoolState) && (
+                  <StateIcon state={schoolState} className="w-5 h-5" />
+                )}
+                <SelectValue placeholder="Select your state/province" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
+              {states.map(s => (
+                <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                  <div className="flex items-center gap-2.5">
+                    {hasStateIcon(s) && <StateIcon state={s} className="w-4 h-4" />}
+                    <span>{s}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {stateError && <p className="text-xs text-destructive">State/Province is required</p>}
+      </div>
+
+      {/* File Upload */}
+      <div className="space-y-2.5">
+        <Label className="text-sm font-medium">
+          Upload proof of enrollment or apprenticeship*
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          (school ID, apprenticeship license, etc.)
+        </p>
+        <div className="flex items-center gap-4 pt-1">
+          <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
+          <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className={cn("h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50", fileError && "border-destructive/50")}>
+            Choose File
+          </Button>
+          <span className={cn("text-sm truncate", fileError ? "text-destructive" : "text-muted-foreground")}>
+            {enrollmentProofFile ? enrollmentProofFile.name : "No file chosen"}
+          </span>
+        </div>
+        {fileError && <p className="text-xs text-destructive">Please upload proof of enrollment or apprenticeship</p>}
       </div>
     </div>
   </div>;
@@ -2076,8 +2107,8 @@ const WholesaleTermsForm = ({
 }) => {
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
-  // Step number varies by account type: professional=5, salon=4, student=4
-  const stepNumber = accountType === "professional" ? 5 : 4;
+  // Step number varies by account type: professional=5, salon=4, student=3
+  const stepNumber = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
@@ -2234,8 +2265,8 @@ const ContactInfoForm = ({
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
-  // Step number varies by account type: professional=7, salon=6, student=5
-  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
+  // Step number varies by account type: professional=7, salon=6, student=4
+  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 4 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
