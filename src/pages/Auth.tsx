@@ -1589,22 +1589,35 @@ const AccountTypeForm = ({
               <Check className={cn("w-[14px] h-[14px] text-background transition-transform duration-300 delay-100", selectedType === type.id ? "scale-100" : "scale-0")} strokeWidth={3} />
             </div>
 
-            <div className="relative flex items-start gap-[15px] sm:gap-5">
-              {/* Icon with haptic bounce */}
-              <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110 shadow-lg shadow-foreground/20" : "bg-muted group-hover:scale-105 group-hover:bg-muted/80")}>
-                <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
+            <div className="relative">
+              {/* Top row: Icon + Content */}
+              <div className="flex items-start gap-[15px] sm:gap-5">
+                {/* Icon with haptic bounce */}
+                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110 shadow-lg shadow-foreground/20" : "bg-muted group-hover:scale-105 group-hover:bg-muted/80")}>
+                  <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <p className={cn("text-sm sm:text-base font-medium text-foreground transition-all duration-300", selectedType === type.id && "translate-x-0.5")}>{type.title}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
+                  {/* Features - inline on desktop */}
+                  <div className="hidden sm:flex flex-wrap gap-[5px] mt-2.5">
+                    {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+                  transitionDelay: `${i * 50}ms`
+                }}>
+                        {feature}
+                      </span>)}
+                  </div>
+                </div>
               </div>
               
-              <div className="flex-1 min-w-0">
-                <p className={cn("text-sm sm:text-base font-medium text-foreground transition-all duration-300", selectedType === type.id && "translate-x-0.5")}>{type.title}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-2.5">{type.description}</p>
-                <div className="flex flex-wrap gap-[5px]">
-                  {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
-                transitionDelay: `${i * 50}ms`
-              }}>
-                      {feature}
-                    </span>)}
-                </div>
+              {/* Features - Full width row on mobile */}
+              <div className="flex sm:hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
+                {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+              transitionDelay: `${i * 50}ms`
+            }}>
+                    {feature}
+                  </span>)}
               </div>
             </div>
           </button>)}
