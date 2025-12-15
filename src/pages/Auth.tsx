@@ -427,8 +427,13 @@ const Auth = () => {
   
   // Mobile hero scroll behavior
   const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
+  const mobileHeroVisibleRef = useRef(mobileHeroVisible);
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    mobileHeroVisibleRef.current = mobileHeroVisible;
+  }, [mobileHeroVisible]);
   
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
@@ -445,6 +450,8 @@ const Auth = () => {
 
     const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
     const hideAfter = 20; // Start hiding once content is scrolled
+    const bottomLockPx = 2; // Treat tiny end-of-scroll bounce as "still at bottom"
+    const showFromBottomBufferPx = 80; // Require a meaningful scroll up before showing again at bottom
 
     const onScroll = (e: Event) => {
       const el = e.currentTarget as HTMLElement | null;
@@ -454,9 +461,19 @@ const Auth = () => {
       const current = el.scrollTop;
       const delta = current - prev;
 
+      const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+      const nearBottom = current >= maxScrollTop - bottomLockPx;
+
       // Always show when at (or near) the top.
       if (current <= hideAfter) {
         setMobileHeroVisible(true);
+        lastByEl.set(el, current);
+        accumByEl.set(el, 0);
+        return;
+      }
+
+      // If we're at the very bottom and already hidden, ignore bounce/momentum that would re-show it.
+      if (nearBottom && !mobileHeroVisibleRef.current) {
         lastByEl.set(el, current);
         accumByEl.set(el, 0);
         return;
@@ -467,9 +484,16 @@ const Auth = () => {
 
       // Trigger once enough movement has accumulated (fixes slow scrolling never crossing threshold).
       if (Math.abs(nextAccum) >= scrollThreshold) {
-        if (nextAccum > 0) setMobileHeroVisible(false);
-        else setMobileHeroVisible(true);
-        accumByEl.set(el, 0);
+        if (nextAccum > 0) {
+          setMobileHeroVisible(false);
+          accumByEl.set(el, 0);
+        } else {
+          // When coming off the bottom, require a meaningful upward scroll before showing again.
+          if (!nearBottom || current <= maxScrollTop - showFromBottomBufferPx) {
+            setMobileHeroVisible(true);
+            accumByEl.set(el, 0);
+          }
+        }
       }
 
       lastByEl.set(el, current);
