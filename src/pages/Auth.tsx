@@ -1342,7 +1342,7 @@ const Auth = () => {
             </div>
           </div>}
 
-        <main ref={mainScrollRef} className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
+        <main ref={mainScrollRef} className={cn("flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}>
           {isTransitioning ? <div className="w-full max-w-lg">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
             </div> : <div key={currentStep} className={cn("w-full max-w-lg", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
