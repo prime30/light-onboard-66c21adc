@@ -427,39 +427,45 @@ const Auth = () => {
   
   // Mobile hero scroll behavior
   const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
-  const lastScrollY = useRef(0);
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
   
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
-    const wrapperEl = mainContentRef.current;
-    const mainEl = mainScrollRef.current;
+    const els = [mainScrollRef.current, mainContentRef.current].filter(Boolean) as HTMLElement[];
+    if (!els.length) return;
 
-    const scrollEl = wrapperEl && wrapperEl.scrollHeight > wrapperEl.clientHeight + 1
-      ? wrapperEl
-      : (mainEl ?? wrapperEl);
+    const lastByEl = new WeakMap<HTMLElement, number>();
+    els.forEach((el) => lastByEl.set(el, el.scrollTop));
 
-    if (!scrollEl) return;
+    const scrollThreshold = 6; // Minimum scroll distance to trigger
+    const hideAfter = 20; // Start hiding once content is scrolled
 
-    const handleScroll = () => {
-      const currentScrollY = scrollEl.scrollTop;
-      const scrollingDown = currentScrollY > lastScrollY.current;
-      const scrollThreshold = 10; // Minimum scroll distance to trigger
-      
-      if (Math.abs(currentScrollY - lastScrollY.current) > scrollThreshold) {
-        if (scrollingDown && currentScrollY > 20) {
-          setMobileHeroVisible(false);
-        } else if (!scrollingDown) {
-          setMobileHeroVisible(true);
-        }
+    const onScroll = (e: Event) => {
+      const el = e.currentTarget as HTMLElement | null;
+      if (!el) return;
+
+      const prev = lastByEl.get(el) ?? 0;
+      const current = el.scrollTop;
+      const delta = current - prev;
+
+      // Always show when at (or near) the top.
+      if (current <= hideAfter) {
+        setMobileHeroVisible(true);
+        lastByEl.set(el, current);
+        return;
       }
-      
-      lastScrollY.current = currentScrollY;
+
+      if (Math.abs(delta) > scrollThreshold) {
+        if (delta > 0) setMobileHeroVisible(false);
+        else setMobileHeroVisible(true);
+      }
+
+      lastByEl.set(el, current);
     };
-    
-    scrollEl.addEventListener('scroll', handleScroll, { passive: true });
-    return () => scrollEl.removeEventListener('scroll', handleScroll);
+
+    els.forEach((el) => el.addEventListener("scroll", onScroll, { passive: true }));
+    return () => els.forEach((el) => el.removeEventListener("scroll", onScroll));
   }, []);
   const resetForm = () => {
     setCurrentStep("onboarding");
