@@ -19,8 +19,8 @@ type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Exclusively Professional",
-  title: "Let's get",
-  highlight: "started",
+  title: "Apply for a",
+  highlight: "pro account",
   description: "Cosmetology license, proof of student status, or equivalent required to shop."
 }, {
   eyebrow: "Quality",
@@ -1230,7 +1230,7 @@ const Auth = () => {
               </div>
               <div className="space-y-0.5">
                 <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                  {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
+                  {mode === "signin" ? "Great to See You Again" : "Let's get started"}
                 </h2>
               </div>
               <p className="text-xs text-background/50 mt-1 hidden sm:block">
@@ -1486,7 +1486,7 @@ const OnboardingForm = ({
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display">
-        Apply for a pro account
+        Let's get started
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
         Unlock wholesale pricing on the industries best hair and tools.
