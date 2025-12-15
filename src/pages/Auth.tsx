@@ -1459,13 +1459,13 @@ const AccountTypeForm = ({
   const types = [{
     id: "professional",
     icon: User,
-    title: "Professional",
-    description: "Licensed cosmetologists",
+    title: "Licensed Stylist",
+    description: "Commission, or Independent Stylist",
     features: ["Pro wholesale pricing", "Stylist to stylist priority support", "Community access"]
   }, {
     id: "salon",
     icon: Building2,
-    title: "Salon Owner",
+    title: "Salon Owner or Manager",
     description: "Business accounts",
     features: ["Team accounts", "Bulk discounts", "Salon owner only community"]
   }, {
@@ -1487,7 +1487,7 @@ const AccountTypeForm = ({
           Tell us who you are
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          Unlock wholesale pricing on the industries best hair and tools.
+          Select the account type that fits you best.
         </p>
       </div>
 
@@ -1527,6 +1527,17 @@ const AccountTypeForm = ({
             </div>
           </button>)}
       </div>
+
+      {/* Non-professional link */}
+      <p className="text-center text-sm text-muted-foreground">
+        Not a professional?{" "}
+        <a 
+          href="#" 
+          className="text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+        >
+          Find a licensed drop dead provider here
+        </a>
+      </p>
     </div>;
 };
 const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
