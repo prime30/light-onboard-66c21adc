@@ -1385,10 +1385,10 @@ const Auth = () => {
               {/* Step label above buttons */}
               {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
                   <span 
-                    key={currentStep} 
+                    key={`${currentStep}-${isTransitioning}`} 
                     className={cn(
                       "inline-block text-[10px] text-muted-foreground/50 tracking-wider",
-                      transitionDirection === "forward" ? "animate-slide-up-fade" : "animate-slide-down-fade"
+                      !isTransitioning && (transitionDirection === "forward" ? "animate-slide-up-fade" : "animate-slide-down-fade")
                     )}
                   >
                     Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
