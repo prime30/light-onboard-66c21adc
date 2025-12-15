@@ -34,7 +34,7 @@ export const AccountTypeCard = ({
         "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-300",
         "hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         selected
-          ? "border-foreground/30 bg-foreground/10 shadow-lg backdrop-blur-sm"
+          ? "border-foreground/20 bg-foreground/[0.03] shadow-lg backdrop-blur-sm"
           : "border-border/30 bg-background/40 hover:bg-background/60 hover:border-foreground/15 backdrop-blur-sm"
       )}
     >
