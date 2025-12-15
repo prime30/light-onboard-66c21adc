@@ -1244,10 +1244,11 @@ const Auth = () => {
           </div>
           
           {/* Step Indicator - Centered with flex-1 wrapper */}
-          {showStepIndicator && <div className="flex-1 flex items-center justify-center mx-2 sm:mx-4 lg:mx-0">
+          {showStepIndicator && <div className="flex-1 flex items-center justify-center mx-2 sm:mx-4 lg:mx-0 h-[50px]">
               {/* Dial container with mask for fade effect */}
-              <div className="relative flex items-center justify-center overflow-hidden" style={{
+              <div className="relative flex items-center justify-center overflow-visible" style={{
               width: '160px',
+              height: '50px',
               maskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)'
             }}>
