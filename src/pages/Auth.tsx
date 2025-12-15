@@ -405,16 +405,15 @@ const Auth = () => {
   const [schoolName, setSchoolName] = useState("");
   const [schoolState, setSchoolState] = useState("");
   const [enrollmentProofFiles, setEnrollmentProofFiles] = useState<File[]>([]);
-  
+
   // Licensed stylist-specific fields
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
   const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
-  
+
   // Subscription preferences
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
   const [subscribeMarketing, setSubscribeMarketing] = useState(true);
   const [subscribePromotions, setSubscribePromotions] = useState(true);
-  
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -424,30 +423,26 @@ const Auth = () => {
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Mobile hero scroll behavior
   const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
   const mobileHeroVisibleRef = useRef(mobileHeroVisible);
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
-
   useEffect(() => {
     mobileHeroVisibleRef.current = mobileHeroVisible;
   }, [mobileHeroVisible]);
-  
+
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
     const els = [mainScrollRef.current, mainContentRef.current].filter(Boolean) as HTMLElement[];
     if (!els.length) return;
-
     const lastByEl = new WeakMap<HTMLElement, number>();
     const accumByEl = new WeakMap<HTMLElement, number>();
-
-    els.forEach((el) => {
+    els.forEach(el => {
       lastByEl.set(el, el.scrollTop);
       accumByEl.set(el, 0);
     });
-
     const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
     const hideAfter = 20; // Start hiding once content is scrolled
     const bottomLockPx = 2; // Treat tiny end-of-scroll bounce as "still at bottom"
@@ -456,11 +451,9 @@ const Auth = () => {
     const onScroll = (e: Event) => {
       const el = e.currentTarget as HTMLElement | null;
       if (!el) return;
-
       const prev = lastByEl.get(el) ?? 0;
       const current = el.scrollTop;
       const delta = current - prev;
-
       const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
       const nearBottom = current >= maxScrollTop - bottomLockPx;
 
@@ -478,7 +471,6 @@ const Auth = () => {
         accumByEl.set(el, 0);
         return;
       }
-
       const nextAccum = (accumByEl.get(el) ?? 0) + delta;
       accumByEl.set(el, nextAccum);
 
@@ -495,12 +487,12 @@ const Auth = () => {
           }
         }
       }
-
       lastByEl.set(el, current);
     };
-
-    els.forEach((el) => el.addEventListener("scroll", onScroll, { passive: true }));
-    return () => els.forEach((el) => el.removeEventListener("scroll", onScroll));
+    els.forEach(el => el.addEventListener("scroll", onScroll, {
+      passive: true
+    }));
+    return () => els.forEach(el => el.removeEventListener("scroll", onScroll));
   }, []);
   const resetForm = () => {
     setCurrentStep("onboarding");
@@ -815,7 +807,7 @@ const Auth = () => {
 
     // For signup, calculate based on account type
     if (accountType === "student") {
-    // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), wholesale (1), contact (3)
+      // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), wholesale (1), contact (3)
       let filled = 0;
       const total = 8;
       if (accountType) filled++;
@@ -899,7 +891,7 @@ const Auth = () => {
     // Mark current step as completed
     const currentStepNum = getCurrentStepNumber();
     setCompletedSteps(prev => new Set([...prev, currentStepNum]));
-    
+
     // Calculate next step for skeleton
     let targetStep: Step = currentStep;
     switch (currentStep) {
@@ -907,9 +899,7 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "account-type":
-        if (accountType === "student") targetStep = "school-info";
-        else if (accountType === "professional") targetStep = "license";
-        else targetStep = "business-location";
+        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "license";else targetStep = "business-location";
         break;
       case "business-location":
         targetStep = "license";
@@ -933,7 +923,6 @@ const Auth = () => {
         targetStep = "success";
         break;
     }
-    
     setNextStep(targetStep);
     setTransitionDirection("forward");
     setIsTransitioning(true);
@@ -973,9 +962,7 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "wholesale-terms":
-        if (accountType === "student") targetStep = "school-info";
-        else if (accountType === "professional") targetStep = "business-location";
-        else targetStep = "license";
+        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
         break;
       case "tax-exemption":
         targetStep = "wholesale-terms";
@@ -984,7 +971,6 @@ const Auth = () => {
         targetStep = accountType === "student" ? "wholesale-terms" : "tax-exemption";
         break;
     }
-    
     setNextStep(targetStep);
     setTransitionDirection("backward");
     setIsTransitioning(true);
@@ -1113,7 +1099,7 @@ const Auth = () => {
         </button>
 
         {/* Left Panel - Hero/Branding */}
-        <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0">
         {/* Sliding Background + Content Container */}
         <div key={mode === "signin" ? "signin-panel" : currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -1304,15 +1290,7 @@ const Auth = () => {
         </header>
 
         {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
-        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && (
-          <div 
-            className={cn(
-              "lg:hidden transition-all duration-300 ease-out overflow-hidden",
-              mobileHeroVisible 
-                ? "max-h-[200px] opacity-100 mb-0" 
-                : "max-h-0 opacity-0 mb-0"
-            )}
-          >
+        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn("lg:hidden transition-all duration-300 ease-out overflow-hidden", mobileHeroVisible ? "max-h-[200px] opacity-100 mb-0" : "max-h-0 opacity-0 mb-0")}>
             <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
               {/* Hero image background */}
               <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
@@ -1327,50 +1305,51 @@ const Auth = () => {
                       {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
                     </span>
                   </div>
-                  <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+                  <div className="space-y-0.5 animate-fade-in" style={{
+                  animationDelay: '100ms',
+                  animationFillMode: 'backwards'
+                }}>
                     <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
                       {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                     </h2>
                   </div>
-                  <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+                  <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
+                  animationDelay: '200ms',
+                  animationFillMode: 'backwards'
+                }}>
                     {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
                   </p>
                 </div>
                 
                 {/* Mini stats */}
                 <div className="flex gap-3 sm:gap-4">
-                  <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+                  <div className="text-center animate-slide-up-fade" style={{
+                  animationDelay: '250ms',
+                  animationFillMode: 'both'
+                }}>
                     <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
                     <div className="text-[9px] text-background/40 uppercase">Pros</div>
                   </div>
-                  <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+                  <div className="text-center animate-slide-up-fade" style={{
+                  animationDelay: '350ms',
+                  animationFillMode: 'both'
+                }}>
                     <div className="text-base sm:text-lg font-semibold text-background">50%</div>
                     <div className="text-[9px] text-background/40 uppercase">Savings</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </div>}
 
         <main ref={mainScrollRef} className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
-          {isTransitioning ? (
-            <div className="w-full max-w-lg">
-              <FormSkeleton variant={
-                (nextStep || currentStep) === "account-type" ? "account-type" :
-                (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" :
-                (nextStep || currentStep) === "business-location" ? "location" :
-                (nextStep || currentStep) === "business-operation" ? "business-operation" :
-                (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" :
-                (nextStep || currentStep) === "contact-info" ? "contact" : "default"
-              } />
-            </div>
-          ) : (
-            <div key={currentStep} className={cn("w-full max-w-lg", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
+          {isTransitioning ? <div className="w-full max-w-lg">
+              <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
+            </div> : <div key={currentStep} className={cn("w-full max-w-lg", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
               {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => {
-                setMode("signup");
-                setCurrentStep("onboarding");
-              }} /> : <>
+              setMode("signup");
+              setCurrentStep("onboarding");
+            }} /> : <>
                   {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
@@ -1379,16 +1358,22 @@ const Auth = () => {
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                   {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                   {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
-                    ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
-                    ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({ file: f, label: `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
-                    ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
-                    ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
-                  ]} />}
+                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
+                file: licenseFile,
+                label: accountType === "salon" ? "Salon License" : "License"
+              }] : []), ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({
+                file: f,
+                label: `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim()
+              })) : []), ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({
+                file: f,
+                label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim()
+              })) : []), ...(taxExemptFile ? [{
+                file: taxExemptFile,
+                label: "Tax Exemption Document"
+              }] : [])]} />}
                   {currentStep === "success" && <SuccessForm />}
                 </>}
-            </div>
-          )}
+            </div>}
         </main>
 
         {/* Spotlight overlay when form is ready to submit */}
@@ -1730,10 +1715,7 @@ const AccountTypeForm = ({
       {/* Non-professional link */}
       <p className="text-center text-sm text-muted-foreground">
         Not a professional? Find a stylist/retailer{" "}
-        <a 
-          href="#" 
-          className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group"
-        >
+        <a href="#" className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
           here
           <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
@@ -1854,27 +1836,16 @@ const LicenseForm = ({
             </div>
 
             {/* File Upload */}
-            <FileUpload
-              file={licenseFile}
-              onFileChange={onLicenseFileChange}
-              placeholder="Upload your salon license"
-            />
+            <FileUpload file={licenseFile} onFileChange={onLicenseFileChange} placeholder="Upload your salon license" />
           </>}
 
         {/* Professional-specific file upload (optional) - shows after 3+ characters in license number */}
-        {!isSalon && licenseNumber.trim().length >= 3 && (
-          <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
+        {!isSalon && licenseNumber.trim().length >= 3 && <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
             <Label className="text-sm font-medium">
               Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
-            <MultiFileUpload
-              files={licenseProofFiles}
-              onFilesChange={onLicenseProofFilesChange}
-              placeholder="Upload photos of your license"
-              maxFiles={3}
-            />
-          </div>
-        )}
+            <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+          </div>}
       </div>
     </div>;
 };
@@ -1892,7 +1863,6 @@ const BusinessOperationForm = ({
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const selectionError = showValidationErrors && businessOperationType === null;
-  
   return <div className="space-y-5 sm:space-y-[30px]">
     <div className="space-y-[10px] text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -1910,28 +1880,11 @@ const BusinessOperationForm = ({
     </div>
 
     <div className="space-y-3 animate-stagger-2">
-      <button
-        type="button"
-        onClick={() => onBusinessOperationTypeChange("commission")}
-        className={cn(
-          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]",
-          businessOperationType === "commission"
-            ? "border-foreground bg-foreground/5"
-            : "border-border/50 hover:border-foreground/30 hover:bg-muted/50",
-          selectionError && "border-destructive/50"
-        )}
-      >
+      <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/5" : "border-border/50 hover:border-foreground/30 hover:bg-muted/50", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-              businessOperationType === "commission"
-                ? "border-foreground bg-foreground"
-                : "border-muted-foreground/40"
-            )}>
-              {businessOperationType === "commission" && (
-                <div className="w-2 h-2 rounded-full bg-background" />
-              )}
+            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+              {businessOperationType === "commission" && <div className="w-2 h-2 rounded-full bg-background" />}
             </div>
             <div>
               <p className="font-medium text-foreground">I am a commission stylist</p>
@@ -1939,44 +1892,17 @@ const BusinessOperationForm = ({
             </div>
           </div>
           {/* Illustration */}
-          <div className={cn(
-            "w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0",
-            businessOperationType === "commission"
-              ? "bg-foreground/10"
-              : "bg-muted/80"
-          )}>
-            <Building2 className={cn(
-              "w-6 h-6 transition-colors duration-300",
-              businessOperationType === "commission"
-                ? "text-foreground"
-                : "text-muted-foreground/60"
-            )} />
+          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "commission" ? "bg-foreground/10" : "bg-muted/80")}>
+            <Building2 className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "commission" ? "text-foreground" : "text-muted-foreground/60")} />
           </div>
         </div>
       </button>
 
-      <button
-        type="button"
-        onClick={() => onBusinessOperationTypeChange("independent")}
-        className={cn(
-          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]",
-          businessOperationType === "independent"
-            ? "border-foreground bg-foreground/5"
-            : "border-border/50 hover:border-foreground/30 hover:bg-muted/50",
-          selectionError && "border-destructive/50"
-        )}
-      >
+      <button type="button" onClick={() => onBusinessOperationTypeChange("independent")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "independent" ? "border-foreground bg-foreground/5" : "border-border/50 hover:border-foreground/30 hover:bg-muted/50", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-              businessOperationType === "independent"
-                ? "border-foreground bg-foreground"
-                : "border-muted-foreground/40"
-            )}>
-              {businessOperationType === "independent" && (
-                <div className="w-2 h-2 rounded-full bg-background" />
-              )}
+            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+              {businessOperationType === "independent" && <div className="w-2 h-2 rounded-full bg-background" />}
             </div>
             <div>
               <p className="font-medium text-foreground">I am an independent stylist</p>
@@ -1984,26 +1910,14 @@ const BusinessOperationForm = ({
             </div>
           </div>
           {/* Illustration */}
-          <div className={cn(
-            "w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0",
-            businessOperationType === "independent"
-              ? "bg-foreground/10"
-              : "bg-muted/80"
-          )}>
-            <User className={cn(
-              "w-6 h-6 transition-colors duration-300",
-              businessOperationType === "independent"
-                ? "text-foreground"
-                : "text-muted-foreground/60"
-            )} />
+          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "independent" ? "bg-foreground/10" : "bg-muted/80")}>
+            <User className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "independent" ? "text-foreground" : "text-muted-foreground/60")} />
           </div>
         </div>
       </button>
     </div>
 
-    {selectionError && (
-      <p className="text-xs text-destructive text-center">Please select how you operate your business</p>
-    )}
+    {selectionError && <p className="text-xs text-destructive text-center">Please select how you operate your business</p>}
   </div>;
 };
 
@@ -2185,7 +2099,6 @@ const SchoolInfoForm = ({
   const schoolNameError = showValidationErrors && schoolName.trim() === "";
   const stateError = showValidationErrors && schoolState === "";
   const fileError = showValidationErrors && enrollmentProofFiles.length === 0;
-
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -2223,21 +2136,17 @@ const SchoolInfoForm = ({
           <Select value={schoolState} onValueChange={onSchoolStateChange}>
             <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
               <div className="flex items-center gap-3">
-                {schoolState && hasStateIcon(schoolState) && (
-                  <StateIcon state={schoolState} className="w-5 h-5" />
-                )}
+                {schoolState && hasStateIcon(schoolState) && <StateIcon state={schoolState} className="w-5 h-5" />}
                 <SelectValue placeholder="Select your state/province" />
               </div>
             </SelectTrigger>
             <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
-              {states.map(s => (
-                <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
                   <div className="flex items-center gap-2.5">
                     {hasStateIcon(s) && <StateIcon state={s} className="w-4 h-4" />}
                     <span>{s}</span>
                   </div>
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -2252,14 +2161,7 @@ const SchoolInfoForm = ({
         <p className="text-xs text-muted-foreground">
           Upload school ID, apprenticeship license, enrollment letter, etc.
         </p>
-        <MultiFileUpload
-          files={enrollmentProofFiles}
-          onFilesChange={onEnrollmentProofFilesChange}
-          placeholder="Upload your documents"
-          maxFiles={5}
-          error={fileError}
-          errorMessage="Please upload at least one proof of enrollment or apprenticeship"
-        />
+        <MultiFileUpload files={enrollmentProofFiles} onFilesChange={onEnrollmentProofFilesChange} placeholder="Upload your documents" maxFiles={5} error={fileError} errorMessage="Please upload at least one proof of enrollment or apprenticeship" />
       </div>
     </div>
   </div>;
@@ -2384,15 +2286,7 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      {hasTaxExemption === true && (
-        <FileUpload
-          file={taxExemptFile}
-          onFileChange={onTaxExemptFileChange}
-          placeholder="Upload your state tax-exempt license"
-          error={fileError}
-          errorMessage="Please upload your tax exemption document"
-        />
-      )}
+      {hasTaxExemption === true && <FileUpload file={taxExemptFile} onFileChange={onTaxExemptFileChange} placeholder="Upload your state tax-exempt license" error={fileError} errorMessage="Please upload your tax exemption document" />}
     </div>;
 };
 
@@ -2438,7 +2332,10 @@ const ContactInfoForm = ({
   onSubscribePromotionsChange: (value: boolean) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
-  uploadedFiles?: { file: File; label: string }[];
+  uploadedFiles?: {
+    file: File;
+    label: string;
+  }[];
 }) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
@@ -2532,44 +2429,30 @@ const ContactInfoForm = ({
       </div>
 
       {/* Uploaded Files Summary */}
-      {uploadedFiles.length > 0 && (
-        <div className="animate-stagger-5">
+      {uploadedFiles.length > 0 && <div className="animate-stagger-5">
           <FileSummary files={uploadedFiles} title="Your Uploaded Documents" />
-        </div>
-      )}
+        </div>}
 
       {/* Subscription Preferences */}
       <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/30 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-6" : "animate-stagger-5")}>
         <p className="text-sm font-medium text-foreground">Communication Preferences</p>
         <div className="space-y-3">
           <label className="flex items-start gap-3 cursor-pointer group">
-            <Checkbox
-              checked={subscribeOrderUpdates}
-              onCheckedChange={onSubscribeOrderUpdatesChange}
-              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-            />
+            <Checkbox checked={subscribeOrderUpdates} onCheckedChange={onSubscribeOrderUpdatesChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
               <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Order updates</span>
               <p className="text-xs text-muted-foreground">Receive shipping notifications and order status updates</p>
             </div>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
-            <Checkbox
-              checked={subscribeMarketing}
-              onCheckedChange={onSubscribeMarketingChange}
-              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-            />
+            <Checkbox checked={subscribeMarketing} onCheckedChange={onSubscribeMarketingChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
               <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Marketing emails</span>
               <p className="text-xs text-muted-foreground">Get tips, tutorials, and industry insights</p>
             </div>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
-            <Checkbox
-              checked={subscribePromotions}
-              onCheckedChange={onSubscribePromotionsChange}
-              className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-            />
+            <Checkbox checked={subscribePromotions} onCheckedChange={onSubscribePromotionsChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
               <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Promotions & deals</span>
               <p className="text-xs text-muted-foreground">Exclusive discounts, sales, and special offers</p>
