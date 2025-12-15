@@ -1449,7 +1449,7 @@ const Auth = () => {
                   animationDelay: '100ms',
                   animationFillMode: 'backwards'
                 }}>
-                    <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                    <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight">
                       {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                     </h2>
                   </div>
