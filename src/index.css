@@ -1,10 +1,72 @@
 /* Termina Font Family */
 @font-face {
   font-family: 'Termina';
-  src: url('/fonts/termina-medium.otf') format('opentype'),
-       url('/fonts/termina-medium.woff2') format('woff2'),
-       url('/fonts/termina-medium.woff') format('woff');
+  src: url('/fonts/termina-thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-extralight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-medium.otf') format('opentype');
   font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-demi.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-heavy.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Termina';
+  src: url('/fonts/termina-black.otf') format('opentype');
+  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
