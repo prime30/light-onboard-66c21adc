@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck, Loader2, FileText } from "lucide-react";
+import { Upload, X, FileCheck, Loader2, FileText, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
@@ -17,6 +17,13 @@ const isImageFile = (file: File) => {
     /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
 };
 
+const formatAcceptedTypes = (accept: string) => {
+  return accept
+    .split(",")
+    .map(t => t.trim().toUpperCase().replace(".", ""))
+    .join(", ");
+};
+
 export const FileUpload = ({
   file,
   onFileChange,
@@ -31,6 +38,7 @@ export const FileUpload = ({
   const [progress, setProgress] = useState(0);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileTypeError, setFileTypeError] = useState<string | null>(null);
 
   // Generate preview URL for image files
   useEffect(() => {
@@ -78,14 +86,37 @@ export const FileUpload = ({
     return () => clearInterval(interval);
   }, [pendingFile, onFileChange]);
 
+  const validateFileType = useCallback((selectedFile: File): boolean => {
+    const acceptedTypes = accept.split(",").map(t => t.trim().toLowerCase());
+    const fileExt = `.${selectedFile.name.split(".").pop()?.toLowerCase()}`;
+    const isValid = acceptedTypes.some(type => 
+      fileExt === type || selectedFile.type.includes(type.replace(".", ""))
+    );
+    
+    if (!isValid) {
+      const acceptedFormats = formatAcceptedTypes(accept);
+      setFileTypeError(`Invalid file type. Please upload: ${acceptedFormats}`);
+      return false;
+    }
+    
+    setFileTypeError(null);
+    return true;
+  }, [accept]);
+
   const processFile = (selectedFile: File) => {
-    setPendingFile(selectedFile);
+    if (validateFileType(selectedFile)) {
+      setPendingFile(selectedFile);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
     if (selectedFile) {
       processFile(selectedFile);
+    }
+    // Reset input value so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -108,23 +139,22 @@ export const FileUpload = ({
 
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile) {
-      // Validate file type
-      const acceptedTypes = accept.split(",").map(t => t.trim().toLowerCase());
-      const fileExt = `.${droppedFile.name.split(".").pop()?.toLowerCase()}`;
-      
-      if (acceptedTypes.some(type => fileExt === type || droppedFile.type.includes(type.replace(".", "")))) {
-        processFile(droppedFile);
-      }
+      processFile(droppedFile);
     }
-  }, [accept]);
+  }, [validateFileType]);
 
   const handleRemoveFile = () => {
     onFileChange(null);
     setProgress(0);
     setPreviewUrl(null);
+    setFileTypeError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const clearFileTypeError = () => {
+    setFileTypeError(null);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -133,8 +163,26 @@ export const FileUpload = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const hasError = error || !!fileTypeError;
+  const displayErrorMessage = fileTypeError || errorMessage;
+
   return (
     <div className="space-y-2">
+      {/* File type error banner */}
+      {fileTypeError && (
+        <div className="flex items-center gap-2 p-3 rounded-[12px] bg-destructive/10 border border-destructive/30 animate-in fade-in slide-in-from-top-1 duration-200">
+          <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+          <p className="text-xs text-destructive flex-1">{fileTypeError}</p>
+          <button 
+            type="button"
+            onClick={clearFileTypeError}
+            className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
+          >
+            <X className="w-3 h-3 text-destructive" />
+          </button>
+        </div>
+      )}
+
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -143,12 +191,12 @@ export const FileUpload = ({
           "relative flex items-center gap-4 p-4 rounded-[15px] border-2 border-dashed transition-all duration-300 overflow-hidden",
           isDragOver 
             ? "border-foreground bg-foreground/5 scale-[1.01]" 
-            : error 
+            : hasError 
               ? "border-destructive/50 bg-destructive/5" 
               : isProcessing
                 ? "border-foreground/50 bg-foreground/5"
                 : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
-          file && !error && !isProcessing && "border-foreground/30 bg-foreground/5"
+          file && !hasError && !isProcessing && "border-foreground/30 bg-foreground/5"
         )}
       >
         {/* Progress bar background */}
@@ -239,7 +287,7 @@ export const FileUpload = ({
             <div className="flex-1 min-w-0">
               <p className={cn(
                 "text-sm",
-                error ? "text-destructive" : "text-muted-foreground"
+                hasError ? "text-destructive" : "text-muted-foreground"
               )}>
                 {isDragOver ? "Drop file here" : placeholder}
               </p>
@@ -253,7 +301,7 @@ export const FileUpload = ({
               onClick={() => fileInputRef.current?.click()}
               className={cn(
                 "h-[40px] px-5 rounded-[10px] border-border/50 hover:bg-muted/50 flex-shrink-0",
-                error && "border-destructive/50"
+                hasError && "border-destructive/50"
               )}
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -262,7 +310,7 @@ export const FileUpload = ({
           </>
         )}
       </div>
-      {error && errorMessage && (
+      {error && errorMessage && !fileTypeError && (
         <p className="text-xs text-destructive">{errorMessage}</p>
       )}
     </div>
