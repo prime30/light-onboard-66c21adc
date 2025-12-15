@@ -1179,7 +1179,15 @@ const Auth = () => {
 
                 {/* Feature Pills - Slides with content */}
                 <div className="hidden xl:flex flex-wrap gap-2.5">
-                  {features.map((feature, i) => <MagneticFeatureBox key={i} icon={feature.icon} label={feature.label} desc={feature.desc} />)}
+                  {features.map((feature, i) => (
+                    <div 
+                      key={i} 
+                      className="animate-haptic-pop"
+                      style={{ animationDelay: `${600 + i * 100}ms`, animationFillMode: 'both' }}
+                    >
+                      <MagneticFeatureBox icon={feature.icon} label={feature.label} desc={feature.desc} />
+                    </div>
+                  ))}
                 </div>
               </div>)}
           </div>
