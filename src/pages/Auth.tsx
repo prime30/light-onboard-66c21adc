@@ -2258,11 +2258,11 @@ const WholesaleTermsForm = ({
             </p>
           </div>
           {/* Countdown timer bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-status-green/20">
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-status-green/10 overflow-hidden">
             <div 
-              className="h-full bg-status-green/60 origin-right"
+              className="h-full bg-status-green/30 origin-right rounded-full"
               style={{
-                animation: `shrinkWidth ${TOAST_DURATION}ms linear forwards`
+                animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
               }}
             />
           </div>
