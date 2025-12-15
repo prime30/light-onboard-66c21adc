@@ -10,7 +10,16 @@ interface FileUploadProps {
   placeholder?: string;
   error?: boolean;
   errorMessage?: string;
+  maxFileSize?: number; // in bytes, default 10MB
 }
+
+const MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024; // 10MB
+
+const formatFileSizeLimit = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+};
 
 const isImageFile = (file: File) => {
   return file.type.startsWith("image/") || 
@@ -31,6 +40,7 @@ export const FileUpload = ({
   placeholder = "No file chosen",
   error = false,
   errorMessage,
+  maxFileSize = MAX_FILE_SIZE_DEFAULT,
 }: FileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -106,25 +116,32 @@ export const FileUpload = ({
     return () => clearInterval(interval);
   }, [pendingFile, onFileChange]);
 
-  const validateFileType = useCallback((selectedFile: File): boolean => {
+  const validateFile = useCallback((selectedFile: File): boolean => {
+    // Check file type
     const acceptedTypes = accept.split(",").map(t => t.trim().toLowerCase());
     const fileExt = `.${selectedFile.name.split(".").pop()?.toLowerCase()}`;
-    const isValid = acceptedTypes.some(type => 
+    const isValidType = acceptedTypes.some(type => 
       fileExt === type || selectedFile.type.includes(type.replace(".", ""))
     );
     
-    if (!isValid) {
+    if (!isValidType) {
       const acceptedFormats = formatAcceptedTypes(accept);
       setFileTypeError(`Invalid file type. Please upload: ${acceptedFormats}`);
+      return false;
+    }
+
+    // Check file size
+    if (selectedFile.size > maxFileSize) {
+      setFileTypeError(`File too large. Maximum size: ${formatFileSizeLimit(maxFileSize)}`);
       return false;
     }
     
     setFileTypeError(null);
     return true;
-  }, [accept]);
+  }, [accept, maxFileSize]);
 
   const processFile = (selectedFile: File) => {
-    if (validateFileType(selectedFile)) {
+    if (validateFile(selectedFile)) {
       setPendingFile(selectedFile);
     }
   };
@@ -161,7 +178,7 @@ export const FileUpload = ({
     if (droppedFile) {
       processFile(droppedFile);
     }
-  }, [validateFileType]);
+  }, [validateFile]);
 
   const handleRemoveFile = () => {
     onFileChange(null);
