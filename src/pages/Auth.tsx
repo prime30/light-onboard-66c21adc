@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -2302,6 +2304,8 @@ const ContactInfoForm = ({
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   // Step number varies by account type: professional=7, salon=6, student=4
   const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 4 : 6;
   return <div className="space-y-[25px]">
@@ -2438,12 +2442,135 @@ const ContactInfoForm = ({
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
-          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
+          <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
           {" & "}
-          <button className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
+          <button type="button" onClick={() => setShowPrivacy(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
         </p>
       </div>
     </div>
+
+    {/* Terms of Service Modal */}
+    <Dialog open={showTerms} onOpenChange={setShowTerms}>
+      <DialogContent className="max-w-2xl max-h-[85vh]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Terms of Service</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-[60vh] pr-4">
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <p className="text-foreground font-medium">Last updated: December 2024</p>
+            
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">1. Acceptance of Terms</h3>
+              <p>By accessing and using Drop Dead Gorgeous ("the Platform"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">2. Professional Verification</h3>
+              <p>Our platform is exclusively for licensed beauty professionals. By registering, you confirm that you hold a valid cosmetology license, are enrolled in an accredited cosmetology program, or hold equivalent professional credentials. We reserve the right to verify your professional status and terminate accounts that do not meet our requirements.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">3. Account Responsibilities</h3>
+              <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. You agree to notify us immediately of any unauthorized access or security breach.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">4. Wholesale Pricing</h3>
+              <p>Wholesale pricing is available exclusively to verified professionals. Resale of products purchased at wholesale prices to non-professionals or general consumers is prohibited and may result in account termination.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">5. Orders and Payment</h3>
+              <p>All orders are subject to acceptance and product availability. Prices are subject to change without notice. Payment is due at the time of purchase unless otherwise agreed upon in writing.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">6. Shipping and Returns</h3>
+              <p>Shipping times and costs vary by location and order size. Returns are accepted within 30 days of delivery for unopened products in original packaging. Defective products may be returned for full refund or replacement.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">7. Limitation of Liability</h3>
+              <p>Drop Dead Gorgeous shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the platform or products purchased through it.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">8. Changes to Terms</h3>
+              <p>We reserve the right to modify these terms at any time. Continued use of the platform after changes constitutes acceptance of the modified terms.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">9. Contact</h3>
+              <p>For questions about these Terms of Service, please contact us at legal@dropdeadgorgeous.com</p>
+            </section>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+
+    {/* Privacy Policy Modal */}
+    <Dialog open={showPrivacy} onOpenChange={setShowPrivacy}>
+      <DialogContent className="max-w-2xl max-h-[85vh]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Privacy Policy</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-[60vh] pr-4">
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <p className="text-foreground font-medium">Last updated: December 2024</p>
+            
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">1. Information We Collect</h3>
+              <p>We collect information you provide directly, including: name, email, phone number, business information, professional license details, and payment information. We also collect usage data automatically when you interact with our platform.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">2. How We Use Your Information</h3>
+              <p>We use your information to: process orders and payments, verify professional credentials, communicate about orders and promotions, improve our services, and comply with legal obligations.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">3. Information Sharing</h3>
+              <p>We do not sell your personal information. We may share information with: service providers who assist our operations, payment processors, shipping carriers, and as required by law.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">4. Data Security</h3>
+              <p>We implement industry-standard security measures to protect your information, including encryption, secure servers, and regular security audits. However, no method of transmission over the internet is 100% secure.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">5. Your Rights</h3>
+              <p>You have the right to: access your personal information, correct inaccurate data, request deletion of your data, opt out of marketing communications, and request a copy of your data.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">6. Cookies and Tracking</h3>
+              <p>We use cookies and similar technologies to enhance your experience, analyze usage, and deliver targeted advertising. You can manage cookie preferences through your browser settings.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">7. SMS Communications</h3>
+              <p>By providing your phone number, you consent to receive SMS messages about orders, promotions, and updates. Message and data rates may apply. Reply STOP to unsubscribe at any time.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">8. Children's Privacy</h3>
+              <p>Our platform is not intended for individuals under 18 years of age. We do not knowingly collect information from children.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">9. Changes to This Policy</h3>
+              <p>We may update this Privacy Policy periodically. We will notify you of significant changes via email or platform notification.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">10. Contact Us</h3>
+              <p>For privacy-related inquiries, contact us at privacy@dropdeadgorgeous.com</p>
+            </section>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </div>;
 };
 
