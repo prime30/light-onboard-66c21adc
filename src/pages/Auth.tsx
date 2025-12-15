@@ -1185,7 +1185,7 @@ const Auth = () => {
 
         {/* Feature Pills - Fixed (do not re-animate on carousel) */}
         {mode === "signup" && (
-          <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[70px] lg:bottom-[80px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
+          <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[90px] lg:bottom-[110px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
             {features.map((feature, i) => (
               <div
                 key={i}
