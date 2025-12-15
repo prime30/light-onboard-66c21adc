@@ -1679,6 +1679,12 @@ const Auth = () => {
 
 // Sub-components
 
+// Email validation helper
+const isValidEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 const SignInForm = ({
   email,
   password,
@@ -1700,6 +1706,10 @@ const SignInForm = ({
   onForgotPasswordSubmit: () => void;
   isSendingReset: boolean;
 }) => {
+  const [emailTouched, setEmailTouched] = useState(false);
+  const emailIsValid = isValidEmail(email);
+  const showEmailError = emailTouched && email.trim() !== "" && !emailIsValid;
+
   if (showForgotPassword) {
     return (
       <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
@@ -1717,17 +1727,28 @@ const SignInForm = ({
             <Label htmlFor="reset-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
               Email address
             </Label>
-            <div className="relative group input-ultra input-ripple rounded-[15px]">
-              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+            <div className={`relative group input-ultra input-ripple rounded-[15px] ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
+              <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
+                <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
               </div>
-              <Input id="reset-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+              <Input 
+                id="reset-email" 
+                type="email" 
+                placeholder="you@example.com" 
+                value={email} 
+                onChange={e => onEmailChange(e.target.value)} 
+                onBlur={() => setEmailTouched(true)}
+                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/30 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+              />
             </div>
+            {showEmailError && (
+              <p className="text-xs text-destructive text-left animate-slide-in-right">Please enter a valid email address</p>
+            )}
           </div>
 
           <Button
             onClick={onForgotPasswordSubmit}
-            disabled={email.trim() === "" || isSendingReset}
+            disabled={!emailIsValid || isSendingReset}
             className="w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
           >
             {isSendingReset ? (
@@ -1769,12 +1790,23 @@ const SignInForm = ({
           <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
             Email address
           </Label>
-          <div className="relative group input-ultra input-ripple rounded-[15px]">
-            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-              <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+          <div className={`relative group input-ultra input-ripple rounded-[15px] ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
+            <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
+              <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
             </div>
-            <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input 
+              id="login-email" 
+              type="email" 
+              placeholder="you@example.com" 
+              value={email} 
+              onChange={e => onEmailChange(e.target.value)} 
+              onBlur={() => setEmailTouched(true)}
+              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/30 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+            />
           </div>
+          {showEmailError && (
+            <p className="text-xs text-destructive text-left animate-slide-in-right">Please enter a valid email address</p>
+          )}
         </div>
 
         <PasswordInputField id="login-password" label="Password" value={password} onChange={onPasswordChange} placeholder="••••••••" />
