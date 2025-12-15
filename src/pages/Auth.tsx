@@ -1285,7 +1285,7 @@ const Auth = () => {
           </div>
           
           {/* Step Indicator - Centered with flex-1 wrapper */}
-          {showStepIndicator && <div className="flex-1 flex items-center justify-center mx-2 sm:mx-4 lg:mx-0 h-[50px]">
+          {showStepIndicator && <div className="flex-1 flex items-center justify-center ml-2 sm:ml-4 lg:ml-0 mr-12 sm:mr-16 lg:mr-0 h-[50px]">
               {/* Dial container with mask for fade effect */}
               <div className="relative flex items-center justify-center overflow-visible" style={{
               width: '160px',
