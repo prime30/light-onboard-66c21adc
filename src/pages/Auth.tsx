@@ -1616,7 +1616,7 @@ const AccountTypeForm = ({
           Tell us who you are
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          Select the account type that fits you best
+          Unlock wholesale pricing on the industries best hair and tools.
         </p>
       </div>
 
