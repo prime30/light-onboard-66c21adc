@@ -26,44 +26,56 @@ serve(async (req) => {
       throw new Error('Google Places API key not configured');
     }
 
-    // Build the autocomplete URL
-    const params = new URLSearchParams({
+    // Build request body for Places API (New)
+    const requestBody: Record<string, unknown> = {
       input: input.trim(),
-      key: apiKey,
-      types: 'address',
-    });
+      includedPrimaryTypes: ['street_address', 'premise', 'subpremise'],
+    };
 
     // Add country restriction if provided
     if (country) {
-      const countryCode = country === 'United States' ? 'us' : country === 'Canada' ? 'ca' : '';
+      const countryCode = country === 'United States' ? 'US' : country === 'Canada' ? 'CA' : '';
       if (countryCode) {
-        params.append('components', `country:${countryCode}`);
+        requestBody.includedRegionCodes = [countryCode];
       }
     }
 
     // Add session token for billing optimization
     if (sessionToken) {
-      params.append('sessiontoken', sessionToken);
+      requestBody.sessionToken = sessionToken;
     }
 
     console.log('Fetching autocomplete for:', input);
 
+    // Use Places API (New) endpoint
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`
+      'https://places.googleapis.com/v1/places:autocomplete',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+        },
+        body: JSON.stringify(requestBody),
+      }
     );
 
     const data = await response.json();
     
-    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('Google Places API error:', data.status, data.error_message);
-      throw new Error(data.error_message || `API error: ${data.status}`);
+    if (data.error) {
+      console.error('Google Places API error:', data.error.message);
+      throw new Error(data.error.message || 'API error');
     }
 
-    console.log('Got', data.predictions?.length || 0, 'predictions');
+    // Transform response to match expected format
+    const predictions = (data.suggestions || []).map((suggestion: { placePrediction?: { placeId: string; text?: { text: string } } }) => ({
+      place_id: suggestion.placePrediction?.placeId,
+      description: suggestion.placePrediction?.text?.text || '',
+    })).filter((p: { place_id?: string }) => p.place_id);
 
-    return new Response(JSON.stringify({ 
-      predictions: data.predictions || [] 
-    }), {
+    console.log('Got', predictions.length, 'predictions');
+
+    return new Response(JSON.stringify({ predictions }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
