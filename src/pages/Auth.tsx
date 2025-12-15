@@ -1744,8 +1744,8 @@ const LicenseForm = ({
             />
           </>}
 
-        {/* Professional-specific file upload (optional) - shows after license number is entered */}
-        {!isSalon && licenseNumber.trim() !== "" && (
+        {/* Professional-specific file upload (optional) - shows after 3+ characters in license number */}
+        {!isSalon && licenseNumber.trim().length >= 3 && (
           <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
             <Label className="text-sm font-medium">
               Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
