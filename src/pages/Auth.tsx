@@ -435,65 +435,78 @@ const Auth = () => {
 
   // Track scroll direction for mobile hero hide/show
   useEffect(() => {
-    const els = [mainScrollRef.current, mainContentRef.current].filter(Boolean) as HTMLElement[];
-    if (!els.length) return;
-    const lastByEl = new WeakMap<HTMLElement, number>();
-    const accumByEl = new WeakMap<HTMLElement, number>();
-    els.forEach(el => {
-      lastByEl.set(el, el.scrollTop);
-      accumByEl.set(el, 0);
-    });
-    const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
-    const hideAfter = 20; // Start hiding once content is scrolled
-    const bottomLockPx = 2; // Treat tiny end-of-scroll bounce as "still at bottom"
-    const showFromBottomBufferPx = 80; // Require a meaningful scroll up before showing again at bottom
-
-    const onScroll = (e: Event) => {
-      const el = e.currentTarget as HTMLElement | null;
-      if (!el) return;
-      const prev = lastByEl.get(el) ?? 0;
-      const current = el.scrollTop;
-      const delta = current - prev;
-      const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
-      const nearBottom = current >= maxScrollTop - bottomLockPx;
-
-      // Always show when at (or near) the top.
-      if (current <= hideAfter) {
-        setMobileHeroVisible(true);
-        lastByEl.set(el, current);
+    // Small delay to ensure refs are populated after render
+    const timeoutId = setTimeout(() => {
+      const els = [mainScrollRef.current, mainContentRef.current].filter(Boolean) as HTMLElement[];
+      if (!els.length) return;
+      const lastByEl = new WeakMap<HTMLElement, number>();
+      const accumByEl = new WeakMap<HTMLElement, number>();
+      els.forEach(el => {
+        lastByEl.set(el, el.scrollTop);
         accumByEl.set(el, 0);
-        return;
-      }
+      });
+      const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
+      const hideAfter = 20; // Start hiding once content is scrolled
+      const bottomLockPx = 2; // Treat tiny end-of-scroll bounce as "still at bottom"
+      const showFromBottomBufferPx = 80; // Require a meaningful scroll up before showing again at bottom
 
-      // If we're at the very bottom and already hidden, ignore bounce/momentum that would re-show it.
-      if (nearBottom && !mobileHeroVisibleRef.current) {
-        lastByEl.set(el, current);
-        accumByEl.set(el, 0);
-        return;
-      }
-      const nextAccum = (accumByEl.get(el) ?? 0) + delta;
-      accumByEl.set(el, nextAccum);
+      const onScroll = (e: Event) => {
+        const el = e.currentTarget as HTMLElement | null;
+        if (!el) return;
+        const prev = lastByEl.get(el) ?? 0;
+        const current = el.scrollTop;
+        const delta = current - prev;
+        const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+        const nearBottom = current >= maxScrollTop - bottomLockPx;
 
-      // Trigger once enough movement has accumulated (fixes slow scrolling never crossing threshold).
-      if (Math.abs(nextAccum) >= scrollThreshold) {
-        if (nextAccum > 0) {
-          setMobileHeroVisible(false);
+        // Always show when at (or near) the top.
+        if (current <= hideAfter) {
+          setMobileHeroVisible(true);
+          lastByEl.set(el, current);
           accumByEl.set(el, 0);
-        } else {
-          // When coming off the bottom, require a meaningful upward scroll before showing again.
-          if (!nearBottom || current <= maxScrollTop - showFromBottomBufferPx) {
-            setMobileHeroVisible(true);
+          return;
+        }
+
+        // If we're at the very bottom and already hidden, ignore bounce/momentum that would re-show it.
+        if (nearBottom && !mobileHeroVisibleRef.current) {
+          lastByEl.set(el, current);
+          accumByEl.set(el, 0);
+          return;
+        }
+        const nextAccum = (accumByEl.get(el) ?? 0) + delta;
+        accumByEl.set(el, nextAccum);
+
+        // Trigger once enough movement has accumulated (fixes slow scrolling never crossing threshold).
+        if (Math.abs(nextAccum) >= scrollThreshold) {
+          if (nextAccum > 0) {
+            setMobileHeroVisible(false);
             accumByEl.set(el, 0);
+          } else {
+            // When coming off the bottom, require a meaningful upward scroll before showing again.
+            if (!nearBottom || current <= maxScrollTop - showFromBottomBufferPx) {
+              setMobileHeroVisible(true);
+              accumByEl.set(el, 0);
+            }
           }
         }
+        lastByEl.set(el, current);
+      };
+      els.forEach(el => el.addEventListener("scroll", onScroll, {
+        passive: true
+      }));
+      
+      // Store cleanup function
+      (window as any).__mobileHeroScrollCleanup = () => els.forEach(el => el.removeEventListener("scroll", onScroll));
+    }, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      if ((window as any).__mobileHeroScrollCleanup) {
+        (window as any).__mobileHeroScrollCleanup();
+        delete (window as any).__mobileHeroScrollCleanup;
       }
-      lastByEl.set(el, current);
     };
-    els.forEach(el => el.addEventListener("scroll", onScroll, {
-      passive: true
-    }));
-    return () => els.forEach(el => el.removeEventListener("scroll", onScroll));
-  }, []);
+  }, [mode, currentStep]);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
