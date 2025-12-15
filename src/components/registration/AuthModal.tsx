@@ -146,7 +146,7 @@ export const AuthModal = ({
                   <ArrowLeft className="w-4 h-4" />
                 </Button>}
               <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
-                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Create Account" : "Continue"}
+                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Submit Application" : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>

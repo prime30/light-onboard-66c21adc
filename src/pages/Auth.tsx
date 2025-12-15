@@ -1545,9 +1545,9 @@ const Auth = () => {
                           <span className="relative z-10 flex items-center justify-center gap-[10px]">
                             {isSubmitting ? <>
                                 <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                                Creating account...
+                                Submitting...
                               </> : <>
-                                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Create Account" : "Continue"}
+                                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Submit Application" : "Continue"}
                                 <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
                               </>}
                           </span>
