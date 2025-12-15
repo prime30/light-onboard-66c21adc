@@ -598,10 +598,22 @@ const Auth = () => {
   const handleModalTouchMove = (e: React.TouchEvent) => {
     if (window.innerWidth >= 640 || modalTouchStartY.current === null) return;
     const currentY = e.touches[0].clientY;
-    const diff = currentY - modalTouchStartY.current;
+    const rawDiff = currentY - modalTouchStartY.current;
     // Only allow dragging down, not up
-    if (diff > 0) {
-      setModalDragOffset(diff);
+    if (rawDiff > 0) {
+      // Add resistance: drag slows down progressively
+      // Before threshold: normal drag
+      // After threshold: diminishing returns (rubber band effect)
+      const threshold = 100;
+      let resistedDiff;
+      if (rawDiff <= threshold) {
+        resistedDiff = rawDiff;
+      } else {
+        // Apply logarithmic resistance past threshold
+        const overflow = rawDiff - threshold;
+        resistedDiff = threshold + (overflow * 0.3);
+      }
+      setModalDragOffset(resistedDiff);
     }
   };
   
@@ -1167,12 +1179,24 @@ const Auth = () => {
           isClosing && "animate-modal-exit"
         )}
         style={{
-          transform: modalDragOffset > 0 ? `translateY(${modalDragOffset}px)` : undefined,
-          transition: modalDragOffset > 0 ? 'none' : 'transform 0.3s ease-out'
+          transform: modalDragOffset > 0 
+            ? `translateY(${modalDragOffset}px) scale(${1 - Math.min(modalDragOffset * 0.0003, 0.03)})` 
+            : undefined,
+          transition: modalDragOffset > 0 ? 'none' : 'transform 0.3s ease-out',
+          opacity: modalDragOffset > 0 ? Math.max(1 - modalDragOffset * 0.002, 0.85) : undefined
         }}
       >
         {/* Drag Handle - Mobile Only */}
-        <div className="sm:hidden absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-muted-foreground/30 z-10" />
+        <div 
+          className={cn(
+            "sm:hidden absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full z-10 transition-all duration-150",
+            modalDragOffset >= 100 
+              ? "bg-destructive/60 w-12 scale-110" 
+              : modalDragOffset > 50 
+                ? "bg-muted-foreground/50 w-11" 
+                : "bg-muted-foreground/30"
+          )}
+        />
 
         {/* Left Panel - Hero/Branding */}
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
