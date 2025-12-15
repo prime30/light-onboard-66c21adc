@@ -1332,7 +1332,10 @@ const Auth = () => {
         </header>
 
         {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
-        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn("lg:hidden transition-all duration-300 ease-out", mobileHeroVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none")}>
+        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn(
+          "lg:hidden overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out",
+          mobileHeroVisible ? "max-h-[220px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+        )}>
             <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
               {/* Hero image background */}
               <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
