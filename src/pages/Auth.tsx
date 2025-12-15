@@ -1778,20 +1778,36 @@ const BusinessOperationForm = ({
           selectionError && "border-destructive/50"
         )}
       >
-        <div className="flex items-center gap-4">
-          <div className={cn(
-            "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-            businessOperationType === "commission"
-              ? "border-foreground bg-foreground"
-              : "border-muted-foreground/40"
-          )}>
-            {businessOperationType === "commission" && (
-              <div className="w-2 h-2 rounded-full bg-background" />
-            )}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+              businessOperationType === "commission"
+                ? "border-foreground bg-foreground"
+                : "border-muted-foreground/40"
+            )}>
+              {businessOperationType === "commission" && (
+                <div className="w-2 h-2 rounded-full bg-background" />
+              )}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">I am a commission stylist</p>
+              <p className="text-sm text-muted-foreground/70">I work under a salon and receive commission</p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-foreground">I am a commission stylist</p>
-            <p className="text-sm text-muted-foreground/70">I work under a salon and receive commission</p>
+          {/* Illustration */}
+          <div className={cn(
+            "w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0",
+            businessOperationType === "commission"
+              ? "bg-foreground/10"
+              : "bg-muted/80"
+          )}>
+            <Building2 className={cn(
+              "w-6 h-6 transition-colors duration-300",
+              businessOperationType === "commission"
+                ? "text-foreground"
+                : "text-muted-foreground/60"
+            )} />
           </div>
         </div>
       </button>
@@ -1807,20 +1823,36 @@ const BusinessOperationForm = ({
           selectionError && "border-destructive/50"
         )}
       >
-        <div className="flex items-center gap-4">
-          <div className={cn(
-            "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-            businessOperationType === "independent"
-              ? "border-foreground bg-foreground"
-              : "border-muted-foreground/40"
-          )}>
-            {businessOperationType === "independent" && (
-              <div className="w-2 h-2 rounded-full bg-background" />
-            )}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+              businessOperationType === "independent"
+                ? "border-foreground bg-foreground"
+                : "border-muted-foreground/40"
+            )}>
+              {businessOperationType === "independent" && (
+                <div className="w-2 h-2 rounded-full bg-background" />
+              )}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">I am an independent stylist</p>
+              <p className="text-sm text-muted-foreground/70">I operate my own business or rent a chair</p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-foreground">I am an independent stylist</p>
-            <p className="text-sm text-muted-foreground/70">I operate my own business or rent a chair</p>
+          {/* Illustration */}
+          <div className={cn(
+            "w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0",
+            businessOperationType === "independent"
+              ? "bg-foreground/10"
+              : "bg-muted/80"
+          )}>
+            <User className={cn(
+              "w-6 h-6 transition-colors duration-300",
+              businessOperationType === "independent"
+                ? "text-foreground"
+                : "text-muted-foreground/60"
+            )} />
           </div>
         </div>
       </button>
