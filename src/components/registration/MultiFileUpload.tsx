@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
+import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
 
@@ -42,15 +42,27 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-// File item component with preview
+// File item component with preview and drag handle
 const FileItem = ({ 
   file, 
+  index,
   onRemove,
-  onPreview 
+  onPreview,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  isDragging,
+  isDragOver,
 }: { 
   file: File; 
+  index: number;
   onRemove: () => void;
   onPreview: () => void;
+  onDragStart: (e: React.DragEvent, index: number) => void;
+  onDragOver: (e: React.DragEvent, index: number) => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+  isDragOver: boolean;
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -63,7 +75,23 @@ const FileItem = ({
   }, [file]);
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-[12px] bg-muted/50 border border-border/50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <div 
+      draggable
+      onDragStart={(e) => onDragStart(e, index)}
+      onDragOver={(e) => onDragOver(e, index)}
+      onDragEnd={onDragEnd}
+      className={cn(
+        "flex items-center gap-2 p-3 rounded-[12px] bg-muted/50 border border-border/50 transition-all duration-200",
+        isDragging && "opacity-50 scale-95",
+        isDragOver && "border-foreground/50 bg-foreground/5 scale-[1.02]",
+        !isDragging && "animate-in fade-in slide-in-from-bottom-2"
+      )}
+    >
+      {/* Drag handle */}
+      <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-foreground/10 transition-colors">
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      
       {previewUrl ? (
         <button
           type="button"
@@ -122,6 +150,10 @@ export const MultiFileUpload = ({
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<File | null>(null);
+  
+  // Drag-and-drop reordering state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Close lightbox on escape key
   useEffect(() => {
@@ -406,7 +438,7 @@ export const MultiFileUpload = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Uploaded Files ({files.length})
+                Uploaded Files ({files.length}) {files.length > 1 && <span className="normal-case font-normal">• Drag to reorder</span>}
               </p>
               {files.length > 1 && (
                 <button
@@ -423,8 +455,32 @@ export const MultiFileUpload = ({
                 <FileItem
                   key={`${file.name}-${file.lastModified}-${index}`}
                   file={file}
+                  index={index}
                   onRemove={() => handleRemoveFile(index)}
                   onPreview={() => openLightbox(file)}
+                  onDragStart={(e, idx) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    setDraggedIndex(idx);
+                  }}
+                  onDragOver={(e, idx) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    if (draggedIndex !== null && draggedIndex !== idx) {
+                      setDragOverIndex(idx);
+                    }
+                  }}
+                  onDragEnd={() => {
+                    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+                      const newFiles = [...files];
+                      const [draggedFile] = newFiles.splice(draggedIndex, 1);
+                      newFiles.splice(dragOverIndex, 0, draggedFile);
+                      onFilesChange(newFiles);
+                    }
+                    setDraggedIndex(null);
+                    setDragOverIndex(null);
+                  }}
+                  isDragging={draggedIndex === index}
+                  isDragOver={dragOverIndex === index}
                 />
               ))}
             </div>
