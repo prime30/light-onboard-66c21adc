@@ -1425,7 +1425,7 @@ const Auth = () => {
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[0.625rem] sm:pb-[0.625rem] lg:pb-[0.625rem] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
             <div className={cn("max-w-lg mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
               {/* Step label above buttons */}
               {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
