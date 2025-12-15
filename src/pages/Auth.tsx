@@ -1225,19 +1225,16 @@ const Auth = () => {
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/10 border border-background/10 mb-2">
                 <Sparkles className="w-3 h-3 text-background/70" />
                 <span className="text-[10px] font-medium text-background/70 uppercase tracking-wider">
-                  {mode === "signin" ? "Welcome Back" : "Join Pro Network"}
+                  {mode === "signin" ? "Welcome Back" : "Pro Network"}
                 </span>
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-base sm:text-lg font-light text-background/50 leading-tight">
-                  {mode === "signin" ? "Great to" : "Exclusive"}
-                </h2>
                 <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                  {mode === "signin" ? "See You Again" : "Wholesale Access"}
+                  {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
                 </h2>
               </div>
               <p className="text-xs text-background/50 mt-1 hidden sm:block">
-                {mode === "signin" ? "Your pro account is waiting for you" : "For beauty professionals"}
+                {mode === "signin" ? "Your pro account is waiting for you" : "Unlock wholesale pricing on the industries best hair and tools."}
               </p>
             </div>
             
