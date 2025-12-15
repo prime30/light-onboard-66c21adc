@@ -1250,11 +1250,11 @@ const Auth = () => {
             
             {/* Mini stats */}
             <div className="flex gap-3 sm:gap-4">
-              <div className="text-center">
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'backwards' }}>
                 <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
                 <div className="text-[9px] text-background/40 uppercase">Pros</div>
               </div>
-              <div className="text-center">
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'backwards' }}>
                 <div className="text-base sm:text-lg font-semibold text-background">50%</div>
                 <div className="text-[9px] text-background/40 uppercase">Savings</div>
               </div>
@@ -1300,7 +1300,7 @@ const Auth = () => {
                   </span>
                 </div>}
               <div className="flex gap-[15px]">
-                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 transition-all duration-300 group", showSpotlight && "opacity-0 pointer-events-none")}>
+                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
                 <TooltipProvider delayDuration={0}>
@@ -1559,7 +1559,7 @@ const AccountTypeForm = ({
   }];
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 1
@@ -1674,7 +1674,7 @@ const LicenseForm = ({
   const stepNumber = accountType === "salon" ? 3 : 2;
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step {stepNumber}
@@ -1688,7 +1688,7 @@ const LicenseForm = ({
         </p>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           {isSalon ? "We are a manufacturer and supplier of professional products. The prices displayed reflect professional wholesale pricing, not available to the general public." : "We display professional wholesale pricing. Please enter your license exactly as it appears from the state."}
@@ -1791,7 +1791,7 @@ const BusinessOperationForm = ({
   
   return <div className="space-y-5 sm:space-y-[30px]">
     <div className="space-y-[10px] text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 3
@@ -1805,12 +1805,12 @@ const BusinessOperationForm = ({
       </p>
     </div>
 
-    <div className="space-y-3">
+    <div className="space-y-3 animate-stagger-2">
       <button
         type="button"
         onClick={() => onBusinessOperationTypeChange("commission")}
         className={cn(
-          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300",
+          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]",
           businessOperationType === "commission"
             ? "border-foreground bg-foreground/5"
             : "border-border/50 hover:border-foreground/30 hover:bg-muted/50",
@@ -1855,7 +1855,7 @@ const BusinessOperationForm = ({
         type="button"
         onClick={() => onBusinessOperationTypeChange("independent")}
         className={cn(
-          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300",
+          "w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]",
           businessOperationType === "independent"
             ? "border-foreground bg-foreground/5"
             : "border-border/50 hover:border-foreground/30 hover:bg-muted/50",
@@ -1953,7 +1953,7 @@ const BusinessLocationForm = ({
   const stepNumber = accountType === "professional" ? 4 : 2;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
@@ -2084,7 +2084,7 @@ const SchoolInfoForm = ({
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 2
@@ -2181,7 +2181,7 @@ const WholesaleTermsForm = ({
   const stepNumber = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
@@ -2192,7 +2192,7 @@ const WholesaleTermsForm = ({
       </h1>
     </div>
 
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
       <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
       <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
         <p>
@@ -2204,7 +2204,7 @@ const WholesaleTermsForm = ({
       </div>
     </div>
 
-    <button onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    <button onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -2240,7 +2240,7 @@ const TaxExemptionForm = ({
   const stepNumber = accountType === "professional" ? 6 : 5;
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step {stepNumber}
@@ -2251,16 +2251,16 @@ const TaxExemptionForm = ({
         </h1>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50">
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           A resale license for tax exemption is not required to register, but it may be a good idea for you to have one. If you choose to upload a tax exemption license, you will not be charged sales tax on extensions. If you do not want to pay sales tax, and be sales tax exempt, please upload your tax exemption documentation from your state.
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 animate-stagger-3">
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => onTaxExemptionChange(true)} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4", hasTaxExemption === true ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+          <button onClick={() => onTaxExemptionChange(true)} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
@@ -2269,7 +2269,7 @@ const TaxExemptionForm = ({
           <button onClick={() => {
           onTaxExemptionChange(false);
           onTaxExemptFileChange(null);
-        }} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4", hasTaxExemption === false ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+        }} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
@@ -2347,7 +2347,7 @@ const ContactInfoForm = ({
   const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 4 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px]">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
