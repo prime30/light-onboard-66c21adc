@@ -1846,12 +1846,19 @@ const LicenseForm = ({
           </>}
 
         {/* Professional-specific file upload (optional) - shows after 3+ characters in license number */}
-        {!isSalon && licenseNumber.trim().length >= 3 && <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
-            <Label className="text-sm font-medium">
-              Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
-          </div>}
+        {!isSalon && <div className={cn(
+          "grid transition-all duration-400",
+          licenseNumber.trim().length >= 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )} style={{ transitionTimingFunction: licenseNumber.trim().length >= 3 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+          <div className="overflow-hidden">
+            <div className={cn("space-y-2.5", licenseNumber.trim().length >= 3 && "animate-haptic-pop")}>
+              <Label className="text-sm font-medium">
+                Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+            </div>
+          </div>
+        </div>}
       </div>
     </div>;
 };
@@ -2338,7 +2345,16 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      {hasTaxExemption === true && <FileUpload file={taxExemptFile} onFileChange={onTaxExemptFileChange} placeholder="Upload your state tax-exempt license" error={fileError} errorMessage="Please upload your tax exemption document" />}
+      <div className={cn(
+        "grid transition-all duration-400",
+        hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      )} style={{ transitionTimingFunction: hasTaxExemption === true ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+        <div className="overflow-hidden">
+          <div className={cn(hasTaxExemption === true && "animate-haptic-pop")}>
+            <FileUpload file={taxExemptFile} onFileChange={onTaxExemptFileChange} placeholder="Upload your state tax-exempt license" error={fileError} errorMessage="Please upload your tax exemption document" />
+          </div>
+        </div>
+      </div>
     </div>;
 };
 
