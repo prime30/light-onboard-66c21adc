@@ -24,33 +24,30 @@ serve(async (req) => {
       throw new Error('Google Places API key not configured');
     }
 
-    // Build the place details URL
-    const params = new URLSearchParams({
-      place_id: placeId,
-      key: apiKey,
-      fields: 'address_components,formatted_address',
-    });
-
-    // Add session token for billing optimization
-    if (sessionToken) {
-      params.append('sessiontoken', sessionToken);
-    }
-
     console.log('Fetching place details for:', placeId);
 
+    // Use Places API (New) endpoint
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params.toString()}`
+      `https://places.googleapis.com/v1/places/${placeId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'addressComponents,formattedAddress',
+        },
+      }
     );
 
     const data = await response.json();
     
-    if (data.status !== 'OK') {
-      console.error('Google Places API error:', data.status, data.error_message);
-      throw new Error(data.error_message || `API error: ${data.status}`);
+    if (data.error) {
+      console.error('Google Places API error:', data.error.message);
+      throw new Error(data.error.message || 'API error');
     }
 
-    // Parse address components
-    const components = data.result.address_components || [];
+    // Parse address components from new API format
+    const components = data.addressComponents || [];
     const addressDetails: Record<string, string> = {
       streetNumber: '',
       route: '',
@@ -59,26 +56,29 @@ serve(async (req) => {
       stateShort: '',
       country: '',
       postalCode: '',
-      formattedAddress: data.result.formatted_address || '',
+      formattedAddress: data.formattedAddress || '',
     };
 
     for (const component of components) {
-      const types = component.types;
+      const types = component.types || [];
+      const longText = component.longText || '';
+      const shortText = component.shortText || '';
+      
       if (types.includes('street_number')) {
-        addressDetails.streetNumber = component.long_name;
+        addressDetails.streetNumber = longText;
       } else if (types.includes('route')) {
-        addressDetails.route = component.long_name;
+        addressDetails.route = longText;
       } else if (types.includes('locality')) {
-        addressDetails.city = component.long_name;
+        addressDetails.city = longText;
       } else if (types.includes('sublocality_level_1') && !addressDetails.city) {
-        addressDetails.city = component.long_name;
+        addressDetails.city = longText;
       } else if (types.includes('administrative_area_level_1')) {
-        addressDetails.state = component.long_name;
-        addressDetails.stateShort = component.short_name;
+        addressDetails.state = longText;
+        addressDetails.stateShort = shortText;
       } else if (types.includes('country')) {
-        addressDetails.country = component.long_name;
+        addressDetails.country = longText;
       } else if (types.includes('postal_code')) {
-        addressDetails.postalCode = component.long_name;
+        addressDetails.postalCode = longText;
       }
     }
 
@@ -89,9 +89,7 @@ serve(async (req) => {
 
     console.log('Parsed address details:', addressDetails);
 
-    return new Response(JSON.stringify({ 
-      details: addressDetails 
-    }), {
+    return new Response(JSON.stringify({ details: addressDetails }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
