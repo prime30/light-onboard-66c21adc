@@ -406,6 +406,7 @@ const Auth = () => {
   
   // Licensed stylist-specific fields
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
+  const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
   
   // Subscription preferences
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
@@ -449,6 +450,7 @@ const Auth = () => {
     setSchoolState("");
     setEnrollmentProofFiles([]);
     setBusinessOperationType(null);
+    setLicenseProofFiles([]);
     setSubscribeOrderUpdates(true);
     setSubscribeMarketing(true);
     setSubscribePromotions(true);
@@ -1268,7 +1270,7 @@ const Auth = () => {
             }} /> : <>
                 {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                 {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
-                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
+                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                 {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
                 {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                 {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
@@ -1276,6 +1278,7 @@ const Auth = () => {
                 {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                 {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
                   ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
+                  ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({ file: f, label: `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
                   ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
                   ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
                 ]} />}
@@ -1628,10 +1631,12 @@ const LicenseForm = ({
   salonSize,
   salonStructure,
   licenseFile,
+  licenseProofFiles,
   onLicenseChange,
   onSalonSizeChange,
   onSalonStructureChange,
   onLicenseFileChange,
+  onLicenseProofFilesChange,
   showValidationErrors = false,
   validationStatus
 }: {
@@ -1640,10 +1645,12 @@ const LicenseForm = ({
   salonSize: string;
   salonStructure: string;
   licenseFile: File | null;
+  licenseProofFiles: File[];
   onLicenseChange: (value: string) => void;
   onSalonSizeChange: (value: string) => void;
   onSalonStructureChange: (value: string) => void;
   onLicenseFileChange: (file: File | null) => void;
+  onLicenseProofFilesChange: (files: File[]) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
@@ -1736,6 +1743,21 @@ const LicenseForm = ({
               placeholder="Upload your salon license"
             />
           </>}
+
+        {/* Professional-specific file upload (optional) */}
+        {!isSalon && (
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium">
+              Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <MultiFileUpload
+              files={licenseProofFiles}
+              onFilesChange={onLicenseProofFilesChange}
+              placeholder="Upload photos of your license"
+              maxFiles={3}
+            />
+          </div>
+        )}
       </div>
     </div>;
 };
