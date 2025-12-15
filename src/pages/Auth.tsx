@@ -437,72 +437,91 @@ const Auth = () => {
   useEffect(() => {
     // Small delay to ensure refs are populated after render
     const timeoutId = setTimeout(() => {
-      const els = [mainScrollRef.current, mainContentRef.current].filter(Boolean) as HTMLElement[];
-      if (!els.length) return;
-      const lastByEl = new WeakMap<HTMLElement, number>();
-      const accumByEl = new WeakMap<HTMLElement, number>();
-      els.forEach(el => {
-        lastByEl.set(el, el.scrollTop);
-        accumByEl.set(el, 0);
-      });
-      const scrollThreshold = 6; // Total scroll distance needed to trigger (accumulated)
-      const hideAfter = 20; // Start hiding once content is scrolled
-      const bottomLockPx = 2; // Treat tiny end-of-scroll bounce as "still at bottom"
-      const showFromBottomBufferPx = 80; // Require a meaningful scroll up before showing again at bottom
+      // Use a single scroll container to avoid nested-scroll jitter on iOS.
+      const el = (mainScrollRef.current ?? mainContentRef.current) as HTMLElement | null;
+      if (!el) return;
+
+      let last = el.scrollTop;
+      let accum = 0;
+      let lastToggleAt = 0;
+
+      const scrollThreshold = 8; // Slightly higher threshold to reduce jitter
+      const hideAfter = 20;
+      const showFromBottomBufferPx = 120; // Bigger bottom buffer to ignore iOS bounce
+      const toggleCooldownMs = 250;
 
       const onScroll = (e: Event) => {
-        const el = e.currentTarget as HTMLElement | null;
-        if (!el) return;
-        const prev = lastByEl.get(el) ?? 0;
-        const current = el.scrollTop;
-        const delta = current - prev;
-        const maxScrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+        const target = e.currentTarget as HTMLElement | null;
+        if (!target) return;
+
+        const now = performance.now();
+        const current = target.scrollTop;
+        const delta = current - last;
+
+        // Ignore tiny oscillations (common with elastic bounce).
+        if (Math.abs(delta) < 1) {
+          last = current;
+          return;
+        }
+
+        const maxScrollTop = Math.max(0, target.scrollHeight - target.clientHeight);
         const inBottomZone = current >= maxScrollTop - showFromBottomBufferPx;
 
-        // Always show when at (or near) the top.
+        // Always show near top.
         if (current <= hideAfter) {
-          setMobileHeroVisible(true);
-          lastByEl.set(el, current);
-          accumByEl.set(el, 0);
+          if (!mobileHeroVisibleRef.current) setMobileHeroVisible(true);
+          last = current;
+          accum = 0;
           return;
         }
 
-        // If we're within the bottom "bounce zone" and already hidden, ignore elastic bounce/momentum.
-        if (inBottomZone && !mobileHeroVisibleRef.current) {
-          lastByEl.set(el, current);
-          accumByEl.set(el, 0);
+        // When near bottom, lock state to hidden to prevent bounce jitter.
+        if (inBottomZone) {
+          if (mobileHeroVisibleRef.current) setMobileHeroVisible(false);
+          last = current;
+          accum = 0;
           return;
         }
-        const nextAccum = (accumByEl.get(el) ?? 0) + delta;
-        accumByEl.set(el, nextAccum);
 
-        // Trigger once enough movement has accumulated (fixes slow scrolling never crossing threshold).
-        if (Math.abs(nextAccum) >= scrollThreshold) {
-          if (nextAccum > 0) {
-            setMobileHeroVisible(false);
-            accumByEl.set(el, 0);
+        accum += delta;
+
+        // Throttle toggles.
+        if (now - lastToggleAt < toggleCooldownMs) {
+          last = current;
+          return;
+        }
+
+        if (Math.abs(accum) >= scrollThreshold) {
+          if (accum > 0) {
+            if (mobileHeroVisibleRef.current) {
+              setMobileHeroVisible(false);
+              lastToggleAt = now;
+            }
           } else {
-            // Require a meaningful upward scroll away from the bottom zone before showing.
-            if (!inBottomZone) {
+            if (!mobileHeroVisibleRef.current) {
               setMobileHeroVisible(true);
-              accumByEl.set(el, 0);
+              lastToggleAt = now;
             }
           }
+          accum = 0;
         }
+
+        last = current;
       };
-      els.forEach(el => el.addEventListener("scroll", onScroll, {
-        passive: true
-      }));
+
+      el.addEventListener("scroll", onScroll, { passive: true });
       
-      // Store cleanup function
-      (window as any).__mobileHeroScrollCleanup = () => els.forEach(el => el.removeEventListener("scroll", onScroll));
-    }, 100);
-    
+      // store for cleanup within this closure
+      (el as any).__mobileHeroScrollHandler = onScroll;
+    }, 50);
+
     return () => {
       clearTimeout(timeoutId);
-      if ((window as any).__mobileHeroScrollCleanup) {
-        (window as any).__mobileHeroScrollCleanup();
-        delete (window as any).__mobileHeroScrollCleanup;
+      const el = (mainScrollRef.current ?? mainContentRef.current) as HTMLElement | null;
+      const handler = el ? ((el as any).__mobileHeroScrollHandler as ((e: Event) => void) | undefined) : undefined;
+      if (el && handler) {
+        el.removeEventListener("scroll", handler);
+        delete (el as any).__mobileHeroScrollHandler;
       }
     };
   }, [mode, currentStep]);
