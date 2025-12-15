@@ -1388,9 +1388,9 @@ const Auth = () => {
           </div>}
 
         <main ref={mainScrollRef} className={cn("flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}>
-          {isTransitioning ? <div className="w-full max-w-lg">
+          {isTransitioning ? <div className="w-full max-w-[38rem]">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
-            </div> : <div key={currentStep} className={cn("w-full max-w-lg", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
+            </div> : <div key={currentStep} className={cn("w-full max-w-[38rem]", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
               {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => {
               setMode("signup");
               setCurrentStep("onboarding");
@@ -1426,7 +1426,7 @@ const Auth = () => {
 
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
-            <div className={cn("max-w-lg mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
+            <div className={cn("max-w-[38rem] mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
               {/* Step label above buttons */}
               {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
                   <span 
