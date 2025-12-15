@@ -5,7 +5,7 @@ import { AccountTypeStep } from "./steps/AccountTypeStep";
 import { LicenseStep } from "./steps/LicenseStep";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
 import { SuccessStep } from "./steps/SuccessStep";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, X } from "lucide-react";
 import { toast } from "sonner";
 
 type Step = "account-type" | "license" | "personal-info" | "success";
@@ -156,8 +156,9 @@ export const RegistrationFlow = () => {
             {currentStep === "account-type" && (
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <button className="text-foreground underline underline-offset-4 hover:no-underline">
+                <button className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
                   Sign in
+                  <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </button>
               </p>
             )}
