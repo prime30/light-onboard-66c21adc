@@ -1269,7 +1269,7 @@ const Auth = () => {
         onTouchMove={handleModalTouchMove}
         onTouchEnd={handleModalTouchEnd}
         className={cn(
-          "relative z-10 bg-background rounded-t-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row",
+          "relative z-10 bg-background rounded-t-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-visible flex flex-col lg:flex-row",
           "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]",
           !isClosing && modalDragOffset === 0 && "animate-modal-enter",
           isClosing && "animate-modal-exit"
@@ -2124,8 +2124,8 @@ const LicenseForm = ({
           <Label htmlFor="license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
             {isSalon ? "Salon License #*" : "License number*"}
           </Label>
-          <div className="relative group input-glow input-ripple rounded-[15px]">
-            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
+          <div className="relative group input-glow rounded-[15px]">
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>
