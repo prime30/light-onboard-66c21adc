@@ -595,6 +595,11 @@
     opacity: 0;
   }
 
+  /* Haptic pop entrance - more impactful */
+  .animate-haptic-pop {
+    animation: hapticPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
   /* Button lift on hover */
   .btn-lift {
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1104,5 +1109,34 @@
   }
   50% {
     transform: scale(1.03);
+  }
+}
+
+/* Haptic pop - more impactful entrance */
+@keyframes hapticPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-2px);
+  }
+  70% {
+    transform: scale(0.98) translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Shrink width for countdown timer */
+@keyframes shrinkWidth {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
   }
 }

@@ -2187,10 +2187,32 @@ const WholesaleTermsForm = ({
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
+  const [showToast, setShowToast] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
   // Step number varies by account type: professional=5, salon=4, student=3
   const stepNumber = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
+  
+  const TOAST_DURATION = 5000; // 5 seconds
+
+  const handleAgreeChange = (value: boolean) => {
+    onAgreeChange(value);
+    if (value && !agreed) {
+      setShowToast(true);
+      setToastKey(prev => prev + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, TOAST_DURATION);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast, toastKey]);
+
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -2211,7 +2233,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -2222,14 +2244,28 @@ const WholesaleTermsForm = ({
     
     <div className={cn(
       "grid transition-all duration-400",
-      agreed ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-    )} style={{ transitionTimingFunction: agreed ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+      showToast ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+    )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
       <div className="overflow-hidden">
-        <div className="flex gap-3 p-4 rounded-xl bg-status-green/10 border border-status-green/20 mt-0">
-          <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
-          <p className="text-sm text-status-green">
-            Thank you! This protects your margins if you ever want to raise prices for your services.
-          </p>
+        <div 
+          key={toastKey}
+          className="relative overflow-hidden rounded-xl bg-status-green/10 border border-status-green/20 mt-0 animate-haptic-pop"
+        >
+          <div className="flex gap-3 p-4">
+            <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
+            <p className="text-sm text-status-green">
+              Thank you! This protects your margins if you ever want to raise prices for your services.
+            </p>
+          </div>
+          {/* Countdown timer bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-status-green/20">
+            <div 
+              className="h-full bg-status-green/60 origin-right"
+              style={{
+                animation: `shrinkWidth ${TOAST_DURATION}ms linear forwards`
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
