@@ -444,10 +444,13 @@ const Auth = () => {
       let last = el.scrollTop;
       let accum = 0;
       let lastToggleAt = 0;
+      let bottomLocked = false;
+      let bottomLockAt = 0;
 
       const scrollThreshold = 8; // Slightly higher threshold to reduce jitter
       const hideAfter = 20;
-      const showFromBottomBufferPx = 120; // Bigger bottom buffer to ignore iOS bounce
+      const bottomZonePx = 120; // Bottom zone where we lock hidden (prevents iOS bounce flicker)
+      const unlockFromBottomPx = 40; // Must scroll up this much to unlock
       const toggleCooldownMs = 250;
 
       const onScroll = (e: Event) => {
@@ -465,22 +468,34 @@ const Auth = () => {
         }
 
         const maxScrollTop = Math.max(0, target.scrollHeight - target.clientHeight);
-        const inBottomZone = current >= maxScrollTop - showFromBottomBufferPx;
+        const inBottomZone = current >= maxScrollTop - bottomZonePx;
 
         // Always show near top.
         if (current <= hideAfter) {
+          bottomLocked = false;
           if (!mobileHeroVisibleRef.current) setMobileHeroVisible(true);
           last = current;
           accum = 0;
           return;
         }
 
-        // When near bottom, lock state to hidden to prevent bounce jitter.
-        if (inBottomZone) {
-          if (mobileHeroVisibleRef.current) setMobileHeroVisible(false);
-          last = current;
-          accum = 0;
-          return;
+        // Bottom lock: once we hit the bottom zone, keep hero hidden until the user scrolls up meaningfully.
+        // This avoids a feedback loop where collapsing/expanding changes maxScrollTop and causes flicker.
+        if (inBottomZone || bottomLocked) {
+          if (!bottomLocked) {
+            bottomLocked = true;
+            bottomLockAt = current;
+          }
+
+          // Unlock only after a deliberate upward scroll away from the lock point.
+          if (bottomLocked && current <= bottomLockAt - unlockFromBottomPx) {
+            bottomLocked = false;
+          } else {
+            if (mobileHeroVisibleRef.current) setMobileHeroVisible(false);
+            last = current;
+            accum = 0;
+            return;
+          }
         }
 
         accum += delta;
@@ -510,8 +525,6 @@ const Auth = () => {
       };
 
       el.addEventListener("scroll", onScroll, { passive: true });
-      
-      // store for cleanup within this closure
       (el as any).__mobileHeroScrollHandler = onScroll;
     }, 50);
 
