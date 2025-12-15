@@ -412,8 +412,6 @@
       0 0 0 1px hsl(var(--foreground) / 0.1),
       0 4px 20px hsl(var(--foreground) / 0.06),
       0 8px 40px hsl(var(--foreground) / 0.03);
-    transform: translateY(-2px) scale(1.01);
-    animation: hapticBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   /* Input glow with haptic feedback */
@@ -440,8 +438,7 @@
   }
 
   .input-glow:focus-within {
-    transform: translateY(-2px) scale(1.008);
-    animation: hapticBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Keep the glow without scaling to avoid clipping inside constrained layouts */
   }
 
   /* Haptic press effect for buttons and interactive elements */
