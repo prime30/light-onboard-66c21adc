@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -1718,6 +1718,7 @@ const LicenseForm = ({
             <div className="flex items-center gap-4 pt-2">
               <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
               <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50">
+                <Upload className="w-4 h-4 mr-2" />
                 Choose File
               </Button>
               <span className="text-sm text-muted-foreground">
@@ -2079,6 +2080,7 @@ const SchoolInfoForm = ({
         <div className="flex items-center gap-4 pt-1">
           <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
           <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className={cn("h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50", fileError && "border-destructive/50")}>
+            <Upload className="w-4 h-4 mr-2" />
             Choose File
           </Button>
           <span className={cn("text-sm truncate", fileError ? "text-destructive" : "text-muted-foreground")}>
@@ -2219,6 +2221,7 @@ const TaxExemptionForm = ({
           <div className="flex items-center gap-4 pt-2">
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className={cn("h-[45px] px-6 rounded-[12px] border-border/50 hover:bg-muted/50", fileError && "border-destructive/50")}>
+              <Upload className="w-4 h-4 mr-2" />
               Choose File
             </Button>
             <span className={cn("text-sm", fileError ? "text-destructive" : "text-muted-foreground")}>
