@@ -19,6 +19,7 @@ import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { FileSummary } from "@/components/registration/FileSummary";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
+import { supabase } from "@/integrations/supabase/client";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -474,6 +475,8 @@ const Auth = () => {
   const [subscribePromotions, setSubscribePromotions] = useState(true);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
@@ -692,6 +695,29 @@ const Auth = () => {
       navigate("/");
     }, 300);
   }, [navigate]);
+
+  const handleForgotPasswordSubmit = useCallback(async () => {
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Check your email for a reset link!");
+        setShowForgotPassword(false);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset email");
+    } finally {
+      setIsSendingReset(false);
+    }
+  }, [email]);
   
   const canContinue = () => {
     if (mode === "signin") {
@@ -1544,10 +1570,21 @@ const Auth = () => {
           {isTransitioning ? <div className="w-full max-w-[38rem]">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
             </div> : <div key={currentStep} className={cn("w-full max-w-[38rem]", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
-              {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => {
-              setMode("signup");
-              setCurrentStep("onboarding");
-            }} /> : <>
+              {mode === "signin" ? <SignInForm 
+                email={email} 
+                password={password} 
+                onEmailChange={setEmail} 
+                onPasswordChange={setPassword} 
+                onSignUp={() => {
+                  setMode("signup");
+                  setCurrentStep("onboarding");
+                  setShowForgotPassword(false);
+                }}
+                showForgotPassword={showForgotPassword}
+                onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
+                onForgotPasswordSubmit={handleForgotPasswordSubmit}
+                isSendingReset={isSendingReset}
+              /> : <>
                   {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
@@ -1647,88 +1684,152 @@ const SignInForm = ({
   password,
   onEmailChange,
   onPasswordChange,
-  onSignUp
+  onSignUp,
+  showForgotPassword,
+  onForgotPasswordToggle,
+  onForgotPasswordSubmit,
+  isSendingReset
 }: {
   email: string;
   password: string;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSignUp: () => void;
-}) => <div className="space-y-[clamp(15px,4vh,30px)] text-center">
-    <div className="space-y-[12px] animate-stagger-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
-        Welcome back
-      </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-        Sign in to access your pro account
-      </p>
-    </div>
-
-
-    <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
-      <div className="space-y-2.5">
-        <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
-          Email address
-        </Label>
-        <div className="relative group input-ultra input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-            <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-          </div>
-          <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+  showForgotPassword: boolean;
+  onForgotPasswordToggle: () => void;
+  onForgotPasswordSubmit: () => void;
+  isSendingReset: boolean;
+}) => {
+  if (showForgotPassword) {
+    return (
+      <div className="space-y-[clamp(15px,4vh,30px)] text-center">
+        <div className="space-y-[12px] animate-stagger-1">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
+            Reset password
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            Enter your email and we'll send you a reset link
+          </p>
         </div>
-      </div>
 
-      <PasswordInputField id="login-password" label="Password" value={password} onChange={onPasswordChange} placeholder="••••••••" />
-
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2.5 cursor-pointer group">
-          <div className="relative w-[18px] h-[18px]">
-            <input type="checkbox" className="peer sr-only" />
-            <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted/30 peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
-            <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+        <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
+          <div className="space-y-2.5">
+            <Label htmlFor="reset-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+              Email address
+            </Label>
+            <div className="relative group input-ultra input-ripple rounded-[15px]">
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              </div>
+              <Input id="reset-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            </div>
           </div>
-          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Remember me</span>
-        </label>
 
-        <button className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
-          <span className="relative">
-            Forgot password?
-            <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
-          </span>
-          <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+          <Button
+            onClick={onForgotPasswordSubmit}
+            disabled={email.trim() === "" || isSendingReset}
+            className="w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
+          >
+            {isSendingReset ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              "Send Reset Link"
+            )}
+          </Button>
+        </div>
+
+        <button
+          onClick={onForgotPasswordToggle}
+          className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to sign in
         </button>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-[clamp(15px,4vh,30px)] text-center">
+      <div className="space-y-[12px] animate-stagger-1">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
+          Welcome back
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+          Sign in to access your pro account
+        </p>
+      </div>
+
+
+      <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
+        <div className="space-y-2.5">
+          <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+            Email address
+          </Label>
+          <div className="relative group input-ultra input-ripple rounded-[15px]">
+            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+              <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+            </div>
+            <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[60px] pl-[60px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          </div>
+        </div>
+
+        <PasswordInputField id="login-password" label="Password" value={password} onChange={onPasswordChange} placeholder="••••••••" />
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2.5 cursor-pointer group">
+            <div className="relative w-[18px] h-[18px]">
+              <input type="checkbox" className="peer sr-only" />
+              <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted/30 peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
+              <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+            </div>
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Remember me</span>
+          </label>
+
+          <button onClick={onForgotPasswordToggle} className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300">
+            <span className="relative">
+              Forgot password?
+              <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+            </span>
+            <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
+        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Headphones className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
+          </div>
+          <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Support</span>
+        </div>
+        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
+          </div>
+          <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Community</span>
+        </div>
+        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
+          </div>
+          <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Pro Pricing</span>
+        </div>
+      </div>
+
+
+      <p className="text-xs text-muted-foreground text-center pt-2">
+        Don't have an account?{" "}
+        <button onClick={onSignUp} className="text-foreground underline underline-offset-2 hover:no-underline">
+          Sign up
+        </button>
+      </p>
     </div>
-
-    <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
-      <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Headphones className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
-        </div>
-        <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Support</span>
-      </div>
-      <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Users className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
-        </div>
-        <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Community</span>
-      </div>
-      <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-          <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
-        </div>
-        <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Pro Pricing</span>
-      </div>
-    </div>
-
-
-    <p className="text-xs text-muted-foreground text-center pt-2">
-      Don't have an account?{" "}
-      <button onClick={onSignUp} className="text-foreground underline underline-offset-2 hover:no-underline">
-        Sign up
-      </button>
-    </p>
-  </div>;
+  );
+};
 const OnboardingForm = ({
   onContinue,
   onSignIn
