@@ -2221,9 +2221,9 @@ const WholesaleTermsForm = ({
     </button>
     
     <div className={cn(
-      "grid transition-all duration-300 ease-out",
+      "grid transition-all duration-400",
       agreed ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-    )}>
+    )} style={{ transitionTimingFunction: agreed ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
       <div className="overflow-hidden">
         <div className="flex gap-3 p-4 rounded-xl bg-status-green/10 border border-status-green/20 mt-0">
           <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
