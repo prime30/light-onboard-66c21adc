@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compressImages } from "@/lib/imageCompression";
 
 interface MultiFileUploadProps {
   files: File[];
@@ -12,6 +13,7 @@ interface MultiFileUploadProps {
   errorMessage?: string;
   maxFiles?: number;
   maxFileSize?: number; // in bytes, default 10MB
+  enableCompression?: boolean; // Enable image compression, default true
 }
 
 const MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024; // 10MB
@@ -110,6 +112,7 @@ export const MultiFileUpload = ({
   errorMessage,
   maxFiles = 10,
   maxFileSize = MAX_FILE_SIZE_DEFAULT,
+  enableCompression = true,
 }: MultiFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -181,12 +184,18 @@ export const MultiFileUpload = ({
     );
   }, [accept]);
 
-  const processFiles = (newFiles: File[]) => {
+  const processFiles = async (newFiles: File[]) => {
+    // Compress images if enabled
+    let filesToProcess = newFiles;
+    if (enableCompression) {
+      filesToProcess = await compressImages(newFiles);
+    }
+
     const validFiles: File[] = [];
     const invalidTypeFiles: string[] = [];
     const oversizedFiles: string[] = [];
 
-    for (const file of newFiles) {
+    for (const file of filesToProcess) {
       if (!validateFileType(file)) {
         invalidTypeFiles.push(file.name);
       } else if (file.size > maxFileSize) {
