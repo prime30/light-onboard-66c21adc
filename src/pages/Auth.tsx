@@ -1269,7 +1269,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel - Form */}
-      <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-auto">
+      <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-hidden">
         {/* Header - fixed height to keep toggle position consistent */}
         <header className="relative flex items-center justify-between p-2.5 sm:p-5 lg:p-[25px] pr-12 sm:pr-16 lg:pr-[25px] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
           {/* Auth Toggle - Left aligned */}
