@@ -985,7 +985,7 @@ const Auth = () => {
         if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "license";else targetStep = "business-location";
         break;
       case "business-location":
-        targetStep = "license";
+        targetStep = accountType === "professional" ? "wholesale-terms" : "license";
         break;
       case "school-info":
         targetStep = "wholesale-terms";
