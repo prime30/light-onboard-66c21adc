@@ -1612,8 +1612,8 @@ const AccountTypeForm = ({
               </div>
               
               {/* Features - Full width row on mobile */}
-              <div className="flex sm:hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
-                {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+              <div className="flex sm:hidden flex-wrap gap-2 mt-3 pt-3 border-t border-border/40">
+                {type.features.map((feature, i) => <span key={i} className={cn("text-[11px] px-3 py-1.5 rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
               transitionDelay: `${i * 50}ms`
             }}>
                     {feature}
