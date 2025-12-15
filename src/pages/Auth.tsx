@@ -441,7 +441,7 @@ const Auth = () => {
       const scrollThreshold = 10; // Minimum scroll distance to trigger
       
       if (Math.abs(currentScrollY - lastScrollY.current) > scrollThreshold) {
-        if (scrollingDown && currentScrollY > 50) {
+        if (scrollingDown && currentScrollY > 20) {
           setMobileHeroVisible(false);
         } else if (!scrollingDown) {
           setMobileHeroVisible(true);
