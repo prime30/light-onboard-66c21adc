@@ -1232,9 +1232,9 @@ const Auth = () => {
           
           <div className="relative z-10 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <div className="inline-flex items-center gap-[5px] px-2.5 py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 pl-[10px]">
-                <BadgeCheck className="w-2.5 h-2.5 text-background/80" />
-                <span className="text-[10px] font-medium text-background/80 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2">
+                <BadgeCheck className="w-2 h-2 text-background/80" />
+                <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
                   {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
                 </span>
               </div>
