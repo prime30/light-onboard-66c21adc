@@ -1175,8 +1175,11 @@ const Auth = () => {
   return <div className="min-h-screen flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10">
       {/* Blurred darkened backdrop */}
       <div 
-        className="fixed inset-0 backdrop-blur-md cursor-pointer transition-colors duration-150" 
-        style={{
+        className={cn(
+          "fixed inset-0 backdrop-blur-md cursor-pointer transition-all duration-300",
+          isClosing && "opacity-0 backdrop-blur-0"
+        )}
+        style={isClosing ? undefined : {
           backgroundColor: `hsl(var(--foreground) / ${Math.max(0.6 - modalDragOffset * 0.003, 0.2)})`
         }}
         onClick={handleCloseModal} 
