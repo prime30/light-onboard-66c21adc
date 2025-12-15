@@ -18,6 +18,7 @@ import { StepValidationIcon, getStepValidationStatus } from "@/components/regist
 import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { FileSummary } from "@/components/registration/FileSummary";
+import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -368,6 +369,7 @@ const Auth = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextStep, setNextStep] = useState<Step | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -819,102 +821,99 @@ const Auth = () => {
     // Mark current step as completed
     const currentStepNum = getCurrentStepNumber();
     setCompletedSteps(prev => new Set([...prev, currentStepNum]));
+    
+    // Calculate next step for skeleton
+    let targetStep: Step = currentStep;
+    switch (currentStep) {
+      case "onboarding":
+        targetStep = "account-type";
+        break;
+      case "account-type":
+        if (accountType === "student") targetStep = "school-info";
+        else if (accountType === "professional") targetStep = "license";
+        else targetStep = "business-location";
+        break;
+      case "business-location":
+        targetStep = "license";
+        break;
+      case "school-info":
+        targetStep = "wholesale-terms";
+        break;
+      case "license":
+        targetStep = accountType === "professional" ? "business-operation" : "wholesale-terms";
+        break;
+      case "business-operation":
+        targetStep = "business-location";
+        break;
+      case "wholesale-terms":
+        targetStep = accountType === "student" ? "contact-info" : "tax-exemption";
+        break;
+      case "tax-exemption":
+        targetStep = "contact-info";
+        break;
+      case "contact-info":
+        targetStep = "success";
+        break;
+    }
+    
+    setNextStep(targetStep);
     setTransitionDirection("forward");
     setIsTransitioning(true);
     setTimeout(() => {
-      switch (currentStep) {
-        case "onboarding":
-          setCurrentStep("account-type");
-          break;
-        case "account-type":
-          // Student goes to school-info, professional goes to license, salon goes to business-location
-          if (accountType === "student") {
-            setCurrentStep("school-info");
-          } else if (accountType === "professional") {
-            setCurrentStep("license");
-          } else {
-            setCurrentStep("business-location");
-          }
-          break;
-        case "business-location":
-          // Salon goes to license (professional goes here from business-operation)
-          setCurrentStep("license");
-          break;
-        case "school-info":
-          // Student only - goes to wholesale-terms
-          setCurrentStep("wholesale-terms");
-          break;
-        case "license":
-          // Professional goes to business-operation, salon goes to wholesale-terms
-          setCurrentStep(accountType === "professional" ? "business-operation" : "wholesale-terms");
-          break;
-        case "business-operation":
-          // Professional only - goes to business-location
-          setCurrentStep("business-location");
-          break;
-        case "wholesale-terms":
-          // Student goes to contact-info, others go to tax-exemption
-          setCurrentStep(accountType === "student" ? "contact-info" : "tax-exemption");
-          break;
-        case "tax-exemption":
-          setCurrentStep("contact-info");
-          break;
-        case "contact-info":
-          setIsSubmitting(true);
-          // Simulate API call
-          setTimeout(() => {
-            setIsSubmitting(false);
-            setCurrentStep("success");
-            toast.success("Submitted. Our team will review and notify you within 24 hours.");
-          }, 1500);
-          break;
+      if (currentStep === "contact-info") {
+        setIsSubmitting(true);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setCurrentStep("success");
+          toast.success("Submitted. Our team will review and notify you within 24 hours.");
+          setNextStep(null);
+        }, 1500);
+      } else {
+        setCurrentStep(targetStep);
       }
       setIsTransitioning(false);
+      setNextStep(null);
     }, 150);
   };
   const handleBack = () => {
+    // Calculate previous step for skeleton
+    let targetStep: Step = currentStep;
+    switch (currentStep) {
+      case "account-type":
+        targetStep = "onboarding";
+        break;
+      case "license":
+        targetStep = accountType === "professional" ? "account-type" : "business-location";
+        break;
+      case "business-operation":
+        targetStep = "license";
+        break;
+      case "business-location":
+        targetStep = accountType === "professional" ? "business-operation" : "account-type";
+        break;
+      case "school-info":
+        targetStep = "account-type";
+        break;
+      case "wholesale-terms":
+        if (accountType === "student") targetStep = "school-info";
+        else if (accountType === "professional") targetStep = "business-location";
+        else targetStep = "license";
+        break;
+      case "tax-exemption":
+        targetStep = "wholesale-terms";
+        break;
+      case "contact-info":
+        targetStep = accountType === "student" ? "wholesale-terms" : "tax-exemption";
+        break;
+    }
+    
+    setNextStep(targetStep);
     setTransitionDirection("backward");
     setIsTransitioning(true);
     setTimeout(() => {
-      switch (currentStep) {
-        case "account-type":
-          setCurrentStep("onboarding");
-          break;
-        case "license":
-          // Professional comes from account-type, salon comes from business-location
-          setCurrentStep(accountType === "professional" ? "account-type" : "business-location");
-          break;
-        case "business-operation":
-          // Professional only - goes back to license
-          setCurrentStep("license");
-          break;
-        case "business-location":
-          // Professional comes from business-operation, salon from account-type
-          setCurrentStep(accountType === "professional" ? "business-operation" : "account-type");
-          break;
-        case "school-info":
-          // Student only - goes back to account-type
-          setCurrentStep("account-type");
-          break;
-        case "wholesale-terms":
-          // Student goes back to school-info, professional goes back to business-location, salon goes back to license
-          if (accountType === "student") {
-            setCurrentStep("school-info");
-          } else if (accountType === "professional") {
-            setCurrentStep("business-location");
-          } else {
-            setCurrentStep("license");
-          }
-          break;
-        case "tax-exemption":
-          setCurrentStep("wholesale-terms");
-          break;
-        case "contact-info":
-          // Student goes back to wholesale-terms, others go back to tax-exemption
-          setCurrentStep(accountType === "student" ? "wholesale-terms" : "tax-exemption");
-          break;
-      }
+      setCurrentStep(targetStep);
       setIsTransitioning(false);
+      setNextStep(null);
     }, 150);
   };
   const getTotalSteps = () => {
@@ -1010,11 +1009,14 @@ const Auth = () => {
   const goToStep = (stepNum: number) => {
     const currentNum = getCurrentStepNumber();
     if (stepNum === currentNum) return;
+    const targetStep = getStepFromNumber(stepNum);
+    setNextStep(targetStep);
     setTransitionDirection(stepNum > currentNum ? "forward" : "backward");
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentStep(getStepFromNumber(stepNum));
+      setCurrentStep(targetStep);
       setIsTransitioning(false);
+      setNextStep(null);
     }, 150);
   };
   const slide = slides[currentSlide];
@@ -1263,28 +1265,41 @@ const Auth = () => {
         </div>}
 
         <main className="flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] py-5 overflow-y-auto">
-          <div key={currentStep} className={cn("w-full max-w-lg", isTransitioning ? transitionDirection === "forward" ? "animate-step-exit-left" : "animate-step-exit-right" : transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
-            {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => {
-              setMode("signup");
-              setCurrentStep("onboarding");
-            }} /> : <>
-                {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
-                {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
-                {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
-                {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
-                {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
-                {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
-                {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
-                {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
-                  ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
-                  ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({ file: f, label: `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
-                  ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
-                  ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
-                ]} />}
-                {currentStep === "success" && <SuccessForm />}
-              </>}
-          </div>
+          {isTransitioning ? (
+            <div className="w-full max-w-lg">
+              <FormSkeleton variant={
+                (nextStep || currentStep) === "account-type" ? "account-type" :
+                (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" :
+                (nextStep || currentStep) === "business-location" ? "location" :
+                (nextStep || currentStep) === "business-operation" ? "business-operation" :
+                (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" :
+                (nextStep || currentStep) === "contact-info" ? "contact" : "default"
+              } />
+            </div>
+          ) : (
+            <div key={currentStep} className={cn("w-full max-w-lg", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
+              {mode === "signin" ? <SignInForm email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} onSignUp={() => {
+                setMode("signup");
+                setCurrentStep("onboarding");
+              }} /> : <>
+                  {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
+                  {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
+                  {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
+                  {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
+                  {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
+                  {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
+                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
+                  {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
+                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[
+                    ...(licenseFile ? [{ file: licenseFile, label: accountType === "salon" ? "Salon License" : "License" }] : []),
+                    ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({ file: f, label: `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
+                    ...(accountType === "student" ? enrollmentProofFiles.map((f, i) => ({ file: f, label: `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim() })) : []),
+                    ...(taxExemptFile ? [{ file: taxExemptFile, label: "Tax Exemption Document" }] : [])
+                  ]} />}
+                  {currentStep === "success" && <SuccessForm />}
+                </>}
+            </div>
+          )}
         </main>
 
         {/* Spotlight overlay when form is ready to submit */}
