@@ -2461,10 +2461,7 @@ const SchoolInfoForm = ({
         <div className="relative group">
           <Select value={schoolState} onValueChange={onSchoolStateChange}>
             <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/50 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
-              <div className="flex items-center gap-3">
-                {schoolState && hasStateIcon(schoolState) && <StateIcon state={schoolState} className="w-5 h-5" />}
-                <SelectValue placeholder="Select your state/province" />
-              </div>
+              <SelectValue placeholder="Select your state/province" />
             </SelectTrigger>
             <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
               {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
