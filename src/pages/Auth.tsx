@@ -407,8 +407,8 @@ const Auth = () => {
   
   // Subscription preferences
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
-  const [subscribeMarketing, setSubscribeMarketing] = useState(false);
-  const [subscribePromotions, setSubscribePromotions] = useState(false);
+  const [subscribeMarketing, setSubscribeMarketing] = useState(true);
+  const [subscribePromotions, setSubscribePromotions] = useState(true);
   
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -448,8 +448,8 @@ const Auth = () => {
     setEnrollmentProofFiles([]);
     setBusinessOperationType(null);
     setSubscribeOrderUpdates(true);
-    setSubscribeMarketing(false);
-    setSubscribePromotions(false);
+    setSubscribeMarketing(true);
+    setSubscribePromotions(true);
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
   };
