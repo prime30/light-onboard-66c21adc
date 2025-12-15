@@ -1268,49 +1268,50 @@ const Auth = () => {
             </div>}
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Sticky on scroll up, hides on scroll down */}
+        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
         {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && (
           <div 
             className={cn(
-              "lg:hidden rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative z-20",
-              "sticky top-0 transition-all duration-300 ease-out",
+              "lg:hidden transition-all duration-300 ease-out overflow-hidden",
               mobileHeroVisible 
-                ? "opacity-100 translate-y-0" 
-                : "opacity-0 -translate-y-full pointer-events-none"
+                ? "max-h-[200px] opacity-100 mb-0" 
+                : "max-h-0 opacity-0 mb-0"
             )}
           >
-            {/* Hero image background */}
-            <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
-            
-            <div className="relative z-10 flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
-                  <BadgeCheck className="w-2 h-2 text-background/80" />
-                  <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                    {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
-                  </span>
-                </div>
-                <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
-                  <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
-                    {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
-                  </h2>
-                </div>
-                <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
-                  {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
-                </p>
-              </div>
+            <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
+              {/* Hero image background */}
+              <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
               
-              {/* Mini stats */}
-              <div className="flex gap-3 sm:gap-4">
-                <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
-                  <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
-                  <div className="text-[9px] text-background/40 uppercase">Pros</div>
+              <div className="relative z-10 flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
+                    <BadgeCheck className="w-2 h-2 text-background/80" />
+                    <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
+                      {mode === "signin" ? "Welcome Back" : "Exclusively Professional"}
+                    </span>
+                  </div>
+                  <div className="space-y-0.5 animate-fade-in" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+                    <h2 className="text-lg sm:text-xl font-semibold text-background leading-tight">
+                      {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
+                    </h2>
+                  </div>
+                  <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+                    {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
+                  </p>
                 </div>
-                <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
-                  <div className="text-base sm:text-lg font-semibold text-background">50%</div>
-                  <div className="text-[9px] text-background/40 uppercase">Savings</div>
+                
+                {/* Mini stats */}
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="text-center animate-slide-up-fade" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+                    <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
+                    <div className="text-[9px] text-background/40 uppercase">Pros</div>
+                  </div>
+                  <div className="text-center animate-slide-up-fade" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+                    <div className="text-base sm:text-lg font-semibold text-background">50%</div>
+                    <div className="text-[9px] text-background/40 uppercase">Savings</div>
+                  </div>
                 </div>
               </div>
             </div>
