@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compressImage } from "@/lib/imageCompression";
 
 interface FileUploadProps {
   file: File | null;
@@ -11,6 +12,7 @@ interface FileUploadProps {
   error?: boolean;
   errorMessage?: string;
   maxFileSize?: number; // in bytes, default 10MB
+  enableCompression?: boolean; // Enable image compression, default true
 }
 
 const MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024; // 10MB
@@ -41,6 +43,7 @@ export const FileUpload = ({
   error = false,
   errorMessage,
   maxFileSize = MAX_FILE_SIZE_DEFAULT,
+  enableCompression = true,
 }: FileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -140,9 +143,15 @@ export const FileUpload = ({
     return true;
   }, [accept, maxFileSize]);
 
-  const processFile = (selectedFile: File) => {
-    if (validateFile(selectedFile)) {
-      setPendingFile(selectedFile);
+  const processFile = async (selectedFile: File) => {
+    // Compress image if enabled
+    let fileToProcess = selectedFile;
+    if (enableCompression && selectedFile.type.startsWith("image/")) {
+      fileToProcess = await compressImage(selectedFile);
+    }
+    
+    if (validateFile(fileToProcess)) {
+      setPendingFile(fileToProcess);
     }
   };
 
