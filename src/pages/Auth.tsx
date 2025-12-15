@@ -223,23 +223,74 @@ const MagneticFeatureBox = ({
 // Testimonial Carousel for Sign-in Hero
 const TestimonialCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
+    if (isDragging) return;
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isDragging]);
+
+  const handleDragStart = (clientX: number) => {
+    setIsDragging(true);
+    setDragStartX(clientX);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    setDragOffset(clientX - dragStartX);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    const threshold = 50;
+    if (dragOffset > threshold) {
+      setCurrentIndex(prev => (prev - 1 + testimonials.length) % testimonials.length);
+    } else if (dragOffset < -threshold) {
+      setCurrentIndex(prev => (prev + 1) % testimonials.length);
+    }
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
   const testimonial = testimonials[currentIndex];
-  return <div className="space-y-4">
-      <div key={currentIndex} className="animate-fade-in">
-        <blockquote className="text-sm lg:text-base text-background/90 italic leading-relaxed mb-4">
-          "{testimonial.quote}"
-        </blockquote>
-        <div className="flex items-center gap-3">
-          <img src={testimonial.avatar} alt={testimonial.name} className="w-10 h-10 rounded-full border-2 border-background/20 object-cover" />
-          <div>
-            <p className="text-sm font-medium text-background">{testimonial.name}</p>
-            <p className="text-xs text-background/50">{testimonial.role}</p>
+
+  return (
+    <div className="space-y-4">
+      <div
+        ref={containerRef}
+        className="cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        onMouseDown={(e) => handleDragStart(e.clientX)}
+        onMouseMove={(e) => handleDragMove(e.clientX)}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+        onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+        onTouchEnd={handleDragEnd}
+      >
+        <div 
+          key={currentIndex} 
+          className="animate-fade-in"
+          style={{
+            transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
+            transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+            opacity: isDragging ? Math.max(1 - Math.abs(dragOffset) * 0.003, 0.7) : 1
+          }}
+        >
+          <blockquote className="text-sm lg:text-base text-background/90 italic leading-relaxed mb-4">
+            "{testimonial.quote}"
+          </blockquote>
+          <div className="flex items-center gap-3">
+            <img src={testimonial.avatar} alt={testimonial.name} className="w-10 h-10 rounded-full border-2 border-background/20 object-cover" />
+            <div>
+              <p className="text-sm font-medium text-background">{testimonial.name}</p>
+              <p className="text-xs text-background/50">{testimonial.role}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -248,7 +299,8 @@ const TestimonialCarousel = () => {
       <div className="flex gap-1.5">
         {testimonials.map((_, i) => <button key={i} onClick={() => setCurrentIndex(i)} className={cn("h-1 rounded-full transition-all duration-300", i === currentIndex ? "w-6 bg-background/60" : "w-1 bg-background/20 hover:bg-background/30")} />)}
       </div>
-    </div>;
+    </div>
+  );
 };
 
 // Rotating Stylist Avatars Component
