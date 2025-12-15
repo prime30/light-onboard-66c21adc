@@ -372,6 +372,11 @@ const Auth = () => {
   const [nextStep, setNextStep] = useState<Step | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  
+  // Modal swipe-down refs and state
+  const modalTouchStartY = useRef<number | null>(null);
+  const [modalDragOffset, setModalDragOffset] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Form state
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -582,6 +587,39 @@ const Auth = () => {
     touchStartX.current = null;
     touchEndX.current = null;
   };
+  
+  // Modal swipe-down handlers (mobile only)
+  const handleModalTouchStart = (e: React.TouchEvent) => {
+    // Only enable swipe-down on mobile (< 640px)
+    if (window.innerWidth >= 640) return;
+    modalTouchStartY.current = e.touches[0].clientY;
+  };
+  
+  const handleModalTouchMove = (e: React.TouchEvent) => {
+    if (window.innerWidth >= 640 || modalTouchStartY.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - modalTouchStartY.current;
+    // Only allow dragging down, not up
+    if (diff > 0) {
+      setModalDragOffset(diff);
+    }
+  };
+  
+  const handleModalTouchEnd = () => {
+    if (modalTouchStartY.current === null) return;
+    // If dragged more than 100px, close the modal
+    if (modalDragOffset > 100) {
+      setIsClosing(true);
+      setTimeout(() => {
+        navigate("/");
+      }, 300);
+    } else {
+      // Snap back
+      setModalDragOffset(0);
+    }
+    modalTouchStartY.current = null;
+  };
+  
   const canContinue = () => {
     if (mode === "signin") {
       return email.trim() !== "" && password.length >= 8;
@@ -1118,7 +1156,23 @@ const Auth = () => {
       <div className="fixed inset-0 bg-foreground/60 backdrop-blur-md cursor-pointer" onClick={() => navigate("/")} />
       
       {/* Modal Container */}
-      <div className={cn("relative z-10 bg-background rounded-t-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row transition-all duration-300 animate-modal-enter", "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]")}>
+      <div 
+        onTouchStart={handleModalTouchStart}
+        onTouchMove={handleModalTouchMove}
+        onTouchEnd={handleModalTouchEnd}
+        className={cn(
+          "relative z-10 bg-background rounded-t-[20px] sm:rounded-[25px] lg:rounded-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row",
+          "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]",
+          !isClosing && modalDragOffset === 0 && "animate-modal-enter",
+          isClosing && "animate-modal-exit"
+        )}
+        style={{
+          transform: modalDragOffset > 0 ? `translateY(${modalDragOffset}px)` : undefined,
+          transition: modalDragOffset > 0 ? 'none' : 'transform 0.3s ease-out'
+        }}
+      >
+        {/* Drag Handle - Mobile Only */}
+        <div className="sm:hidden absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-muted-foreground/30 z-10" />
 
         {/* Left Panel - Hero/Branding */}
         <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
