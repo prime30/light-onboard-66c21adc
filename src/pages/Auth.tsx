@@ -1832,50 +1832,6 @@ const Auth = () => {
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
             <div className={cn("max-w-[38rem] mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
-              {/* Step label above buttons */}
-              {/* Mobile step journey indicator - hidden on desktop where hero has circular progress */}
-              {showStepIndicator && mode === "signup" && currentStep !== "onboarding" && (
-                <div className={cn("lg:hidden flex items-center justify-center gap-0 mb-1", showSpotlight && "opacity-0")}>
-                  {Array.from({ length: getTotalSteps() }, (_, i) => {
-                    const stepNum = i + 1;
-                    const isActive = getCurrentStepNumber() === stepNum;
-                    const isCompleted = getCurrentStepNumber() > stepNum;
-                    const isFirst = i === 0;
-                    
-                    return (
-                      <div key={i} className="flex items-center">
-                        {/* Connecting line before step (except first) */}
-                        {!isFirst && (
-                          <div className="relative h-[2px] w-5 bg-border/40 rounded-full overflow-hidden">
-                            <div
-                              className={cn(
-                                "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
-                                isCompleted || isActive ? "scale-x-100" : "scale-x-0"
-                              )}
-                            />
-                          </div>
-                        )}
-                        {/* Step node */}
-                        <div className="relative">
-                          {isActive && (
-                            <div className="absolute inset-0 rounded-full bg-foreground/30 animate-ping" style={{ animationDuration: '1.5s' }} />
-                          )}
-                          <div
-                            className={cn(
-                              "relative rounded-full transition-all duration-300",
-                              isActive
-                                ? "w-2.5 h-2.5 bg-foreground"
-                                : isCompleted
-                                ? "w-2 h-2 bg-foreground"
-                                : "w-2 h-2 bg-border/60"
-                            )}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
               <div className="flex gap-[15px]">
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
