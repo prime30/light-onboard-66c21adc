@@ -1907,7 +1907,11 @@ const OnboardingForm = ({
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
               <ShieldCheck className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Verified brands</span>
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Highest standard of ethics</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <Sparkles className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Made to create</span>
             </div>
           </div>
         ))}
