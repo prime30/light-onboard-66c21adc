@@ -312,16 +312,15 @@ const TestimonialCarousel = () => {
 // Odometer Counter Component for social proof - random increments for real-time feel
 const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
   const [digit, setDigit] = useState(0);
+  const [prevDigit, setPrevDigit] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
 
   useEffect(() => {
     const scheduleNext = () => {
-      // Random delay between 1.5s and 5s for organic feel
       const delay = 1500 + Math.random() * 3500;
       return setTimeout(() => {
-        setIsRolling(true);
         // 20% chance of burst increment (2-3), otherwise increment by 1
         const isBurstIncrement = Math.random() < 0.2;
         const increment = isBurstIncrement ? (Math.random() < 0.5 ? 2 : 3) : 1;
@@ -331,8 +330,11 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
           setTimeout(() => setIsBurst(false), 600);
         }
         
+        setPrevDigit(digit);
+        setDigit(prev => (prev + increment) % 10);
+        setIsRolling(true);
+        
         setTimeout(() => {
-          setDigit(prev => (prev + increment) % 10);
           setIsRolling(false);
           scheduleNext();
         }, 300);
@@ -341,18 +343,18 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
     
     const timeout = scheduleNext();
     return () => clearTimeout(timeout);
-  }, []);
+  }, [digit]);
 
   return (
     <span className={cn(
       "text-xs tabular-nums transition-all duration-300",
       textColor,
-      isBurst && (variant === "dark" ? "text-background" : "text-primary")
+      isBurst && "!text-[hsl(142,71%,45%)]"
     )}>
       8,34<span 
         className={cn(
           "inline-block overflow-hidden transition-all duration-300",
-          isBurst && "drop-shadow-[0_0_4px_currentColor]"
+          isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
         style={{ 
           height: '1em', 
@@ -363,11 +365,14 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
         }}
       >
         <span 
-          className="block transition-transform duration-300 ease-out"
+          className={cn(
+            "block",
+            isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
+          )}
           style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
         >
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isRolling ? prevDigit : digit}</span>
           <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{digit}</span>
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{(digit + 1) % 10}</span>
         </span>
       </span> pros
     </span>
