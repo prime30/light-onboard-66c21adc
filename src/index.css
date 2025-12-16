@@ -500,22 +500,51 @@
     color: hsl(var(--foreground));
   }
 
-  /* Premium button with subtle lift */
+  /* Premium button with shine effect */
   .btn-premium {
     position: relative;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--background) / 0.08),
+      transparent
+    );
+    transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-premium:hover::before {
+    left: 100%;
   }
 
   .btn-premium:hover {
     box-shadow: 
-      0 8px 30px hsl(var(--foreground) / 0.1),
-      0 4px 15px hsl(var(--foreground) / 0.06);
+      0 10px 40px hsl(var(--foreground) / 0.12),
+      0 5px 20px hsl(var(--foreground) / 0.08);
     transform: translateY(-2px);
   }
 
   .btn-premium:active {
     transform: translateY(0) scale(0.98);
+  }
+
+  .btn-premium.shimmer-trigger::before {
+    animation: shimmerTrigger 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes shimmerTrigger {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
 
   /* Glass morphism card */
