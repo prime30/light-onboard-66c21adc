@@ -2979,6 +2979,15 @@ const TaxExemptionForm = ({
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
   // Step number varies by account type: professional=6, salon=5
   const stepNumber = accountType === "professional" ? 6 : 5;
+  const fileUploadRef = useRef<HTMLDivElement>(null);
+  
+  const handleYesClick = () => {
+    onTaxExemptionChange(true);
+    // Scroll to file upload after a brief delay for animation
+    setTimeout(() => {
+      fileUploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  };
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -3001,7 +3010,7 @@ const TaxExemptionForm = ({
 
       <div className="space-y-2 animate-stagger-3">
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => onTaxExemptionChange(true)} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+          <button onClick={handleYesClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
@@ -3021,7 +3030,7 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      <div className={cn(
+      <div ref={fileUploadRef} className={cn(
         "grid transition-all duration-400",
         hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: hasTaxExemption === true ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
