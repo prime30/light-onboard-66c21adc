@@ -1936,15 +1936,9 @@ const Auth = () => {
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Scroll down hint - mobile only, positioned above footer */}
-        {mode === "signup" && currentStep === "onboarding" && (
-          <div className={cn(
-            "lg:hidden sticky bottom-[75px] flex justify-center pointer-events-none transition-opacity duration-300",
-            hasScrolled ? "opacity-0" : "opacity-100"
-          )}>
-            <div className="flex flex-col items-center animate-bounce-subtle">
-              <ChevronDown className="w-5 h-5 text-muted-foreground/40" />
-              <ChevronDown className="w-5 h-5 text-muted-foreground/20 -mt-3" />
-            </div>
+        {mode === "signup" && currentStep === "onboarding" && !hasScrolled && (
+          <div className="lg:hidden fixed bottom-[85px] left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce-subtle">
+            <ChevronDown className="w-5 h-5 text-muted-foreground/50" />
           </div>
         )}
 
