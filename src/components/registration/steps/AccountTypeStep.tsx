@@ -1,5 +1,5 @@
 import { AccountTypeCard } from "../AccountTypeCard";
-import { Scissors, Building2, GraduationCap, Sparkles, ArrowUpRight } from "lucide-react";
+import { Scissors, Building2, GraduationCap, Sparkles, ArrowUpRight, Tag, Headphones, Users, BookOpen } from "lucide-react";
 
 interface AccountTypeStepProps {
   selectedType: string | null;
@@ -12,7 +12,11 @@ const accountTypes = [
     title: "Licensed Stylist",
     badge: "Pro",
     description: "Commission, or Independent Stylist",
-    features: ["Rewards on every order", "Free 2-day shipping", "Wholesale pricing"],
+    features: [
+      { label: "Rewards on every order", icon: Tag },
+      { label: "Free 2-day shipping", icon: Tag },
+      { label: "Wholesale pricing", icon: Tag }
+    ],
     icon: Scissors,
   },
   {
@@ -20,14 +24,22 @@ const accountTypes = [
     title: "Salon Owner or Manager",
     badge: "Pro",
     description: "For salon owners who purchase hair for multiple stylists.",
-    features: ["1.25x rewards multiplier", "Free 2-day shipping", "Volume discounts"],
+    features: [
+      { label: "1.25x rewards multiplier", icon: Tag },
+      { label: "Free 2-day shipping", icon: Tag },
+      { label: "Volume discounts", icon: Tag }
+    ],
     icon: Building2,
   },
   {
     id: "student",
     title: "Student",
     description: "For cosmetology students working towards their license.",
-    features: ["Training discounts", "Free ground shipping", "Student perks"],
+    features: [
+      { label: "Training discounts", icon: Tag },
+      { label: "Free ground shipping", icon: Tag },
+      { label: "Student perks", icon: GraduationCap }
+    ],
     icon: GraduationCap,
   },
 ];

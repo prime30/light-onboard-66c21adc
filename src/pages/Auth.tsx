@@ -2159,19 +2159,32 @@ const AccountTypeForm = ({
     icon: User,
     title: "Licensed Stylist",
     description: "Commission, or Independent Stylist",
-    features: ["Pro pricing", "Priority support", "Community access"]
+    features: [
+      { label: "Pro pricing", icon: Tag },
+      { label: "Priority support", icon: Headphones },
+      { label: "Community access", icon: Users }
+    ]
   }, {
     id: "salon",
     icon: Building2,
     title: "Salon Owner or Manager",
     description: "Business accounts",
-    features: ["Pro pricing", "Top level support", "Community access", "Education discounts"]
+    features: [
+      { label: "Pro pricing", icon: Tag },
+      { label: "Top level support", icon: ShieldCheck },
+      { label: "Community access", icon: Users },
+      { label: "Education discounts", icon: GraduationCap }
+    ]
   }, {
     id: "student",
     icon: GraduationCap,
     title: "Cosmetology Student or Apprentice",
     description: "Currently enrolled",
-    features: ["Student pricing", "Learning resources", "Community access"]
+    features: [
+      { label: "Student pricing", icon: Tag },
+      { label: "Learning resources", icon: FileCheck },
+      { label: "Community access", icon: Users }
+    ]
   }];
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
@@ -2218,22 +2231,34 @@ const AccountTypeForm = ({
                   <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
                   {/* Features - inline on desktop */}
                   <div className="hidden sm:flex flex-wrap gap-[5px] mt-2.5">
-                    {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
-                  transitionDelay: `${i * 50}ms`
-                }}>
-                        {feature}
-                      </span>)}
+                    {type.features.map((feature, i) => {
+                      const FeatureIcon = feature.icon;
+                      return (
+                        <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+                          transitionDelay: `${i * 50}ms`
+                        }}>
+                          {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
+                          {feature.label}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
               
               {/* Features - Full width row on mobile */}
               <div className="flex sm:hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
-                {type.features.map((feature, i) => <span key={i} className={cn("text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
-              transitionDelay: `${i * 50}ms`
-            }}>
-                    {feature}
-                  </span>)}
+                {type.features.map((feature, i) => {
+                  const FeatureIcon = feature.icon;
+                  return (
+                    <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+                      transitionDelay: `${i * 50}ms`
+                    }}>
+                      {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
+                      {feature.label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           </button>)}
