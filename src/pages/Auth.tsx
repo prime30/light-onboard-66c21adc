@@ -491,6 +491,7 @@ const Auth = () => {
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
+  const [shimmerTrigger, setShimmerTrigger] = useState(false);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1741,7 +1742,10 @@ const Auth = () => {
                 onForgotPasswordSubmit={handleForgotPasswordSubmit}
                 isSendingReset={isSendingReset}
               /> : <>
-                  {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} />}
+                  {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} onStepClick={() => {
+                    setShimmerTrigger(true);
+                    setTimeout(() => setShimmerTrigger(false), 600);
+                  }} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                   {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
@@ -1793,7 +1797,7 @@ const Auth = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex-1">
-                        <Button size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]")}>
+                        <Button size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]", shimmerTrigger && "shimmer-trigger")}>
                           <span className="relative z-10 flex items-center justify-center gap-[10px]">
                             {isSubmitting ? <>
                                 <Loader2 className="w-[18px] h-[18px] animate-spin" />
@@ -2016,10 +2020,12 @@ const SignInForm = ({
 };
 const OnboardingForm = ({
   onContinue,
-  onSignIn
+  onSignIn,
+  onStepClick
 }: {
   onContinue: () => void;
   onSignIn: () => void;
+  onStepClick?: () => void;
 }) => <div className="space-y-6 sm:space-y-8">
 
     {/* Hero section */}
@@ -2081,7 +2087,7 @@ const OnboardingForm = ({
     }, {
       icon: Tag,
       label: "Follow post-approval instructions to finalize account"
-    }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in" style={{
+    }].map((item, i) => <div key={i} onClick={onStepClick} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-fade-in cursor-pointer hover:bg-muted/70 hover:border-border active:scale-[0.98] transition-all duration-200" style={{
       animationDelay: `${200 + i * 100}ms`,
       animationFillMode: 'forwards'
     }}>
