@@ -82,21 +82,24 @@ const AnimatedNumber = ({ value, suffix }: { value: number; suffix: string }) =>
   
   useEffect(() => {
     const duration = 1500;
-    const steps = 40;
-    const increment = value / steps;
-    let current = 0;
+    const startTime = performance.now();
     
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setCount(value);
-        clearInterval(timer);
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Linear interpolation - no easing
+      const currentValue = Math.floor(progress * value);
+      setCount(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
       } else {
-        setCount(Math.floor(current));
+        setCount(value);
       }
-    }, duration / steps);
+    };
     
-    return () => clearInterval(timer);
+    requestAnimationFrame(animate);
   }, [value]);
   
   return <span>{count}{suffix}</span>;
