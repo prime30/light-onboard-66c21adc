@@ -3365,66 +3365,66 @@ const BusinessLocationForm = ({
         </div>
       </div>
 
-      {/* Address + Suite */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="col-span-2 space-y-2.5">
-          <Label htmlFor="businessAddress" className="text-sm font-medium label-float">
-            Address*
-          </Label>
-          <div className="relative">
-            <div className="relative group input-glow input-ripple rounded-[15px]">
-              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-                <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-              </div>
-              <Input 
-                ref={addressInputRef}
-                id="businessAddress" 
-                type="text" 
-                placeholder="Start typing your address..." 
-                value={businessAddress} 
-                onChange={e => handleAddressChange(e.target.value)} 
-                onFocus={() => predictions.length > 0 && setShowPredictions(true)}
-                autoComplete="off"
-                className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
-              />
-              {isLoadingPredictions && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
-                </div>
-              )}
+      {/* Address */}
+      <div className="space-y-2.5">
+        <Label htmlFor="businessAddress" className="text-sm font-medium label-float">
+          Address*
+        </Label>
+        <div className="relative">
+          <div className="relative group input-glow input-ripple rounded-[15px]">
+            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+              <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            
-            {/* Predictions Dropdown */}
-            {showPredictions && predictions.length > 0 && (
-              <div 
-                ref={predictionsRef}
-                className="absolute z-50 w-full mt-1 bg-background border border-border rounded-[15px] shadow-lg overflow-hidden animate-fade-in"
-              >
-                {predictions.map((prediction, index) => (
-                  <button
-                    key={prediction.place_id}
-                    type="button"
-                    onClick={() => selectPrediction(prediction.place_id, prediction.description)}
-                    className={cn(
-                      "w-full px-4 py-3 text-left text-sm hover:bg-muted/80 transition-colors duration-150 flex items-start gap-3",
-                      index !== predictions.length - 1 && "border-b border-border/50"
-                    )}
-                  >
-                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <span className="text-foreground">{prediction.description}</span>
-                  </button>
-                ))}
+            <Input 
+              ref={addressInputRef}
+              id="businessAddress" 
+              type="text" 
+              placeholder="Start typing your address..." 
+              value={businessAddress} 
+              onChange={e => handleAddressChange(e.target.value)} 
+              onFocus={() => predictions.length > 0 && setShowPredictions(true)}
+              autoComplete="off"
+              className="h-[50px] pl-[55px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+            />
+            {isLoadingPredictions && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
               </div>
             )}
           </div>
+          
+          {/* Predictions Dropdown */}
+          {showPredictions && predictions.length > 0 && (
+            <div 
+              ref={predictionsRef}
+              className="absolute z-50 w-full mt-1 bg-background border border-border rounded-[15px] shadow-lg overflow-hidden animate-fade-in"
+            >
+              {predictions.map((prediction, index) => (
+                <button
+                  key={prediction.place_id}
+                  type="button"
+                  onClick={() => selectPrediction(prediction.place_id, prediction.description)}
+                  className={cn(
+                    "w-full px-4 py-3 text-left text-sm hover:bg-muted/80 transition-colors duration-150 flex items-start gap-3",
+                    index !== predictions.length - 1 && "border-b border-border/50"
+                  )}
+                >
+                  <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <span className="text-foreground">{prediction.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="space-y-2.5">
-          <Label htmlFor="suiteNumber" className="text-sm font-medium label-float">
-            Suite #
-          </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="suiteNumber" type="text" placeholder="Suite #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
-          </div>
+      </div>
+
+      {/* Suite */}
+      <div className="space-y-2.5">
+        <Label htmlFor="suiteNumber" className="text-sm font-medium label-float">
+          Suite/Unit # (optional)
+        </Label>
+        <div className="input-glow input-ripple rounded-[15px]">
+          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -3445,8 +3445,8 @@ const BusinessLocationForm = ({
         </Select>
       </div>
 
-      {/* City, State, Zip */}
-      <div className="grid grid-cols-3 gap-2.5">
+      {/* City + State */}
+      <div className="grid grid-cols-2 gap-2.5">
         <div className="space-y-2.5">
           <Label htmlFor="city" className="text-sm font-medium label-float">
             City*
@@ -3475,13 +3475,15 @@ const BusinessLocationForm = ({
             </Select>
           </div>
         </div>
-        <div className="space-y-2.5">
-          <Label htmlFor="zipCode" className="text-sm font-medium label-float">
-            Zip code*
-          </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="zipCode" type="text" placeholder="Zip code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
-          </div>
+      </div>
+
+      {/* Zip Code */}
+      <div className="space-y-2.5">
+        <Label htmlFor="zipCode" className="text-sm font-medium label-float">
+          Zip/Postal code*
+        </Label>
+        <div className="input-glow input-ripple rounded-[15px]">
+          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
     </div>
