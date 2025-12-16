@@ -4300,40 +4300,48 @@ const SuccessForm = () => {
     </div>
 
     {/* First Purchase Upsell */}
-    <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
-      <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
-        50% OFF
-      </div>
-      <div className="flex items-start gap-4">
-        <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
-          <img src={colorRingProduct} alt="Color Ring Product" className="w-full h-full object-cover" />
-        </div>
-        <div className="text-left flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
-            Recommended for you
-          </p>
-          <p className="text-sm font-semibold text-foreground">Color Ring</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-            Perfect for matching colors with clients
-          </p>
-          <div className="flex items-center gap-2 mt-2">
-            <Clock className="w-3 h-3 text-accent-red animate-pulse" />
-            <div className="flex items-center gap-1 text-[10px] text-accent-red font-medium tabular-nums">
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
-            </div>
+    <div className="space-y-3">
+      {/* Title and Timer */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-foreground">Offer while you wait for approval</p>
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
+          <div className="flex items-center gap-1 text-[11px] text-accent-red font-semibold tabular-nums">
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.hours)}h</span>
+            <span>:</span>
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.minutes)}m</span>
+            <span>:</span>
+            <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">{formatNumber(countdown.seconds)}s</span>
           </div>
         </div>
       </div>
-      <Button variant="outline" size="sm" onClick={handleAddToCart} disabled={isAddingToCart} className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100">
-        {isAddingToCart ? <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" /> : <>
-            <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
-            Add to Cart
+
+      {/* Product Card */}
+      <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
+          50% OFF
+        </div>
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
+            <img src={colorRingProduct} alt="Color Ring Product" className="w-full h-full object-cover" />
+          </div>
+          <div className="text-left flex-1 min-w-0">
+            <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
+              Recommended for you
+            </p>
+            <p className="text-sm font-semibold text-foreground">Color Ring</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+              Perfect for matching colors with clients
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleAddToCart} disabled={isAddingToCart} className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100">
+          {isAddingToCart ? <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" /> : <>
+              <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
+              Add to Cart
           </>}
-      </Button>
+        </Button>
+      </div>
     </div>
   </div>;
 };
