@@ -1897,7 +1897,10 @@ const Auth = () => {
                     )}>
                       {/* Active step glow ring */}
                       {currentStep === "onboarding" && (
-                        <div className="absolute inset-[4px] rounded-full border border-foreground/40 animate-pulse" />
+                        <>
+                          <div className="absolute inset-[3px] rounded-full border border-foreground/30 animate-[ripple_2s_ease-out_infinite]" />
+                          <div className="absolute inset-[3px] rounded-full border border-foreground/20 animate-[ripple_2s_ease-out_infinite_0.5s]" />
+                        </>
                       )}
                       <div className={cn(
                         "rounded-full transition-all duration-500 flex items-center justify-center",
