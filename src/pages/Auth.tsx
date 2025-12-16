@@ -2473,7 +2473,7 @@ const MarqueeBadges = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full overflow-hidden select-none"
+      className="relative w-full overflow-hidden select-none mt-[3px] lg:mt-0"
       style={{ 
         maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', 
         WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
