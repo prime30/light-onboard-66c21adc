@@ -456,7 +456,7 @@ const RotatingStylistAvatars = () => {
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3); // Track next avatar to show (start after initial 3)
-  const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
+  const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
   
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
@@ -525,7 +525,7 @@ const RotatingStylistAvatarsLight = () => {
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3); // Track next avatar to show (start after initial 3)
-  const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
+  const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
   
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
