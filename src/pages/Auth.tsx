@@ -1872,7 +1872,7 @@ const OnboardingForm = ({
 
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
         Let's get started
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
