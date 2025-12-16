@@ -2501,9 +2501,9 @@ const OnboardingForm = ({
       icon: FileCheck,
       label: "Provide your license number"
     }, {
-      icon: Tag,
+      icon: Mail,
       label: "Follow post-approval instructions to finalize account"
-    }].map((item, i) => <div key={i} onClick={onStepClick} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-step-card-enter cursor-pointer hover:bg-muted/70 hover:border-border active:scale-[0.98] transition-all duration-200" style={{
+    }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
       animationDelay: `${400 + i * 150}ms`,
       animationFillMode: 'forwards'
     }}>
