@@ -2169,7 +2169,7 @@ const AccountTypeForm = ({
   }, {
     id: "student",
     icon: GraduationCap,
-    title: "Student",
+    title: "Cosmetology Student or Apprentice",
     description: "Currently enrolled",
     features: ["Student pricing", "Learning resources", "Community access"]
   }];
