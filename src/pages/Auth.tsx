@@ -313,6 +313,7 @@ const TestimonialCarousel = () => {
 const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
   const [digit, setDigit] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
+  const [isBurst, setIsBurst] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
 
   useEffect(() => {
@@ -321,9 +322,16 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
       const delay = 1500 + Math.random() * 3500;
       return setTimeout(() => {
         setIsRolling(true);
+        // 20% chance of burst increment (2-3), otherwise increment by 1
+        const isBurstIncrement = Math.random() < 0.2;
+        const increment = isBurstIncrement ? (Math.random() < 0.5 ? 2 : 3) : 1;
+        
+        if (isBurstIncrement) {
+          setIsBurst(true);
+          setTimeout(() => setIsBurst(false), 600);
+        }
+        
         setTimeout(() => {
-          // 20% chance of burst increment (2-3), otherwise increment by 1
-          const increment = Math.random() < 0.2 ? (Math.random() < 0.5 ? 2 : 3) : 1;
           setDigit(prev => (prev + increment) % 10);
           setIsRolling(false);
           scheduleNext();
@@ -336,10 +344,17 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
   }, []);
 
   return (
-    <span className={cn("text-xs tabular-nums", textColor)}>
+    <span className={cn(
+      "text-xs tabular-nums transition-all duration-300",
+      textColor,
+      isBurst && (variant === "dark" ? "text-background" : "text-primary")
+    )}>
       8,34
       <span 
-        className="inline-block overflow-hidden align-bottom relative"
+        className={cn(
+          "inline-block overflow-hidden align-bottom relative transition-all duration-300",
+          isBurst && "drop-shadow-[0_0_4px_currentColor]"
+        )}
         style={{ height: '1.15em', width: '0.55em' }}
       >
         <span 
