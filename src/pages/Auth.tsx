@@ -3371,7 +3371,7 @@ const TaxExemptionForm = ({
       <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
-          A resale license for tax exemption is not required to register, but it may be a good idea for you to have one. If you choose to upload a tax exemption license, you will not be charged sales tax on extensions. If you do not want to pay sales tax, and be sales tax exempt, please upload your tax exemption documentation from your state.
+          A tax exemption certificate isn't required to register. If you have one, upload it to avoid sales tax on your orders.
         </p>
       </div>
 
