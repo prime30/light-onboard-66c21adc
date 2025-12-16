@@ -34,7 +34,7 @@ import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 type AuthMode = "signup" | "signin";
-type Step = "onboarding" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
+type Step = "onboarding" | "reviews" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Exclusively Professional",
   title: "Apply for a",
