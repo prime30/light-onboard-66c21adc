@@ -2541,12 +2541,10 @@ const AccountTypeForm = ({
         transform: selectedType === type.id ? 'translateY(-2px)' : undefined
       }}>
             {/* Selection ripple effect */}
-            <div className={cn("absolute inset-0 bg-gradient-to-r from-foreground/5 via-foreground/10 to-foreground/5 opacity-0 transition-opacity duration-500", selectedType === type.id && "opacity-100")} />
-            
-            {/* Shine sweep on selection */}
-            <div className={cn("absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent skew-x-12 transition-transform duration-700", selectedType === type.id && "translate-x-full")} />
-
-            {/* Check mark with bounce animation */}
+            <div className={cn(
+              "absolute inset-0 bg-gradient-to-r from-foreground/5 via-foreground/10 to-foreground/5 opacity-0 transition-opacity duration-500",
+              selectedType === type.id && "opacity-100"
+            )} />
             <div className={cn("absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-6 h-6 rounded-full bg-foreground flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "scale-100 opacity-100" : "scale-0 opacity-0")}>
               <Check className={cn("w-[14px] h-[14px] text-background transition-transform duration-300 delay-100", selectedType === type.id ? "scale-100" : "scale-0")} strokeWidth={3} />
             </div>
