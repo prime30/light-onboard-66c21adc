@@ -3106,8 +3106,8 @@ const BusinessOperationForm = ({
       <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/5" : "border-border/50 hover:border-foreground/30 hover:bg-muted/50", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
-              {businessOperationType === "commission" && <div className="w-2 h-2 rounded-full bg-background" />}
+            <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+              {businessOperationType === "commission" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
             </div>
             <div>
               <p className="font-medium text-foreground">I am a commission stylist</p>
@@ -3124,8 +3124,8 @@ const BusinessOperationForm = ({
       <button type="button" onClick={() => onBusinessOperationTypeChange("independent")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "independent" ? "border-foreground bg-foreground/5" : "border-border/50 hover:border-foreground/30 hover:bg-muted/50", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
-              {businessOperationType === "independent" && <div className="w-2 h-2 rounded-full bg-background" />}
+            <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+              {businessOperationType === "independent" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
             </div>
             <div>
               <p className="font-medium text-foreground">I am an independent stylist</p>
