@@ -501,6 +501,23 @@ const Auth = () => {
   // Main content refs
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+  
+  // Parallax scroll effect for mobile hero
+  const [parallaxOffset, setParallaxOffset] = useState(0);
+  
+  useEffect(() => {
+    const el = mainScrollRef.current;
+    if (!el) return;
+    
+    const handleScroll = () => {
+      const scrollTop = el.scrollTop;
+      // Parallax factor - image moves at 30% of scroll speed
+      setParallaxOffset(scrollTop * 0.3);
+    };
+    
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [mode, currentStep]);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -1544,8 +1561,13 @@ const Auth = () => {
             }}
           >
               <div className="rounded-[15px] p-4 sm:p-5 overflow-hidden relative">
-                {/* Hero image background */}
-                <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
+                {/* Hero image background with parallax */}
+                <img 
+                  src={salonHero} 
+                  alt="Professional salon" 
+                  className="absolute inset-0 w-full h-[120%] object-cover rounded-[15px] transition-transform duration-100 ease-out"
+                  style={{ transform: `translateY(-${Math.min(parallaxOffset, 30)}px)` }}
+                />
                 {/* Dark overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
                 
