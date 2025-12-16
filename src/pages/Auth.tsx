@@ -1675,7 +1675,7 @@ const Auth = () => {
                   <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
                     <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
                     <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                      Tap to continue
+                      Exclusively Professional
                     </span>
                   </div>
                   <div className="space-y-0.5 animate-fade-in" style={{
