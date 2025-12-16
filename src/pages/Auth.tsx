@@ -2040,41 +2040,21 @@ const MarqueeBadges = () => {
     const intensity = badgeIntensities[badgeKey] || 0;
     const Icon = badge.icon;
     
-    // Interpolate colors based on intensity
-    const greenOpacity = intensity * 0.15;
-    const borderOpacity = 0.3 + intensity * 0.2;
+    // Use grayscale filter for smooth desaturation - 0 = full color, 1 = gray
+    const grayscaleAmount = 1 - intensity;
     
     return (
       <div 
         data-badge={badgeKey}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-green-500/10 border-green-500/30"
         style={{
-          backgroundColor: `rgba(34, 197, 94, ${greenOpacity})`,
-          borderColor: intensity > 0.1 
-            ? `rgba(34, 197, 94, ${borderOpacity})` 
-            : 'hsl(var(--border) / 0.5)',
-          transition: 'background-color 0.15s ease-out, border-color 0.15s ease-out',
+          filter: `grayscale(${grayscaleAmount})`,
+          opacity: 0.5 + intensity * 0.5,
+          transition: 'filter 0.2s ease-out, opacity 0.2s ease-out',
         }}
       >
-        <Icon 
-          className="w-3 h-3 flex-shrink-0"
-          style={{
-            color: intensity > 0.1 
-              ? `rgba(22, 163, 74, ${0.4 + intensity * 0.6})` 
-              : 'hsl(var(--muted-foreground))',
-            transition: 'color 0.15s ease-out',
-          }}
-        />
-        <span 
-          className="text-[11px] whitespace-nowrap"
-          style={{
-            color: intensity > 0.1 
-              ? `rgba(21, 128, 61, ${0.5 + intensity * 0.5})` 
-              : 'hsl(var(--muted-foreground))',
-            fontWeight: intensity > 0.5 ? 500 : 400,
-            transition: 'color 0.15s ease-out, font-weight 0.15s ease-out',
-          }}
-        >
+        <Icon className="w-3 h-3 flex-shrink-0 text-green-600" />
+        <span className="text-[11px] whitespace-nowrap text-green-700 font-medium">
           {badge.label}
         </span>
       </div>
