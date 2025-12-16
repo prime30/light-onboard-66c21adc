@@ -29,28 +29,6 @@
 
   <body>
     <div id="root"></div>
-
-    <script>
-      // Safari debug: surface JS errors instead of blank screen
-      (function () {
-        function show(msg) {
-          try {
-            var el = document.createElement('pre');
-            el.style.cssText = 'position:fixed;inset:0;z-index:2147483647;margin:0;padding:16px;overflow:auto;background:#fff;color:#111;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;';
-            el.textContent = msg;
-            document.body.appendChild(el);
-          } catch (_) {}
-        }
-
-        window.addEventListener('error', function (e) {
-          show('Runtime error:\n' + (e && e.message ? e.message : String(e)));
-        });
-        window.addEventListener('unhandledrejection', function (e) {
-          show('Unhandled promise rejection:\n' + String(e && e.reason ? e.reason : e));
-        });
-      })();
-    </script>
-
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
