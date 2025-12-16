@@ -2536,8 +2536,10 @@ const OnboardingForm = ({
       </div>
     </div>
 
-    {/* Loved by pros - with avatars */}
-    <RotatingStylistAvatarsLight />
+    {/* Loved by pros - with avatars (mobile/tablet only) */}
+    <div className="lg:hidden">
+      <RotatingStylistAvatarsLight />
+    </div>
 
     <p className="text-xs text-muted-foreground text-center">
       Already have an account?{" "}
