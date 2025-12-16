@@ -309,52 +309,24 @@ const TestimonialCarousel = () => {
   );
 };
 
-// Odometer Counter Component for social proof
+// Odometer Counter Component for social proof - continuous rolling animation
 const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
-  const [count, setCount] = useState(8340);
-  const [isRolling, setIsRolling] = useState(false);
-  const [displayDigit, setDisplayDigit] = useState(0);
-  const [nextDigit, setNextDigit] = useState(1);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsRolling(true);
-      setDisplayDigit(count % 10);
-      const next = (count + 1) % 10000;
-      setNextDigit(next % 10);
-      
-      setTimeout(() => {
-        setCount(prev => {
-          const next = prev + 1;
-          return next >= 8400 ? 8340 : next;
-        });
-        setIsRolling(false);
-      }, 400);
-    }, 800);
-
-    return () => clearInterval(interval);
-  }, [count]);
-
-  const thousands = Math.floor(count / 1000);
-  const hundreds = Math.floor((count % 1000) / 100);
-  const tens = Math.floor((count % 100) / 10);
-  const ones = count % 10;
-
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
+  
+  // Create digits 0-9 repeated twice for seamless loop
+  const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   return (
     <span className={cn("text-xs tabular-nums", textColor)}>
-      {thousands},{hundreds}{tens}
-      <span className="inline-flex overflow-hidden h-[1.1em] align-bottom relative" style={{ width: '0.6em' }}>
-        <span 
-          key={count}
-          className={cn(
-            "inline-flex flex-col",
-            isRolling && "animate-odometer-roll"
-          )}
-        >
-          <span>{displayDigit}</span>
-          <span>{nextDigit}</span>
+      8,34
+      <span 
+        className="inline-block overflow-hidden align-bottom relative"
+        style={{ height: '1.15em', width: '0.55em' }}
+      >
+        <span className="flex flex-col animate-odometer-continuous">
+          {digits.map((digit, i) => (
+            <span key={i} className="leading-[1.15]">{digit}</span>
+          ))}
         </span>
       </span>
       {" "}pros
