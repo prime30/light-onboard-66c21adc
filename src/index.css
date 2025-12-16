@@ -297,86 +297,86 @@
 
 @layer utilities {
   .animate-modal-enter {
-    animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: modalSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   
   .animate-modal-exit {
-    animation: modalSlideDown 0.3s ease-out forwards;
+    animation: modalSlideDown 0.45s ease-out forwards;
   }
   
   @media (min-width: 640px) {
     .animate-modal-enter {
-      animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: modalEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .animate-modal-exit {
-      animation: modalExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+      animation: modalExit 0.45s cubic-bezier(0.4, 0, 1, 1) forwards;
     }
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn 0.6s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out forwards;
+    animation: slideUp 0.6s ease-out forwards;
   }
 
   .animate-slide-in-right {
-    animation: slideInRight 0.3s ease-out forwards;
+    animation: slideInRight 0.5s ease-out forwards;
   }
 
   .animate-slide-out-left {
-    animation: slideOutLeft 0.4s ease-out forwards;
+    animation: slideOutLeft 0.6s ease-out forwards;
   }
 
   .animate-rise-fade-in {
-    animation: riseFadeIn 0.5s ease-out forwards;
+    animation: riseFadeIn 0.7s ease-out forwards;
   }
 
   /* Step transition animations */
   .animate-step-enter-right {
-    animation: stepEnterRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: stepEnterRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-step-enter-left {
-    animation: stepEnterLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: stepEnterLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-step-exit-left {
-    animation: stepExitLeft 0.15s cubic-bezier(0.4, 0, 1, 1) forwards;
+    animation: stepExitLeft 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 
   .animate-step-exit-right {
-    animation: stepExitRight 0.15s cubic-bezier(0.4, 0, 1, 1) forwards;
+    animation: stepExitRight 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 
   .animate-stagger-1 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.05s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.08s;
     opacity: 0;
   }
 
   .animate-stagger-2 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.15s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.18s;
     opacity: 0;
   }
 
   .animate-stagger-3 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.25s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.28s;
     opacity: 0;
   }
 
   .animate-stagger-4 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.35s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.38s;
     opacity: 0;
   }
 
   .animate-stagger-5 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.45s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.48s;
     opacity: 0;
   }
 
@@ -637,25 +637,25 @@
 
   /* Gentle bounce entrance */
   .animate-bounce-in {
-    animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: bounceIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     opacity: 0;
   }
 
   /* Smooth slide up with fade */
   .animate-slide-up-fade {
-    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
   }
 
   /* Smooth slide down with fade */
   .animate-slide-down-fade {
-    animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideDownFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
   }
 
   /* Haptic pop entrance - more impactful */
   .animate-haptic-pop {
-    animation: hapticPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: hapticPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
   /* Button lift on hover */
@@ -683,14 +683,14 @@
 
   /* Stagger animations with different delays */
   .animate-stagger-6 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.55s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.58s;
     opacity: 0;
   }
 
   .animate-stagger-7 {
-    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.65s;
+    animation: staggerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.68s;
     opacity: 0;
   }
 }
@@ -863,7 +863,7 @@
 }
 
 .animate-fade-in-text {
-  animation: fade-in-text 0.4s ease-out forwards;
+  animation: fade-in-text 0.6s ease-out forwards;
 }
 
 @keyframes pulse-glow {
@@ -1168,7 +1168,7 @@
 }
 
 .animate-step-card-enter {
-  animation: stepCardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: stepCardEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Slide down with fade keyframes */
