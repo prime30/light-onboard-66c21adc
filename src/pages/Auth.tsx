@@ -1595,9 +1595,14 @@ const Auth = () => {
                     </p>
                   </div>
                   
-                  {/* Arrow indicator */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background/10 flex items-center justify-center">
-                    <ArrowRight className="w-5 h-5 text-background" />
+                  {/* Arrow indicator with pulsing glow */}
+                  <div className="relative flex-shrink-0">
+                    {/* Pulsing glow ring */}
+                    <div className="absolute inset-0 rounded-full bg-background/20 animate-ping" style={{ animationDuration: '2s' }} />
+                    <div className="absolute inset-[-4px] rounded-full bg-background/10 animate-pulse" style={{ animationDuration: '1.5s' }} />
+                    <div className="relative w-10 h-10 rounded-full bg-background/15 backdrop-blur-sm flex items-center justify-center border border-background/20">
+                      <ArrowRight className="w-5 h-5 text-background" />
+                    </div>
                   </div>
                 </div>
               </div>
