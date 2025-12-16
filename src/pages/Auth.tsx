@@ -2159,13 +2159,13 @@ const AccountTypeForm = ({
     icon: User,
     title: "Licensed Stylist",
     description: "Commission, or Independent Stylist",
-    features: ["Pro wholesale pricing", "Priority support", "Community access"]
+    features: ["Pro pricing", "Priority support", "Community access"]
   }, {
     id: "salon",
     icon: Building2,
     title: "Salon Owner or Manager",
     description: "Business accounts",
-    features: ["Community access", "Education discounts", "Top level support", "Wholesale pricing"]
+    features: ["Community access", "Education discounts", "Top level support", "Pro pricing"]
   }, {
     id: "student",
     icon: GraduationCap,
