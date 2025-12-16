@@ -25,6 +25,14 @@ import { supabase } from "@/integrations/supabase/client";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
+import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
+import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
+import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
+import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
+import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
+import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
+import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
+import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -425,15 +433,6 @@ const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: "light"
 };
 
 // Rotating Stylist Avatars Component - Female stylists with colorful hair
-import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
-import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
-import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
-import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
-import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
-import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
-import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
-import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
-
 const stylistAvatars = [
   stylistPink1,
   stylistPurple1,
@@ -444,6 +443,7 @@ const stylistAvatars = [
   stylistMagenta1,
   stylistElectric1,
 ];
+
 const RotatingStylistAvatars = () => {
   const [visibleIndices, setVisibleIndices] = useState([0, 1, 2]);
   const [fadingIndex, setFadingIndex] = useState<number | null>(null);
@@ -455,12 +455,23 @@ const RotatingStylistAvatars = () => {
   const emojiIdRef = useRef(0);
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
+  const nextAvatarRef = useRef(3); // Track next avatar to show (start after initial 3)
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
   
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
-    const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
     const positionToReplace = Math.floor(Math.random() * 3);
+    
+    // Get next avatar that isn't currently visible
+    let nextIndex = nextAvatarRef.current;
+    nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
+    
+    // Skip if it would create a duplicate
+    while (prev.includes(nextIndex)) {
+      nextIndex = nextAvatarRef.current;
+      nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
+    }
+    
     setFadingIndex(positionToReplace);
 
     // Trigger floating emoji when new avatar appears
@@ -513,12 +524,23 @@ const RotatingStylistAvatarsLight = () => {
   const emojiIdRef = useRef(0);
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
+  const nextAvatarRef = useRef(3); // Track next avatar to show (start after initial 3)
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
   
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
-    const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
     const positionToReplace = Math.floor(Math.random() * 3);
+    
+    // Get next avatar that isn't currently visible
+    let nextIndex = nextAvatarRef.current;
+    nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
+    
+    // Skip if it would create a duplicate
+    while (prev.includes(nextIndex)) {
+      nextIndex = nextAvatarRef.current;
+      nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
+    }
+    
     setFadingIndex(positionToReplace);
 
     // Trigger floating emoji when new avatar appears
