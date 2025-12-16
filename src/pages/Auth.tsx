@@ -309,6 +309,59 @@ const TestimonialCarousel = () => {
   );
 };
 
+// Odometer Counter Component for social proof
+const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
+  const [count, setCount] = useState(8340);
+  const [isRolling, setIsRolling] = useState(false);
+  const [displayDigit, setDisplayDigit] = useState(0);
+  const [nextDigit, setNextDigit] = useState(1);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsRolling(true);
+      setDisplayDigit(count % 10);
+      const next = (count + 1) % 10000;
+      setNextDigit(next % 10);
+      
+      setTimeout(() => {
+        setCount(prev => {
+          const next = prev + 1;
+          return next >= 8400 ? 8340 : next;
+        });
+        setIsRolling(false);
+      }, 400);
+    }, 800);
+
+    return () => clearInterval(interval);
+  }, [count]);
+
+  const thousands = Math.floor(count / 1000);
+  const hundreds = Math.floor((count % 1000) / 100);
+  const tens = Math.floor((count % 100) / 10);
+  const ones = count % 10;
+
+  const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
+
+  return (
+    <span className={cn("text-xs tabular-nums", textColor)}>
+      {thousands},{hundreds}{tens}
+      <span className="inline-flex overflow-hidden h-[1.1em] align-bottom relative" style={{ width: '0.6em' }}>
+        <span 
+          key={count}
+          className={cn(
+            "inline-flex flex-col",
+            isRolling && "animate-odometer-roll"
+          )}
+        >
+          <span>{displayDigit}</span>
+          <span>{nextDigit}</span>
+        </span>
+      </span>
+      {" "}pros
+    </span>
+  );
+};
+
 // Rotating Stylist Avatars Component
 const stylistAvatars = ["https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face", "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop&crop=face"];
 const RotatingStylistAvatars = () => {
@@ -362,7 +415,7 @@ const RotatingStylistAvatars = () => {
               </span>}
           </div>)}
       </div>
-      <span className="text-xs text-background/50">8K+ pros</span>
+      <OdometerCounter variant="dark" />
     </div>;
 };
 
@@ -435,7 +488,7 @@ const RotatingStylistAvatarsLight = () => {
           </div>
         ))}
       </div>
-      <span className="text-xs text-foreground font-medium">8K+ pros</span>
+      <OdometerCounter variant="light" />
     </div>
   );
 };

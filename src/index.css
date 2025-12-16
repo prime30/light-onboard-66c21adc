@@ -1274,3 +1274,17 @@
     transform: translateX(-50%);
   }
 }
+
+/* Odometer rolling digit animation */
+@keyframes odometerRoll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+.animate-odometer-roll {
+  animation: odometerRoll 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
