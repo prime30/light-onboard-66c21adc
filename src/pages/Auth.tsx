@@ -1851,7 +1851,11 @@ const Auth = () => {
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex-1">
+                      <div className="flex-1 relative">
+                        {/* Invisible hover zone for disabled button tooltip */}
+                        {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
+                          <div className="absolute inset-0 z-10 cursor-not-allowed" />
+                        )}
                         <Button key={`shimmer-${shimmerKey}`} size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]", shimmerKey > 0 && "shimmer-trigger")}>
                           <span className="relative z-10 flex items-center justify-center gap-[10px]">
                             {isSubmitting ? <>
