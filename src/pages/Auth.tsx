@@ -1624,12 +1624,23 @@ const Auth = () => {
                   const currentStepNum = getCurrentStepNumber();
                   const distance = Math.abs(stepNum - currentStepNum);
                   const isActive = stepNum === currentStepNum;
-                  const isCompleted = stepNum < currentStepNum;
+                  const isPassed = stepNum < currentStepNum;
+                  const isCompleted = completedSteps.has(stepNum);
+                  const isPassedButIncomplete = isPassed && !isCompleted;
 
                   // Calculate opacity based on distance from center
                   const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
                   // Calculate scale based on distance
                   const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
+                  
+                  // Determine background color based on state
+                  const getStepBgClass = () => {
+                    if (isActive) return "bg-foreground text-background";
+                    if (isCompleted) return "bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]";
+                    if (isPassedButIncomplete) return "bg-[hsl(0_84%_90%)] dark:bg-[hsl(0_60%_25%)] text-[hsl(0_84%_45%)] dark:text-[hsl(0_84%_70%)]";
+                    return "bg-border/60 text-muted-foreground";
+                  };
+                  
                   return <button key={i} onClick={() => goToStep(stepNum)} className="flex items-center gap-[12px] cursor-pointer hover:opacity-100 transition-opacity" style={{
                     opacity,
                     transform: `scale(${scale})`,
@@ -1640,8 +1651,8 @@ const Auth = () => {
                           {isActive && <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
                         boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
                       }} />}
-                          <div className={cn("rounded-full transition-all duration-500 flex items-center justify-center font-semibold", isActive ? "w-[24px] h-[24px] bg-foreground text-background text-[10px]" : completedSteps.has(stepNum) ? "w-[20px] h-[20px] bg-foreground text-background" : "w-[20px] h-[20px] bg-border/60 text-muted-foreground text-[9px]")}>
-                            {completedSteps.has(stepNum) && !isActive ? <Check className="w-[10px] h-[10px]" strokeWidth={3} /> : <span>{stepNum}</span>}
+                          <div className={cn("rounded-full transition-all duration-500 flex items-center justify-center font-semibold", isActive ? "w-[24px] h-[24px] text-[10px]" : "w-[20px] h-[20px] text-[9px]", getStepBgClass())}>
+                            {isCompleted && !isActive ? <Check className="w-[10px] h-[10px]" strokeWidth={3} /> : <span>{stepNum}</span>}
                           </div>
                         </div>
                       </button>;
