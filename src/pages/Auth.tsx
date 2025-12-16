@@ -1893,18 +1893,16 @@ const Auth = () => {
                   >
                     <div className={cn(
                       "relative flex items-center justify-center transition-all duration-500",
-                      currentStep === "onboarding" ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]"
+                      currentStep === "onboarding" ? "w-[20px] h-[20px]" : "w-[20px] h-[20px]"
                     )}>
                       {/* Active step glow ring */}
                       {currentStep === "onboarding" && (
-                        <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
-                          boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
-                        }} />
+                        <div className="absolute inset-[4px] rounded-full border border-foreground/40 animate-pulse" />
                       )}
                       <div className={cn(
                         "rounded-full transition-all duration-500 flex items-center justify-center",
                         currentStep === "onboarding" 
-                          ? "w-[10px] h-[10px] bg-foreground" 
+                          ? "w-[6px] h-[6px] bg-foreground" 
                           : "w-[20px] h-[20px] bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]"
                       )}>
                         {currentStep !== "onboarding" && (
