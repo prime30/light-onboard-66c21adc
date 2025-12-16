@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Check, LucideIcon } from "lucide-react";
-import { useMagnetic } from "@/hooks/use-magnetic";
 
 interface Feature {
   label: string;
@@ -26,21 +25,16 @@ export const AccountTypeCard = ({
   selected,
   onSelect,
 }: AccountTypeCardProps) => {
-  const magnetic = useMagnetic<HTMLButtonElement>({ strength: 0.08 });
-
   return (
     <button
-      ref={magnetic.ref}
-      style={magnetic.style}
-      onMouseMove={magnetic.onMouseMove}
-      onMouseLeave={magnetic.onMouseLeave}
       onClick={onSelect}
       className={cn(
-        "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-300",
-        "hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200",
+        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "hover:-translate-y-0.5 hover:shadow-md",
         selected
-          ? "border-foreground/20 bg-foreground/[0.03] shadow-lg backdrop-blur-sm"
-          : "border-border/30 bg-background/40 hover:bg-background/60 hover:border-foreground/15 backdrop-blur-sm"
+          ? "border-foreground/20 bg-foreground/[0.03] -translate-y-0.5 shadow-md"
+          : "border-border/30 bg-background/40 hover:border-foreground/15"
       )}
     >
       {/* Selection indicator */}
@@ -116,11 +110,6 @@ export const AccountTypeCard = ({
           );
         })}
       </div>
-
-      {/* Subtle gradient overlay when selected */}
-      {selected && (
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-      )}
     </button>
   );
 };
