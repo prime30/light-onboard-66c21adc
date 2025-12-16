@@ -2473,98 +2473,118 @@ const OnboardingForm = ({
   onSignIn: () => void;
   onStepClick?: () => void;
   fontsLoaded?: boolean;
-}) => <div className="space-y-6 sm:space-y-8">
+}) => {
+  const [hasScrolled, setHasScrolled] = useState(false);
 
-    {/* Hero section */}
-    <div className="text-center space-y-3 animate-stagger-1">
-      <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-        {fontsLoaded ? <span className="animate-fade-in-text">Let's get started</span> : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
-      </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-        {fontsLoaded ? (
-          <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span>
-        ) : (
-          <TextSkeleton width="85%" height="1em" className="mx-auto" />
-        )}
-      </p>
-    </div>
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setHasScrolled(true);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    {/* Trust badges - Marquee with center highlight effect */}
-    <MarqueeBadges />
+  return (
+    <div className="space-y-6 sm:space-y-8">
 
-    {/* Steps preview */}
-    <div className="grid gap-3 pt-2">
-      {[{
-      icon: User,
-      label: "Tell us who you are"
-    }, {
-      icon: FileCheck,
-      label: "Provide your license number"
-    }, {
-      icon: Mail,
-      label: "Follow post-approval instructions to finalize account"
-    }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
-      animationDelay: `${400 + i * 150}ms`,
-      animationFillMode: 'forwards'
-    }}>
-            <div className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
-              <item.icon className="w-5 h-5 text-background" />
-              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-background border-2 border-foreground flex items-center justify-center">
-                <span className="text-[9px] font-bold text-foreground">{i + 1}</span>
+      {/* Hero section */}
+      <div className="text-center space-y-3 animate-stagger-1">
+        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
+          {fontsLoaded ? <span className="animate-fade-in-text">Let's get started</span> : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
+          {fontsLoaded ? (
+            <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span>
+          ) : (
+            <TextSkeleton width="85%" height="1em" className="mx-auto" />
+          )}
+        </p>
+      </div>
+
+      {/* Trust badges - Marquee with center highlight effect */}
+      <MarqueeBadges />
+
+      {/* Steps preview */}
+      <div className="grid gap-3 pt-2">
+        {[{
+        icon: User,
+        label: "Tell us who you are"
+      }, {
+        icon: FileCheck,
+        label: "Provide your license number"
+      }, {
+        icon: Mail,
+        label: "Follow post-approval instructions to finalize account"
+      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
+        animationDelay: `${400 + i * 150}ms`,
+        animationFillMode: 'forwards'
+      }}>
+              <div className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
+                <item.icon className="w-5 h-5 text-background" />
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-background border-2 border-foreground flex items-center justify-center">
+                  <span className="text-[9px] font-bold text-foreground">{i + 1}</span>
+                </div>
               </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{item.label}</p>
-            </div>
-          </div>)}
-    </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">{item.label}</p>
+              </div>
+            </div>)}
+      </div>
 
-    {/* Benefits highlight with animated counters */}
-    <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
-      <div>
-        <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={50} suffix="%" delay={200} />
+      {/* Benefits highlight with animated counters */}
+      <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
+        <div>
+          <div className="text-2xl font-semibold text-foreground">
+            <AnimatedNumber value={50} suffix="%" delay={200} />
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
         </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
-      </div>
-      <div className="w-px bg-border hidden lg:block" />
-      <div className="hidden lg:block">
-        <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={2} suffix="K+" delay={400} />
+        <div className="w-px bg-border hidden lg:block" />
+        <div className="hidden lg:block">
+          <div className="text-2xl font-semibold text-foreground">
+            <AnimatedNumber value={2} suffix="K+" delay={400} />
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
         </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
-      </div>
-      <div className="w-px bg-border" />
-      <div>
-        <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={24} suffix="hr" delay={600} />
+        <div className="w-px bg-border" />
+        <div>
+          <div className="text-2xl font-semibold text-foreground">
+            <AnimatedNumber value={24} suffix="hr" delay={600} />
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
         </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
+      </div>
+
+      {/* Loved by pros - with avatars (mobile/tablet only) */}
+      <div className="lg:hidden">
+        <RotatingStylistAvatarsLight />
+      </div>
+
+      <p className="text-xs text-muted-foreground text-center">
+        Already have an account?{" "}
+        <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
+          Sign in
+          <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </button>
+      </p>
+
+      {/* Scroll down hint - mobile only, hides on scroll */}
+      <div className={cn(
+        "lg:hidden flex flex-col items-center gap-1 pt-4 transition-opacity duration-300",
+        hasScrolled ? "opacity-0 pointer-events-none" : "opacity-100"
+      )} style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
+        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">Scroll</span>
+        <div className="flex flex-col items-center animate-bounce-subtle">
+          <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground/20 -mt-2.5" />
+        </div>
       </div>
     </div>
-
-    {/* Loved by pros - with avatars (mobile/tablet only) */}
-    <div className="lg:hidden">
-      <RotatingStylistAvatarsLight />
-    </div>
-
-    <p className="text-xs text-muted-foreground text-center">
-      Already have an account?{" "}
-      <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
-        Sign in
-        <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </button>
-    </p>
-
-    {/* Scroll down hint - mobile only */}
-    <div className="lg:hidden flex flex-col items-center gap-1 pt-4 animate-fade-in" style={{ animationDelay: '800ms', animationFillMode: 'forwards', opacity: 0 }}>
-      <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">Scroll</span>
-      <div className="flex flex-col items-center animate-bounce-subtle">
-        <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
-        <ChevronDown className="w-4 h-4 text-muted-foreground/20 -mt-2.5" />
-      </div>
-    </div>
-  </div>;
+  );
+};
 const AccountTypeForm = ({
   selectedType,
   onSelect,
