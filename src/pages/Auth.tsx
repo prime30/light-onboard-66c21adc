@@ -1436,13 +1436,17 @@ const Auth = () => {
   const handleAccountTypeSelect = (type: string | null) => {
     setAccountType(type);
     if (type) {
-      // Auto-advance after grace period
+      // Auto-advance after grace period - go directly to step 2 without validation
       setTimeout(() => {
-        handleNext();
+        // Mark step 1 as completed
+        setCompletedSteps(prev => new Set([...prev, 1]));
+        // Calculate next step based on selected type
+        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "license" : "business-location";
+        goToStep(2);
       }, 400);
     }
   };
-  
+
   const handleNext = () => {
     if (!canContinue()) {
       setShowValidationErrors(true);
