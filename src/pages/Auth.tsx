@@ -2247,8 +2247,8 @@ const MarqueeBadges = () => {
   const momentumRef = useRef<number | null>(null);
 
   const badges = [
-    { icon: Check, label: "Exclusively professional" },
     { icon: Users, label: "Community app" },
+    { icon: Check, label: "Exclusively professional" },
     { icon: GraduationCap, label: "Advanced education" },
     { icon: Tag, label: "Wholesale pricing" },
     { icon: Truck, label: "Fast shipping" },
