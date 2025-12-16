@@ -2521,7 +2521,7 @@ const OnboardingForm = ({
   }, []);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 lg:space-y-8">
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
       <div className="hidden lg:block text-center space-y-3 animate-stagger-1">
