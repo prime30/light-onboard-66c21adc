@@ -1904,12 +1904,10 @@ const Auth = () => {
                       <div className={cn(
                         "rounded-full transition-all duration-500 flex items-center justify-center",
                         currentStep === "onboarding" 
-                          ? "w-[24px] h-[24px] bg-foreground text-background" 
+                          ? "w-[10px] h-[10px] bg-foreground" 
                           : "w-[20px] h-[20px] bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]"
                       )}>
-                        {currentStep === "onboarding" ? (
-                          <Wand2 className="w-[12px] h-[12px]" />
-                        ) : (
+                        {currentStep !== "onboarding" && (
                           <Check className="w-[10px] h-[10px]" strokeWidth={3} />
                         )}
                       </div>
