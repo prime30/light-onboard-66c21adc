@@ -2541,7 +2541,7 @@ const OnboardingForm = ({
       <MarqueeBadges />
 
       {/* Steps preview */}
-      <div className="grid gap-3 pt-2">
+      <div className="grid gap-3">
         {[{
         icon: User,
         label: "Tell us who you are"
