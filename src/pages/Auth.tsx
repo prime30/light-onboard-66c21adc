@@ -1879,11 +1879,11 @@ const Auth = () => {
                         Exclusively Professional
                       </span>
                     </div>
-                    <div className="space-y-0.5 animate-fade-in" style={{
+                    <div className="animate-fade-in" style={{
                     animationDelay: '100ms',
                     animationFillMode: 'backwards'
                   }}>
-                      <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
+                      <h2 className="font-termina font-medium uppercase text-2xl sm:text-3xl text-background leading-tight text-balance">
                         {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
                       </h2>
                     </div>
@@ -2523,11 +2523,8 @@ const OnboardingForm = ({
   return (
     <div className="space-y-6 sm:space-y-8">
 
-      {/* Hero section */}
-      <div className="text-center space-y-3 animate-stagger-1">
-        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          {fontsLoaded ? <span className="animate-fade-in-text">Let's get started</span> : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
-        </h1>
+      {/* Subtitle */}
+      <div className="text-center animate-stagger-1">
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
           {fontsLoaded ? (
             <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span>
