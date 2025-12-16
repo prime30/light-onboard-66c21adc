@@ -4302,8 +4302,8 @@ const SuccessForm = () => {
     {/* First Purchase Upsell */}
     <div className="space-y-3">
       {/* Title and Timer */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">Offer while you wait for approval</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p className="text-sm font-medium text-foreground">Offer while you wait</p>
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
           <div className="flex items-center gap-1 text-[11px] text-accent-red font-semibold tabular-nums">
