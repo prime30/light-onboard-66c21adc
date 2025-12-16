@@ -310,7 +310,7 @@ const TestimonialCarousel = () => {
 };
 
 // Odometer Counter Component for social proof - random increments for real-time feel
-const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
+const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: "light" | "dark"; onIncrement?: () => void }) => {
   const [tens, setTens] = useState(4);
   const [ones, setOnes] = useState(0);
   const [prevOnes, setPrevOnes] = useState(0);
@@ -323,8 +323,10 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
   // Use refs to avoid stale closure issues
   const onesRef = useRef(ones);
   const tensRef = useRef(tens);
+  const onIncrementRef = useRef(onIncrement);
   onesRef.current = ones;
   tensRef.current = tens;
+  onIncrementRef.current = onIncrement;
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -358,6 +360,9 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
         
         setOnes(newOnes);
         setIsRolling(true);
+        
+        // Trigger callback when counter increments
+        onIncrementRef.current?.();
         
         setTimeout(() => {
           setIsRolling(false);
@@ -430,37 +435,39 @@ const RotatingStylistAvatars = () => {
     id: number;
   } | null>(null);
   const emojiIdRef = useRef(0);
+  const visibleIndicesRef = useRef(visibleIndices);
+  visibleIndicesRef.current = visibleIndices;
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisibleIndices(prev => {
-        const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
-        const positionToReplace = Math.floor(Math.random() * 3);
-        setFadingIndex(positionToReplace);
+  
+  const handleOdometerIncrement = useCallback(() => {
+    const prev = visibleIndicesRef.current;
+    const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
+    const positionToReplace = Math.floor(Math.random() * 3);
+    setFadingIndex(positionToReplace);
 
-        // Trigger floating emoji when new avatar appears
-        const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
-        emojiIdRef.current += 1;
-        setFloatingEmoji({
-          position: positionToReplace,
-          emoji: randomEmoji,
-          id: emojiIdRef.current
-        });
-        setTimeout(() => {
-          setFadingIndex(null);
-        }, 300);
+    // Trigger floating emoji when new avatar appears
+    const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
+    emojiIdRef.current += 1;
+    setFloatingEmoji({
+      position: positionToReplace,
+      emoji: randomEmoji,
+      id: emojiIdRef.current
+    });
+    
+    setTimeout(() => {
+      setFadingIndex(null);
+    }, 300);
 
-        // Clear emoji after animation
-        setTimeout(() => {
-          setFloatingEmoji(null);
-        }, 1000);
-        const newIndices = [...prev];
-        newIndices[positionToReplace] = nextIndex;
-        return newIndices;
-      });
-    }, 2500);
-    return () => clearInterval(interval);
+    // Clear emoji after animation
+    setTimeout(() => {
+      setFloatingEmoji(null);
+    }, 1000);
+    
+    const newIndices = [...prev];
+    newIndices[positionToReplace] = nextIndex;
+    setVisibleIndices(newIndices);
   }, []);
+
   return <div className="flex items-center gap-2.5">
       <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
       <div className="flex -space-x-[5px]">
@@ -472,7 +479,7 @@ const RotatingStylistAvatars = () => {
               </span>}
           </div>)}
       </div>
-      <OdometerCounter variant="dark" />
+      <OdometerCounter variant="dark" onIncrement={handleOdometerIncrement} />
     </div>;
 };
 
@@ -486,37 +493,37 @@ const RotatingStylistAvatarsLight = () => {
     id: number;
   } | null>(null);
   const emojiIdRef = useRef(0);
+  const visibleIndicesRef = useRef(visibleIndices);
+  visibleIndicesRef.current = visibleIndices;
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
   
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisibleIndices(prev => {
-        const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
-        const positionToReplace = Math.floor(Math.random() * 3);
-        setFadingIndex(positionToReplace);
+  const handleOdometerIncrement = useCallback(() => {
+    const prev = visibleIndicesRef.current;
+    const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
+    const positionToReplace = Math.floor(Math.random() * 3);
+    setFadingIndex(positionToReplace);
 
-        // Trigger floating emoji when new avatar appears
-        const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
-        emojiIdRef.current += 1;
-        setFloatingEmoji({
-          position: positionToReplace,
-          emoji: randomEmoji,
-          id: emojiIdRef.current
-        });
-        setTimeout(() => {
-          setFadingIndex(null);
-        }, 300);
+    // Trigger floating emoji when new avatar appears
+    const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
+    emojiIdRef.current += 1;
+    setFloatingEmoji({
+      position: positionToReplace,
+      emoji: randomEmoji,
+      id: emojiIdRef.current
+    });
+    
+    setTimeout(() => {
+      setFadingIndex(null);
+    }, 300);
 
-        // Clear emoji after animation
-        setTimeout(() => {
-          setFloatingEmoji(null);
-        }, 1000);
-        const newIndices = [...prev];
-        newIndices[positionToReplace] = nextIndex;
-        return newIndices;
-      });
-    }, 2500);
-    return () => clearInterval(interval);
+    // Clear emoji after animation
+    setTimeout(() => {
+      setFloatingEmoji(null);
+    }, 1000);
+    
+    const newIndices = [...prev];
+    newIndices[positionToReplace] = nextIndex;
+    setVisibleIndices(newIndices);
   }, []);
   
   return (
@@ -545,7 +552,7 @@ const RotatingStylistAvatarsLight = () => {
           </div>
         ))}
       </div>
-      <OdometerCounter variant="light" />
+      <OdometerCounter variant="light" onIncrement={handleOdometerIncrement} />
     </div>
   );
 };
