@@ -319,12 +319,20 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
   const [isTensRolling, setIsTensRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
+  
+  // Use refs to avoid stale closure issues
+  const onesRef = useRef(ones);
+  const tensRef = useRef(tens);
+  onesRef.current = ones;
+  tensRef.current = tens;
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
     const scheduleNext = () => {
       // Slower: 3-7 seconds between increments
       const delay = 3000 + Math.random() * 4000;
-      return setTimeout(() => {
+      timeoutId = setTimeout(() => {
         // 20% chance of burst increment (2-3), otherwise increment by 1
         const isBurstIncrement = Math.random() < 0.2;
         const increment = isBurstIncrement ? (Math.random() < 0.5 ? 2 : 3) : 1;
@@ -334,11 +342,14 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
           setTimeout(() => setIsBurst(false), 600);
         }
         
-        setPrevOnes(ones);
-        setPrevTens(tens);
+        const currentOnes = onesRef.current;
+        const currentTens = tensRef.current;
         
-        const newOnes = (ones + increment) % 10;
-        const tensIncrement = Math.floor((ones + increment) / 10);
+        setPrevOnes(currentOnes);
+        setPrevTens(currentTens);
+        
+        const newOnes = (currentOnes + increment) % 10;
+        const tensIncrement = Math.floor((currentOnes + increment) / 10);
         
         if (tensIncrement > 0) {
           setIsTensRolling(true);
@@ -356,9 +367,9 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
       }, delay);
     };
     
-    const timeout = scheduleNext();
-    return () => clearTimeout(timeout);
-  }, [ones, tens]);
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <span className={cn(
