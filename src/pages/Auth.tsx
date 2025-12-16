@@ -1580,15 +1580,15 @@ const Auth = () => {
               WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)'
             }}>
                 {/* Sliding track that moves based on current step */}
-                <div className="flex items-center gap-[12px] transition-transform duration-500 ease-out" style={{
+                <div className="flex items-center transition-transform duration-500 ease-out" style={{
                 // Adjust transform to account for intro step (step 0) and success step at end
                 // Total visual steps = 1 (intro) + getTotalSteps() + 1 (success)
-                transform: `translateX(${((getTotalSteps() + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber()) - 0.5) * 32}px)`
+                transform: `translateX(${((getTotalSteps() + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber()) - 0.5) * 44}px)`
               }}>
                   {/* Intro/Onboarding step with icon */}
                   <button 
                     onClick={() => currentStep !== "onboarding" && goToStep(0)}
-                    className="flex items-center gap-[12px] cursor-pointer hover:opacity-100 transition-opacity" 
+                    className="flex items-center cursor-pointer hover:opacity-100 transition-opacity" 
                     style={{
                       opacity: currentStep === "onboarding" ? 1 : 0.6,
                       transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
@@ -1620,6 +1620,16 @@ const Auth = () => {
                     </div>
                   </button>
 
+                  {/* Connecting line after intro */}
+                  <div className="relative h-[2px] w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                    <div
+                      className={cn(
+                        "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
+                        currentStep !== "onboarding" ? "scale-x-100" : "scale-x-0"
+                      )}
+                    />
+                  </div>
+
                   {/* Regular numbered steps */}
                   {Array.from({
                   length: getTotalSteps()
@@ -1631,6 +1641,7 @@ const Auth = () => {
                   const isPassed = currentStepNum > stepNum;
                   const isCompleted = completedSteps.has(stepNum);
                   const isPassedButIncomplete = isPassed && !isCompleted;
+                  const isLastStep = i === getTotalSteps() - 1;
 
                   // Calculate opacity based on distance from center
                   const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
@@ -1645,21 +1656,33 @@ const Auth = () => {
                     return "bg-border/60 text-muted-foreground";
                   };
                   
-                  return <button key={i} onClick={() => goToStep(stepNum)} className="flex items-center gap-[12px] cursor-pointer hover:opacity-100 transition-opacity" style={{
-                    opacity,
-                    transform: `scale(${scale})`,
-                    transition: 'all 0.5s ease-out'
-                  }}>
-                        <div className={cn("relative flex items-center justify-center transition-all duration-500", isActive ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]")}>
-                          {/* Active step glow ring */}
-                          {isActive && <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
-                        boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
-                      }} />}
-                          <div className={cn("rounded-full transition-all duration-500 flex items-center justify-center font-semibold", isActive ? "w-[24px] h-[24px] text-[10px]" : "w-[20px] h-[20px] text-[9px]", getStepBgClass())}>
-                            {isCompleted && !isActive ? <Check className="w-[10px] h-[10px]" strokeWidth={3} /> : <span>{stepNum}</span>}
-                          </div>
+                  return <div key={i} className="flex items-center">
+                    <button onClick={() => goToStep(stepNum)} className="flex items-center cursor-pointer hover:opacity-100 transition-opacity" style={{
+                      opacity,
+                      transform: `scale(${scale})`,
+                      transition: 'all 0.5s ease-out'
+                    }}>
+                      <div className={cn("relative flex items-center justify-center transition-all duration-500", isActive ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]")}>
+                        {/* Active step glow ring */}
+                        {isActive && <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
+                          boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
+                        }} />}
+                        <div className={cn("rounded-full transition-all duration-500 flex items-center justify-center font-semibold", isActive ? "w-[24px] h-[24px] text-[10px]" : "w-[20px] h-[20px] text-[9px]", getStepBgClass())}>
+                          {isCompleted && !isActive ? <Check className="w-[10px] h-[10px]" strokeWidth={3} /> : <span>{stepNum}</span>}
                         </div>
-                      </button>;
+                      </div>
+                    </button>
+                    {/* Connecting line after each step */}
+                    <div className="relative h-[2px] w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                      <div
+                        className={cn(
+                          "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
+                          (currentStep === "success" || (currentStepNum > stepNum) || (currentStepNum === stepNum && !isLastStep && currentStepNum > stepNum)) ? "scale-x-100" : "scale-x-0",
+                          isPassed || currentStep === "success" ? "scale-x-100" : "scale-x-0"
+                        )}
+                      />
+                    </div>
+                  </div>;
                 })}
 
                   {/* Success step with flag icon */}
@@ -1673,7 +1696,7 @@ const Auth = () => {
                     
                     return (
                       <div 
-                        className="flex items-center gap-[12px]" 
+                        className="flex items-center" 
                         style={{
                           opacity,
                           transform: `scale(${scale})`,
@@ -1830,8 +1853,8 @@ const Auth = () => {
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
-            <div className={cn("max-w-[38rem] mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none", showSpotlight && "relative z-50")}>
+            <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
               <div className="flex gap-[15px]">
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
