@@ -318,7 +318,7 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
   const [isRolling, setIsRolling] = useState(false);
   const [isTensRolling, setIsTensRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
-  const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
+  const textColor = variant === "dark" ? "text-background/50" : "text-muted-foreground";
   
   // Use refs to avoid stale closure issues
   const onesRef = useRef(ones);
