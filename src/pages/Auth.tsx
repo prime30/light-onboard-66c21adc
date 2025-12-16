@@ -943,8 +943,8 @@ const Auth = () => {
     if (diff > threshold && currentStepNum < totalSteps) {
       goToStep(currentStepNum + 1);
     }
-    // Swipe right → previous step
-    else if (diff < -threshold && currentStepNum > 1) {
+    // Swipe right → previous step (allow going back to onboarding which is step 0)
+    else if (diff < -threshold && currentStepNum >= 1) {
       goToStep(currentStepNum - 1);
     }
     
