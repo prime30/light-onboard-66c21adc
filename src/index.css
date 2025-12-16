@@ -1254,6 +1254,7 @@
 
 .animate-marquee-seamless-long:hover {
   animation-play-state: paused;
+  animation-play-state: paused;
 }
 
 @keyframes marquee-seamless {
