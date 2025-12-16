@@ -596,10 +596,8 @@ const Auth = () => {
       const scrollTop = el.scrollTop;
       // Parallax factor - image moves at 30% of scroll speed
       setParallaxOffset(scrollTop * 0.3);
-      // Hide scroll hint after scrolling 50px
-      if (scrollTop > 50) {
-        setHasScrolled(true);
-      }
+      // Hide scroll hint after scrolling 50px, show again when back at top
+      setHasScrolled(scrollTop > 50);
     };
     
     el.addEventListener('scroll', handleScroll, { passive: true });
