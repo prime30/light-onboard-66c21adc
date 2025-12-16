@@ -1851,23 +1851,42 @@ const Auth = () => {
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex-1 relative">
-                        {/* Invisible hover zone for disabled button tooltip */}
-                        {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
-                          <div className="absolute inset-0 z-10 cursor-not-allowed" />
-                        )}
-                        <Button key={`shimmer-${shimmerKey}`} size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]", shimmerKey > 0 && "shimmer-trigger")}>
+                      {/* Wrap the button so hover works even when the button is disabled */}
+                      <span className="flex-1 block">
+                        <Button
+                          key={`shimmer-${shimmerKey}`}
+                          size="lg"
+                          onClick={handleNext}
+                          disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
+                          className={cn(
+                            "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                            showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
+                            shimmerKey > 0 && "shimmer-trigger",
+                            // ensure hover is captured by wrapper when disabled (Radix tooltip won't open on disabled button)
+                            currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
+                          )}
+                        >
                           <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                            {isSubmitting ? <>
+                            {isSubmitting ? (
+                              <>
                                 <Loader2 className="w-[18px] h-[18px] animate-spin" />
                                 Submitting...
-                              </> : <>
-                                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "contact-info" ? "Submit Application" : "Continue"}
+                              </>
+                            ) : (
+                              <>
+                                {mode === "signin"
+                                  ? "Sign in"
+                                  : currentStep === "onboarding"
+                                    ? "Get Started"
+                                    : currentStep === "contact-info"
+                                      ? "Submit Application"
+                                      : "Continue"}
                                 <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
-                              </>}
+                              </>
+                            )}
                           </span>
                         </Button>
-                      </div>
+                      </span>
                     </TooltipTrigger>
                     {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && <TooltipContent side="top" className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px]">
                         <div className="space-y-2.5">
