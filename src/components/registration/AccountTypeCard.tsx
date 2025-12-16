@@ -33,7 +33,7 @@ export const AccountTypeCard = ({
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "hover:-translate-y-0.5 hover:shadow-md",
         selected
-          ? "border-foreground/10 bg-foreground/[0.02] -translate-y-0.5 shadow-sm"
+          ? "border-foreground/10 bg-foreground/[0.012] -translate-y-0.5 shadow-sm"
           : "border-border/30 bg-background/40 hover:border-foreground/15"
       )}
     >
@@ -42,11 +42,11 @@ export const AccountTypeCard = ({
         className={cn(
           "absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
           selected
-            ? "border-foreground bg-foreground"
+            ? "border-foreground/30 bg-foreground/10"
             : "border-foreground/20"
         )}
       >
-        {selected && <Check className="w-3 h-3 text-background" strokeWidth={3} />}
+        {selected && <Check className="w-3 h-3 text-foreground" strokeWidth={3} />}
       </div>
 
       {/* Mobile: Horizontal layout with icon + content */}
@@ -70,7 +70,7 @@ export const AccountTypeCard = ({
           {badge && (
             <span className={cn(
               "inline-block px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded mb-1 sm:mb-2 transition-colors duration-300",
-              selected ? "bg-background/20 text-background" : "bg-foreground/10 text-foreground"
+              selected ? "bg-foreground/[0.08] text-foreground" : "bg-foreground/10 text-foreground"
             )}>
               {badge}
             </span>
