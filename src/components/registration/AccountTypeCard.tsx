@@ -33,7 +33,7 @@ export const AccountTypeCard = ({
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "hover:-translate-y-0.5 hover:shadow-md",
         selected
-          ? "border-foreground/20 bg-foreground/[0.03] -translate-y-0.5 shadow-md"
+          ? "border-foreground/10 bg-foreground/[0.02] -translate-y-0.5 shadow-sm"
           : "border-border/30 bg-background/40 hover:border-foreground/15"
       )}
     >
