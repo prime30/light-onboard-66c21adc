@@ -9,49 +9,52 @@ export function useFontLoaded() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    // Safety timeout - always show content after 800ms max
-    const safetyTimeout = setTimeout(() => setFontsLoaded(true), 800);
+    // Ensure skeletons are actually visible even on fast loads / Safari quirks
+    const MIN_SKELETON_MS = 200;
+    const MAX_WAIT_MS = 800;
 
-    // If no fonts API, show content immediately
-    if (typeof document === 'undefined' || !document.fonts) {
-      clearTimeout(safetyTimeout);
+    let minElapsed = false;
+    let finished = false;
+
+    const maybeFinish = () => {
+      if (finished || !minElapsed) return;
+      finished = true;
       setFontsLoaded(true);
-      return;
+    };
+
+    const minTimer = window.setTimeout(() => {
+      minElapsed = true;
+      maybeFinish();
+    }, MIN_SKELETON_MS);
+
+    const maxTimer = window.setTimeout(() => {
+      minElapsed = true;
+      maybeFinish();
+    }, MAX_WAIT_MS);
+
+    // If no Font Loading API, rely on the min/max timers.
+    if (typeof document === 'undefined' || !document.fonts) {
+      return () => {
+        clearTimeout(minTimer);
+        clearTimeout(maxTimer);
+      };
     }
 
-    // Check if fonts already loaded (cached)
-    try {
-      const fontsToCheck = ['Aeonik Pro', 'Termina'];
-      const allLoaded = fontsToCheck.every(font => {
-        try {
-          return document.fonts.check(`16px "${font}"`);
-        } catch {
-          return true; // Assume loaded on error
-        }
+    // Wait for fonts; don't rely on document.fonts.check (Safari can be optimistic)
+    document.fonts.ready
+      .then(() => {
+        clearTimeout(maxTimer);
+        maybeFinish();
+      })
+      .catch(() => {
+        clearTimeout(maxTimer);
+        maybeFinish();
       });
 
-      if (allLoaded) {
-        clearTimeout(safetyTimeout);
-        setFontsLoaded(true);
-        return;
-      }
-
-      // Wait for fonts to be ready
-      document.fonts.ready
-        .then(() => {
-          clearTimeout(safetyTimeout);
-          setFontsLoaded(true);
-        })
-        .catch(() => {
-          clearTimeout(safetyTimeout);
-          setFontsLoaded(true);
-        });
-    } catch {
-      clearTimeout(safetyTimeout);
-      setFontsLoaded(true);
-    }
-
-    return () => clearTimeout(safetyTimeout);
+    return () => {
+      clearTimeout(minTimer);
+      clearTimeout(maxTimer);
+    };
   }, []);
 
   return fontsLoaded;
