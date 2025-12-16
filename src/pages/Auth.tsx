@@ -1771,6 +1771,23 @@ const Auth = () => {
                     {currentStep === "onboarding" ? "Welcome" : `Step ${getCurrentStepNumber().toString().padStart(2, '0')} / ${getTotalSteps().toString().padStart(2, '0')}`}
                   </span>
                 </div>}
+              
+              {/* Mobile progress bar - hidden on desktop where hero has circular progress */}
+              {showStepIndicator && mode === "signup" && currentStep !== "onboarding" && (
+                <div className={cn("lg:hidden flex items-center gap-3 mb-1", showSpotlight && "opacity-0")}>
+                  <div className="flex-1 h-1 bg-border/40 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-foreground rounded-full transition-all duration-500 ease-out"
+                      style={{ 
+                        width: `${Math.round((getCurrentStepNumber() / getTotalSteps()) * 100)}%` 
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground tabular-nums min-w-[36px] text-right">
+                    {Math.round((getCurrentStepNumber() / getTotalSteps()) * 100)}%
+                  </span>
+                </div>
+              )}
               <div className="flex gap-[15px]">
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
