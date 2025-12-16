@@ -498,154 +498,9 @@ const Auth = () => {
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mobile hero scroll behavior
-  const [mobileHeroVisible, setMobileHeroVisible] = useState(true);
-  const mobileHeroVisibleRef = useRef(mobileHeroVisible);
+  // Main content refs
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
-
-  // Fix mobile browser UI (address bar) causing 100vh issues on initial load
-  useEffect(() => {
-    const setAppHeight = () => {
-      const vv = window.visualViewport;
-      const height = vv?.height ?? window.innerHeight;
-      document.documentElement.style.setProperty("--app-height", `${height}px`);
-
-      // When browser UI overlays the page (mobile Safari/Chrome), compute bottom inset
-      const bottomInset = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
-      document.documentElement.style.setProperty("--vv-bottom-inset", `${bottomInset}px`);
-    };
-
-    // Run multiple times to catch initial browser-UI settling (common on iOS/Chrome)
-    setAppHeight();
-    requestAnimationFrame(setAppHeight);
-    const t = window.setTimeout(setAppHeight, 250);
-
-    const vv = window.visualViewport;
-    window.addEventListener("resize", setAppHeight);
-    window.addEventListener("orientationchange", setAppHeight);
-    vv?.addEventListener("resize", setAppHeight);
-    vv?.addEventListener("scroll", setAppHeight);
-
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener("resize", setAppHeight);
-      window.removeEventListener("orientationchange", setAppHeight);
-      vv?.removeEventListener("resize", setAppHeight);
-      vv?.removeEventListener("scroll", setAppHeight);
-    };
-  }, []);
-
-  // Prevent the document itself from scrolling on mobile (keeps footer above browser UI)
-  useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    const prevHeight = document.body.style.height;
-    const prevOverscroll = document.body.style.overscrollBehaviorY;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.height = "var(--app-height, 100vh)";
-    document.body.style.overscrollBehaviorY = "none";
-
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.height = prevHeight;
-      document.body.style.overscrollBehaviorY = prevOverscroll;
-    };
-  }, []);
-
-  useEffect(() => {
-    mobileHeroVisibleRef.current = mobileHeroVisible;
-  }, [mobileHeroVisible]);
-
-  // Track scroll direction for mobile hero hide/show
-  useEffect(() => {
-    // Small delay to ensure refs are populated after render
-    const timeoutId = setTimeout(() => {
-      // Use a single scroll container to avoid nested-scroll jitter on iOS.
-      const el = (mainScrollRef.current ?? mainContentRef.current) as HTMLElement | null;
-      if (!el) return;
-
-      let last = el.scrollTop;
-      let accum = 0;
-      let lastToggleAt = 0;
-
-      const scrollThreshold = 10; // Higher threshold to reduce jitter
-      const hideAfter = 20;
-      const bottomZonePx = 120; // Near-bottom zone where we freeze toggles (prevents layout-induced scroll jumps)
-      const toggleCooldownMs = 250;
-
-      const onScroll = (e: Event) => {
-        const target = e.currentTarget as HTMLElement | null;
-        if (!target) return;
-
-        const now = performance.now();
-        const current = target.scrollTop;
-        const delta = current - last;
-
-        // Ignore tiny oscillations (common with elastic bounce).
-        if (Math.abs(delta) < 1) {
-          last = current;
-          return;
-        }
-
-        const maxScrollTop = Math.max(0, target.scrollHeight - target.clientHeight);
-        const inBottomZone = current >= maxScrollTop - bottomZonePx;
-
-        // Always show near top.
-        if (current <= hideAfter) {
-          if (!mobileHeroVisibleRef.current) setMobileHeroVisible(true);
-          last = current;
-          accum = 0;
-          return;
-        }
-
-        // Near bottom, don't change hero visibility at all (prevents feedback loop + scroll jumps).
-        if (inBottomZone) {
-          last = current;
-          accum = 0;
-          return;
-        }
-
-        accum += delta;
-
-        // Throttle toggles.
-        if (now - lastToggleAt < toggleCooldownMs) {
-          last = current;
-          return;
-        }
-
-        if (Math.abs(accum) >= scrollThreshold) {
-          if (accum > 0) {
-            if (mobileHeroVisibleRef.current) {
-              setMobileHeroVisible(false);
-              lastToggleAt = now;
-            }
-          } else {
-            if (!mobileHeroVisibleRef.current) {
-              setMobileHeroVisible(true);
-              lastToggleAt = now;
-            }
-          }
-          accum = 0;
-        }
-
-        last = current;
-      };
-
-      el.addEventListener("scroll", onScroll, { passive: true });
-      (el as any).__mobileHeroScrollHandler = onScroll;
-    }, 50);
-
-    return () => {
-      clearTimeout(timeoutId);
-      const el = (mainScrollRef.current ?? mainContentRef.current) as HTMLElement | null;
-      const handler = el ? ((el as any).__mobileHeroScrollHandler as ((e: Event) => void) | undefined) : undefined;
-      if (el && handler) {
-        el.removeEventListener("scroll", handler);
-        delete (el as any).__mobileHeroScrollHandler;
-      }
-    };
-  }, [mode, currentStep]);
   const resetForm = () => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -1673,59 +1528,59 @@ const Auth = () => {
           </button>
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, scrolls with content */}
-        {mode === 'signup' && currentStep === 'onboarding' && <div
-          className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform"
-          onClick={() => {
-            mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-            handleNext();
-          }}
-        >
-            <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
-              {/* Hero image background */}
-              <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
-              {/* Dark overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
-              
-              <div className="relative z-10 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
-                    <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
-                    <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                      Exclusively Professional
-                    </span>
-                  </div>
-                  <div className="space-y-0.5 animate-fade-in" style={{
-                  animationDelay: '100ms',
-                  animationFillMode: 'backwards'
-                }}>
-                    <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
-                      {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
-                    </h2>
-                  </div>
-                  <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
-                  animationDelay: '200ms',
-                  animationFillMode: 'backwards'
-                }}>
-                    {fontsLoaded ? <span className="animate-fade-in-text">Cosmetology license, proof of student status, or equivalent required to shop.</span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
-                  </p>
-                </div>
-                
-                {/* Arrow indicator */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background/10 flex items-center justify-center">
-                  <ArrowRight className="w-5 h-5 text-background" />
-                </div>
-              </div>
-            </div>
-          </div>}
-
         <main 
           ref={mainScrollRef} 
-          className={cn("flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}
+          className={cn("flex-1 flex flex-col items-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}
           onTouchStart={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeStart : undefined}
           onTouchMove={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeMove : undefined}
           onTouchEnd={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeEnd : undefined}
         >
+          {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, scrolls with content */}
+          {mode === 'signup' && currentStep === 'onboarding' && <div
+            className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform w-full max-w-[38rem] mb-4"
+            onClick={() => {
+              mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+              handleNext();
+            }}
+          >
+              <div className="rounded-[15px] p-4 sm:p-5 overflow-hidden relative">
+                {/* Hero image background */}
+                <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
+                
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
+                      <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
+                      <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
+                        Exclusively Professional
+                      </span>
+                    </div>
+                    <div className="space-y-0.5 animate-fade-in" style={{
+                    animationDelay: '100ms',
+                    animationFillMode: 'backwards'
+                  }}>
+                      <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
+                        {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
+                      </h2>
+                    </div>
+                    <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
+                    animationDelay: '200ms',
+                    animationFillMode: 'backwards'
+                  }}>
+                      {fontsLoaded ? <span className="animate-fade-in-text">Cosmetology license, proof of student status, or equivalent required to shop.</span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
+                    </p>
+                  </div>
+                  
+                  {/* Arrow indicator */}
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background/10 flex items-center justify-center">
+                    <ArrowRight className="w-5 h-5 text-background" />
+                  </div>
+                </div>
+              </div>
+            </div>}
+
           {isTransitioning ? <div className="w-full max-w-[38rem]">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
             </div> : <div key={currentStep} className={cn("w-full max-w-[38rem]", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
