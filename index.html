@@ -7,10 +7,10 @@
     <meta name="description" content="Create your professional account to access exclusive wholesale pricing and pro perks." />
     <meta name="author" content="Lovable" />
 
-    <!-- Preload critical fonts for faster rendering -->
-    <link rel="preload" href="/fonts/aeonik-pro-regular.otf" as="font" type="font/otf" crossorigin>
-    <link rel="preload" href="/fonts/aeonik-pro-medium.otf" as="font" type="font/otf" crossorigin>
-    <link rel="preload" href="/fonts/termina-medium.otf" as="font" type="font/otf" crossorigin>
+    <!-- Preload critical fonts for faster rendering (Safari-safe) -->
+    <link rel="preload" href="/fonts/aeonik-pro-regular.otf" as="font" type="font/opentype">
+    <link rel="preload" href="/fonts/aeonik-pro-medium.otf" as="font" type="font/opentype">
+    <link rel="preload" href="/fonts/termina-medium.otf" as="font" type="font/opentype">
 
     <!-- Bebas Neue fallback for Termina -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +29,28 @@
 
   <body>
     <div id="root"></div>
+
+    <script>
+      // Safari debug: surface JS errors instead of blank screen
+      (function () {
+        function show(msg) {
+          try {
+            var el = document.createElement('pre');
+            el.style.cssText = 'position:fixed;inset:0;z-index:2147483647;margin:0;padding:16px;overflow:auto;background:#fff;color:#111;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;';
+            el.textContent = msg;
+            document.body.appendChild(el);
+          } catch (_) {}
+        }
+
+        window.addEventListener('error', function (e) {
+          show('Runtime error:\n' + (e && e.message ? e.message : String(e)));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          show('Unhandled promise rejection:\n' + String(e && e.reason ? e.reason : e));
+        });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
