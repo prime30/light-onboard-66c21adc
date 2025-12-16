@@ -1938,7 +1938,7 @@ const Auth = () => {
         {/* Scroll down hint - mobile only, positioned above footer */}
         {mode === "signup" && currentStep === "onboarding" && (
           <div className={cn(
-            "lg:hidden sticky bottom-[75px] flex justify-center pointer-events-none transition-opacity duration-300 pb-2",
+            "lg:hidden sticky bottom-[75px] flex justify-center pointer-events-none transition-opacity duration-300",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
             <div className="flex flex-col items-center animate-bounce-subtle">
