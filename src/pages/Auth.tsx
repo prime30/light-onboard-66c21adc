@@ -1468,21 +1468,21 @@ const Auth = () => {
                 <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
                   <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                   <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-                    Exclusively Professional
+                    {fontsLoaded ? "Exclusively Professional" : <TextSkeleton width="120px" height="0.9em" variant="light" />}
                   </span>
                 </div>
 
                 <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
                   <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]">
-                    Great to
+                    {fontsLoaded ? <span className="animate-fade-in-text">Great to</span> : <TextSkeleton width="50%" height="1em" variant="light" />}
                   </h2>
                   <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]">
-                    See You Again
+                    {fontsLoaded ? <span className="animate-fade-in-text">See You Again</span> : <TextSkeleton width="80%" height="1em" variant="light" />}
                   </h1>
                 </div>
 
                 <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap">
-                  Your pro account is waiting for you
+                  {fontsLoaded ? <span className="animate-fade-in-text">Your pro account is waiting for you</span> : <TextSkeleton width="70%" height="0.9em" variant="light" />}
                 </p>
                 {/* Testimonial Carousel */}
                 <div className="hidden xl:block">
@@ -1499,7 +1499,7 @@ const Auth = () => {
                 }} className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit opacity-0 animate-fade-in pl-[5px] md:pl-[10px]">
                     <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                     <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-                      {slide.eyebrow}
+                      {fontsLoaded ? slide.eyebrow : <TextSkeleton width="100px" height="0.9em" variant="light" />}
                     </span>
                   </div>
 
@@ -1509,13 +1509,13 @@ const Auth = () => {
                     animationDelay: '200ms',
                     animationFillMode: 'forwards'
                   }}>
-                      {slide.title}
+                      {fontsLoaded ? slide.title : <TextSkeleton width="60%" height="1em" variant="light" />}
                     </h2>
                     <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1] opacity-0 animate-fade-in" style={{
                     animationDelay: '300ms',
                     animationFillMode: 'forwards'
                   }}>
-                      {slide.highlight}
+                      {fontsLoaded ? slide.highlight : <TextSkeleton width="75%" height="1em" variant="light" />}
                     </h1>
                   </div>
 
@@ -1523,7 +1523,7 @@ const Auth = () => {
                   animationDelay: '400ms',
                   animationFillMode: 'forwards'
                 }}>
-                    {slide.description}
+                    {fontsLoaded ? slide.description : <TextSkeleton width="85%" height="0.9em" variant="light" />}
                   </p>
                 </div>
               </div>)}
