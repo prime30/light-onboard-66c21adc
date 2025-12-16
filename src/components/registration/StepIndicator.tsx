@@ -39,24 +39,36 @@ export const StepIndicator = ({
         </div>
       )}
       
-      {/* Regular numbered steps */}
+      {/* Regular numbered steps with connecting lines */}
       {Array.from({ length: totalSteps }, (_, i) => {
         const stepNumber = i + 1;
         const isActive = currentStep === stepNumber;
         const isCompleted = currentStep > stepNumber;
+        const isFirst = i === 0;
         
         return (
-          <div
-            key={i}
-            className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
-              isActive
-                ? "w-8 bg-foreground"
-                : isCompleted
-                ? "w-1.5 bg-foreground"
-                : "w-1.5 bg-border"
+          <div key={i} className="flex items-center gap-2">
+            {/* Connecting line before step (except first, unless there's an intro step) */}
+            {(!isFirst || hasIntroStep) && (
+              <div
+                className={cn(
+                  "h-[1px] w-4 transition-all duration-300",
+                  isCompleted || isActive ? "bg-foreground/40" : "bg-border"
+                )}
+              />
             )}
-          />
+            {/* Step indicator */}
+            <div
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                isActive
+                  ? "w-8 bg-foreground"
+                  : isCompleted
+                  ? "w-1.5 bg-foreground"
+                  : "w-1.5 bg-border"
+              )}
+            />
+          </div>
         );
       })}
     </div>
