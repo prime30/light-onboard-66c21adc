@@ -820,11 +820,13 @@ const Auth = () => {
   const getIncompleteSteps = (): {
     step: number;
     name: string;
+    missingFields: string[];
   }[] => {
     if (mode !== "signup" || !accountType) return [];
     const incomplete: {
       step: number;
       name: string;
+      missingFields: string[];
     }[] = [];
 
     // Step 1: Account Type (always complete if we're past it)
@@ -832,62 +834,96 @@ const Auth = () => {
     if (accountType === "student") {
       // Student flow: account-type, school-info, wholesale-terms, contact-info
       // Step 2: School Info
-      if (schoolName.trim() === "" || schoolState === "" || enrollmentProofFiles.length === 0) {
+      const schoolMissing: string[] = [];
+      if (schoolName.trim() === "") schoolMissing.push("School Name");
+      if (schoolState === "") schoolMissing.push("State/Province");
+      if (enrollmentProofFiles.length === 0) schoolMissing.push("Enrollment Proof");
+      if (schoolMissing.length > 0) {
         incomplete.push({
           step: 2,
-          name: "School Information"
+          name: "School Information",
+          missingFields: schoolMissing
         });
       }
       // Step 3: Wholesale Terms
       if (!wholesaleAgreed) {
         incomplete.push({
           step: 3,
-          name: "Wholesale Terms"
+          name: "Wholesale Terms",
+          missingFields: ["Terms Agreement"]
         });
       }
       // Step 4: Contact Info
-      if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+      const contactMissing: string[] = [];
+      if (firstName.trim() === "") contactMissing.push("First Name");
+      if (lastName.trim() === "") contactMissing.push("Last Name");
+      if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone Number");
+      if (contactMissing.length > 0) {
         incomplete.push({
           step: 4,
-          name: "Contact Info"
+          name: "Contact Info",
+          missingFields: contactMissing
         });
       }
       return incomplete;
     }
     if (accountType === "salon") {
       // Step 2: Business Location
-      if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+      const locationMissing: string[] = [];
+      if (businessName.trim() === "") locationMissing.push("Business Name");
+      if (businessAddress.trim() === "") locationMissing.push("Address");
+      if (country === "") locationMissing.push("Country");
+      if (city.trim() === "") locationMissing.push("City");
+      if (state === "") locationMissing.push("State/Province");
+      if (zipCode.trim() === "") locationMissing.push("ZIP Code");
+      if (locationMissing.length > 0) {
         incomplete.push({
           step: 2,
-          name: "Business Location"
+          name: "Business Location",
+          missingFields: locationMissing
         });
       }
       // Step 3: License
-      if (licenseNumber.trim() === "" || salonSize === "" || salonStructure === "") {
+      const licenseMissing: string[] = [];
+      if (licenseNumber.trim() === "") licenseMissing.push("License Number");
+      if (salonSize === "") licenseMissing.push("Salon Size");
+      if (salonStructure === "") licenseMissing.push("Salon Structure");
+      if (licenseMissing.length > 0) {
         incomplete.push({
           step: 3,
-          name: "License Verification"
+          name: "License Verification",
+          missingFields: licenseMissing
         });
       }
       // Step 4: Wholesale Terms
       if (!wholesaleAgreed) {
         incomplete.push({
           step: 4,
-          name: "Wholesale Terms"
+          name: "Wholesale Terms",
+          missingFields: ["Terms Agreement"]
         });
       }
       // Step 5: Tax Exemption
-      if (hasTaxExemption === null || hasTaxExemption === true && !taxExemptFile) {
+      const taxMissing: string[] = [];
+      if (hasTaxExemption === null) taxMissing.push("Exemption Status");
+      else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax Document");
+      if (taxMissing.length > 0) {
         incomplete.push({
           step: 5,
-          name: "Tax Exemption"
+          name: "Tax Exemption",
+          missingFields: taxMissing
         });
       }
       // Step 6: Contact Info
-      if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+      const salonContactMissing: string[] = [];
+      if (firstName.trim() === "") salonContactMissing.push("First Name");
+      if (lastName.trim() === "") salonContactMissing.push("Last Name");
+      if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone Number");
+      if (salonContactMissing.length > 0) {
         incomplete.push({
           step: 6,
-          name: "Contact Info"
+          name: "Contact Info",
+          missingFields: salonContactMissing
         });
       }
       return incomplete;
@@ -898,42 +934,62 @@ const Auth = () => {
     if (licenseNumber.trim() === "") {
       incomplete.push({
         step: 2,
-        name: "License Verification"
+        name: "License Verification",
+        missingFields: ["License Number"]
       });
     }
     // Step 3: Business Operation
     if (businessOperationType === null) {
       incomplete.push({
         step: 3,
-        name: "Business Operation"
+        name: "Business Operation",
+        missingFields: ["Operation Type"]
       });
     }
     // Step 4: Business Location
-    if (businessName.trim() === "" || businessAddress.trim() === "" || country === "" || city.trim() === "" || state === "" || zipCode.trim() === "") {
+    const proLocationMissing: string[] = [];
+    if (businessName.trim() === "") proLocationMissing.push("Business Name");
+    if (businessAddress.trim() === "") proLocationMissing.push("Address");
+    if (country === "") proLocationMissing.push("Country");
+    if (city.trim() === "") proLocationMissing.push("City");
+    if (state === "") proLocationMissing.push("State/Province");
+    if (zipCode.trim() === "") proLocationMissing.push("ZIP Code");
+    if (proLocationMissing.length > 0) {
       incomplete.push({
         step: 4,
-        name: "Business Location"
+        name: "Business Location",
+        missingFields: proLocationMissing
       });
     }
     // Step 5: Wholesale Terms
     if (!wholesaleAgreed) {
       incomplete.push({
         step: 5,
-        name: "Wholesale Terms"
+        name: "Wholesale Terms",
+        missingFields: ["Terms Agreement"]
       });
     }
     // Step 6: Tax Exemption
-    if (hasTaxExemption === null || hasTaxExemption === true && !taxExemptFile) {
+    const proTaxMissing: string[] = [];
+    if (hasTaxExemption === null) proTaxMissing.push("Exemption Status");
+    else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax Document");
+    if (proTaxMissing.length > 0) {
       incomplete.push({
         step: 6,
-        name: "Tax Exemption"
+        name: "Tax Exemption",
+        missingFields: proTaxMissing
       });
     }
     // Step 7: Contact Info
-    if (firstName.trim() === "" || lastName.trim() === "" || !isValidPhoneNumber(phoneNumber)) {
+    const proContactMissing: string[] = [];
+    if (firstName.trim() === "") proContactMissing.push("First Name");
+    if (lastName.trim() === "") proContactMissing.push("Last Name");
+    if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone Number");
+    if (proContactMissing.length > 0) {
       incomplete.push({
         step: 7,
-        name: "Contact Info"
+        name: "Contact Info",
+        missingFields: proContactMissing
       });
     }
     return incomplete;
@@ -1809,19 +1865,29 @@ const Auth = () => {
                         </Button>
                       </div>
                     </TooltipTrigger>
-                    {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && <TooltipContent side="top" className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[280px]">
-                        <div className="space-y-2">
+                    {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && <TooltipContent side="top" className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px]">
+                        <div className="space-y-2.5">
                           <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             {getIncompleteSteps().map(({
                           step,
-                          name
-                        }) => <button key={step} onClick={() => goToStep(step)} className="flex items-center gap-2 w-full hover:bg-background/10 rounded-lg px-2 py-1.5 -mx-2 transition-colors cursor-pointer group/step">
-                                <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                                  <span className="text-[10px] font-semibold">{step}</span>
+                          name,
+                          missingFields
+                        }) => <button key={step} onClick={() => goToStep(step)} className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step">
+                                <div className="flex items-center gap-2 w-full">
+                                  <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
+                                    <span className="text-[10px] font-semibold">{step}</span>
+                                  </div>
+                                  <span className="text-sm font-medium">{name}</span>
+                                  <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
                                 </div>
-                                <span className="text-sm">{name}</span>
-                                <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
+                                <div className="pl-7 flex flex-wrap gap-1">
+                                  {missingFields.map((field) => (
+                                    <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-background/10 text-background/60">
+                                      {field}
+                                    </span>
+                                  ))}
+                                </div>
                               </button>)}
                           </div>
                         </div>
