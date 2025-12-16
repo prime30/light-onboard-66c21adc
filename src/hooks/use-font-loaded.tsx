@@ -1,52 +1,58 @@
 import { useState, useEffect, useRef } from 'react';
 
-const DEFAULT_FONTS = ['Aeonik Pro', 'Termina'];
-
-export function useFontLoaded(fontFamilies: string[] = DEFAULT_FONTS) {
-  // Start true to ensure content is always visible - skeleton is progressive enhancement
-  const [fontsLoaded, setFontsLoaded] = useState(true);
-  const hasChecked = useRef(false);
+export function useFontLoaded() {
+  // Start false to show skeletons initially
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    // Only run once
-    if (hasChecked.current) return;
-    hasChecked.current = true;
+    if (hasRun.current) return;
+    hasRun.current = true;
 
-    // Check if fonts API is available
+    // Safety timeout - always show content after 800ms max
+    const safetyTimeout = setTimeout(() => setFontsLoaded(true), 800);
+
+    // If no fonts API, show content immediately
     if (typeof document === 'undefined' || !document.fonts) {
+      clearTimeout(safetyTimeout);
+      setFontsLoaded(true);
       return;
     }
 
-    // Quick check if fonts are already loaded
+    // Check if fonts already loaded (cached)
     try {
-      const allLoaded = fontFamilies.every(font => 
-        document.fonts.check(`16px "${font}"`)
-      );
-      
-      if (allLoaded) {
-        return; // Already loaded, keep fontsLoaded = true
-      }
-
-      // Fonts not loaded yet - show skeleton briefly
-      setFontsLoaded(false);
-
-      // Wait for fonts with a short timeout
-      const timeout = setTimeout(() => setFontsLoaded(true), 1500);
-      
-      document.fonts.ready.then(() => {
-        clearTimeout(timeout);
-        setFontsLoaded(true);
-      }).catch(() => {
-        clearTimeout(timeout);
-        setFontsLoaded(true);
+      const fontsToCheck = ['Aeonik Pro', 'Termina'];
+      const allLoaded = fontsToCheck.every(font => {
+        try {
+          return document.fonts.check(`16px "${font}"`);
+        } catch {
+          return true; // Assume loaded on error
+        }
       });
 
-      return () => clearTimeout(timeout);
+      if (allLoaded) {
+        clearTimeout(safetyTimeout);
+        setFontsLoaded(true);
+        return;
+      }
+
+      // Wait for fonts to be ready
+      document.fonts.ready
+        .then(() => {
+          clearTimeout(safetyTimeout);
+          setFontsLoaded(true);
+        })
+        .catch(() => {
+          clearTimeout(safetyTimeout);
+          setFontsLoaded(true);
+        });
     } catch {
-      // Any error - just show content
+      clearTimeout(safetyTimeout);
       setFontsLoaded(true);
     }
-  }, []); // Empty deps - only run once
+
+    return () => clearTimeout(safetyTimeout);
+  }, []);
 
   return fontsLoaded;
 }
