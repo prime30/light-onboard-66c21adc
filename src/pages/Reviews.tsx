@@ -29,9 +29,9 @@ const Reviews = () => {
     : reviews.filter(review => review.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-background pt-4">
+    <div className="min-h-screen bg-black/60 backdrop-blur-sm pt-4">
       <div 
-        className="container max-w-4xl mx-auto px-5 py-8 bg-background rounded-t-3xl shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.4)] animate-[pageSlideUp_0.5s_cubic-bezier(0.16,1,0.3,1)_forwards]"
+        className="container max-w-4xl mx-auto px-5 py-8 bg-background rounded-t-3xl shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.5)] animate-[pageSlideUp_0.5s_cubic-bezier(0.16,1,0.3,1)_forwards]"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
