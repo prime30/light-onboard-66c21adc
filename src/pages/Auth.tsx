@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { useCountdown } from "@/hooks/use-countdown";
+import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
@@ -492,6 +493,7 @@ const Auth = () => {
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
   const [shimmerKey, setShimmerKey] = useState(0);
+  const fontsLoaded = useFontLoaded();
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1741,10 +1743,11 @@ const Auth = () => {
                 onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
                 onForgotPasswordSubmit={handleForgotPasswordSubmit}
                 isSendingReset={isSendingReset}
+                fontsLoaded={fontsLoaded}
               /> : <>
                   {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} onStepClick={() => {
                     setShimmerKey(k => k + 1);
-                  }} />}
+                  }} fontsLoaded={fontsLoaded} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                   {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={setBusinessOperationType} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
@@ -1853,7 +1856,8 @@ const SignInForm = ({
   showForgotPassword,
   onForgotPasswordToggle,
   onForgotPasswordSubmit,
-  isSendingReset
+  isSendingReset,
+  fontsLoaded = true
 }: {
   email: string;
   password: string;
@@ -1864,6 +1868,7 @@ const SignInForm = ({
   onForgotPasswordToggle: () => void;
   onForgotPasswordSubmit: () => void;
   isSendingReset: boolean;
+  fontsLoaded?: boolean;
 }) => {
   const [emailTouched, setEmailTouched] = useState(false);
   const emailIsValid = isValidEmail(email);
@@ -1874,10 +1879,10 @@ const SignInForm = ({
       <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
         <div className="space-y-[12px]">
           <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-            Reset password
+            {fontsLoaded ? "Reset password" : <TextSkeleton width="70%" height="1.1em" className="mx-auto" />}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Enter your email and we'll send you a reset link
+            {fontsLoaded ? "Enter your email and we'll send you a reset link" : <TextSkeleton width="85%" height="1em" className="mx-auto" />}
           </p>
         </div>
 
@@ -1936,10 +1941,10 @@ const SignInForm = ({
     <div key="sign-in" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left">
       <div className="space-y-[12px]">
         <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          Welcome back
+          {fontsLoaded ? "Welcome back" : <TextSkeleton width="65%" height="1.1em" className="mx-auto" />}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          Sign in to access your pro account
+          {fontsLoaded ? "Sign in to access your pro account" : <TextSkeleton width="75%" height="1em" className="mx-auto" />}
         </p>
       </div>
 
@@ -2020,20 +2025,26 @@ const SignInForm = ({
 const OnboardingForm = ({
   onContinue,
   onSignIn,
-  onStepClick
+  onStepClick,
+  fontsLoaded = true
 }: {
   onContinue: () => void;
   onSignIn: () => void;
   onStepClick?: () => void;
+  fontsLoaded?: boolean;
 }) => <div className="space-y-6 sm:space-y-8">
 
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
       <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-        Let's get started
+        {fontsLoaded ? "Let's get started" : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-        Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span>
+        {fontsLoaded ? (
+          <>Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></>
+        ) : (
+          <TextSkeleton width="85%" height="1em" className="mx-auto" />
+        )}
       </p>
     </div>
 
