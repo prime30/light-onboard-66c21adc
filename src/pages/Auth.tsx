@@ -2027,7 +2027,7 @@ const OnboardingForm = ({
       <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
         Let's get started
       </h1>
-      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
+      <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto text-balance">
         Unlock wholesale pricing on the industries best hair and tools.
       </p>
     </div>
