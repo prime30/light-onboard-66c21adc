@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -1860,92 +1861,102 @@ const Auth = () => {
                 {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip
-                    open={submitTooltipOpen && currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0}
-                    onOpenChange={setSubmitTooltipOpen}
-                  >
-                    <TooltipTrigger asChild>
-                      {/* Wrap the button so hover works even when the button is disabled */}
-                      <span
-                        className="flex-1 block"
-                        onMouseEnter={() => {
-                          if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
-                            setSubmitTooltipOpen(true);
-                          }
-                        }}
-                        onMouseLeave={() => setSubmitTooltipOpen(false)}
-                        onFocus={() => {
-                          if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
-                            setSubmitTooltipOpen(true);
-                          }
-                        }}
-                        onBlur={() => setSubmitTooltipOpen(false)}
+                <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
+                  <PopoverTrigger asChild>
+                    {/* Wrap the button so hover works even when the button is disabled */}
+                    <span
+                      className="flex-1 block"
+                      onMouseEnter={() => {
+                        if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
+                          setSubmitTooltipOpen(true);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        // Don't close if moving to the popover content
+                        const relatedTarget = e.relatedTarget as HTMLElement;
+                        if (relatedTarget?.closest('[data-radix-popper-content-wrapper]')) return;
+                        setSubmitTooltipOpen(false);
+                      }}
+                    >
+                      <Button
+                        key={`shimmer-${shimmerKey}`}
+                        size="lg"
+                        onClick={handleNext}
+                        disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
+                        className={cn(
+                          "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                          showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
+                          shimmerKey > 0 && "shimmer-trigger",
+                          // when disabled, tooltip is triggered by wrapper, not the button
+                          currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
+                        )}
                       >
-                        <Button
-                          key={`shimmer-${shimmerKey}`}
-                          size="lg"
-                          onClick={handleNext}
-                          disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
-                          className={cn(
-                            "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
-                            showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
-                            shimmerKey > 0 && "shimmer-trigger",
-                            // when disabled, tooltip is triggered by wrapper, not the button
-                            currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
+                        <span className="relative z-10 flex items-center justify-center gap-[10px]">
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              {mode === "signin"
+                                ? "Sign in"
+                                : currentStep === "onboarding"
+                                  ? "Get Started"
+                                  : currentStep === "contact-info"
+                                    ? "Submit Application"
+                                    : "Continue"}
+                              <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
+                            </>
                           )}
-                        >
-                          <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                                Submitting...
-                              </>
-                            ) : (
-                              <>
-                                {mode === "signin"
-                                  ? "Sign in"
-                                  : currentStep === "onboarding"
-                                    ? "Get Started"
-                                    : currentStep === "contact-info"
-                                      ? "Submit Application"
-                                      : "Continue"}
-                                <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
-                              </>
-                            )}
-                          </span>
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && <TooltipContent side="top" className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px]">
-                        <div className="space-y-2.5">
-                          <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
-                          <div className="space-y-2">
-                            {getIncompleteSteps().map(({
-                          step,
-                          name,
-                          missingFields
-                        }) => <button key={step} onClick={() => goToStep(step)} className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step">
-                                <div className="flex items-center gap-2 w-full">
-                                  <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                                    <span className="text-[10px] font-semibold">{step}</span>
-                                  </div>
-                                  <span className="text-sm font-medium">{name}</span>
-                                  <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
+                        </span>
+                      </Button>
+                    </span>
+                  </PopoverTrigger>
+                  {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
+                    <PopoverContent 
+                      side="top" 
+                      className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto"
+                      onMouseLeave={() => setSubmitTooltipOpen(false)}
+                      onPointerDownOutside={() => setSubmitTooltipOpen(false)}
+                    >
+                      <div className="space-y-2.5">
+                        <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
+                        <div className="space-y-2">
+                          {getIncompleteSteps().map(({
+                            step,
+                            name,
+                            missingFields
+                          }) => (
+                            <button 
+                              key={step} 
+                              onClick={() => {
+                                setSubmitTooltipOpen(false);
+                                goToStep(step);
+                              }} 
+                              className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
+                            >
+                              <div className="flex items-center gap-2 w-full">
+                                <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
+                                  <span className="text-[10px] font-semibold">{step}</span>
                                 </div>
-                                <div className="pl-7 flex flex-wrap gap-1">
-                                  {missingFields.map((field) => (
-                                    <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-background/10 text-background/60">
-                                      {field}
-                                    </span>
-                                  ))}
-                                </div>
-                              </button>)}
-                          </div>
+                                <span className="text-sm font-medium">{name}</span>
+                                <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
+                              </div>
+                              <div className="pl-7 flex flex-wrap gap-1">
+                                {missingFields.map((field) => (
+                                  <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-background/10 text-background/60">
+                                    {field}
+                                  </span>
+                                ))}
+                              </div>
+                            </button>
+                          ))}
                         </div>
-                      </TooltipContent>}
-                  </Tooltip>
-                </TooltipProvider>
+                      </div>
+                    </PopoverContent>
+                  )}
+                </Popover>
               </div>
             </div>
           </footer>}
