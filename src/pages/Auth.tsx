@@ -1985,24 +1985,20 @@ const SignInForm = ({
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
-        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Headphones className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
+        <a href="#" className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-transparent border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-300 cursor-pointer">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Headphones className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground/70" />
           </div>
           <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Support</span>
-        </div>
-        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Users className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
+          <ArrowUpRight className="w-3 h-3 text-foreground/40 group-hover:text-foreground/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
+        </a>
+        <a href="#" className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-transparent border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-300 cursor-pointer">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground/70" />
           </div>
           <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Community</span>
-        </div>
-        <div className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-foreground/8 to-foreground/3 border border-foreground/10 hover:border-foreground/20 hover:from-foreground/12 hover:to-foreground/6 transition-all duration-300 cursor-default">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/70" />
-          </div>
-          <span className="text-[10px] sm:text-xs font-medium text-foreground/80">Pro Pricing</span>
-        </div>
+          <ArrowUpRight className="w-3 h-3 text-foreground/40 group-hover:text-foreground/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
+        </a>
       </div>
 
 
