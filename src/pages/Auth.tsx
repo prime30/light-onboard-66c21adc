@@ -2040,11 +2040,11 @@ const OnboardingForm = ({
           <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
               <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-              <span className="text-[11px] text-green-700 font-medium whitespace-nowrap">Professional only</span>
+              <span className="text-[11px] text-green-700 font-medium whitespace-nowrap">Exclusively professional</span>
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
               <Users className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Exclusive community</span>
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Community app</span>
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
               <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
