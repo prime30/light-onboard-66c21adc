@@ -1,49 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-export function useFontLoaded(fontFamilies: string[] = ['Aeonik Pro', 'Termina']) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+const DEFAULT_FONTS = ['Aeonik Pro', 'Termina'];
+
+export function useFontLoaded(fontFamilies: string[] = DEFAULT_FONTS) {
+  // Start true to ensure content is always visible - skeleton is progressive enhancement
+  const [fontsLoaded, setFontsLoaded] = useState(true);
+  const hasChecked = useRef(false);
 
   useEffect(() => {
+    // Only run once
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     // Check if fonts API is available
-    if (!document.fonts) {
-      setFontsLoaded(true);
+    if (typeof document === 'undefined' || !document.fonts) {
       return;
     }
 
-    // Check if fonts are already loaded
-    const checkFonts = async () => {
-      try {
-        const fontChecks = fontFamilies.map(font => 
-          document.fonts.check(`16px "${font}"`)
-        );
-        
-        if (fontChecks.every(Boolean)) {
-          setFontsLoaded(true);
-          return;
-        }
-
-        // Wait for fonts to load
-        await document.fonts.ready;
-        
-        // Double-check after ready
-        const allLoaded = fontFamilies.every(font => 
-          document.fonts.check(`16px "${font}"`)
-        );
-        
-        setFontsLoaded(allLoaded);
-        
-        // Fallback timeout in case fonts fail to load
-        if (!allLoaded) {
-          setTimeout(() => setFontsLoaded(true), 2000);
-        }
-      } catch {
-        // Fallback if something goes wrong
-        setFontsLoaded(true);
+    // Quick check if fonts are already loaded
+    try {
+      const allLoaded = fontFamilies.every(font => 
+        document.fonts.check(`16px "${font}"`)
+      );
+      
+      if (allLoaded) {
+        return; // Already loaded, keep fontsLoaded = true
       }
-    };
 
-    checkFonts();
-  }, [fontFamilies]);
+      // Fonts not loaded yet - show skeleton briefly
+      setFontsLoaded(false);
+
+      // Wait for fonts with a short timeout
+      const timeout = setTimeout(() => setFontsLoaded(true), 1500);
+      
+      document.fonts.ready.then(() => {
+        clearTimeout(timeout);
+        setFontsLoaded(true);
+      }).catch(() => {
+        clearTimeout(timeout);
+        setFontsLoaded(true);
+      });
+
+      return () => clearTimeout(timeout);
+    } catch {
+      // Any error - just show content
+      setFontsLoaded(true);
+    }
+  }, []); // Empty deps - only run once
 
   return fontsLoaded;
 }
