@@ -575,6 +575,7 @@ const Auth = () => {
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
   const [shimmerKey, setShimmerKey] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const fontsLoaded = useFontLoaded();
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -595,11 +596,20 @@ const Auth = () => {
       const scrollTop = el.scrollTop;
       // Parallax factor - image moves at 30% of scroll speed
       setParallaxOffset(scrollTop * 0.3);
+      // Hide scroll hint after scrolling 50px
+      if (scrollTop > 50) {
+        setHasScrolled(true);
+      }
     };
     
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
   }, [mode, currentStep]);
+
+  // Reset hasScrolled when step changes
+  useEffect(() => {
+    setHasScrolled(false);
+  }, [currentStep]);
 
   // Safari-compatible viewport height fix
   useEffect(() => {
@@ -1925,6 +1935,19 @@ const Auth = () => {
         {/* Spotlight overlay when form is ready to submit */}
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
+        {/* Scroll down hint - mobile only, positioned above footer */}
+        {mode === "signup" && currentStep === "onboarding" && (
+          <div className={cn(
+            "lg:hidden sticky bottom-[75px] flex justify-center pointer-events-none transition-opacity duration-300 pb-2",
+            hasScrolled ? "opacity-0" : "opacity-100"
+          )}>
+            <div className="flex flex-col items-center animate-bounce-subtle">
+              <ChevronDown className="w-5 h-5 text-muted-foreground/40" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground/20 -mt-3" />
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none", showSpotlight && "relative z-50")}>
             <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
@@ -2565,23 +2588,11 @@ const OnboardingForm = ({
 
       <p className="text-xs text-muted-foreground text-center">
         Already have an account?{" "}
-        <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
+      <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
           Sign in
           <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </button>
       </p>
-
-      {/* Scroll down hint - mobile only, hides on scroll */}
-      <div className={cn(
-        "lg:hidden flex flex-col items-center gap-1 pt-4 transition-opacity duration-300",
-        hasScrolled ? "opacity-0 pointer-events-none" : "opacity-100"
-      )} style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
-        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">Scroll</span>
-        <div className="flex flex-col items-center animate-bounce-subtle">
-          <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
-          <ChevronDown className="w-4 h-4 text-muted-foreground/20 -mt-2.5" />
-        </div>
-      </div>
     </div>
   );
 };
