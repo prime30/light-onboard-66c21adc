@@ -1871,7 +1871,7 @@ const Auth = () => {
                 {/* Dark overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
                 
-                <div className="relative z-10 flex items-center justify-between gap-4">
+                <div className="relative z-10">
                   <div className="flex-1 min-w-0">
                     <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
                       <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
@@ -1893,14 +1893,6 @@ const Auth = () => {
                   }}>
                       {fontsLoaded ? <span className="animate-fade-in-text">Cosmetology license, proof of student status, or equivalent required to shop.</span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
                     </p>
-                  </div>
-                  
-                  {/* Arrow indicator with subtle glow */}
-                  <div 
-                    className="flex-shrink-0 w-10 h-10 rounded-full bg-background/15 backdrop-blur-sm flex items-center justify-center border border-background/20 animate-pulse"
-                    style={{ animationDuration: '2s' }}
-                  >
-                    <ArrowRight className="w-5 h-5 text-background" />
                   </div>
                 </div>
               </div>
