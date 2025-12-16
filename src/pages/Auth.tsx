@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -497,19 +497,24 @@ const RotatingStylistAvatars = () => {
     setVisibleIndices(newIndices);
   }, []);
 
-  return <div className="flex items-center gap-2.5">
+  return (
+    <Link to="/reviews" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity cursor-pointer">
       <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
       <div className="flex -space-x-[5px]">
-        {visibleIndices.map((avatarIndex, i) => <div key={`${i}-${avatarIndex}`} className="relative">
+        {visibleIndices.map((avatarIndex, i) => (
+          <div key={`${i}-${avatarIndex}`} className="relative">
             <img src={stylistAvatars[avatarIndex]} alt={`Stylist ${avatarIndex + 1}`} className={cn("w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300", fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100")} />
-            {/* Floating emoji reaction */}
-            {floatingEmoji && floatingEmoji.position === i && <span key={floatingEmoji.id} className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none">
+            {floatingEmoji && floatingEmoji.position === i && (
+              <span key={floatingEmoji.id} className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none">
                 {floatingEmoji.emoji}
-              </span>}
-          </div>)}
+              </span>
+            )}
+          </div>
+        ))}
       </div>
       <OdometerCounter variant="dark" onIncrement={handleOdometerIncrement} />
-    </div>;
+    </Link>
+  );
 };
 
 // Light mode version of RotatingStylistAvatars (for light backgrounds)
@@ -567,7 +572,7 @@ const RotatingStylistAvatarsLight = () => {
   }, []);
   
   return (
-    <div className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4">
+    <Link to="/reviews" className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4 hover:opacity-80 transition-opacity cursor-pointer">
       <span className="text-xs text-muted-foreground">Loved by</span>
       <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
@@ -580,7 +585,6 @@ const RotatingStylistAvatarsLight = () => {
                 fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
               )} 
             />
-            {/* Floating emoji reaction */}
             {floatingEmoji && floatingEmoji.position === i && (
               <span 
                 key={floatingEmoji.id} 
@@ -593,7 +597,7 @@ const RotatingStylistAvatarsLight = () => {
         ))}
       </div>
       <OdometerCounter variant="light" onIncrement={handleOdometerIncrement} />
-    </div>
+    </Link>
   );
 };
 
