@@ -16,9 +16,9 @@ export const LoginStep = ({
   onPasswordChange,
 }: LoginStepProps) => {
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Modern hero header */}
-      <div className="relative overflow-hidden rounded-2xl bg-foreground p-6">
+      <div className="relative overflow-hidden rounded-xl bg-foreground p-4">
         {/* Animated gradient orbs */}
         <div 
           className="absolute top-0 right-0 w-[200px] h-[200px] rounded-full blur-[80px] animate-pulse"
@@ -44,13 +44,13 @@ export const LoginStep = ({
           }}
         />
 
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-background/10 backdrop-blur-sm border border-background/10 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-background" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-background/10 backdrop-blur-sm border border-background/10 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-background" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-background">Welcome back</h2>
-            <p className="text-sm text-background/50">
+            <h2 className="text-lg font-semibold text-background">Welcome back</h2>
+            <p className="text-xs text-background/50">
               Sign in to access your pro account
             </p>
           </div>
@@ -58,14 +58,14 @@ export const LoginStep = ({
       </div>
 
       {/* Form fields */}
-      <div className="space-y-4">
-        <div className="space-y-2">
+      <div className="space-y-3">
+        <div className="space-y-1.5">
           <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
             Email
           </Label>
           <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-              <Mail className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+              <Mail className="w-3.5 h-3.5 text-muted-foreground group-focus-within:text-background transition-colors" />
             </div>
             <Input
               id="login-email"
@@ -73,18 +73,18 @@ export const LoginStep = ({
               placeholder="you@example.com"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base"
+              className="h-11 pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
             Password
           </Label>
           <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
-              <Lock className="w-4 h-4 text-muted-foreground group-focus-within:text-background transition-colors" />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md bg-muted flex items-center justify-center transition-colors group-focus-within:bg-foreground">
+              <Lock className="w-3.5 h-3.5 text-muted-foreground group-focus-within:text-background transition-colors" />
             </div>
             <Input
               id="login-password"
@@ -92,12 +92,12 @@ export const LoginStep = ({
               placeholder="••••••••"
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="h-14 pl-14 rounded-xl bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-base"
+              className="h-11 pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
             />
           </div>
         </div>
 
-        <button className="group inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button className="group inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
           Forgot password?
           <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
         </button>
@@ -116,16 +116,16 @@ export const LoginStep = ({
       </div>
 
       {/* Feature badges */}
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Stylist to stylist support</span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Community access</span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Pro pricing</span>
         </div>
