@@ -1623,10 +1623,10 @@ const Auth = () => {
                   </button>
 
                   {/* Connecting line after intro */}
-                  <div className="relative h-px w-[12px] bg-border/20 rounded-full overflow-hidden mx-[6px]">
+                  <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
                     <div
                       className={cn(
-                        "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
+                        "absolute inset-0 bg-foreground/50 rounded-full origin-left transition-transform duration-500 ease-out",
                         currentStep !== "onboarding" ? "scale-x-100" : "scale-x-0"
                       )}
                     />
@@ -1675,11 +1675,10 @@ const Auth = () => {
                       </div>
                     </button>
                     {/* Connecting line after each step */}
-                    <div className="relative h-px w-[12px] bg-border/20 rounded-full overflow-hidden mx-[6px]">
+                    <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
                       <div
                         className={cn(
-                          "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
-                          (currentStep === "success" || (currentStepNum > stepNum) || (currentStepNum === stepNum && !isLastStep && currentStepNum > stepNum)) ? "scale-x-100" : "scale-x-0",
+                          "absolute inset-0 bg-foreground/50 rounded-full origin-left transition-transform duration-500 ease-out",
                           isPassed || currentStep === "success" ? "scale-x-100" : "scale-x-0"
                         )}
                       />
