@@ -1845,20 +1845,42 @@ const Auth = () => {
                   </span>
                 </div>}
               
-              {/* Mobile progress bar - hidden on desktop where hero has circular progress */}
+              {/* Mobile step journey indicator - hidden on desktop where hero has circular progress */}
               {showStepIndicator && mode === "signup" && currentStep !== "onboarding" && (
-                <div className={cn("lg:hidden flex items-center gap-3 mb-1", showSpotlight && "opacity-0")}>
-                  <div className="flex-1 h-1 bg-border/40 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-foreground rounded-full transition-all duration-500 ease-out"
-                      style={{ 
-                        width: `${Math.round((getCurrentStepNumber() / getTotalSteps()) * 100)}%` 
-                      }}
-                    />
-                  </div>
-                  <span className="text-[11px] font-medium text-muted-foreground tabular-nums min-w-[36px] text-right">
-                    {Math.round((getCurrentStepNumber() / getTotalSteps()) * 100)}%
-                  </span>
+                <div className={cn("lg:hidden flex items-center justify-center gap-0 mb-1", showSpotlight && "opacity-0")}>
+                  {Array.from({ length: getTotalSteps() }, (_, i) => {
+                    const stepNum = i + 1;
+                    const isActive = getCurrentStepNumber() === stepNum;
+                    const isCompleted = getCurrentStepNumber() > stepNum;
+                    const isFirst = i === 0;
+                    
+                    return (
+                      <div key={i} className="flex items-center">
+                        {/* Connecting line before step (except first) */}
+                        {!isFirst && (
+                          <div className="relative h-[2px] w-5 bg-border/40 rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
+                                isCompleted || isActive ? "scale-x-100" : "scale-x-0"
+                              )}
+                            />
+                          </div>
+                        )}
+                        {/* Step node */}
+                        <div
+                          className={cn(
+                            "rounded-full transition-all duration-300",
+                            isActive
+                              ? "w-2.5 h-2.5 bg-foreground"
+                              : isCompleted
+                              ? "w-2 h-2 bg-foreground"
+                              : "w-2 h-2 bg-border/60"
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="flex gap-[15px]">
