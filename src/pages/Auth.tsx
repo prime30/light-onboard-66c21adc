@@ -349,23 +349,27 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
       textColor,
       isBurst && (variant === "dark" ? "text-background" : "text-primary")
     )}>
-      8,34
-      <span 
+      8,34<span 
         className={cn(
-          "inline-block overflow-hidden align-bottom relative transition-all duration-300",
+          "inline-block overflow-hidden transition-all duration-300",
           isBurst && "drop-shadow-[0_0_4px_currentColor]"
         )}
-        style={{ height: '1.15em', width: '0.55em' }}
+        style={{ 
+          height: '1em', 
+          width: '0.6em',
+          verticalAlign: 'text-bottom',
+          position: 'relative',
+          top: '-0.08em'
+        }}
       >
         <span 
-          className="flex flex-col transition-transform duration-300 ease-out"
+          className="block transition-transform duration-300 ease-out"
           style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
         >
-          <span className="leading-[1.15]">{digit}</span>
-          <span className="leading-[1.15]">{(digit + 1) % 10}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{digit}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{(digit + 1) % 10}</span>
         </span>
-      </span>
-      {" "}pros
+      </span> pros
     </span>
   );
 };
