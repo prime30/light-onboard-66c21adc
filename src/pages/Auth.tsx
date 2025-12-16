@@ -1861,6 +1861,15 @@ const Auth = () => {
                       <span
                         className="flex-1 block"
                         onMouseEnter={() => {
+                          console.log('[TOOLTIP DEBUG]', {
+                            currentStep,
+                            isContactInfo: currentStep === "contact-info",
+                            isAllStepsValid: isAllStepsValid(),
+                            incompleteSteps: getIncompleteSteps(),
+                            incompleteCount: getIncompleteSteps().length,
+                            accountType,
+                            submitTooltipOpen
+                          });
                           if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
                             setSubmitTooltipOpen(true);
                           }
