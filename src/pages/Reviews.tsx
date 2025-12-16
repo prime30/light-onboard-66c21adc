@@ -80,20 +80,29 @@ const Reviews = () => {
         </div>
 
         {/* Featured review */}
-        <div className="bg-foreground text-background rounded-2xl p-6 md:p-8 mb-8">
-          <Quote className="h-8 w-8 text-background/20 mb-4" />
-          <p className="text-lg md:text-xl font-medium leading-relaxed mb-6">
+        <div className="bg-gradient-to-r from-muted/50 to-transparent border border-border/50 rounded-xl p-6 md:p-8 mb-8">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="relative w-12 h-12 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
+              <Quote className="w-5 h-5 text-background" />
+            </div>
+            <div className="flex items-center gap-0.5 pt-3">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-foreground text-foreground" />
+              ))}
+            </div>
+          </div>
+          <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground">
             "This platform has completely transformed how I run my business. The wholesale pricing alone has saved me thousands, and the community is incredibly supportive."
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <img 
               src={stylistPink1} 
               alt="Sarah M." 
-              className="w-12 h-12 rounded-full object-cover border-2 border-background/20"
+              className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <h3 className="font-semibold">Sarah M.</h3>
-              <p className="text-background/60 text-sm">Independent Stylist · Los Angeles</p>
+              <h3 className="font-semibold text-sm">Sarah M.</h3>
+              <p className="text-muted-foreground text-xs">Independent Stylist · Los Angeles</p>
             </div>
           </div>
         </div>
