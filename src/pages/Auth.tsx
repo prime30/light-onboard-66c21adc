@@ -3917,7 +3917,7 @@ const ContactInfoForm = ({
             <div className="space-y-0.5">
               <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
                 Order updates
-                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Recommended</span>
+                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Recommended</span>
               </span>
               <p className="text-xs text-muted-foreground">Receive shipping notifications and order status updates</p>
             </div>
@@ -3927,7 +3927,7 @@ const ContactInfoForm = ({
             <div className="space-y-0.5">
               <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
                 Marketing emails
-                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Recommended</span>
+                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Recommended</span>
               </span>
               <p className="text-xs text-muted-foreground">Get tips, tutorials, and industry insights</p>
             </div>
