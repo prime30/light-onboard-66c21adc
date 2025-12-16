@@ -309,12 +309,29 @@ const TestimonialCarousel = () => {
   );
 };
 
-// Odometer Counter Component for social proof - continuous rolling animation
+// Odometer Counter Component for social proof - random increments for real-time feel
 const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
+  const [digit, setDigit] = useState(0);
+  const [isRolling, setIsRolling] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
-  
-  // Create digits 0-9 repeated twice for seamless loop
-  const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  useEffect(() => {
+    const scheduleNext = () => {
+      // Random delay between 1.5s and 5s for organic feel
+      const delay = 1500 + Math.random() * 3500;
+      return setTimeout(() => {
+        setIsRolling(true);
+        setTimeout(() => {
+          setDigit(prev => (prev + 1) % 10);
+          setIsRolling(false);
+          scheduleNext();
+        }, 300);
+      }, delay);
+    };
+    
+    const timeout = scheduleNext();
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
     <span className={cn("text-xs tabular-nums", textColor)}>
@@ -323,10 +340,12 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
         className="inline-block overflow-hidden align-bottom relative"
         style={{ height: '1.15em', width: '0.55em' }}
       >
-        <span className="flex flex-col animate-odometer-continuous">
-          {digits.map((digit, i) => (
-            <span key={i} className="leading-[1.15]">{digit}</span>
-          ))}
+        <span 
+          className="flex flex-col transition-transform duration-300 ease-out"
+          style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
+        >
+          <span className="leading-[1.15]">{digit}</span>
+          <span className="leading-[1.15]">{(digit + 1) % 10}</span>
         </span>
       </span>
       {" "}pros
