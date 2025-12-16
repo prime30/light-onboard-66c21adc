@@ -867,6 +867,8 @@ const Auth = () => {
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
     resetForm();
+    // Scroll to top when switching modes
+    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   };
   const goToNextSlide = useCallback(() => {
     setCurrentSlide(prev => (prev + 1) % slides.length);
