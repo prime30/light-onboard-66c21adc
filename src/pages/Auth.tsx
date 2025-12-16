@@ -428,6 +428,8 @@ const Auth = () => {
   
   // Modal swipe-down refs and state
   const modalTouchStartY = useRef<number | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const isDragFromTop = useRef<boolean>(false);
   const [modalDragOffset, setModalDragOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
   const [isBouncingBack, setIsBouncingBack] = useState(false);
@@ -648,11 +650,27 @@ const Auth = () => {
   const handleModalTouchStart = (e: React.TouchEvent) => {
     // Only enable swipe-down on mobile (< 640px)
     if (window.innerWidth >= 640) return;
-    modalTouchStartY.current = e.touches[0].clientY;
+    
+    // Check if touch started in the top drag zone (first 60px of modal)
+    const modalElement = modalRef.current;
+    if (!modalElement) return;
+    
+    const modalRect = modalElement.getBoundingClientRect();
+    const touchY = e.touches[0].clientY;
+    const relativeY = touchY - modalRect.top;
+    
+    // Only allow drag if started within top 60px (drag handle area)
+    if (relativeY <= 60) {
+      isDragFromTop.current = true;
+      modalTouchStartY.current = touchY;
+    } else {
+      isDragFromTop.current = false;
+      modalTouchStartY.current = null;
+    }
   };
   
   const handleModalTouchMove = (e: React.TouchEvent) => {
-    if (window.innerWidth >= 640 || modalTouchStartY.current === null) return;
+    if (window.innerWidth >= 640 || !isDragFromTop.current || modalTouchStartY.current === null) return;
     const currentY = e.touches[0].clientY;
     const rawDiff = currentY - modalTouchStartY.current;
     // Only allow dragging down, not up
@@ -674,7 +692,7 @@ const Auth = () => {
   };
   
   const handleModalTouchEnd = () => {
-    if (modalTouchStartY.current === null) return;
+    if (!isDragFromTop.current || modalTouchStartY.current === null) return;
     // If dragged more than 100px, close the modal
     if (modalDragOffset > 100) {
       handleCloseModal();
@@ -687,6 +705,7 @@ const Auth = () => {
       }, 500);
     }
     modalTouchStartY.current = null;
+    isDragFromTop.current = false;
   };
 
   const handleCloseModal = useCallback(() => {
@@ -1265,6 +1284,7 @@ const Auth = () => {
       
       {/* Modal Container */}
       <div 
+        ref={modalRef}
         onTouchStart={handleModalTouchStart}
         onTouchMove={handleModalTouchMove}
         onTouchEnd={handleModalTouchEnd}
