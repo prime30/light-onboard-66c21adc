@@ -1991,6 +1991,102 @@ const Auth = () => {
 
 // Sub-components
 
+// Marquee badges with center-highlight effect
+const MarqueeBadges = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [badgeStates, setBadgeStates] = useState<Record<string, boolean>>({});
+
+  const badges = [
+    { icon: Check, label: "Exclusively professional" },
+    { icon: Users, label: "Community app" },
+    { icon: GraduationCap, label: "Advanced education" },
+    { icon: Tag, label: "Wholesale pricing" },
+    { icon: Truck, label: "Fast shipping" },
+    { icon: ShieldCheck, label: "Highest standard of ethics" },
+    { icon: Sparkles, label: "Made to create" },
+  ];
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let animationId: number;
+    const checkPositions = () => {
+      const containerRect = container.getBoundingClientRect();
+      const centerX = containerRect.left + containerRect.width / 2;
+      const threshold = 80; // pixels from center to activate
+
+      const badgeElements = container.querySelectorAll('[data-badge]');
+      const newStates: Record<string, boolean> = {};
+
+      badgeElements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const badgeCenterX = rect.left + rect.width / 2;
+        const distance = Math.abs(badgeCenterX - centerX);
+        const key = el.getAttribute('data-badge') || '';
+        newStates[key] = distance < threshold;
+      });
+
+      setBadgeStates(newStates);
+      animationId = requestAnimationFrame(checkPositions);
+    };
+
+    checkPositions();
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
+  return (
+    <div 
+      ref={containerRef}
+      className="relative w-full overflow-hidden" 
+      style={{ 
+        maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', 
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' 
+      }}
+    >
+      <div className="flex animate-marquee">
+        {[...Array(4)].map((_, setIndex) => (
+          <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
+            {badges.map((badge, i) => {
+              const key = `${setIndex}-${i}`;
+              const isActive = badgeStates[key];
+              const Icon = badge.icon;
+              
+              return (
+                <div 
+                  key={key}
+                  data-badge={key}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300",
+                    isActive 
+                      ? "bg-green-500/10 border-green-500/30" 
+                      : "bg-muted/50 border-border/50"
+                  )}
+                >
+                  <Icon 
+                    className={cn(
+                      "w-3 h-3 flex-shrink-0 transition-colors duration-300",
+                      isActive ? "text-green-600" : "text-muted-foreground"
+                    )} 
+                  />
+                  <span 
+                    className={cn(
+                      "text-[11px] whitespace-nowrap transition-colors duration-300",
+                      isActive ? "text-green-700 font-medium" : "text-muted-foreground"
+                    )}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Email validation helper
 const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2198,43 +2294,8 @@ const OnboardingForm = ({
       </p>
     </div>
 
-    {/* Trust badges - Marquee */}
-    <div className="relative w-full overflow-hidden" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
-      <div className="flex animate-marquee">
-        {[...Array(4)].map((_, setIndex) => (
-          <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
-              <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-              <span className="text-[11px] text-green-700 font-medium whitespace-nowrap">Exclusively professional</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <Users className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Community app</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Advanced education</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <Tag className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Wholesale pricing</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <Truck className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Fast shipping</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <ShieldCheck className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Highest standard of ethics</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-              <Sparkles className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Made to create</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    {/* Trust badges - Marquee with center highlight effect */}
+    <MarqueeBadges />
 
     {/* Steps preview */}
     <div className="grid gap-3 pt-2">
