@@ -2523,8 +2523,8 @@ const OnboardingForm = ({
   return (
     <div className="space-y-6 sm:space-y-8">
 
-      {/* Subtitle */}
-      <div className="text-center animate-stagger-1">
+      {/* Subtitle - desktop only (mobile shows in hero banner) */}
+      <div className="hidden lg:block text-center animate-stagger-1">
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
           {fontsLoaded ? (
             <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span>
