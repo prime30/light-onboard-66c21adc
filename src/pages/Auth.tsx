@@ -2890,7 +2890,7 @@ const AccountTypeForm = ({
                   <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
                 </div>
                 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-8">
                   <p className={cn("text-sm sm:text-base font-medium text-foreground transition-all duration-300", selectedType === type.id && "translate-x-0.5")}>{type.title}</p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
                   {/* Features - inline on desktop */}
