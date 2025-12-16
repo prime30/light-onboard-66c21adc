@@ -50,12 +50,15 @@ export const StepIndicator = ({
           <div key={i} className="flex items-center gap-2">
             {/* Connecting line before step (except first, unless there's an intro step) */}
             {(!isFirst || hasIntroStep) && (
-              <div
-                className={cn(
-                  "h-[1px] w-4 transition-all duration-300",
-                  isCompleted || isActive ? "bg-foreground/40" : "bg-border"
-                )}
-              />
+              <div className="relative h-[2px] w-4 bg-border rounded-full overflow-hidden">
+                {/* Animated fill */}
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
+                    isCompleted || isActive ? "scale-x-100" : "scale-x-0"
+                  )}
+                />
+              </div>
             )}
             {/* Step indicator */}
             <div
