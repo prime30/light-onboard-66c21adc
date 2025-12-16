@@ -426,6 +426,14 @@ const Auth = () => {
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
   
+  // Main content swipe refs for mode switching
+  const mainSwipeStartX = useRef<number | null>(null);
+  const mainSwipeEndX = useRef<number | null>(null);
+  
+  // Step indicator swipe refs
+  const stepSwipeStartX = useRef<number | null>(null);
+  const stepSwipeEndX = useRef<number | null>(null);
+  
   // Modal swipe-down refs and state
   const modalTouchStartY = useRef<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -694,6 +702,66 @@ const Auth = () => {
     }
     touchStartX.current = null;
     touchEndX.current = null;
+  };
+  
+  // Main content swipe handlers for mode switching (onboarding <-> sign-in)
+  const handleMainSwipeStart = (e: React.TouchEvent) => {
+    mainSwipeStartX.current = e.touches[0].clientX;
+    mainSwipeEndX.current = null;
+  };
+  
+  const handleMainSwipeMove = (e: React.TouchEvent) => {
+    mainSwipeEndX.current = e.touches[0].clientX;
+  };
+  
+  const handleMainSwipeEnd = () => {
+    if (mainSwipeStartX.current === null || mainSwipeEndX.current === null) return;
+    const diff = mainSwipeStartX.current - mainSwipeEndX.current;
+    const threshold = 80;
+    
+    // Swipe left on onboarding → go to sign-in
+    if (diff > threshold && mode === "signup" && currentStep === "onboarding") {
+      handleModeChange("signin");
+    }
+    // Swipe right on sign-in → go to sign-up (onboarding)
+    else if (diff < -threshold && mode === "signin") {
+      handleModeChange("signup");
+    }
+    
+    mainSwipeStartX.current = null;
+    mainSwipeEndX.current = null;
+  };
+  
+  // Step indicator swipe handlers
+  const handleStepSwipeStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    stepSwipeStartX.current = e.touches[0].clientX;
+    stepSwipeEndX.current = null;
+  };
+  
+  const handleStepSwipeMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    stepSwipeEndX.current = e.touches[0].clientX;
+  };
+  
+  const handleStepSwipeEnd = () => {
+    if (stepSwipeStartX.current === null || stepSwipeEndX.current === null) return;
+    const diff = stepSwipeStartX.current - stepSwipeEndX.current;
+    const threshold = 30;
+    const currentStepNum = getCurrentStepNumber();
+    const totalSteps = getTotalSteps();
+    
+    // Swipe left → next step
+    if (diff > threshold && currentStepNum < totalSteps) {
+      goToStep(currentStepNum + 1);
+    }
+    // Swipe right → previous step
+    else if (diff < -threshold && currentStepNum > 1) {
+      goToStep(currentStepNum - 1);
+    }
+    
+    stepSwipeStartX.current = null;
+    stepSwipeEndX.current = null;
   };
   
   // Modal swipe-down handlers (mobile only)
@@ -1532,8 +1600,13 @@ const Auth = () => {
             </button>
           </div>
           
-          {/* Step Indicator - Centered with flex-1 wrapper */}
-          {showStepIndicator && <div className="flex-1 flex items-center justify-center lg:justify-center h-[50px] max-w-[130px] sm:max-w-none">
+          {/* Step Indicator - Centered with flex-1 wrapper, swipeable */}
+          {showStepIndicator && <div 
+            className="flex-1 flex items-center justify-center lg:justify-center h-[50px] max-w-[130px] sm:max-w-none touch-pan-y"
+            onTouchStart={handleStepSwipeStart}
+            onTouchMove={handleStepSwipeMove}
+            onTouchEnd={handleStepSwipeEnd}
+          >
               <div className="relative flex items-center justify-center overflow-visible max-w-[130px] sm:max-w-none" style={{
               width: '160px',
               height: '50px',
@@ -1586,11 +1659,14 @@ const Auth = () => {
           </button>
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up (hidden on sign-in) */}
-        {mode === 'signup' && (currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn(
-          "lg:hidden overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out",
-          mobileHeroVisible ? "max-h-[220px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
-        )}>
+        {/* Mobile/Tablet Hero Banner - Only shown on account-type step, acts as continue button */}
+        {mode === 'signup' && currentStep === 'account-type' && <div 
+          className={cn(
+            "lg:hidden overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out cursor-pointer active:scale-[0.98] transition-transform",
+            mobileHeroVisible ? "max-h-[220px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+          )}
+          onClick={() => canContinue() && handleNext()}
+        >
             <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
               {/* Hero image background */}
               <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover rounded-[15px]" />
@@ -1602,7 +1678,7 @@ const Auth = () => {
                   <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
                     <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
                     <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                      Exclusively Professional
+                      Tap to continue
                     </span>
                   </div>
                   <div className="space-y-0.5 animate-fade-in" style={{
@@ -1621,28 +1697,21 @@ const Auth = () => {
                   </p>
                 </div>
                 
-                {/* Mini stats */}
-                <div className="flex gap-3 sm:gap-4">
-                  <div className="text-center animate-slide-up-fade" style={{
-                  animationDelay: '250ms',
-                  animationFillMode: 'both'
-                }}>
-                    <div className="text-base sm:text-lg font-semibold text-background">8K+</div>
-                    <div className="text-[9px] text-background/40 uppercase">Pros</div>
-                  </div>
-                  <div className="text-center animate-slide-up-fade" style={{
-                  animationDelay: '350ms',
-                  animationFillMode: 'both'
-                }}>
-                    <div className="text-base sm:text-lg font-semibold text-background">50%</div>
-                    <div className="text-[9px] text-background/40 uppercase">Savings</div>
-                  </div>
+                {/* Arrow indicator */}
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background/10 flex items-center justify-center">
+                  <ArrowRight className="w-5 h-5 text-background" />
                 </div>
               </div>
             </div>
           </div>}
 
-        <main ref={mainScrollRef} className={cn("flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}>
+        <main 
+          ref={mainScrollRef} 
+          className={cn("flex-1 flex items-start justify-center px-2.5 sm:px-5 md:px-[25px] lg:px-[30px] pb-5 overflow-y-auto", showStepIndicator ? "pt-2" : "pt-5")}
+          onTouchStart={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeStart : undefined}
+          onTouchMove={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeMove : undefined}
+          onTouchEnd={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeEnd : undefined}
+        >
           {isTransitioning ? <div className="w-full max-w-[38rem]">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
             </div> : <div key={currentStep} className={cn("w-full max-w-[38rem]", transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
