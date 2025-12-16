@@ -2057,6 +2057,7 @@ const MarqueeBadges = () => {
   const startMomentum = () => {
     const friction = 0.95;
     const minVelocity = 0.5;
+    const lastDirection = Math.sign(dragState.current.velocity);
     
     const animate = () => {
       if (!trackRef.current) return;
@@ -2064,8 +2065,19 @@ const MarqueeBadges = () => {
       dragState.current.velocity *= friction;
       
       if (Math.abs(dragState.current.velocity) < minVelocity) {
-        setIsCoasting(false);
-        momentumRef.current = null;
+        // Bounce effect: small overshoot in opposite direction then settle
+        const bounceDistance = lastDirection * -3;
+        const currentX = getCurrentTranslateX();
+        trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        trackRef.current.style.transform = `translateX(${currentX + bounceDistance}px)`;
+        
+        setTimeout(() => {
+          if (trackRef.current) {
+            trackRef.current.style.transition = '';
+          }
+          setIsCoasting(false);
+          momentumRef.current = null;
+        }, 300);
         return;
       }
       
