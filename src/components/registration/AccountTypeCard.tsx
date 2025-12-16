@@ -31,9 +31,10 @@ export const AccountTypeCard = ({
       className={cn(
         "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 overflow-hidden",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-        "hover:-translate-y-0.5 hover:shadow-md hover:bg-muted/20",
+        // Lighter hover/selected surface (muted was reading too dark on desktop)
+        "hover:-translate-y-0.5 hover:shadow-md hover:bg-foreground/5",
         selected
-          ? "border-foreground/15 bg-muted/20 -translate-y-0.5 shadow-sm"
+          ? "border-foreground/15 bg-foreground/5 -translate-y-0.5 shadow-sm"
           : "border-border/30 bg-background/40 hover:border-foreground/15"
       )}
     >
