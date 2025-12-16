@@ -1239,6 +1239,22 @@
   }
 }
 
+/* Step card entrance - more dramatic slide up */
+@keyframes stepCardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-step-card-enter {
+  animation: stepCardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Slide down with fade keyframes */
 @keyframes slideDownFade {
   0% {
