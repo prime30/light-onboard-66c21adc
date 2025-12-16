@@ -311,15 +311,19 @@ const TestimonialCarousel = () => {
 
 // Odometer Counter Component for social proof - random increments for real-time feel
 const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) => {
-  const [digit, setDigit] = useState(0);
-  const [prevDigit, setPrevDigit] = useState(0);
+  const [tens, setTens] = useState(4);
+  const [ones, setOnes] = useState(0);
+  const [prevOnes, setPrevOnes] = useState(0);
+  const [prevTens, setPrevTens] = useState(4);
   const [isRolling, setIsRolling] = useState(false);
+  const [isTensRolling, setIsTensRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-foreground font-medium";
 
   useEffect(() => {
     const scheduleNext = () => {
-      const delay = 1500 + Math.random() * 3500;
+      // Slower: 3-7 seconds between increments
+      const delay = 3000 + Math.random() * 4000;
       return setTimeout(() => {
         // 20% chance of burst increment (2-3), otherwise increment by 1
         const isBurstIncrement = Math.random() < 0.2;
@@ -330,12 +334,23 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
           setTimeout(() => setIsBurst(false), 600);
         }
         
-        setPrevDigit(digit);
-        setDigit(prev => (prev + increment) % 10);
+        setPrevOnes(ones);
+        setPrevTens(tens);
+        
+        const newOnes = (ones + increment) % 10;
+        const tensIncrement = Math.floor((ones + increment) / 10);
+        
+        if (tensIncrement > 0) {
+          setIsTensRolling(true);
+          setTens(prev => (prev + tensIncrement) % 10);
+        }
+        
+        setOnes(newOnes);
         setIsRolling(true);
         
         setTimeout(() => {
           setIsRolling(false);
+          setIsTensRolling(false);
           scheduleNext();
         }, 300);
       }, delay);
@@ -343,7 +358,7 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
     
     const timeout = scheduleNext();
     return () => clearTimeout(timeout);
-  }, [digit]);
+  }, [ones, tens]);
 
   return (
     <span className={cn(
@@ -351,7 +366,24 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
       textColor,
       isBurst && "!text-[hsl(142,71%,45%)]"
     )}>
-      8,34<span 
+      8,3<span 
+        className="inline-block overflow-hidden"
+        style={{ 
+          height: '1em', 
+          width: '0.6em',
+          verticalAlign: 'text-bottom',
+          position: 'relative',
+          top: '-0.08em'
+        }}
+      >
+        <span 
+          className={isTensRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
+          style={{ transform: isTensRolling ? 'translateY(-50%)' : 'translateY(0)' }}
+        >
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isTensRolling ? prevTens : tens}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{tens}</span>
+        </span>
+      </span><span 
         className={cn(
           "inline-block overflow-hidden transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
@@ -365,14 +397,11 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
         }}
       >
         <span 
-          className={cn(
-            "block",
-            isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
-          )}
+          className={isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
           style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
         >
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isRolling ? prevDigit : digit}</span>
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{digit}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isRolling ? prevOnes : ones}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{ones}</span>
         </span>
       </span> pros
     </span>
