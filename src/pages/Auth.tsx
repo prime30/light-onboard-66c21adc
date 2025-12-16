@@ -505,7 +505,10 @@ const Auth = () => {
       document.documentElement.style.setProperty("--vv-bottom-inset", `${bottomInset}px`);
     };
 
+    // Run multiple times to catch initial browser-UI settling (common on iOS/Chrome)
     setAppHeight();
+    requestAnimationFrame(setAppHeight);
+    const t = window.setTimeout(setAppHeight, 250);
 
     const vv = window.visualViewport;
     window.addEventListener("resize", setAppHeight);
@@ -514,10 +517,28 @@ const Auth = () => {
     vv?.addEventListener("scroll", setAppHeight);
 
     return () => {
+      window.clearTimeout(t);
       window.removeEventListener("resize", setAppHeight);
       window.removeEventListener("orientationchange", setAppHeight);
       vv?.removeEventListener("resize", setAppHeight);
       vv?.removeEventListener("scroll", setAppHeight);
+    };
+  }, []);
+
+  // Prevent the document itself from scrolling on mobile (keeps footer above browser UI)
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    const prevHeight = document.body.style.height;
+    const prevOverscroll = document.body.style.overscrollBehaviorY;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.height = "var(--app-height, 100vh)";
+    document.body.style.overscrollBehaviorY = "none";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.height = prevHeight;
+      document.body.style.overscrollBehaviorY = prevOverscroll;
     };
   }, []);
 
@@ -1298,7 +1319,12 @@ const Auth = () => {
   };
   const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <div className="min-h-screen flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10">
+  return <div
+      className="fixed inset-0 flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10 overflow-hidden"
+      style={{
+        height: "var(--app-height, 100vh)"
+      }}
+    >
       {/* Blurred darkened backdrop */}
       <div 
         className={cn(
