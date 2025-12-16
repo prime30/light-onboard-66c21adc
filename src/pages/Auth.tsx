@@ -424,6 +424,9 @@ const Auth = () => {
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
+
+  const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
+
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
   
@@ -1849,10 +1852,27 @@ const Auth = () => {
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
                 <TooltipProvider delayDuration={0}>
-                  <Tooltip>
+                  <Tooltip
+                    open={submitTooltipOpen && currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0}
+                    onOpenChange={setSubmitTooltipOpen}
+                  >
                     <TooltipTrigger asChild>
                       {/* Wrap the button so hover works even when the button is disabled */}
-                      <span className="flex-1 block">
+                      <span
+                        className="flex-1 block"
+                        onMouseEnter={() => {
+                          if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
+                            setSubmitTooltipOpen(true);
+                          }
+                        }}
+                        onMouseLeave={() => setSubmitTooltipOpen(false)}
+                        onFocus={() => {
+                          if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
+                            setSubmitTooltipOpen(true);
+                          }
+                        }}
+                        onBlur={() => setSubmitTooltipOpen(false)}
+                      >
                         <Button
                           key={`shimmer-${shimmerKey}`}
                           size="lg"
@@ -1862,7 +1882,7 @@ const Auth = () => {
                             "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                             showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
                             shimmerKey > 0 && "shimmer-trigger",
-                            // ensure hover is captured by wrapper when disabled (Radix tooltip won't open on disabled button)
+                            // when disabled, tooltip is triggered by wrapper, not the button
                             currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
                           )}
                         >
