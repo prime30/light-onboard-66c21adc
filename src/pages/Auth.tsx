@@ -2536,15 +2536,10 @@ const AccountTypeForm = ({
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]">
-        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground bg-foreground/5 shadow-lg shadow-foreground/5" : "border-border hover:border-foreground/30 hover:bg-muted/50 hover:shadow-md hover:shadow-foreground/5")} style={{
+        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.02] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.02] hover:shadow-sm")} style={{
         animationDelay: `${index * 0.05}s`,
         transform: selectedType === type.id ? 'translateY(-2px)' : undefined
       }}>
-            {/* Selection ripple effect */}
-            <div className={cn(
-              "absolute inset-0 bg-gradient-to-r from-foreground/5 via-foreground/10 to-foreground/5 opacity-0 transition-opacity duration-500",
-              selectedType === type.id && "opacity-100"
-            )} />
             <div className={cn("absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-6 h-6 rounded-full bg-foreground flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "scale-100 opacity-100" : "scale-0 opacity-0")}>
               <Check className={cn("w-[14px] h-[14px] text-background transition-transform duration-300 delay-100", selectedType === type.id ? "scale-100" : "scale-0")} strokeWidth={3} />
             </div>
