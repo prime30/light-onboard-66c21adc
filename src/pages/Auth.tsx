@@ -2245,7 +2245,7 @@ const SignInForm = ({
   if (showForgotPassword) {
     return (
       <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
-        <div className="space-y-[12px]">
+        <div className="space-y-[6px]">
           <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
             {fontsLoaded ? <span className="animate-fade-in-text">Reset password</span> : <TextSkeleton width="70%" height="1.1em" className="mx-auto" />}
           </h1>
@@ -2307,7 +2307,7 @@ const SignInForm = ({
 
   return (
     <div key="sign-in" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left">
-      <div className="space-y-[12px]">
+      <div className="space-y-[6px]">
         <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
           {fontsLoaded ? <span className="animate-fade-in-text">Welcome back</span> : <TextSkeleton width="65%" height="1.1em" className="mx-auto" />}
         </h1>
