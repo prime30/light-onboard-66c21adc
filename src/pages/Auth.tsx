@@ -322,7 +322,9 @@ const OdometerCounter = ({ variant = "light" }: { variant?: "light" | "dark" }) 
       return setTimeout(() => {
         setIsRolling(true);
         setTimeout(() => {
-          setDigit(prev => (prev + 1) % 10);
+          // 20% chance of burst increment (2-3), otherwise increment by 1
+          const increment = Math.random() < 0.2 ? (Math.random() < 0.5 ? 2 : 3) : 1;
+          setDigit(prev => (prev + increment) % 10);
           setIsRolling(false);
           scheduleNext();
         }, 300);
