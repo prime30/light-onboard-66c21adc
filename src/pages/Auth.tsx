@@ -697,9 +697,32 @@ const Auth = () => {
   
   // Parallax scroll effect for mobile hero
   const [parallaxOffset, setParallaxOffset] = useState(0);
+  const [isScrollable, setIsScrollable] = useState(false);
   
   // Scroll hint reappear delay
   const scrollHintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check if content is scrollable
+  useEffect(() => {
+    const el = mainScrollRef.current;
+    if (!el) return;
+    
+    const checkScrollable = () => {
+      setIsScrollable(el.scrollHeight > el.clientHeight + 10);
+    };
+    
+    // Check initially after a brief delay to let content render
+    const timeout = setTimeout(checkScrollable, 100);
+    
+    // Recheck on resize
+    const resizeObserver = new ResizeObserver(checkScrollable);
+    resizeObserver.observe(el);
+    
+    return () => {
+      clearTimeout(timeout);
+      resizeObserver.disconnect();
+    };
+  }, [mode, currentStep]);
   
   useEffect(() => {
     const el = mainScrollRef.current;
@@ -2061,8 +2084,8 @@ const Auth = () => {
         {/* Spotlight overlay when form is ready to submit */}
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
-        {/* Scroll down hint - mobile only, positioned above footer */}
-        {mode === "signup" && currentStep === "onboarding" && (
+        {/* Scroll down hint - mobile only, positioned above footer, only if content is scrollable */}
+        {mode === "signup" && currentStep === "onboarding" && isScrollable && (
           <div className={cn(
             "lg:hidden fixed bottom-[85px] left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce-subtle transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
