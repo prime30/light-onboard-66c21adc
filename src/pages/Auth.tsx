@@ -1880,19 +1880,25 @@ const OnboardingForm = ({
       </p>
     </div>
 
-    {/* Trust badges */}
-    <div className="flex flex-wrap justify-center gap-2 animate-stagger-2">
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-        <Check className="w-3 h-3 text-green-600" />
-        <span className="text-[11px] text-green-700 font-medium">Professional only</span>
-      </div>
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
-        <Users className="w-3 h-3 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground">Exclusive community</span>
-      </div>
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/50">
-        <GraduationCap className="w-3 h-3 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground">Advanced education</span>
+    {/* Trust badges - Marquee */}
+    <div className="relative w-full overflow-hidden" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+      <div className="flex animate-marquee whitespace-nowrap">
+        {[...Array(2)].map((_, setIndex) => (
+          <div key={setIndex} className="flex items-center gap-3 px-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+              <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
+              <span className="text-[11px] text-green-700 font-medium whitespace-nowrap">Professional only</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <Users className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Exclusive community</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Advanced education</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
 
