@@ -1325,11 +1325,11 @@ const Auth = () => {
                   </span>
                 </div>
 
-                <div className="space-y-[5px] mb-2.5 md:mb-[15px] lg:mb-5">
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-light text-background/50 tracking-tight leading-none xl:text-7xl">
+                <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
+                  <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]">
                     Great to
                   </h2>
-                  <h1 className="text-xl md:text-3xl lg:text-4xl font-semibold text-background tracking-tight leading-none xl:text-7xl">
+                  <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]">
                     See You Again
                   </h1>
                 </div>
@@ -1714,7 +1714,7 @@ const SignInForm = ({
     return (
       <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
         <div className="space-y-[12px]">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
+          <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
             Reset password
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -1776,7 +1776,7 @@ const SignInForm = ({
   return (
     <div key="sign-in" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left">
       <div className="space-y-[12px]">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display whitespace-nowrap text-balance">
+        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
           Welcome back
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2013,7 +2013,7 @@ const AccountTypeForm = ({
             Step 1
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Tell us who you are
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2125,7 +2125,7 @@ const LicenseForm = ({
             Step {stepNumber}
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Provide your license number
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2237,7 +2237,7 @@ const BusinessOperationForm = ({
           Step 3
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         How do you operate your business?
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
@@ -2474,7 +2474,7 @@ const BusinessLocationForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         {isStudent ? "Where are you located?" : "Where is your business located?"}
       </h1>
     </div>
@@ -2647,7 +2647,7 @@ const SchoolInfoForm = ({
           Step 2
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         What cosmetology school do you attend?
       </h1>
     </div>
@@ -2752,7 +2752,7 @@ const WholesaleTermsForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         Do you agree to wholesale terms?
       </h1>
     </div>
@@ -2835,7 +2835,7 @@ const TaxExemptionForm = ({
             Step {stepNumber}
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Do you have a tax exemption?
         </h1>
       </div>
@@ -2946,7 +2946,7 @@ const ContactInfoForm = ({
           Step {stepNumber}
         </span>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-[-0.02em] leading-[1.1] font-display text-balance">
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         Your Contact Information
       </h1>
     </div>
