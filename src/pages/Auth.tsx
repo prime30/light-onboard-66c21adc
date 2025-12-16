@@ -1207,6 +1207,9 @@ const Auth = () => {
     return 6;
   };
   const getStepFromNumber = (stepNum: number): Step => {
+    // Step 0 is always onboarding
+    if (stepNum === 0) return "onboarding";
+    
     if (accountType === "student") {
       // Student flow
       switch (stepNum) {
@@ -1262,7 +1265,8 @@ const Auth = () => {
     }
   };
   const goToStep = (stepNum: number) => {
-    const currentNum = getCurrentStepNumber();
+    // Handle onboarding step (step 0)
+    const currentNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
@@ -1275,7 +1279,7 @@ const Auth = () => {
     }, 150);
   };
   const slide = slides[currentSlide];
-  const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
+  const showStepIndicator = mode === "signup" && currentStep !== "success";
   return <div
       className="fixed inset-0 flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10 overflow-hidden"
       style={{
@@ -1504,16 +1508,53 @@ const Auth = () => {
             }}>
                 {/* Sliding track that moves based on current step */}
                 <div className="flex items-center gap-[12px] transition-transform duration-500 ease-out" style={{
-                transform: `translateX(${(getTotalSteps() / 2 - getCurrentStepNumber() + 0.5) * 32}px)`
+                // Adjust transform to account for intro step (step 0)
+                transform: `translateX(${((getTotalSteps() + 1) / 2 - (currentStep === "onboarding" ? 0 : getCurrentStepNumber()) - 0.5) * 32}px)`
               }}>
+                  {/* Intro/Onboarding step with icon */}
+                  <button 
+                    onClick={() => currentStep !== "onboarding" && goToStep(0)}
+                    className="flex items-center gap-[12px] cursor-pointer hover:opacity-100 transition-opacity" 
+                    style={{
+                      opacity: currentStep === "onboarding" ? 1 : 0.6,
+                      transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
+                      transition: 'all 0.5s ease-out'
+                    }}
+                  >
+                    <div className={cn(
+                      "relative flex items-center justify-center transition-all duration-500",
+                      currentStep === "onboarding" ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]"
+                    )}>
+                      {/* Active step glow ring */}
+                      {currentStep === "onboarding" && (
+                        <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
+                          boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
+                        }} />
+                      )}
+                      <div className={cn(
+                        "rounded-full transition-all duration-500 flex items-center justify-center",
+                        currentStep === "onboarding" 
+                          ? "w-[24px] h-[24px] bg-foreground text-background" 
+                          : "w-[20px] h-[20px] bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]"
+                      )}>
+                        {currentStep === "onboarding" ? (
+                          <Sparkles className="w-[12px] h-[12px]" />
+                        ) : (
+                          <Check className="w-[10px] h-[10px]" strokeWidth={3} />
+                        )}
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Regular numbered steps */}
                   {Array.from({
                   length: getTotalSteps()
                 }, (_, i) => {
                   const stepNum = i + 1;
-                  const currentStepNum = getCurrentStepNumber();
+                  const currentStepNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
                   const distance = Math.abs(stepNum - currentStepNum);
                   const isActive = stepNum === currentStepNum;
-                  const isPassed = stepNum < currentStepNum;
+                  const isPassed = currentStepNum > stepNum;
                   const isCompleted = completedSteps.has(stepNum);
                   const isPassedButIncomplete = isPassed && !isCompleted;
 
@@ -1682,7 +1723,7 @@ const Auth = () => {
                       !isTransitioning && (transitionDirection === "forward" ? "animate-slide-up-fade" : "animate-slide-down-fade")
                     )}
                   >
-                    Step {getCurrentStepNumber().toString().padStart(2, '0')} / {getTotalSteps().toString().padStart(2, '0')}
+                    {currentStep === "onboarding" ? "Welcome" : `Step ${getCurrentStepNumber().toString().padStart(2, '0')} / ${getTotalSteps().toString().padStart(2, '0')}`}
                   </span>
                 </div>}
               <div className="flex gap-[15px]">
