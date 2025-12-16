@@ -1964,7 +1964,7 @@ const Auth = () => {
                                 <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
                                   <span className="text-[10px] font-semibold">{step}</span>
                                 </div>
-                                <span className="text-sm font-medium">{name}</span>
+                                <span className="text-sm font-medium whitespace-nowrap">{name}</span>
                                 <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
                               </div>
                               <div className="pl-7 flex flex-wrap gap-1">
