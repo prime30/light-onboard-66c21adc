@@ -2548,7 +2548,7 @@ const AccountTypeForm = ({
               {/* Top row: Icon + Content */}
               <div className="flex items-start gap-[15px] sm:gap-5">
                 {/* Icon with haptic bounce */}
-                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110 shadow-lg shadow-foreground/20" : "bg-muted group-hover:scale-105 group-hover:bg-muted/80")}>
+                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110" : "bg-muted group-hover:scale-105 group-hover:bg-muted/80")}>
                   <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
                 </div>
                 
