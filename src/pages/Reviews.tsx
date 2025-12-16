@@ -65,13 +65,13 @@ const Reviews = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide -mx-5 sm:-mx-8 lg:-mx-12 px-5 sm:px-8 lg:px-12 pb-1">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border",
+                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border whitespace-nowrap flex-shrink-0",
                 activeCategory === category.id
                   ? "bg-foreground text-background border-foreground"
                   : "bg-transparent text-muted-foreground border-border hover:border-foreground/30 hover:text-foreground"
