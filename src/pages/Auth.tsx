@@ -1623,7 +1623,7 @@ const Auth = () => {
                   </button>
 
                   {/* Connecting line after intro */}
-                  <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                  <div className="relative h-px w-[12px] bg-border/20 rounded-full overflow-hidden mx-[6px]">
                     <div
                       className={cn(
                         "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
@@ -1675,7 +1675,7 @@ const Auth = () => {
                       </div>
                     </button>
                     {/* Connecting line after each step */}
-                    <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                    <div className="relative h-px w-[12px] bg-border/20 rounded-full overflow-hidden mx-[6px]">
                       <div
                         className={cn(
                           "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
