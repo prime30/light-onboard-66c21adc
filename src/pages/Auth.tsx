@@ -1290,7 +1290,7 @@ const Auth = () => {
         onTouchEnd={handleModalTouchEnd}
         className={cn(
           "relative z-10 bg-background rounded-t-[20px] sm:rounded-t-[20px] sm:rounded-b-[25px] lg:rounded-t-[20px] lg:rounded-b-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row",
-          "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]",
+          "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100dvh-3rem)] sm:h-[90vh] max-w-[1400px]",
           "overscroll-contain touch-pan-x",
           !isClosing && modalDragOffset === 0 && "animate-modal-enter",
           isClosing && "animate-modal-exit"
@@ -1636,7 +1636,7 @@ const Auth = () => {
         {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("p-2.5 sm:p-5 lg:p-[25px] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30", showStepIndicator ? "pt-0 sm:pt-0 lg:pt-0" : "pt-2.5 sm:pt-5", showSpotlight && "relative z-50")}>
             <div className={cn("max-w-[38rem] mx-auto flex flex-col", showStepIndicator ? "gap-1" : "gap-[10px]")}>
               {/* Step label above buttons */}
               {showStepIndicator && <div className={cn("text-center -mt-0.5 overflow-hidden", showSpotlight && "opacity-0")}>
