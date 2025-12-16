@@ -168,15 +168,18 @@ const formatPhoneNumber = (value: string): string => {
 const AnimatedNumber = ({
   value,
   suffix,
-  delay = 0
+  delay = 0,
+  totalDuration = 2600
 }: {
   value: number;
   suffix: string;
   delay?: number;
+  totalDuration?: number;
 }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    const duration = 2000;
+    // Calculate duration so all animations finish at totalDuration
+    const duration = totalDuration - delay;
 
     // Ease-out cubic function for natural deceleration
     const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
@@ -196,7 +199,7 @@ const AnimatedNumber = ({
       requestAnimationFrame(animate);
     }, delay);
     return () => clearTimeout(timeoutId);
-  }, [value, delay]);
+  }, [value, delay, totalDuration]);
   return <span>{count}{suffix}</span>;
 };
 interface FeatureBoxProps {
