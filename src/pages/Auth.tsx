@@ -936,7 +936,8 @@ const Auth = () => {
     if (stepSwipeStartX.current === null || stepSwipeEndX.current === null) return;
     const diff = stepSwipeStartX.current - stepSwipeEndX.current;
     const threshold = 30;
-    const currentStepNum = getCurrentStepNumber();
+    // Handle onboarding as step 0
+    const currentStepNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
     const totalSteps = getTotalSteps();
     
     // Swipe left → next step
