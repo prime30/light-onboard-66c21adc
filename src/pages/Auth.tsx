@@ -1887,11 +1887,11 @@ const Auth = () => {
                         {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
                       </h2>
                     </div>
-                    <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
+                    <p className="text-xs sm:text-sm text-background/60 mt-2 animate-fade-in" style={{
                     animationDelay: '200ms',
                     animationFillMode: 'backwards'
                   }}>
-                      {fontsLoaded ? <span className="animate-fade-in-text">Cosmetology license, proof of student status, or equivalent required to shop.</span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
+                      {fontsLoaded ? <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
                     </p>
                   </div>
                 </div>
