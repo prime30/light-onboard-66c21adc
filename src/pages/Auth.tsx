@@ -427,6 +427,7 @@ const Auth = () => {
   const [nextStep, setNextStep] = useState<Step | null>(null);
 
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
+  const submitPopoverCloseTimer = useRef<number | null>(null);
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -1867,15 +1868,23 @@ const Auth = () => {
                     <span
                       className="flex-1 block"
                       onMouseEnter={() => {
+                        if (submitPopoverCloseTimer.current) {
+                          window.clearTimeout(submitPopoverCloseTimer.current);
+                          submitPopoverCloseTimer.current = null;
+                        }
                         if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
                           setSubmitTooltipOpen(true);
                         }
                       }}
-                      onMouseLeave={(e) => {
-                        // Don't close if moving to the popover content
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        if (relatedTarget?.closest('[data-radix-popper-content-wrapper]')) return;
-                        setSubmitTooltipOpen(false);
+                      onMouseLeave={() => {
+                        if (submitPopoverCloseTimer.current) {
+                          window.clearTimeout(submitPopoverCloseTimer.current);
+                        }
+                        // small grace period so you can move into the popover
+                        submitPopoverCloseTimer.current = window.setTimeout(() => {
+                          setSubmitTooltipOpen(false);
+                          submitPopoverCloseTimer.current = null;
+                        }, 220);
                       }}
                     >
                       <Button
@@ -1887,7 +1896,7 @@ const Auth = () => {
                           "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                           showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
                           shimmerKey > 0 && "shimmer-trigger",
-                          // when disabled, tooltip is triggered by wrapper, not the button
+                          // when disabled, popover is triggered by wrapper, not the button
                           currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
                         )}
                       >
@@ -1914,10 +1923,25 @@ const Auth = () => {
                     </span>
                   </PopoverTrigger>
                   {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
-                    <PopoverContent 
-                      side="top" 
-                      className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto"
-                      onMouseLeave={() => setSubmitTooltipOpen(false)}
+                    <PopoverContent
+                      side="top"
+                      className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto z-50"
+                      onMouseEnter={() => {
+                        if (submitPopoverCloseTimer.current) {
+                          window.clearTimeout(submitPopoverCloseTimer.current);
+                          submitPopoverCloseTimer.current = null;
+                        }
+                        setSubmitTooltipOpen(true);
+                      }}
+                      onMouseLeave={() => {
+                        if (submitPopoverCloseTimer.current) {
+                          window.clearTimeout(submitPopoverCloseTimer.current);
+                        }
+                        submitPopoverCloseTimer.current = window.setTimeout(() => {
+                          setSubmitTooltipOpen(false);
+                          submitPopoverCloseTimer.current = null;
+                        }, 220);
+                      }}
                       onPointerDownOutside={() => setSubmitTooltipOpen(false)}
                     >
                       <div className="space-y-2.5">
