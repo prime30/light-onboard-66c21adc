@@ -1994,7 +1994,11 @@ const Auth = () => {
 // Marquee badges with center-highlight effect
 const MarqueeBadges = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [badgeIntensities, setBadgeIntensities] = useState<Record<string, number>>({});
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const badges = [
     { icon: Check, label: "Exclusively professional" },
@@ -2014,7 +2018,7 @@ const MarqueeBadges = () => {
     const checkPositions = () => {
       const containerRect = container.getBoundingClientRect();
       const centerX = containerRect.left + containerRect.width / 2;
-      const maxDistance = 120; // pixels from center for full fade
+      const maxDistance = 120;
 
       const badgeElements = container.querySelectorAll('[data-badge]');
       const newIntensities: Record<string, number> = {};
@@ -2024,7 +2028,6 @@ const MarqueeBadges = () => {
         const badgeCenterX = rect.left + rect.width / 2;
         const distance = Math.abs(badgeCenterX - centerX);
         const key = el.getAttribute('data-badge') || '';
-        // Smooth falloff: 1 at center, 0 at maxDistance
         newIntensities[key] = Math.max(0, 1 - (distance / maxDistance));
       });
 
@@ -2036,11 +2039,46 @@ const MarqueeBadges = () => {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!trackRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX);
+    const transform = window.getComputedStyle(trackRef.current).transform;
+    const matrix = new DOMMatrix(transform);
+    setScrollLeft(matrix.m41);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !trackRef.current) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = x - startX;
+    trackRef.current.style.transform = `translateX(${scrollLeft + walk}px)`;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!trackRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+    const transform = window.getComputedStyle(trackRef.current).transform;
+    const matrix = new DOMMatrix(transform);
+    setScrollLeft(matrix.m41);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !trackRef.current) return;
+    const x = e.touches[0].pageX;
+    const walk = x - startX;
+    trackRef.current.style.transform = `translateX(${scrollLeft + walk}px)`;
+  };
+
   const BadgeItem = ({ badge, badgeKey }: { badge: typeof badges[0], badgeKey: string }) => {
     const intensity = badgeIntensities[badgeKey] || 0;
     const Icon = badge.icon;
-    
-    // Use grayscale filter for smooth desaturation - 0 = full color, 1 = gray
     const grayscaleAmount = 1 - intensity;
     
     return (
@@ -2064,25 +2102,32 @@ const MarqueeBadges = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full overflow-hidden" 
+      className="relative w-full overflow-hidden select-none"
       style={{ 
         maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', 
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' 
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+        cursor: isDragging ? 'grabbing' : 'grab',
       }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleMouseUp}
     >
-      <div className="flex animate-marquee-seamless">
-        {/* First set */}
-        <div className="flex items-center gap-3 shrink-0 pr-3">
-          {badges.map((badge, i) => (
-            <BadgeItem key={`0-${i}`} badge={badge} badgeKey={`0-${i}`} />
-          ))}
-        </div>
-        {/* Duplicate set for seamless loop */}
-        <div className="flex items-center gap-3 shrink-0 pr-3">
-          {badges.map((badge, i) => (
-            <BadgeItem key={`1-${i}`} badge={badge} badgeKey={`1-${i}`} />
-          ))}
-        </div>
+      <div 
+        ref={trackRef}
+        className={cn("flex", !isDragging && "animate-marquee-seamless-long")}
+      >
+        {/* Four sets for longer loop */}
+        {[0, 1, 2, 3].map((setIndex) => (
+          <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
+            {badges.map((badge, i) => (
+              <BadgeItem key={`${setIndex}-${i}`} badge={badge} badgeKey={`${setIndex}-${i}`} />
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );

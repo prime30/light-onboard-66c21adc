@@ -1332,7 +1332,24 @@
   animation-play-state: paused;
 }
 
+.animate-marquee-seamless-long {
+  animation: marquee-seamless-long 40s linear infinite;
+}
+
+.animate-marquee-seamless-long:hover {
+  animation-play-state: paused;
+}
+
 @keyframes marquee-seamless {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-seamless-long {
   0% {
     transform: translateX(0);
   }
