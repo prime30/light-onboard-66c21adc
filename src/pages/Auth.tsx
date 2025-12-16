@@ -3915,14 +3915,20 @@ const ContactInfoForm = ({
           <label className="flex items-start gap-3 cursor-pointer group">
             <Checkbox checked={subscribeOrderUpdates} onCheckedChange={onSubscribeOrderUpdatesChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
-              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Order updates</span>
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
+                Order updates
+                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Recommended</span>
+              </span>
               <p className="text-xs text-muted-foreground">Receive shipping notifications and order status updates</p>
             </div>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
             <Checkbox checked={subscribeMarketing} onCheckedChange={onSubscribeMarketingChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
-              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Marketing emails</span>
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
+                Marketing emails
+                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Recommended</span>
+              </span>
               <p className="text-xs text-muted-foreground">Get tips, tutorials, and industry insights</p>
             </div>
           </label>
