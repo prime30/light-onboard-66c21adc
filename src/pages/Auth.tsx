@@ -1868,16 +1868,21 @@ const Auth = () => {
                           </div>
                         )}
                         {/* Step node */}
-                        <div
-                          className={cn(
-                            "rounded-full transition-all duration-300",
-                            isActive
-                              ? "w-2.5 h-2.5 bg-foreground"
-                              : isCompleted
-                              ? "w-2 h-2 bg-foreground"
-                              : "w-2 h-2 bg-border/60"
+                        <div className="relative">
+                          {isActive && (
+                            <div className="absolute inset-0 rounded-full bg-foreground/30 animate-ping" style={{ animationDuration: '1.5s' }} />
                           )}
-                        />
+                          <div
+                            className={cn(
+                              "relative rounded-full transition-all duration-300",
+                              isActive
+                                ? "w-2.5 h-2.5 bg-foreground"
+                                : isCompleted
+                                ? "w-2 h-2 bg-foreground"
+                                : "w-2 h-2 bg-border/60"
+                            )}
+                          />
+                        </div>
                       </div>
                     );
                   })}
