@@ -1700,14 +1700,14 @@ const Auth = () => {
                   animationFillMode: 'backwards'
                 }}>
                     <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
-                      Apply for a pro account
+                      {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
                     </h2>
                   </div>
                   <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
                   animationDelay: '200ms',
                   animationFillMode: 'backwards'
                 }}>
-                    Cosmetology license, proof of student status, or equivalent required to shop.
+                    {fontsLoaded ? <span className="animate-fade-in-text">Cosmetology license, proof of student status, or equivalent required to shop.</span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
                   </p>
                 </div>
                 
