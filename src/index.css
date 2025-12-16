@@ -1249,7 +1249,7 @@
 }
 
 .animate-marquee-seamless-long {
-  animation: marquee-seamless-long 20s linear infinite;
+  animation: marquee-seamless-long 12s linear infinite;
 }
 
 .animate-marquee-seamless-long:hover {
