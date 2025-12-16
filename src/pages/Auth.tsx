@@ -1510,8 +1510,8 @@ const Auth = () => {
           </button>
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up */}
-        {(mode === 'signin' || currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn(
+        {/* Mobile/Tablet Hero Banner - Collapses on scroll down, expands on scroll up (hidden on sign-in) */}
+        {mode === 'signup' && (currentStep === 'account-type' || currentStep === 'onboarding') && <div className={cn(
           "lg:hidden overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out",
           mobileHeroVisible ? "max-h-[220px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
         )}>
@@ -1534,14 +1534,14 @@ const Auth = () => {
                   animationFillMode: 'backwards'
                 }}>
                     <h2 className="font-termina font-medium uppercase text-base sm:text-lg text-background leading-tight text-balance">
-                      {mode === "signin" ? "Great to See You Again" : "Apply for a pro account"}
+                      Apply for a pro account
                     </h2>
                   </div>
                   <p className="text-xs text-background/50 mt-1 hidden sm:block animate-fade-in" style={{
                   animationDelay: '200ms',
                   animationFillMode: 'backwards'
                 }}>
-                    {mode === "signin" ? "Your pro account is waiting for you" : "Cosmetology license, proof of student status, or equivalent required to shop."}
+                    Cosmetology license, proof of student status, or equivalent required to shop.
                   </p>
                 </div>
                 
