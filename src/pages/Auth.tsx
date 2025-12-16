@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag, Wand2, Scissors } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, ChevronDown, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag, Wand2, Scissors } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -2555,6 +2555,15 @@ const OnboardingForm = ({
         <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </button>
     </p>
+
+    {/* Scroll down hint - mobile only */}
+    <div className="lg:hidden flex flex-col items-center gap-1 pt-4 animate-fade-in" style={{ animationDelay: '800ms', animationFillMode: 'forwards', opacity: 0 }}>
+      <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">Scroll</span>
+      <div className="flex flex-col items-center animate-bounce-subtle">
+        <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
+        <ChevronDown className="w-4 h-4 text-muted-foreground/20 -mt-2.5" />
+      </div>
+    </div>
   </div>;
 const AccountTypeForm = ({
   selectedType,
