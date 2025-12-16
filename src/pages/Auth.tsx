@@ -1269,7 +1269,7 @@ const Auth = () => {
         onTouchMove={handleModalTouchMove}
         onTouchEnd={handleModalTouchEnd}
         className={cn(
-          "relative z-10 bg-background rounded-t-[20px] sm:rounded-t-[20px] sm:rounded-b-[25px] lg:rounded-t-[20px] lg:rounded-b-[30px] shadow-2xl overflow-visible flex flex-col lg:flex-row",
+          "relative z-10 bg-background rounded-t-[20px] sm:rounded-t-[20px] sm:rounded-b-[25px] lg:rounded-t-[20px] lg:rounded-b-[30px] shadow-2xl overflow-hidden flex flex-col lg:flex-row",
           "w-full sm:w-[95vw] lg:w-[90vw] h-[calc(100vh-3rem)] sm:h-[90vh] max-w-[1400px]",
           !isClosing && modalDragOffset === 0 && "animate-modal-enter",
           isClosing && "animate-modal-exit"
