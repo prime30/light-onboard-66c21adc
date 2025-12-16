@@ -366,6 +366,80 @@ const RotatingStylistAvatars = () => {
     </div>;
 };
 
+// Light mode version of RotatingStylistAvatars (for light backgrounds)
+const RotatingStylistAvatarsLight = () => {
+  const [visibleIndices, setVisibleIndices] = useState([0, 1, 2]);
+  const [fadingIndex, setFadingIndex] = useState<number | null>(null);
+  const [floatingEmoji, setFloatingEmoji] = useState<{
+    position: number;
+    emoji: string;
+    id: number;
+  } | null>(null);
+  const emojiIdRef = useRef(0);
+  const reactionEmojis = ["💇", "✨", "💕", "🔥", "💅", "⭐", "💖", "👏", "🙌", "💯"];
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisibleIndices(prev => {
+        const nextIndex = (Math.max(...prev) + 1) % stylistAvatars.length;
+        const positionToReplace = Math.floor(Math.random() * 3);
+        setFadingIndex(positionToReplace);
+
+        // Trigger floating emoji when new avatar appears
+        const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
+        emojiIdRef.current += 1;
+        setFloatingEmoji({
+          position: positionToReplace,
+          emoji: randomEmoji,
+          id: emojiIdRef.current
+        });
+        setTimeout(() => {
+          setFadingIndex(null);
+        }, 300);
+
+        // Clear emoji after animation
+        setTimeout(() => {
+          setFloatingEmoji(null);
+        }, 1000);
+        const newIndices = [...prev];
+        newIndices[positionToReplace] = nextIndex;
+        return newIndices;
+      });
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4">
+      <span className="text-xs text-muted-foreground">Loved by</span>
+      <div className="flex -space-x-[5px]">
+        {visibleIndices.map((avatarIndex, i) => (
+          <div key={`${i}-${avatarIndex}`} className="relative">
+            <img 
+              src={stylistAvatars[avatarIndex]} 
+              alt={`Stylist ${avatarIndex + 1}`} 
+              className={cn(
+                "w-6 h-6 rounded-full border-2 border-background object-cover transition-all duration-300",
+                fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
+              )} 
+            />
+            {/* Floating emoji reaction */}
+            {floatingEmoji && floatingEmoji.position === i && (
+              <span 
+                key={floatingEmoji.id} 
+                className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none"
+              >
+                {floatingEmoji.emoji}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <span className="text-xs text-foreground font-medium">8K+ pros</span>
+    </div>
+  );
+};
+
 // Circular Progress Indicator Component
 const CircularProgress = ({
   progress
@@ -2456,18 +2530,14 @@ const OnboardingForm = ({
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={8} suffix="K+" delay={400} />
-        </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
-      </div>
-      <div className="w-px bg-border" />
-      <div>
-        <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={24} suffix="hr" delay={600} />
+          <AnimatedNumber value={24} suffix="hr" delay={400} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
       </div>
     </div>
+
+    {/* Loved by pros - with avatars */}
+    <RotatingStylistAvatarsLight />
 
     <p className="text-xs text-muted-foreground text-center">
       Already have an account?{" "}
