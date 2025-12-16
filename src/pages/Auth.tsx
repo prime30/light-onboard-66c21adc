@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -1896,6 +1896,18 @@ const OnboardingForm = ({
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
               <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
               <span className="text-[11px] text-muted-foreground whitespace-nowrap">Advanced education</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <Tag className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Wholesale pricing</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <Truck className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Fast shipping</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+              <ShieldCheck className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Verified brands</span>
             </div>
           </div>
         ))}
