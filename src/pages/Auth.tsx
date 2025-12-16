@@ -1659,8 +1659,8 @@ const Auth = () => {
           </button>
         </header>
 
-        {/* Mobile/Tablet Hero Banner - Only shown on account-type step, acts as continue button */}
-        {mode === 'signup' && currentStep === 'account-type' && <div 
+        {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, acts as continue button */}
+        {mode === 'signup' && currentStep === 'onboarding' && <div
           className={cn(
             "lg:hidden overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out cursor-pointer active:scale-[0.98] transition-transform",
             mobileHeroVisible ? "max-h-[220px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
