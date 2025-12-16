@@ -588,6 +588,9 @@ const Auth = () => {
   // Parallax scroll effect for mobile hero
   const [parallaxOffset, setParallaxOffset] = useState(0);
   
+  // Scroll hint reappear delay
+  const scrollHintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     const el = mainScrollRef.current;
     if (!el) return;
@@ -596,13 +599,33 @@ const Auth = () => {
       const scrollTop = el.scrollTop;
       // Parallax factor - image moves at 30% of scroll speed
       setParallaxOffset(scrollTop * 0.3);
-      // Hide scroll hint after scrolling 50px, show again when back at top
-      setHasScrolled(scrollTop > 50);
+      
+      // Hide scroll hint immediately when scrolling past 50px
+      if (scrollTop > 50) {
+        if (scrollHintTimeoutRef.current) {
+          clearTimeout(scrollHintTimeoutRef.current);
+          scrollHintTimeoutRef.current = null;
+        }
+        setHasScrolled(true);
+      } else {
+        // Delay showing hint again when back at top
+        if (!scrollHintTimeoutRef.current && hasScrolled) {
+          scrollHintTimeoutRef.current = setTimeout(() => {
+            setHasScrolled(false);
+            scrollHintTimeoutRef.current = null;
+          }, 800);
+        }
+      }
     };
     
     el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, [mode, currentStep]);
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
+      if (scrollHintTimeoutRef.current) {
+        clearTimeout(scrollHintTimeoutRef.current);
+      }
+    };
+  }, [mode, currentStep, hasScrolled]);
 
   // Reset hasScrolled when step changes
   useEffect(() => {
