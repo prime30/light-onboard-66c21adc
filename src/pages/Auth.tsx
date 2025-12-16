@@ -491,7 +491,7 @@ const Auth = () => {
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
   const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
-  const [shimmerTrigger, setShimmerTrigger] = useState(false);
+  const [shimmerKey, setShimmerKey] = useState(0);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1743,8 +1743,7 @@ const Auth = () => {
                 isSendingReset={isSendingReset}
               /> : <>
                   {currentStep === "onboarding" && <OnboardingForm onContinue={handleNext} onSignIn={() => setMode("signin")} onStepClick={() => {
-                    setShimmerTrigger(true);
-                    setTimeout(() => setShimmerTrigger(false), 600);
+                    setShimmerKey(k => k + 1);
                   }} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={setAccountType} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
@@ -1797,7 +1796,7 @@ const Auth = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex-1">
-                        <Button size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]", shimmerTrigger && "shimmer-trigger")}>
+                        <Button key={`shimmer-${shimmerKey}`} size="lg" onClick={handleNext} disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting} className={cn("btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform", showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]", shimmerKey > 0 && "shimmer-trigger")}>
                           <span className="relative z-10 flex items-center justify-center gap-[10px]">
                             {isSubmitting ? <>
                                 <Loader2 className="w-[18px] h-[18px] animate-spin" />
