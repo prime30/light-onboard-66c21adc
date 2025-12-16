@@ -29,18 +29,14 @@ export const AccountTypeCard = ({
     <button
       onClick={onSelect}
       className={cn(
-        "group relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 overflow-hidden",
+        "relative w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 overflow-hidden",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "hover:-translate-y-0.5 hover:shadow-md hover:bg-muted/20",
-        // Ensure the pressed/active state matches hover (prevents browser default active styling)
-        "active:bg-muted/20",
         selected
           ? "border-foreground/15 bg-muted/20 -translate-y-0.5 shadow-sm"
           : "border-border/30 bg-background/40 hover:border-foreground/15"
       )}
     >
-      {/* Click shine sweep */}
-      <span className="pointer-events-none absolute inset-0 -translate-x-full group-active:animate-shine-sweep bg-gradient-to-r from-transparent via-white/30 to-transparent" />
       {/* Selection indicator */}
       <div
         className={cn(
