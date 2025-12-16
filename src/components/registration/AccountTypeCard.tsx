@@ -2,11 +2,16 @@ import { cn } from "@/lib/utils";
 import { Check, LucideIcon } from "lucide-react";
 import { useMagnetic } from "@/hooks/use-magnetic";
 
+interface Feature {
+  label: string;
+  icon?: LucideIcon;
+}
+
 interface AccountTypeCardProps {
   title: string;
   description: string;
   badge?: string;
-  features: string[];
+  features: Feature[];
   icon?: LucideIcon;
   selected: boolean;
   onSelect: () => void;
@@ -93,19 +98,23 @@ export const AccountTypeCard = ({
 
       {/* Features - Full width row on mobile */}
       <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border/30 sm:border-0 sm:pt-0 sm:mt-2">
-        {features.map((feature, index) => (
-          <span 
-            key={index} 
-            className={cn(
-              "inline-flex items-center px-2 py-0.5 text-[10px] rounded-full border transition-colors duration-300",
-              selected 
-                ? "bg-foreground/5 border-foreground/15 text-foreground/80" 
-                : "bg-background/60 border-foreground/10 text-foreground/60"
-            )}
-          >
-            {feature}
-          </span>
-        ))}
+        {features.map((feature, index) => {
+          const FeatureIcon = feature.icon;
+          return (
+            <span 
+              key={index} 
+              className={cn(
+                "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full border transition-colors duration-300",
+                selected 
+                  ? "bg-foreground/5 border-foreground/15 text-foreground/80" 
+                  : "bg-background/60 border-foreground/10 text-foreground/60"
+              )}
+            >
+              {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
+              {feature.label}
+            </span>
+          );
+        })}
       </div>
 
       {/* Subtle gradient overlay when selected */}
