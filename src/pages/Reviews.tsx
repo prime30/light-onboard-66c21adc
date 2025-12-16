@@ -53,7 +53,7 @@ const Reviews = () => {
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
             Testimonials
           </p>
-          <h1 className="font-termina text-3xl md:text-4xl font-bold tracking-[-0.006em] mb-3">
+          <h1 className="font-termina text-2xl md:text-3xl font-medium uppercase tracking-[-0.006em] mb-3">
             Loved by Stylists
           </h1>
           <p className="text-muted-foreground max-w-md">
