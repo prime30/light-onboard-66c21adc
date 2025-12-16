@@ -2165,7 +2165,7 @@ const AccountTypeForm = ({
     icon: Building2,
     title: "Salon Owner or Manager",
     description: "Business accounts",
-    features: ["Community access", "Education discounts", "Top level support", "Pro pricing"]
+    features: ["Pro pricing", "Top level support", "Community access", "Education discounts"]
   }, {
     id: "student",
     icon: GraduationCap,
