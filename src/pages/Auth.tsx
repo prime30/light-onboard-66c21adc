@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -1279,7 +1279,7 @@ const Auth = () => {
     }, 150);
   };
   const slide = slides[currentSlide];
-  const showStepIndicator = mode === "signup" && currentStep !== "success";
+  const showStepIndicator = mode === "signup";
   return <div
       className="fixed inset-0 flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10 overflow-hidden"
       style={{
@@ -1508,8 +1508,9 @@ const Auth = () => {
             }}>
                 {/* Sliding track that moves based on current step */}
                 <div className="flex items-center gap-[12px] transition-transform duration-500 ease-out" style={{
-                // Adjust transform to account for intro step (step 0)
-                transform: `translateX(${((getTotalSteps() + 1) / 2 - (currentStep === "onboarding" ? 0 : getCurrentStepNumber()) - 0.5) * 32}px)`
+                // Adjust transform to account for intro step (step 0) and success step at end
+                // Total visual steps = 1 (intro) + getTotalSteps() + 1 (success)
+                transform: `translateX(${((getTotalSteps() + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber()) - 0.5) * 32}px)`
               }}>
                   {/* Intro/Onboarding step with icon */}
                   <button 
@@ -1587,6 +1588,50 @@ const Auth = () => {
                         </div>
                       </button>;
                 })}
+
+                  {/* Success step with flag icon */}
+                  {(() => {
+                    const successStepNum = getTotalSteps() + 1;
+                    const currentStepNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? successStepNum : getCurrentStepNumber();
+                    const distance = Math.abs(successStepNum - currentStepNum);
+                    const isActive = currentStep === "success";
+                    const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
+                    const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
+                    
+                    return (
+                      <div 
+                        className="flex items-center gap-[12px]" 
+                        style={{
+                          opacity,
+                          transform: `scale(${scale})`,
+                          transition: 'all 0.5s ease-out'
+                        }}
+                      >
+                        <div className={cn(
+                          "relative flex items-center justify-center transition-all duration-500",
+                          isActive ? "w-[32px] h-[32px]" : "w-[20px] h-[20px]"
+                        )}>
+                          {/* Active step glow ring */}
+                          {isActive && (
+                            <div className="absolute inset-0 rounded-full border border-foreground/30 animate-pulse" style={{
+                              boxShadow: '0 0 16px hsl(var(--foreground) / 0.15)'
+                            }} />
+                          )}
+                          <div className={cn(
+                            "rounded-full transition-all duration-500 flex items-center justify-center",
+                            isActive 
+                              ? "w-[24px] h-[24px] bg-foreground text-background" 
+                              : "w-[20px] h-[20px] bg-border/60 text-muted-foreground"
+                          )}>
+                            <Flag className={cn(
+                              "transition-all duration-300",
+                              isActive ? "w-[12px] h-[12px]" : "w-[10px] h-[10px]"
+                            )} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>}
