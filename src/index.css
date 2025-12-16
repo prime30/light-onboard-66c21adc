@@ -1286,5 +1286,5 @@
 }
 
 .animate-odometer-continuous {
-  animation: odometerRollContinuous 8s linear infinite;
+  animation: odometerRollContinuous 20s linear infinite;
 }
