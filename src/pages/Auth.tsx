@@ -1994,7 +1994,7 @@ const Auth = () => {
 // Marquee badges with center-highlight effect
 const MarqueeBadges = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [badgeStates, setBadgeStates] = useState<Record<string, boolean>>({});
+  const [badgeIntensities, setBadgeIntensities] = useState<Record<string, number>>({});
 
   const badges = [
     { icon: Check, label: "Exclusively professional" },
@@ -2014,26 +2014,72 @@ const MarqueeBadges = () => {
     const checkPositions = () => {
       const containerRect = container.getBoundingClientRect();
       const centerX = containerRect.left + containerRect.width / 2;
-      const threshold = 80; // pixels from center to activate
+      const maxDistance = 120; // pixels from center for full fade
 
       const badgeElements = container.querySelectorAll('[data-badge]');
-      const newStates: Record<string, boolean> = {};
+      const newIntensities: Record<string, number> = {};
 
       badgeElements.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const badgeCenterX = rect.left + rect.width / 2;
         const distance = Math.abs(badgeCenterX - centerX);
         const key = el.getAttribute('data-badge') || '';
-        newStates[key] = distance < threshold;
+        // Smooth falloff: 1 at center, 0 at maxDistance
+        newIntensities[key] = Math.max(0, 1 - (distance / maxDistance));
       });
 
-      setBadgeStates(newStates);
+      setBadgeIntensities(newIntensities);
       animationId = requestAnimationFrame(checkPositions);
     };
 
     checkPositions();
     return () => cancelAnimationFrame(animationId);
   }, []);
+
+  const BadgeItem = ({ badge, badgeKey }: { badge: typeof badges[0], badgeKey: string }) => {
+    const intensity = badgeIntensities[badgeKey] || 0;
+    const Icon = badge.icon;
+    
+    // Interpolate colors based on intensity
+    const greenOpacity = intensity * 0.15;
+    const borderOpacity = 0.3 + intensity * 0.2;
+    
+    return (
+      <div 
+        data-badge={badgeKey}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border"
+        style={{
+          backgroundColor: `rgba(34, 197, 94, ${greenOpacity})`,
+          borderColor: intensity > 0.1 
+            ? `rgba(34, 197, 94, ${borderOpacity})` 
+            : 'hsl(var(--border) / 0.5)',
+          transition: 'background-color 0.15s ease-out, border-color 0.15s ease-out',
+        }}
+      >
+        <Icon 
+          className="w-3 h-3 flex-shrink-0"
+          style={{
+            color: intensity > 0.1 
+              ? `rgba(22, 163, 74, ${0.4 + intensity * 0.6})` 
+              : 'hsl(var(--muted-foreground))',
+            transition: 'color 0.15s ease-out',
+          }}
+        />
+        <span 
+          className="text-[11px] whitespace-nowrap"
+          style={{
+            color: intensity > 0.1 
+              ? `rgba(21, 128, 61, ${0.5 + intensity * 0.5})` 
+              : 'hsl(var(--muted-foreground))',
+            fontWeight: intensity > 0.5 ? 500 : 400,
+            transition: 'color 0.15s ease-out, font-weight 0.15s ease-out',
+          }}
+        >
+          {badge.label}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div 
@@ -2044,44 +2090,19 @@ const MarqueeBadges = () => {
         WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' 
       }}
     >
-      <div className="flex animate-marquee">
-        {[...Array(4)].map((_, setIndex) => (
-          <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
-            {badges.map((badge, i) => {
-              const key = `${setIndex}-${i}`;
-              const isActive = badgeStates[key];
-              const Icon = badge.icon;
-              
-              return (
-                <div 
-                  key={key}
-                  data-badge={key}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300",
-                    isActive 
-                      ? "bg-green-500/10 border-green-500/30" 
-                      : "bg-muted/50 border-border/50"
-                  )}
-                >
-                  <Icon 
-                    className={cn(
-                      "w-3 h-3 flex-shrink-0 transition-colors duration-300",
-                      isActive ? "text-green-600" : "text-muted-foreground"
-                    )} 
-                  />
-                  <span 
-                    className={cn(
-                      "text-[11px] whitespace-nowrap transition-colors duration-300",
-                      isActive ? "text-green-700 font-medium" : "text-muted-foreground"
-                    )}
-                  >
-                    {badge.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+      <div className="flex animate-marquee-seamless">
+        {/* First set */}
+        <div className="flex items-center gap-3 shrink-0 pr-3">
+          {badges.map((badge, i) => (
+            <BadgeItem key={`0-${i}`} badge={badge} badgeKey={`0-${i}`} />
+          ))}
+        </div>
+        {/* Duplicate set for seamless loop */}
+        <div className="flex items-center gap-3 shrink-0 pr-3">
+          {badges.map((badge, i) => (
+            <BadgeItem key={`1-${i}`} badge={badge} badgeKey={`1-${i}`} />
+          ))}
+        </div>
       </div>
     </div>
   );
