@@ -1550,29 +1550,31 @@ const Auth = () => {
       {/* Right Panel - Form */}
       <div ref={mainContentRef} className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-y-auto overflow-x-hidden">
         {/* Header - fixed height to keep toggle position consistent */}
-        <header className="relative flex items-center gap-2 sm:gap-4 px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
-          {/* Auth Toggle - Left aligned */}
-          <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
-            {/* Sliding pill indicator */}
-            <div className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" style={{
-              left: mode === "signup" ? "5px" : "50%",
-              width: "calc(50% - 5px)"
-            }} />
-            <button onClick={() => handleModeChange("signup")} className={cn("relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300", mode === "signup" ? "text-background" : "text-muted-foreground hover:text-foreground")}>
-              Sign up
-            </button>
-            <button onClick={() => handleModeChange("signin")} className={cn("relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300", mode === "signin" ? "text-background" : "text-muted-foreground hover:text-foreground")}>
-              Sign in
-            </button>
-          </div>
-          
-          {/* Step Indicator - Centered with flex-1 wrapper, swipeable */}
-          {showStepIndicator && <div 
-            className="flex-1 flex items-center justify-center lg:justify-center h-[50px] max-w-[130px] sm:max-w-none touch-pan-y"
-            onTouchStart={handleStepSwipeStart}
-            onTouchMove={handleStepSwipeMove}
-            onTouchEnd={handleStepSwipeEnd}
-          >
+        <header className="relative flex items-center justify-between px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(0.625rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+          {/* Left side - Auth Toggle + Step Indicator */}
+          <div className="flex items-center gap-[20px]">
+            {/* Auth Toggle */}
+            <div className="inline-flex bg-muted/60 backdrop-blur-sm rounded-full p-[5px] border border-border/30 relative flex-shrink-0">
+              {/* Sliding pill indicator */}
+              <div className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" style={{
+                left: mode === "signup" ? "5px" : "50%",
+                width: "calc(50% - 5px)"
+              }} />
+              <button onClick={() => handleModeChange("signup")} className={cn("relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300", mode === "signup" ? "text-background" : "text-muted-foreground hover:text-foreground")}>
+                Sign up
+              </button>
+              <button onClick={() => handleModeChange("signin")} className={cn("relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300", mode === "signin" ? "text-background" : "text-muted-foreground hover:text-foreground")}>
+                Sign in
+              </button>
+            </div>
+            
+            {/* Step Indicator */}
+            {showStepIndicator && <div 
+              className="flex items-center justify-center h-[50px] max-w-[130px] sm:max-w-none touch-pan-y"
+              onTouchStart={handleStepSwipeStart}
+              onTouchMove={handleStepSwipeMove}
+              onTouchEnd={handleStepSwipeEnd}
+            >
               <div className="relative flex items-center justify-center overflow-visible max-w-[130px] sm:max-w-none" style={{
               width: '160px',
               height: '50px',
@@ -1621,7 +1623,7 @@ const Auth = () => {
                   </button>
 
                   {/* Connecting line after intro */}
-                  <div className="relative h-[2px] w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                  <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
                     <div
                       className={cn(
                         "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
@@ -1673,7 +1675,7 @@ const Auth = () => {
                       </div>
                     </button>
                     {/* Connecting line after each step */}
-                    <div className="relative h-[2px] w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
+                    <div className="relative h-px w-[12px] bg-border/40 rounded-full overflow-hidden mx-[6px]">
                       <div
                         className={cn(
                           "absolute inset-0 bg-foreground rounded-full origin-left transition-transform duration-500 ease-out",
@@ -1731,11 +1733,9 @@ const Auth = () => {
                 </div>
               </div>
             </div>}
+          </div>
           
-          {/* Spacer when no step indicator */}
-          {!showStepIndicator && <div className="flex-1" />}
-          
-          {/* Close Button */}
+          {/* Close Button - Always pushed to end via justify-between */}
           <button onClick={handleCloseModal} className="flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors group" aria-label="Close">
             <X className="w-5 h-5 text-foreground transition-transform duration-200 group-hover:rotate-90 group-active:scale-75" />
           </button>
