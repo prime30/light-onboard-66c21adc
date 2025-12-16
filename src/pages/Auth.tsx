@@ -1879,10 +1879,10 @@ const SignInForm = ({
       <div key="forgot-password" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right">
         <div className="space-y-[12px]">
           <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-            {fontsLoaded ? "Reset password" : <TextSkeleton width="70%" height="1.1em" className="mx-auto" />}
+            {fontsLoaded ? <span className="animate-fade-in-text">Reset password</span> : <TextSkeleton width="70%" height="1.1em" className="mx-auto" />}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            {fontsLoaded ? "Enter your email and we'll send you a reset link" : <TextSkeleton width="85%" height="1em" className="mx-auto" />}
+            {fontsLoaded ? <span className="animate-fade-in-text">Enter your email and we'll send you a reset link</span> : <TextSkeleton width="85%" height="1em" className="mx-auto" />}
           </p>
         </div>
 
@@ -1941,10 +1941,10 @@ const SignInForm = ({
     <div key="sign-in" className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left">
       <div className="space-y-[12px]">
         <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          {fontsLoaded ? "Welcome back" : <TextSkeleton width="65%" height="1.1em" className="mx-auto" />}
+          {fontsLoaded ? <span className="animate-fade-in-text">Welcome back</span> : <TextSkeleton width="65%" height="1.1em" className="mx-auto" />}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          {fontsLoaded ? "Sign in to access your pro account" : <TextSkeleton width="75%" height="1em" className="mx-auto" />}
+          {fontsLoaded ? <span className="animate-fade-in-text">Sign in to access your pro account</span> : <TextSkeleton width="75%" height="1em" className="mx-auto" />}
         </p>
       </div>
 
@@ -2037,11 +2037,11 @@ const OnboardingForm = ({
     {/* Hero section */}
     <div className="text-center space-y-3 animate-stagger-1">
       <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-        {fontsLoaded ? "Let's get started" : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
+        {fontsLoaded ? <span className="animate-fade-in-text">Let's get started</span> : <TextSkeleton width="75%" height="1.1em" className="mx-auto" />}
       </h1>
       <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
         {fontsLoaded ? (
-          <>Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></>
+          <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span>
         ) : (
           <TextSkeleton width="85%" height="1em" className="mx-auto" />
         )}
