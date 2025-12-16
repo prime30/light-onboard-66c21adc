@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowLeft, Star, Quote, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,26 @@ import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
 import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
 import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
 import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
+import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
+import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
+import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
+
+type Category = "all" | "salon-owners" | "independent" | "commission";
+
+const categories: { id: Category; label: string }[] = [
+  { id: "all", label: "All Reviews" },
+  { id: "salon-owners", label: "Salon Owners" },
+  { id: "independent", label: "Independent Stylists" },
+  { id: "commission", label: "Commission Stylists" },
+];
 
 const Reviews = () => {
+  const [activeCategory, setActiveCategory] = useState<Category>("all");
+
+  const filteredReviews = activeCategory === "all" 
+    ? reviews 
+    : reviews.filter(review => review.category === activeCategory);
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Gradient background elements */}
@@ -24,7 +43,7 @@ const Reviews = () => {
         </Link>
         
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-blue-500/10 border border-pink-500/20 mb-6">
             <Sparkles className="h-3.5 w-3.5 text-pink-500" />
             <span className="text-xs font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
@@ -63,6 +82,29 @@ const Reviews = () => {
           </div>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                activeCategory === category.id
+                  ? "bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white shadow-md"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {category.label}
+              {activeCategory === category.id && (
+                <span className="ml-2 text-white/80">
+                  ({filteredReviews.length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Featured review */}
         <div className="relative mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-3xl blur-sm opacity-20" />
@@ -92,14 +134,14 @@ const Reviews = () => {
 
         {/* Review grid */}
         <div className="grid md:grid-cols-2 gap-6">
-          {reviews.map((review, index) => (
+          {filteredReviews.map((review, index) => (
             <div 
-              key={index}
+              key={`${review.name}-${activeCategory}`}
               className={cn(
                 "group relative bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 transition-all duration-300 hover:border-border hover:shadow-lg",
                 "animate-fade-in"
               )}
-              style={{ animationDelay: `${index * 100}ms` }}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Accent gradient on hover */}
               <div className={cn(
@@ -158,6 +200,13 @@ const Reviews = () => {
           ))}
         </div>
 
+        {/* Empty state */}
+        {filteredReviews.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No reviews in this category yet.</p>
+          </div>
+        )}
+
         {/* CTA */}
         <div className="text-center mt-16 pb-8">
           <p className="text-muted-foreground mb-4">Ready to join thousands of happy stylists?</p>
@@ -179,6 +228,7 @@ const reviews = [
   {
     name: "Jessica R.",
     title: "Salon Owner · Miami",
+    category: "salon-owners" as Category,
     rating: 5,
     text: "The product quality is unmatched. My clients constantly compliment the extensions I use, and I love being able to order everything in one place.",
     avatar: stylistPurple1,
@@ -190,6 +240,7 @@ const reviews = [
   {
     name: "Amanda T.",
     title: "Commission Stylist · New York",
+    category: "commission" as Category,
     rating: 5,
     text: "As someone just starting out, the community support has been invaluable. I've learned so much from other stylists here.",
     avatar: stylistBlue1,
@@ -201,6 +252,7 @@ const reviews = [
   {
     name: "Michelle K.",
     title: "Salon Manager · Chicago",
+    category: "salon-owners" as Category,
     rating: 5,
     text: "Managing inventory for our salon has never been easier. The ordering process is seamless and delivery is always fast.",
     avatar: stylistOmbre1,
@@ -212,6 +264,7 @@ const reviews = [
   {
     name: "Brittany L.",
     title: "Independent Stylist · Austin",
+    category: "independent" as Category,
     rating: 5,
     text: "I love being part of a community of professionals who are passionate about their craft. The networking opportunities alone are worth it.",
     avatar: stylistTeal1,
@@ -219,6 +272,54 @@ const reviews = [
     accentGradient: "bg-gradient-to-br from-teal-500/5 to-transparent",
     tagStyle: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
     tags: ["Networking", "Pro Community"]
+  },
+  {
+    name: "Lauren H.",
+    title: "Independent Stylist · Denver",
+    category: "independent" as Category,
+    rating: 5,
+    text: "Being independent can feel isolating, but this platform connects me with other stylists who understand the hustle. Plus, the pricing is incredible.",
+    avatar: stylistLavender1,
+    borderColor: "border-purple-400/30",
+    accentGradient: "bg-gradient-to-br from-purple-400/5 to-transparent",
+    tagStyle: "bg-purple-400/10 text-purple-500 dark:text-purple-300",
+    tags: ["Independent Life", "Great Pricing"]
+  },
+  {
+    name: "Taylor S.",
+    title: "Salon Owner · Seattle",
+    category: "salon-owners" as Category,
+    rating: 5,
+    text: "Running a salon means juggling a million things. Having a reliable supplier with consistent quality has been a game-changer for my business.",
+    avatar: stylistMagenta1,
+    borderColor: "border-pink-400/30",
+    accentGradient: "bg-gradient-to-br from-pink-400/5 to-transparent",
+    tagStyle: "bg-pink-400/10 text-pink-500 dark:text-pink-300",
+    tags: ["Reliable Supply", "Business Growth"]
+  },
+  {
+    name: "Nina M.",
+    title: "Commission Stylist · Atlanta",
+    category: "commission" as Category,
+    rating: 5,
+    text: "The educational resources helped me level up my skills. Now I can offer more services and my clients love the results.",
+    avatar: stylistElectric1,
+    borderColor: "border-blue-400/30",
+    accentGradient: "bg-gradient-to-br from-blue-400/5 to-transparent",
+    tagStyle: "bg-blue-400/10 text-blue-500 dark:text-blue-300",
+    tags: ["Education", "Skill Building"]
+  },
+  {
+    name: "Rachel D.",
+    title: "Independent Stylist · Portland",
+    category: "independent" as Category,
+    rating: 5,
+    text: "Finally found a supplier that understands what professional stylists need. The quality speaks for itself - my clients keep coming back.",
+    avatar: stylistPink1,
+    borderColor: "border-pink-500/30",
+    accentGradient: "bg-gradient-to-br from-pink-500/5 to-transparent",
+    tagStyle: "bg-pink-500/10 text-pink-600 dark:text-pink-400",
+    tags: ["Client Retention", "Pro Quality"]
   }
 ];
 
