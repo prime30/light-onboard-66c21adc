@@ -1997,8 +1997,15 @@ const MarqueeBadges = () => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [badgeIntensities, setBadgeIntensities] = useState<Record<string, number>>({});
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isCoasting, setIsCoasting] = useState(false);
+  const dragState = useRef({
+    startX: 0,
+    scrollLeft: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  });
+  const momentumRef = useRef<number | null>(null);
 
   const badges = [
     { icon: Check, label: "Exclusively professional" },
@@ -2039,41 +2046,100 @@ const MarqueeBadges = () => {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!trackRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX);
+  const getCurrentTranslateX = () => {
+    if (!trackRef.current) return 0;
     const transform = window.getComputedStyle(trackRef.current).transform;
+    if (transform === 'none') return 0;
     const matrix = new DOMMatrix(transform);
-    setScrollLeft(matrix.m41);
+    return matrix.m41;
+  };
+
+  const startMomentum = () => {
+    const friction = 0.95;
+    const minVelocity = 0.5;
+    
+    const animate = () => {
+      if (!trackRef.current) return;
+      
+      dragState.current.velocity *= friction;
+      
+      if (Math.abs(dragState.current.velocity) < minVelocity) {
+        setIsCoasting(false);
+        momentumRef.current = null;
+        return;
+      }
+      
+      const currentX = getCurrentTranslateX();
+      trackRef.current.style.transform = `translateX(${currentX + dragState.current.velocity}px)`;
+      
+      momentumRef.current = requestAnimationFrame(animate);
+    };
+    
+    setIsCoasting(true);
+    animate();
+  };
+
+  const handleDragStart = (pageX: number) => {
+    if (!trackRef.current) return;
+    if (momentumRef.current) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+    setIsDragging(true);
+    setIsCoasting(false);
+    dragState.current = {
+      startX: pageX,
+      scrollLeft: getCurrentTranslateX(),
+      lastX: pageX,
+      lastTime: Date.now(),
+      velocity: 0,
+    };
+  };
+
+  const handleDragMove = (pageX: number) => {
+    if (!isDragging || !trackRef.current) return;
+    
+    const now = Date.now();
+    const dt = now - dragState.current.lastTime;
+    
+    if (dt > 0) {
+      const dx = pageX - dragState.current.lastX;
+      dragState.current.velocity = dx / dt * 16; // Normalize to ~60fps
+    }
+    
+    dragState.current.lastX = pageX;
+    dragState.current.lastTime = now;
+    
+    const walk = pageX - dragState.current.startX;
+    trackRef.current.style.transform = `translateX(${dragState.current.scrollLeft + walk}px)`;
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    if (Math.abs(dragState.current.velocity) > 1) {
+      startMomentum();
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleDragStart(e.pageX);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !trackRef.current) return;
+    if (!isDragging) return;
     e.preventDefault();
-    const x = e.pageX;
-    const walk = x - startX;
-    trackRef.current.style.transform = `translateX(${scrollLeft + walk}px)`;
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
+    handleDragMove(e.pageX);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!trackRef.current) return;
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX);
-    const transform = window.getComputedStyle(trackRef.current).transform;
-    const matrix = new DOMMatrix(transform);
-    setScrollLeft(matrix.m41);
+    handleDragStart(e.touches[0].pageX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !trackRef.current) return;
-    const x = e.touches[0].pageX;
-    const walk = x - startX;
-    trackRef.current.style.transform = `translateX(${scrollLeft + walk}px)`;
+    handleDragMove(e.touches[0].pageX);
   };
 
   const BadgeItem = ({ badge, badgeKey }: { badge: typeof badges[0], badgeKey: string }) => {
@@ -2099,6 +2165,8 @@ const MarqueeBadges = () => {
     );
   };
 
+  const isAnimating = !isDragging && !isCoasting;
+
   return (
     <div 
       ref={containerRef}
@@ -2110,15 +2178,15 @@ const MarqueeBadges = () => {
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseUp={handleDragEnd}
+      onMouseLeave={handleDragEnd}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
-      onTouchEnd={handleMouseUp}
+      onTouchEnd={handleDragEnd}
     >
       <div 
         ref={trackRef}
-        className={cn("flex", !isDragging && "animate-marquee-seamless-long")}
+        className={cn("flex", isAnimating && "animate-marquee-seamless-long")}
       >
         {/* Four sets for longer loop */}
         {[0, 1, 2, 3].map((setIndex) => (
