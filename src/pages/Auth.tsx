@@ -2655,7 +2655,7 @@ const LicenseForm = ({
       <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/50 border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {isSalon ? "We are a manufacturer and supplier of professional products. The prices displayed reflect professional wholesale pricing, not available to the general public." : "We display professional wholesale pricing. Please enter your license exactly as it appears from the state."}
+          {isSalon ? "We are a manufacturer and supplier of professional products. The prices displayed reflect professional wholesale pricing, not available to the general public." : "Please enter your license exactly as it appears from the state."}
         </p>
       </div>
 
