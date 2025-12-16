@@ -825,14 +825,23 @@ const Auth = () => {
     name: string;
     missingFields: string[];
   }[] => {
-    if (mode !== "signup" || !accountType) return [];
+    if (mode !== "signup") return [];
     const incomplete: {
       step: number;
       name: string;
       missingFields: string[];
     }[] = [];
 
-    // Step 1: Account Type (always complete if we're past it)
+    // Step 1: Account Type - check if selected
+    if (!accountType) {
+      incomplete.push({
+        step: 1,
+        name: "Account Type",
+        missingFields: ["Select account type"]
+      });
+      // Can't determine other steps without account type, return early
+      return incomplete;
+    }
 
     if (accountType === "student") {
       // Student flow: account-type, school-info, wholesale-terms, contact-info
@@ -1861,15 +1870,6 @@ const Auth = () => {
                       <span
                         className="flex-1 block"
                         onMouseEnter={() => {
-                          console.log('[TOOLTIP DEBUG]', {
-                            currentStep,
-                            isContactInfo: currentStep === "contact-info",
-                            isAllStepsValid: isAllStepsValid(),
-                            incompleteSteps: getIncompleteSteps(),
-                            incompleteCount: getIncompleteSteps().length,
-                            accountType,
-                            submitTooltipOpen
-                          });
                           if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
                             setSubmitTooltipOpen(true);
                           }
