@@ -1673,7 +1673,10 @@ const Auth = () => {
         {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, scrolls with content */}
         {mode === 'signup' && currentStep === 'onboarding' && <div
           className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform"
-          onClick={() => handleNext()}
+          onClick={() => {
+            mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+            handleNext();
+          }}
         >
             <div className="rounded-[15px] mx-2.5 sm:mx-4 p-4 sm:p-5 overflow-hidden relative">
               {/* Hero image background */}
