@@ -2449,24 +2449,35 @@ const OnboardingForm = ({
     <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={50} suffix="%" delay={200} />
-        </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
-      </div>
-      <div className="w-px bg-border" />
-      <div>
-        <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={8} suffix="K+" delay={400} />
+          <AnimatedNumber value={8} suffix="K+" delay={200} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Pro Stylists</div>
       </div>
       <div className="w-px bg-border" />
       <div>
         <div className="text-2xl font-semibold text-foreground">
-          <AnimatedNumber value={24} suffix="hr" delay={600} />
+          <AnimatedNumber value={24} suffix="hr" delay={400} />
         </div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
       </div>
+    </div>
+
+    {/* Social proof */}
+    <div className="flex items-center justify-center gap-2 pt-1">
+      <div className="flex -space-x-2">
+        {[...Array(4)].map((_, i) => (
+          <div 
+            key={i} 
+            className="w-5 h-5 rounded-full bg-muted border-2 border-background"
+            style={{ 
+              background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
+            }}
+          />
+        ))}
+      </div>
+      <span className="text-[11px] text-muted-foreground">
+        Loved by <span className="text-foreground font-medium">8K+</span> pros
+      </span>
     </div>
 
     <p className="text-xs text-muted-foreground text-center">
