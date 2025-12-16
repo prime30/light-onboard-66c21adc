@@ -21,7 +21,7 @@ export const StepIndicator = ({
   // totalSteps still represents numbered steps only
   
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-1">
       {/* Intro step with icon */}
       {hasIntroStep && (
         <div
@@ -47,7 +47,7 @@ export const StepIndicator = ({
         const isFirst = i === 0;
         
         return (
-          <div key={i} className="flex items-center gap-2">
+          <div key={i} className="flex items-center gap-1">
             {/* Connecting line before step (except first, unless there's an intro step) */}
             {(!isFirst || hasIntroStep) && (
               <div className="relative h-[2px] w-4 bg-border rounded-full overflow-hidden">
