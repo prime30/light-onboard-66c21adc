@@ -1303,9 +1303,11 @@ const Auth = () => {
           setCurrentStep("success");
           toast.success("Submitted. Our team will review and notify you within 24 hours.");
           setNextStep(null);
+          mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
         }, 1500);
       } else {
         setCurrentStep(targetStep);
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
       }
       setIsTransitioning(false);
       setNextStep(null);
@@ -1347,6 +1349,7 @@ const Auth = () => {
       setCurrentStep(targetStep);
       setIsTransitioning(false);
       setNextStep(null);
+      mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     }, 150);
   };
   const getTotalSteps = () => {
