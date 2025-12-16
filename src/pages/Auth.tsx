@@ -2363,7 +2363,7 @@ const SignInForm = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(10px,2.5vh,20px)] animate-stagger-4">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(6px,1.5vh,12px)] animate-stagger-4">
         <a href="#" className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-transparent border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-300 cursor-pointer">
           <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-foreground/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
             <Headphones className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground/70" />
@@ -2380,8 +2380,7 @@ const SignInForm = ({
         </a>
       </div>
 
-
-      <p className="text-xs text-muted-foreground text-center pt-2">
+      <p className="text-xs text-muted-foreground text-center pt-1">
         Don't have an account?{" "}
         <button onClick={onSignUp} className="text-foreground underline underline-offset-2 hover:no-underline">
           Sign up
