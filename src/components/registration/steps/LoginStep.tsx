@@ -16,9 +16,9 @@ export const LoginStep = ({
   onPasswordChange,
 }: LoginStepProps) => {
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="animate-fade-in flex flex-col" style={{ gap: 'clamp(0.75rem, 2vh, 1rem)' }}>
       {/* Modern hero header */}
-      <div className="relative overflow-hidden rounded-xl bg-foreground p-4">
+      <div className="relative overflow-hidden rounded-xl bg-foreground" style={{ padding: 'clamp(0.75rem, 2vh, 1rem)' }}>
         {/* Animated gradient orbs */}
         <div 
           className="absolute top-0 right-0 w-[200px] h-[200px] rounded-full blur-[80px] animate-pulse"
@@ -58,8 +58,8 @@ export const LoginStep = ({
       </div>
 
       {/* Form fields */}
-      <div className="space-y-3">
-        <div className="space-y-1.5">
+      <div className="flex flex-col" style={{ gap: 'clamp(0.5rem, 1.5vh, 0.75rem)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.25rem, 0.75vh, 0.375rem)' }}>
           <Label htmlFor="login-email" className="text-sm font-medium text-foreground">
             Email
           </Label>
@@ -73,12 +73,13 @@ export const LoginStep = ({
               placeholder="you@example.com"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="h-11 pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              className="pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              style={{ height: 'clamp(2.5rem, 5vh, 2.75rem)' }}
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(0.25rem, 0.75vh, 0.375rem)' }}>
           <Label htmlFor="login-password" className="text-sm font-medium text-foreground">
             Password
           </Label>
@@ -92,7 +93,8 @@ export const LoginStep = ({
               placeholder="••••••••"
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="h-11 pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              className="pl-12 rounded-lg bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              style={{ height: 'clamp(2.5rem, 5vh, 2.75rem)' }}
             />
           </div>
         </div>
