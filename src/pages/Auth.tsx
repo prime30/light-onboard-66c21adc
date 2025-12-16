@@ -2560,7 +2560,7 @@ const AccountTypeForm = ({
                     {type.features.map((feature, i) => {
                       const FeatureIcon = feature.icon;
                       return (
-                        <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+                        <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/5 text-foreground/70" : "bg-muted text-muted-foreground")} style={{
                           transitionDelay: `${i * 50}ms`
                         }}>
                           {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
@@ -2577,7 +2577,7 @@ const AccountTypeForm = ({
                 {type.features.map((feature, i) => {
                   const FeatureIcon = feature.icon;
                   return (
-                    <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground")} style={{
+                    <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/5 text-foreground/70" : "bg-muted text-muted-foreground")} style={{
                       transitionDelay: `${i * 50}ms`
                     }}>
                       {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
