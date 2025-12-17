@@ -1660,8 +1660,8 @@ const Auth = () => {
     }
   };
   const goToStep = (stepNum: number) => {
-    // Handle onboarding step (step 0)
-    const currentNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
+    // Handle onboarding step (step 0) and success step
+    const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
