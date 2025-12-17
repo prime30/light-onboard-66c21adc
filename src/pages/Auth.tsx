@@ -3815,11 +3815,20 @@ const TaxExemptionForm = ({
         "grid transition-all duration-400",
         showToast && hasTaxExemption === false ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
-        <div className="overflow-hidden">
+        <div className="overflow-hidden space-y-3">
+          {/* Intro text */}
+          <p 
+            key={`intro-${toastKey}`}
+            className="text-sm text-muted-foreground text-center animate-fade-in"
+          >
+            That's ok! Here's some info in case you want to explore it
+          </p>
+          
+          {/* Blog card */}
           <Link 
             to="/blog/resale-license"
             key={toastKey}
-            className="relative block overflow-hidden rounded-xl border border-border bg-background hover:border-foreground/20 transition-all duration-300 mt-0 animate-haptic-pop group"
+            className="relative block overflow-hidden rounded-xl border border-border bg-background hover:border-foreground/20 transition-all duration-300 group animate-[slideUpFade_0.4s_ease-out_0.1s_both]"
           >
             {/* Image */}
             <div className="relative aspect-[16/9] overflow-hidden">
