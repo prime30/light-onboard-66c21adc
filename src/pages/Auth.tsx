@@ -991,7 +991,7 @@ const Auth = () => {
     // Only enable swipe-down on mobile (< 640px)
     if (window.innerWidth >= 640) return;
     
-    // Check if touch started in the top drag zone (first 60px of modal)
+    // Check if touch started in the top drag zone
     const modalElement = modalRef.current;
     if (!modalElement) return;
     
@@ -999,8 +999,8 @@ const Auth = () => {
     const touchY = e.touches[0].clientY;
     const relativeY = touchY - modalRect.top;
     
-    // Only allow drag if started within top 60px (drag handle area)
-    if (relativeY <= 60) {
+    // Allow drag if started within top 120px (expanded drag handle area)
+    if (relativeY <= 120) {
       isDragFromTop.current = true;
       modalTouchStartY.current = touchY;
     } else {
