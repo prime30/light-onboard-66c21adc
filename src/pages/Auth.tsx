@@ -1865,12 +1865,12 @@ const Auth = () => {
             
             {/* Step Indicator */}
             {showStepIndicator && <div 
-              className="flex items-center justify-center h-[50px] max-w-[130px] sm:max-w-none touch-pan-y"
+              className="flex items-center justify-center h-[50px] flex-1 sm:flex-none sm:max-w-none touch-pan-y"
               onTouchStart={handleStepSwipeStart}
               onTouchMove={handleStepSwipeMove}
               onTouchEnd={handleStepSwipeEnd}
             >
-              <div className="relative flex items-center justify-center overflow-visible max-w-[130px] sm:max-w-none" style={{
+              <div className="relative flex items-center justify-center overflow-visible" style={{
               width: '160px',
               height: '50px',
               maskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)',
@@ -2028,8 +2028,8 @@ const Auth = () => {
             </div>}
           </div>
           
-          {/* Close Button - Always pushed to end via justify-between */}
-          <button onClick={handleCloseModal} className="flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors group" aria-label="Close">
+          {/* Close Button - Hidden on mobile (swipe to dismiss available), shown on tablet/desktop */}
+          <button onClick={handleCloseModal} className="hidden sm:flex flex-shrink-0 p-2.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors group" aria-label="Close">
             <X className="w-5 h-5 text-foreground transition-transform duration-200 group-hover:rotate-90 group-active:scale-75" />
           </button>
         </header>
