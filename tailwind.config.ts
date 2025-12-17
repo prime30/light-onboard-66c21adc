@@ -101,12 +101,28 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(4px)" },
         },
+        "scroll-wheel": {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "50%": { opacity: "0.4", transform: "translateY(8px)" },
+          "100%": { opacity: "0", transform: "translateY(12px)" },
+        },
+        "scroll-chevron-1": {
+          "0%, 100%": { opacity: "0.4", transform: "translateY(0)" },
+          "50%": { opacity: "0.7", transform: "translateY(2px)" },
+        },
+        "scroll-chevron-2": {
+          "0%, 100%": { opacity: "0.2", transform: "translateY(0)" },
+          "50%": { opacity: "0.5", transform: "translateY(3px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "shimmer": "shimmer 1.5s ease-in-out infinite",
         "bounce-subtle": "bounce-subtle 6s ease-in-out infinite",
+        "scroll-wheel": "scroll-wheel 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite",
+        "scroll-chevron-1": "scroll-chevron-1 1.5s ease-in-out infinite",
+        "scroll-chevron-2": "scroll-chevron-2 1.5s ease-in-out infinite 0.15s",
       },
     },
   },
