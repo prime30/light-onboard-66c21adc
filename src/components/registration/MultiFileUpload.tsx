@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn, GripVertical } from "lucide-react";
+import { FolderOpen, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
 
@@ -401,7 +401,7 @@ export const MultiFileUpload = ({
                 "w-12 h-12 rounded-[12px] flex items-center justify-center transition-colors duration-300",
                 isDragOver ? "bg-foreground text-background" : "bg-muted"
               )}>
-                <Upload className={cn(
+                <FolderOpen className={cn(
                   "w-6 h-6 transition-colors duration-300",
                   isDragOver ? "text-background" : "text-muted-foreground"
                 )} />
@@ -426,7 +426,7 @@ export const MultiFileUpload = ({
                   hasError && "border-destructive/50"
                 )}
               >
-                <Upload className="w-4 h-4 mr-2" />
+                <FolderOpen className="w-4 h-4 mr-2" />
                 Browse Files
               </Button>
             </>
