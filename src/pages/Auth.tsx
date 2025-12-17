@@ -1822,8 +1822,8 @@ const Auth = () => {
     const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
     
-    // If no account type selected and trying to go beyond step 1, show toast and go to account-type
-    if (!accountType && stepNum > 1) {
+    // If no account type selected and trying to go to step 7, show toast and go to account-type
+    if (!accountType && stepNum === 7) {
       toast.error("You must select an account type to continue.");
       if (currentStep !== "account-type") {
         setNextStep("account-type");
