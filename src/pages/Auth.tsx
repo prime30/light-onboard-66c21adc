@@ -3005,7 +3005,7 @@ const OnboardingForm = ({
       }, {
         icon: Mail,
         label: "Follow post-approval instructions to finalize account"
-      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted border border-border text-left opacity-0 animate-step-card-enter" style={{
+      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-border border border-border text-left opacity-0 animate-step-card-enter" style={{
         animationDelay: `${400 + i * 150}ms`,
         animationFillMode: 'forwards'
       }}>
