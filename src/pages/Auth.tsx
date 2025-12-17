@@ -4090,7 +4090,7 @@ const TaxExemptionForm = ({
                   <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
                     Licensing
                   </span>
-                  <span className="px-2.5 py-1 rounded-full bg-muted/90 backdrop-blur-sm text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+                  <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-medium uppercase tracking-wider border border-white/30">
                     Optional
                   </span>
                 </div>
