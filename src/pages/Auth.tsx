@@ -1991,7 +1991,7 @@ const Auth = () => {
                         "rounded-full transition-all duration-500 flex items-center justify-center",
                         currentStep === "onboarding" 
                           ? "w-[6px] h-[6px] bg-foreground" 
-                          : "w-[20px] h-[20px] bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]"
+                          : "w-[20px] h-[20px] bg-[hsl(142_71%_75%)] dark:bg-[hsl(142_71%_30%)] text-[hsl(142_71%_25%)] dark:text-[hsl(142_71%_75%)]"
                       )}>
                         {currentStep !== "onboarding" && (
                           <Check className="w-[10px] h-[10px]" strokeWidth={3} />
@@ -2031,8 +2031,8 @@ const Auth = () => {
                   // Determine background color based on state
                   const getStepBgClass = () => {
                     if (isActive) return "bg-foreground text-background";
-                    if (isCompleted) return "bg-[hsl(142_71%_85%)] dark:bg-[hsl(142_71%_25%)] text-[hsl(142_71%_30%)] dark:text-[hsl(142_71%_70%)]";
-                    if (isPassedButIncomplete) return "bg-[hsl(0_84%_90%)] dark:bg-[hsl(0_60%_25%)] text-[hsl(0_84%_45%)] dark:text-[hsl(0_84%_70%)]";
+                    if (isCompleted) return "bg-[hsl(142_71%_75%)] dark:bg-[hsl(142_71%_30%)] text-[hsl(142_71%_25%)] dark:text-[hsl(142_71%_75%)]";
+                    if (isPassedButIncomplete) return "bg-[hsl(0_84%_80%)] dark:bg-[hsl(0_60%_30%)] text-[hsl(0_84%_35%)] dark:text-[hsl(0_84%_75%)]";
                     return "bg-border/60 text-muted-foreground";
                   };
                   
