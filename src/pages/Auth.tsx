@@ -2385,7 +2385,7 @@ const Auth = () => {
         {/* Scroll down hint - mobile only, positioned above footer, only if content is scrollable */}
         {mode === "signup" && currentStep === "onboarding" && isScrollable && (
           <div className={cn(
-            "lg:hidden fixed bottom-[85px] left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce-subtle transition-opacity duration-500",
+            "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce-subtle transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
             <ChevronDown className="w-5 h-5 text-muted-foreground/50" />
