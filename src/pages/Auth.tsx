@@ -3235,7 +3235,7 @@ const LicenseForm = ({
         </p>
       </div>
 
-      <div className="flex gap-3 p-4 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
+      <div className="flex gap-3 p-4 rounded-[15px] bg-info border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           {isSalon ? "Wholesale pricing shown is exclusive to verified professionals." : "Please enter your license exactly as it appears from the state."}
@@ -3866,7 +3866,7 @@ const WholesaleTermsForm = ({
       </h1>
     </div>
 
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-info border border-border/50 animate-stagger-2">
       <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
       <p className="text-sm text-muted-foreground leading-relaxed">
         All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
@@ -4033,7 +4033,7 @@ const TaxExemptionForm = ({
         </h1>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-info border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           A tax exemption certificate isn't required to register. If you have one, upload it to avoid sales tax on your orders.
@@ -4393,7 +4393,7 @@ const ContactInfoForm = ({
       </div>
 
       {/* SMS Consent Notice */}
-      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-info border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
