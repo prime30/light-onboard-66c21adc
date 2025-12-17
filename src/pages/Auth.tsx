@@ -4505,10 +4505,13 @@ const SuccessForm = ({
       </div>
     </div>
 
+    {/* Divider */}
+    <div className="h-px bg-border/50" />
+
     {/* First Purchase Upsell */}
     <div id="success-offer-section" className="space-y-3">
       {/* Title and Timer */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium text-foreground">Offer while you wait</p>
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
