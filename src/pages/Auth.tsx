@@ -4076,10 +4076,10 @@ const TaxExemptionForm = ({
           <Link 
             to="/blog/resale-license"
             key={toastKey}
-            className="relative block overflow-hidden rounded-xl border border-border bg-background hover:border-foreground/20 transition-all duration-300 group animate-[slideUpFade_0.4s_ease-out_0.1s_both]"
+            className="relative block overflow-hidden rounded-xl bg-background hover:opacity-90 transition-all duration-300 group animate-[slideUpFade_0.4s_ease-out_0.1s_both]"
           >
             {/* Image */}
-            <div className="relative aspect-[16/9] overflow-hidden">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
               <img 
                 src={blogResaleLicense} 
                 alt="Professional reviewing business documents" 
@@ -4096,7 +4096,7 @@ const TaxExemptionForm = ({
             </div>
             
             {/* Content */}
-            <div className="p-4">
+            <div className="py-4 px-0">
               {/* Meta */}
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
                 <div className="flex items-center gap-1">
