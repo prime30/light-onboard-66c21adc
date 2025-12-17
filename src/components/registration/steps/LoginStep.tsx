@@ -73,7 +73,7 @@ export const LoginStep = ({
               placeholder="you@example.com"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="pl-12 rounded-lg bg-muted/80 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              className="pl-12 rounded-lg bg-muted border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
               style={{ height: 'clamp(2.5rem, 5vh, 2.75rem)' }}
             />
           </div>
@@ -93,7 +93,7 @@ export const LoginStep = ({
               placeholder="••••••••"
               value={password}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="pl-12 rounded-lg bg-muted/80 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
+              className="pl-12 rounded-lg bg-muted border-border/50 focus:border-foreground/30 focus:bg-muted transition-all text-sm"
               style={{ height: 'clamp(2.5rem, 5vh, 2.75rem)' }}
             />
           </div>
@@ -119,15 +119,15 @@ export const LoginStep = ({
 
       {/* Feature badges */}
       <div className="flex flex-wrap items-center justify-center gap-1.5">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/80 border border-border/50 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Stylist to stylist support</span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/80 border border-border/50 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Community access</span>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/80 border border-border/50 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border/50 text-xs text-muted-foreground">
           <div className="w-1.5 h-1.5 rounded-full bg-primary" />
           <span>Pro pricing</span>
         </div>
