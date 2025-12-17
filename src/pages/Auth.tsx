@@ -3577,6 +3577,7 @@ const WholesaleTermsForm = ({
 }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const [showTerms, setShowTerms] = useState(false);
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
   // Step number varies by account type: professional=5, salon=4, student=3
@@ -3623,7 +3624,16 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    {/* Warning about client card usage */}
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-destructive/5 border border-destructive/20 animate-stagger-3">
+      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" />
+      <p className="text-sm text-destructive/90 leading-relaxed text-balance">
+        If you use your client's card to directly purchase professional hair at wholesale pricing, we reserve the right to cancel and ban your account according to our{" "}
+        <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>.
+      </p>
+    </div>
+
+    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-4 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -3661,6 +3671,65 @@ const WholesaleTermsForm = ({
     </div>
     
     {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
+
+    {/* Terms of Service Modal */}
+    <Dialog open={showTerms} onOpenChange={setShowTerms}>
+      <DialogContent className="max-w-2xl max-h-[85vh]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Terms of Service</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-[60vh] pr-4">
+          <div className="space-y-4 text-sm text-muted-foreground">
+            <p className="text-foreground font-medium">Last updated: December 2024</p>
+            
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">1. Acceptance of Terms</h3>
+              <p>By accessing and using Drop Dead Gorgeous ("the Platform"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">2. Professional Verification</h3>
+              <p>Our platform is exclusively for licensed beauty professionals. By registering, you confirm that you hold a valid cosmetology license, are enrolled in an accredited cosmetology program, or hold equivalent professional credentials. We reserve the right to verify your professional status and terminate accounts that do not meet our requirements.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">3. Account Responsibilities</h3>
+              <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. You agree to notify us immediately of any unauthorized access or security breach.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">4. Wholesale Pricing</h3>
+              <p>Wholesale pricing is available exclusively to verified professionals. Resale of products purchased at wholesale prices to non-professionals or general consumers is prohibited and may result in account termination.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">5. Orders and Payment</h3>
+              <p>All orders are subject to acceptance and product availability. Prices are subject to change without notice. Payment is due at the time of purchase unless otherwise agreed upon in writing.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">6. Shipping and Returns</h3>
+              <p>Shipping times and costs vary by location and order size. Returns are accepted within 30 days of delivery for unopened products in original packaging. Defective products may be returned for full refund or replacement.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">7. Limitation of Liability</h3>
+              <p>Drop Dead Gorgeous shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the platform or products purchased through it.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">8. Changes to Terms</h3>
+              <p>We reserve the right to modify these terms at any time. Continued use of the platform after changes constitutes acceptance of the modified terms.</p>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-foreground font-medium">9. Contact</h3>
+              <p>For questions about these Terms of Service, please contact us at legal@dropdeadgorgeous.com</p>
+            </section>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   </div>;
 };
 
