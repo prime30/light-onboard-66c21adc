@@ -4407,12 +4407,10 @@ const SuccessForm = ({
 }) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [hasAnswered, setHasAnswered] = useState(false);
   
   const handleReferralSelect = (value: string) => {
-    onReferralSourceChange(value);
-    if (!hasAnswered) {
-      setHasAnswered(true);
+    if (value !== referralSource) {
+      onReferralSourceChange(value);
       toast.success("Thanks! Your response has been saved", {
         duration: 2000,
       });
