@@ -77,18 +77,20 @@ const features = [
   { icon: Star, label: "Wholesale", desc: "Pro pricing" },
 ];
 
-const AnimatedNumber = ({ value, suffix, delay = 0 }: { value: number; suffix: string; delay?: number }) => {
+const AnimatedNumber = ({ value, suffix, delay = 0, isInView = false }: { value: number; suffix: string; delay?: number; isInView?: boolean }) => {
   const [count, setCount] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   
   useEffect(() => {
+    if (!isInView) return;
+    
     // Wait for entrance animation + delay before starting counter
     const startTimer = setTimeout(() => {
       setHasStarted(true);
     }, delay);
     
     return () => clearTimeout(startTimer);
-  }, [delay]);
+  }, [delay, isInView]);
   
   useEffect(() => {
     if (!hasStarted) return;
@@ -119,8 +121,29 @@ const AnimatedNumber = ({ value, suffix, delay = 0 }: { value: number; suffix: s
 
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [statsInView, setStatsInView] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for stats animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsInView(true);
+          observer.disconnect(); // Only trigger once
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -231,19 +254,22 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           </div>
 
           {/* Stats Row */}
-          <div className="flex items-end justify-between mt-8">
+          <div ref={statsRef} className="flex items-end justify-between mt-8">
             <div className="flex gap-6">
               {stats.map((stat, i) => (
                 <div 
                   key={i} 
-                  className="text-center opacity-0 animate-fade-in"
-                  style={{ 
-                    animationDelay: `${600 + i * 100}ms`,
+                  className={cn(
+                    "text-center",
+                    statsInView ? "opacity-0 animate-fade-in" : "opacity-0"
+                  )}
+                  style={statsInView ? { 
+                    animationDelay: `${100 + i * 100}ms`,
                     animationFillMode: 'forwards'
-                  }}
+                  } : undefined}
                 >
                   <div className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={800 + i * 100} />
+                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={300 + i * 100} isInView={statsInView} />
                   </div>
                   <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
                     {stat.label}
