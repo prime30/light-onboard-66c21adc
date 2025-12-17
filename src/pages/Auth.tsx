@@ -1527,6 +1527,11 @@ const Auth = () => {
           toast.success("Submitted. Our team will review and notify you within 24 hours.");
           setNextStep(null);
           mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+          // Auto-scroll to offer section after toast ends (~4s)
+          setTimeout(() => {
+            const offerSection = document.getElementById('success-offer-section');
+            offerSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 4200);
         }, 1500);
       } else {
         setCurrentStep(targetStep);
@@ -4300,7 +4305,7 @@ const SuccessForm = () => {
     </div>
 
     {/* First Purchase Upsell */}
-    <div className="space-y-3">
+    <div id="success-offer-section" className="space-y-3">
       {/* Title and Timer */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <p className="text-sm font-medium text-foreground">Offer while you wait</p>
