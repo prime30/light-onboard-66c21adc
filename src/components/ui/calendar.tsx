@@ -16,6 +16,18 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         month: "space-y-5",
         caption: "flex justify-center pt-1 relative items-center px-1",
         caption_label: "text-sm font-semibold tracking-tight",
+        caption_dropdowns: "flex gap-2 items-center",
+        dropdown_month: "relative",
+        dropdown_year: "relative",
+        dropdown: cn(
+          "appearance-none bg-muted/50 border border-border/50 rounded-xl px-3 py-1.5",
+          "text-sm font-medium cursor-pointer",
+          "hover:bg-muted hover:border-foreground/20 transition-all duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-foreground/30",
+          "pr-7 bg-no-repeat bg-[length:12px] bg-[right_8px_center]",
+          "[background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]"
+        ),
+        vhidden: "sr-only",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           "h-8 w-8 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl p-0 inline-flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95",
