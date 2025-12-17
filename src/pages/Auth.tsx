@@ -1448,7 +1448,7 @@ const Auth = () => {
           setCurrentStep(nextStep);
           setIsTransitioning(false);
         }, 150);
-      }, 400);
+      }, 800);
     }
   };
 
@@ -1464,7 +1464,7 @@ const Auth = () => {
         setCurrentStep("business-location");
         setIsTransitioning(false);
       }, 150);
-    }, 400);
+    }, 800);
   };
 
   const handleNext = () => {
