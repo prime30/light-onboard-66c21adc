@@ -78,9 +78,9 @@ const BlogResaleLicense = () => {
               
               {/* Section 1 */}
               <section>
-                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-primary shrink-0" />
-                  What is a Resale License?
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-primary shrink-0 mt-1" />
+                  <span>What is a Resale License?</span>
                 </h2>
                 <p className="text-foreground/80 leading-relaxed">
                   A resale license (also called a reseller's permit, sales tax permit, or wholesale license) is a document that allows you to purchase products wholesale without paying sales tax at the time of purchase. Instead, you collect sales tax from your end customers when you sell the products or services.
@@ -89,9 +89,9 @@ const BlogResaleLicense = () => {
 
               {/* Section 2 */}
               <section>
-                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-status-green shrink-0" />
-                  Benefits of Having a Resale License
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-status-green shrink-0 mt-1" />
+                  <span>Benefits of Having a Resale License</span>
                 </h2>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-foreground/80">
@@ -115,9 +115,9 @@ const BlogResaleLicense = () => {
 
               {/* Section 3 */}
               <section>
-                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
-                  <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
-                  How to Get Your Resale License
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-1" />
+                  <span>How to Get Your Resale License</span>
                 </h2>
                 <div className="bg-muted/50 border border-border/50 rounded-xl p-5 space-y-4">
                   <div className="flex items-start gap-3">
