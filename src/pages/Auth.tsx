@@ -4027,7 +4027,7 @@ const TaxExemptionForm = ({
   accountType: string | null;
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
-  onTaxExemptionChange: (value: boolean) => void;
+  onTaxExemptionChange: (value: boolean | null) => void;
   onTaxExemptFileChange: (file: File | null) => void;
   onAutoAdvance?: () => void;
   showValidationErrors?: boolean;
@@ -4044,6 +4044,11 @@ const TaxExemptionForm = ({
   const TOAST_DURATION = 5000; // 5 seconds
   
   const handleYesClick = () => {
+    if (hasTaxExemption === true) {
+      onTaxExemptionChange(null);
+      onTaxExemptFileChange(null);
+      return;
+    }
     onTaxExemptionChange(true);
     setShowToast(false);
     // Scroll to file upload after a brief delay for animation
@@ -4053,6 +4058,11 @@ const TaxExemptionForm = ({
   };
   
   const handleNoClick = () => {
+    if (hasTaxExemption === false) {
+      onTaxExemptionChange(null);
+      setShowToast(false);
+      return;
+    }
     onTaxExemptionChange(false);
     onTaxExemptFileChange(null);
     setShowToast(true);
