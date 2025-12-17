@@ -753,15 +753,25 @@ const Auth = () => {
     const raf = window.requestAnimationFrame(() => setFooterEnterReady(true));
     return () => window.cancelAnimationFrame(raf);
   }, [footerVisible]);
-  // Handle incoming navigation state to advance to specific step
+  // Handle incoming navigation state or URL params to advance to specific step
   useEffect(() => {
+    // Check URL query params first (e.g., ?step=1 goes to account-type)
+    const searchParams = new URLSearchParams(location.search);
+    const stepParam = searchParams.get('step');
+    if (stepParam === '1') {
+      setCurrentStep('account-type');
+      // Clear the query param
+      window.history.replaceState({}, document.title, location.pathname);
+      return;
+    }
+    
     const state = location.state as { advanceToStep?: Step } | null;
     if (state?.advanceToStep) {
       setCurrentStep(state.advanceToStep);
       // Clear the state to prevent re-triggering on re-renders
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+  }, [location.state, location.search]);
 
   // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
   // But only block it in the drag handle areas (backdrop and top of modal), not in scrollable content
