@@ -4169,19 +4169,12 @@ const ContactInfoForm = ({
             </div>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
-            <Checkbox checked={subscribeMarketing} onCheckedChange={onSubscribeMarketingChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
-            <div className="space-y-0.5">
-              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
-                Marketing emails
-                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Recommended</span>
-              </span>
-              <p className="text-xs text-muted-foreground">Get tips, tutorials, and industry insights</p>
-            </div>
-          </label>
-          <label className="flex items-start gap-3 cursor-pointer group">
             <Checkbox checked={subscribePromotions} onCheckedChange={onSubscribePromotionsChange} className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground" />
             <div className="space-y-0.5">
-              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">Promotions & deals</span>
+              <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
+                Promotions & deals
+                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Recommended</span>
+              </span>
               <p className="text-xs text-muted-foreground">Exclusive discounts, sales, and special offers</p>
             </div>
           </label>
