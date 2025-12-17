@@ -3655,7 +3655,7 @@ const WholesaleTermsForm = ({
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
       <span className={cn("text-sm font-medium", agreementError ? "text-destructive" : "text-foreground")}>
-        Yes, I agree to <span className="font-bold uppercase relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-current after:origin-left after:animate-[underline-grow_0.6s_ease-out_forwards]">NOT</span> use my client's card to purchase.*
+        Yes, I agree to <span className="font-bold uppercase relative inline-block px-1.5 py-0.5 mx-0.5 bg-destructive/15 text-destructive rounded after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-destructive after:origin-left after:animate-[underline-grow_0.6s_ease-out_forwards]">NOT</span> use my client's card to purchase.*
       </span>
     </button>
     
