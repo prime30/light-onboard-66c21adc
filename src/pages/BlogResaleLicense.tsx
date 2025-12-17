@@ -152,7 +152,7 @@ const BlogResaleLicense = () => {
                   <p className="font-medium mb-1">Ready to get started?</p>
                   <p className="text-sm text-muted-foreground">Continue your registration to join our community.</p>
                 </div>
-                <Link to="/auth">
+                <Link to="/auth" state={{ advanceToStep: "contact-info" }}>
                   <Button className="gap-2 rounded-full">
                     Continue Registration
                     <ArrowUpRight className="h-4 w-4" />
