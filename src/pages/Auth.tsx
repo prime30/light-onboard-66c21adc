@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { format } from "date-fns";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, ChevronDown, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag, Wand2, Scissors, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -4071,18 +4073,36 @@ const ContactInfoForm = ({
         <Label htmlFor="birthday" className={cn("text-sm font-medium label-float", birthdayError && "text-destructive")}>
           Birthday*
         </Label>
-        <div className="input-glow input-ripple rounded-[15px]">
-          <Input 
-            id="birthday" 
-            type="date" 
-            value={birthday} 
-            onChange={e => onBirthdayChange(e.target.value)} 
-            className={cn(
-              "h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-              birthdayError && "border-destructive/50 bg-destructive/5"
-            )} 
-          />
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "w-full h-[50px] px-4 rounded-[15px] bg-muted/50 border border-border/50 text-left flex items-center justify-between transition-all duration-300 hover:bg-muted/70 focus:border-foreground/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-foreground/10",
+                birthdayError && "border-destructive/50 bg-destructive/5",
+                !birthday && "text-muted-foreground"
+              )}
+            >
+              <span className="text-base">
+                {birthday ? format(new Date(birthday), "MMMM d, yyyy") : "Select your birthday"}
+              </span>
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-background border border-border/50 rounded-2xl shadow-xl" align="start">
+            <CalendarPicker
+              mode="single"
+              selected={birthday ? new Date(birthday) : undefined}
+              onSelect={(date) => onBirthdayChange(date ? format(date, "yyyy-MM-dd") : "")}
+              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+              initialFocus
+              defaultMonth={birthday ? new Date(birthday) : new Date(2000, 0)}
+              captionLayout="dropdown-buttons"
+              fromYear={1940}
+              toYear={new Date().getFullYear()}
+            />
+          </PopoverContent>
+        </Popover>
         {birthdayError && <p className="text-xs text-destructive">Birthday is required</p>}
       </div>
 
