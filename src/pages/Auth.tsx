@@ -3075,7 +3075,7 @@ const AccountTypeForm = ({
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]">
-        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.04] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm")} style={{
+        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(selectedType === type.id ? null : type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.04] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm")} style={{
         animationDelay: `${index * 0.05}s`,
         transform: selectedType === type.id ? 'translateY(-2px)' : undefined
       }}>
