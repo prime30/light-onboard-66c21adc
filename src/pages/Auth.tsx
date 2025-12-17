@@ -2463,7 +2463,7 @@ const Auth = () => {
                                   : currentStep === "contact-info"
                                     ? "Submit Application"
                                     : "Continue"}
-                              <ArrowRight className="w-[18px] h-[18px] transition-all duration-300 group-hover:w-[24px] group-hover:translate-x-0.5" />
+                              <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
                             </>
                           )}
                         </span>
