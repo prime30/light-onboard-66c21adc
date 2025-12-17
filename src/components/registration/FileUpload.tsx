@@ -236,7 +236,7 @@ export const FileUpload = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "relative flex items-center gap-4 p-4 rounded-[15px] border-2 border-dashed transition-all duration-300 overflow-hidden",
+            "relative flex flex-col sm:flex-row items-center gap-3 sm:gap-4 p-4 rounded-[15px] border-2 border-dashed transition-all duration-300 overflow-hidden",
             isDragOver 
               ? "border-foreground bg-foreground/5 scale-[1.01]" 
               : hasError 
@@ -331,15 +331,15 @@ export const FileUpload = ({
           ) : (
             <>
               <div className={cn(
-                "w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 transition-colors duration-300",
+                "w-12 h-12 sm:w-10 sm:h-10 rounded-[12px] sm:rounded-[10px] flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                 isDragOver ? "bg-foreground text-background" : "bg-muted"
               )}>
                 <FolderOpen className={cn(
-                  "w-5 h-5 transition-colors duration-300",
+                  "w-6 h-6 sm:w-5 sm:h-5 transition-colors duration-300",
                   isDragOver ? "text-background" : "text-muted-foreground"
                 )} />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-center sm:text-left">
                 <p className={cn(
                   "text-sm",
                   hasError ? "text-destructive" : "text-muted-foreground"
@@ -355,7 +355,7 @@ export const FileUpload = ({
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "h-[40px] px-5 rounded-[10px] border-border/50 hover:bg-muted/50 flex-shrink-0",
+                  "h-[40px] w-full sm:w-auto px-5 rounded-[10px] border-border/50 hover:bg-muted/50 flex-shrink-0",
                   hasError && "border-destructive/50"
                 )}
               >
