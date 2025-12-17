@@ -739,6 +739,19 @@ const Auth = () => {
     const t = window.setTimeout(() => setFooterTransitionsEnabled(true), 900);
     return () => window.clearTimeout(t);
   }, []);
+
+  // "Preload" footer layout for a frame before running entrance animation (prevents button width reflow during enter)
+  const [footerEnterReady, setFooterEnterReady] = useState(false);
+  const footerVisible = mode === "signin" || (mode === "signup" && currentStep !== "success");
+  useEffect(() => {
+    if (!footerVisible) {
+      setFooterEnterReady(false);
+      return;
+    }
+    setFooterEnterReady(false);
+    const raf = window.requestAnimationFrame(() => setFooterEnterReady(true));
+    return () => window.cancelAnimationFrame(raf);
+  }, [footerVisible]);
   // Handle incoming navigation state to advance to specific step
   useEffect(() => {
     const state = location.state as { advanceToStep?: Step } | null;
@@ -2377,7 +2390,11 @@ const Auth = () => {
         )}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)] animate-[slideUpFade_0.5s_ease-out_0.3s_both]">
+        {footerVisible && (
+          <footer className={cn(
+            "sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]",
+            footerEnterReady ? "animate-slide-up-fade" : "opacity-0 translate-y-[15px]"
+          )}>
             <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
               <div className={cn(
                 "flex",
@@ -2514,7 +2531,8 @@ const Auth = () => {
                 </Popover>
               </div>
             </div>
-          </footer>}
+          </footer>
+        )}
       </div>
       </div>
     </div>;
