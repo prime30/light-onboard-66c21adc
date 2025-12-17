@@ -1821,6 +1821,23 @@ const Auth = () => {
     // Handle onboarding step (step 0) and success step
     const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
+    
+    // If no account type selected and trying to go beyond step 1, show toast and go to account-type
+    if (!accountType && stepNum > 1) {
+      toast.error("You must select an account type to continue.");
+      if (currentStep !== "account-type") {
+        setNextStep("account-type");
+        setTransitionDirection("backward");
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentStep("account-type");
+          setIsTransitioning(false);
+          setNextStep(null);
+        }, 150);
+      }
+      return;
+    }
+    
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
     setTransitionDirection(stepNum > currentNum ? "forward" : "backward");
