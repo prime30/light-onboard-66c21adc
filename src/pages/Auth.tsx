@@ -654,8 +654,9 @@ const Auth = () => {
   }, [location.state]);
 
   // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
+  // But only block it in the drag handle areas (backdrop and top of modal), not in scrollable content
   const pullToRefreshStartY = useRef<number | null>(null);
-  const pullToRefreshTarget = useRef<EventTarget | null>(null);
+  const shouldBlockPullToRefresh = useRef<boolean>(false);
   
   useEffect(() => {
     // Store original styles
@@ -666,27 +667,34 @@ const Auth = () => {
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
     
-    // Helper to find scrollable parent
-    const getScrollableParent = (element: Element | null): Element | null => {
+    // Helper to check if element is inside scrollable content
+    const isInsideScrollableContent = (element: Element | null): boolean => {
       while (element) {
         const style = window.getComputedStyle(element);
         const overflowY = style.overflowY;
         if ((overflowY === 'auto' || overflowY === 'scroll') && element.scrollHeight > element.clientHeight) {
-          return element;
+          return true;
         }
         element = element.parentElement;
       }
-      return null;
+      return false;
     };
     
-    // Track touch start position and target
+    // Track touch start - determine if we should block pull-to-refresh
     const handleTouchStart = (e: TouchEvent) => {
       pullToRefreshStartY.current = e.touches[0]?.clientY ?? null;
-      pullToRefreshTarget.current = e.target;
+      const target = e.target as Element | null;
+      
+      // Only block pull-to-refresh if touch started OUTSIDE scrollable content
+      // (i.e., in backdrop or drag handle area)
+      shouldBlockPullToRefresh.current = !isInsideScrollableContent(target);
     };
     
-    // Prevent pull-to-refresh gesture but allow scrolling inside modal content
+    // Prevent pull-to-refresh gesture only in non-scrollable areas
     const handleTouchMove = (e: TouchEvent) => {
+      // If touch started in scrollable content, allow all scroll behavior
+      if (!shouldBlockPullToRefresh.current) return;
+      
       const startY = pullToRefreshStartY.current;
       const currentY = e.touches[0]?.clientY;
       
@@ -694,20 +702,10 @@ const Auth = () => {
       
       const deltaY = currentY - startY;
       
-      // Only care about downward swipes (potential pull-to-refresh)
-      if (deltaY <= 0) return;
-      
-      // Check if touch started in a scrollable element
-      const target = pullToRefreshTarget.current as Element | null;
-      const scrollableParent = target ? getScrollableParent(target) : null;
-      
-      // If inside a scrollable element that's not at the top, allow scrolling
-      if (scrollableParent && scrollableParent.scrollTop > 0) {
-        return; // Allow normal scroll
+      // Block downward swipes (pull-to-refresh gesture) only in drag areas
+      if (deltaY > 0) {
+        e.preventDefault();
       }
-      
-      // Block pull-to-refresh gesture
-      e.preventDefault();
     };
     
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -719,7 +717,7 @@ const Auth = () => {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       pullToRefreshStartY.current = null;
-      pullToRefreshTarget.current = null;
+      shouldBlockPullToRefresh.current = false;
     };
   }, []);
 
