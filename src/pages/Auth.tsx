@@ -196,31 +196,31 @@ const AnimatedProductCount = ({
   totalDuration?: number;
 }) => {
   const [count, setCount] = useState(0);
-  const targetValue = 2000;
   
   useEffect(() => {
     // Build sequence: hundreds until 1800, tens until 1980, then singles
     const sequence: number[] = [];
-    // Count by hundreds: 0, 100, 200... 1800
     for (let i = 0; i <= 1800; i += 100) sequence.push(i);
-    // Count by tens: 1810, 1820... 1980
     for (let i = 1810; i <= 1980; i += 10) sequence.push(i);
-    // Count by singles: 1981, 1982... 2000
     for (let i = 1981; i <= 2000; i += 1) sequence.push(i);
     
     const duration = totalDuration - delay;
-    const stepDuration = duration / sequence.length;
     
     const timeoutId = setTimeout(() => {
-      let stepIndex = 0;
-      const animate = () => {
-        if (stepIndex < sequence.length) {
-          setCount(sequence[stepIndex]);
-          stepIndex++;
-          setTimeout(animate, stepDuration);
+      const startTime = performance.now();
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Map progress to sequence index
+        const index = Math.min(Math.floor(progress * sequence.length), sequence.length - 1);
+        setCount(sequence[index]);
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setCount(2000);
         }
       };
-      animate();
+      requestAnimationFrame(animate);
     }, delay);
     
     return () => clearTimeout(timeoutId);
