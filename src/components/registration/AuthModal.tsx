@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AuthToggle } from "./AuthToggle";
@@ -21,6 +21,49 @@ export const AuthModal = ({
   open,
   onOpenChange
 }: AuthModalProps) => {
+  // Prevent iOS Safari pull-to-refresh while the modal is open (it conflicts with swipe-to-dismiss)
+  const touchStartYRef = useRef<number | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const originalBodyOverscroll = document.body.style.overscrollBehavior;
+    const originalHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+
+    document.body.style.overscrollBehavior = "none";
+    document.documentElement.style.overscrollBehavior = "none";
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartYRef.current = e.touches?.[0]?.clientY ?? null;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      // Only block the browser's pull-to-refresh gesture (downward swipe when the modal is already scrolled to the top).
+      const startY = touchStartYRef.current;
+      const currentY = e.touches?.[0]?.clientY;
+      if (startY == null || currentY == null) return;
+
+      const scroller = contentRef.current;
+      const isAtTop = !scroller || scroller.scrollTop <= 0;
+      if (!isAtTop) return;
+
+      const deltaY = currentY - startY;
+      if (deltaY > 0) e.preventDefault();
+    };
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    return () => {
+      document.body.style.overscrollBehavior = originalBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
+      document.removeEventListener("touchstart", onTouchStart as any);
+      document.removeEventListener("touchmove", onTouchMove as any);
+      touchStartYRef.current = null;
+    };
+  }, [open]);
+
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -111,7 +154,7 @@ export const AuthModal = ({
   };
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-2xl border-border overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={contentRef} className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-2xl border-border overflow-hidden max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>
             {mode === "signup" ? "Create an account" : "Sign in"}
