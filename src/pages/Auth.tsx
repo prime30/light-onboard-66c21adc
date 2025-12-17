@@ -3019,7 +3019,7 @@ const OnboardingForm = ({
       </div>
 
       {/* Benefits highlight with animated counters */}
-      <div className="flex justify-center gap-6 pt-2 text-center animate-stagger-3">
+      <div className="flex justify-center gap-6 pt-4 text-center animate-stagger-3">
         <div>
           <div className="text-2xl font-semibold text-foreground">
             <AnimatedNumber value={50} suffix="%" delay={200} />
@@ -3043,11 +3043,11 @@ const OnboardingForm = ({
       </div>
 
       {/* Loved by pros - with avatars (mobile/tablet only) */}
-      <div className="lg:hidden">
+      <div className="lg:hidden pt-3">
         <RotatingStylistAvatarsLight />
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center pt-2">
         Already have an account?{" "}
       <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
           Login
