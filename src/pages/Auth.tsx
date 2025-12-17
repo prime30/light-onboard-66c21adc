@@ -2995,7 +2995,7 @@ const AccountTypeForm = ({
       </div>
 
       {/* Non-professional link */}
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-xs text-muted-foreground">
         Not a professional? Find a stylist/retailer{" "}
         <a href="#" className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
           here
