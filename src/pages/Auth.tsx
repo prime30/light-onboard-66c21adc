@@ -4472,17 +4472,24 @@ const SuccessForm = ({
       </p>
     </div>
 
-    {/* How did you hear about us */}
-    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50 text-left space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-[40px] h-[40px] rounded-[12px] bg-foreground/10 flex items-center justify-center">
-          <Users className="w-[20px] h-[20px] text-foreground" />
+    {/* Pro Member */}
+    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
+      <div className="flex items-center gap-5">
+        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
+          <Sparkles className="w-[25px] h-[25px] text-background" />
         </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">One quick question</p>
-          <p className="text-xs text-muted-foreground">How did you hear about us?</p>
+        <div className="text-left">
+          <p className="text-sm font-medium text-foreground">Pro Member</p>
+          <p className="text-xs text-muted-foreground">
+            Confirmation email will be sent to your inbox
+          </p>
         </div>
       </div>
+    </div>
+
+    {/* How did you hear about us */}
+    <div className="space-y-3 text-left">
+      <h2 className="text-lg font-semibold text-foreground">How did you hear about us?</h2>
       <div className="grid grid-cols-2 gap-2">
         {referralOptions.map((option) => (
           <button
@@ -4498,20 +4505,6 @@ const SuccessForm = ({
             {option.label}
           </button>
         ))}
-      </div>
-    </div>
-
-    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
-      <div className="flex items-center gap-5">
-        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
-          <Sparkles className="w-[25px] h-[25px] text-background" />
-        </div>
-        <div className="text-left">
-          <p className="text-sm font-medium text-foreground">Pro Member</p>
-          <p className="text-xs text-muted-foreground">
-            Confirmation email will be sent to your inbox
-          </p>
-        </div>
       </div>
     </div>
 
