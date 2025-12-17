@@ -4103,7 +4103,7 @@ const TaxExemptionForm = ({
         "grid transition-all duration-400",
         showToast && hasTaxExemption === false ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
-        <div className="overflow-hidden space-y-3">
+        <div className="overflow-hidden space-y-3 px-2 -mx-2 pb-3 -mb-3">
           {/* Intro text */}
           <p 
             key={`intro-${toastKey}`}
