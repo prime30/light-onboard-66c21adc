@@ -4096,7 +4096,7 @@ const ContactInfoForm = ({
               onSelect={(date) => onBirthdayChange(date ? format(date, "yyyy-MM-dd") : "")}
               disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
               initialFocus
-              defaultMonth={birthday ? new Date(birthday) : new Date(2000, 0)}
+              defaultMonth={birthday ? new Date(birthday) : new Date()}
             />
           </PopoverContent>
         </Popover>
