@@ -1310,10 +1310,16 @@ const Auth = () => {
   // Delay spotlight effect until after the 100% glow animation completes, show once only
   useEffect(() => {
     if (isFormReadyToSubmit && !hasShownSpotlight) {
+      // Save current focus to restore later
+      const activeElement = document.activeElement as HTMLElement | null;
       // Wait for the celebration glow animation to finish (1.5s)
       spotlightTimerRef.current = setTimeout(() => {
         setShowSpotlight(true);
         setHasShownSpotlight(true);
+        // Restore focus if it was lost
+        if (activeElement && document.activeElement !== activeElement) {
+          activeElement.focus?.();
+        }
         // Start fade out after 3 seconds
         spotlightHideTimerRef.current = setTimeout(() => {
           setIsSpotlightFadingOut(true);
