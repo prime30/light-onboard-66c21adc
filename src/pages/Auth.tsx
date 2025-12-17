@@ -914,6 +914,7 @@ const Auth = () => {
   // Parallax scroll effect for mobile hero
   const [parallaxOffset, setParallaxOffset] = useState(0);
   const [headerGradientOpacity, setHeaderGradientOpacity] = useState(0);
+  const [footerGradientOpacity, setFooterGradientOpacity] = useState(1);
   const [isScrollable, setIsScrollable] = useState(false);
   
   // Scroll hint reappear delay
@@ -953,6 +954,13 @@ const Auth = () => {
       // Dynamic header gradient opacity based on scroll position (0-200px range)
       const gradientOpacity = Math.min(scrollTop / 200, 1);
       setHeaderGradientOpacity(gradientOpacity);
+      
+      // Dynamic footer gradient opacity based on distance from bottom (stronger when further from bottom)
+      const scrollHeight = el.scrollHeight;
+      const clientHeight = el.clientHeight;
+      const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
+      const footerOpacity = Math.min(distanceFromBottom / 150, 1);
+      setFooterGradientOpacity(footerOpacity);
       
       // Hide scroll hint immediately when scrolling past 50px
       if (scrollTop > 50) {
@@ -2410,7 +2418,10 @@ const Auth = () => {
 
         {/* Subtle gradient behind footer on mobile */}
         {footerVisible && (
-          <div className="lg:hidden fixed bottom-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-t from-background via-background/60 to-transparent z-0" />
+          <div 
+            className="lg:hidden fixed bottom-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-t from-background via-background/60 to-transparent z-0 transition-opacity duration-300"
+            style={{ opacity: footerGradientOpacity }}
+          />
         )}
 
         {/* Footer */}
