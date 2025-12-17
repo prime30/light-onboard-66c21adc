@@ -206,13 +206,18 @@ const AnimatedProductCount = ({
     
     const duration = totalDuration - delay;
     
+    // Ease-out cubic - slows down dramatically at the end
+    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    
     const timeoutId = setTimeout(() => {
       const startTime = performance.now();
       const animate = (currentTime: number) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Map progress to sequence index (ensure valid bounds)
-        const index = Math.max(0, Math.min(Math.floor(progress * sequence.length), sequence.length - 1));
+        // Apply easing to slow down at the end
+        const easedProgress = easeOutCubic(progress);
+        // Map eased progress to sequence index (ensure valid bounds)
+        const index = Math.max(0, Math.min(Math.floor(easedProgress * sequence.length), sequence.length - 1));
         setCount(sequence[index] ?? 0);
         if (progress < 1) {
           requestAnimationFrame(animate);
