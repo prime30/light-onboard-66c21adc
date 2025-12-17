@@ -3015,7 +3015,7 @@ const AccountTypeForm = ({
     title: "Licensed Stylist",
     description: "Commission, or Independent Stylist",
     features: [
-      { label: "Pro pricing", icon: Tag },
+      { label: "Pro discount", icon: Tag },
       { label: "Priority support", icon: Headphones },
       { label: "Stylist community access", icon: Users }
     ]
@@ -3025,7 +3025,7 @@ const AccountTypeForm = ({
     title: "Salon Owner or Manager",
     description: "Business accounts",
     features: [
-      { label: "Pro pricing", icon: Tag },
+      { label: "Pro discount", icon: Tag },
       { label: "Top level support", icon: ShieldCheck },
       { label: "Salon leadership community access", icon: Users },
       { label: "Education discounts", icon: GraduationCap }
