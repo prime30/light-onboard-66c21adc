@@ -2047,7 +2047,7 @@ const Auth = () => {
                 Apply
               </button>
               <button onClick={() => handleModeChange("signin")} className={cn("relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300", mode === "signin" ? "text-background" : "text-muted-foreground hover:text-foreground")}>
-                Sign in
+                Login
               </button>
             </div>
             
@@ -2406,7 +2406,7 @@ const Auth = () => {
                           ) : (
                             <>
                               {mode === "signin"
-                                ? "Sign in"
+                                ? "Login"
                                 : currentStep === "onboarding"
                                   ? "Get Started"
                                   : currentStep === "contact-info"
@@ -2800,7 +2800,7 @@ const SignInForm = ({
           className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
-          Back to sign in
+          Back to login
         </button>
       </div>
     );
@@ -2813,7 +2813,7 @@ const SignInForm = ({
           {fontsLoaded ? <span className="animate-fade-in-text">Welcome back</span> : <TextSkeleton width="65%" height="1.1em" className="mx-auto" />}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          {fontsLoaded ? <span className="animate-fade-in-text">Sign in to access your pro account</span> : <TextSkeleton width="75%" height="1em" className="mx-auto" />}
+          {fontsLoaded ? <span className="animate-fade-in-text">Login to access your pro account</span> : <TextSkeleton width="75%" height="1em" className="mx-auto" />}
         </p>
       </div>
 
@@ -2993,7 +2993,7 @@ const OnboardingForm = ({
       <p className="text-xs text-muted-foreground text-center">
         Already have an account?{" "}
       <button onClick={onSignIn} className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group">
-          Sign in
+          Login
           <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </button>
       </p>
