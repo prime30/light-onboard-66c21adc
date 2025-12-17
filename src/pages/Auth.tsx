@@ -211,9 +211,9 @@ const AnimatedProductCount = ({
       const animate = (currentTime: number) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Map progress to sequence index
-        const index = Math.min(Math.floor(progress * sequence.length), sequence.length - 1);
-        setCount(sequence[index]);
+        // Map progress to sequence index (ensure valid bounds)
+        const index = Math.max(0, Math.min(Math.floor(progress * sequence.length), sequence.length - 1));
+        setCount(sequence[index] ?? 0);
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
@@ -228,6 +228,7 @@ const AnimatedProductCount = ({
   
   // Format display: show "1K" at 1000, "2K+" at 2000, otherwise show comma-formatted number
   const formatDisplay = (num: number): string => {
+    if (num == null) return "0";
     if (num >= 2000) return "2K+";
     if (num >= 1000 && num < 1100) return "1K";
     if (num >= 1000) return num.toLocaleString();
