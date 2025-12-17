@@ -5,7 +5,7 @@ interface AuthToggleProps {
 
 export const AuthToggle = ({ mode, onModeChange }: AuthToggleProps) => {
   return (
-    <div className="inline-flex bg-border rounded-full p-1">
+    <div className="inline-flex bg-muted/80 rounded-full p-1">
       <button
         onClick={() => onModeChange("signup")}
         className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
