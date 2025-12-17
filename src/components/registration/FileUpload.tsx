@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
+import { FolderOpen, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/imageCompression";
 
@@ -334,7 +334,7 @@ export const FileUpload = ({
                 "w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                 isDragOver ? "bg-foreground text-background" : "bg-muted"
               )}>
-                <Upload className={cn(
+                <FolderOpen className={cn(
                   "w-5 h-5 transition-colors duration-300",
                   isDragOver ? "text-background" : "text-muted-foreground"
                 )} />
@@ -359,7 +359,7 @@ export const FileUpload = ({
                   hasError && "border-destructive/50"
                 )}
               >
-                <Upload className="w-4 h-4 mr-2" />
+                <FolderOpen className="w-4 h-4 mr-2" />
                 Browse
               </Button>
             </>
