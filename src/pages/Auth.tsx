@@ -3838,9 +3838,12 @@ const TaxExemptionForm = ({
                 alt="Professional reviewing business documents" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute top-3 left-3">
+              <div className="absolute top-3 left-3 flex gap-1.5">
                 <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
                   Licensing
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-muted/90 backdrop-blur-sm text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+                  Optional
                 </span>
               </div>
             </div>
@@ -3859,7 +3862,7 @@ const TaxExemptionForm = ({
               
               {/* Title */}
               <h3 className="font-semibold text-sm mb-1.5 group-hover:text-primary transition-colors">
-                Why You Need a Resale License in Your State
+                Here's how to save from paying sales tax
               </h3>
               
               {/* Description */}
