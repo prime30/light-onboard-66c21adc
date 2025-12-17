@@ -126,23 +126,62 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const touchEndX = useRef<number | null>(null);
   const statsRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for stats animation
+  // Scroll position check for stats animation (more precise than IntersectionObserver)
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStatsInView(true);
-          observer.disconnect(); // Only trigger once
-        }
-      },
-      { threshold: 1.0, rootMargin: '-100px 0px -100px 0px' }
-    );
+    const el = statsRef.current;
+    if (!el) return;
 
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
+    const getScrollableParent = (node: HTMLElement | null) => {
+      let current: HTMLElement | null = node;
+      while (current && current !== document.body) {
+        const style = window.getComputedStyle(current);
+        const overflowY = style.overflowY;
+        if (overflowY === "auto" || overflowY === "scroll") return current;
+        current = current.parentElement;
+      }
+      return window;
+    };
+
+    const scrollParent = getScrollableParent(el.parentElement);
+
+    let rafId: number | null = null;
+    const check = () => {
+      if (!statsRef.current) return;
+      const rect = statsRef.current.getBoundingClientRect();
+      const triggerLine = window.innerHeight - 120;
+      if (rect.top <= triggerLine && rect.bottom >= 0) {
+        setStatsInView(true);
+        detach();
+      }
+    };
+
+    const onScrollOrResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(check);
+    };
+
+    const detach = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      if (scrollParent === window) {
+        window.removeEventListener("scroll", onScrollOrResize);
+      } else {
+        (scrollParent as HTMLElement).removeEventListener("scroll", onScrollOrResize);
+      }
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+
+    if (scrollParent === window) {
+      window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    } else {
+      (scrollParent as HTMLElement).addEventListener("scroll", onScrollOrResize, { passive: true });
     }
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
 
-    return () => observer.disconnect();
+    // Initial check after layout
+    onScrollOrResize();
+
+    return detach;
   }, []);
 
   const goToNextSlide = useCallback(() => {
