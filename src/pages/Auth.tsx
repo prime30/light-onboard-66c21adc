@@ -293,12 +293,46 @@ const TestimonialCarousel = () => {
   );
 };
 
+// Calculate dynamic starting number based on months elapsed
+// Base: 8,340 in December 2024, +122 on odd months, +123 on even months
+const getOdometerBaseNumber = () => {
+  const baseDate = new Date(2024, 11, 1); // December 2024 (month is 0-indexed)
+  const baseNumber = 8340;
+  const now = new Date();
+  
+  // Calculate months elapsed since base date
+  const monthsElapsed = (now.getFullYear() - baseDate.getFullYear()) * 12 + 
+                        (now.getMonth() - baseDate.getMonth());
+  
+  if (monthsElapsed <= 0) return baseNumber;
+  
+  let total = baseNumber;
+  for (let i = 1; i <= monthsElapsed; i++) {
+    // Get the actual month number (1-12) for this iteration
+    const monthIndex = (baseDate.getMonth() + i) % 12;
+    const monthNumber = monthIndex + 1; // Convert to 1-12
+    // Odd months (Jan=1, Mar=3, etc.) add 122, even months add 123
+    total += monthNumber % 2 === 1 ? 122 : 123;
+  }
+  
+  return total;
+};
+
 // Odometer Counter Component for social proof - random increments for real-time feel
 const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: "light" | "dark"; onIncrement?: () => void }) => {
-  const [tens, setTens] = useState(4);
-  const [ones, setOnes] = useState(0);
-  const [prevOnes, setPrevOnes] = useState(0);
-  const [prevTens, setPrevTens] = useState(4);
+  // Get dynamic base number based on current month
+  const baseNumber = getOdometerBaseNumber();
+  const basePrefix = Math.floor(baseNumber / 100); // e.g., 83 for 8,340
+  const formattedPrefix = basePrefix >= 100 
+    ? `${Math.floor(basePrefix / 10)},${basePrefix % 10}` 
+    : `${Math.floor(basePrefix / 10)},${basePrefix % 10}`;
+  const initialTens = Math.floor((baseNumber % 100) / 10);
+  const initialOnes = baseNumber % 10;
+  
+  const [tens, setTens] = useState(initialTens);
+  const [ones, setOnes] = useState(initialOnes);
+  const [prevOnes, setPrevOnes] = useState(initialOnes);
+  const [prevTens, setPrevTens] = useState(initialTens);
   const [isRolling, setIsRolling] = useState(false);
   const [isTensRolling, setIsTensRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
@@ -366,7 +400,7 @@ const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: "light"
       textColor,
       isBurst && "!text-[hsl(142,71%,45%)]"
     )}>
-      8,3<span 
+      {formattedPrefix}<span 
         className="inline-block overflow-hidden"
         style={{ 
           height: '1em', 
