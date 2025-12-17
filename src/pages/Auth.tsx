@@ -652,12 +652,49 @@ const Auth = () => {
   }, [location.state]);
 
   // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
+  const pullToRefreshStartY = useRef<number | null>(null);
+  
   useEffect(() => {
-    const originalOverscrollBehavior = document.body.style.overscrollBehavior;
+    // Store original styles
+    const originalBodyOverscroll = document.body.style.overscrollBehavior;
+    const originalHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+    const originalBodyTouchAction = document.body.style.touchAction;
+    
+    // Apply styles to prevent pull-to-refresh
     document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+    
+    // Track touch start position
+    const handleTouchStart = (e: TouchEvent) => {
+      pullToRefreshStartY.current = e.touches[0]?.clientY ?? null;
+    };
+    
+    // Prevent pull-to-refresh gesture
+    const handleTouchMove = (e: TouchEvent) => {
+      const startY = pullToRefreshStartY.current;
+      const currentY = e.touches[0]?.clientY;
+      
+      if (startY == null || currentY == null) return;
+      
+      const deltaY = currentY - startY;
+      const isAtTop = window.scrollY <= 0;
+      
+      // Block downward swipe when at top of page (pull-to-refresh gesture)
+      if (isAtTop && deltaY > 0) {
+        e.preventDefault();
+      }
+    };
+    
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     
     return () => {
-      document.body.style.overscrollBehavior = originalOverscrollBehavior;
+      document.body.style.overscrollBehavior = originalBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
+      document.body.style.touchAction = originalBodyTouchAction;
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      pullToRefreshStartY.current = null;
     };
   }, []);
 
