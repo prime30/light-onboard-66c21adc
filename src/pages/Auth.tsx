@@ -1297,6 +1297,12 @@ const Auth = () => {
     // Must have account type selected
     if (!accountType) return false;
 
+    // Consumer flow - 2 steps (account-type, contact-info)
+    if (accountType === "consumer") {
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+      return contactValid;
+    }
+
     // Student flow - 4 steps (account-type, school-info, wholesale-terms, contact-info)
     if (accountType === "student") {
       const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
@@ -1347,6 +1353,25 @@ const Auth = () => {
         missingFields: ["Select account type"]
       });
       // Can't determine other steps without account type, return early
+      return incomplete;
+    }
+
+    if (accountType === "consumer") {
+      // Consumer flow: account-type, contact-info
+      // Step 2: Contact Info
+      const contactMissing: string[] = [];
+      if (firstName.trim() === "") contactMissing.push("First name");
+      if (lastName.trim() === "") contactMissing.push("Last name");
+      if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone number");
+      if (birthday.trim() === "") contactMissing.push("Birthday");
+      if (socialMediaHandle.trim() === "") contactMissing.push("Social media");
+      if (contactMissing.length > 0) {
+        incomplete.push({
+          step: 2,
+          name: "Contact info",
+          missingFields: contactMissing
+        });
+      }
       return incomplete;
     }
 
@@ -1544,6 +1569,19 @@ const Auth = () => {
     }
 
     // For signup, calculate based on account type
+    if (accountType === "consumer") {
+      // Consumer: account-type (1), contact (5: firstName, lastName, phone, birthday, socialMedia)
+      let filled = 0;
+      const total = 6;
+      if (accountType) filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "") filled++;
+      if (birthday.trim() !== "") filled++;
+      if (socialMediaHandle.trim() !== "") filled++;
+      return filled / total * 100;
+    }
+
     if (accountType === "student") {
       // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), wholesale (1), contact (3)
       let filled = 0;
@@ -1621,13 +1659,13 @@ const Auth = () => {
       // Auto-advance after grace period - navigate directly to next step
       setTimeout(() => {
         // Update display total steps based on selected type BEFORE transitioning
-        const newTotal = type === "student" ? 4 : type === "professional" ? 7 : 6;
+        const newTotal = type === "student" ? 4 : type === "professional" ? 7 : type === "consumer" ? 2 : 6;
         setDisplayTotalSteps(newTotal);
         
         // Mark step 1 as completed
         setCompletedSteps(prev => new Set([...prev, 1]));
         // Calculate next step based on selected type
-        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "license" : "business-location";
+        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "license" : type === "consumer" ? "contact-info" : "business-location";
         setTransitionDirection("forward");
         setIsTransitioning(true);
         setTimeout(() => {
@@ -1677,7 +1715,10 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "account-type":
-        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "license";else targetStep = "business-location";
+        if (accountType === "student") targetStep = "school-info";
+        else if (accountType === "professional") targetStep = "license";
+        else if (accountType === "consumer") targetStep = "contact-info";
+        else targetStep = "business-location";
         break;
       case "business-location":
         targetStep = accountType === "professional" ? "wholesale-terms" : "license";
@@ -1747,13 +1788,17 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "wholesale-terms":
-        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
+        if (accountType === "student") targetStep = "school-info";
+        else if (accountType === "professional") targetStep = "business-location";
+        else targetStep = "license";
         break;
       case "tax-exemption":
         targetStep = "wholesale-terms";
         break;
       case "contact-info":
-        targetStep = accountType === "student" ? "wholesale-terms" : "tax-exemption";
+        if (accountType === "student") targetStep = "wholesale-terms";
+        else if (accountType === "consumer") targetStep = "account-type";
+        else targetStep = "tax-exemption";
         break;
     }
     setNextStep(targetStep);
@@ -1770,11 +1815,13 @@ const Auth = () => {
     // Student: account-type, school-info, wholesale-terms, contact-info = 4 steps
     // Professional: 7 steps (account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info)
     // Salon: 6 steps
+    // Consumer: 2 steps (account-type, contact-info)
     // Once account type is selected, use that type's total (even while still on account-type step)
     // Only show max steps (7) when no account type is selected yet
     if (!accountType) return 7;
     if (accountType === "student") return 4;
     if (accountType === "professional") return 7;
+    if (accountType === "consumer") return 2;
     return 6;
   };
   const getCurrentStepNumber = () => {
@@ -1795,6 +1842,11 @@ const Auth = () => {
       if (currentStep === "tax-exemption") return 6;
       if (currentStep === "contact-info") return 7;
       return 7;
+    }
+    if (accountType === "consumer") {
+      // Consumer flow: account-type, contact-info
+      if (currentStep === "contact-info") return 2;
+      return 2;
     }
     // Salon flow
     if (currentStep === "business-location") return 2;
@@ -1839,6 +1891,17 @@ const Auth = () => {
         case 6:
           return "tax-exemption";
         case 7:
+          return "contact-info";
+        default:
+          return "account-type";
+      }
+    }
+    if (accountType === "consumer") {
+      // Consumer flow
+      switch (stepNum) {
+        case 1:
+          return "account-type";
+        case 2:
           return "contact-info";
         default:
           return "account-type";
