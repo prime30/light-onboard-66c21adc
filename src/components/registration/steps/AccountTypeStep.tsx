@@ -9,9 +9,9 @@ interface AccountTypeStepProps {
 const accountTypes = [
   {
     id: "stylist",
-    title: "Licensed stylist",
+    title: "Licensed Stylist",
     badge: "Pro",
-    description: "Commission, or independent stylist",
+    description: "Commission, or Independent Stylist",
     features: [
       { label: "Rewards on every order", icon: Tag },
       { label: "Free 2-day shipping", icon: Tag },
@@ -21,7 +21,7 @@ const accountTypes = [
   },
   {
     id: "salon",
-    title: "Salon owner or manager",
+    title: "Salon Owner or Manager",
     badge: "Pro",
     description: "For salon owners who purchase hair for multiple stylists.",
     features: [
@@ -41,16 +41,6 @@ const accountTypes = [
       { label: "Student perks", icon: GraduationCap }
     ],
     icon: GraduationCap,
-  },
-  {
-    id: "consumer",
-    title: "Consumer",
-    description: "Shop for yourself and get personalized recommendations.",
-    features: [
-      { label: "Find a stylist near you", icon: Users },
-      { label: "Product guidance", icon: Sparkles }
-    ],
-    icon: Users,
   },
 ];
 
