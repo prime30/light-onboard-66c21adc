@@ -2217,8 +2217,8 @@ const Auth = () => {
           </div>
           
           {/* Close Button - Hidden on mobile (swipe to dismiss available), shown on tablet/desktop */}
-          <button onClick={handleCloseModal} className="hidden sm:flex flex-shrink-0 p-2.5 rounded-full bg-foreground/8 hover:bg-foreground/12 transition-colors group" aria-label="Close">
-            <X className="w-5 h-5 text-foreground transition-transform duration-200 group-hover:rotate-90 group-active:scale-75" />
+          <button onClick={handleCloseModal} className="hidden sm:flex flex-shrink-0 p-2.5 rounded-full bg-muted hover:bg-muted/80 transition-colors group" aria-label="Close">
+            <X className="w-5 h-5 text-muted-foreground transition-transform duration-200 group-hover:rotate-90 group-active:scale-75" />
           </button>
         </header>
 
