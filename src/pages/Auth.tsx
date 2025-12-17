@@ -3234,7 +3234,7 @@ const LicenseForm = ({
         </p>
       </div>
 
-      <div className="flex gap-3 p-4 rounded-[15px] bg-muted/60 border border-border/50 animate-stagger-2">
+      <div className="flex gap-3 p-4 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           {isSalon ? "Wholesale pricing shown is exclusive to verified professionals." : "Please enter your license exactly as it appears from the state."}
@@ -3248,7 +3248,7 @@ const LicenseForm = ({
             {isSalon ? "Salon License #*" : "License number*"}
           </Label>
           <div className="relative group input-glow rounded-[15px]">
-            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>
@@ -3262,7 +3262,7 @@ const LicenseForm = ({
               </Label>
               <div className="flex flex-col gap-1">
                 <Select value={salonSize} onValueChange={onSalonSizeChange}>
-                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -3282,7 +3282,7 @@ const LicenseForm = ({
               </Label>
               <div className="flex flex-col gap-1">
                 <Select value={salonStructure} onValueChange={onSalonStructureChange}>
-                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -3590,7 +3590,7 @@ const BusinessLocationForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -3613,7 +3613,7 @@ const BusinessLocationForm = ({
               onChange={e => handleAddressChange(e.target.value)} 
               onFocus={() => predictions.length > 0 && setShowPredictions(true)}
               autoComplete="off"
-              className="h-[50px] pl-[55px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+              className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
             />
             {isLoadingPredictions && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -3653,7 +3653,7 @@ const BusinessLocationForm = ({
           Suite/Unit # (optional)
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -3663,7 +3663,7 @@ const BusinessLocationForm = ({
           Country*
         </Label>
         <Select value={country} onValueChange={onCountryChange}>
-          <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+          <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -3681,7 +3681,7 @@ const BusinessLocationForm = ({
             City*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
         <div className="space-y-2.5">
@@ -3693,7 +3693,7 @@ const BusinessLocationForm = ({
                 <StateIcon state={state} size={22} className="text-foreground" />
               </div>}
             <Select value={state} onValueChange={onStateChange}>
-              <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}>
+              <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}>
                 <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
               </SelectTrigger>
               <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -3712,7 +3712,7 @@ const BusinessLocationForm = ({
           Zip/Postal code*
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
     </div>
@@ -3765,7 +3765,7 @@ const SchoolInfoForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-muted transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
+          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
         </div>
         {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
       </div>
@@ -3777,7 +3777,7 @@ const SchoolInfoForm = ({
         </Label>
         <div className="relative group">
           <Select value={schoolState} onValueChange={onSchoolStateChange}>
-            <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
+            <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
               <SelectValue placeholder="Select your state/province" />
             </SelectTrigger>
             <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
@@ -3865,7 +3865,7 @@ const WholesaleTermsForm = ({
       </h1>
     </div>
 
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/60 border border-border/50 animate-stagger-2">
+    <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
       <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
       <p className="text-sm text-muted-foreground leading-relaxed">
         All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
@@ -4032,7 +4032,7 @@ const TaxExemptionForm = ({
         </h1>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/60 border border-border/50 animate-stagger-2">
+      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           A tax exemption certificate isn't required to register. If you have one, upload it to avoid sales tax on your orders.
@@ -4232,7 +4232,7 @@ const ContactInfoForm = ({
             Legal first name*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", firstNameError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", firstNameError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {firstNameError && <p className="text-xs text-destructive">First name is required</p>}
         </div>
@@ -4241,7 +4241,7 @@ const ContactInfoForm = ({
             Legal last name*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", lastNameError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", lastNameError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {lastNameError && <p className="text-xs text-destructive">Last name is required</p>}
         </div>
@@ -4253,7 +4253,7 @@ const ContactInfoForm = ({
           Preferred name if different from legal name
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="preferredName" type="text" placeholder="Preferred name if different from legal name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="preferredName" type="text" placeholder="Preferred name if different from legal name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4265,7 +4265,7 @@ const ContactInfoForm = ({
         <div className="flex gap-2">
           {/* Country Code Selector */}
           <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
-            <SelectTrigger className={cn("w-[110px] h-[50px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
+            <SelectTrigger className={cn("w-[110px] h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
               <SelectValue>
                 <span className="flex items-center gap-2">
                   <CountryFlag iso={countryCodes.find(c => c.code === phoneCountryCode)?.iso || "us"} />
@@ -4291,7 +4291,7 @@ const ContactInfoForm = ({
             <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", phoneError ? "bg-destructive/10" : "bg-muted")}>
               <Phone className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", phoneError ? "text-destructive" : "text-muted-foreground")} />
             </div>
-            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
           </div>
         </div>
         {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
@@ -4308,7 +4308,7 @@ const ContactInfoForm = ({
             <button
               type="button"
               className={cn(
-                "w-full h-[50px] px-4 rounded-[15px] bg-muted/60 border border-border/50 text-left flex items-center justify-between transition-all duration-300 hover:bg-muted/80 focus:border-foreground/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-foreground/10",
+                "w-full h-[50px] px-4 rounded-[15px] bg-muted border border-border/50 text-left flex items-center justify-between transition-all duration-300 hover:bg-muted/80 focus:border-foreground/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-foreground/10",
                 birthdayError && "border-destructive/50 bg-destructive/5",
                 !birthday && "text-muted-foreground"
               )}
@@ -4350,7 +4350,7 @@ const ContactInfoForm = ({
             value={socialMediaHandle} 
             onChange={e => onSocialMediaHandleChange(e.target.value.replace(/^@/, ''))} 
             className={cn(
-              "h-[50px] pl-9 rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              "h-[50px] pl-9 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
               socialMediaError && "border-destructive/50 bg-destructive/5"
             )} 
           />
@@ -4392,7 +4392,7 @@ const ContactInfoForm = ({
       </div>
 
       {/* SMS Consent Notice */}
-      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted/60 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
         <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
@@ -4555,7 +4555,7 @@ const PasswordInputField = ({
         <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground")}>
           <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
-        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-[15px] transition-all duration-500 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-[60px] pl-[60px] bg-muted/40 border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-[55px] pl-[55px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background")} />
+        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-[15px] transition-all duration-500 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-[60px] pl-[60px] bg-muted/40 border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-[55px] pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press" aria-label={showPassword ? "Hide password" : "Show password"}>
           {showPassword ? <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" /> : <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />}
         </button>
@@ -4658,7 +4658,7 @@ const PersonalInfoForm = ({
             First name
           </Label>
           <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
-            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
         <div className="space-y-2.5 group">
@@ -4666,7 +4666,7 @@ const PersonalInfoForm = ({
             Last name
           </Label>
           <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
-            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
       </div>
@@ -4679,7 +4679,7 @@ const PersonalInfoForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted/60 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4764,7 +4764,7 @@ const SuccessForm = ({
     </div>
 
     {/* Pro Member */}
-    <div className="p-5 rounded-[20px] bg-muted/60 border border-border/50">
+    <div className="p-5 rounded-[20px] bg-muted border border-border/50">
       <div className="flex items-center gap-5">
         <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
           <Sparkles className="w-[25px] h-[25px] text-background" />
