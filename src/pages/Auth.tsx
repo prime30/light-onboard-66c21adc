@@ -3761,16 +3761,6 @@ const TaxExemptionForm = ({
     setToastKey(prev => prev + 1);
   };
   
-  useEffect(() => {
-    if (showToast && hasTaxExemption === false) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-        // Auto-advance after toast ends
-        onAutoAdvance?.();
-      }, TOAST_DURATION);
-      return () => clearTimeout(timer);
-    }
-  }, [showToast, toastKey, hasTaxExemption, onAutoAdvance]);
 
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
@@ -3873,15 +3863,6 @@ const TaxExemptionForm = ({
               </span>
             </div>
             
-            {/* Countdown timer bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-border overflow-hidden">
-              <div 
-                className="h-full bg-primary/50 origin-right rounded-full"
-                style={{
-                  animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
-                }}
-              />
-            </div>
           </Link>
         </div>
       </div>
