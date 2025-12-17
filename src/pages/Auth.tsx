@@ -1030,6 +1030,8 @@ const Auth = () => {
     setCompletedSteps(new Set());
   };
   const handleModeChange = (newMode: AuthMode) => {
+    // Set transition direction: signin→signup feels like going back, signup→signin feels like going forward
+    setTransitionDirection(newMode === "signup" ? "backward" : "forward");
     setMode(newMode);
     resetForm();
     // Scroll to top when switching modes
