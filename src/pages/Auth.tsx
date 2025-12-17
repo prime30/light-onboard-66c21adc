@@ -4089,6 +4089,14 @@ const ContactInfoForm = ({
           <button type="button" onClick={() => setShowPrivacy(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
         </p>
       </div>
+
+      {/* Privacy Note */}
+      <div className={cn("flex items-center justify-center gap-2 py-2", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
+        <Lock className="w-3 h-3 text-muted-foreground/70" />
+        <p className="text-[11px] text-muted-foreground/70">
+          Your information is secure and never sold or shared with third parties.
+        </p>
+      </div>
     </div>
 
     {/* Terms of Service Modal */}
