@@ -2264,10 +2264,12 @@ const Auth = () => {
         </header>
 
         {/* Subtle gradient below header on mobile */}
-        <div className={cn(
-          "lg:hidden absolute top-[70px] sm:top-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-b from-background via-background/70 via-40% to-transparent z-10 transition-opacity duration-300",
-          hasScrolled ? "opacity-100" : "opacity-0"
-        )} />
+        <div 
+          className={cn(
+            "lg:hidden absolute top-[70px] sm:top-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-b from-background via-background/70 via-40% to-transparent z-10 transition-all duration-500 ease-out",
+            hasScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+          )} 
+        />
 
         <main 
           ref={mainScrollRef} 
