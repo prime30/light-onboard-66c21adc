@@ -4097,33 +4097,10 @@ const ContactInfoForm = ({
               disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
               initialFocus
               defaultMonth={birthday ? new Date(birthday) : new Date(2000, 0)}
-              captionLayout="dropdown-buttons"
-              fromYear={1940}
-              toYear={new Date().getFullYear()}
             />
           </PopoverContent>
         </Popover>
         {birthdayError && <p className="text-xs text-destructive">Birthday is required</p>}
-        {birthday && (() => {
-          const birthDate = new Date(birthday);
-          const today = new Date();
-          let age = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
-          const isUnder18 = age < 18;
-          return (
-            <div className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-300",
-              isUnder18 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-status-green/10 text-status-green"
-            )}>
-              <BadgeCheck className="w-4 h-4" />
-              <span className="font-medium">{age} years old</span>
-              {isUnder18 && <span className="text-xs opacity-80">• Must be 18+ to register</span>}
-            </div>
-          );
-        })()}
       </div>
 
       {/* Social Media Handle */}
