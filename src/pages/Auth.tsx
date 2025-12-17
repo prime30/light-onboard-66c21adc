@@ -2387,10 +2387,19 @@ const Auth = () => {
         {/* Scroll down hint - mobile only, positioned above footer, only if content is scrollable */}
         {mode === "signup" && currentStep === "onboarding" && isScrollable && (
           <div className={cn(
-            "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce-subtle transition-opacity duration-500",
+            "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
-            <ChevronDown className="w-5 h-5 text-muted-foreground/50" />
+            {/* Modern scroll wheel indicator */}
+            <div className="relative flex flex-col items-center gap-1.5">
+              <div className="w-[22px] h-[34px] rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
+                <div className="w-[3px] h-[6px] rounded-full bg-muted-foreground/50 animate-scroll-wheel" />
+              </div>
+              <div className="flex flex-col items-center gap-0.5 opacity-40">
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground animate-scroll-chevron-1" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground -mt-2 animate-scroll-chevron-2" />
+              </div>
+            </div>
           </div>
         )}
 
