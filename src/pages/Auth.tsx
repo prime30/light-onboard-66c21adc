@@ -296,7 +296,7 @@ const TestimonialCarousel = () => {
 // Calculate dynamic starting number based on months elapsed
 // Base: 8,340 in December 2024, +122 on odd months, +123 on even months
 const getOdometerBaseNumber = () => {
-  const baseDate = new Date(2024, 11, 1); // December 2024 (month is 0-indexed)
+  const baseDate = new Date(2025, 11, 1); // December 2025 (month is 0-indexed)
   const baseNumber = 8340;
   const now = new Date();
   
