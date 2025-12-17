@@ -2374,7 +2374,7 @@ const Auth = () => {
         {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]">
             <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
               <div className="flex gap-[15px]">
-                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/60 hover:border-foreground/20 btn-lift group">
+                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 btn-lift group">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
                 <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
