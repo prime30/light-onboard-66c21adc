@@ -4073,7 +4073,7 @@ const TaxExemptionForm = ({
           </p>
           
           {/* Blog card */}
-          <div className="rounded-[15px] border border-border/50 p-4 animate-[slideUpFade_0.4s_ease-out_0.1s_both]">
+          <div className="rounded-[20px] border border-border/50 p-4 pb-5 animate-[slideUpFade_0.4s_ease-out_0.1s_both]">
             <Link 
               to="/blog/resale-license"
               key={toastKey}
