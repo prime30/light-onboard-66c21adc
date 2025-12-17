@@ -2371,7 +2371,7 @@ const Auth = () => {
         )}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]">
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)] animate-[slideUpFade_0.5s_ease-out_0.3s_both]">
             <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
               <div className={cn(
                 "flex transition-all duration-300 ease-out",
