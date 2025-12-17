@@ -4077,7 +4077,7 @@ const TaxExemptionForm = ({
             <Link 
               to="/blog/resale-license"
               key={toastKey}
-              className="relative block overflow-hidden rounded-xl bg-background hover:opacity-90 transition-all duration-300 group"
+              className="relative block rounded-xl bg-background hover:opacity-90 transition-all duration-300 group"
             >
               {/* Image */}
               <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
