@@ -751,15 +751,9 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [showSpotlight, setShowSpotlight] = useState(false);
-  const [isSpotlightFadingOut, setIsSpotlightFadingOut] = useState(false);
-  const [hasShownSpotlight, setHasShownSpotlight] = useState(false);
   const [shimmerKey, setShimmerKey] = useState(0);
   const [hasScrolled, setHasScrolled] = useState(false);
   const fontsLoaded = useFontLoaded();
-  const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const spotlightHideTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const spotlightFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Main content refs
   const mainContentRef = useRef<HTMLDivElement | null>(null);
@@ -1343,57 +1337,6 @@ const Auth = () => {
 
   // Check if form is ready to submit (on final step with all fields complete)
   const isFormReadyToSubmit = mode === "signup" && currentStep === "contact-info" && isAllStepsValid();
-
-  // Delay spotlight effect until after the 100% glow animation completes, show once only
-  useEffect(() => {
-    if (isFormReadyToSubmit && !hasShownSpotlight) {
-      // Save current focus to restore later
-      const activeElement = document.activeElement as HTMLElement | null;
-      // Wait for the celebration glow animation to finish (1.5s)
-      spotlightTimerRef.current = setTimeout(() => {
-        setShowSpotlight(true);
-        setHasShownSpotlight(true);
-        // Restore focus if it was lost
-        if (activeElement && document.activeElement !== activeElement) {
-          activeElement.focus?.();
-        }
-        // Start fade out after 3 seconds
-        spotlightHideTimerRef.current = setTimeout(() => {
-          setIsSpotlightFadingOut(true);
-          // Remove from DOM after fade animation completes (500ms)
-          spotlightFadeTimerRef.current = setTimeout(() => {
-            setShowSpotlight(false);
-            setIsSpotlightFadingOut(false);
-          }, 500);
-        }, 3000);
-      }, 1500);
-    } else if (!isFormReadyToSubmit) {
-      setShowSpotlight(false);
-      setIsSpotlightFadingOut(false);
-      // Reset hasShownSpotlight if user goes back/edits form
-      setHasShownSpotlight(false);
-      if (spotlightTimerRef.current) {
-        clearTimeout(spotlightTimerRef.current);
-      }
-      if (spotlightHideTimerRef.current) {
-        clearTimeout(spotlightHideTimerRef.current);
-      }
-      if (spotlightFadeTimerRef.current) {
-        clearTimeout(spotlightFadeTimerRef.current);
-      }
-    }
-    return () => {
-      if (spotlightTimerRef.current) {
-        clearTimeout(spotlightTimerRef.current);
-      }
-      if (spotlightHideTimerRef.current) {
-        clearTimeout(spotlightHideTimerRef.current);
-      }
-      if (spotlightFadeTimerRef.current) {
-        clearTimeout(spotlightFadeTimerRef.current);
-      }
-    };
-  }, [isFormReadyToSubmit, hasShownSpotlight]);
 
   // Calculate overall form progress as percentage
   const getFormProgress = () => {
@@ -2238,8 +2181,6 @@ const Auth = () => {
             </div>}
         </main>
 
-        {/* Spotlight overlay when form is ready to submit */}
-        {showSpotlight && <div className={cn("absolute inset-0 bg-background/60 backdrop-blur-sm z-40 pointer-events-none transition-opacity duration-500", isSpotlightFadingOut ? "opacity-0" : "animate-fade-in")} />}
 
         {/* Scroll down hint - mobile only, positioned above footer, only if content is scrollable */}
         {mode === "signup" && currentStep === "onboarding" && isScrollable && (
@@ -2252,10 +2193,10 @@ const Auth = () => {
         )}
 
         {/* Footer */}
-        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className={cn("sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none", showSpotlight && "relative z-50")}>
+        {(mode === "signin" || mode === "signup" && currentStep !== "success") && <footer className="sticky bottom-0 bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] pl-[max(0.625rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.625rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] border-t border-border/30 shadow-[0_-8px_20px_-5px_rgba(0,0,0,0.08)] sm:shadow-none">
             <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
               <div className="flex gap-[15px]">
-                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className={cn("h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group", showSpotlight && "opacity-0 pointer-events-none")}>
+                {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border/40 hover:bg-muted/50 hover:border-foreground/20 btn-lift group">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
                   </Button>}
                 <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
@@ -2290,7 +2231,6 @@ const Auth = () => {
                         disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
                         className={cn(
                           "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
-                          showSpotlight && "animate-spotlight-button shadow-[0_0_30px_10px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_10px_rgba(255,255,255,0.15)]",
                           shimmerKey > 0 && "shimmer-trigger",
                           // when disabled, popover is triggered by wrapper, not the button
                           currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
