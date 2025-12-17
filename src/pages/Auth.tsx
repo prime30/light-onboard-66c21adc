@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, ChevronDown, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag, Wand2, Scissors } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, Truck, Gift, ChevronLeft, ChevronRight, ChevronDown, Mail, Lock, User, FileCheck, MapPin, Check, ShoppingBag, Heart, ArrowUpRight, Building2, GraduationCap, X, Eye, EyeOff, Phone, Info, AlertTriangle, Clock, Headphones, Users, Tag, Loader2, BadgeCheck, Upload, ShieldCheck, Flag, Wand2, Scissors, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
@@ -33,6 +33,7 @@ import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
 import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
+import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "reviews" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
@@ -3809,32 +3810,70 @@ const TaxExemptionForm = ({
         {selectionError && <p className="text-xs text-destructive text-center">Please select an option</p>}
       </div>
       
-      {/* Toast message when No is selected */}
+      {/* Blog card when No is selected */}
       <div className={cn(
         "grid transition-all duration-400",
         showToast && hasTaxExemption === false ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
         <div className="overflow-hidden">
-          <div 
+          <Link 
+            to="/blog/resale-license"
             key={toastKey}
-            className="relative overflow-hidden rounded-xl bg-primary/10 border border-primary/20 mt-0 animate-haptic-pop"
+            className="relative block overflow-hidden rounded-xl border border-border bg-background hover:border-foreground/20 transition-all duration-300 mt-0 animate-haptic-pop group"
           >
-            <div className="flex gap-3 p-4">
-              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <p className="text-sm text-primary">
-                No problem! Learn more: <a href="/blog/resale-license" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary/80 transition-colors font-medium">Why you need a resale license in your state</a>
-              </p>
+            {/* Image */}
+            <div className="relative aspect-[16/9] overflow-hidden">
+              <img 
+                src={blogResaleLicense} 
+                alt="Professional reviewing business documents" 
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute top-3 left-3">
+                <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
+                  Licensing
+                </span>
+              </div>
             </div>
+            
+            {/* Content */}
+            <div className="p-4">
+              {/* Meta */}
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>Dec 15, 2024</span>
+                </div>
+                <span>·</span>
+                <span>5 min read</span>
+              </div>
+              
+              {/* Title */}
+              <h3 className="font-semibold text-sm mb-1.5 group-hover:text-primary transition-colors">
+                Why You Need a Resale License in Your State
+              </h3>
+              
+              {/* Description */}
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                Understanding the importance of a resale license can save you money and keep your business compliant.
+              </p>
+              
+              {/* Read more */}
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                Read more
+                <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            </div>
+            
             {/* Countdown timer bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary/10 overflow-hidden">
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-border overflow-hidden">
               <div 
-                className="h-full bg-primary/30 origin-right rounded-full"
+                className="h-full bg-primary/50 origin-right rounded-full"
                 style={{
                   animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
                 }}
               />
             </div>
-          </div>
+          </Link>
         </div>
       </div>
       
