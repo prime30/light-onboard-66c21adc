@@ -2076,7 +2076,7 @@ const Auth = () => {
           {/* Left side - Auth Toggle + Step Indicator */}
           <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px]">
             {/* Auth Toggle */}
-            <div className="inline-flex bg-border backdrop-blur-sm rounded-full p-[5px] border border-border relative flex-shrink-0">
+            <div className="inline-flex bg-muted/80 backdrop-blur-sm rounded-full p-[5px] border border-border/50 relative flex-shrink-0">
               {/* Sliding pill indicator */}
               <div className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" style={{
                 left: mode === "signup" ? "5px" : "50%",
@@ -3005,11 +3005,11 @@ const OnboardingForm = ({
       }, {
         icon: Mail,
         label: "Follow post-approval instructions to finalize account"
-      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-border border border-border text-left opacity-0 animate-step-card-enter" style={{
+      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/80 border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
         animationDelay: `${400 + i * 150}ms`,
         animationFillMode: 'forwards'
       }}>
-              <div className="relative w-12 h-12 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
+              <div className="relative w-12 h-12 rounded-xl bg-muted/80 border border-border/60 flex items-center justify-center flex-shrink-0">
                 <item.icon className="w-5 h-5 text-foreground/70" />
                 <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                   <span className="text-[9px] font-semibold text-background">{i + 1}</span>
@@ -3103,7 +3103,7 @@ const AccountTypeForm = ({
   }];
   return <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step 1
@@ -3130,7 +3130,7 @@ const AccountTypeForm = ({
               {/* Top row: Icon + Content */}
               <div className="flex items-start gap-[15px] sm:gap-5">
                 {/* Icon with haptic bounce */}
-                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110" : "bg-muted group-hover:scale-105 group-hover:bg-muted/80")}>
+                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110" : "bg-muted/80 group-hover:scale-105 group-hover:bg-muted/60")}>
                   <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
                 </div>
                 
@@ -3142,7 +3142,7 @@ const AccountTypeForm = ({
                     {type.features.map((feature, i) => {
                       const FeatureIcon = feature.icon;
                       return (
-                        <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/8 text-foreground/70" : "bg-muted text-muted-foreground")} style={{
+                        <span key={i} className={cn("inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300", selectedType === type.id ? "bg-foreground/8 text-foreground/70" : "bg-muted/80 text-muted-foreground")} style={{
                           transitionDelay: `${i * 50}ms`
                         }}>
                           {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
@@ -3220,7 +3220,7 @@ const LicenseForm = ({
   const stepNumber = accountType === "salon" ? 3 : 2;
   return <div className="space-y-4 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step {stepNumber}
@@ -3332,7 +3332,7 @@ const BusinessOperationForm = ({
   const selectionError = showValidationErrors && businessOperationType === null;
   return <div className="space-y-5 sm:space-y-[30px]">
     <div className="space-y-[10px] text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 3
@@ -3569,7 +3569,7 @@ const BusinessLocationForm = ({
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
@@ -3744,7 +3744,7 @@ const SchoolInfoForm = ({
   const fileError = showValidationErrors && enrollmentProofFiles.length === 0;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step 2
@@ -3854,7 +3854,7 @@ const WholesaleTermsForm = ({
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
@@ -4021,7 +4021,7 @@ const TaxExemptionForm = ({
 
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
             Step {stepNumber}
@@ -4209,7 +4209,7 @@ const ContactInfoForm = ({
   const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted/80 border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
           Step {stepNumber}
@@ -4638,7 +4638,7 @@ const PersonalInfoForm = ({
   onPasswordChange: (value: string) => void;
 }) => <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
-      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted border border-border/50 mb-2.5">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[5px] rounded-full bg-muted/80 border border-border/50 mb-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
           Final Step
         </span>
