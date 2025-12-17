@@ -2263,6 +2263,9 @@ const Auth = () => {
           </button>
         </header>
 
+        {/* Subtle gradient below header on mobile */}
+        <div className="lg:hidden absolute top-[60px] sm:top-[70px] left-0 right-0 h-[60px] pointer-events-none bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
+
         <main 
           ref={mainScrollRef} 
           className={cn("flex-1 flex flex-col items-center px-5 sm:px-5 md:px-[25px] lg:px-[30px] pb-20 lg:pb-5 overflow-y-auto scrollbar-hide", showStepIndicator ? "pt-0" : "pt-2")}
