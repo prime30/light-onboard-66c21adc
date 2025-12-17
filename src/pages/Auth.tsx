@@ -3624,16 +3624,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    {/* Warning about client card usage */}
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-destructive/5 border border-destructive/20 animate-stagger-3">
-      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" />
-      <p className="text-sm text-destructive/90 leading-relaxed text-balance">
-        If you use your client's card to directly purchase professional hair at wholesale pricing, we reserve the right to cancel and ban your account according to our{" "}
-        <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>.
-      </p>
-    </div>
-
-    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-4 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/5" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -3641,7 +3632,8 @@ const WholesaleTermsForm = ({
         Yes, I agree to <span className="font-bold uppercase relative inline-block px-1.5 py-0.5 mx-0.5 bg-destructive/15 text-destructive rounded after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-destructive after:origin-left after:animate-[underline-grow_0.6s_ease-out_forwards]">NOT</span> use my client's card to purchase.*
       </span>
     </button>
-    
+
+    {/* Warning about client card usage - shows when agreed */}
     <div className={cn(
       "grid transition-all duration-400",
       showToast ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
@@ -3649,18 +3641,17 @@ const WholesaleTermsForm = ({
       <div className="overflow-hidden">
         <div 
           key={toastKey}
-          className="relative overflow-hidden rounded-xl bg-status-green/10 border border-status-green/20 mt-0 animate-haptic-pop"
+          className="relative overflow-hidden flex gap-[15px] p-5 rounded-[15px] bg-destructive/5 border border-destructive/20 animate-haptic-pop"
         >
-          <div className="flex gap-3 p-4">
-            <Check className="w-4 h-4 text-status-green shrink-0 mt-0.5" />
-            <p className="text-sm text-status-green">
-              Thank you! This protects your margins if you ever want to raise prices for your services.
-            </p>
-          </div>
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" />
+          <p className="text-sm text-destructive/90 leading-relaxed text-balance">
+            If you use your client's card to directly purchase professional hair at wholesale pricing, we reserve the right to cancel and ban your account according to our{" "}
+            <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>.
+          </p>
           {/* Countdown timer bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-status-green/10 overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive/10 overflow-hidden">
             <div 
-              className="h-full bg-status-green/30 origin-right rounded-full"
+              className="h-full bg-destructive/40 origin-right rounded-full"
               style={{
                 animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
               }}
