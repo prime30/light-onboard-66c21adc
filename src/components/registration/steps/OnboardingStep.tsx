@@ -18,12 +18,12 @@ const MagneticFeatureBox = ({ icon: Icon, label, desc }: FeatureBoxProps) => {
       style={magnetic.style}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="group/pill relative flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/40 border border-border/40 hover:border-border/60 hover:bg-muted/60 transition-all duration-300 cursor-default w-full sm:w-auto overflow-hidden hover:-translate-y-0.5 hover:shadow-md hover:shadow-foreground/[0.03]"
+      className="group/pill relative flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] hover:bg-white/70 hover:border-white hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] transition-all duration-300 cursor-default w-full sm:w-auto overflow-hidden hover:-translate-y-0.5"
     >
       {/* Subtle gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.01] to-transparent opacity-0 group-hover/pill:opacity-100 transition-opacity duration-500" />
       
-      <div className="relative w-8 h-8 rounded-lg bg-muted border border-border/60 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover/pill:scale-105">
+      <div className="relative w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm border border-white/60 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover/pill:scale-105 shadow-sm">
         <Icon className="w-4 h-4 text-foreground/60 transition-transform duration-300 group-hover/pill:scale-110" />
       </div>
       <div className="relative flex flex-col">
