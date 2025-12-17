@@ -26,39 +26,47 @@ const BlogResaleLicense = () => {
             </div>
           </div>
 
-          {/* Hero Image */}
-          <div className="relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden">
-            <img 
-              src={blogImage} 
-              alt="Professional reviewing business documents" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-            <div className="absolute bottom-4 left-5 sm:left-8">
-              <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                Licensing
-              </span>
+          {/* Bento Hero with Title */}
+          <div className="px-5 sm:px-8 lg:px-12 pt-6">
+            <div className="relative aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-2xl sm:rounded-3xl">
+              <img 
+                src={blogImage} 
+                alt="Professional reviewing business documents" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              
+              {/* Badge */}
+              <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+                <span className="px-3 py-1 rounded-full bg-white/90 text-foreground text-xs font-medium backdrop-blur-sm">
+                  Licensing
+                </span>
+              </div>
+              
+              {/* Title inside image */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
+                <h1 className="font-termina text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.006em] text-white text-balance leading-tight">
+                  Why You Need a Resale License in Your State
+                </h1>
+              </div>
             </div>
-          </div>
-
-          {/* Content */}
-          <div className="px-5 sm:px-8 lg:px-12 py-8">
-            {/* Meta */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+            
+            {/* Meta with divider */}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mt-5">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
                 <span>December 15, 2024</span>
               </div>
+              <div className="w-px h-4 bg-border" />
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
                 <span>5 min read</span>
               </div>
             </div>
+          </div>
 
-            {/* Title */}
-            <h1 className="font-termina text-2xl md:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.006em] mb-6 text-balance">
-              Why You Need a Resale License in Your State
-            </h1>
+          {/* Content */}
+          <div className="px-5 sm:px-8 lg:px-12 py-8">
 
             {/* Intro */}
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
