@@ -3979,12 +3979,10 @@ const ContactInfoForm = ({
       <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
         Your Contact Information
       </h1>
-      <div className="flex items-start justify-center gap-1.5 pt-1">
-        <Lock className="w-3 h-3 text-muted-foreground/70 mt-[1px]" />
-        <p className="text-[11px] text-muted-foreground/70 text-balance">
-          Your information is secure and never sold or shared with third parties.
-        </p>
-      </div>
+      <p className="text-[10px] text-muted-foreground/60 flex items-center justify-center gap-1.5 pt-1">
+        <Lock className="w-2.5 h-2.5" />
+        <span>Your information is secure and never shared with third parties.</span>
+      </p>
     </div>
 
     <div className="space-y-4">
