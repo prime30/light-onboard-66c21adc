@@ -2297,19 +2297,19 @@ const Auth = () => {
                         Exclusively professional
                       </span>
                     </div>
-                    <div className="animate-fade-in" style={{
+                    <div className="animate-fade-in min-h-[3.5rem] sm:min-h-[2.25rem]" style={{
                     animationDelay: '100ms',
                     animationFillMode: 'backwards'
                   }}>
                       <h2 className="font-termina font-medium uppercase text-2xl sm:text-3xl text-background leading-tight text-balance">
-                        {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <TextSkeleton width="80%" height="1.1em" variant="light" />}
+                        {fontsLoaded ? <span className="animate-fade-in-text">Apply for a pro account</span> : <><TextSkeleton width="100%" height="1.75rem" variant="light" /><span className="block mt-1 sm:hidden"><TextSkeleton width="60%" height="1.75rem" variant="light" /></span></>}
                       </h2>
                     </div>
-                    <p className="text-xs sm:text-sm text-background/60 mt-2 animate-fade-in" style={{
+                    <p className="text-xs sm:text-sm text-background/60 mt-2 animate-fade-in min-h-[1rem]" style={{
                     animationDelay: '200ms',
                     animationFillMode: 'backwards'
                   }}>
-                      {fontsLoaded ? <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span> : <TextSkeleton width="90%" height="0.9em" variant="light" />}
+                      {fontsLoaded ? <span className="animate-fade-in-text">Unlock wholesale pricing on the industries best{" "}<span className="whitespace-nowrap">hair and tools.</span></span> : <TextSkeleton width="95%" height="0.875rem" variant="light" />}
                     </p>
                   </div>
                 </div>
