@@ -3859,6 +3859,7 @@ const WholesaleTermsForm = ({
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const [showTerms, setShowTerms] = useState(false);
+  const toastRef = useRef<HTMLDivElement>(null);
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
   // Step number varies by account type: professional=5, salon=4, student=3
@@ -3871,6 +3872,10 @@ const WholesaleTermsForm = ({
     if (value && !agreed) {
       setShowToast(true);
       setToastKey(prev => prev + 1);
+      // Scroll to toast after it appears
+      setTimeout(() => {
+        toastRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     }
   };
 
@@ -3915,7 +3920,9 @@ const WholesaleTermsForm = ({
     </button>
 
     {/* Warning about client card usage - shows when agreed */}
-    <div className={cn(
+    <div 
+      ref={toastRef}
+      className={cn(
       "grid transition-all duration-400",
       showToast ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
     )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
