@@ -655,23 +655,37 @@ const Auth = () => {
 
   // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
   const pullToRefreshStartY = useRef<number | null>(null);
+  const pullToRefreshTarget = useRef<EventTarget | null>(null);
   
   useEffect(() => {
     // Store original styles
     const originalBodyOverscroll = document.body.style.overscrollBehavior;
     const originalHtmlOverscroll = document.documentElement.style.overscrollBehavior;
-    const originalBodyTouchAction = document.body.style.touchAction;
     
     // Apply styles to prevent pull-to-refresh
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
     
-    // Track touch start position
-    const handleTouchStart = (e: TouchEvent) => {
-      pullToRefreshStartY.current = e.touches[0]?.clientY ?? null;
+    // Helper to find scrollable parent
+    const getScrollableParent = (element: Element | null): Element | null => {
+      while (element) {
+        const style = window.getComputedStyle(element);
+        const overflowY = style.overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && element.scrollHeight > element.clientHeight) {
+          return element;
+        }
+        element = element.parentElement;
+      }
+      return null;
     };
     
-    // Prevent pull-to-refresh gesture
+    // Track touch start position and target
+    const handleTouchStart = (e: TouchEvent) => {
+      pullToRefreshStartY.current = e.touches[0]?.clientY ?? null;
+      pullToRefreshTarget.current = e.target;
+    };
+    
+    // Prevent pull-to-refresh gesture but allow scrolling inside modal content
     const handleTouchMove = (e: TouchEvent) => {
       const startY = pullToRefreshStartY.current;
       const currentY = e.touches[0]?.clientY;
@@ -679,12 +693,21 @@ const Auth = () => {
       if (startY == null || currentY == null) return;
       
       const deltaY = currentY - startY;
-      const isAtTop = window.scrollY <= 0;
       
-      // Block downward swipe when at top of page (pull-to-refresh gesture)
-      if (isAtTop && deltaY > 0) {
-        e.preventDefault();
+      // Only care about downward swipes (potential pull-to-refresh)
+      if (deltaY <= 0) return;
+      
+      // Check if touch started in a scrollable element
+      const target = pullToRefreshTarget.current as Element | null;
+      const scrollableParent = target ? getScrollableParent(target) : null;
+      
+      // If inside a scrollable element that's not at the top, allow scrolling
+      if (scrollableParent && scrollableParent.scrollTop > 0) {
+        return; // Allow normal scroll
       }
+      
+      // Block pull-to-refresh gesture
+      e.preventDefault();
     };
     
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -693,10 +716,10 @@ const Auth = () => {
     return () => {
       document.body.style.overscrollBehavior = originalBodyOverscroll;
       document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
-      document.body.style.touchAction = originalBodyTouchAction;
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       pullToRefreshStartY.current = null;
+      pullToRefreshTarget.current = null;
     };
   }, []);
 
