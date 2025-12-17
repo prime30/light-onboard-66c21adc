@@ -2944,7 +2944,7 @@ const SignInForm = ({
       <p className="text-xs text-muted-foreground text-center pt-1">
         Don't have an account?{" "}
         <button onClick={onSignUp} className="text-foreground underline underline-offset-2 hover:no-underline">
-          Sign up
+          Apply
         </button>
       </p>
     </div>
