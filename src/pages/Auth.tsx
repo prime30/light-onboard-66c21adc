@@ -732,7 +732,13 @@ const Auth = () => {
   const [nextStep, setNextStep] = useState<Step | null>(null);
   // Display total steps - locked during account-type step to prevent indicator jump
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
-  
+
+  // Prevent footer layout transitions from running during the initial footer entrance animation
+  const [footerTransitionsEnabled, setFooterTransitionsEnabled] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setFooterTransitionsEnabled(true), 900);
+    return () => window.clearTimeout(t);
+  }, []);
   // Handle incoming navigation state to advance to specific step
   useEffect(() => {
     const state = location.state as { advanceToStep?: Step } | null;
@@ -2376,13 +2382,13 @@ const Auth = () => {
               <div className={cn(
                 "flex",
                 mode === "signup" && currentStep !== "onboarding" ? "gap-[15px]" : "gap-0"
-              )} style={{ transition: "gap 300ms ease-out" }}>
+              )} style={{ transition: footerTransitionsEnabled ? "gap 300ms ease-out" : "none" }}>
                 <div 
                   className={cn(
                     "overflow-hidden",
                     mode === "signup" && currentStep !== "onboarding" ? "w-[55px] opacity-100" : "w-0 opacity-0"
                   )}
-                  style={{ transition: "width 300ms ease-out, opacity 300ms ease-out" }}
+                  style={{ transition: footerTransitionsEnabled ? "width 300ms ease-out, opacity 300ms ease-out" : "none" }}
                 >
                   <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" />
