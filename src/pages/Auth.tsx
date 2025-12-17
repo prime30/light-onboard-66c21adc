@@ -4407,6 +4407,18 @@ const SuccessForm = ({
 }) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  
+  const handleReferralSelect = (value: string) => {
+    onReferralSourceChange(value);
+    if (!hasAnswered) {
+      setHasAnswered(true);
+      toast.success("Thanks! Your response has been saved", {
+        duration: 2000,
+      });
+    }
+  };
+  
   const handleAddToCart = () => {
     setIsAddingToCart(true);
   };
@@ -4477,7 +4489,7 @@ const SuccessForm = ({
         {referralOptions.map((option) => (
           <button
             key={option.value}
-            onClick={() => onReferralSourceChange(option.value)}
+            onClick={() => handleReferralSelect(option.value)}
             className={cn(
               "p-3 rounded-xl border text-left text-sm transition-all duration-200",
               referralSource === option.value
