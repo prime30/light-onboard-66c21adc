@@ -1317,3 +1317,13 @@
 .animate-odometer-continuous {
   animation: odometerRollContinuous 20s linear infinite;
 }
+
+/* Underline grow animation */
+@keyframes underline-grow {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
