@@ -2972,16 +2972,16 @@ const OnboardingForm = ({
         <div className="w-px bg-border" />
         <div>
           <div className="text-2xl font-semibold text-foreground">
-            <AnimatedProductCount delay={400} />
+            <AnimatedNumber value={24} suffix="hr" delay={400} />
           </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
         </div>
         <div className="w-px bg-border" />
         <div>
           <div className="text-2xl font-semibold text-foreground">
-            <AnimatedNumber value={24} suffix="hr" delay={600} />
+            <AnimatedProductCount delay={600} />
           </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
         </div>
       </div>
 
