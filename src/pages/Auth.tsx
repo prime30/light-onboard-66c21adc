@@ -4097,6 +4097,9 @@ const ContactInfoForm = ({
               disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
               initialFocus
               defaultMonth={birthday ? new Date(birthday) : new Date()}
+              captionLayout="dropdown-buttons"
+              fromYear={1940}
+              toYear={new Date().getFullYear()}
             />
           </PopoverContent>
         </Popover>
