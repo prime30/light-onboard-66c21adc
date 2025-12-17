@@ -1916,7 +1916,7 @@ const Auth = () => {
         }}
       >
         {/* Mobile background gradient - fades to light gray at bottom */}
-        <div className="lg:hidden absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent via-60% to-muted/50" />
+        <div className="lg:hidden absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-muted/20 via-50% to-muted/80" />
         
         {/* Drag Handle - Mobile Only */}
         <div 
