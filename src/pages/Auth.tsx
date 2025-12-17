@@ -1608,8 +1608,9 @@ const Auth = () => {
     // Student: account-type, school-info, wholesale-terms, contact-info = 4 steps
     // Professional: 7 steps (account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info)
     // Salon: 6 steps
-    // Use max steps (7) when on account-type step to prevent indicator jump on selection
-    if (currentStep === "account-type") return 7;
+    // Once account type is selected, use that type's total (even while still on account-type step)
+    // Only show max steps (7) when no account type is selected yet
+    if (!accountType) return 7;
     if (accountType === "student") return 4;
     if (accountType === "professional") return 7;
     return 6;
