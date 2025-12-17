@@ -3912,7 +3912,7 @@ const ContactInfoForm = ({
       </h1>
       <div className="flex items-start justify-center gap-1.5 pt-1">
         <Lock className="w-3 h-3 text-muted-foreground/70 mt-[1px]" />
-        <p className="text-[11px] text-muted-foreground/70">
+        <p className="text-[11px] text-muted-foreground/70 text-balance">
           Your information is secure and never sold or shared with third parties.
         </p>
       </div>
