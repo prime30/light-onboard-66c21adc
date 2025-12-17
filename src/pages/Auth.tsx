@@ -3995,11 +3995,33 @@ const TaxExemptionForm = ({
 }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const [parallaxOffset, setParallaxOffset] = useState(0);
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
   // Step number varies by account type: professional=6, salon=5
   const stepNumber = accountType === "professional" ? 6 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
+  const blogImageRef = useRef<HTMLDivElement>(null);
+  
+  // Scroll-based parallax effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!blogImageRef.current) return;
+      const rect = blogImageRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const elementCenter = rect.top + rect.height / 2;
+      const viewportCenter = windowHeight / 2;
+      const offset = (elementCenter - viewportCenter) * 0.15; // 15% parallax strength
+      setParallaxOffset(Math.max(-30, Math.min(30, offset))); // Clamp between -30 and 30px
+    };
+    
+    // Find the scroll container (modal content)
+    const scrollContainer = blogImageRef.current?.closest('[data-scroll-container]') || window;
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial calculation
+    
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [showToast]);
   
   const TOAST_DURATION = 5000; // 5 seconds
   
@@ -4080,11 +4102,12 @@ const TaxExemptionForm = ({
               className="relative block rounded-xl bg-background hover:opacity-90 transition-all duration-300 group"
             >
               {/* Image */}
-              <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
+              <div ref={blogImageRef} className="relative aspect-[16/9] overflow-hidden rounded-xl">
                 <img 
                   src={blogResaleLicense} 
                   alt="Professional reviewing business documents" 
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out scale-110 group-hover:scale-[1.15] group-hover:-translate-y-1"
+                  className="w-full h-full object-cover transition-transform duration-100 ease-out scale-110"
+                  style={{ transform: `scale(1.1) translateY(${parallaxOffset}px)` }}
                 />
                 <div className="absolute top-3 left-3 flex gap-1.5">
                   <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
