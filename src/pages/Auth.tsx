@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -658,12 +658,23 @@ const CircularProgress = ({
 };
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<AuthMode>("signup");
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
+  
+  // Handle incoming navigation state to advance to specific step
+  useEffect(() => {
+    const state = location.state as { advanceToStep?: Step } | null;
+    if (state?.advanceToStep) {
+      setCurrentStep(state.advanceToStep);
+      // Clear the state to prevent re-triggering on re-renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
