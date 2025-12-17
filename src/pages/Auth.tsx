@@ -104,59 +104,32 @@ const testimonials = [{
 }];
 
 // Country codes for phone numbers
-const countryCodes = [{
-  code: "+1",
-  country: "US",
-  flag: "🇺🇸"
-}, {
-  code: "+1",
-  country: "CA",
-  flag: "🇨🇦"
-}, {
-  code: "+44",
-  country: "UK",
-  flag: "🇬🇧"
-}, {
-  code: "+61",
-  country: "AU",
-  flag: "🇦🇺"
-}, {
-  code: "+33",
-  country: "FR",
-  flag: "🇫🇷"
-}, {
-  code: "+49",
-  country: "DE",
-  flag: "🇩🇪"
-}, {
-  code: "+39",
-  country: "IT",
-  flag: "🇮🇹"
-}, {
-  code: "+34",
-  country: "ES",
-  flag: "🇪🇸"
-}, {
-  code: "+81",
-  country: "JP",
-  flag: "🇯🇵"
-}, {
-  code: "+86",
-  country: "CN",
-  flag: "🇨🇳"
-}, {
-  code: "+91",
-  country: "IN",
-  flag: "🇮🇳"
-}, {
-  code: "+52",
-  country: "MX",
-  flag: "🇲🇽"
-}, {
-  code: "+55",
-  country: "BR",
-  flag: "🇧🇷"
-}];
+const countryCodes = [
+  { code: "+1", country: "US", iso: "us" },
+  { code: "+1", country: "CA", iso: "ca" },
+  { code: "+44", country: "UK", iso: "gb" },
+  { code: "+61", country: "AU", iso: "au" },
+  { code: "+33", country: "FR", iso: "fr" },
+  { code: "+49", country: "DE", iso: "de" },
+  { code: "+39", country: "IT", iso: "it" },
+  { code: "+34", country: "ES", iso: "es" },
+  { code: "+81", country: "JP", iso: "jp" },
+  { code: "+86", country: "CN", iso: "cn" },
+  { code: "+91", country: "IN", iso: "in" },
+  { code: "+52", country: "MX", iso: "mx" },
+  { code: "+55", country: "BR", iso: "br" },
+];
+
+// Flag component using flagcdn.com for consistent cross-platform rendering
+const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
+  <img 
+    src={`https://flagcdn.com/w40/${iso}.png`}
+    srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
+    alt={iso.toUpperCase()}
+    className={cn("w-5 h-auto rounded-sm object-cover", className)}
+    loading="lazy"
+  />
+);
 
 // Phone number validation - validates the local number part (without country code)
 const isValidPhoneNumber = (phone: string): boolean => {
@@ -3980,19 +3953,24 @@ const ContactInfoForm = ({
         <div className="flex gap-2">
           {/* Country Code Selector */}
           <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
-            <SelectTrigger className={cn("w-[100px] h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
+            <SelectTrigger className={cn("w-[110px] h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
               <SelectValue>
-                {countryCodes.find(c => c.code === phoneCountryCode)?.flag} {phoneCountryCode}
+                <span className="flex items-center gap-2">
+                  <CountryFlag iso={countryCodes.find(c => c.code === phoneCountryCode)?.iso || "us"} />
+                  <span>{phoneCountryCode}</span>
+                </span>
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-background border border-border z-50">
-              {countryCodes.map((country, index) => <SelectItem key={`${country.code}-${country.country}-${index}`} value={country.code}>
+              {countryCodes.map((country, index) => (
+                <SelectItem key={`${country.code}-${country.country}-${index}`} value={country.code}>
                   <span className="flex items-center gap-2">
-                    <span>{country.flag}</span>
+                    <CountryFlag iso={country.iso} />
                     <span>{country.code}</span>
                     <span className="text-muted-foreground text-xs">({country.country})</span>
                   </span>
-                </SelectItem>)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           
