@@ -2390,10 +2390,7 @@ const Auth = () => {
             "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
-            {/* Minimal scroll wheel indicator */}
-            <div className="w-[18px] h-[28px] rounded-full border border-muted-foreground/25 flex justify-center pt-1.5">
-              <div className="w-[4px] h-[7px] rounded-full bg-muted-foreground/40 animate-scroll-wheel" />
-            </div>
+            <div className="w-[4px] h-[8px] rounded-full bg-muted-foreground/40 animate-scroll-wheel" />
           </div>
         )}
 
