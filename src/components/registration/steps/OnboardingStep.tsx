@@ -77,10 +77,22 @@ const features = [
   { icon: Star, label: "Wholesale", desc: "Pro pricing" },
 ];
 
-const AnimatedNumber = ({ value, suffix }: { value: number; suffix: string }) => {
+const AnimatedNumber = ({ value, suffix, delay = 0 }: { value: number; suffix: string; delay?: number }) => {
   const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
   
   useEffect(() => {
+    // Wait for entrance animation + delay before starting counter
+    const startTimer = setTimeout(() => {
+      setHasStarted(true);
+    }, delay);
+    
+    return () => clearTimeout(startTimer);
+  }, [delay]);
+  
+  useEffect(() => {
+    if (!hasStarted) return;
+    
     const duration = 1500;
     const startTime = performance.now();
     
@@ -100,9 +112,9 @@ const AnimatedNumber = ({ value, suffix }: { value: number; suffix: string }) =>
     };
     
     requestAnimationFrame(animate);
-  }, [value]);
+  }, [value, hasStarted]);
   
-  return <span>{count}{suffix}</span>;
+  return <span>{hasStarted ? count : 0}{suffix}</span>;
 };
 
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
@@ -222,9 +234,16 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           <div className="flex items-end justify-between mt-8">
             <div className="flex gap-6">
               {stats.map((stat, i) => (
-                <div key={i} className="text-center">
+                <div 
+                  key={i} 
+                  className="text-center opacity-0 animate-fade-in"
+                  style={{ 
+                    animationDelay: `${600 + i * 100}ms`,
+                    animationFillMode: 'forwards'
+                  }}
+                >
                   <div className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={800 + i * 100} />
                   </div>
                   <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
                     {stat.label}
