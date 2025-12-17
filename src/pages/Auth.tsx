@@ -3196,13 +3196,13 @@ const LicenseForm = ({
         {/* Salon-specific fields */}
         {isSalon && <>
             {/* Salon Size */}
-            <div className="flex items-center justify-between gap-4">
-              <Label className={cn("text-sm font-medium whitespace-nowrap", salonSizeError && "text-destructive")}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+              <Label className={cn("text-sm font-medium", salonSizeError && "text-destructive")}>
                 What's the size of your salon?*
               </Label>
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col gap-1">
                 <Select value={salonSize} onValueChange={onSalonSizeChange}>
-                  <SelectTrigger className={cn("w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -3216,13 +3216,13 @@ const LicenseForm = ({
             </div>
 
             {/* Salon Structure */}
-            <div className="flex items-center justify-between gap-4">
-              <Label className={cn("text-sm font-medium whitespace-nowrap", salonStructureError && "text-destructive")}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+              <Label className={cn("text-sm font-medium", salonStructureError && "text-destructive")}>
                 Select your salon structure*
               </Label>
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col gap-1">
                 <Select value={salonStructure} onValueChange={onSalonStructureChange}>
-                  <SelectTrigger className={cn("w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted/60 transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent className="rounded-[15px] bg-background border border-border z-50">
