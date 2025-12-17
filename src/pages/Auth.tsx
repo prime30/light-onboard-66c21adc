@@ -2378,8 +2378,8 @@ const Auth = () => {
                   "transition-all duration-300 ease-out overflow-hidden",
                   mode === "signup" && currentStep !== "onboarding" ? "w-[55px] opacity-100" : "w-0 opacity-0"
                 )}>
-                  <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 btn-lift group">
-                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-x-0.5" />
+                  <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80">
+                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" />
                   </Button>
                 </div>
                 <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
