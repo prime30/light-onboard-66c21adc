@@ -913,6 +913,7 @@ const Auth = () => {
   
   // Parallax scroll effect for mobile hero
   const [parallaxOffset, setParallaxOffset] = useState(0);
+  const [headerGradientOpacity, setHeaderGradientOpacity] = useState(0);
   const [isScrollable, setIsScrollable] = useState(false);
   
   // Scroll hint reappear delay
@@ -948,6 +949,10 @@ const Auth = () => {
       const scrollTop = el.scrollTop;
       // Parallax factor - image moves at 30% of scroll speed
       setParallaxOffset(scrollTop * 0.3);
+      
+      // Dynamic header gradient opacity based on scroll position (0-200px range)
+      const gradientOpacity = Math.min(scrollTop / 200, 1);
+      setHeaderGradientOpacity(gradientOpacity);
       
       // Hide scroll hint immediately when scrolling past 50px
       if (scrollTop > 50) {
@@ -2265,10 +2270,11 @@ const Auth = () => {
 
         {/* Subtle gradient below header on mobile */}
         <div 
-          className={cn(
-            "lg:hidden absolute top-[70px] sm:top-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-b from-background via-background/70 via-40% to-transparent z-10 transition-all duration-500 ease-out",
-            hasScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-          )} 
+          className="lg:hidden absolute top-[70px] sm:top-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-b from-background via-background/70 via-40% to-transparent z-10 transition-all duration-300 ease-out"
+          style={{ 
+            opacity: headerGradientOpacity,
+            transform: `translateY(${-8 + headerGradientOpacity * 8}px)`
+          }}
         />
 
         <main 
