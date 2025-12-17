@@ -3933,8 +3933,9 @@ const WholesaleTermsForm = ({
         >
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" />
           <p className="text-sm text-destructive/90 leading-relaxed text-balance">
-            If you use your client's card to directly purchase professional hair at wholesale pricing, we reserve the right to cancel and ban your account according to our{" "}
-            <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>.
+            Using a client's payment method to purchase wholesale products violates our{" "}
+            <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>{" "}
+            and may result in account termination.
           </p>
           {/* Countdown timer bar */}
           <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive/10 overflow-hidden">
