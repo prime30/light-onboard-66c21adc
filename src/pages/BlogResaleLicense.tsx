@@ -70,7 +70,7 @@ const BlogResaleLicense = () => {
               
               {/* Section 1 */}
               <section>
-                <h2 className="font-termina text-xl font-medium uppercase tracking-[-0.006em] mb-4 flex items-center gap-3">
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
                   <FileText className="w-6 h-6 text-primary shrink-0" />
                   What is a Resale License?
                 </h2>
@@ -81,7 +81,7 @@ const BlogResaleLicense = () => {
 
               {/* Section 2 */}
               <section>
-                <h2 className="font-termina text-xl font-medium uppercase tracking-[-0.006em] mb-4 flex items-center gap-3">
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-status-green shrink-0" />
                   Benefits of Having a Resale License
                 </h2>
@@ -107,7 +107,7 @@ const BlogResaleLicense = () => {
 
               {/* Section 3 */}
               <section>
-                <h2 className="font-termina text-xl font-medium uppercase tracking-[-0.006em] mb-4 flex items-center gap-3">
+                <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-center gap-3">
                   <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
                   How to Get Your Resale License
                 </h2>
