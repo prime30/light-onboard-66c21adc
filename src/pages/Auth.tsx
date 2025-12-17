@@ -2076,7 +2076,7 @@ const Auth = () => {
           {/* Left side - Auth Toggle + Step Indicator */}
           <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px]">
             {/* Auth Toggle */}
-            <div className="inline-flex bg-muted backdrop-blur-sm rounded-full p-[5px] border border-border/50 relative flex-shrink-0">
+            <div className="inline-flex bg-border backdrop-blur-sm rounded-full p-[5px] border border-border relative flex-shrink-0">
               {/* Sliding pill indicator */}
               <div className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" style={{
                 left: mode === "signup" ? "5px" : "50%",
@@ -3005,7 +3005,7 @@ const OnboardingForm = ({
       }, {
         icon: Mail,
         label: "Follow post-approval instructions to finalize account"
-      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
+      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted border border-border text-left opacity-0 animate-step-card-enter" style={{
         animationDelay: `${400 + i * 150}ms`,
         animationFillMode: 'forwards'
       }}>
