@@ -187,7 +187,7 @@ const AnimatedNumber = ({
   return <span>{count}{suffix}</span>;
 };
 
-// Special animated counter that counts to 2000 with 4 digits, showing K at milestones
+// Special animated counter that counts to 2000 with decreasing increments
 const AnimatedProductCount = ({
   delay = 0,
   totalDuration = 2600
@@ -199,24 +199,30 @@ const AnimatedProductCount = ({
   const targetValue = 2000;
   
   useEffect(() => {
+    // Build sequence: hundreds until 1800, tens until 1980, then singles
+    const sequence: number[] = [];
+    // Count by hundreds: 0, 100, 200... 1800
+    for (let i = 0; i <= 1800; i += 100) sequence.push(i);
+    // Count by tens: 1810, 1820... 1980
+    for (let i = 1810; i <= 1980; i += 10) sequence.push(i);
+    // Count by singles: 1981, 1982... 2000
+    for (let i = 1981; i <= 2000; i += 1) sequence.push(i);
+    
     const duration = totalDuration - delay;
-    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    const stepDuration = duration / sequence.length;
     
     const timeoutId = setTimeout(() => {
-      const startTime = performance.now();
-      const animate = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easeOutCubic(progress);
-        setCount(Math.floor(easedProgress * targetValue));
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          setCount(targetValue);
+      let stepIndex = 0;
+      const animate = () => {
+        if (stepIndex < sequence.length) {
+          setCount(sequence[stepIndex]);
+          stepIndex++;
+          setTimeout(animate, stepDuration);
         }
       };
-      requestAnimationFrame(animate);
+      animate();
     }, delay);
+    
     return () => clearTimeout(timeoutId);
   }, [delay, totalDuration]);
   
