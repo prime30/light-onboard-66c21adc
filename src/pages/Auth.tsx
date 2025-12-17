@@ -735,6 +735,11 @@ const Auth = () => {
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
   const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
 
+  // Additional profile fields
+  const [birthday, setBirthday] = useState("");
+  const [socialMediaHandle, setSocialMediaHandle] = useState("");
+  const [referralSource, setReferralSource] = useState("");
+
   // Subscription preferences
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
   const [subscribeMarketing, setSubscribeMarketing] = useState(true);
@@ -1085,7 +1090,7 @@ const Auth = () => {
         }
         return hasTaxExemption !== null;
       case "contact-info":
-        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
       default:
         return true;
     }
@@ -1104,8 +1109,9 @@ const Auth = () => {
     if (accountType === "student") {
       const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
-      return schoolValid && wholesaleValid && contactValid;
+      const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+      return schoolValid && wholesaleValid && taxValid && contactValid;
     }
 
     // Salon flow
@@ -1114,7 +1120,7 @@ const Auth = () => {
       const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
       const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
       return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
     }
 
@@ -1124,7 +1130,7 @@ const Auth = () => {
     const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
     const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
     return licenseValid && businessOperationValid && businessValid && wholesaleValid && taxValid && contactValid;
   };
 
@@ -1174,14 +1180,27 @@ const Auth = () => {
           missingFields: ["Terms Agreement"]
         });
       }
-      // Step 4: Contact Info
+      // Step 4: Tax Exemption
+      const studentTaxMissing: string[] = [];
+      if (hasTaxExemption === null) studentTaxMissing.push("Exemption Status");
+      else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax Document");
+      if (studentTaxMissing.length > 0) {
+        incomplete.push({
+          step: 4,
+          name: "Tax Exemption",
+          missingFields: studentTaxMissing
+        });
+      }
+      // Step 5: Contact Info
       const contactMissing: string[] = [];
       if (firstName.trim() === "") contactMissing.push("First Name");
       if (lastName.trim() === "") contactMissing.push("Last Name");
       if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone Number");
+      if (birthday.trim() === "") contactMissing.push("Birthday");
+      if (socialMediaHandle.trim() === "") contactMissing.push("Social Media");
       if (contactMissing.length > 0) {
         incomplete.push({
-          step: 4,
+          step: 5,
           name: "Contact Info",
           missingFields: contactMissing
         });
@@ -1240,6 +1259,8 @@ const Auth = () => {
       if (firstName.trim() === "") salonContactMissing.push("First Name");
       if (lastName.trim() === "") salonContactMissing.push("Last Name");
       if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone Number");
+      if (birthday.trim() === "") salonContactMissing.push("Birthday");
+      if (socialMediaHandle.trim() === "") salonContactMissing.push("Social Media");
       if (salonContactMissing.length > 0) {
         incomplete.push({
           step: 6,
@@ -1306,6 +1327,8 @@ const Auth = () => {
     if (firstName.trim() === "") proContactMissing.push("First Name");
     if (lastName.trim() === "") proContactMissing.push("Last Name");
     if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone Number");
+    if (birthday.trim() === "") proContactMissing.push("Birthday");
+    if (socialMediaHandle.trim() === "") proContactMissing.push("Social Media");
     if (proContactMissing.length > 0) {
       incomplete.push({
         step: 7,
@@ -2195,7 +2218,7 @@ const Auth = () => {
                       setIsTransitioning(false);
                     }, 150);
                   }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
+                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} birthday={birthday} socialMediaHandle={socialMediaHandle} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} onBirthdayChange={setBirthday} onSocialMediaHandleChange={setSocialMediaHandle} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "" || birthday.trim() !== "" || socialMediaHandle.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
                 file: licenseFile,
                 label: accountType === "salon" ? "Salon License" : "License"
               }] : []), ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({
@@ -2208,7 +2231,7 @@ const Auth = () => {
                 file: taxExemptFile,
                 label: "Tax Exemption Document"
               }] : [])]} />}
-                  {currentStep === "success" && <SuccessForm />}
+                  {currentStep === "success" && <SuccessForm referralSource={referralSource} onReferralSourceChange={setReferralSource} />}
                 </>}
             </div>}
         </main>
@@ -3903,11 +3926,15 @@ const ContactInfoForm = ({
   preferredName,
   phoneNumber,
   phoneCountryCode,
+  birthday,
+  socialMediaHandle,
   onFirstNameChange,
   onLastNameChange,
   onPreferredNameChange,
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
+  onBirthdayChange,
+  onSocialMediaHandleChange,
   subscribeOrderUpdates,
   subscribeMarketing,
   subscribePromotions,
@@ -3924,11 +3951,15 @@ const ContactInfoForm = ({
   preferredName: string;
   phoneNumber: string;
   phoneCountryCode: string;
+  birthday: string;
+  socialMediaHandle: string;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onPhoneCountryCodeChange: (value: string) => void;
+  onBirthdayChange: (value: string) => void;
+  onSocialMediaHandleChange: (value: string) => void;
   subscribeOrderUpdates: boolean;
   subscribeMarketing: boolean;
   subscribePromotions: boolean;
@@ -3947,10 +3978,12 @@ const ContactInfoForm = ({
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
+  const birthdayError = showValidationErrors && birthday.trim() === "";
+  const socialMediaError = showValidationErrors && socialMediaHandle.trim() === "";
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   // Step number varies by account type: professional=7, salon=6, student=4
-  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 4 : 6;
+  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -4033,13 +4066,56 @@ const ContactInfoForm = ({
         {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
       </div>
 
+      {/* Birthday */}
+      <div className="space-y-2.5 animate-stagger-5 group">
+        <Label htmlFor="birthday" className={cn("text-sm font-medium label-float", birthdayError && "text-destructive")}>
+          Birthday*
+        </Label>
+        <div className="input-glow input-ripple rounded-[15px]">
+          <Input 
+            id="birthday" 
+            type="date" 
+            value={birthday} 
+            onChange={e => onBirthdayChange(e.target.value)} 
+            className={cn(
+              "h-[50px] rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              birthdayError && "border-destructive/50 bg-destructive/5"
+            )} 
+          />
+        </div>
+        {birthdayError && <p className="text-xs text-destructive">Birthday is required</p>}
+      </div>
+
+      {/* Social Media Handle */}
+      <div className="space-y-2.5 animate-stagger-6 group">
+        <Label htmlFor="socialMediaHandle" className={cn("text-sm font-medium label-float", socialMediaError && "text-destructive")}>
+          Social media handle*
+        </Label>
+        <div className="relative input-glow input-ripple rounded-[15px]">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">@</span>
+          <Input 
+            id="socialMediaHandle" 
+            type="text" 
+            placeholder="yourusername" 
+            value={socialMediaHandle} 
+            onChange={e => onSocialMediaHandleChange(e.target.value.replace(/^@/, ''))} 
+            className={cn(
+              "h-[50px] pl-9 rounded-[15px] bg-muted/50 border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
+              socialMediaError && "border-destructive/50 bg-destructive/5"
+            )} 
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">Instagram, TikTok, or your primary platform</p>
+        {socialMediaError && <p className="text-xs text-destructive">Social media handle is required</p>}
+      </div>
+
       {/* Uploaded Files Summary */}
-      {uploadedFiles.length > 0 && <div className="animate-stagger-5">
+      {uploadedFiles.length > 0 && <div className="animate-stagger-7">
           <FileSummary files={uploadedFiles} title="Your Uploaded Documents" />
         </div>}
 
       {/* Subscription Preferences */}
-      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/30 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-6" : "animate-stagger-5")}>
+      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/30 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
         <p className="text-sm font-medium text-foreground">Communication Preferences</p>
         <div className="space-y-3">
           <label className="flex items-start gap-3 cursor-pointer group">
@@ -4369,13 +4445,31 @@ const PersonalInfoForm = ({
       </div>
     </div>
   </div>;
-const SuccessForm = () => {
+const SuccessForm = ({
+  referralSource,
+  onReferralSourceChange
+}: {
+  referralSource: string;
+  onReferralSourceChange: (value: string) => void;
+}) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const handleAddToCart = () => {
     setIsAddingToCart(true);
   };
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
+  
+  const referralOptions = [
+    { value: "instagram", label: "Instagram" },
+    { value: "tiktok", label: "TikTok" },
+    { value: "facebook", label: "Facebook" },
+    { value: "google", label: "Google Search" },
+    { value: "friend", label: "Friend or Colleague" },
+    { value: "salon", label: "My Salon" },
+    { value: "event", label: "Industry Event" },
+    { value: "other", label: "Other" }
+  ];
+
   return <div className="space-y-[25px] animate-fade-in text-center">
     {/* Success Icon */}
     <div className="relative h-[130px] mb-5">
@@ -4413,6 +4507,35 @@ const SuccessForm = () => {
       <p className="text-muted-foreground">
         Your account has been successfully submitted. Our team will review and approve or deny your professional account within 24 hours.
       </p>
+    </div>
+
+    {/* How did you hear about us */}
+    <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50 text-left space-y-3">
+      <div className="flex items-center gap-3">
+        <div className="w-[40px] h-[40px] rounded-[12px] bg-foreground/10 flex items-center justify-center">
+          <Users className="w-[20px] h-[20px] text-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">One quick question</p>
+          <p className="text-xs text-muted-foreground">How did you hear about us?</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {referralOptions.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => onReferralSourceChange(option.value)}
+            className={cn(
+              "p-3 rounded-xl border text-left text-sm transition-all duration-200",
+              referralSource === option.value
+                ? "border-foreground bg-foreground/5 font-medium"
+                : "border-border/50 hover:border-foreground/30 hover:bg-muted/50"
+            )}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
 
     <div className="p-5 rounded-[20px] bg-muted/50 border border-border/50">
