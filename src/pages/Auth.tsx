@@ -2265,7 +2265,7 @@ const Auth = () => {
 
         <main 
           ref={mainScrollRef} 
-          className={cn("flex-1 flex flex-col items-center pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] sm:px-5 md:px-[25px] lg:px-[30px] pb-20 lg:pb-5 overflow-y-auto", showStepIndicator ? "pt-0" : "pt-2")}
+          className={cn("flex-1 flex flex-col items-center px-5 sm:px-5 md:px-[25px] lg:px-[30px] pb-20 lg:pb-5 overflow-y-auto scrollbar-hide", showStepIndicator ? "pt-0" : "pt-2")}
           onTouchStart={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeStart : undefined}
           onTouchMove={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeMove : undefined}
           onTouchEnd={(mode === "signin" || currentStep === "onboarding") ? handleMainSwipeEnd : undefined}
