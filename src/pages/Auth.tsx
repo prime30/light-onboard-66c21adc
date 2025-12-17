@@ -3734,19 +3734,43 @@ const TaxExemptionForm = ({
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
+  const [showToast, setShowToast] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
   // Step number varies by account type: professional=6, salon=5
   const stepNumber = accountType === "professional" ? 6 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
   
+  const TOAST_DURATION = 5000; // 5 seconds
+  
   const handleYesClick = () => {
     onTaxExemptionChange(true);
+    setShowToast(false);
     // Scroll to file upload after a brief delay for animation
     setTimeout(() => {
       fileUploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 150);
   };
+  
+  const handleNoClick = () => {
+    onTaxExemptionChange(false);
+    onTaxExemptFileChange(null);
+    setShowToast(true);
+    setToastKey(prev => prev + 1);
+  };
+  
+  useEffect(() => {
+    if (showToast && hasTaxExemption === false) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+        // Auto-advance after toast ends
+        onAutoAdvance?.();
+      }, TOAST_DURATION);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast, toastKey, hasTaxExemption, onAutoAdvance]);
+
   return <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -3775,14 +3799,7 @@ const TaxExemptionForm = ({
             </div>
             <span className={cn("text-sm font-medium", selectionError ? "text-destructive" : "text-foreground")}>Yes</span>
           </button>
-          <button onClick={() => {
-          onTaxExemptionChange(false);
-          onTaxExemptFileChange(null);
-          // Auto-advance after grace period when No is selected
-          setTimeout(() => {
-            onAutoAdvance?.();
-          }, 800);
-        }} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
+          <button onClick={handleNoClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
@@ -3790,6 +3807,35 @@ const TaxExemptionForm = ({
           </button>
         </div>
         {selectionError && <p className="text-xs text-destructive text-center">Please select an option</p>}
+      </div>
+      
+      {/* Toast message when No is selected */}
+      <div className={cn(
+        "grid transition-all duration-400",
+        showToast && hasTaxExemption === false ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+        <div className="overflow-hidden">
+          <div 
+            key={toastKey}
+            className="relative overflow-hidden rounded-xl bg-primary/10 border border-primary/20 mt-0 animate-haptic-pop"
+          >
+            <div className="flex gap-3 p-4">
+              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-primary">
+                No problem! Learn more: <a href="/blog/resale-license" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary/80 transition-colors font-medium">Why you need a resale license in your state</a>
+              </p>
+            </div>
+            {/* Countdown timer bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary/10 overflow-hidden">
+              <div 
+                className="h-full bg-primary/30 origin-right rounded-full"
+                style={{
+                  animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* File upload - shown when Yes is selected */}
