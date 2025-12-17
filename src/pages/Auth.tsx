@@ -2166,7 +2166,17 @@ const Auth = () => {
                       setIsTransitioning(false);
                     }, 150);
                   }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
-                  {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
+                  {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} onAutoAdvance={() => {
+                    // Auto-advance to contact-info step when No is selected
+                    const stepNum = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
+                    setCompletedSteps(prev => new Set([...prev, stepNum]));
+                    setTransitionDirection("forward");
+                    setIsTransitioning(true);
+                    setTimeout(() => {
+                      setCurrentStep("contact-info");
+                      setIsTransitioning(false);
+                    }, 150);
+                  }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
                   {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
                 file: licenseFile,
                 label: accountType === "salon" ? "Salon License" : "License"
@@ -3705,6 +3715,7 @@ const TaxExemptionForm = ({
   taxExemptFile,
   onTaxExemptionChange,
   onTaxExemptFileChange,
+  onAutoAdvance,
   showValidationErrors = false,
   validationStatus
 }: {
@@ -3713,6 +3724,7 @@ const TaxExemptionForm = ({
   taxExemptFile: File | null;
   onTaxExemptionChange: (value: boolean) => void;
   onTaxExemptFileChange: (file: File | null) => void;
+  onAutoAdvance?: () => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
@@ -3760,6 +3772,10 @@ const TaxExemptionForm = ({
           <button onClick={() => {
           onTaxExemptionChange(false);
           onTaxExemptFileChange(null);
+          // Auto-advance after grace period when No is selected
+          setTimeout(() => {
+            onAutoAdvance?.();
+          }, 800);
         }} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/5" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/50")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
