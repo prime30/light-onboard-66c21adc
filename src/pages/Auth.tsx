@@ -4095,14 +4095,14 @@ const TaxExemptionForm = ({
           </p>
           
           {/* Blog card */}
-          <div className="rounded-[20px] border border-border/50 p-4 pb-5 animate-[slideUpFade_0.4s_ease-out_0.1s_both]">
+          <div className="rounded-[28px] border border-border/50 p-4 pb-5 animate-[slideUpFade_0.4s_ease-out_0.1s_both]">
             <Link 
               to="/blog/resale-license"
               key={toastKey}
-              className="relative block rounded-xl bg-background hover:opacity-90 transition-all duration-300 group"
+              className="relative block rounded-[12px] bg-background hover:opacity-90 transition-all duration-300 group"
             >
               {/* Image */}
-              <div ref={blogImageRef} className="relative aspect-[16/9] overflow-hidden rounded-xl">
+              <div ref={blogImageRef} className="relative aspect-[16/9] overflow-hidden rounded-[12px]">
                 <img 
                   src={blogResaleLicense} 
                   alt="Professional reviewing business documents" 
