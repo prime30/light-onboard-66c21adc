@@ -2392,7 +2392,7 @@ const Auth = () => {
                   <PopoverTrigger asChild>
                     {/* Wrap the button so hover works even when the button is disabled */}
                     <span
-                      className="flex-1 block transition-all duration-300 ease-out"
+                      className="flex-1 block"
                       onMouseEnter={() => {
                         if (submitPopoverCloseTimer.current) {
                           window.clearTimeout(submitPopoverCloseTimer.current);
