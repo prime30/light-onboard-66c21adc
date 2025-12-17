@@ -4073,58 +4073,60 @@ const TaxExemptionForm = ({
           </p>
           
           {/* Blog card */}
-          <Link 
-            to="/blog/resale-license"
-            key={toastKey}
-            className="relative block overflow-hidden rounded-xl bg-background hover:opacity-90 transition-all duration-300 group animate-[slideUpFade_0.4s_ease-out_0.1s_both]"
-          >
-            {/* Image */}
-            <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
-              <img 
-                src={blogResaleLicense} 
-                alt="Professional reviewing business documents" 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute top-3 left-3 flex gap-1.5">
-                <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Licensing
-                </span>
-                <span className="px-2.5 py-1 rounded-full bg-muted/90 backdrop-blur-sm text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
-                  Optional
-                </span>
-              </div>
-            </div>
-            
-            {/* Content */}
-            <div className="py-4 px-0">
-              {/* Meta */}
-              <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>Dec 15, 2024</span>
+          <div className="rounded-[15px] border border-border/50 p-4 animate-[slideUpFade_0.4s_ease-out_0.1s_both]">
+            <Link 
+              to="/blog/resale-license"
+              key={toastKey}
+              className="relative block overflow-hidden rounded-xl bg-background hover:opacity-90 transition-all duration-300 group"
+            >
+              {/* Image */}
+              <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
+                <img 
+                  src={blogResaleLicense} 
+                  alt="Professional reviewing business documents" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute top-3 left-3 flex gap-1.5">
+                  <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
+                    Licensing
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-muted/90 backdrop-blur-sm text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+                    Optional
+                  </span>
                 </div>
-                <span>·</span>
-                <span>5 min read</span>
               </div>
               
-              {/* Title */}
-              <h3 className="font-semibold text-sm mb-1.5 group-hover:text-primary transition-colors">
-                Here's how to save from paying sales tax
-              </h3>
+              {/* Content */}
+              <div className="pt-4">
+                {/* Meta */}
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>Dec 15, 2024</span>
+                  </div>
+                  <span>·</span>
+                  <span>5 min read</span>
+                </div>
+                
+                {/* Title */}
+                <h3 className="font-semibold text-sm mb-1.5 group-hover:text-primary transition-colors">
+                  Here's how to save from paying sales tax
+                </h3>
+                
+                {/* Description */}
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                  Understanding the importance of a resale license can save you money and keep your business compliant.
+                </p>
+                
+                {/* Read more */}
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                  Read more
+                  <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+              </div>
               
-              {/* Description */}
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                Understanding the importance of a resale license can save you money and keep your business compliant.
-              </p>
-              
-              {/* Read more */}
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground group-hover:text-primary transition-colors">
-                Read more
-                <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </span>
-            </div>
-            
-          </Link>
+            </Link>
+          </div>
         </div>
       </div>
       
