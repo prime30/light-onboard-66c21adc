@@ -1112,8 +1112,8 @@ const Auth = () => {
     const touchY = e.touches[0].clientY;
     const relativeY = touchY - modalRect.top;
     
-    // Allow drag if started within top 160px (includes area below drag handle)
-    if (relativeY <= 160) {
+    // Allow drag if started within top 50px (just the drag handle area)
+    if (relativeY <= 50) {
       isDragFromTop.current = true;
       modalTouchStartY.current = touchY;
     } else {
