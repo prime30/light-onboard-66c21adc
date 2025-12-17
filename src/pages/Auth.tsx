@@ -640,6 +640,8 @@ const Auth = () => {
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
+  // Display total steps - locked during account-type step to prevent indicator jump
+  const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
   
   // Handle incoming navigation state to advance to specific step
   useEffect(() => {
@@ -1462,6 +1464,10 @@ const Auth = () => {
     if (type) {
       // Auto-advance after grace period - navigate directly to next step
       setTimeout(() => {
+        // Update display total steps based on selected type BEFORE transitioning
+        const newTotal = type === "student" ? 4 : type === "professional" ? 7 : 6;
+        setDisplayTotalSteps(newTotal);
+        
         // Mark step 1 as completed
         setCompletedSteps(prev => new Set([...prev, 1]));
         // Calculate next step based on selected type
@@ -1702,7 +1708,7 @@ const Auth = () => {
   };
   const goToStep = (stepNum: number) => {
     // Handle onboarding step (step 0) and success step
-    const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber();
+    const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
@@ -1950,8 +1956,8 @@ const Auth = () => {
                 {/* Sliding track that moves based on current step */}
                 <div className="flex items-center transition-transform duration-500 ease-out" style={{
                 // Adjust transform to account for intro step (step 0) and success step at end
-                // Total visual steps = 1 (intro) + getTotalSteps() + 1 (success)
-                transform: `translateX(${((getTotalSteps() + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? getTotalSteps() + 1 : getCurrentStepNumber()) - 0.5) * 44}px)`
+                // Total visual steps = 1 (intro) + displayTotalSteps + 1 (success)
+                transform: `translateX(${((displayTotalSteps + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber()) - 0.5) * 44}px)`
               }}>
                   {/* Intro/Onboarding step with icon */}
                   <button 
@@ -1999,7 +2005,7 @@ const Auth = () => {
 
                   {/* Regular numbered steps */}
                   {Array.from({
-                  length: getTotalSteps()
+                  length: displayTotalSteps
                 }, (_, i) => {
                   const stepNum = i + 1;
                   const currentStepNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
@@ -2008,7 +2014,7 @@ const Auth = () => {
                   const isPassed = currentStepNum > stepNum;
                   const isCompleted = completedSteps.has(stepNum);
                   const isPassedButIncomplete = isPassed && !isCompleted;
-                  const isLastStep = i === getTotalSteps() - 1;
+                  const isLastStep = i === displayTotalSteps - 1;
 
                   // Calculate opacity based on distance from center
                   const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
@@ -2053,7 +2059,7 @@ const Auth = () => {
 
                   {/* Success step with flag icon */}
                   {(() => {
-                    const successStepNum = getTotalSteps() + 1;
+                    const successStepNum = displayTotalSteps + 1;
                     const currentStepNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? successStepNum : getCurrentStepNumber();
                     const distance = Math.abs(successStepNum - currentStepNum);
                     const isActive = currentStep === "success";
