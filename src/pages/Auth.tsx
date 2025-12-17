@@ -3158,7 +3158,7 @@ const LicenseForm = ({
   const salonSizeError = showValidationErrors && isSalon && salonSize === "";
   const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
   const stepNumber = accountType === "salon" ? 3 : 2;
-  return <div className="space-y-5 sm:space-y-[30px]">
+  return <div className="space-y-4 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
@@ -3174,14 +3174,14 @@ const LicenseForm = ({
         </p>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-muted/60 border border-border/50 animate-stagger-2">
+      <div className="flex gap-3 p-4 rounded-[15px] bg-muted/60 border border-border/50 animate-stagger-2">
         <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           {isSalon ? "Wholesale pricing shown is exclusive to verified professionals." : "Please enter your license exactly as it appears from the state."}
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* License Number */}
         <div className="space-y-2.5">
           <Label htmlFor="license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
