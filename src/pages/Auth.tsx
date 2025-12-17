@@ -1865,7 +1865,7 @@ const Auth = () => {
             
             {/* Step Indicator */}
             {showStepIndicator && <div 
-              className="flex items-center justify-center h-[50px] flex-1 sm:flex-none sm:max-w-none touch-pan-y"
+              className="flex items-center justify-end sm:justify-center h-[50px] flex-1 sm:flex-none sm:max-w-none touch-pan-y"
               onTouchStart={handleStepSwipeStart}
               onTouchMove={handleStepSwipeMove}
               onTouchEnd={handleStepSwipeEnd}
