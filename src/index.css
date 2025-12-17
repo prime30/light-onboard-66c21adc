@@ -168,6 +168,8 @@
     --muted: 0 0% 96.22%;
     --muted-foreground: 0 0% 45%;
 
+    --default: 0 0% 97.5%;
+
     --accent: 0 0% 92%;
     --accent-foreground: 0 0% 8%;
 
@@ -217,6 +219,8 @@
 
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 55%;
+
+    --default: 0 0% 12%;
 
     --accent: 0 0% 18%;
     --accent-foreground: 0 0% 98%;
