@@ -2391,7 +2391,7 @@ const Auth = () => {
 
         {/* Subtle gradient behind footer on mobile */}
         {footerVisible && (
-          <div className="lg:hidden sticky bottom-[70px] h-[80px] pointer-events-none bg-gradient-to-t from-background via-background/60 to-transparent -mb-[80px]" />
+          <div className="lg:hidden fixed bottom-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-t from-background via-background/60 to-transparent z-0" />
         )}
 
         {/* Footer */}
