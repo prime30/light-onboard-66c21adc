@@ -135,7 +135,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           observer.disconnect(); // Only trigger once
         }
       },
-      { threshold: 0.8, rootMargin: '-50px 0px' }
+      { threshold: 1.0, rootMargin: '-100px 0px -100px 0px' }
     );
 
     if (statsRef.current) {
