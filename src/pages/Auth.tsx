@@ -651,6 +651,16 @@ const Auth = () => {
     }
   }, [location.state]);
 
+  // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
+  useEffect(() => {
+    const originalOverscrollBehavior = document.body.style.overscrollBehavior;
+    document.body.style.overscrollBehavior = 'none';
+    
+    return () => {
+      document.body.style.overscrollBehavior = originalOverscrollBehavior;
+    };
+  }, []);
+
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
 
