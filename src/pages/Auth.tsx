@@ -2831,7 +2831,7 @@ const SignInForm = ({
                 value={email} 
                 onChange={e => onEmailChange(e.target.value)} 
                 onBlur={() => setEmailTouched(true)}
-                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/30 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/80 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
               />
             </div>
             {showEmailError && (
@@ -2894,7 +2894,7 @@ const SignInForm = ({
               value={email} 
               onChange={e => onEmailChange(e.target.value)} 
               onBlur={() => setEmailTouched(true)}
-              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/30 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted/80 ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
             />
           </div>
           {showEmailError && (
@@ -2908,7 +2908,7 @@ const SignInForm = ({
           <label className="flex items-center gap-2.5 cursor-pointer group">
             <div className="relative w-[18px] h-[18px]">
               <input type="checkbox" className="peer sr-only" />
-              <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted/30 peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
+              <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted/80 peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
               <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
             </div>
             <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Remember me</span>
@@ -4365,7 +4365,7 @@ const ContactInfoForm = ({
         </div>}
 
       {/* Subscription Preferences */}
-      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/30 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
+      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted/80 border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
         <p className="text-sm font-medium text-foreground">Communication Preferences</p>
         <div className="space-y-3">
           <label className="flex items-start gap-3 cursor-pointer group">
