@@ -2951,8 +2951,8 @@ const OnboardingForm = ({
       }}>
               <div className="relative w-12 h-12 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
                 <item.icon className="w-5 h-5 text-foreground/70" />
-                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground/10 border border-border flex items-center justify-center">
-                  <span className="text-[9px] font-semibold text-foreground/70">{i + 1}</span>
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                  <span className="text-[9px] font-semibold text-background">{i + 1}</span>
                 </div>
               </div>
               <div className="flex-1 min-w-0">
