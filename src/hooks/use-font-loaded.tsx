@@ -10,8 +10,8 @@ export function useFontLoaded() {
     hasRun.current = true;
 
     // Ensure skeletons are actually visible even on fast loads / Safari quirks
-    const MIN_SKELETON_MS = 500;
-    const MAX_WAIT_MS = 1200;
+    const MIN_SKELETON_MS = 800;
+    const MAX_WAIT_MS = 2000;
 
     let minElapsed = false;
     let finished = false;
