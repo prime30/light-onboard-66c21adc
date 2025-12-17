@@ -1047,6 +1047,24 @@ const Auth = () => {
     modalTouchStartY.current = null;
     isDragFromTop.current = false;
   };
+  
+  // Backdrop touch handler - any touch on backdrop initiates drag
+  const handleBackdropTouchStart = (e: React.TouchEvent) => {
+    // Only enable swipe-down on mobile (< 640px)
+    if (window.innerWidth >= 640) return;
+    
+    const modalElement = modalRef.current;
+    if (!modalElement) return;
+    
+    const modalRect = modalElement.getBoundingClientRect();
+    const touchY = e.touches[0].clientY;
+    
+    // If touch is above the modal, allow drag
+    if (touchY < modalRect.top) {
+      isDragFromTop.current = true;
+      modalTouchStartY.current = touchY;
+    }
+  };
 
   const handleCloseModal = useCallback(() => {
     setIsClosing(true);
@@ -1701,7 +1719,7 @@ const Auth = () => {
         height: "var(--app-height, 100vh)"
       }}
     >
-      {/* Blurred darkened backdrop */}
+      {/* Blurred darkened backdrop - also acts as drag area above modal */}
       <div 
         className={cn(
           "fixed inset-0 backdrop-blur-md cursor-pointer transition-all duration-300",
@@ -1710,7 +1728,10 @@ const Auth = () => {
         style={isClosing ? undefined : {
           backgroundColor: `hsl(var(--foreground) / ${Math.max(0.6 - modalDragOffset * 0.003, 0.2)})`
         }}
-        onClick={handleCloseModal} 
+        onClick={handleCloseModal}
+        onTouchStart={handleBackdropTouchStart}
+        onTouchMove={handleModalTouchMove}
+        onTouchEnd={handleModalTouchEnd}
       />
       
       {/* Modal Container */}
