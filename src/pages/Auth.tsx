@@ -2791,8 +2791,8 @@ const OnboardingForm = ({
           </div>
           <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg. Savings</div>
         </div>
-        <div className="w-px bg-border hidden lg:block" />
-        <div className="hidden lg:block">
+        <div className="w-px bg-border" />
+        <div>
           <div className="text-2xl font-semibold text-foreground">
             <AnimatedNumber value={2} suffix="K+" delay={400} />
           </div>
