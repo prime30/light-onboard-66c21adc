@@ -4084,7 +4084,7 @@ const TaxExemptionForm = ({
                 <img 
                   src={blogResaleLicense} 
                   alt="Professional reviewing business documents" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out scale-110 group-hover:scale-[1.15] group-hover:-translate-y-1"
                 />
                 <div className="absolute top-3 left-3 flex gap-1.5">
                   <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
