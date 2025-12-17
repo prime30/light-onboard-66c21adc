@@ -192,7 +192,7 @@ const Reviews = () => {
               <p className="font-medium mb-1">Ready to get started?</p>
               <p className="text-sm text-muted-foreground">Join thousands of happy stylists.</p>
             </div>
-            <Link to="/auth">
+            <Link to="/auth?step=1">
               <Button className="gap-2 rounded-full">
                 Apply Now
                 <ArrowUpRight className="h-4 w-4" />
