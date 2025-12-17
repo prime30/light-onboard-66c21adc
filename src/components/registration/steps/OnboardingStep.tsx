@@ -269,7 +269,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
                   } : undefined}
                 >
                   <div className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={300 + i * 100} isInView={statsInView} />
+                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={800 + i * 150} isInView={statsInView} />
                   </div>
                   <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
                     {stat.label}
