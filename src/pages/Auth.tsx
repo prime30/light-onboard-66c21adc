@@ -1915,6 +1915,9 @@ const Auth = () => {
           opacity: modalDragOffset > 0 ? Math.max(1 - modalDragOffset * 0.002, 0.85) : undefined
         }}
       >
+        {/* Mobile background gradient - fades to light gray at bottom */}
+        <div className="lg:hidden absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent via-60% to-muted/50" />
+        
         {/* Drag Handle - Mobile Only */}
         <div 
           className={cn(
