@@ -2390,15 +2390,9 @@ const Auth = () => {
             "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
-            {/* Modern scroll wheel indicator */}
-            <div className="relative flex flex-col items-center gap-1.5">
-              <div className="w-[22px] h-[34px] rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
-                <div className="w-[3px] h-[6px] rounded-full bg-muted-foreground/50 animate-scroll-wheel" />
-              </div>
-              <div className="flex flex-col items-center gap-0.5 opacity-40">
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground animate-scroll-chevron-1" />
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground -mt-2 animate-scroll-chevron-2" />
-              </div>
+            {/* Minimal scroll wheel indicator */}
+            <div className="w-[18px] h-[28px] rounded-full border border-muted-foreground/25 flex justify-center pt-1.5">
+              <div className="w-[4px] h-[7px] rounded-full bg-muted-foreground/40 animate-scroll-wheel" />
             </div>
           </div>
         )}
