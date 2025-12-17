@@ -186,6 +186,50 @@ const AnimatedNumber = ({
   }, [value, delay, totalDuration]);
   return <span>{count}{suffix}</span>;
 };
+
+// Special animated counter that counts to 2000 with 4 digits, showing K at milestones
+const AnimatedProductCount = ({
+  delay = 0,
+  totalDuration = 2600
+}: {
+  delay?: number;
+  totalDuration?: number;
+}) => {
+  const [count, setCount] = useState(0);
+  const targetValue = 2000;
+  
+  useEffect(() => {
+    const duration = totalDuration - delay;
+    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    
+    const timeoutId = setTimeout(() => {
+      const startTime = performance.now();
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutCubic(progress);
+        setCount(Math.floor(easedProgress * targetValue));
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setCount(targetValue);
+        }
+      };
+      requestAnimationFrame(animate);
+    }, delay);
+    return () => clearTimeout(timeoutId);
+  }, [delay, totalDuration]);
+  
+  // Format display: show "1K" at 1000, "2K+" at 2000, otherwise show comma-formatted number
+  const formatDisplay = (num: number): string => {
+    if (num >= 2000) return "2K+";
+    if (num >= 1000 && num < 1100) return "1K";
+    if (num >= 1000) return num.toLocaleString();
+    return num.toString();
+  };
+  
+  return <span>{formatDisplay(count)}</span>;
+};
 interface FeatureBoxProps {
   icon: React.ElementType;
   label: string;
@@ -2916,7 +2960,7 @@ const OnboardingForm = ({
         <div className="w-px bg-border" />
         <div>
           <div className="text-2xl font-semibold text-foreground">
-            <AnimatedNumber value={2} suffix="K+" delay={400} />
+            <AnimatedProductCount delay={400} />
           </div>
           <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
         </div>
