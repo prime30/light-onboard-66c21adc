@@ -3787,7 +3787,7 @@ const TaxExemptionForm = ({
             key={`intro-${toastKey}`}
             className="text-sm text-muted-foreground text-center animate-fade-in"
           >
-            That's ok! Here's some info in case you want to explore it
+            That's ok! It's not needed to register, and you can add it to your account later. Here's some info in case you want to learn more
           </p>
           
           {/* Blog card */}
