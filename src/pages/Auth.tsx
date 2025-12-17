@@ -3017,7 +3017,7 @@ const AccountTypeForm = ({
     features: [
       { label: "Pro pricing", icon: Tag },
       { label: "Priority support", icon: Headphones },
-      { label: "Community access", icon: Users }
+      { label: "Stylist community access", icon: Users }
     ]
   }, {
     id: "salon",
@@ -3027,7 +3027,7 @@ const AccountTypeForm = ({
     features: [
       { label: "Pro pricing", icon: Tag },
       { label: "Top level support", icon: ShieldCheck },
-      { label: "Community access", icon: Users },
+      { label: "Salon leadership community access", icon: Users },
       { label: "Education discounts", icon: GraduationCap }
     ]
   }, {
