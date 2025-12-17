@@ -422,12 +422,12 @@ export const MultiFileUpload = ({
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "h-[40px] px-5 rounded-[10px] border-border/50 hover:bg-muted/50",
+                  "h-[40px] w-full sm:w-auto px-5 rounded-[10px] border-border/50 hover:bg-muted/50",
                   hasError && "border-destructive/50"
                 )}
               >
                 <FolderOpen className="w-4 h-4 mr-2" />
-                Browse Files
+                Browse files
               </Button>
             </>
           )}
