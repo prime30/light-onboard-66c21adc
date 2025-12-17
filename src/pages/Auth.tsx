@@ -39,19 +39,19 @@ import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 type AuthMode = "signup" | "signin";
 type Step = "onboarding" | "reviews" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
-  eyebrow: "Exclusively Professional",
+  eyebrow: "Exclusively professional",
   title: "Apply for a",
   highlight: "pro account",
   description: "Cosmetology license, proof of student status, or equivalent required to shop."
 }, {
   eyebrow: "Quality",
   title: "Premium",
-  highlight: "Products",
+  highlight: "products",
   description: "Curated professional-grade extensions & supplies"
 }, {
   eyebrow: "Community",
   title: "Grow",
-  highlight: "Together",
+  highlight: "together",
   description: "Connect, learn, and scale with fellow pros"
 }];
 const stats = [{
@@ -73,7 +73,7 @@ const features = [{
   desc: "On every order"
 }, {
   icon: Truck,
-  label: "Free Shipping",
+  label: "Free shipping",
   desc: "2-day delivery on $250+"
 }, {
   icon: Tag,
@@ -84,22 +84,22 @@ const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Color
 const testimonials = [{
   quote: "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
   name: "Sarah Mitchell",
-  role: "Hair Stylist, 8 years",
+  role: "Hair stylist, 8 years",
   avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
 }, {
   quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
   name: "Marcus Chen",
-  role: "Salon Owner",
+  role: "Salon owner",
   avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
 }, {
   quote: "The community here is incredible. It's like having thousands of mentors at your fingertips.",
   name: "Jessica Torres",
-  role: "Extension Specialist",
+  role: "Extension specialist",
   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face"
 }, {
   quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
   name: "Amanda Brooks",
-  role: "Color Expert",
+  role: "Color expert",
   avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face"
 }];
 
@@ -1317,7 +1317,7 @@ const Auth = () => {
     if (!accountType) {
       incomplete.push({
         step: 1,
-        name: "Account Type",
+        name: "Account type",
         missingFields: ["Select account type"]
       });
       // Can't determine other steps without account type, return early
@@ -1328,13 +1328,13 @@ const Auth = () => {
       // Student flow: account-type, school-info, wholesale-terms, contact-info
       // Step 2: School Info
       const schoolMissing: string[] = [];
-      if (schoolName.trim() === "") schoolMissing.push("School Name");
-      if (schoolState === "") schoolMissing.push("State/Province");
-      if (enrollmentProofFiles.length === 0) schoolMissing.push("Enrollment Proof");
+      if (schoolName.trim() === "") schoolMissing.push("School name");
+      if (schoolState === "") schoolMissing.push("State/province");
+      if (enrollmentProofFiles.length === 0) schoolMissing.push("Enrollment proof");
       if (schoolMissing.length > 0) {
         incomplete.push({
           step: 2,
-          name: "School Information",
+          name: "School information",
           missingFields: schoolMissing
         });
       }
@@ -1342,32 +1342,32 @@ const Auth = () => {
       if (!wholesaleAgreed) {
         incomplete.push({
           step: 3,
-          name: "Wholesale Terms",
-          missingFields: ["Terms Agreement"]
+          name: "Wholesale terms",
+          missingFields: ["Terms agreement"]
         });
       }
       // Step 4: Tax Exemption
       const studentTaxMissing: string[] = [];
-      if (hasTaxExemption === null) studentTaxMissing.push("Exemption Status");
-      else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax Document");
+      if (hasTaxExemption === null) studentTaxMissing.push("Exemption status");
+      else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax document");
       if (studentTaxMissing.length > 0) {
         incomplete.push({
           step: 4,
-          name: "Tax Exemption",
+          name: "Tax exemption",
           missingFields: studentTaxMissing
         });
       }
       // Step 5: Contact Info
       const contactMissing: string[] = [];
-      if (firstName.trim() === "") contactMissing.push("First Name");
-      if (lastName.trim() === "") contactMissing.push("Last Name");
-      if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone Number");
+      if (firstName.trim() === "") contactMissing.push("First name");
+      if (lastName.trim() === "") contactMissing.push("Last name");
+      if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone number");
       if (birthday.trim() === "") contactMissing.push("Birthday");
-      if (socialMediaHandle.trim() === "") contactMissing.push("Social Media");
+      if (socialMediaHandle.trim() === "") contactMissing.push("Social media");
       if (contactMissing.length > 0) {
         incomplete.push({
           step: 5,
-          name: "Contact Info",
+          name: "Contact info",
           missingFields: contactMissing
         });
       }
@@ -1376,28 +1376,28 @@ const Auth = () => {
     if (accountType === "salon") {
       // Step 2: Business Location
       const locationMissing: string[] = [];
-      if (businessName.trim() === "") locationMissing.push("Business Name");
+      if (businessName.trim() === "") locationMissing.push("Business name");
       if (businessAddress.trim() === "") locationMissing.push("Address");
       if (country === "") locationMissing.push("Country");
       if (city.trim() === "") locationMissing.push("City");
-      if (state === "") locationMissing.push("State/Province");
-      if (zipCode.trim() === "") locationMissing.push("ZIP Code");
+      if (state === "") locationMissing.push("State/province");
+      if (zipCode.trim() === "") locationMissing.push("ZIP code");
       if (locationMissing.length > 0) {
         incomplete.push({
           step: 2,
-          name: "Business Location",
+          name: "Business location",
           missingFields: locationMissing
         });
       }
       // Step 3: License
       const licenseMissing: string[] = [];
-      if (licenseNumber.trim() === "") licenseMissing.push("License Number");
-      if (salonSize === "") licenseMissing.push("Salon Size");
-      if (salonStructure === "") licenseMissing.push("Salon Structure");
+      if (licenseNumber.trim() === "") licenseMissing.push("License number");
+      if (salonSize === "") licenseMissing.push("Salon size");
+      if (salonStructure === "") licenseMissing.push("Salon structure");
       if (licenseMissing.length > 0) {
         incomplete.push({
           step: 3,
-          name: "License Verification",
+          name: "License verification",
           missingFields: licenseMissing
         });
       }
@@ -1405,32 +1405,32 @@ const Auth = () => {
       if (!wholesaleAgreed) {
         incomplete.push({
           step: 4,
-          name: "Wholesale Terms",
-          missingFields: ["Terms Agreement"]
+          name: "Wholesale terms",
+          missingFields: ["Terms agreement"]
         });
       }
       // Step 5: Tax Exemption
       const taxMissing: string[] = [];
-      if (hasTaxExemption === null) taxMissing.push("Exemption Status");
-      else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax Document");
+      if (hasTaxExemption === null) taxMissing.push("Exemption status");
+      else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax document");
       if (taxMissing.length > 0) {
         incomplete.push({
           step: 5,
-          name: "Tax Exemption",
+          name: "Tax exemption",
           missingFields: taxMissing
         });
       }
       // Step 6: Contact Info
       const salonContactMissing: string[] = [];
-      if (firstName.trim() === "") salonContactMissing.push("First Name");
-      if (lastName.trim() === "") salonContactMissing.push("Last Name");
-      if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone Number");
+      if (firstName.trim() === "") salonContactMissing.push("First name");
+      if (lastName.trim() === "") salonContactMissing.push("Last name");
+      if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone number");
       if (birthday.trim() === "") salonContactMissing.push("Birthday");
-      if (socialMediaHandle.trim() === "") salonContactMissing.push("Social Media");
+      if (socialMediaHandle.trim() === "") salonContactMissing.push("Social media");
       if (salonContactMissing.length > 0) {
         incomplete.push({
           step: 6,
-          name: "Contact Info",
+          name: "Contact info",
           missingFields: salonContactMissing
         });
       }
@@ -1442,30 +1442,30 @@ const Auth = () => {
     if (licenseNumber.trim() === "") {
       incomplete.push({
         step: 2,
-        name: "License Verification",
-        missingFields: ["License Number"]
+        name: "License verification",
+        missingFields: ["License number"]
       });
     }
     // Step 3: Business Operation
     if (businessOperationType === null) {
       incomplete.push({
         step: 3,
-        name: "Business Operation",
-        missingFields: ["Operation Type"]
+        name: "Business operation",
+        missingFields: ["Operation type"]
       });
     }
     // Step 4: Business Location
     const proLocationMissing: string[] = [];
-    if (businessName.trim() === "") proLocationMissing.push("Business Name");
+    if (businessName.trim() === "") proLocationMissing.push("Business name");
     if (businessAddress.trim() === "") proLocationMissing.push("Address");
     if (country === "") proLocationMissing.push("Country");
     if (city.trim() === "") proLocationMissing.push("City");
-    if (state === "") proLocationMissing.push("State/Province");
-    if (zipCode.trim() === "") proLocationMissing.push("ZIP Code");
+    if (state === "") proLocationMissing.push("State/province");
+    if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
     if (proLocationMissing.length > 0) {
       incomplete.push({
         step: 4,
-        name: "Business Location",
+        name: "Business location",
         missingFields: proLocationMissing
       });
     }
@@ -1473,32 +1473,32 @@ const Auth = () => {
     if (!wholesaleAgreed) {
       incomplete.push({
         step: 5,
-        name: "Wholesale Terms",
-        missingFields: ["Terms Agreement"]
+        name: "Wholesale terms",
+        missingFields: ["Terms agreement"]
       });
     }
     // Step 6: Tax Exemption
     const proTaxMissing: string[] = [];
-    if (hasTaxExemption === null) proTaxMissing.push("Exemption Status");
-    else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax Document");
+    if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
+    else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
     if (proTaxMissing.length > 0) {
       incomplete.push({
         step: 6,
-        name: "Tax Exemption",
+        name: "Tax exemption",
         missingFields: proTaxMissing
       });
     }
     // Step 7: Contact Info
     const proContactMissing: string[] = [];
-    if (firstName.trim() === "") proContactMissing.push("First Name");
-    if (lastName.trim() === "") proContactMissing.push("Last Name");
-    if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone Number");
+    if (firstName.trim() === "") proContactMissing.push("First name");
+    if (lastName.trim() === "") proContactMissing.push("Last name");
+    if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone number");
     if (birthday.trim() === "") proContactMissing.push("Birthday");
-    if (socialMediaHandle.trim() === "") proContactMissing.push("Social Media");
+    if (socialMediaHandle.trim() === "") proContactMissing.push("Social media");
     if (proContactMissing.length > 0) {
       incomplete.push({
         step: 7,
-        name: "Contact Info",
+        name: "Contact info",
         missingFields: proContactMissing
       });
     }
@@ -1953,7 +1953,7 @@ const Auth = () => {
                 <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
                   <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
                   <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-                    {fontsLoaded ? "Exclusively Professional" : <TextSkeleton width="120px" height="0.9em" variant="light" />}
+                    {fontsLoaded ? "Exclusively professional" : <TextSkeleton width="120px" height="0.9em" variant="light" />}
                   </span>
                 </div>
 
@@ -2292,7 +2292,7 @@ const Auth = () => {
                     <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
                       <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
                       <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                        Exclusively Professional
+                        Exclusively professional
                       </span>
                     </div>
                     <div className="animate-fade-in" style={{
@@ -2467,9 +2467,9 @@ const Auth = () => {
                               {mode === "signin"
                                 ? "Login"
                                 : currentStep === "onboarding"
-                                  ? "Get Started"
+                                  ? "Get started"
                                   : currentStep === "contact-info"
-                                    ? "Submit Application"
+                                    ? "Submit application"
                                     : "Continue"}
                               <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
                             </>
@@ -2850,7 +2850,7 @@ const SignInForm = ({
                 Sending...
               </>
             ) : (
-              "Send Reset Link"
+              "Send reset link"
             )}
           </Button>
         </div>
@@ -3072,8 +3072,8 @@ const AccountTypeForm = ({
   const types = [{
     id: "professional",
     icon: Scissors,
-    title: "Licensed Stylist",
-    description: "Commission, or Independent Stylist",
+    title: "Licensed stylist",
+    description: "Commission, or independent stylist",
     features: [
       { label: "Pro discount", icon: Tag },
       { label: "Priority support", icon: Headphones },
@@ -3082,7 +3082,7 @@ const AccountTypeForm = ({
   }, {
     id: "salon",
     icon: Building2,
-    title: "Salon Owner or Manager",
+    title: "Salon owner or manager",
     description: "Business accounts",
     features: [
       { label: "Pro discount", icon: Tag },
@@ -3093,7 +3093,7 @@ const AccountTypeForm = ({
   }, {
     id: "student",
     icon: GraduationCap,
-    title: "Cosmetology Student or Apprentice",
+    title: "Cosmetology student or apprentice",
     description: "Currently enrolled",
     features: [
       { label: "Student pricing", icon: Tag },
