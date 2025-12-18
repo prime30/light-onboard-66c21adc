@@ -1543,40 +1543,33 @@ const Auth = () => {
       return filled / 2 * 100;
     }
 
-    // For signup, calculate based on account type
-    // Common fields for all account types: email, password, firstName, lastName, phoneNumber, birthday, socialMediaHandle
-    const commonFields = () => {
-      let filled = 0;
-      if (email.trim() !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) filled++;
-      if (password.length >= 8) filled++;
-      if (firstName.trim() !== "") filled++;
-      if (lastName.trim() !== "") filled++;
-      if (phoneNumber.trim() !== "") filled++;
-      if (birthday) filled++;
-      if (socialMediaHandle.trim() !== "") filled++;
-      return filled;
-    };
-
+    // For signup, calculate based on account type - must match isAllStepsValid logic exactly
     if (accountType === "student") {
-      // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), 
-      // wholesale (1), contact (7: email, password, firstName, lastName, phone, birthday, social)
+      // Student: accountType (1), school-info (3), wholesale (1), tax (1-2), contact (5)
       let filled = 0;
-      const total = 12;
+      let total = 11;
       if (accountType) filled++;
       if (schoolName.trim() !== "") filled++;
       if (schoolState !== "") filled++;
       if (enrollmentProofFiles.length > 0) filled++;
       if (wholesaleAgreed) filled++;
-      filled += commonFields();
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true) {
+        total = 12;
+        if (taxExemptFile) filled++;
+      }
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+      if (birthday && birthday.trim() !== "") filled++;
+      if (socialMediaHandle.trim() !== "") filled++;
       return filled / total * 100;
     }
+    
     if (accountType === "salon") {
-      // Salon: account-type (1), license fields (3: licenseNumber, salonSize, salonStructure), 
-      // business location (6: businessName, businessAddress, country, city, state, zipCode), 
-      // wholesale (1), tax exemption (1 or 2), contact (7)
+      // Salon: accountType (1), license (3), business location (6), wholesale (1), tax (1-2), contact (5)
       let filled = 0;
-      // Base total without tax file (when hasTaxExemption is false or null)
-      let total = 19;
+      let total = 17;
       if (accountType) filled++;
       if (licenseNumber.trim() !== "") filled++;
       if (salonSize !== "") filled++;
@@ -1589,20 +1582,22 @@ const Auth = () => {
       if (zipCode.trim() !== "") filled++;
       if (wholesaleAgreed) filled++;
       if (hasTaxExemption !== null) filled++;
-      // Only count tax file if user selected yes for tax exemption
       if (hasTaxExemption === true) {
-        total = 20; // Add tax file to total
+        total = 18;
         if (taxExemptFile) filled++;
       }
-      filled += commonFields();
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+      if (birthday && birthday.trim() !== "") filled++;
+      if (socialMediaHandle.trim() !== "") filled++;
       return filled / total * 100;
     }
 
-    // Professional (stylist): account-type (1), license (1), business-operation (1), 
-    // business location (6), wholesale (1), tax (1 or 2), contact (7)
+    // Professional (stylist): accountType (1), license (1), businessOperation (1), 
+    // business location (6), wholesale (1), tax (1-2), contact (5)
     let filled = 0;
-    // Base total without tax file
-    let total = 18;
+    let total = 16;
     if (accountType) filled++;
     if (licenseNumber.trim() !== "") filled++;
     if (businessOperationType !== null) filled++;
@@ -1614,12 +1609,15 @@ const Auth = () => {
     if (zipCode.trim() !== "") filled++;
     if (wholesaleAgreed) filled++;
     if (hasTaxExemption !== null) filled++;
-    // Only count tax file if user selected yes for tax exemption
     if (hasTaxExemption === true) {
-      total = 19; // Add tax file to total
+      total = 17;
       if (taxExemptFile) filled++;
     }
-    filled += commonFields();
+    if (firstName.trim() !== "") filled++;
+    if (lastName.trim() !== "") filled++;
+    if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+    if (birthday && birthday.trim() !== "") filled++;
+    if (socialMediaHandle.trim() !== "") filled++;
     return filled / total * 100;
   };
   
