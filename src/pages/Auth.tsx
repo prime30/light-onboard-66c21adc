@@ -3037,50 +3037,31 @@ const OnboardingForm = ({
       {/* Trust badges - Marquee with center highlight effect */}
       <MarqueeBadges />
 
-      {/* Steps preview - Vertical timeline */}
-      <div className="relative pl-8">
-        {/* Vertical connecting line */}
-        <div className="absolute left-[23px] top-6 bottom-6 w-px bg-gradient-to-b from-border via-border to-transparent" />
-        
-        <div className="space-y-4">
-          {[{
-            icon: User,
-            label: "Sign up",
-            desc: "Create your account"
-          }, {
-            icon: FileCheck,
-            label: "Verify",
-            desc: "Submit your license"
-          }, {
-            icon: Mail,
-            label: "Get approved",
-            desc: "Within 24 hours"
-          }].map((item, i) => (
-            <div 
-              key={i} 
-              className="relative flex items-center gap-4 opacity-0 animate-step-card-enter" 
-              style={{
-                animationDelay: `${400 + i * 150}ms`,
-                animationFillMode: 'forwards'
-              }}
-            >
-              {/* Numbered circle with icon */}
-              <div className="relative flex-shrink-0 -ml-8">
-                <div className="w-[46px] h-[46px] rounded-full bg-muted border border-border/60 flex items-center justify-center">
-                  <item.icon className="w-[18px] h-[18px] text-foreground/60" />
-                </div>
-                <div className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-foreground flex items-center justify-center shadow-sm">
-                  <span className="text-[8px] font-bold text-background">{i + 1}</span>
+      {/* Steps preview */}
+      <div className="grid gap-3">
+        {[{
+        icon: User,
+        label: "Tell us who you are"
+      }, {
+        icon: FileCheck,
+        label: "Provide your license number"
+      }, {
+        icon: Mail,
+        label: "Follow post-approval instructions to finalize account"
+      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
+        animationDelay: `${400 + i * 150}ms`,
+        animationFillMode: 'forwards'
+      }}>
+              <div className="relative w-12 h-12 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
+                <item.icon className="w-5 h-5 text-foreground/70" />
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                  <span className="text-[9px] font-semibold text-background">{i + 1}</span>
                 </div>
               </div>
-              {/* Labels */}
-              <div className="flex-1 py-1">
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground/80">{item.label}</p>
               </div>
-            </div>
-          ))}
-        </div>
+            </div>)}
       </div>
 
       {/* Benefits highlight with animated counters */}
