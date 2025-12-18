@@ -3037,33 +3037,45 @@ const OnboardingForm = ({
       {/* Trust badges - Marquee with center highlight effect */}
       <MarqueeBadges />
 
-      {/* Steps preview - Vertical line + dots */}
-      <div className="relative pl-6">
-        {/* Vertical line */}
-        <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+      {/* Steps preview - Expanded timeline */}
+      <div className="relative py-2">
+        {/* Horizontal connecting line */}
+        <div className="absolute top-[30px] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         
-        <div className="space-y-5">
+        <div className="flex justify-between items-start gap-2">
           {[{
-            label: "Tell us who you are"
+            icon: User,
+            label: "Sign up",
+            desc: "Create your account"
           }, {
-            label: "Provide your license number"
+            icon: FileCheck,
+            label: "Verify",
+            desc: "Submit your license"
           }, {
-            label: "Follow post-approval instructions"
+            icon: Mail,
+            label: "Get approved",
+            desc: "Within 24 hours"
           }].map((item, i) => (
             <div 
               key={i} 
-              className="relative flex items-center gap-4 opacity-0 animate-step-card-enter" 
+              className="flex-1 flex flex-col items-center text-center opacity-0 animate-step-card-enter" 
               style={{
                 animationDelay: `${400 + i * 150}ms`,
                 animationFillMode: 'forwards'
               }}
             >
-              {/* Dot */}
-              <div className="absolute -left-6 w-[15px] h-[15px] rounded-full bg-background border-2 border-foreground/20 flex items-center justify-center">
-                <span className="text-[8px] font-semibold text-foreground/60">{i + 1}</span>
+              {/* Numbered circle with icon */}
+              <div className="relative mb-3">
+                <div className="w-[52px] h-[52px] rounded-full bg-muted border border-border/60 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-foreground/60" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center shadow-sm">
+                  <span className="text-[9px] font-bold text-background">{i + 1}</span>
+                </div>
               </div>
-              {/* Text */}
-              <p className="text-sm text-foreground/70">{item.label}</p>
+              {/* Labels */}
+              <p className="text-sm font-medium text-foreground mb-0.5">{item.label}</p>
+              <p className="text-[11px] text-muted-foreground">{item.desc}</p>
             </div>
           ))}
         </div>
