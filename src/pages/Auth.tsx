@@ -563,10 +563,19 @@ const RotatingStylistAvatars = () => {
     setVisibleIndices(newIndices);
   }, []);
 
+  const magnetic = useMagnetic<HTMLAnchorElement>({ strength: 0.15 });
+
   return (
-    <Link to="/reviews" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity cursor-pointer">
-      <span className="text-xs text-background/40 hidden lg:inline">Loved by</span>
-      <div className="flex -space-x-[5px]">
+    <Link 
+      to="/reviews" 
+      ref={magnetic.ref}
+      onMouseMove={magnetic.onMouseMove}
+      onMouseLeave={magnetic.onMouseLeave}
+      style={magnetic.style}
+      className="flex items-center gap-2.5 transition-all duration-200 cursor-pointer group"
+    >
+      <span className="text-xs text-background/40 hidden lg:inline transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
+      <div className="flex -space-x-[5px] transition-transform duration-200 group-hover:scale-110">
         {visibleIndices.map((avatarIndex, i) => (
           <div key={`${i}-${avatarIndex}`} className="relative">
             <img src={stylistAvatars[avatarIndex]} alt={`Stylist ${avatarIndex + 1}`} className={cn("w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300", fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100")} />
@@ -637,10 +646,19 @@ const RotatingStylistAvatarsLight = () => {
     setVisibleIndices(newIndices);
   }, []);
   
+  const magnetic = useMagnetic<HTMLAnchorElement>({ strength: 0.15 });
+
   return (
-    <Link to="/reviews" className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4 hover:opacity-80 transition-opacity cursor-pointer">
-      <span className="text-xs text-muted-foreground">Loved by</span>
-      <div className="flex -space-x-[5px]">
+    <Link 
+      to="/reviews" 
+      ref={magnetic.ref}
+      onMouseMove={magnetic.onMouseMove}
+      onMouseLeave={magnetic.onMouseLeave}
+      style={magnetic.style}
+      className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4 transition-all duration-200 cursor-pointer group"
+    >
+      <span className="text-xs text-muted-foreground transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
+      <div className="flex -space-x-[5px] transition-transform duration-200 group-hover:scale-110">
         {visibleIndices.map((avatarIndex, i) => (
           <div key={`${i}-${avatarIndex}`} className="relative">
             <img 
