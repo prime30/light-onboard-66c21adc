@@ -45,10 +45,10 @@ export const LicenseStep = ({
       </div>
 
       {/* Info box */}
-      <div className="flex gap-3 p-4 rounded-xl bg-info mb-6">
-        <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+      <div className="flex gap-3 pl-4 border-l-2 border-border mb-6">
+        <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground leading-relaxed">
-          We display professional wholesale pricing. Please enter your license exactly as it appears from the state.
+          Please enter your license exactly as it appears from the state.
         </p>
       </div>
 
