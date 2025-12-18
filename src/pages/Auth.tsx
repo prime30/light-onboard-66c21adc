@@ -3037,12 +3037,12 @@ const OnboardingForm = ({
       {/* Trust badges - Marquee with center highlight effect */}
       <MarqueeBadges />
 
-      {/* Steps preview - Expanded timeline */}
-      <div className="relative py-2">
-        {/* Horizontal connecting line */}
-        <div className="absolute top-[30px] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      {/* Steps preview - Vertical timeline */}
+      <div className="relative pl-8">
+        {/* Vertical connecting line */}
+        <div className="absolute left-[23px] top-6 bottom-6 w-px bg-gradient-to-b from-border via-border to-transparent" />
         
-        <div className="flex justify-between items-start gap-2">
+        <div className="space-y-4">
           {[{
             icon: User,
             label: "Sign up",
@@ -3058,24 +3058,26 @@ const OnboardingForm = ({
           }].map((item, i) => (
             <div 
               key={i} 
-              className="flex-1 flex flex-col items-center text-center opacity-0 animate-step-card-enter" 
+              className="relative flex items-center gap-4 opacity-0 animate-step-card-enter" 
               style={{
                 animationDelay: `${400 + i * 150}ms`,
                 animationFillMode: 'forwards'
               }}
             >
               {/* Numbered circle with icon */}
-              <div className="relative mb-3">
-                <div className="w-[52px] h-[52px] rounded-full bg-muted border border-border/60 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-foreground/60" />
+              <div className="relative flex-shrink-0 -ml-8">
+                <div className="w-[46px] h-[46px] rounded-full bg-muted border border-border/60 flex items-center justify-center">
+                  <item.icon className="w-[18px] h-[18px] text-foreground/60" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center shadow-sm">
-                  <span className="text-[9px] font-bold text-background">{i + 1}</span>
+                <div className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-foreground flex items-center justify-center shadow-sm">
+                  <span className="text-[8px] font-bold text-background">{i + 1}</span>
                 </div>
               </div>
               {/* Labels */}
-              <p className="text-sm font-medium text-foreground mb-0.5">{item.label}</p>
-              <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+              <div className="flex-1 py-1">
+                <p className="text-sm font-medium text-foreground">{item.label}</p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
             </div>
           ))}
         </div>
