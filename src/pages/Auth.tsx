@@ -3913,9 +3913,9 @@ const WholesaleTermsForm = ({
       </h1>
     </div>
 
-    <div className="flex gap-[15px] p-5 rounded-[15px] bg-info border border-border/50 animate-stagger-2">
-      <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
-      <p className="text-sm text-muted-foreground leading-relaxed">
+    <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
+      <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+      <p className="text-sm text-muted-foreground/70 leading-relaxed">
         All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
       </p>
     </div>
@@ -4093,9 +4093,9 @@ const TaxExemptionForm = ({
         </h1>
       </div>
 
-      <div className="flex gap-[15px] p-5 rounded-[15px] bg-info border border-border/50 animate-stagger-2">
-        <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-[2px]" />
-        <p className="text-sm text-muted-foreground leading-relaxed">
+      <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
+        <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+        <p className="text-sm text-muted-foreground/70 leading-relaxed">
           A tax exemption certificate isn't required to register. If you have one, upload it to avoid sales tax on your orders.
         </p>
       </div>
@@ -4458,9 +4458,9 @@ const ContactInfoForm = ({
       </div>
 
       {/* SMS Consent Notice */}
-      <div className={cn("flex gap-[15px] p-4 rounded-[15px] bg-info border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
-        <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-[2px]" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
+      <div className={cn("flex gap-3 pl-4 border-l-2 border-border", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+        <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground/70 leading-relaxed">
           You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
           <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
           {" & "}
