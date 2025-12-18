@@ -1544,27 +1544,39 @@ const Auth = () => {
     }
 
     // For signup, calculate based on account type
-    if (accountType === "student") {
-      // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), wholesale (1), contact (3)
+    // Common fields for all account types: email, password, firstName, lastName, phoneNumber, birthday, socialMediaHandle
+    const commonFields = () => {
       let filled = 0;
-      const total = 8;
+      if (email.trim() !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) filled++;
+      if (password.length >= 8) filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "") filled++;
+      if (birthday) filled++;
+      if (socialMediaHandle.trim() !== "") filled++;
+      return filled;
+    };
+
+    if (accountType === "student") {
+      // Student: account-type (1), school-info (3: schoolName, schoolState, enrollmentProofFiles), 
+      // wholesale (1), contact (7: email, password, firstName, lastName, phone, birthday, social)
+      let filled = 0;
+      const total = 12;
       if (accountType) filled++;
       if (schoolName.trim() !== "") filled++;
       if (schoolState !== "") filled++;
       if (enrollmentProofFiles.length > 0) filled++;
       if (wholesaleAgreed) filled++;
-      if (firstName.trim() !== "") filled++;
-      if (lastName.trim() !== "") filled++;
-      if (phoneNumber.trim() !== "") filled++;
+      filled += commonFields();
       return filled / total * 100;
     }
     if (accountType === "salon") {
       // Salon: account-type (1), license fields (3: licenseNumber, salonSize, salonStructure), 
       // business location (6: businessName, businessAddress, country, city, state, zipCode), 
-      // wholesale (1), tax exemption (1 or 2), contact (3: firstName, lastName, phoneNumber)
+      // wholesale (1), tax exemption (1 or 2), contact (7)
       let filled = 0;
       // Base total without tax file (when hasTaxExemption is false or null)
-      let total = 15;
+      let total = 19;
       if (accountType) filled++;
       if (licenseNumber.trim() !== "") filled++;
       if (salonSize !== "") filled++;
@@ -1579,19 +1591,18 @@ const Auth = () => {
       if (hasTaxExemption !== null) filled++;
       // Only count tax file if user selected yes for tax exemption
       if (hasTaxExemption === true) {
-        total = 16; // Add tax file to total
+        total = 20; // Add tax file to total
         if (taxExemptFile) filled++;
       }
-      if (firstName.trim() !== "") filled++;
-      if (lastName.trim() !== "") filled++;
-      if (phoneNumber.trim() !== "") filled++;
+      filled += commonFields();
       return filled / total * 100;
     }
 
-    // Professional: account-type (1), license (1), business-operation (1), business location (6), wholesale (1), tax (1 or 2), contact (3)
+    // Professional (stylist): account-type (1), license (1), business-operation (1), 
+    // business location (6), wholesale (1), tax (1 or 2), contact (7)
     let filled = 0;
     // Base total without tax file
-    let total = 14;
+    let total = 18;
     if (accountType) filled++;
     if (licenseNumber.trim() !== "") filled++;
     if (businessOperationType !== null) filled++;
@@ -1605,12 +1616,10 @@ const Auth = () => {
     if (hasTaxExemption !== null) filled++;
     // Only count tax file if user selected yes for tax exemption
     if (hasTaxExemption === true) {
-      total = 15; // Add tax file to total
+      total = 19; // Add tax file to total
       if (taxExemptFile) filled++;
     }
-    if (firstName.trim() !== "") filled++;
-    if (lastName.trim() !== "") filled++;
-    if (phoneNumber.trim() !== "") filled++;
+    filled += commonFields();
     return filled / total * 100;
   };
   
