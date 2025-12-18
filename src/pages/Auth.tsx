@@ -704,7 +704,7 @@ const CircularProgress = ({
     if (progress > 0) return "hsl(38, 92%, 55%)";
     return "rgba(255, 255, 255, 0.6)";
   };
-  return <div className="relative flex items-center justify-center">
+  return <div className={cn("relative flex items-center justify-center", showGlow && "animate-celebration-bounce")}>
       {/* Pulsating glow effect - shows once on reaching 100% */}
       {showGlow && <div className="absolute inset-[-8px] rounded-full animate-celebration-glow" />}
       
