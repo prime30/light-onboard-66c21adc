@@ -2483,7 +2483,7 @@ const Auth = () => {
                   )}
                   style={{ transition: footerTransitionsEnabled ? "width 300ms ease-out, opacity 300ms ease-out" : "none" }}
                 >
-                  <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80">
+                  <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" />
                   </Button>
                 </div>
