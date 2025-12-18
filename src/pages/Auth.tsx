@@ -4764,10 +4764,33 @@ const SuccessForm = ({
 }) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [otherText, setOtherText] = useState("");
   
   const handleReferralSelect = (value: string) => {
+    if (value === "other") {
+      setShowOtherInput(true);
+      return;
+    }
+    setShowOtherInput(false);
+    setOtherText("");
     if (value !== referralSource) {
       onReferralSourceChange(value);
+      toast.success("Thanks! Your response has been saved", {
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleOtherTextChange = (text: string) => {
+    setOtherText(text);
+    if (text.trim()) {
+      onReferralSourceChange(`other: ${text.trim()}`);
+    }
+  };
+
+  const handleOtherBlur = () => {
+    if (otherText.trim()) {
       toast.success("Thanks! Your response has been saved", {
         duration: 2000,
       });
@@ -4787,7 +4810,6 @@ const SuccessForm = ({
     { value: "friend", label: "Friend or Colleague" },
     { value: "salon", label: "My Salon" },
     { value: "event", label: "Industry Event" },
-    { value: "other", label: "Other" }
   ];
 
   return <div className="space-y-[25px] animate-fade-in text-center">
@@ -4862,6 +4884,31 @@ const SuccessForm = ({
             {option.label}
           </button>
         ))}
+        {/* Other option - shows input when selected */}
+        {showOtherInput ? (
+          <input
+            type="text"
+            value={otherText}
+            onChange={(e) => handleOtherTextChange(e.target.value)}
+            onBlur={handleOtherBlur}
+            placeholder="Please specify..."
+            autoFocus
+            maxLength={100}
+            className="p-3 rounded-xl border border-foreground bg-foreground/5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          />
+        ) : (
+          <button
+            onClick={() => handleReferralSelect("other")}
+            className={cn(
+              "p-3 rounded-xl border text-left text-sm transition-all duration-200",
+              referralSource.startsWith("other:")
+                ? "border-foreground bg-foreground/5 font-medium"
+                : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
+            )}
+          >
+            Other
+          </button>
+        )}
       </div>
     </div>
 
