@@ -101,7 +101,7 @@ export const AccountTypeCard = ({
               className={cn(
                 "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full border transition-colors duration-300",
                 selected 
-                  ? "bg-foreground/5 border-foreground/50 text-foreground" 
+                  ? "bg-foreground/10 border-foreground/50 text-foreground" 
                   : "bg-background/60 border-foreground/10 text-foreground/60"
               )}
             >
