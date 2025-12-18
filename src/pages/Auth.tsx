@@ -575,9 +575,9 @@ const RotatingStylistAvatars = () => {
       className="flex items-center gap-2.5 transition-all duration-200 cursor-pointer group"
     >
       <span className="text-xs text-background/40 hidden lg:inline transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
-      <div className="flex -space-x-[5px] transition-transform duration-200 group-hover:scale-110">
+      <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
-          <div key={`${i}-${avatarIndex}`} className="relative">
+          <div key={`${i}-${avatarIndex}`} className="relative hover:z-10 transition-transform duration-200 hover:scale-125">
             <img src={stylistAvatars[avatarIndex]} alt={`Stylist ${avatarIndex + 1}`} className={cn("w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300", fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100")} />
             {floatingEmoji && floatingEmoji.position === i && (
               <span key={floatingEmoji.id} className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none">
@@ -658,9 +658,9 @@ const RotatingStylistAvatarsLight = () => {
       className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4 transition-all duration-200 cursor-pointer group"
     >
       <span className="text-xs text-muted-foreground transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
-      <div className="flex -space-x-[5px] transition-transform duration-200 group-hover:scale-110">
+      <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
-          <div key={`${i}-${avatarIndex}`} className="relative">
+          <div key={`${i}-${avatarIndex}`} className="relative hover:z-10 transition-transform duration-200 hover:scale-125">
             <img 
               src={stylistAvatars[avatarIndex]} 
               alt={`Stylist ${avatarIndex + 1}`} 
