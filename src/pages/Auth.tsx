@@ -3037,31 +3037,36 @@ const OnboardingForm = ({
       {/* Trust badges - Marquee with center highlight effect */}
       <MarqueeBadges />
 
-      {/* Steps preview */}
-      <div className="grid gap-3">
-        {[{
-        icon: User,
-        label: "Tell us who you are"
-      }, {
-        icon: FileCheck,
-        label: "Provide your license number"
-      }, {
-        icon: Mail,
-        label: "Follow post-approval instructions to finalize account"
-      }].map((item, i) => <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted border border-border/50 text-left opacity-0 animate-step-card-enter" style={{
-        animationDelay: `${400 + i * 150}ms`,
-        animationFillMode: 'forwards'
-      }}>
-              <div className="relative w-12 h-12 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
-                <item.icon className="w-5 h-5 text-foreground/70" />
-                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                  <span className="text-[9px] font-semibold text-background">{i + 1}</span>
-                </div>
+      {/* Steps preview - Vertical line + dots */}
+      <div className="relative pl-6">
+        {/* Vertical line */}
+        <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+        
+        <div className="space-y-5">
+          {[{
+            label: "Tell us who you are"
+          }, {
+            label: "Provide your license number"
+          }, {
+            label: "Follow post-approval instructions"
+          }].map((item, i) => (
+            <div 
+              key={i} 
+              className="relative flex items-center gap-4 opacity-0 animate-step-card-enter" 
+              style={{
+                animationDelay: `${400 + i * 150}ms`,
+                animationFillMode: 'forwards'
+              }}
+            >
+              {/* Dot */}
+              <div className="absolute -left-6 w-[15px] h-[15px] rounded-full bg-background border-2 border-foreground/20 flex items-center justify-center">
+                <span className="text-[8px] font-semibold text-foreground/60">{i + 1}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground/80">{item.label}</p>
-              </div>
-            </div>)}
+              {/* Text */}
+              <p className="text-sm text-foreground/70">{item.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Benefits highlight with animated counters */}
