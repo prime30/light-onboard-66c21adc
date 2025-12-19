@@ -956,8 +956,9 @@ const Auth = () => {
   const [businessOperationType, setBusinessOperationType] = useState<"commission" | "independent" | null>(null);
   const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
 
-  // Additional profile fields
-  const [birthday, setBirthday] = useState("");
+  // Additional profile fields (optional)
+  const [birthdayMonth, setBirthdayMonth] = useState("");
+  const [birthdayDay, setBirthdayDay] = useState("");
   const [socialMediaHandle, setSocialMediaHandle] = useState("");
   const [referralSource, setReferralSource] = useState("");
 
@@ -1008,7 +1009,8 @@ const Auth = () => {
         if (data.schoolName) setSchoolName(data.schoolName);
         if (data.schoolState) setSchoolState(data.schoolState);
         if (data.businessOperationType) setBusinessOperationType(data.businessOperationType);
-        if (data.birthday) setBirthday(data.birthday);
+        if (data.birthdayMonth) setBirthdayMonth(data.birthdayMonth);
+        if (data.birthdayDay) setBirthdayDay(data.birthdayDay);
         if (data.socialMediaHandle) setSocialMediaHandle(data.socialMediaHandle);
         if (data.referralSource) setReferralSource(data.referralSource);
         if (data.completedSteps) setCompletedSteps(new Set(data.completedSteps));
@@ -1053,7 +1055,8 @@ const Auth = () => {
         schoolName,
         schoolState,
         businessOperationType,
-        birthday,
+        birthdayMonth,
+        birthdayDay,
         socialMediaHandle,
         referralSource,
         completedSteps: Array.from(completedSteps)
@@ -1067,7 +1070,7 @@ const Auth = () => {
     mode, currentStep, accountType, licenseNumber, state, firstName, lastName, email,
     businessName, businessAddress, suiteNumber, country, city, zipCode, wholesaleAgreed,
     hasTaxExemption, preferredName, phoneNumber, phoneCountryCode, salonSize, salonStructure,
-    schoolName, schoolState, businessOperationType, birthday, socialMediaHandle, referralSource,
+    schoolName, schoolState, businessOperationType, birthdayMonth, birthdayDay, socialMediaHandle, referralSource,
     completedSteps
   ]);
 
@@ -1517,7 +1520,8 @@ const Auth = () => {
         }
         return hasTaxExemption !== null;
       case "contact-info":
-        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+        // Birthday and social media are optional
+        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
       default:
         return true;
     }
@@ -1537,7 +1541,7 @@ const Auth = () => {
       const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
       const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
       return schoolValid && wholesaleValid && taxValid && contactValid;
     }
 
@@ -1547,7 +1551,7 @@ const Auth = () => {
       const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
       const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
       return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
     }
 
@@ -1557,7 +1561,7 @@ const Auth = () => {
     const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
     const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "";
+    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
     return licenseValid && businessOperationValid && businessValid && wholesaleValid && taxValid && contactValid;
   };
 
@@ -1623,8 +1627,7 @@ const Auth = () => {
       if (firstName.trim() === "") contactMissing.push("First name");
       if (lastName.trim() === "") contactMissing.push("Last name");
       if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone number");
-      if (birthday.trim() === "") contactMissing.push("Birthday");
-      if (socialMediaHandle.trim() === "") contactMissing.push("Social media");
+      // Birthday and social media are optional - don't add to missing
       if (contactMissing.length > 0) {
         incomplete.push({
           step: 5,
@@ -1686,8 +1689,7 @@ const Auth = () => {
       if (firstName.trim() === "") salonContactMissing.push("First name");
       if (lastName.trim() === "") salonContactMissing.push("Last name");
       if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone number");
-      if (birthday.trim() === "") salonContactMissing.push("Birthday");
-      if (socialMediaHandle.trim() === "") salonContactMissing.push("Social media");
+      // Birthday and social media are optional - don't add to missing
       if (salonContactMissing.length > 0) {
         incomplete.push({
           step: 6,
@@ -1754,8 +1756,7 @@ const Auth = () => {
     if (firstName.trim() === "") proContactMissing.push("First name");
     if (lastName.trim() === "") proContactMissing.push("Last name");
     if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone number");
-    if (birthday.trim() === "") proContactMissing.push("Birthday");
-    if (socialMediaHandle.trim() === "") proContactMissing.push("Social media");
+    // Birthday and social media are optional - don't add to missing
     if (proContactMissing.length > 0) {
       incomplete.push({
         step: 7,
@@ -1780,9 +1781,9 @@ const Auth = () => {
 
     // For signup, calculate based on account type - must match isAllStepsValid logic exactly
     if (accountType === "student") {
-      // Student: accountType (1), school-info (3), wholesale (1), tax (1-2), contact (5)
+      // Student: accountType (1), school-info (3), wholesale (1), tax (1-2), contact (3 required)
       let filled = 0;
-      let total = 11;
+      let total = 9; // Reduced by 2 (birthday and socialMedia now optional)
       if (accountType) filled++;
       if (schoolName.trim() !== "") filled++;
       if (schoolState !== "") filled++;
@@ -1790,21 +1791,20 @@ const Auth = () => {
       if (wholesaleAgreed) filled++;
       if (hasTaxExemption !== null) filled++;
       if (hasTaxExemption === true) {
-        total = 12;
+        total = 10;
         if (taxExemptFile) filled++;
       }
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
       if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-      if (birthday && birthday.trim() !== "") filled++;
-      if (socialMediaHandle.trim() !== "") filled++;
+      // Birthday and social media are optional - don't include in progress
       return filled / total * 100;
     }
     
     if (accountType === "salon") {
-      // Salon: accountType (1), license (3), business location (6), wholesale (1), tax (1-2), contact (5)
+      // Salon: accountType (1), license (3), business location (6), wholesale (1), tax (1-2), contact (3 required)
       let filled = 0;
-      let total = 17;
+      let total = 15; // Reduced by 2 (birthday and socialMedia now optional)
       if (accountType) filled++;
       if (licenseNumber.trim() !== "") filled++;
       if (salonSize !== "") filled++;
@@ -1818,21 +1818,20 @@ const Auth = () => {
       if (wholesaleAgreed) filled++;
       if (hasTaxExemption !== null) filled++;
       if (hasTaxExemption === true) {
-        total = 18;
+        total = 16;
         if (taxExemptFile) filled++;
       }
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
       if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-      if (birthday && birthday.trim() !== "") filled++;
-      if (socialMediaHandle.trim() !== "") filled++;
+      // Birthday and social media are optional - don't include in progress
       return filled / total * 100;
     }
 
     // Professional (stylist): accountType (1), license (1), businessOperation (1), 
-    // business location (6), wholesale (1), tax (1-2), contact (5)
+    // business location (6), wholesale (1), tax (1-2), contact (3 required)
     let filled = 0;
-    let total = 16;
+    let total = 14; // Reduced by 2 (birthday and socialMedia now optional)
     if (accountType) filled++;
     if (licenseNumber.trim() !== "") filled++;
     if (businessOperationType !== null) filled++;
@@ -1845,14 +1844,13 @@ const Auth = () => {
     if (wholesaleAgreed) filled++;
     if (hasTaxExemption !== null) filled++;
     if (hasTaxExemption === true) {
-      total = 17;
+      total = 15;
       if (taxExemptFile) filled++;
     }
     if (firstName.trim() !== "") filled++;
     if (lastName.trim() !== "") filled++;
     if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-    if (birthday && birthday.trim() !== "") filled++;
-    if (socialMediaHandle.trim() !== "") filled++;
+    // Birthday and social media are optional - don't include in progress
     return filled / total * 100;
   };
   
@@ -2644,7 +2642,7 @@ const Auth = () => {
                       setIsTransitioning(false);
                     }, 150);
                   }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
-                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} birthday={birthday} socialMediaHandle={socialMediaHandle} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} onBirthdayChange={setBirthday} onSocialMediaHandleChange={setSocialMediaHandle} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber) && birthday.trim() !== "" && socialMediaHandle.trim() !== "", firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "" || birthday.trim() !== "" || socialMediaHandle.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
+                  {currentStep === "contact-info" && <ContactInfoForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} birthdayMonth={birthdayMonth} birthdayDay={birthdayDay} socialMediaHandle={socialMediaHandle} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} onBirthdayMonthChange={setBirthdayMonth} onBirthdayDayChange={setBirthdayDay} onSocialMediaHandleChange={setSocialMediaHandle} subscribeOrderUpdates={subscribeOrderUpdates} subscribeMarketing={subscribeMarketing} subscribePromotions={subscribePromotions} onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates} onSubscribeMarketingChange={setSubscribeMarketing} onSubscribePromotionsChange={setSubscribePromotions} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} uploadedFiles={[...(licenseFile ? [{
                 file: licenseFile,
                 label: accountType === "salon" ? "Salon License" : "License"
               }] : []), ...(accountType === "professional" ? licenseProofFiles.map((f, i) => ({
@@ -4465,14 +4463,16 @@ const ContactInfoForm = ({
   preferredName,
   phoneNumber,
   phoneCountryCode,
-  birthday,
+  birthdayMonth,
+  birthdayDay,
   socialMediaHandle,
   onFirstNameChange,
   onLastNameChange,
   onPreferredNameChange,
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
-  onBirthdayChange,
+  onBirthdayMonthChange,
+  onBirthdayDayChange,
   onSocialMediaHandleChange,
   subscribeOrderUpdates,
   subscribeMarketing,
@@ -4490,14 +4490,16 @@ const ContactInfoForm = ({
   preferredName: string;
   phoneNumber: string;
   phoneCountryCode: string;
-  birthday: string;
+  birthdayMonth: string;
+  birthdayDay: string;
   socialMediaHandle: string;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
   onPreferredNameChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onPhoneCountryCodeChange: (value: string) => void;
-  onBirthdayChange: (value: string) => void;
+  onBirthdayMonthChange: (value: string) => void;
+  onBirthdayDayChange: (value: string) => void;
   onSocialMediaHandleChange: (value: string) => void;
   subscribeOrderUpdates: boolean;
   subscribeMarketing: boolean;
@@ -4517,8 +4519,7 @@ const ContactInfoForm = ({
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
-  const birthdayError = showValidationErrors && birthday.trim() === "";
-  const socialMediaError = showValidationErrors && socialMediaHandle.trim() === "";
+  // Birthday and social media are optional - no validation errors
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   // Step number varies by account type: professional=7, salon=6, student=4
@@ -4614,48 +4615,49 @@ const ContactInfoForm = ({
         {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
       </div>
 
-      {/* Birthday */}
+      {/* Birthday (Optional) */}
       <div className="space-y-2.5 animate-stagger-5 group">
-        <Label htmlFor="birthday" className={cn("text-sm font-medium label-float", birthdayError && "text-destructive")}>
-          Birthday*
+        <Label className="text-sm font-medium label-float">
+          Birthday <span className="text-muted-foreground font-normal">(optional)</span>
         </Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                "w-full h-[50px] px-4 rounded-[15px] bg-muted border border-border/50 text-left flex items-center justify-between transition-all duration-300 hover:bg-muted/80 focus:border-foreground/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-foreground/10",
-                birthdayError && "border-destructive/50 bg-destructive/5",
-                !birthday && "text-muted-foreground"
-              )}
-            >
-              <span className="text-base">
-                {birthday ? format(new Date(birthday), "MMMM d, yyyy") : "Select your birthday"}
-              </span>
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-background border border-border/50 rounded-2xl shadow-xl" align="start">
-            <CalendarPicker
-              mode="single"
-              selected={birthday ? new Date(birthday) : undefined}
-              onSelect={(date) => onBirthdayChange(date ? format(date, "yyyy-MM-dd") : "")}
-              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-              initialFocus
-              defaultMonth={birthday ? new Date(birthday) : new Date()}
-              captionLayout="dropdown-buttons"
-              fromYear={1940}
-              toYear={new Date().getFullYear()}
-            />
-          </PopoverContent>
-        </Popover>
-        {birthdayError && <p className="text-xs text-destructive">Birthday is required</p>}
+        <div className="grid grid-cols-2 gap-2.5">
+          <Select value={birthdayMonth} onValueChange={onBirthdayMonthChange}>
+            <SelectTrigger className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border rounded-xl">
+              <SelectItem value="01">January</SelectItem>
+              <SelectItem value="02">February</SelectItem>
+              <SelectItem value="03">March</SelectItem>
+              <SelectItem value="04">April</SelectItem>
+              <SelectItem value="05">May</SelectItem>
+              <SelectItem value="06">June</SelectItem>
+              <SelectItem value="07">July</SelectItem>
+              <SelectItem value="08">August</SelectItem>
+              <SelectItem value="09">September</SelectItem>
+              <SelectItem value="10">October</SelectItem>
+              <SelectItem value="11">November</SelectItem>
+              <SelectItem value="12">December</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={birthdayDay} onValueChange={onBirthdayDayChange}>
+            <SelectTrigger className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
+              <SelectValue placeholder="Day" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border rounded-xl max-h-[200px]">
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                <SelectItem key={day} value={day.toString().padStart(2, '0')}>{day}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p className="text-xs text-muted-foreground">We'll send you a special treat on your birthday!</p>
       </div>
 
-      {/* Social Media Handle */}
+      {/* Social Media Handle (Optional) */}
       <div className="space-y-2.5 animate-stagger-6 group">
-        <Label htmlFor="socialMediaHandle" className={cn("text-sm font-medium label-float", socialMediaError && "text-destructive")}>
-          Social media handle*
+        <Label htmlFor="socialMediaHandle" className="text-sm font-medium label-float">
+          Social media handle <span className="text-muted-foreground font-normal">(optional)</span>
         </Label>
         <div className="relative input-glow input-ripple rounded-[15px]">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">@</span>
@@ -4665,14 +4667,10 @@ const ContactInfoForm = ({
             placeholder="yourusername" 
             value={socialMediaHandle} 
             onChange={e => onSocialMediaHandleChange(e.target.value.replace(/^@/, ''))} 
-            className={cn(
-              "h-[50px] pl-9 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]",
-              socialMediaError && "border-destructive/50 bg-destructive/5"
-            )} 
+            className="h-[50px] pl-9 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]"
           />
         </div>
         <p className="text-xs text-muted-foreground">Instagram, TikTok, or your primary platform</p>
-        {socialMediaError && <p className="text-xs text-destructive">Social media handle is required</p>}
       </div>
 
       {/* Uploaded Files Summary */}
