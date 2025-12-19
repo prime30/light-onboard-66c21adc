@@ -4377,8 +4377,8 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", highlight && "field-highlight", highlightFade && "field-highlight-fade", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
-      <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
+    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+      <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", highlight && "field-highlight", highlightFade && "field-highlight-fade", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
       <span className={cn("text-sm font-medium", agreementError ? "text-destructive" : "text-foreground")}>
