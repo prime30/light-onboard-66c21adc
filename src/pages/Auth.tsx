@@ -2034,7 +2034,7 @@ const Auth = () => {
       setTransitionDirection("forward");
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentStep("license");
+        setCurrentStep("contact-basics");
         setIsTransitioning(false);
       }, 150);
     }, 800);
