@@ -1,5 +1,6 @@
 import { FileCheck, ShieldCheck } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 
 interface SummaryFormProps {
   accountType: string | null;
@@ -241,17 +242,9 @@ export const SummaryForm = ({
         {/* Uploaded Documents */}
         {uploadedFiles.length > 0 && (
           <div className="animate-stagger-9">
-            <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
+            <div className="space-y-3 p-4 rounded-form bg-muted border border-border/50">
               <span className="text-sm font-medium text-foreground">Uploaded Documents</span>
-              <div className="space-y-1.5">
-                {uploadedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm">
-                    <FileCheck className="w-4 h-4 text-emerald-500" />
-                    <span className="text-muted-foreground">{file.label}</span>
-                    <span className="text-foreground/60 text-xs truncate max-w-[150px]">({file.file.name})</span>
-                  </div>
-                ))}
-              </div>
+              <FilePreviewGrid files={uploadedFiles} size="md" />
             </div>
           </div>
         )}
