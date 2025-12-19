@@ -1369,10 +1369,15 @@
   background-color: hsl(0 84% 60% / 0.10);
   outline: 2px solid hsl(0 84% 60% / 0.55);
   outline-offset: 2px;
-  transition: background-color 1.6s ease-out, outline-color 1.6s ease-out;
+  transition: background-color 1s ease-out, outline-color 1s ease-out;
 }
 
 .field-highlight:focus {
   outline-color: hsl(0 84% 60% / 0.65);
+}
+
+.field-highlight.field-highlight-fade {
+  background-color: transparent;
+  outline-color: transparent;
 }
 
