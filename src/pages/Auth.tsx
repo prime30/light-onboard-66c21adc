@@ -25,6 +25,7 @@ import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { FileSummary } from "@/components/registration/FileSummary";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
+import { AuthFooter } from "@/components/registration/AuthFooter";
 import { ContactBasicsStep, countryCodes, CountryFlag, isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
 import { PreferencesStep } from "@/components/registration/steps/PreferencesStep";
 import { BusinessLocationStep, countries, provinces, states } from "@/components/registration/steps/BusinessLocationStep";
@@ -373,8 +374,6 @@ const Auth = () => {
     };
   }, [highlightFields, isTransitioning]);
 
-  const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
-  const submitPopoverCloseTimer = useRef<number | null>(null);
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -2545,148 +2544,20 @@ const Auth = () => {
 
         {/* Footer */}
         {footerVisible && (
-          <footer className={cn(
-            "sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:p-[25px] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-[20px] overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]",
-            "lg:bottom-0 lg:mx-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:shadow-none",
-            footerEnterReady ? "animate-slide-up-fade" : "opacity-0 translate-y-[15px]"
-          )}>
-            <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
-              <div className={cn(
-                "flex",
-                mode === "signup" && currentStep !== "onboarding" ? "gap-[15px]" : "gap-0"
-              )} style={{ transition: footerTransitionsEnabled ? "gap 300ms ease-out" : "none" }}>
-                <div 
-                  className={cn(
-                    "overflow-hidden",
-                    mode === "signup" && currentStep !== "onboarding" ? "w-[55px] opacity-100" : "w-0 opacity-0"
-                  )}
-                  style={{ transition: footerTransitionsEnabled ? "width 300ms ease-out, opacity 300ms ease-out" : "none" }}
-                >
-                  <Button variant="outline" size="lg" onClick={handleBack} aria-label="Go back" className="h-button w-[55px] p-0 rounded-form border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
-                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" aria-hidden="true" />
-                  </Button>
-                </div>
-                <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
-                  <PopoverTrigger asChild>
-                    {/* Wrap the button so hover works even when the button is disabled */}
-                    <span
-                      className="flex-1 block"
-                      onMouseEnter={() => {
-                        if (submitPopoverCloseTimer.current) {
-                          window.clearTimeout(submitPopoverCloseTimer.current);
-                          submitPopoverCloseTimer.current = null;
-                        }
-                        if (currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
-                          setSubmitTooltipOpen(true);
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        if (submitPopoverCloseTimer.current) {
-                          window.clearTimeout(submitPopoverCloseTimer.current);
-                        }
-                        // small grace period so you can move into the popover
-                        submitPopoverCloseTimer.current = window.setTimeout(() => {
-                          setSubmitTooltipOpen(false);
-                          submitPopoverCloseTimer.current = null;
-                        }, 220);
-                      }}
-                    >
-                      <Button
-                        key={`shimmer-${shimmerKey}`}
-                        size="lg"
-                        onClick={handleNext}
-                        disabled={currentStep === "summary" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
-                        className={cn(
-                          "btn-premium w-full h-button rounded-form bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
-                          shimmerKey > 0 && "shimmer-trigger",
-                          // when disabled, popover is triggered by wrapper, not the button
-                          currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
-                        )}
-                      >
-                        <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                              Submitting...
-                            </>
-                          ) : (
-                            <>
-                              {mode === "signin"
-                                ? "Login"
-                                : currentStep === "onboarding"
-                                  ? "Get started"
-                                  : currentStep === "summary"
-                                    ? "Submit application"
-                                    : "Continue"}
-                              <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
-                            </>
-                          )}
-                        </span>
-                      </Button>
-                    </span>
-                  </PopoverTrigger>
-                  {currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
-                    <PopoverContent
-                      side="top"
-                      className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto z-50"
-                      onMouseEnter={() => {
-                        if (submitPopoverCloseTimer.current) {
-                          window.clearTimeout(submitPopoverCloseTimer.current);
-                          submitPopoverCloseTimer.current = null;
-                        }
-                        setSubmitTooltipOpen(true);
-                      }}
-                      onMouseLeave={() => {
-                        if (submitPopoverCloseTimer.current) {
-                          window.clearTimeout(submitPopoverCloseTimer.current);
-                        }
-                        submitPopoverCloseTimer.current = window.setTimeout(() => {
-                          setSubmitTooltipOpen(false);
-                          submitPopoverCloseTimer.current = null;
-                        }, 220);
-                      }}
-                      onPointerDownOutside={() => setSubmitTooltipOpen(false)}
-                    >
-                      <div className="space-y-2.5">
-                        <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
-                        <div className="space-y-2">
-                          {getIncompleteSteps().map(({
-                            step,
-                            name,
-                            missingFields
-                          }) => (
-                            <button 
-                              key={step} 
-                              onClick={() => {
-                                setSubmitTooltipOpen(false);
-                                goToStep(step, missingFields);
-                              }}
-                              className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
-                            >
-                              <div className="flex items-center gap-2 w-full">
-                                <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                                  <span className="text-[10px] font-semibold">{step}</span>
-                                </div>
-                                <span className="text-sm font-medium whitespace-nowrap">{name}</span>
-                                <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
-                              </div>
-                              <div className="pl-7 flex flex-wrap gap-1">
-                                {missingFields.map((field) => (
-                                  <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium">
-                                    {field}
-                                  </span>
-                                ))}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  )}
-                </Popover>
-              </div>
-            </div>
-          </footer>
+          <AuthFooter
+            mode={mode}
+            currentStep={currentStep}
+            canContinue={canContinue()}
+            isAllStepsValid={isAllStepsValid()}
+            isSubmitting={isSubmitting}
+            footerTransitionsEnabled={footerTransitionsEnabled}
+            footerEnterReady={footerEnterReady}
+            incompleteSteps={getIncompleteSteps()}
+            shimmerKey={shimmerKey}
+            onBack={handleBack}
+            onNext={handleNext}
+            onGoToStep={goToStep}
+          />
         )}
       </div>
       </div>
