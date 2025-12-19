@@ -2993,7 +2993,11 @@ const Auth = () => {
               isSavingProgress ? "opacity-100" : "opacity-0 pointer-events-none",
               saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
             )}>
-              {saveProgressText === "saving" ? "Saving..." : "Saved"}
+              {/* Use invisible text to maintain consistent width */}
+              <span className="invisible">Saving...</span>
+              <span className="absolute inset-0 flex items-center justify-end">
+                {saveProgressText === "saving" ? "Saving..." : "Saved"}
+              </span>
             </span>
             <button 
               onClick={handleCloseModal} 
