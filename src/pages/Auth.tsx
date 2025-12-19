@@ -754,7 +754,7 @@ const Auth = () => {
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
-  const [highlightField, setHighlightField] = useState<string | null>(null);
+  const [highlightFields, setHighlightFields] = useState<string[]>([]);
   const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
   const [highlightWholesaleFade, setHighlightWholesaleFade] = useState(false);
   // Display total steps - locked during account-type step to prevent indicator jump
@@ -869,7 +869,7 @@ const Auth = () => {
 
   // Handle field highlighting after navigation from submit tooltip
   useEffect(() => {
-    if (!highlightField || isTransitioning) return;
+    if (highlightFields.length === 0 || isTransitioning) return;
     
     // Map field labels to element selectors
     const fieldMap: Record<string, string> = {
@@ -904,67 +904,81 @@ const Auth = () => {
       "Years in business": "[data-field='years-in-business']",
     };
     
-    const selector = fieldMap[highlightField];
-    if (!selector) {
-      setHighlightField(null);
-      return;
-    }
+    const timers: number[] = [];
+    const STAGGER_DELAY = 300; // ms between each field highlight start
+    const HIGHLIGHT_DURATION = 2000; // how long highlight stays before fade
+    const FADE_DURATION = 1000; // fade transition duration
     
     // Delay to ensure step entrance animation completes before highlighting
-    let clearHighlightTimer: number | null = null;
-    const timeoutId = window.setTimeout(() => {
-      // Use querySelectorAll to support multiple elements (e.g., tax exemption yes/no buttons)
-      const elements = document.querySelectorAll(selector);
-      if (elements.length === 0) {
-        setHighlightField(null);
-        return;
-      }
-
-      elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      // For wholesale terms (a button), use React state to apply the class
-      // so React re-renders/entrance animations don't clobber the highlight.
-      if (selector === "[data-field='wholesale-terms']") {
-        setHighlightWholesaleTerms(true);
-        setHighlightWholesaleFade(false);
-        // After 2s, start fade
-        clearHighlightTimer = window.setTimeout(() => {
-          setHighlightWholesaleFade(true);
-          // After fade completes, remove highlight
-          window.setTimeout(() => {
-            setHighlightWholesaleTerms(false);
+    const initialDelay = window.setTimeout(() => {
+      highlightFields.forEach((fieldLabel, index) => {
+        const selector = fieldMap[fieldLabel];
+        if (!selector) return;
+        
+        // Stagger the start of each highlight
+        const startTimer = window.setTimeout(() => {
+          const elements = document.querySelectorAll(selector);
+          if (elements.length === 0) return;
+          
+          // Scroll to first field only
+          if (index === 0) {
+            elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          
+          // Special handling for wholesale terms button (uses React state)
+          if (selector === "[data-field='wholesale-terms']") {
+            setHighlightWholesaleTerms(true);
             setHighlightWholesaleFade(false);
-            setHighlightField(null);
-          }, 1000);
-        }, 2000);
-        return;
-      }
-
-      // For all matched elements, imperatively add the highlight class
-      elements.forEach(el => el.classList.add("field-highlight"));
-
-      // Focus the first element if it's an input
-      const firstEl = elements[0];
-      if (firstEl instanceof HTMLInputElement || firstEl instanceof HTMLSelectElement || firstEl instanceof HTMLTextAreaElement) {
-        firstEl.focus();
-      }
-
-      // After 2s, start fade-out transition
-      clearHighlightTimer = window.setTimeout(() => {
-        elements.forEach(el => el.classList.add("field-highlight-fade"));
-        // After fade transition completes (1s), remove classes
-        window.setTimeout(() => {
-          elements.forEach(el => el.classList.remove("field-highlight", "field-highlight-fade"));
-          setHighlightField(null);
-        }, 1000);
-      }, 2000);
+            const fadeTimer = window.setTimeout(() => {
+              setHighlightWholesaleFade(true);
+              const removeTimer = window.setTimeout(() => {
+                setHighlightWholesaleTerms(false);
+                setHighlightWholesaleFade(false);
+              }, FADE_DURATION);
+              timers.push(removeTimer);
+            }, HIGHLIGHT_DURATION);
+            timers.push(fadeTimer);
+            return;
+          }
+          
+          // Add highlight class to all matched elements
+          elements.forEach(el => el.classList.add("field-highlight"));
+          
+          // Focus the first input element (only for first field)
+          if (index === 0) {
+            const firstEl = elements[0];
+            if (firstEl instanceof HTMLInputElement || firstEl instanceof HTMLSelectElement || firstEl instanceof HTMLTextAreaElement) {
+              firstEl.focus();
+            }
+          }
+          
+          // Start fade after highlight duration
+          const fadeTimer = window.setTimeout(() => {
+            elements.forEach(el => el.classList.add("field-highlight-fade"));
+            // Remove classes after fade completes
+            const removeTimer = window.setTimeout(() => {
+              elements.forEach(el => el.classList.remove("field-highlight", "field-highlight-fade"));
+            }, FADE_DURATION);
+            timers.push(removeTimer);
+          }, HIGHLIGHT_DURATION);
+          timers.push(fadeTimer);
+        }, index * STAGGER_DELAY);
+        timers.push(startTimer);
+      });
+      
+      // Clear highlightFields after all animations complete
+      const totalDuration = (highlightFields.length - 1) * STAGGER_DELAY + HIGHLIGHT_DURATION + FADE_DURATION + 100;
+      const clearTimer = window.setTimeout(() => {
+        setHighlightFields([]);
+      }, totalDuration);
+      timers.push(clearTimer);
     }, 600);
+    timers.push(initialDelay);
 
     return () => {
-      window.clearTimeout(timeoutId);
-      if (clearHighlightTimer) window.clearTimeout(clearHighlightTimer);
+      timers.forEach(t => window.clearTimeout(t));
     };
-  }, [highlightField, isTransitioning]);
+  }, [highlightFields, isTransitioning]);
 
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
@@ -2280,9 +2294,8 @@ const Auth = () => {
       return;
     }
     
-    // Store the first missing field to highlight after navigation
-    const fieldToHighlight = missingFields?.[0] || null;
-    setHighlightField(fieldToHighlight);
+    // Store all missing fields to highlight after navigation
+    setHighlightFields(missingFields || []);
     
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
