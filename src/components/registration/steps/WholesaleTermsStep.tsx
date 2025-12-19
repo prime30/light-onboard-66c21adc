@@ -64,10 +64,10 @@ export const WholesaleTermsStep = ({
         <button 
           type="button" 
           onClick={() => setShowTerms(true)} 
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          className="story-link inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
         >
-          View Terms of Service
-          <ArrowUpRight className="w-3.5 h-3.5" />
+          <span>View Terms of Service</span>
+          <ArrowUpRight className="w-3 h-3" />
         </button>
       </div>
       
