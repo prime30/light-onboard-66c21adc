@@ -139,6 +139,11 @@ const isValidPhoneNumber = (phone: string): boolean => {
   return cleaned.length === 10;
 };
 
+// Email validation - requires @ symbol
+const isValidEmail = (email: string): boolean => {
+  return email.trim() !== "" && email.includes("@");
+};
+
 // Format phone number as user types (local number only, no country code)
 const formatPhoneNumber = (value: string): string => {
   // Remove all non-digit characters
@@ -1502,7 +1507,7 @@ const Auth = () => {
   
   const canContinue = () => {
     if (mode === "signin") {
-      return email.trim() !== "" && password.length >= 8;
+      return isValidEmail(email) && password.length >= 8;
     }
     switch (currentStep) {
       case "onboarding":
@@ -1510,7 +1515,7 @@ const Auth = () => {
       case "account-type":
         return accountType !== null;
       case "contact-basics":
-        return firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber);
+        return firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
       case "license":
         if (accountType === "salon") {
           return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
@@ -1543,14 +1548,14 @@ const Auth = () => {
   // Check if ALL steps in the form are valid (for final submission)
   const isAllStepsValid = () => {
     if (mode === "signin") {
-      return email.trim() !== "" && password.length >= 8;
+      return isValidEmail(email) && password.length >= 8;
     }
 
     // Must have account type selected
     if (!accountType) return false;
 
     // Contact basics validation (required for all flows)
-    const contactBasicsValid = firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber);
+    const contactBasicsValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
 
     // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info)
     if (accountType === "student") {
@@ -1620,7 +1625,7 @@ const Auth = () => {
       const studentContactBasicsMissing: string[] = [];
       if (firstName.trim() === "") studentContactBasicsMissing.push("First name");
       if (lastName.trim() === "") studentContactBasicsMissing.push("Last name");
-      if (email.trim() === "") studentContactBasicsMissing.push("Email");
+      if (!isValidEmail(email)) studentContactBasicsMissing.push("Email");
       if (!isValidPhoneNumber(phoneNumber)) studentContactBasicsMissing.push("Phone number");
       if (studentContactBasicsMissing.length > 0) {
         incomplete.push({
@@ -1672,7 +1677,7 @@ const Auth = () => {
       const salonContactBasicsMissing: string[] = [];
       if (firstName.trim() === "") salonContactBasicsMissing.push("First name");
       if (lastName.trim() === "") salonContactBasicsMissing.push("Last name");
-      if (email.trim() === "") salonContactBasicsMissing.push("Email");
+      if (!isValidEmail(email)) salonContactBasicsMissing.push("Email");
       if (!isValidPhoneNumber(phoneNumber)) salonContactBasicsMissing.push("Phone number");
       if (salonContactBasicsMissing.length > 0) {
         incomplete.push({
@@ -1729,7 +1734,7 @@ const Auth = () => {
     const proContactBasicsMissing: string[] = [];
     if (firstName.trim() === "") proContactBasicsMissing.push("First name");
     if (lastName.trim() === "") proContactBasicsMissing.push("Last name");
-    if (email.trim() === "") proContactBasicsMissing.push("Email");
+    if (!isValidEmail(email)) proContactBasicsMissing.push("Email");
     if (!isValidPhoneNumber(phoneNumber)) proContactBasicsMissing.push("Phone number");
     if (proContactBasicsMissing.length > 0) {
       incomplete.push({
@@ -2669,7 +2674,7 @@ const Auth = () => {
                   {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={handleBusinessOperationTypeSelect} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
-                  {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
+                  {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                   {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} onAutoAdvance={() => {
                     // Auto-advance to contact-info step after toast ends
                     const stepNum = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
@@ -3138,11 +3143,6 @@ const MarqueeBadges = () => {
   );
 };
 
-// Email validation helper
-const isValidEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
 
 const SignInForm = ({
   email,
