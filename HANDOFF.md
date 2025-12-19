@@ -23,12 +23,15 @@ src/
 │   │   ├── BusinessLocationStep.tsx
 │   │   ├── LicenseStep.tsx
 │   │   └── ... (more steps)
-│   └── helpers/              # Shared UI components
-│       ├── MarqueeBadges.tsx
-│       └── index.ts
+│   ├── helpers/              # Shared UI components
+│   │   ├── MarqueeBadges.tsx
+│   │   └── index.ts
+│   ├── AuthFooter.tsx        # Footer with back/next buttons
+│   └── StepIndicatorBar.tsx  # Step indicator with swipe
 ├── hooks/
 │   ├── use-auth.ts           # Auth state hook (useAuth)
 │   ├── use-auth-form.ts      # React Hook Form integration
+│   ├── use-auth-form-state.ts # All form useState extracted (~40 fields)
 │   ├── use-form-persistence.ts  # sessionStorage persistence
 │   ├── use-registration-sync.ts # Bridges local state to context
 │   └── use-step-navigation.ts   # Step ordering & validation
@@ -155,11 +158,19 @@ With auto-confirm email enabled:
 
 ## Notes for Continuing Refactoring
 
+### Extracted Hooks & Components (Ready to Use)
+
+- **`useAuthFormState`** - Contains all ~40 useState calls, sessionStorage persistence, and form actions
+- **`AuthFooter`** - Footer component with back/next buttons and incomplete steps popover
+- **`StepIndicatorBar`** - Step indicator with swipe gesture handlers
+- **`useStepNavigation`** - Step ordering, validation, and navigation utilities
+
 ### To fully migrate Auth.tsx:
-1. Move remaining useState calls to RegistrationContext
-2. Update step components to use `useRegistration()` directly
-3. Extract modal/swipe logic to a custom hook
-4. Extract step indicator logic to a component
+1. Replace inline useState calls with `useAuthFormState()` hook
+2. Replace footer JSX with `<AuthFooter />` component
+3. Replace step indicator JSX with `<StepIndicatorBar />` component
+4. Update step components to use `useRegistration()` directly
+5. Extract modal/swipe logic to a custom hook
 
 ### To add file uploads:
 1. Create Supabase storage bucket for documents
