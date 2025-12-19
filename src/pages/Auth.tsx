@@ -4884,14 +4884,16 @@ const WholesaleTermsForm = ({
       </span>
     </button>
 
-    {/* Permanent Terms of Service link */}
-    <div className="flex gap-[15px] p-5 rounded-form bg-destructive/5 border border-destructive/20 animate-stagger-4">
-      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" aria-hidden="true" />
-      <p className="text-sm text-destructive/90 leading-relaxed text-balance">
-        Using a client's payment method to purchase wholesale products violates our{" "}
-        <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>{" "}
-        and may result in account termination.
-      </p>
+    {/* Terms of Service link - always visible */}
+    <div className="flex justify-center animate-stagger-4">
+      <button 
+        type="button" 
+        onClick={() => setShowTerms(true)} 
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+      >
+        View Terms of Service
+        <ArrowUpRight className="w-3.5 h-3.5" />
+      </button>
     </div>
     
     {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
