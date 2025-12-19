@@ -2214,40 +2214,52 @@ const Auth = () => {
     // If switching to a different account type and there's existing progress, show confirmation
     if (type && previousType && previousType !== type && hasFormProgress()) {
       toast.custom((t) => (
-        <div className="flex flex-col gap-3 w-full max-w-sm bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
-          <div className="space-y-1">
-            <p className="font-medium text-foreground">Change account type?</p>
-            <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
+        <>
+          {/* Backdrop overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 animate-fade-in z-[9998]" 
+            style={{ pointerEvents: 'none' }}
+          />
+          {/* Toast content */}
+          <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
+            <div className="flex flex-col gap-3 w-full max-w-sm bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] pointer-events-auto animate-scale-in">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Change account type?</p>
+                <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
+              </div>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={() => {
+                    toast.dismiss(t);
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+                >
+                  No, keep current
+                </button>
+                <button
+                  onClick={() => {
+                    toast.dismiss(t);
+                    executeAccountTypeSelect(type, previousType);
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+                >
+                  Yes, change
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-2 w-full">
-            <button
-              onClick={() => {
-                toast.dismiss(t);
-              }}
-              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
-            >
-              No, keep current
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t);
-                executeAccountTypeSelect(type, previousType);
-              }}
-              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
-            >
-              Yes, change
-            </button>
-          </div>
-        </div>
+        </>
       ), {
-        duration: 15000,
+        duration: Infinity,
         position: "top-center",
-        className: "!bg-transparent !backdrop-blur-none !border-none !shadow-none !p-0",
+        className: "!bg-transparent !backdrop-blur-none !border-none !shadow-none !p-0 !w-0 !h-0",
         style: {
-          top: "50%",
-          transform: "translateY(-50%)",
           background: "transparent",
           backdropFilter: "none",
+          width: 0,
+          height: 0,
+          padding: 0,
+          margin: 0,
         },
       });
       return;
