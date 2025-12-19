@@ -37,7 +37,7 @@ import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 type AuthMode = "signup" | "signin";
-type Step = "onboarding" | "reviews" | "account-type" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
+type Step = "onboarding" | "reviews" | "account-type" | "contact-basics" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "success";
 const slides = [{
   eyebrow: "Exclusively professional",
   title: "Apply for a",
@@ -1501,6 +1501,8 @@ const Auth = () => {
         return true;
       case "account-type":
         return accountType !== null;
+      case "contact-basics":
+        return firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber);
       case "license":
         if (accountType === "salon") {
           return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
@@ -1520,8 +1522,8 @@ const Auth = () => {
         }
         return hasTaxExemption !== null;
       case "contact-info":
-        // Birthday and social media are optional
-        return firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
+        // This step now only has optional fields (birthday, social media, preferences)
+        return true;
       default:
         return true;
     }
@@ -1536,33 +1538,33 @@ const Auth = () => {
     // Must have account type selected
     if (!accountType) return false;
 
-    // Student flow - 4 steps (account-type, school-info, wholesale-terms, contact-info)
+    // Contact basics validation (required for all flows)
+    const contactBasicsValid = firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber);
+
+    // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info)
     if (accountType === "student") {
       const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
       const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
-      return schoolValid && wholesaleValid && taxValid && contactValid;
+      return schoolValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
-    // Salon flow
+    // Salon flow - 7 steps
     if (accountType === "salon") {
       const licenseValid = licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
       const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
       const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
-      return licenseValid && businessValid && wholesaleValid && taxValid && contactValid;
+      return licenseValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
-    // Professional flow
+    // Professional flow - 8 steps
     const licenseValid = licenseNumber.trim() !== "";
     const businessOperationValid = businessOperationType !== null;
     const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
     const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-    const contactValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidPhoneNumber(phoneNumber);
-    return licenseValid && businessOperationValid && businessValid && wholesaleValid && taxValid && contactValid;
+    return licenseValid && businessOperationValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
   };
 
   // Get list of incomplete steps for tooltip display
@@ -1590,7 +1592,7 @@ const Auth = () => {
     }
 
     if (accountType === "student") {
-      // Student flow: account-type, school-info, wholesale-terms, contact-info
+      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info
       // Step 2: School Info
       const schoolMissing: string[] = [];
       if (schoolName.trim() === "") schoolMissing.push("School name");
@@ -1603,41 +1605,43 @@ const Auth = () => {
           missingFields: schoolMissing
         });
       }
-      // Step 3: Tax Exemption
+      // Step 3: Contact Basics
+      const studentContactBasicsMissing: string[] = [];
+      if (firstName.trim() === "") studentContactBasicsMissing.push("First name");
+      if (lastName.trim() === "") studentContactBasicsMissing.push("Last name");
+      if (email.trim() === "") studentContactBasicsMissing.push("Email");
+      if (!isValidPhoneNumber(phoneNumber)) studentContactBasicsMissing.push("Phone number");
+      if (studentContactBasicsMissing.length > 0) {
+        incomplete.push({
+          step: 3,
+          name: "Contact information",
+          missingFields: studentContactBasicsMissing
+        });
+      }
+      // Step 4: Tax Exemption
       const studentTaxMissing: string[] = [];
       if (hasTaxExemption === null) studentTaxMissing.push("Exemption status");
       else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax document");
       if (studentTaxMissing.length > 0) {
         incomplete.push({
-          step: 3,
+          step: 4,
           name: "Tax exemption",
           missingFields: studentTaxMissing
         });
       }
-      // Step 4: Wholesale Terms
+      // Step 5: Wholesale Terms
       if (!wholesaleAgreed) {
         incomplete.push({
-          step: 4,
+          step: 5,
           name: "Wholesale terms",
           missingFields: ["Terms agreement"]
         });
       }
-      // Step 5: Contact Info
-      const contactMissing: string[] = [];
-      if (firstName.trim() === "") contactMissing.push("First name");
-      if (lastName.trim() === "") contactMissing.push("Last name");
-      if (!isValidPhoneNumber(phoneNumber)) contactMissing.push("Phone number");
-      // Birthday and social media are optional - don't add to missing
-      if (contactMissing.length > 0) {
-        incomplete.push({
-          step: 5,
-          name: "Contact info",
-          missingFields: contactMissing
-        });
-      }
+      // Step 6: Preferences and Details (all optional)
       return incomplete;
     }
     if (accountType === "salon") {
+      // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info
       // Step 2: Business Location
       const locationMissing: string[] = [];
       if (businessName.trim() === "") locationMissing.push("Business name");
@@ -1653,54 +1657,55 @@ const Auth = () => {
           missingFields: locationMissing
         });
       }
-      // Step 3: License
+      // Step 3: Contact Basics
+      const salonContactBasicsMissing: string[] = [];
+      if (firstName.trim() === "") salonContactBasicsMissing.push("First name");
+      if (lastName.trim() === "") salonContactBasicsMissing.push("Last name");
+      if (email.trim() === "") salonContactBasicsMissing.push("Email");
+      if (!isValidPhoneNumber(phoneNumber)) salonContactBasicsMissing.push("Phone number");
+      if (salonContactBasicsMissing.length > 0) {
+        incomplete.push({
+          step: 3,
+          name: "Contact information",
+          missingFields: salonContactBasicsMissing
+        });
+      }
+      // Step 4: License
       const licenseMissing: string[] = [];
       if (licenseNumber.trim() === "") licenseMissing.push("License number");
       if (salonSize === "") licenseMissing.push("Salon size");
       if (salonStructure === "") licenseMissing.push("Salon structure");
       if (licenseMissing.length > 0) {
         incomplete.push({
-          step: 3,
+          step: 4,
           name: "License verification",
           missingFields: licenseMissing
         });
       }
-      // Step 4: Tax Exemption
+      // Step 5: Tax Exemption
       const taxMissing: string[] = [];
       if (hasTaxExemption === null) taxMissing.push("Exemption status");
       else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax document");
       if (taxMissing.length > 0) {
         incomplete.push({
-          step: 4,
+          step: 5,
           name: "Tax exemption",
           missingFields: taxMissing
         });
       }
-      // Step 5: Wholesale Terms
+      // Step 6: Wholesale Terms
       if (!wholesaleAgreed) {
         incomplete.push({
-          step: 5,
+          step: 6,
           name: "Wholesale terms",
           missingFields: ["Terms agreement"]
         });
       }
-      // Step 6: Contact Info
-      const salonContactMissing: string[] = [];
-      if (firstName.trim() === "") salonContactMissing.push("First name");
-      if (lastName.trim() === "") salonContactMissing.push("Last name");
-      if (!isValidPhoneNumber(phoneNumber)) salonContactMissing.push("Phone number");
-      // Birthday and social media are optional - don't add to missing
-      if (salonContactMissing.length > 0) {
-        incomplete.push({
-          step: 6,
-          name: "Contact info",
-          missingFields: salonContactMissing
-        });
-      }
+      // Step 7: Preferences and Details (all optional)
       return incomplete;
     }
 
-    // Professional flow
+    // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info
     // Step 2: Business Operation
     if (businessOperationType === null) {
       incomplete.push({
@@ -1709,15 +1714,28 @@ const Auth = () => {
         missingFields: ["Operation type"]
       });
     }
-    // Step 3: License
-    if (licenseNumber.trim() === "") {
+    // Step 3: Contact Basics
+    const proContactBasicsMissing: string[] = [];
+    if (firstName.trim() === "") proContactBasicsMissing.push("First name");
+    if (lastName.trim() === "") proContactBasicsMissing.push("Last name");
+    if (email.trim() === "") proContactBasicsMissing.push("Email");
+    if (!isValidPhoneNumber(phoneNumber)) proContactBasicsMissing.push("Phone number");
+    if (proContactBasicsMissing.length > 0) {
       incomplete.push({
         step: 3,
+        name: "Contact information",
+        missingFields: proContactBasicsMissing
+      });
+    }
+    // Step 4: License
+    if (licenseNumber.trim() === "") {
+      incomplete.push({
+        step: 4,
         name: "License verification",
         missingFields: ["License number"]
       });
     }
-    // Step 4: Business Location
+    // Step 5: Business Location
     const proLocationMissing: string[] = [];
     if (businessName.trim() === "") proLocationMissing.push("Business name");
     if (businessAddress.trim() === "") proLocationMissing.push("Address");
@@ -1727,43 +1745,31 @@ const Auth = () => {
     if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
     if (proLocationMissing.length > 0) {
       incomplete.push({
-        step: 4,
+        step: 5,
         name: "Business location",
         missingFields: proLocationMissing
       });
     }
-    // Step 5: Tax Exemption
+    // Step 6: Tax Exemption
     const proTaxMissing: string[] = [];
     if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
     else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
     if (proTaxMissing.length > 0) {
       incomplete.push({
-        step: 5,
+        step: 6,
         name: "Tax exemption",
         missingFields: proTaxMissing
       });
     }
-    // Step 6: Wholesale Terms
+    // Step 7: Wholesale Terms
     if (!wholesaleAgreed) {
       incomplete.push({
-        step: 6,
+        step: 7,
         name: "Wholesale terms",
         missingFields: ["Terms agreement"]
       });
     }
-    // Step 7: Contact Info
-    const proContactMissing: string[] = [];
-    if (firstName.trim() === "") proContactMissing.push("First name");
-    if (lastName.trim() === "") proContactMissing.push("Last name");
-    if (!isValidPhoneNumber(phoneNumber)) proContactMissing.push("Phone number");
-    // Birthday and social media are optional - don't add to missing
-    if (proContactMissing.length > 0) {
-      incomplete.push({
-        step: 7,
-        name: "Contact info",
-        missingFields: proContactMissing
-      });
-    }
+    // Step 8: Preferences and Details (all optional)
     return incomplete;
   };
 
@@ -1781,76 +1787,76 @@ const Auth = () => {
 
     // For signup, calculate based on account type - must match isAllStepsValid logic exactly
     if (accountType === "student") {
-      // Student: accountType (1), school-info (3), wholesale (1), tax (1-2), contact (3 required)
+      // Student: accountType (1), school-info (3), contact-basics (4), tax (1-2), wholesale (1)
       let filled = 0;
-      let total = 9; // Reduced by 2 (birthday and socialMedia now optional)
+      let total = 10; // Added email field
       if (accountType) filled++;
       if (schoolName.trim() !== "") filled++;
       if (schoolState !== "") filled++;
       if (enrollmentProofFiles.length > 0) filled++;
-      if (wholesaleAgreed) filled++;
-      if (hasTaxExemption !== null) filled++;
-      if (hasTaxExemption === true) {
-        total = 10;
-        if (taxExemptFile) filled++;
-      }
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
+      if (email.trim() !== "") filled++;
       if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-      // Birthday and social media are optional - don't include in progress
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true) {
+        total = 11;
+        if (taxExemptFile) filled++;
+      }
+      if (wholesaleAgreed) filled++;
       return filled / total * 100;
     }
     
     if (accountType === "salon") {
-      // Salon: accountType (1), license (3), business location (6), wholesale (1), tax (1-2), contact (3 required)
+      // Salon: accountType (1), business location (6), contact-basics (4), license (3), tax (1-2), wholesale (1)
       let filled = 0;
-      let total = 15; // Reduced by 2 (birthday and socialMedia now optional)
+      let total = 16; // Added email field
       if (accountType) filled++;
-      if (licenseNumber.trim() !== "") filled++;
-      if (salonSize !== "") filled++;
-      if (salonStructure !== "") filled++;
       if (businessName.trim() !== "") filled++;
       if (businessAddress.trim() !== "") filled++;
       if (country !== "") filled++;
       if (city.trim() !== "") filled++;
       if (state !== "") filled++;
       if (zipCode.trim() !== "") filled++;
-      if (wholesaleAgreed) filled++;
-      if (hasTaxExemption !== null) filled++;
-      if (hasTaxExemption === true) {
-        total = 16;
-        if (taxExemptFile) filled++;
-      }
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
+      if (email.trim() !== "") filled++;
       if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-      // Birthday and social media are optional - don't include in progress
+      if (licenseNumber.trim() !== "") filled++;
+      if (salonSize !== "") filled++;
+      if (salonStructure !== "") filled++;
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true) {
+        total = 17;
+        if (taxExemptFile) filled++;
+      }
+      if (wholesaleAgreed) filled++;
       return filled / total * 100;
     }
 
-    // Professional (stylist): accountType (1), license (1), businessOperation (1), 
-    // business location (6), wholesale (1), tax (1-2), contact (3 required)
+    // Professional (stylist): accountType (1), businessOperation (1), contact-basics (4),
+    // license (1), business location (6), tax (1-2), wholesale (1)
     let filled = 0;
-    let total = 14; // Reduced by 2 (birthday and socialMedia now optional)
+    let total = 15; // Added email field
     if (accountType) filled++;
-    if (licenseNumber.trim() !== "") filled++;
     if (businessOperationType !== null) filled++;
+    if (firstName.trim() !== "") filled++;
+    if (lastName.trim() !== "") filled++;
+    if (email.trim() !== "") filled++;
+    if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+    if (licenseNumber.trim() !== "") filled++;
     if (businessName.trim() !== "") filled++;
     if (businessAddress.trim() !== "") filled++;
     if (country !== "") filled++;
     if (city.trim() !== "") filled++;
     if (state !== "") filled++;
     if (zipCode.trim() !== "") filled++;
-    if (wholesaleAgreed) filled++;
     if (hasTaxExemption !== null) filled++;
     if (hasTaxExemption === true) {
-      total = 15;
+      total = 16;
       if (taxExemptFile) filled++;
     }
-    if (firstName.trim() !== "") filled++;
-    if (lastName.trim() !== "") filled++;
-    if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-    // Birthday and social media are optional - don't include in progress
+    if (wholesaleAgreed) filled++;
     return filled / total * 100;
   };
   
@@ -1861,7 +1867,7 @@ const Auth = () => {
       // Auto-advance after grace period - navigate directly to next step
       setTimeout(() => {
         // Update display total steps based on selected type BEFORE transitioning
-        const newTotal = type === "student" ? 5 : type === "professional" ? 7 : 6;
+        const newTotal = type === "student" ? 6 : type === "professional" ? 8 : 7;
         setDisplayTotalSteps(newTotal);
         
         // Mark step 1 as completed
@@ -1920,16 +1926,19 @@ const Auth = () => {
         if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-operation";else targetStep = "business-location";
         break;
       case "business-operation":
-        targetStep = "license";
+        targetStep = "contact-basics";
+        break;
+      case "school-info":
+        targetStep = "contact-basics";
+        break;
+      case "business-location":
+        targetStep = accountType === "professional" ? "tax-exemption" : "contact-basics";
+        break;
+      case "contact-basics":
+        targetStep = accountType === "student" ? "tax-exemption" : accountType === "professional" ? "license" : "license";
         break;
       case "license":
         targetStep = accountType === "professional" ? "business-location" : "tax-exemption";
-        break;
-      case "business-location":
-        targetStep = accountType === "professional" ? "tax-exemption" : "license";
-        break;
-      case "school-info":
-        targetStep = "tax-exemption";
         break;
       case "tax-exemption":
         targetStep = "wholesale-terms";
@@ -1977,17 +1986,20 @@ const Auth = () => {
       case "business-operation":
         targetStep = "account-type";
         break;
-      case "license":
-        targetStep = accountType === "professional" ? "business-operation" : "business-location";
+      case "school-info":
+        targetStep = "account-type";
         break;
       case "business-location":
         targetStep = accountType === "professional" ? "license" : "account-type";
         break;
-      case "school-info":
-        targetStep = "account-type";
+      case "contact-basics":
+        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-operation";else targetStep = "business-location";
+        break;
+      case "license":
+        targetStep = accountType === "professional" ? "contact-basics" : "contact-basics";
         break;
       case "tax-exemption":
-        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
+        if (accountType === "student") targetStep = "contact-basics";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
         break;
       case "wholesale-terms":
         targetStep = "tax-exemption";
@@ -2007,99 +2019,108 @@ const Auth = () => {
     }, 150);
   };
   const getTotalSteps = () => {
-    // Student: account-type, school-info, tax-exemption, wholesale-terms, contact-info = 5 steps
-    // Professional: 7 steps (account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info)
-    // Salon: 6 steps (account-type, business-location, license, tax-exemption, wholesale-terms, contact-info)
+    // Student: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info = 6 steps
+    // Professional: 8 steps (account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info)
+    // Salon: 7 steps (account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info)
     // Once account type is selected, use that type's total (even while still on account-type step)
-    // Only show max steps (7) when no account type is selected yet
-    if (!accountType) return 7;
-    if (accountType === "student") return 5;
-    if (accountType === "professional") return 7;
-    return 6;
+    // Only show max steps (8) when no account type is selected yet
+    if (!accountType) return 8;
+    if (accountType === "student") return 6;
+    if (accountType === "professional") return 8;
+    return 7;
   };
   const getCurrentStepNumber = () => {
     if (currentStep === "account-type") return 1;
     if (accountType === "student") {
-      // Student flow: account-type, school-info, tax-exemption, wholesale-terms, contact-info
+      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info
       if (currentStep === "school-info") return 2;
-      if (currentStep === "tax-exemption") return 3;
-      if (currentStep === "wholesale-terms") return 4;
-      if (currentStep === "contact-info") return 5;
-      return 5;
+      if (currentStep === "contact-basics") return 3;
+      if (currentStep === "tax-exemption") return 4;
+      if (currentStep === "wholesale-terms") return 5;
+      if (currentStep === "contact-info") return 6;
+      return 6;
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info
+      // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info
       if (currentStep === "business-operation") return 2;
-      if (currentStep === "license") return 3;
-      if (currentStep === "business-location") return 4;
-      if (currentStep === "tax-exemption") return 5;
-      if (currentStep === "wholesale-terms") return 6;
-      if (currentStep === "contact-info") return 7;
-      return 7;
+      if (currentStep === "contact-basics") return 3;
+      if (currentStep === "license") return 4;
+      if (currentStep === "business-location") return 5;
+      if (currentStep === "tax-exemption") return 6;
+      if (currentStep === "wholesale-terms") return 7;
+      if (currentStep === "contact-info") return 8;
+      return 8;
     }
-    // Salon flow: account-type, business-location, license, tax-exemption, wholesale-terms, contact-info
+    // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info
     if (currentStep === "business-location") return 2;
-    if (currentStep === "license") return 3;
-    if (currentStep === "tax-exemption") return 4;
-    if (currentStep === "wholesale-terms") return 5;
-    if (currentStep === "contact-info") return 6;
-    return 6;
+    if (currentStep === "contact-basics") return 3;
+    if (currentStep === "license") return 4;
+    if (currentStep === "tax-exemption") return 5;
+    if (currentStep === "wholesale-terms") return 6;
+    if (currentStep === "contact-info") return 7;
+    return 7;
   };
   const getStepFromNumber = (stepNum: number): Step => {
     // Step 0 is always onboarding
     if (stepNum === 0) return "onboarding";
     
     if (accountType === "student") {
-      // Student flow: account-type, school-info, tax-exemption, wholesale-terms, contact-info
+      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info
       switch (stepNum) {
         case 1:
           return "account-type";
         case 2:
           return "school-info";
         case 3:
-          return "tax-exemption";
+          return "contact-basics";
         case 4:
-          return "wholesale-terms";
+          return "tax-exemption";
         case 5:
+          return "wholesale-terms";
+        case 6:
           return "contact-info";
         default:
           return "account-type";
       }
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info
+      // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info
       switch (stepNum) {
         case 1:
           return "account-type";
         case 2:
           return "business-operation";
         case 3:
-          return "license";
+          return "contact-basics";
         case 4:
-          return "business-location";
+          return "license";
         case 5:
-          return "tax-exemption";
+          return "business-location";
         case 6:
-          return "wholesale-terms";
+          return "tax-exemption";
         case 7:
+          return "wholesale-terms";
+        case 8:
           return "contact-info";
         default:
           return "account-type";
       }
     }
-    // Salon flow: account-type, business-location, license, tax-exemption, wholesale-terms, contact-info
+    // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info
     switch (stepNum) {
       case 1:
         return "account-type";
       case 2:
         return "business-location";
       case 3:
-        return "license";
+        return "contact-basics";
       case 4:
-        return "tax-exemption";
+        return "license";
       case 5:
-        return "wholesale-terms";
+        return "tax-exemption";
       case 6:
+        return "wholesale-terms";
+      case 7:
         return "contact-info";
       default:
         return "account-type";
@@ -2623,25 +2644,26 @@ const Auth = () => {
                   {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={handleBusinessOperationTypeSelect} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
+                  {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
                   {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} onAutoAdvance={() => {
-                    // Auto-advance to tax-exemption step after toast ends
-                    const stepNum = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
-                    setCompletedSteps(prev => new Set([...prev, stepNum]));
-                    setTransitionDirection("forward");
-                    setIsTransitioning(true);
-                    setTimeout(() => {
-                      setCurrentStep("tax-exemption");
-                      setIsTransitioning(false);
-                    }, 150);
-                  }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
-                  {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} onAutoAdvance={() => {
-                    // Auto-advance to contact-info step when No is selected
-                    const stepNum = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
+                    // Auto-advance to contact-info step after toast ends
+                    const stepNum = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
                     setCompletedSteps(prev => new Set([...prev, stepNum]));
                     setTransitionDirection("forward");
                     setIsTransitioning(true);
                     setTimeout(() => {
                       setCurrentStep("contact-info");
+                      setIsTransitioning(false);
+                    }, 150);
+                  }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
+                  {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} onAutoAdvance={() => {
+                    // Auto-advance to wholesale-terms step when No is selected
+                    const stepNum = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
+                    setCompletedSteps(prev => new Set([...prev, stepNum]));
+                    setTransitionDirection("forward");
+                    setIsTransitioning(true);
+                    setTimeout(() => {
+                      setCurrentStep("wholesale-terms");
                       setIsTransitioning(false);
                     }, 150);
                   }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(hasTaxExemption !== null && (hasTaxExemption === false || taxExemptFile !== null), hasTaxExemption !== null, showValidationErrors)} />}
@@ -4458,75 +4480,48 @@ const TaxExemptionForm = ({
     </div>;
 };
 
-// Contact Info Form
-const ContactInfoForm = ({
+// Contact Basics Form (new step 3)
+const ContactBasicsForm = ({
   accountType,
   firstName,
   lastName,
   preferredName,
+  email,
   phoneNumber,
   phoneCountryCode,
-  birthdayMonth,
-  birthdayDay,
-  socialMediaHandle,
   onFirstNameChange,
   onLastNameChange,
   onPreferredNameChange,
+  onEmailChange,
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
-  onBirthdayMonthChange,
-  onBirthdayDayChange,
-  onSocialMediaHandleChange,
-  subscribeOrderUpdates,
-  subscribeMarketing,
-  subscribePromotions,
-  onSubscribeOrderUpdatesChange,
-  onSubscribeMarketingChange,
-  onSubscribePromotionsChange,
   showValidationErrors = false,
-  validationStatus,
-  uploadedFiles = []
+  validationStatus
 }: {
   accountType: string | null;
   firstName: string;
   lastName: string;
   preferredName: string;
+  email: string;
   phoneNumber: string;
   phoneCountryCode: string;
-  birthdayMonth: string;
-  birthdayDay: string;
-  socialMediaHandle: string;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
   onPreferredNameChange: (value: string) => void;
+  onEmailChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onPhoneCountryCodeChange: (value: string) => void;
-  onBirthdayMonthChange: (value: string) => void;
-  onBirthdayDayChange: (value: string) => void;
-  onSocialMediaHandleChange: (value: string) => void;
-  subscribeOrderUpdates: boolean;
-  subscribeMarketing: boolean;
-  subscribePromotions: boolean;
-  onSubscribeOrderUpdatesChange: (value: boolean) => void;
-  onSubscribeMarketingChange: (value: boolean) => void;
-  onSubscribePromotionsChange: (value: boolean) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
-  uploadedFiles?: {
-    file: File;
-    label: string;
-  }[];
 }) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
+  const emailError = showValidationErrors && email.trim() === "";
   const phoneEmpty = phoneNumber.trim() === "";
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
-  // Birthday and social media are optional - no validation errors
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  // Step number varies by account type: professional=7, salon=6, student=4
-  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
+  const stepNumber = 3;
+  
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -4539,7 +4534,7 @@ const ContactInfoForm = ({
         Your Contact Information
       </h1>
       <p className="text-[10px] text-muted-foreground/60 flex items-center justify-center gap-1.5 pt-1">
-        <Lock className="w-2.5 h-2.5" />
+        <ShieldCheck className="w-2.5 h-2.5" />
         <span>Your information is secure and never shared with third parties.</span>
       </p>
     </div>
@@ -4570,20 +4565,33 @@ const ContactInfoForm = ({
       {/* Preferred Name */}
       <div className="space-y-2.5 animate-stagger-3 group">
         <Label htmlFor="preferredName" className="text-sm font-medium label-float">
-          Preferred name if different from legal name
+          Preferred name <span className="text-muted-foreground font-normal">(if different from legal name)</span>
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="preferredName" type="text" placeholder="Preferred name if different from legal name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="preferredName" type="text" placeholder="Preferred name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
-      {/* Phone Number with Country Code */}
+      {/* Email */}
       <div className="space-y-2.5 animate-stagger-4 group">
+        <Label htmlFor="email" className={cn("text-sm font-medium label-float", emailError && "text-destructive")}>
+          Email*
+        </Label>
+        <div className="relative input-glow input-ripple rounded-[15px]">
+          <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", emailError ? "bg-destructive/10" : "bg-muted")}>
+            <Mail className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", emailError ? "text-destructive" : "text-muted-foreground")} />
+          </div>
+          <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={e => onEmailChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", emailError && "border-destructive/50 bg-destructive/5")} />
+        </div>
+        {emailError && <p className="text-xs text-destructive">Email is required</p>}
+      </div>
+
+      {/* Phone Number with Country Code */}
+      <div className="space-y-2.5 animate-stagger-5 group">
         <Label htmlFor="phoneNumber" className={cn("text-sm font-medium label-float", phoneError && "text-destructive")}>
           Phone number*
         </Label>
         <div className="flex gap-2">
-          {/* Country Code Selector */}
           <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
             <SelectTrigger className={cn("w-[110px] h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
               <SelectValue>
@@ -4606,7 +4614,6 @@ const ContactInfoForm = ({
             </SelectContent>
           </Select>
           
-          {/* Phone Number Input */}
           <div className="relative flex-1 input-glow input-ripple rounded-[15px]">
             <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", phoneError ? "bg-destructive/10" : "bg-muted")}>
               <Phone className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", phoneError ? "text-destructive" : "text-muted-foreground")} />
@@ -4617,9 +4624,69 @@ const ContactInfoForm = ({
         {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
         {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
       </div>
+    </div>
+  </div>;
+};
 
+// Preferences and Details Form (final step)
+const ContactInfoForm = ({
+  accountType,
+  birthdayMonth,
+  birthdayDay,
+  socialMediaHandle,
+  onBirthdayMonthChange,
+  onBirthdayDayChange,
+  onSocialMediaHandleChange,
+  subscribeOrderUpdates,
+  subscribeMarketing,
+  subscribePromotions,
+  onSubscribeOrderUpdatesChange,
+  onSubscribeMarketingChange,
+  onSubscribePromotionsChange,
+  showValidationErrors = false,
+  validationStatus,
+  uploadedFiles = []
+}: {
+  accountType: string | null;
+  birthdayMonth: string;
+  birthdayDay: string;
+  socialMediaHandle: string;
+  onBirthdayMonthChange: (value: string) => void;
+  onBirthdayDayChange: (value: string) => void;
+  onSocialMediaHandleChange: (value: string) => void;
+  subscribeOrderUpdates: boolean;
+  subscribeMarketing: boolean;
+  subscribePromotions: boolean;
+  onSubscribeOrderUpdatesChange: (value: boolean) => void;
+  onSubscribeMarketingChange: (value: boolean) => void;
+  onSubscribePromotionsChange: (value: boolean) => void;
+  showValidationErrors?: boolean;
+  validationStatus: "complete" | "in-progress" | "error";
+  uploadedFiles?: {
+    file: File;
+    label: string;
+  }[];
+}) => {
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  // Step number varies by account type: professional=8, salon=7, student=6
+  const stepNumber = accountType === "professional" ? 8 : accountType === "student" ? 6 : 7;
+  return <div className="space-y-[25px]">
+    <div className="space-y-2.5 text-center animate-stagger-1">
+      <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+        <StepValidationIcon status={validationStatus} />
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          Step {stepNumber}
+        </span>
+      </div>
+      <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+        Preferences & Details
+      </h1>
+    </div>
+
+    <div className="space-y-4">
       {/* Birthday (Optional) */}
-      <div className="space-y-2.5 animate-stagger-5 group">
+      <div className="space-y-2.5 animate-stagger-2 group">
         <Label className="text-sm font-medium label-float">
           Birthday <span className="text-muted-foreground font-normal">(optional)</span>
         </Label>
