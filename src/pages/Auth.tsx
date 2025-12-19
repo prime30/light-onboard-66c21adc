@@ -1929,6 +1929,8 @@ const Auth = () => {
             canContinue={canContinue()}
             isAllStepsValid={isAllStepsValid()}
             isSubmitting={isSubmitting}
+            isUploading={isUploadingDocuments}
+            uploadProgress={documentUploadProgress}
             footerTransitionsEnabled={footerTransitionsEnabled}
             footerEnterReady={footerEnterReady}
             incompleteSteps={getIncompleteSteps()}
