@@ -103,7 +103,7 @@ const ResetPassword = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-[60px] pl-[60px] pr-[50px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base"
+                    className="h-input-prominent pl-[60px] pr-[50px] rounded-form bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base"
                   />
                   <button
                     type="button"
@@ -138,7 +138,7 @@ const ResetPassword = () => {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-[60px] pl-[60px] pr-[50px] rounded-[15px] bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base"
+                    className="h-input-prominent pl-[60px] pr-[50px] rounded-form bg-muted/30 border-border/30 focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base"
                   />
                   <button
                     type="button"
@@ -167,7 +167,7 @@ const ResetPassword = () => {
             <Button
               type="submit"
               disabled={!canSubmit || isSubmitting}
-              className="w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
+              className="w-full h-button rounded-form bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
             >
               {isSubmitting ? (
                 <>
