@@ -2133,9 +2133,27 @@ const Auth = () => {
     return filled / total * 100;
   };
   
-  // Handle account type selection with auto-advance
-  const handleAccountTypeSelect = (type: string | null) => {
-    const previousType = accountType;
+  // Check if user has meaningful form progress
+  const hasFormProgress = () => {
+    // Check if any form fields beyond account type have been filled
+    return (
+      firstName.trim() !== "" ||
+      lastName.trim() !== "" ||
+      email.trim() !== "" ||
+      phoneNumber.trim() !== "" ||
+      businessName.trim() !== "" ||
+      businessAddress.trim() !== "" ||
+      licenseNumber.trim() !== "" ||
+      schoolName.trim() !== "" ||
+      wholesaleAgreed ||
+      hasTaxExemption !== null ||
+      businessOperationType !== null ||
+      completedSteps.size > 1
+    );
+  };
+
+  // Execute account type selection and auto-advance
+  const executeAccountTypeSelect = (type: string | null, previousType: string | null) => {
     setAccountType(type);
     if (type) {
       // Auto-advance after grace period - navigate directly to next step
@@ -2144,10 +2162,33 @@ const Auth = () => {
         const newTotal = type === "student" ? 7 : type === "professional" ? 9 : 8;
         setDisplayTotalSteps(newTotal);
         
-        // When switching to a different account type, reset and revalidate completed steps
-        if (previousType !== type) {
-          // Start fresh - only mark step 1 as completed since we're changing account types
-          // Each account type has different step requirements, so previous progress doesn't apply
+        // When switching to a different account type, reset form fields and completed steps
+        if (previousType !== type && previousType !== null) {
+          // Clear all form progress for the new flow
+          setLicenseNumber("");
+          setState("");
+          setBusinessName("");
+          setBusinessAddress("");
+          setSuiteNumber("");
+          setCity("");
+          setZipCode("");
+          setCountry("");
+          setSalonSize("");
+          setSalonStructure("");
+          setSchoolName("");
+          setSchoolState("");
+          setEnrollmentProofFiles([]);
+          setBusinessOperationType(null);
+          setHasTaxExemption(null);
+          setTaxExemptFile(null);
+          setWholesaleAgreed(false);
+          setLicenseFile(null);
+          setLicenseProofFiles([]);
+          // Keep personal info (firstName, lastName, email, phone) as it's reusable
+          // Start fresh - only mark step 1 as completed
+          setCompletedSteps(new Set([1]));
+        } else if (previousType !== type) {
+          // First time selecting, just mark step 1 as completed
           setCompletedSteps(new Set([1]));
         } else {
           // Same type selected again, just mark step 1 as completed
@@ -2164,6 +2205,35 @@ const Auth = () => {
         }, 150);
       }, 800);
     }
+  };
+
+  // Handle account type selection with auto-advance
+  const handleAccountTypeSelect = (type: string | null) => {
+    const previousType = accountType;
+    
+    // If switching to a different account type and there's existing progress, show confirmation
+    if (type && previousType && previousType !== type && hasFormProgress()) {
+      toast("Change account type?", {
+        description: "Selecting a new account type will clear your form progress. Do you wish to proceed?",
+        duration: 10000,
+        action: {
+          label: "Yes, change",
+          onClick: () => {
+            executeAccountTypeSelect(type, previousType);
+          }
+        },
+        cancel: {
+          label: "No, keep current",
+          onClick: () => {
+            // Don't change anything
+          }
+        }
+      });
+      return;
+    }
+    
+    // No existing progress or same type selected, proceed directly
+    executeAccountTypeSelect(type, previousType);
   };
 
   // Handle business operation type selection with auto-advance
