@@ -2716,7 +2716,7 @@ const Auth = () => {
         />
 
         {/* Left Panel - Hero/Branding */}
-        <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-[15px] sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
+        <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
         {/* Sliding Background + Content Container */}
         <div key={mode === "signin" ? "signin-panel" : currentSlide} className="absolute inset-0" style={{
           animation: 'slideIn 0.5s ease-out forwards'
@@ -3132,16 +3132,16 @@ const Auth = () => {
               handleNext();
             }}
           >
-              <div className="rounded-[15px] p-4 sm:p-5 overflow-hidden relative">
+              <div className="rounded-form p-4 sm:p-5 overflow-hidden relative">
                 {/* Hero image background with parallax */}
                 <img 
                   src={salonHero} 
                   alt="Professional salon" 
-                  className="absolute inset-0 w-full h-[120%] object-cover rounded-[15px] transition-transform duration-100 ease-out"
+                  className="absolute inset-0 w-full h-[120%] object-cover rounded-form transition-transform duration-100 ease-out"
                   style={{ transform: `translateY(-${Math.min(parallaxOffset, 30)}px)` }}
                 />
                 {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[15px]" />
+                <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-form" />
                 
                 <div className="relative z-10">
                   <div className="flex-1 min-w-0">
