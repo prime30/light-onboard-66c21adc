@@ -1107,6 +1107,110 @@ const Auth = () => {
   // localStorage persistence keys
   const STORAGE_KEY = "auth_form_progress";
 
+  // Helper function to calculate completed steps based on form data
+  const calculateCompletedSteps = (data: {
+    accountType: "professional" | "salon" | "student" | null;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    businessName: string;
+    businessAddress: string;
+    country: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    licenseNumber: string;
+    salonSize: string;
+    salonStructure: string;
+    schoolName: string;
+    schoolState: string;
+    enrollmentProofFilesCount: number;
+    businessOperationType: "independent" | "salon-booth" | "salon-owner" | null;
+    hasTaxExemption: boolean | null;
+    hasTaxExemptFile: boolean;
+    wholesaleAgreed: boolean;
+  }): Set<number> => {
+    const completed = new Set<number>();
+    
+    // Step 1 is always complete if we have an account type
+    if (!data.accountType) return completed;
+    completed.add(1);
+    
+    // Contact basics validation (shared across all flows)
+    const contactBasicsValid = 
+      data.firstName.trim() !== "" && 
+      data.lastName.trim() !== "" && 
+      isValidEmail(data.email) && 
+      isValidPhoneNumber(data.phoneNumber);
+    
+    // Tax exemption validation (shared across all flows)
+    const taxExemptionValid = 
+      data.hasTaxExemption === false || 
+      (data.hasTaxExemption === true && data.hasTaxExemptFile);
+    
+    if (data.accountType === "student") {
+      // Student flow: 1-account-type, 2-school-info, 3-contact-basics, 4-tax-exemption, 5-wholesale-terms, 6-contact-info
+      const schoolInfoValid = 
+        data.schoolName.trim() !== "" && 
+        data.schoolState !== "" && 
+        data.enrollmentProofFilesCount > 0;
+      
+      if (schoolInfoValid) completed.add(2);
+      if (contactBasicsValid) completed.add(3);
+      if (taxExemptionValid) completed.add(4);
+      if (data.wholesaleAgreed) completed.add(5);
+      // Step 6 (contact-info) is optional, always complete
+      completed.add(6);
+    } else if (data.accountType === "salon") {
+      // Salon flow: 1-account-type, 2-business-location, 3-contact-basics, 4-license, 5-tax-exemption, 6-wholesale-terms, 7-contact-info
+      const businessLocationValid = 
+        data.businessName.trim() !== "" && 
+        data.businessAddress.trim() !== "" && 
+        data.country !== "" && 
+        data.city.trim() !== "" && 
+        data.state !== "" && 
+        data.zipCode.trim() !== "";
+      
+      const licenseValid = 
+        data.licenseNumber.trim() !== "" && 
+        data.salonSize !== "" && 
+        data.salonStructure !== "";
+      
+      if (businessLocationValid) completed.add(2);
+      if (contactBasicsValid) completed.add(3);
+      if (licenseValid) completed.add(4);
+      if (taxExemptionValid) completed.add(5);
+      if (data.wholesaleAgreed) completed.add(6);
+      // Step 7 (contact-info) is optional, always complete
+      completed.add(7);
+    } else {
+      // Professional flow: 1-account-type, 2-business-operation, 3-contact-basics, 4-business-location, 5-license, 6-tax-exemption, 7-wholesale-terms, 8-contact-info
+      const businessOperationValid = data.businessOperationType !== null;
+      
+      const businessLocationValid = 
+        data.businessName.trim() !== "" && 
+        data.businessAddress.trim() !== "" && 
+        data.country !== "" && 
+        data.city.trim() !== "" && 
+        data.state !== "" && 
+        data.zipCode.trim() !== "";
+      
+      const licenseValid = data.licenseNumber.trim() !== "";
+      
+      if (businessOperationValid) completed.add(2);
+      if (contactBasicsValid) completed.add(3);
+      if (businessLocationValid) completed.add(4);
+      if (licenseValid) completed.add(5);
+      if (taxExemptionValid) completed.add(6);
+      if (data.wholesaleAgreed) completed.add(7);
+      // Step 8 (contact-info) is optional, always complete
+      completed.add(8);
+    }
+    
+    return completed;
+  };
+
   // Load from localStorage on mount
   useEffect(() => {
     try {
@@ -1142,7 +1246,33 @@ const Auth = () => {
         if (data.birthdayDay) setBirthdayDay(data.birthdayDay);
         if (data.socialMediaHandle) setSocialMediaHandle(data.socialMediaHandle);
         if (data.referralSource) setReferralSource(data.referralSource);
-        if (data.completedSteps) setCompletedSteps(new Set(data.completedSteps));
+        
+        // Recalculate completed steps based on restored form data
+        // Note: Files can't be restored from localStorage, so file-dependent steps won't show as complete
+        const recalculatedSteps = calculateCompletedSteps({
+          accountType: data.accountType || null,
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || "",
+          phoneNumber: data.phoneNumber || "",
+          businessName: data.businessName || "",
+          businessAddress: data.businessAddress || "",
+          country: data.country || "",
+          city: data.city || "",
+          state: data.state || "",
+          zipCode: data.zipCode || "",
+          licenseNumber: data.licenseNumber || "",
+          salonSize: data.salonSize || "",
+          salonStructure: data.salonStructure || "",
+          schoolName: data.schoolName || "",
+          schoolState: data.schoolState || "",
+          enrollmentProofFilesCount: 0, // Files can't be restored
+          businessOperationType: data.businessOperationType || null,
+          hasTaxExemption: data.hasTaxExemption ?? null,
+          hasTaxExemptFile: false, // Files can't be restored
+          wholesaleAgreed: data.wholesaleAgreed || false,
+        });
+        setCompletedSteps(recalculatedSteps);
       }
     } catch (e) {
       console.warn("Failed to load form progress from localStorage:", e);
