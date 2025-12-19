@@ -213,7 +213,7 @@ export const BusinessLocationStep = ({
             <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
               <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
           </div>
         </div>
 
@@ -236,7 +236,7 @@ export const BusinessLocationStep = ({
                 onChange={e => handleAddressChange(e.target.value)} 
                 onFocus={() => predictions.length > 0 && setShowPredictions(true)}
                 autoComplete="off"
-                className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+                className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" 
               />
               {isLoadingPredictions && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -276,7 +276,7 @@ export const BusinessLocationStep = ({
             Suite/Unit # (optional)
           </Label>
           <div className="input-glow input-ripple rounded-form">
-            <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
           </div>
         </div>
 
@@ -286,7 +286,7 @@ export const BusinessLocationStep = ({
             Country*
           </Label>
           <Select value={country} onValueChange={onCountryChange}>
-            <SelectTrigger id="country" className="h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+            <SelectTrigger id="country" className="h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus">
               <SelectValue placeholder="Country" />
             </SelectTrigger>
             <SelectContent className="rounded-form bg-background border border-border z-50">
@@ -304,7 +304,7 @@ export const BusinessLocationStep = ({
               City*
             </Label>
             <div className="input-glow input-ripple rounded-form">
-              <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+              <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
             </div>
           </div>
           <div className="space-y-2.5">
@@ -316,7 +316,7 @@ export const BusinessLocationStep = ({
                   <StateIcon state={state} size={22} className="text-foreground" />
                 </div>}
               <Select value={state} onValueChange={onStateChange}>
-                <SelectTrigger id="stateProvince" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
+                <SelectTrigger id="stateProvince" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
                 >
                   <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
                 </SelectTrigger>
@@ -336,7 +336,7 @@ export const BusinessLocationStep = ({
             Zip/Postal code*
           </Label>
           <div className="input-glow input-ripple rounded-form">
-            <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
           </div>
         </div>
       </div>

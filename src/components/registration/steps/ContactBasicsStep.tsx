@@ -117,9 +117,9 @@ export const ContactBasicsStep = ({
                 value={firstName} 
                 onChange={e => onFirstNameChange(e.target.value)} 
                 className={cn(
-                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", 
+                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                   firstNameError && "border-destructive/50 bg-destructive/5"
-                )} 
+                )}
               />
             </div>
             {firstNameError && <p className="text-xs text-destructive">First name is required</p>}
@@ -136,9 +136,9 @@ export const ContactBasicsStep = ({
                 value={lastName} 
                 onChange={e => onLastNameChange(e.target.value)} 
                 className={cn(
-                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", 
+                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                   lastNameError && "border-destructive/50 bg-destructive/5"
-                )} 
+                )}
               />
             </div>
             {lastNameError && <p className="text-xs text-destructive">Last name is required</p>}
@@ -157,7 +157,7 @@ export const ContactBasicsStep = ({
               placeholder="Preferred name" 
               value={preferredName} 
               onChange={e => onPreferredNameChange(e.target.value)} 
-              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" 
             />
           </div>
         </div>
@@ -184,9 +184,9 @@ export const ContactBasicsStep = ({
               value={email} 
               onChange={e => onEmailChange(e.target.value)} 
               className={cn(
-                "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", 
+                "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                 emailError && "border-destructive/50 bg-destructive/5"
-              )} 
+              )}
             />
           </div>
           {emailError && <p className="text-xs text-destructive">Email is required</p>}
@@ -242,10 +242,10 @@ export const ContactBasicsStep = ({
                 placeholder="(555) 123-4567" 
                 value={phoneNumber} 
                 onChange={e => onPhoneNumberChange(e.target.value)} 
-                className={cn(
-                  "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", 
+              className={cn(
+                  "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                   phoneError && "border-destructive/50 bg-destructive/5"
-                )} 
+                )}
               />
             </div>
           </div>
