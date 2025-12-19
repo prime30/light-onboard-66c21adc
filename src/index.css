@@ -1366,18 +1366,20 @@
 
 /* Field highlight (no animation property so it won't override entrance animations) */
 .field-highlight {
-  background-color: hsl(0 84% 60% / 0.10);
-  outline: 2px solid hsl(0 84% 60% / 0.55);
-  outline-offset: 2px;
+  background-color: hsl(0 84% 60% / 0.10) !important;
+  outline: 2px solid hsl(0 84% 60% / 0.55) !important;
+  outline-offset: 2px !important;
   transition: background-color 1s ease-out, outline-color 1s ease-out;
 }
 
-.field-highlight:focus {
-  outline-color: hsl(0 84% 60% / 0.65);
+.field-highlight:focus,
+.field-highlight:focus-visible {
+  outline: 2px solid hsl(0 84% 60% / 0.65) !important;
+  outline-offset: 2px !important;
 }
 
 .field-highlight.field-highlight-fade {
-  background-color: transparent;
-  outline-color: transparent;
+  background-color: transparent !important;
+  outline-color: transparent !important;
 }
 
