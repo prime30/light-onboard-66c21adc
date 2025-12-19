@@ -2816,7 +2816,7 @@ const Auth = () => {
                         key={`shimmer-${shimmerKey}`}
                         size="lg"
                         onClick={handleNext}
-                        disabled={currentStep === "contact-info" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
+                        disabled={currentStep === "summary" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
                         className={cn(
                           "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                           shimmerKey > 0 && "shimmer-trigger",
