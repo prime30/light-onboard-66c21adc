@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a multi-step registration/authentication flow for a wholesale beauty products platform. The codebase has been significantly refactored for maintainability with centralized state management, extracted hooks, and proper Supabase integration.
+This is a multi-step registration/authentication flow for a wholesale beauty products platform (Drop Dead Gorgeous). The codebase features centralized state management, extracted hooks, responsive tablet/mobile design, and Lovable Cloud integration.
 
 ## Architecture
 
@@ -12,7 +12,9 @@ This is a multi-step registration/authentication flow for a wholesale beauty pro
 src/
 ├── pages/
 │   ├── AuthPage.tsx          # Wrapper that provides RegistrationContext
-│   └── Auth.tsx              # Main auth component (~2000 lines, down from ~2900)
+│   ├── Auth.tsx              # Main auth component (~1950 lines)
+│   ├── BlogResaleLicense.tsx # Blog page for resale license info
+│   └── ResetPassword.tsx     # Password reset page
 ├── components/registration/
 │   ├── context/
 │   │   └── RegistrationContext.tsx  # Centralized state with useReducer
@@ -21,14 +23,37 @@ src/
 │   │   ├── AccountTypeForm.tsx
 │   │   ├── ContactBasicsStep.tsx
 │   │   ├── BusinessLocationStep.tsx
+│   │   ├── BusinessOperationStep.tsx
 │   │   ├── LicenseStep.tsx
-│   │   └── ... (more steps)
+│   │   ├── SchoolInfoStep.tsx
+│   │   ├── TaxExemptionStep.tsx
+│   │   ├── WholesaleTermsStep.tsx
+│   │   ├── PreferencesStep.tsx
+│   │   ├── SummaryForm.tsx
+│   │   ├── SuccessForm.tsx
+│   │   ├── OnboardingForm.tsx
+│   │   ├── OnboardingStep.tsx
+│   │   ├── LoginStep.tsx
+│   │   └── SignInForm.tsx
 │   ├── helpers/              # Shared UI components
 │   │   ├── MarqueeBadges.tsx
+│   │   ├── TestimonialCarousel.tsx
+│   │   ├── AnimatedCounters.tsx
+│   │   ├── CircularProgress.tsx
+│   │   ├── MagneticFeatureBox.tsx
+│   │   ├── PasswordInputField.tsx
 │   │   └── index.ts
 │   ├── AuthFooter.tsx        # Footer with back/next buttons and popover
+│   ├── AuthModal.tsx         # Modal wrapper component
+│   ├── AuthToggle.tsx        # Apply/Login toggle component
+│   ├── FileUpload.tsx        # Single file upload component
+│   ├── MultiFileUpload.tsx   # Multi-file upload component
+│   ├── FileSummary.tsx       # Collapsible file list with thumbnails
+│   ├── FilePreviewThumbnail.tsx # Image/file preview with lightbox
 │   ├── StepIndicatorBar.tsx  # Step indicator with swipe gestures
-│   └── StepIndicator.tsx     # Base step indicator component
+│   ├── StepIndicator.tsx     # Base step indicator component
+│   ├── StepValidationIcon.tsx # Validation state icons
+│   └── FormSkeleton.tsx      # Loading skeleton for forms
 ├── hooks/
 │   ├── use-auth.ts           # Auth state hook (useAuth)
 │   ├── use-auth-form.ts      # React Hook Form integration
@@ -36,29 +61,39 @@ src/
 │   ├── use-form-validation.ts # Validation logic (canContinue, isAllStepsValid, etc.)
 │   ├── use-form-persistence.ts  # sessionStorage persistence
 │   ├── use-registration-sync.ts # Bridges local state to context
-│   └── use-step-navigation.ts   # Step ordering & validation
+│   ├── use-registration-upload.ts # Document upload handling
+│   ├── use-step-navigation.ts   # Step ordering & validation
+│   ├── use-modal-swipe.ts    # Modal drag-to-dismiss gestures
+│   ├── use-mode-switch.ts    # Sign-in/sign-up mode switching
+│   ├── use-file-upload.ts    # File upload state management
+│   ├── use-magnetic.tsx      # Magnetic hover effect
+│   ├── use-click-ripple.tsx  # Click ripple animation
+│   ├── use-font-loaded.tsx   # Font loading detection
+│   └── use-countdown.tsx     # Countdown timer for resend codes
 ├── lib/
 │   ├── auth-service.ts       # Supabase auth functions
+│   ├── storage-service.ts    # File storage utilities
+│   ├── imageCompression.ts   # Image compression before upload
+│   ├── scroll-to-error.ts    # Scroll to validation errors
 │   └── validations/
-│       └── auth-schemas.ts   # Zod validation schemas
+│       ├── auth-schemas.ts   # Zod validation schemas
+│       └── form-utils.ts     # Form utility functions
+├── data/
+│   └── auth-constants.ts     # Constants (countries, states, etc.)
 └── types/
     └── auth.ts               # TypeScript types
 ```
 
-### Refactoring Completed
+### Recent UI Improvements
 
-The following extractions have been completed to reduce Auth.tsx size:
-
-| Extraction | Lines Saved | New Location |
-|------------|-------------|--------------|
-| Form useState calls | ~300 lines | `use-auth-form-state.ts` |
-| Footer JSX + logic | ~130 lines | `AuthFooter.tsx` |
-| Step indicator JSX | ~160 lines | `StepIndicatorBar.tsx` |
-| Validation functions | ~290 lines | `use-form-validation.ts` |
-| Progress calculation | ~85 lines | `use-form-validation.ts` |
-| Modal swipe gestures | ~80 lines | `use-modal-swipe.ts` |
-| Mode switching logic | ~90 lines | `use-mode-switch.ts` |
-| **Total** | **~1135 lines** | |
+| Feature | Description |
+|---------|-------------|
+| **Tablet Footer** | Full-width button with `rounded-full` on all mobile/tablet sizes |
+| **Footer Gradient** | Smooth multi-stop gradient with blur effect behind footer |
+| **Scroll Hint** | Responsive positioning (`z-50`) above footer on all screen sizes |
+| **Hero Banner** | Increased border radius (`rounded-[20px]` mobile, `rounded-[24px]` tablet) |
+| **File Thumbnails** | First uploaded image shows as thumbnail in collapsed accordion header |
+| **Terms Link** | Uses `story-link` animation class with animated arrow icon on hover |
 
 ### State Management
 
@@ -82,58 +117,66 @@ Supabase auth is wired up with:
 Three account types with different step sequences:
 
 ### Professional (Stylist)
-1. Account Type
-2. Business Operation (commission/independent)
-3. Contact Basics
-4. Business Location
+1. Onboarding (intro)
+2. Account Type
+3. Business Operation (commission/independent)
+4. Contact Basics
 5. License
+6. Business Location
+7. Tax Exemption
+8. Wholesale Terms
+9. Preferences
+10. Summary
+
+### Salon Owner
+1. Onboarding (intro)
+2. Account Type
+3. Business Location
+4. Contact Basics
+5. License (with salon size/structure)
 6. Tax Exemption
 7. Wholesale Terms
 8. Preferences
 9. Summary
 
-### Salon Owner
-1. Account Type
-2. Business Location
-3. Contact Basics
-4. License (with salon size/structure)
+### Student
+1. Onboarding (intro)
+2. Account Type
+3. School Info
+4. Contact Basics
 5. Tax Exemption
 6. Wholesale Terms
 7. Preferences
 8. Summary
 
-### Student
-1. Account Type
-2. School Info
-3. Contact Basics
-4. Tax Exemption
-5. Wholesale Terms
-6. Preferences
-7. Summary
-
 ## What's Working
 
-- ✅ Multi-step registration flow
+- ✅ Multi-step registration flow with 3 account types
 - ✅ Form validation with Zod schemas
-- ✅ Step navigation (next/back/jump)
+- ✅ Step navigation (next/back/jump to step)
 - ✅ Form persistence to sessionStorage
 - ✅ Supabase sign up / sign in
 - ✅ Password reset flow
-- ✅ Mobile-responsive design
-- ✅ Touch gestures (swipe navigation)
+- ✅ Mobile-responsive design with tablet breakpoints
+- ✅ Touch gestures (swipe navigation, modal drag-to-dismiss)
+- ✅ File upload with image compression
+- ✅ File preview thumbnails with lightbox zoom
+- ✅ Upload progress indicator on submit button
 - ✅ Extracted hooks for form state and validation
 - ✅ Modular footer and step indicator components
+- ✅ Smooth footer gradient transition on scroll
+- ✅ Font loading detection with skeleton states
 
 ## What Needs Work
 
 ### High Priority
 1. **No profiles table** - User metadata is stored in auth.users only
-2. **No file upload to storage** - License/enrollment files aren't uploaded to Supabase Storage
+2. **No file upload to Supabase Storage** - License/enrollment files aren't persisted
 3. **No E2E tests** - Need Playwright or Cypress tests
 
 ### Medium Priority
 1. **Complete context migration** - Step components should consume directly from context
-2. **Add loading states** - Per-step loading indicators
+2. **Add loading states** - Per-step loading indicators during API calls
 3. **Error boundaries** - Add React error boundaries
 4. **Accessibility audit** - Screen reader support, focus management
 
@@ -141,6 +184,54 @@ Three account types with different step sequences:
 1. **Unit tests** - Vitest tests for hooks and utilities
 2. **Storybook** - Component documentation
 3. **Rate limiting** - Client-side debouncing on submissions
+
+## Component Reference
+
+### AuthFooter
+
+Self-contained footer with:
+- Back/Next buttons with animated transitions
+- Popover showing incomplete steps on summary
+- Upload progress bar overlay during document upload
+- Shimmer animation trigger for CTA
+- Responsive border radius (`rounded-full` mobile/tablet, none on desktop)
+
+Props:
+```typescript
+interface AuthFooterProps {
+  mode: AuthMode;
+  currentStep: Step;
+  canContinue: boolean;
+  isAllStepsValid: boolean;
+  isSubmitting: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  footerTransitionsEnabled: boolean;
+  footerEnterReady: boolean;
+  incompleteSteps: IncompleteStep[];
+  shimmerKey?: number;
+  onBack: () => void;
+  onNext: () => void;
+  onGoToStep: (step: number, missingFields?: string[]) => void;
+}
+```
+
+### FileSummary
+
+Collapsible accordion showing uploaded documents:
+- First image file displays as thumbnail in header (not generic icon)
+- Expandable list with file previews
+- Lightbox zoom on image click
+- File size display
+
+### FilePreviewThumbnail
+
+Individual file preview component:
+- Image thumbnails with object-cover
+- PDF icon for PDF files
+- Generic file icon for other types
+- Dialog-based lightbox for full-size view
+- Optional remove button
 
 ## Extracted Hooks Reference
 
@@ -171,27 +262,66 @@ const {
   getIncompleteSteps, // () => IncompleteStep[] - List of incomplete steps
   isFormReadyToSubmit,// boolean - On summary with all valid?
   getFormProgress,    // () => number - Progress percentage (0-100)
-} = useFormValidation({
-  mode, currentStep, accountType,
-  firstName, lastName, email, password, phoneNumber,
-  businessName, businessAddress, country, city, state, zipCode,
-  licenseNumber, salonSize, salonStructure,
-  schoolName, schoolState, enrollmentProofFiles,
-  businessOperationType, hasTaxExemption, taxExemptFile, wholesaleAgreed,
+} = useFormValidation({ /* form fields */ });
+```
+
+### useModalSwipe
+
+Handles modal drag-to-dismiss gestures:
+
+```typescript
+const {
+  isDragging,
+  dragOffset,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd,
+  resetDrag,
+} = useModalSwipe({
+  onClose: handleCloseModal,
+  threshold: 150,
 });
 ```
 
-### Extracted Components
+### useModeSwitch
 
-**AuthFooter** - Self-contained footer with:
-- Back/Next buttons with animated transitions
-- Popover showing incomplete steps on summary
-- Shimmer animation trigger for CTA
+Handles mode switching between sign-in and sign-up with preserved state:
 
-**StepIndicatorBar** - Self-contained step indicator with:
-- Swipe gesture handlers for step navigation
-- Visual step progress with animations
-- Intro/success step icons
+```typescript
+const { handleModeChange } = useModeSwitch({
+  currentState: { mode, currentStep, accountType, /* ... */ },
+  setters: { setMode, setCurrentStep, /* ... */ },
+  mainScrollRef,
+});
+```
+
+## Design System
+
+### Key CSS Variables (index.css)
+
+The app uses semantic tokens for theming:
+- `--background` / `--foreground` - Main background and text colors
+- `--muted` / `--muted-foreground` - Subdued surfaces and text
+- `--primary` / `--primary-foreground` - Brand color
+- `--destructive` - Error states
+- `--border` - Border colors
+- `--radius` - Border radius tokens
+
+### Custom Classes
+
+- `rounded-form` - Standard form element border radius
+- `h-button` - Standard button height
+- `story-link` - Animated underline link effect
+- `btn-premium` - Premium button styling with shimmer
+- `animate-stagger-*` - Staggered entrance animations
+- `animate-scroll-wheel` - Scroll hint animation
+
+### Responsive Breakpoints
+
+- Mobile: default
+- `sm:` - 640px+
+- `md:` - 768px+ (tablet)
+- `lg:` - 1024px+ (desktop)
 
 ## Key Dependencies
 
@@ -206,8 +336,9 @@ const {
 ## Environment Variables
 
 ```env
-VITE_SUPABASE_URL=<auto-configured>
+VITE_SUPABASE_URL=<auto-configured by Lovable Cloud>
 VITE_SUPABASE_PUBLISHABLE_KEY=<auto-configured>
+VITE_SUPABASE_PROJECT_ID=<auto-configured>
 ```
 
 ## Running Locally
@@ -226,64 +357,31 @@ With auto-confirm email enabled:
 2. Account is immediately active
 3. Sign in with the same credentials
 
-## Notes for Continuing Refactoring
+## Next Steps for Backend Integration
 
-### useModalSwipe
+### To add file uploads to Supabase Storage:
 
-Handles modal drag-to-dismiss gestures:
+```sql
+-- Create storage bucket for documents
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documents', 'documents', false);
 
-```typescript
-const {
-  isDragging,          // boolean - Currently dragging?
-  dragOffset,          // number - Current vertical offset in px
-  handleTouchStart,    // (e: TouchEvent) => void
-  handleTouchMove,     // (e: TouchEvent) => void
-  handleTouchEnd,      // () => void
-  handleMouseDown,     // (e: MouseEvent) => void
-  handleMouseMove,     // (e: MouseEvent) => void
-  handleMouseUp,       // () => void
-  resetDrag,           // () => void - Reset drag state
-} = useModalSwipe({
-  onClose: handleCloseModal,  // Callback when dismissed
-  threshold: 150,             // Distance to trigger close (default: 150)
-});
+-- RLS policies for authenticated users
+CREATE POLICY "Users can upload own documents"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can view own documents"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can delete own documents"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
 ```
-
-### useModeSwitch
-
-Handles mode switching between sign-in and sign-up with preserved state:
-
-```typescript
-const { handleModeChange } = useModeSwitch({
-  currentState: {
-    mode, currentStep, accountType, firstName, lastName, email, password,
-    // ... all form fields
-  },
-  setters: {
-    setMode, setCurrentStep, setAccountType, setFirstName, setLastName,
-    // ... all setter functions
-    setTransitionDirection,
-  },
-  mainScrollRef,  // Ref to scroll container
-});
-
-// Switch modes - preserves state in refs
-handleModeChange("signin");  // or "signup"
-```
-
-### Remaining Work in Auth.tsx
-
-The following can still be extracted:
-
-1. **Step content rendering** - The main switch/case for step components (~200 lines)
-
-### To add file uploads:
-1. Create Supabase storage bucket for documents
-2. Add RLS policies for authenticated users
-3. Create upload utility in `src/lib/storage.ts`
-4. Update file upload components to use storage
 
 ### To add profiles table:
+
 ```sql
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
@@ -295,6 +393,7 @@ CREATE TABLE public.profiles (
   phone_country_code TEXT,
   business_name TEXT,
   business_address TEXT,
+  suite_number TEXT,
   city TEXT,
   state TEXT,
   zip_code TEXT,
@@ -307,6 +406,13 @@ CREATE TABLE public.profiles (
   business_operation_type TEXT,
   has_tax_exemption BOOLEAN,
   wholesale_agreed BOOLEAN DEFAULT false,
+  birthday_month TEXT,
+  birthday_day TEXT,
+  social_media_handle TEXT,
+  subscribe_order_updates BOOLEAN DEFAULT true,
+  subscribe_promotions BOOLEAN DEFAULT false,
+  license_document_path TEXT,
+  tax_exempt_document_path TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -344,7 +450,27 @@ $$;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Update timestamp trigger
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = public;
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 ```
+
+## Known Issues
+
+1. **Footer gradient hard line** - The gradient behind the mobile/tablet footer may show a visible edge on certain screen sizes. Current implementation uses blur effect and multi-stop gradient to minimize this.
+
+2. **Font loading flash** - Custom fonts (Termina, Aeonik Pro) may cause layout shift on initial load. Skeleton states are used to mitigate.
 
 ## Contact
 
