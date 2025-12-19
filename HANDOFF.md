@@ -56,7 +56,8 @@ The following extractions have been completed to reduce Auth.tsx size:
 | Step indicator JSX | ~160 lines | `StepIndicatorBar.tsx` |
 | Validation functions | ~290 lines | `use-form-validation.ts` |
 | Progress calculation | ~85 lines | `use-form-validation.ts` |
-| **Total** | **~965 lines** | |
+| Modal swipe gestures | ~80 lines | `use-modal-swipe.ts` |
+| **Total** | **~1045 lines** | |
 
 ### State Management
 
@@ -226,13 +227,33 @@ With auto-confirm email enabled:
 
 ## Notes for Continuing Refactoring
 
+### useModalSwipe
+
+Handles modal drag-to-dismiss gestures:
+
+```typescript
+const {
+  isDragging,          // boolean - Currently dragging?
+  dragOffset,          // number - Current vertical offset in px
+  handleTouchStart,    // (e: TouchEvent) => void
+  handleTouchMove,     // (e: TouchEvent) => void
+  handleTouchEnd,      // () => void
+  handleMouseDown,     // (e: MouseEvent) => void
+  handleMouseMove,     // (e: MouseEvent) => void
+  handleMouseUp,       // () => void
+  resetDrag,           // () => void - Reset drag state
+} = useModalSwipe({
+  onClose: handleCloseModal,  // Callback when dismissed
+  threshold: 150,             // Distance to trigger close (default: 150)
+});
+```
+
 ### Remaining Work in Auth.tsx
 
 The following can still be extracted:
 
-1. **Modal/swipe logic** - `handleModalTouchStart`, `handleModalTouchMove`, `handleModalTouchEnd` (~60 lines)
-2. **Mode switching logic** - `handleModeChange`, preserved state refs (~80 lines)
-3. **Step content rendering** - The main switch/case for step components (~200 lines)
+1. **Mode switching logic** - `handleModeChange`, preserved state refs (~80 lines)
+2. **Step content rendering** - The main switch/case for step components (~200 lines)
 
 ### To add file uploads:
 1. Create Supabase storage bucket for documents
