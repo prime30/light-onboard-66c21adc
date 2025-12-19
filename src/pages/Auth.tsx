@@ -1767,16 +1767,16 @@ const Auth = () => {
               handleNext();
             }}
           >
-              <div className="rounded-form p-4 sm:p-5 overflow-hidden relative">
+              <div className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-5 overflow-hidden relative">
                 {/* Hero image background with parallax */}
                 <img 
                   src={salonHero} 
                   alt="Professional salon" 
-                  className="absolute inset-0 w-full h-[120%] object-cover rounded-form transition-transform duration-100 ease-out"
+                  className="absolute inset-0 w-full h-[120%] object-cover rounded-[20px] sm:rounded-[24px] transition-transform duration-100 ease-out"
                   style={{ transform: `translateY(-${Math.min(parallaxOffset, 30)}px)` }}
                 />
                 {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-form" />
+                <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[20px] sm:rounded-[24px]" />
                 
                 <div className="relative z-10">
                   <div className="flex-1 min-w-0">
