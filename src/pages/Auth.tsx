@@ -67,6 +67,9 @@ import {
   wholesaleTermsSchema,
   signInSchema,
 } from "@/lib/validations/auth-schemas";
+import { useRegistration } from "@/components/registration/context/RegistrationContext";
+import { useRegistrationSync } from "@/hooks/use-registration-sync";
+import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -79,8 +82,8 @@ import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
-type AuthMode = "signup" | "signin";
-type Step = "onboarding" | "reviews" | "account-type" | "contact-basics" | "license" | "business-operation" | "business-location" | "school-info" | "wholesale-terms" | "tax-exemption" | "contact-info" | "summary" | "success";
+
+// Email validation - requires @ symbol
 
 // Email validation - requires @ symbol
 
@@ -448,6 +451,55 @@ const Auth = () => {
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<string | null>(null);
   const fontsLoaded = useFontLoaded();
+
+  // Sync local state to RegistrationContext for step components
+  useRegistrationSync(
+    {
+      accountType: accountType as AccountType,
+      businessOperationType: businessOperationType as BusinessOperationType,
+      firstName,
+      lastName,
+      preferredName,
+      email,
+      phoneNumber,
+      phoneCountryCode,
+      businessName,
+      businessAddress,
+      suiteNumber,
+      country,
+      city,
+      state,
+      zipCode,
+      schoolName,
+      schoolState,
+      enrollmentProofFiles,
+      licenseNumber,
+      salonSize,
+      salonStructure,
+      licenseFile,
+      licenseProofFiles,
+      hasTaxExemption,
+      taxExemptFile,
+      wholesaleAgreed,
+      birthdayMonth,
+      birthdayDay,
+      socialMediaHandle,
+      referralSource,
+      subscribeOrderUpdates,
+      subscribeMarketing,
+      subscribePromotions,
+      password,
+    },
+    {
+      currentStep,
+      currentSlide,
+      displayTotalSteps,
+      completedSteps,
+      showValidationErrors,
+      isSubmitting,
+      isTransitioning,
+    }
+  );
 
   // sessionStorage persistence keys (cleared when browser tab closes)
   const STORAGE_KEY = "auth_form_progress";
