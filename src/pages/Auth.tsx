@@ -754,6 +754,7 @@ const Auth = () => {
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
+  const [highlightField, setHighlightField] = useState<string | null>(null);
   // Display total steps - locked during account-type step to prevent indicator jump
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
 
@@ -863,6 +864,80 @@ const Auth = () => {
       shouldBlockPullToRefresh.current = false;
     };
   }, []);
+
+  // Handle field highlighting after navigation from submit tooltip
+  useEffect(() => {
+    if (!highlightField || isTransitioning) return;
+    
+    // Map field labels to element selectors
+    const fieldMap: Record<string, string> = {
+      // Account type
+      "Select account type": "[data-field='account-type']",
+      // Contact info fields
+      "First name": "#legalFirstName",
+      "Last name": "#legalLastName",
+      "Email": "#email",
+      "Phone number": "#phoneNumber",
+      // Business location fields
+      "Business name": "#businessName",
+      "Address": "#businessAddress",
+      "Country": "#country",
+      "City": "#city",
+      "State/province": "#stateProvince",
+      "ZIP code": "#zipCode",
+      // License fields
+      "License number": "#license",
+      "Salon size": "[data-field='salon-size']",
+      "Salon structure": "[data-field='salon-structure']",
+      // School fields
+      "School name": "#schoolName",
+      "Enrollment proof": "[data-field='enrollment-proof']",
+      // Tax exemption
+      "Exemption status": "[data-field='tax-exemption']",
+      "Tax document": "[data-field='tax-document']",
+      // Wholesale terms
+      "Terms agreement": "[data-field='wholesale-terms']",
+      // Business operation
+      "Business type": "[data-field='business-type']",
+      "Years in business": "[data-field='years-in-business']",
+    };
+    
+    const selector = fieldMap[highlightField];
+    if (!selector) {
+      setHighlightField(null);
+      return;
+    }
+    
+    // Small delay to ensure DOM is ready after step transition
+    const timeoutId = setTimeout(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        // Find the parent container (usually the space-y-2.5 div)
+        const container = element.closest('.space-y-2\\.5') || element.parentElement || element;
+        
+        // Scroll into view
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Add highlight class
+        container.classList.add('animate-field-highlight');
+        
+        // Focus the input if it's an input element
+        if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+          element.focus();
+        }
+        
+        // Remove highlight class after animation
+        setTimeout(() => {
+          container.classList.remove('animate-field-highlight');
+          setHighlightField(null);
+        }, 2000);
+      } else {
+        setHighlightField(null);
+      }
+    }, 200);
+    
+    return () => clearTimeout(timeoutId);
+  }, [highlightField, isTransitioning]);
 
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
@@ -2157,7 +2232,7 @@ const Auth = () => {
         return "account-type";
     }
   };
-  const goToStep = (stepNum: number) => {
+  const goToStep = (stepNum: number, missingFields?: string[]) => {
     // Handle onboarding step (step 0) and success step
     const currentNum = currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber();
     if (stepNum === currentNum) return;
@@ -2177,6 +2252,10 @@ const Auth = () => {
       }
       return;
     }
+    
+    // Store the first missing field to highlight after navigation
+    const fieldToHighlight = missingFields?.[0] || null;
+    setHighlightField(fieldToHighlight);
     
     const targetStep = getStepFromNumber(stepNum);
     setNextStep(targetStep);
@@ -2885,8 +2964,8 @@ const Auth = () => {
                               key={step} 
                               onClick={() => {
                                 setSubmitTooltipOpen(false);
-                                goToStep(step);
-                              }} 
+                                goToStep(step, missingFields);
+                              }}
                               className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
                             >
                               <div className="flex items-center gap-2 w-full">
@@ -3493,7 +3572,7 @@ const AccountTypeForm = ({
         </p>
       </div>
 
-      <div className="space-y-2.5 sm:space-y-[15px]">
+      <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
         {types.map((type, index) => <button key={type.id} onClick={() => onSelect(selectedType === type.id ? null : type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.04] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm")} style={{
         animationDelay: `${index * 0.05}s`,
         transform: selectedType === type.id ? 'translateY(-2px)' : undefined
@@ -3632,7 +3711,7 @@ const LicenseForm = ({
         {/* Salon-specific fields */}
         {isSalon && <>
             {/* Salon Size */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4" data-field="salon-size">
               <Label className={cn("text-sm font-medium", salonSizeError && "text-destructive")}>
                 What's the size of your salon?*
               </Label>
@@ -3652,7 +3731,7 @@ const LicenseForm = ({
             </div>
 
             {/* Salon Structure */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4" data-field="salon-structure">
               <Label className={cn("text-sm font-medium", salonStructureError && "text-destructive")}>
                 Select your salon structure*
               </Label>
@@ -3722,7 +3801,7 @@ const BusinessOperationForm = ({
       </p>
     </div>
 
-    <div className="space-y-3 animate-stagger-2">
+    <div className="space-y-3 animate-stagger-2" data-field="business-type">
       <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -4170,7 +4249,7 @@ const SchoolInfoForm = ({
       </div>
 
       {/* Multi-File Upload */}
-      <div className="space-y-2.5">
+      <div className="space-y-2.5" data-field="enrollment-proof">
         <Label className="text-sm font-medium">
           Upload proof of enrollment or apprenticeship*
         </Label>
@@ -4253,7 +4332,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
@@ -4434,7 +4513,7 @@ const TaxExemptionForm = ({
       </div>
 
       <div className="space-y-2 animate-stagger-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" data-field="tax-exemption">
           <button onClick={handleYesClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
@@ -4527,7 +4606,7 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      <div ref={fileUploadRef} className={cn(
+      <div ref={fileUploadRef} data-field="tax-document" className={cn(
         "grid transition-all duration-400",
         hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: hasTaxExemption === true ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>

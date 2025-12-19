@@ -1363,3 +1363,20 @@
     transform: scaleX(1);
   }
 }
+
+/* Field highlight animation for missing fields */
+@keyframes fieldHighlight {
+  0% {
+    background-color: hsl(0 84% 60% / 0.15);
+    box-shadow: 0 0 0 2px hsl(0 84% 60% / 0.3);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+
+.animate-field-highlight {
+  animation: fieldHighlight 2s ease-out forwards;
+  border-radius: 12px;
+}
