@@ -2645,7 +2645,7 @@ const Auth = () => {
 
           {isTransitioning ? <div className="w-full max-w-[38rem]">
               <FormSkeleton variant={(nextStep || currentStep) === "account-type" ? "account-type" : (nextStep || currentStep) === "license" || (nextStep || currentStep) === "school-info" ? "license" : (nextStep || currentStep) === "business-location" ? "location" : (nextStep || currentStep) === "business-operation" ? "business-operation" : (nextStep || currentStep) === "wholesale-terms" || (nextStep || currentStep) === "tax-exemption" ? "terms" : (nextStep || currentStep) === "contact-info" ? "contact" : "default"} />
-            </div> : <div key={`${mode}-${currentStep}`} className={cn("w-full max-w-[38rem]", mode === "signin" ? (modeTransitionDirection === "right" ? "animate-step-enter-right" : "animate-step-enter-left") : currentStep === "onboarding" ? (modeTransitionDirection === "left" ? "animate-step-enter-left" : "animate-step-enter-right") : transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
+            </div> : <div key={`${mode}-${currentStep}`} className={cn("w-full max-w-[38rem]", currentStep === "success" ? "animate-fade-in" : mode === "signin" ? (modeTransitionDirection === "right" ? "animate-step-enter-right" : "animate-step-enter-left") : currentStep === "onboarding" ? (modeTransitionDirection === "left" ? "animate-step-enter-left" : "animate-step-enter-right") : transitionDirection === "forward" ? "animate-step-enter-right" : "animate-step-enter-left")}>
               {mode === "signin" ? <SignInForm 
                 email={email} 
                 password={password} 
