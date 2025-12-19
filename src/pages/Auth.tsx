@@ -1743,15 +1743,7 @@ const Auth = () => {
         missingFields: proContactBasicsMissing
       });
     }
-    // Step 4: License
-    if (licenseNumber.trim() === "") {
-      incomplete.push({
-        step: 4,
-        name: "License verification",
-        missingFields: ["License number"]
-      });
-    }
-    // Step 5: Business Location
+    // Step 4: Business Location
     const proLocationMissing: string[] = [];
     if (businessName.trim() === "") proLocationMissing.push("Business name");
     if (businessAddress.trim() === "") proLocationMissing.push("Address");
@@ -1761,9 +1753,17 @@ const Auth = () => {
     if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
     if (proLocationMissing.length > 0) {
       incomplete.push({
-        step: 5,
+        step: 4,
         name: "Business location",
         missingFields: proLocationMissing
+      });
+    }
+    // Step 5: License
+    if (licenseNumber.trim() === "") {
+      incomplete.push({
+        step: 5,
+        name: "License verification",
+        missingFields: ["License number"]
       });
     }
     // Step 6: Tax Exemption
@@ -1948,13 +1948,13 @@ const Auth = () => {
         targetStep = "contact-basics";
         break;
       case "business-location":
-        targetStep = accountType === "professional" ? "tax-exemption" : "contact-basics";
+        targetStep = accountType === "professional" ? "license" : "contact-basics";
         break;
       case "contact-basics":
-        targetStep = accountType === "student" ? "tax-exemption" : accountType === "professional" ? "license" : "license";
+        targetStep = accountType === "student" ? "tax-exemption" : accountType === "professional" ? "business-location" : "license";
         break;
       case "license":
-        targetStep = accountType === "professional" ? "business-location" : "tax-exemption";
+        targetStep = accountType === "professional" ? "tax-exemption" : "tax-exemption";
         break;
       case "tax-exemption":
         targetStep = "wholesale-terms";
@@ -2009,16 +2009,16 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "business-location":
-        targetStep = accountType === "professional" ? "license" : "account-type";
+        targetStep = accountType === "professional" ? "contact-basics" : "account-type";
         break;
       case "contact-basics":
         if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-operation";else targetStep = "business-location";
         break;
       case "license":
-        targetStep = accountType === "professional" ? "contact-basics" : "contact-basics";
+        targetStep = accountType === "professional" ? "business-location" : "contact-basics";
         break;
       case "tax-exemption":
-        if (accountType === "student") targetStep = "contact-basics";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
+        if (accountType === "student") targetStep = "contact-basics";else if (accountType === "professional") targetStep = "license";else targetStep = "license";
         break;
       case "wholesale-terms":
         targetStep = "tax-exemption";
@@ -2064,11 +2064,11 @@ const Auth = () => {
       return 7;
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info, summary
+      // Professional flow: account-type, business-operation, contact-basics, business-location, license, tax-exemption, wholesale-terms, contact-info, summary
       if (currentStep === "business-operation") return 2;
       if (currentStep === "contact-basics") return 3;
-      if (currentStep === "license") return 4;
-      if (currentStep === "business-location") return 5;
+      if (currentStep === "business-location") return 4;
+      if (currentStep === "license") return 5;
       if (currentStep === "tax-exemption") return 6;
       if (currentStep === "wholesale-terms") return 7;
       if (currentStep === "contact-info") return 8;
@@ -2111,7 +2111,7 @@ const Auth = () => {
       }
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info, summary
+      // Professional flow: account-type, business-operation, contact-basics, business-location, license, tax-exemption, wholesale-terms, contact-info, summary
       switch (stepNum) {
         case 1:
           return "account-type";
@@ -2120,9 +2120,9 @@ const Auth = () => {
         case 3:
           return "contact-basics";
         case 4:
-          return "license";
-        case 5:
           return "business-location";
+        case 5:
+          return "license";
         case 6:
           return "tax-exemption";
         case 7:
@@ -3593,7 +3593,7 @@ const LicenseForm = ({
   const licenseError = showValidationErrors && licenseNumber.trim() === "";
   const salonSizeError = showValidationErrors && isSalon && salonSize === "";
   const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
-  const stepNumber = 4; // License is step 4 for both professional and salon
+  const stepNumber = accountType === "professional" ? 5 : 4; // professional=5, salon=4
   return <div className="space-y-4 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -3819,7 +3819,7 @@ const BusinessLocationForm = ({
   const stateError = showValidationErrors && state === "";
   const zipCodeError = showValidationErrors && zipCode.trim() === "";
   const isStudent = accountType === "student";
-  const stepNumber = accountType === "professional" ? 5 : 2; // professional=5, salon=2
+  const stepNumber = accountType === "professional" ? 4 : 2; // professional=4, salon=2
 
   // Fetch address predictions
   const fetchPredictions = async (input: string) => {
