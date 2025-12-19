@@ -1701,20 +1701,20 @@ const Auth = () => {
     }
 
     // Professional flow
-    // Step 2: License
-    if (licenseNumber.trim() === "") {
-      incomplete.push({
-        step: 2,
-        name: "License verification",
-        missingFields: ["License number"]
-      });
-    }
-    // Step 3: Business Operation
+    // Step 2: Business Operation
     if (businessOperationType === null) {
       incomplete.push({
-        step: 3,
+        step: 2,
         name: "Business operation",
         missingFields: ["Operation type"]
+      });
+    }
+    // Step 3: License
+    if (licenseNumber.trim() === "") {
+      incomplete.push({
+        step: 3,
+        name: "License verification",
+        missingFields: ["License number"]
       });
     }
     // Step 4: Business Location
@@ -1867,7 +1867,7 @@ const Auth = () => {
         // Mark step 1 as completed
         setCompletedSteps(prev => new Set([...prev, 1]));
         // Calculate next step based on selected type
-        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "license" : "business-location";
+        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "business-operation" : "business-location";
         setTransitionDirection("forward");
         setIsTransitioning(true);
         setTimeout(() => {
@@ -1883,11 +1883,11 @@ const Auth = () => {
     setBusinessOperationType(type);
     // Auto-advance after grace period
     setTimeout(() => {
-      setCompletedSteps(prev => new Set([...prev, 3]));
+      setCompletedSteps(prev => new Set([...prev, 2]));
       setTransitionDirection("forward");
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentStep("business-location");
+        setCurrentStep("license");
         setIsTransitioning(false);
       }, 150);
     }, 800);
@@ -1917,19 +1917,19 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "account-type":
-        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "license";else targetStep = "business-location";
+        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-operation";else targetStep = "business-location";
+        break;
+      case "business-operation":
+        targetStep = "license";
+        break;
+      case "license":
+        targetStep = accountType === "professional" ? "business-location" : "wholesale-terms";
         break;
       case "business-location":
         targetStep = accountType === "professional" ? "wholesale-terms" : "license";
         break;
       case "school-info":
         targetStep = "wholesale-terms";
-        break;
-      case "license":
-        targetStep = accountType === "professional" ? "business-operation" : "wholesale-terms";
-        break;
-      case "business-operation":
-        targetStep = "business-location";
         break;
       case "wholesale-terms":
         targetStep = accountType === "student" ? "contact-info" : "tax-exemption";
@@ -1974,14 +1974,14 @@ const Auth = () => {
       case "account-type":
         targetStep = "onboarding";
         break;
-      case "license":
-        targetStep = accountType === "professional" ? "account-type" : "business-location";
-        break;
       case "business-operation":
-        targetStep = "license";
+        targetStep = "account-type";
+        break;
+      case "license":
+        targetStep = accountType === "professional" ? "business-operation" : "business-location";
         break;
       case "business-location":
-        targetStep = accountType === "professional" ? "business-operation" : "account-type";
+        targetStep = accountType === "professional" ? "license" : "account-type";
         break;
       case "school-info":
         targetStep = "account-type";
@@ -2027,9 +2027,9 @@ const Auth = () => {
       return 4;
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info
-      if (currentStep === "license") return 2;
-      if (currentStep === "business-operation") return 3;
+      // Professional flow: account-type, business-operation, license, business-location, wholesale-terms, tax-exemption, contact-info
+      if (currentStep === "business-operation") return 2;
+      if (currentStep === "license") return 3;
       if (currentStep === "business-location") return 4;
       if (currentStep === "wholesale-terms") return 5;
       if (currentStep === "tax-exemption") return 6;
@@ -2069,9 +2069,9 @@ const Auth = () => {
         case 1:
           return "account-type";
         case 2:
-          return "license";
-        case 3:
           return "business-operation";
+        case 3:
+          return "license";
         case 4:
           return "business-location";
         case 5:
