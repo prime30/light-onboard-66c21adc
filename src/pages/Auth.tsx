@@ -4698,14 +4698,16 @@ const SchoolInfoForm = ({
       </div>
 
       {/* Multi-File Upload */}
-      <div className="space-y-2.5" data-field="enrollment-proof">
+      <div className="space-y-2.5">
         <Label className="text-sm font-medium">
           Upload proof of enrollment or apprenticeship*
         </Label>
         <p className="text-xs text-muted-foreground">
           Upload school ID, apprenticeship license, enrollment letter, etc.
         </p>
-        <MultiFileUpload files={enrollmentProofFiles} onFilesChange={onEnrollmentProofFilesChange} placeholder="Upload your documents" maxFiles={5} error={fileError} errorMessage="Please upload at least one proof of enrollment or apprenticeship" />
+        <div data-field="enrollment-proof">
+          <MultiFileUpload files={enrollmentProofFiles} onFilesChange={onEnrollmentProofFilesChange} placeholder="Upload your documents" maxFiles={5} error={fileError} errorMessage="Please upload at least one proof of enrollment or apprenticeship" />
+        </div>
       </div>
     </div>
   </div>;
@@ -5059,12 +5061,12 @@ const TaxExemptionForm = ({
       </div>
       
       {/* File upload - shown when Yes is selected */}
-      <div ref={fileUploadRef} data-field="tax-document" className={cn(
+      <div ref={fileUploadRef} className={cn(
         "grid transition-all duration-400",
         hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
       )} style={{ transitionTimingFunction: hasTaxExemption === true ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
         <div className="overflow-hidden">
-          <div className={cn(hasTaxExemption === true && "animate-haptic-pop")}>
+          <div className={cn(hasTaxExemption === true && "animate-haptic-pop")} data-field="tax-document">
             <FileUpload file={taxExemptFile} onFileChange={onTaxExemptFileChange} placeholder="Upload your state tax-exempt license" error={fileError} errorMessage="Please upload your tax exemption document" />
           </div>
         </div>
