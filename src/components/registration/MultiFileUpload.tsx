@@ -81,7 +81,7 @@ const FileItem = ({
       onDragOver={(e) => onDragOver(e, index)}
       onDragEnd={onDragEnd}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-[12px] bg-muted/50 border border-border/50 transition-all duration-200",
+        "flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border/50 transition-all duration-200",
         isDragging && "opacity-50 scale-95",
         isDragOver && "border-foreground/50 bg-foreground/5 scale-[1.02]",
         !isDragging && "animate-in fade-in slide-in-from-bottom-2"
@@ -96,7 +96,7 @@ const FileItem = ({
         <button
           type="button"
           onClick={onPreview}
-          className="relative w-10 h-10 rounded-[8px] overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
+          className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
         >
           <img 
             src={previewUrl} 
@@ -108,7 +108,7 @@ const FileItem = ({
           </div>
         </button>
       ) : (
-        <div className="w-10 h-10 rounded-[8px] bg-foreground/10 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-md bg-foreground/10 flex items-center justify-center flex-shrink-0">
           {file.type === "application/pdf" ? (
             <FileText className="w-4 h-4 text-foreground" />
           ) : (
@@ -329,7 +329,7 @@ export const MultiFileUpload = ({
       <div className="space-y-3">
         {/* File type error banner */}
         {fileTypeError && (
-          <div className="flex items-center gap-2 p-3 rounded-[12px] bg-destructive/10 border border-destructive/30 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30 animate-in fade-in slide-in-from-top-1 duration-200">
             <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
             <p className="text-xs text-destructive flex-1">{fileTypeError}</p>
             <button 
@@ -348,7 +348,7 @@ export const MultiFileUpload = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "relative flex flex-col items-center justify-center gap-3 p-6 rounded-[15px] border-2 border-dashed transition-all duration-300 overflow-hidden",
+            "relative flex flex-col items-center justify-center gap-3 p-6 rounded-lg border-2 border-dashed transition-all duration-300 overflow-hidden",
             isDragOver 
               ? "border-foreground bg-foreground/5 scale-[1.01]" 
               : hasError 
@@ -398,7 +398,7 @@ export const MultiFileUpload = ({
           ) : (
             <>
               <div className={cn(
-                "w-12 h-12 rounded-[12px] flex items-center justify-center transition-colors duration-300",
+                "w-12 h-12 rounded-md flex items-center justify-center transition-colors duration-300",
                 isDragOver ? "bg-foreground text-background" : "bg-muted"
               )}>
                 <Upload className={cn(
@@ -422,7 +422,7 @@ export const MultiFileUpload = ({
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "h-[40px] w-full sm:w-auto px-5 rounded-[10px] border-border/50 hover:bg-muted/50",
+                  "h-[40px] w-full sm:w-auto px-5 rounded-md border-border/50 hover:bg-muted/50",
                   hasError && "border-destructive/50"
                 )}
               >

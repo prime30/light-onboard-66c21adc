@@ -37,11 +37,11 @@ const AccountTypeSkeleton = () => (
     {[1, 2, 3].map((i) => (
       <div
         key={i}
-        className="p-5 rounded-[20px] border border-border/30"
+        className="p-5 rounded-lg border border-border/30"
         style={{ animationDelay: `${i * 50}ms` }}
       >
         <div className="flex items-start gap-4">
-          <Skeleton className="w-12 h-12 rounded-[15px] flex-shrink-0" />
+          <Skeleton className="w-12 h-12 rounded-lg flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-4 w-24" />
@@ -60,7 +60,7 @@ const AccountTypeSkeleton = () => (
 const LicenseSkeleton = () => (
   <div className="space-y-5">
     {/* Info box */}
-    <div className="p-5 rounded-[15px] border border-border/30 flex gap-4">
+    <div className="p-5 rounded-lg border border-border/30 flex gap-4">
       <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -70,12 +70,12 @@ const LicenseSkeleton = () => (
     {/* Input field */}
     <div className="space-y-2.5">
       <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-[55px] w-full rounded-[15px]" />
+      <Skeleton className="h-[55px] w-full rounded-lg" />
     </div>
     {/* Additional fields */}
     <div className="space-y-2.5">
       <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-[50px] w-full rounded-[15px]" />
+      <Skeleton className="h-[50px] w-full rounded-md" />
     </div>
   </div>
 );
@@ -85,39 +85,39 @@ const LocationSkeleton = () => (
     {/* Business name */}
     <div className="space-y-2.5">
       <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-[50px] w-full rounded-[15px]" />
+      <Skeleton className="h-[50px] w-full rounded-md" />
     </div>
     {/* Address row */}
     <div className="grid grid-cols-3 gap-2.5">
       <div className="col-span-2 space-y-2.5">
         <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-12" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
     </div>
     {/* Country and city */}
     <div className="grid grid-cols-2 gap-2.5">
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-12" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
     </div>
     {/* State and zip */}
     <div className="grid grid-cols-2 gap-2.5">
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
     </div>
   </div>
@@ -126,7 +126,7 @@ const LocationSkeleton = () => (
 const TermsSkeleton = () => (
   <div className="space-y-5">
     {/* Info box */}
-    <div className="p-5 rounded-[15px] border border-border/30 flex gap-4">
+    <div className="p-5 rounded-lg border border-border/30 flex gap-4">
       <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -135,7 +135,7 @@ const TermsSkeleton = () => (
       </div>
     </div>
     {/* Agreement button */}
-    <div className="p-5 rounded-[15px] border border-border/30 flex items-center gap-4">
+    <div className="p-5 rounded-lg border border-border/30 flex items-center gap-4">
       <Skeleton className="w-6 h-6 rounded-full flex-shrink-0" />
       <Skeleton className="h-5 w-3/4" />
     </div>
@@ -148,22 +148,22 @@ const ContactSkeleton = () => (
     <div className="grid grid-cols-2 gap-2.5">
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
       <div className="space-y-2.5">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
     </div>
     {/* Preferred name */}
     <div className="space-y-2.5">
       <Skeleton className="h-4 w-28" />
-      <Skeleton className="h-[50px] w-full rounded-[15px]" />
+      <Skeleton className="h-[50px] w-full rounded-md" />
     </div>
     {/* Phone */}
     <div className="space-y-2.5">
       <Skeleton className="h-4 w-20" />
-      <Skeleton className="h-[50px] w-full rounded-[15px]" />
+      <Skeleton className="h-[50px] w-full rounded-md" />
     </div>
     {/* Checkboxes */}
     <div className="space-y-3 pt-2">
@@ -182,7 +182,7 @@ const BusinessOperationSkeleton = () => (
     {[1, 2].map((i) => (
       <div
         key={i}
-        className="p-5 rounded-[15px] border border-border/30 flex items-center justify-between"
+        className="p-5 rounded-lg border border-border/30 flex items-center justify-between"
       >
         <div className="flex items-center gap-4">
           <Skeleton className="w-5 h-5 rounded-full" />
@@ -191,7 +191,7 @@ const BusinessOperationSkeleton = () => (
             <Skeleton className="h-4 w-56" />
           </div>
         </div>
-        <Skeleton className="w-12 h-12 rounded-[12px]" />
+        <Skeleton className="w-12 h-12 rounded-md" />
       </div>
     ))}
   </div>
@@ -203,7 +203,7 @@ const DefaultSkeleton = () => (
     {[1, 2, 3].map((i) => (
       <div key={i} className="space-y-2.5" style={{ animationDelay: `${i * 50}ms` }}>
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-[50px] w-full rounded-[15px]" />
+        <Skeleton className="h-[50px] w-full rounded-md" />
       </div>
     ))}
   </div>

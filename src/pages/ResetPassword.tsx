@@ -94,7 +94,7 @@ const ResetPassword = () => {
                   New Password
                 </Label>
                 <div className="relative group">
-                  <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80">
+                  <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80">
                     <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300" />
                   </div>
                   <Input
@@ -129,7 +129,7 @@ const ResetPassword = () => {
                   Confirm Password
                 </Label>
                 <div className="relative group">
-                  <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80">
+                  <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80">
                     <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300" />
                   </div>
                   <Input
