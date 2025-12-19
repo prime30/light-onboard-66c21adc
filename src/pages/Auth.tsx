@@ -3726,7 +3726,7 @@ const SignInForm = ({
                 value={email} 
                 onChange={e => onEmailChange(e.target.value)} 
                 onBlur={() => setEmailTouched(true)}
-                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
               />
             </div>
             {showEmailError && (
@@ -3789,7 +3789,7 @@ const SignInForm = ({
               value={email} 
               onChange={e => onEmailChange(e.target.value)} 
               onBlur={() => setEmailTouched(true)}
-              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 text-base placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
             />
           </div>
           {showEmailError && (
@@ -4151,7 +4151,7 @@ const LicenseForm = ({
             {isSalon ? "Salon License #*" : "License number*"}
           </Label>
           <div className="relative group input-glow rounded-[15px]">
-            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>
@@ -4493,7 +4493,7 @@ const BusinessLocationForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4516,7 +4516,7 @@ const BusinessLocationForm = ({
               onChange={e => handleAddressChange(e.target.value)} 
               onFocus={() => predictions.length > 0 && setShowPredictions(true)}
               autoComplete="off"
-              className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+              className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
             />
             {isLoadingPredictions && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -4556,7 +4556,7 @@ const BusinessLocationForm = ({
           Suite/Unit # (optional)
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4584,7 +4584,7 @@ const BusinessLocationForm = ({
             City*
           </Label>
           <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
         <div className="space-y-2.5">
@@ -4616,7 +4616,7 @@ const BusinessLocationForm = ({
           Zip/Postal code*
         </Label>
         <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
     </div>
@@ -4669,7 +4669,7 @@ const SchoolInfoForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
+          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
         </div>
         {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
       </div>
@@ -5175,7 +5175,7 @@ const ContactBasicsForm = ({
           <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", emailError ? "bg-destructive/10" : "bg-muted")}>
             <Mail className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", emailError ? "text-destructive" : "text-muted-foreground")} />
           </div>
-          <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={e => onEmailChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", emailError && "border-destructive/50 bg-destructive/5")} />
+          <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={e => onEmailChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", emailError && "border-destructive/50 bg-destructive/5")} />
         </div>
         {emailError && <p className="text-xs text-destructive">Email is required</p>}
       </div>
@@ -5212,7 +5212,7 @@ const ContactBasicsForm = ({
             <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", phoneError ? "bg-destructive/10" : "bg-muted")}>
               <Phone className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", phoneError ? "text-destructive" : "text-muted-foreground")} />
             </div>
-            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
           </div>
         </div>
         {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
@@ -5791,7 +5791,7 @@ const PasswordInputField = ({
         <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground")}>
           <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
-        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-[15px] transition-all duration-500 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-[60px] pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-[55px] pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
+        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-[15px] transition-all duration-500 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-[60px] pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-[55px] pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press" aria-label={showPassword ? "Hide password" : "Show password"}>
           {showPassword ? <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" /> : <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />}
         </button>
@@ -5915,7 +5915,7 @@ const PersonalInfoForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
