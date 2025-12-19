@@ -916,8 +916,8 @@ const Auth = () => {
         // For data-field elements, highlight the element itself
         let highlightTarget: Element;
         if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
-          // Find the closest input wrapper (usually .relative.group or just use input's parent)
-          highlightTarget = element.closest('.relative.group') || element.parentElement || element;
+          // Highlight just the input itself (not the whole field section)
+          highlightTarget = element;
         } else {
           // For non-inputs (like data-field buttons), use the element itself
           highlightTarget = element;
@@ -4126,7 +4126,7 @@ const BusinessLocationForm = ({
           Country*
         </Label>
         <Select value={country} onValueChange={onCountryChange}>
-          <SelectTrigger className="h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+          <SelectTrigger id="country" className="h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -4156,7 +4156,8 @@ const BusinessLocationForm = ({
                 <StateIcon state={state} size={22} className="text-foreground" />
               </div>}
             <Select value={state} onValueChange={onStateChange}>
-              <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}>
+              <SelectTrigger id="stateProvince" className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
+              >
                 <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
               </SelectTrigger>
               <SelectContent className="rounded-[15px] bg-background border border-border z-50">
@@ -4238,11 +4239,11 @@ const SchoolInfoForm = ({
         <Label htmlFor="schoolState" className="text-sm font-medium label-float">
           State/Province*
         </Label>
-        <div className="relative group">
-          <Select value={schoolState} onValueChange={onSchoolStateChange}>
-            <SelectTrigger className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
-              <SelectValue placeholder="Select your state/province" />
-            </SelectTrigger>
+          <div className="relative group">
+            <Select value={schoolState} onValueChange={onSchoolStateChange}>
+              <SelectTrigger id="schoolState" className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
+                <SelectValue placeholder="Select your state/province" />
+              </SelectTrigger>
             <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
               {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
                   <div className="flex items-center gap-2.5">
