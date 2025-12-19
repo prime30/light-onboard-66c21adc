@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FileCheck, FileText, ZoomIn, X, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -77,10 +77,45 @@ const FilePreviewItem = ({
   );
 };
 
+const HeaderThumbnail = ({ file }: { file: File | null }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (file && isImageFile(file)) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [file]);
+
+  if (previewUrl) {
+    return (
+      <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 border border-border/50">
+        <img 
+          src={previewUrl} 
+          alt="Preview" 
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-8 h-8 rounded-md bg-foreground/10 flex items-center justify-center">
+      <FileCheck className="w-4 h-4 text-foreground" />
+    </div>
+  );
+};
+
 export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummaryProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<File | null>(null);
+
+  // Find the first image file for the header thumbnail
+  const firstImageFile = useMemo(() => {
+    return files.find(item => isImageFile(item.file))?.file || null;
+  }, [files]);
 
   if (files.length === 0) return null;
 
@@ -128,9 +163,7 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
           className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-foreground/10 flex items-center justify-center">
-              <FileCheck className="w-4 h-4 text-foreground" />
-            </div>
+            <HeaderThumbnail file={firstImageFile} />
             <div className="text-left">
               <p className="text-sm font-medium text-foreground">{title}</p>
               <p className="text-xs text-muted-foreground">{files.length} file{files.length !== 1 ? "s" : ""} ready for submission</p>
