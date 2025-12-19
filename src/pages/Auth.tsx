@@ -4011,7 +4011,7 @@ const AccountTypeForm = ({
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
-        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(selectedType === type.id ? null : type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-[15px] sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.04] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm")} style={{
+        {types.map((type, index) => <button key={type.id} onClick={() => onSelect(selectedType === type.id ? null : type.id)} className={cn("relative w-full p-[15px] sm:p-5 rounded-form sm:rounded-[20px] border-2 text-left group overflow-hidden", "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", "hover:-translate-y-0.5 active:scale-[0.98]", selectedType === type.id ? "border-foreground/20 bg-foreground/[0.04] shadow-sm" : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm")} style={{
         animationDelay: `${index * 0.05}s`,
         transform: selectedType === type.id ? 'translateY(-2px)' : undefined
       }}>
@@ -4023,7 +4023,7 @@ const AccountTypeForm = ({
               {/* Top row: Icon + Content */}
               <div className="flex items-start gap-[15px] sm:gap-5">
                 {/* Icon with haptic bounce */}
-                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[15px] flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110" : "bg-muted group-hover:scale-105 group-hover:bg-muted/60")}>
+                <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]", selectedType === type.id ? "bg-foreground scale-110" : "bg-muted group-hover:scale-105 group-hover:bg-muted/60")}>
                   <type.icon className={cn("w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300", selectedType === type.id ? "text-background scale-110" : "text-foreground group-hover:scale-105")} />
                 </div>
                 
@@ -4240,7 +4240,7 @@ const BusinessOperationForm = ({
     </div>
 
     <div className="space-y-3 animate-stagger-2">
-      <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
+      <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-form border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div data-field="business-type" className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
@@ -4258,7 +4258,7 @@ const BusinessOperationForm = ({
         </div>
       </button>
 
-      <button type="button" onClick={() => onBusinessOperationTypeChange("independent")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "independent" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
+      <button type="button" onClick={() => onBusinessOperationTypeChange("independent")} className={cn("w-full p-5 rounded-form border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "independent" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div data-field="business-type" className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
@@ -4655,11 +4655,11 @@ const SchoolInfoForm = ({
         <Label htmlFor="schoolName" className="text-sm font-medium label-float">
           School/Apprenticeship Name*
         </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+        <div className="relative group input-glow input-ripple rounded-form">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
+          <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
         </div>
         {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
       </div>
@@ -4671,11 +4671,11 @@ const SchoolInfoForm = ({
         </Label>
           <div className="relative group">
             <Select value={schoolState} onValueChange={onSchoolStateChange}>
-              <SelectTrigger id="schoolState" className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
+              <SelectTrigger id="schoolState" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
                 <SelectValue placeholder="Select your state/province" />
               </SelectTrigger>
-            <SelectContent className="rounded-[15px] bg-background border border-border z-50 max-h-[280px]">
-              {states.map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+            <SelectContent className="rounded-form bg-background border border-border z-50 max-h-[280px]">
+              {states.map(s => <SelectItem key={s} value={s} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
                   <div className="flex items-center gap-2.5">
                     {hasStateIcon(s) && <StateIcon state={s} className="w-4 h-4" />}
                     <span>{s}</span>
@@ -4907,13 +4907,13 @@ const TaxExemptionForm = ({
 
       <div className="space-y-2 animate-stagger-3">
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={handleYesClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+          <button onClick={handleYesClick} className={cn("p-5 rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
             <div data-field="tax-exemption-yes" className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span className={cn("text-sm font-medium", selectionError ? "text-destructive" : "text-foreground")}>Yes</span>
           </button>
-          <button onClick={handleNoClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+          <button onClick={handleNoClick} className={cn("p-5 rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
             <div data-field="tax-exemption-no" className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
@@ -5224,10 +5224,10 @@ const ContactInfoForm = ({
         </Label>
         <div className="grid grid-cols-2 gap-2.5">
           <Select value={birthdayMonth} onValueChange={onBirthdayMonthChange}>
-            <SelectTrigger className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
+            <SelectTrigger className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
-            <SelectContent className="bg-background border-border rounded-xl">
+            <SelectContent className="bg-background border-border rounded-form">
               <SelectItem value="01">January</SelectItem>
               <SelectItem value="02">February</SelectItem>
               <SelectItem value="03">March</SelectItem>
@@ -5243,10 +5243,10 @@ const ContactInfoForm = ({
             </SelectContent>
           </Select>
           <Select value={birthdayDay} onValueChange={onBirthdayDayChange}>
-            <SelectTrigger className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
+            <SelectTrigger className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
               <SelectValue placeholder="Day" />
             </SelectTrigger>
-            <SelectContent className="bg-background border-border rounded-xl max-h-[200px]">
+            <SelectContent className="bg-background border-border rounded-form max-h-[200px]">
               {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                 <SelectItem key={day} value={day.toString().padStart(2, '0')}>{day}</SelectItem>
               ))}
@@ -5261,7 +5261,7 @@ const ContactInfoForm = ({
         <Label htmlFor="socialMediaHandle" className="text-sm font-medium label-float">
           Social media handle <span className="text-muted-foreground font-normal">(optional)</span>
         </Label>
-        <div className="relative input-glow input-ripple rounded-[15px]">
+        <div className="relative input-glow input-ripple rounded-form">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">@</span>
           <Input 
             id="socialMediaHandle" 
@@ -5269,7 +5269,7 @@ const ContactInfoForm = ({
             placeholder="yourusername" 
             value={socialMediaHandle} 
             onChange={e => onSocialMediaHandleChange(e.target.value.replace(/^@/, ''))} 
-            className="h-[50px] pl-9 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]"
+            className="h-input pl-9 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]"
           />
         </div>
         <p className="text-xs text-muted-foreground">Instagram, TikTok, or your primary platform</p>
@@ -5281,7 +5281,7 @@ const ContactInfoForm = ({
         </div>}
 
       {/* Subscription Preferences */}
-      <div className={cn("space-y-3 p-4 rounded-[15px] bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
+      <div className={cn("space-y-3 p-4 rounded-form bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
         <p className="text-sm font-medium text-foreground">Communication Preferences</p>
         <div className="space-y-3">
           <label className="flex items-start gap-3 cursor-pointer group">
@@ -5548,7 +5548,7 @@ const SummaryForm = ({
   };
 
   const SummarySection = ({ title, stepNum, children }: { title: string; stepNum: number; children: React.ReactNode }) => (
-    <div className="space-y-2 p-4 rounded-[15px] bg-muted border border-border/50">
+    <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">{title}</span>
         <button
@@ -5590,7 +5590,7 @@ const SummaryForm = ({
       </div>
 
       {/* Security Note */}
-      <div className="flex items-center gap-3 p-4 rounded-[15px] bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 animate-stagger-2">
+      <div className="flex items-center gap-3 p-4 rounded-form bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 animate-stagger-2">
         <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <p className="text-sm text-emerald-700 dark:text-emerald-300">
           Your information is secure and never shared with third parties.
@@ -5684,7 +5684,7 @@ const SummaryForm = ({
         {/* Uploaded Documents */}
         {uploadedFiles.length > 0 && (
           <div className="animate-stagger-9">
-            <div className="space-y-2 p-4 rounded-[15px] bg-muted border border-border/50">
+            <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
               <span className="text-sm font-medium text-foreground">Uploaded Documents</span>
               <div className="space-y-1.5">
                 {uploadedFiles.map((file, idx) => (
@@ -5831,16 +5831,16 @@ const PersonalInfoForm = ({
           <Label htmlFor="firstName" className="text-sm font-medium label-float">
             First name
           </Label>
-          <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
-            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <div className="input-glow input-ripple rounded-form-sm sm:rounded-form">
+            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
         <div className="space-y-2.5 group">
           <Label htmlFor="lastName" className="text-sm font-medium label-float">
             Last name
           </Label>
-          <div className="input-glow input-ripple rounded-[10px] sm:rounded-[15px]">
-            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-[50px] rounded-[10px] sm:rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <div className="input-glow input-ripple rounded-form-sm sm:rounded-form">
+            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
       </div>
@@ -5849,11 +5849,11 @@ const PersonalInfoForm = ({
         <Label htmlFor="email" className="text-sm font-medium label-float">
           Email
         </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+        <div className="relative group input-glow input-ripple rounded-form">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-[55px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-button pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -5962,7 +5962,7 @@ const SuccessForm = ({
     {/* Pro Member */}
     <div className="p-5 rounded-[20px] bg-muted border border-border/50">
       <div className="flex items-center gap-5">
-        <div className="w-[50px] h-[50px] rounded-[15px] bg-foreground flex items-center justify-center">
+        <div className="w-[50px] h-[50px] rounded-form bg-foreground flex items-center justify-center">
           <Sparkles className="w-[25px] h-[25px] text-background" />
         </div>
         <div className="text-left">
