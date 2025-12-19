@@ -3025,7 +3025,8 @@ const Auth = () => {
                   {/* Intro/Onboarding step with icon */}
                   <button 
                     onClick={() => currentStep !== "onboarding" && goToStep(0)}
-                    className="flex items-center cursor-pointer hover:opacity-100 transition-opacity" 
+                    aria-label="Go to introduction step"
+                    className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
                     style={{
                       opacity: currentStep === "onboarding" ? 1 : 0.6,
                       transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
@@ -3093,7 +3094,7 @@ const Auth = () => {
                   };
                   
                   return <div key={i} className="flex items-center">
-                    <button onClick={() => goToStep(stepNum)} className="flex items-center cursor-pointer hover:opacity-100 transition-opacity" style={{
+                    <button onClick={() => goToStep(stepNum)} aria-label={`Go to step ${stepNum}`} className="flex items-center cursor-pointer hover:opacity-100 transition-opacity" style={{
                       opacity,
                       transform: `scale(${scale})`,
                       transition: 'all 0.5s ease-out'
@@ -5256,7 +5257,7 @@ const ContactBasicsForm = ({
         </Label>
         <div className="flex gap-2">
           <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
-            <SelectTrigger className={cn("w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
+            <SelectTrigger aria-label="Select country code" className={cn("w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
               <SelectValue>
                 <span className="flex items-center gap-2">
                   <CountryFlag iso={countryCodes.find(c => c.code === phoneCountryCode)?.iso || "us"} />
