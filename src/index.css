@@ -1442,3 +1442,26 @@ div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) sv
   color: inherit !important;
 }
 
+/* Field error highlight for scroll-to-error */
+@keyframes field-error-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px hsl(var(--destructive) / 0.2);
+  }
+}
+
+.field-error-highlight {
+  animation: field-error-pulse 0.6s ease-in-out 2;
+  outline: 2px solid hsl(var(--destructive) / 0.5) !important;
+  outline-offset: 2px !important;
+}
+
+.field-error-highlight input,
+.field-error-highlight select,
+.field-error-highlight textarea,
+.field-error-highlight button {
+  border-color: hsl(var(--destructive) / 0.5) !important;
+}
+
