@@ -1104,6 +1104,8 @@ const Auth = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
+  const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
+  const [pendingAccountType, setPendingAccountType] = useState<string | null>(null);
   const fontsLoaded = useFontLoaded();
 
   // localStorage persistence keys
@@ -2251,54 +2253,14 @@ const Auth = () => {
   // Handle account type selection with auto-advance
   const handleAccountTypeSelect = (type: string | null) => {
     const previousType = accountType;
-    
-    // If switching to a different account type and there's existing progress, show confirmation
+
+    // If switching to a different account type and there's existing progress, show confirmation overlay
     if (type && previousType && previousType !== type && hasFormProgress()) {
-      toast.custom((t) => (
-        <>
-          {/* Backdrop overlay */}
-          <div 
-            className="fixed inset-0 bg-black/50 animate-fade-in z-[9998]" 
-            style={{ pointerEvents: 'none' }}
-          />
-          {/* Toast content */}
-          <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
-            <div className="flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm mx-4 bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] pointer-events-auto animate-scale-in">
-              <div className="space-y-1">
-                <p className="font-medium text-foreground">Change account type?</p>
-                <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
-              </div>
-              <div className="flex gap-2 w-full">
-                <button
-                  onClick={() => {
-                    toast.dismiss(t);
-                  }}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
-                >
-                  No, keep current
-                </button>
-                <button
-                  onClick={() => {
-                    toast.dismiss(t);
-                    executeAccountTypeSelect(type, previousType);
-                  }}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
-                >
-                  Yes, change
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      ), {
-        duration: Infinity,
-        position: "top-center",
-        unstyled: true,
-        className: "!fixed !inset-0 !w-full !h-full !p-0 !m-0 !bg-transparent !border-none !shadow-none",
-      });
+      setPendingAccountType(type);
+      setShowAccountTypeConfirm(true);
       return;
     }
-    
+
     // No existing progress or same type selected, proceed directly
     executeAccountTypeSelect(type, previousType);
   };
@@ -2644,6 +2606,43 @@ const Auth = () => {
       >
         {/* Mobile background gradient - fades to light gray at bottom */}
         <div className="lg:hidden absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-muted/30 via-40% to-muted" />
+
+        {/* Account type change confirmation overlay */}
+        {showAccountTypeConfirm && (
+          <div className="absolute inset-0 z-[80]">
+            <div className="absolute inset-0 bg-black/50 animate-fade-in" />
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div className="w-full max-w-sm bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] animate-scale-in">
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Change account type?</p>
+                  <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
+                </div>
+                <div className="flex gap-2 w-full mt-3">
+                  <button
+                    onClick={() => {
+                      setShowAccountTypeConfirm(false);
+                      setPendingAccountType(null);
+                    }}
+                    className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+                  >
+                    No, keep current
+                  </button>
+                  <button
+                    onClick={() => {
+                      const nextType = pendingAccountType;
+                      setShowAccountTypeConfirm(false);
+                      setPendingAccountType(null);
+                      if (nextType) executeAccountTypeSelect(nextType, accountType);
+                    }}
+                    className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+                  >
+                    Yes, change
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Drag Handle - Mobile Only */}
         <div 
