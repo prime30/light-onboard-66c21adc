@@ -110,7 +110,14 @@ export const AuthModal = ({
       return;
     }
     if (mode === "signin") {
-      toast.success("Signed in successfully!");
+      toast.success("Welcome back! Pro pricing is now unlocked.", {
+        description: "You're seeing exclusive professional pricing on all products.",
+        action: {
+          label: "View Dashboard",
+          onClick: () => window.location.href = "/account"
+        },
+        duration: 5000
+      });
       onOpenChange(false);
       return;
     }
