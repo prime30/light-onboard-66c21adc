@@ -43,12 +43,12 @@ const FilePreviewItem = ({
   }, [file]);
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-[12px] bg-muted/30 border border-border/30">
+    <div className="flex items-center gap-3 p-3 rounded-md bg-muted/30 border border-border/30">
       {previewUrl ? (
         <button
           type="button"
           onClick={onPreview}
-          className="relative w-10 h-10 rounded-[8px] overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
+          className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
         >
           <img 
             src={previewUrl} 
@@ -60,7 +60,7 @@ const FilePreviewItem = ({
           </div>
         </button>
       ) : (
-        <div className="w-10 h-10 rounded-[8px] bg-foreground/5 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-md bg-foreground/5 flex items-center justify-center flex-shrink-0">
           {file.type === "application/pdf" ? (
             <FileText className="w-4 h-4 text-muted-foreground" />
           ) : (
@@ -121,14 +121,14 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
 
   return (
     <>
-      <div className="rounded-[15px] border border-border/50 bg-muted/20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="rounded-lg border border-border/50 bg-muted/20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[8px] bg-foreground/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-foreground/10 flex items-center justify-center">
               <FileCheck className="w-4 h-4 text-foreground" />
             </div>
             <div className="text-left">

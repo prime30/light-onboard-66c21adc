@@ -26,7 +26,7 @@ export const PasswordInputField = ({
         {label}
       </Label>
     <div className={cn("relative group rounded-form input-ripple", isSignin ? "input-ultra" : "input-glow")}>
-        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground")}>
+        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-md flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground")}>
           <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
         <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-form transition-all duration-500 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-input-prominent pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-button pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
