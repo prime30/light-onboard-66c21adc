@@ -1383,3 +1383,23 @@
   outline-color: transparent !important;
 }
 
+/* Icon box highlight when sibling input is highlighted */
+div:has(> .field-highlight) > div:first-child:not(.field-highlight) {
+  background-color: hsl(0 84% 60% / 0.15) !important;
+  transition: background-color 1s ease-out;
+}
+
+div:has(> .field-highlight) > div:first-child:not(.field-highlight) svg {
+  color: hsl(0 84% 60%) !important;
+  transition: color 1s ease-out;
+}
+
+/* Icon box fade when input fades */
+div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) {
+  background-color: transparent !important;
+}
+
+div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) svg {
+  color: inherit !important;
+}
+
