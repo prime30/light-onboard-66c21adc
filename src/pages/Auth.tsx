@@ -2898,7 +2898,7 @@ const Auth = () => {
                               </div>
                               <div className="pl-7 flex flex-wrap gap-1">
                                 {missingFields.map((field) => (
-                                  <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-background/10 text-background/60">
+                                  <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium">
                                     {field}
                                   </span>
                                 ))}
