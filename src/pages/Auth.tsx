@@ -1273,6 +1273,17 @@ const Auth = () => {
           wholesaleAgreed: data.wholesaleAgreed || false,
         });
         setCompletedSteps(recalculatedSteps);
+        
+        // Show toast notification if meaningful progress was restored
+        // Only show if user had progressed past the initial steps
+        if (data.currentStep && data.currentStep !== "onboarding" && data.currentStep !== "reviews") {
+          setTimeout(() => {
+            toast("Welcome back!", {
+              description: "Your previous progress has been restored.",
+              duration: 4000,
+            });
+          }, 500);
+        }
       }
     } catch (e) {
       console.warn("Failed to load form progress from localStorage:", e);
