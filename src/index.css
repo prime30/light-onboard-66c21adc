@@ -193,11 +193,20 @@
 
     --radius: 0.75rem;
     
+    /* Standardized border-radius system */
+    --radius-xs: 3px;
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-lg: 20px;
+    --radius-xl: 30px;
+    --radius-2xl: 40px;
+    --radius-full: 9999px;
+    
     /* Standardized form element sizing */
     --input-height: 50px;
     --input-height-prominent: 60px;
     --button-height: 55px;
-    --radius-form: 15px;
+    --radius-form: 10px;
     --radius-form-sm: 10px;
 
     --sidebar-background: 0 0% 98%;

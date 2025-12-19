@@ -82,10 +82,10 @@ export function AuthFooter({
           >
             <Button
               variant="outline"
-              size="lg"
+              size="pill-lg"
               onClick={onBack}
               aria-label="Go back"
-              className="h-button w-[55px] p-0 rounded-form border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
+              className="h-button w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
             >
               <ArrowLeft
                 className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
@@ -120,11 +120,11 @@ export function AuthFooter({
               >
                 <Button
                   key={`shimmer-${shimmerKey}`}
-                  size="lg"
+                  size="pill-lg"
                   onClick={onNext}
                   disabled={isSummaryStep ? !isAllStepsValid || isSubmitting : !canContinue || isSubmitting}
                   className={cn(
-                    "btn-premium w-full h-button rounded-form bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                    "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                     shimmerKey > 0 && "shimmer-trigger",
                     showTooltip && "pointer-events-none"
                   )}
