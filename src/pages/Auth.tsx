@@ -3586,7 +3586,7 @@ const LicenseForm = ({
   const licenseError = showValidationErrors && licenseNumber.trim() === "";
   const salonSizeError = showValidationErrors && isSalon && salonSize === "";
   const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
-  const stepNumber = accountType === "salon" ? 3 : 2;
+  const stepNumber = 4; // License is step 4 for both professional and salon
   return <div className="space-y-4 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
@@ -3704,7 +3704,7 @@ const BusinessOperationForm = ({
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 3
+          Step 2
         </span>
       </div>
       <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -3812,7 +3812,7 @@ const BusinessLocationForm = ({
   const stateError = showValidationErrors && state === "";
   const zipCodeError = showValidationErrors && zipCode.trim() === "";
   const isStudent = accountType === "student";
-  const stepNumber = accountType === "professional" ? 4 : 2;
+  const stepNumber = accountType === "professional" ? 5 : 2; // professional=5, salon=2
 
   // Fetch address predictions
   const fetchPredictions = async (input: string) => {
@@ -4198,8 +4198,8 @@ const WholesaleTermsForm = ({
   const toastRef = useRef<HTMLDivElement>(null);
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
-  // Step number varies by account type: professional=5, salon=4, student=3
-  const stepNumber = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
+  // Step number varies by account type: professional=7, salon=6, student=5
+  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
   
   const TOAST_DURATION = 5000; // 5 seconds
 
@@ -4373,8 +4373,8 @@ const TaxExemptionForm = ({
   const [toastKey, setToastKey] = useState(0);
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
-  // Step number varies by account type: professional=6, salon=5
-  const stepNumber = accountType === "professional" ? 6 : 5;
+  // Step number varies by account type: professional=6, salon=5, student=4
+  const stepNumber = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
   
   const TOAST_DURATION = 5000; // 5 seconds
