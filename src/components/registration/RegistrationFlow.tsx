@@ -105,10 +105,18 @@ export const RegistrationFlow = () => {
           )}
           {currentStep === "license" && (
             <LicenseStep
+              accountType={accountType}
               licenseNumber={licenseNumber}
-              state={state}
+              salonSize=""
+              salonStructure=""
+              licenseFile={null}
+              licenseProofFiles={[]}
               onLicenseChange={setLicenseNumber}
-              onStateChange={setState}
+              onSalonSizeChange={() => {}}
+              onSalonStructureChange={() => {}}
+              onLicenseFileChange={() => {}}
+              onLicenseProofFilesChange={() => {}}
+              validationStatus="in-progress"
             />
           )}
           {currentStep === "personal-info" && (

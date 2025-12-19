@@ -183,7 +183,7 @@ export const AuthModal = ({
           {mode === "signin" ? <LoginStep email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
               {currentStep === "onboarding" && <OnboardingStep onContinue={handleNext} />}
               {currentStep === "account-type" && <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />}
-              {currentStep === "license" && <LicenseStep licenseNumber={licenseNumber} state={state} onLicenseChange={setLicenseNumber} onStateChange={setState} />}
+              {currentStep === "license" && <LicenseStep accountType={accountType} licenseNumber={licenseNumber} salonSize="" salonStructure="" licenseFile={null} licenseProofFiles={[]} onLicenseChange={setLicenseNumber} onSalonSizeChange={() => {}} onSalonStructureChange={() => {}} onLicenseFileChange={() => {}} onLicenseProofFilesChange={() => {}} validationStatus="in-progress" />}
               {currentStep === "personal-info" && <PersonalInfoStep firstName={firstName} lastName={lastName} email={email} password={password} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onEmailChange={setEmail} onPasswordChange={setPassword} />}
               {currentStep === "success" && <SuccessStep />}
             </>}
