@@ -1364,17 +1364,9 @@
   }
 }
 
-/* Field highlight animation for missing fields */
-@keyframes fieldHighlight {
-  0% {
-    box-shadow: 0 0 0 2px hsl(0 84% 60% / 0.45), inset 0 0 0 999px hsl(0 84% 60% / 0.10);
-  }
-  100% {
-    box-shadow: 0 0 0 2px transparent, inset 0 0 0 999px transparent;
-  }
+/* Field highlight (no animation property so it won't override entrance animations) */
+.field-highlight {
+  box-shadow: 0 0 0 2px hsl(0 84% 60% / 0.45), inset 0 0 0 999px hsl(0 84% 60% / 0.10);
+  transition: box-shadow 1.6s ease-out, background-color 1.6s ease-out;
 }
 
-.animate-field-highlight {
-  animation: fieldHighlight 2s ease-out forwards;
-  border-radius: inherit;
-}
