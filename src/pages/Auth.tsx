@@ -61,6 +61,7 @@ import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { signIn, signUp } from "@/lib/auth-service";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
+import { useRegistrationUpload } from "@/hooks/use-registration-upload";
 import { slides, stats, features, testimonials } from "@/data/auth-constants";
 import {
   accountTypeSchema,
@@ -185,6 +186,14 @@ const Auth = () => {
   const [highlightFields, setHighlightFields] = useState<string[]>([]);
   const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
   const [highlightWholesaleFade, setHighlightWholesaleFade] = useState(false);
+
+  // File upload hook for registration documents
+  const { 
+    isUploading: isUploadingDocuments, 
+    uploadProgress: documentUploadProgress,
+    uploadAllDocuments,
+    resetUploadState: resetDocumentUploadState
+  } = useRegistrationUpload();
 
   // Prevent footer layout transitions from running during the initial footer entrance animation
   const [footerTransitionsEnabled, setFooterTransitionsEnabled] = useState(false);
@@ -826,11 +835,35 @@ const Auth = () => {
         },
       });
       
-      if (result.success) {
+      if (result.success && result.user?.id) {
+        // Upload all registration documents
+        const hasDocuments = licenseFile || licenseProofFiles.length > 0 || enrollmentProofFiles.length > 0 || taxExemptFile;
+        
+        if (hasDocuments) {
+          const uploadedPaths = await uploadAllDocuments(result.user.id, {
+            licenseFile,
+            licenseProofFiles,
+            enrollmentProofFiles,
+            taxExemptFile,
+          });
+          
+          if (!uploadedPaths) {
+            // Upload failed but user was created - show partial success
+            toast.warning("Account created but some documents failed to upload. You can upload them later.");
+          }
+        }
+        
         // Clear form progress
         sessionStorage.removeItem("auth_form_progress");
+        resetDocumentUploadState();
         
         // Show success step
+        setCurrentStep("success");
+        toast.success(result.message || "Application submitted successfully!");
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      } else if (result.success) {
+        // User created but no ID returned - still show success
+        sessionStorage.removeItem("auth_form_progress");
         setCurrentStep("success");
         toast.success(result.message || "Application submitted successfully!");
         mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
@@ -842,7 +875,7 @@ const Auth = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, password, firstName, lastName, preferredName, accountType, phoneNumber, phoneCountryCode, businessName]);
+  }, [email, password, firstName, lastName, preferredName, accountType, phoneNumber, phoneCountryCode, businessName, licenseFile, licenseProofFiles, enrollmentProofFiles, taxExemptFile, uploadAllDocuments, resetDocumentUploadState]);
 
   // Execute account type selection and auto-advance
   const executeAccountTypeSelect = (type: string | null, previousType: string | null) => {
