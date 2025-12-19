@@ -1969,31 +1969,31 @@ const Auth = () => {
         targetStep = "success";
         break;
     }
-    setNextStep(targetStep);
-    setTransitionDirection("forward");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      if (currentStep === "summary") {
-        setIsSubmitting(true);
+    if (currentStep === "summary") {
+      // Don't use transition skeleton for summary->success, just show submitting state
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setCurrentStep("success");
+        toast.success("Submitted. Our team will review and notify you within 24 hours.");
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+        // Auto-scroll to offer section after toast ends (~4s)
         setTimeout(() => {
-          setIsSubmitting(false);
-          setCurrentStep("success");
-          toast.success("Submitted. Our team will review and notify you within 24 hours.");
-          setNextStep(null);
-          mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-          // Auto-scroll to offer section after toast ends (~4s)
-          setTimeout(() => {
-            const offerSection = document.getElementById('success-offer-section');
-            offerSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 4200);
-        }, 1500);
-      } else {
+          const offerSection = document.getElementById('success-offer-section');
+          offerSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 4200);
+      }, 1500);
+    } else {
+      setNextStep(targetStep);
+      setTransitionDirection("forward");
+      setIsTransitioning(true);
+      setTimeout(() => {
         setCurrentStep(targetStep);
         mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-      }
-      setIsTransitioning(false);
-      setNextStep(null);
-    }, 150);
+        setIsTransitioning(false);
+        setNextStep(null);
+      }, 150);
+    }
   };
   const handleBack = () => {
     // Calculate previous step for skeleton
