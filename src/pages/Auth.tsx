@@ -38,11 +38,18 @@ import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { SummaryForm } from "@/components/registration/steps/SummaryForm";
 import { SuccessForm } from "@/components/registration/steps/SuccessForm";
 import { PersonalInfoForm } from "@/components/registration/steps/PersonalInfoForm";
-import { AnimatedNumber, AnimatedProductCount, OdometerCounter, RotatingStylistAvatars, RotatingStylistAvatarsLight } from "@/components/registration/helpers/AnimatedCounters";
-import { TestimonialCarousel } from "@/components/registration/helpers/TestimonialCarousel";
-import { PasswordInputField, PasswordStrengthMeter } from "@/components/registration/helpers/PasswordInputField";
-import { CircularProgress } from "@/components/registration/helpers/CircularProgress";
-import { MagneticFeatureBox } from "@/components/registration/helpers/MagneticFeatureBox";
+import {
+  AnimatedNumber,
+  AnimatedProductCount,
+  OdometerCounter,
+  RotatingStylistAvatars,
+  RotatingStylistAvatarsLight,
+  TestimonialCarousel,
+  PasswordInputField,
+  PasswordStrengthMeter,
+  CircularProgress,
+  MagneticFeatureBox
+} from "@/components/registration/helpers";
 import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
