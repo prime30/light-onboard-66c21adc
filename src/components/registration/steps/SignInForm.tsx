@@ -34,7 +34,7 @@ const PasswordInputField = ({
         {label}
       </Label>
     <div className={cn("relative group rounded-form input-ripple", isSignin ? "input-ultra" : "input-glow")}>
-        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground")}>
+        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-md flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground")}>
           <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
         <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-form transition-all duration-500 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-input-prominent pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-button pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
@@ -92,7 +92,7 @@ export const SignInForm = ({
               Email address
             </Label>
             <div className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
-              <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
+              <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
                 <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
               </div>
               <Input 
@@ -155,7 +155,7 @@ export const SignInForm = ({
             Email address
           </Label>
           <div className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
-            <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
+            <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
               <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
             </div>
             <Input 
@@ -179,7 +179,7 @@ export const SignInForm = ({
           <label className="flex items-center gap-2.5 cursor-pointer group">
             <div className="relative w-[18px] h-[18px]">
               <input type="checkbox" className="peer sr-only" />
-              <div className="w-full h-full rounded-[5px] border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
+              <div className="w-full h-full rounded-sm border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
               <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
             </div>
             <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">Remember me</span>
