@@ -1366,7 +1366,13 @@
 
 /* Field highlight (no animation property so it won't override entrance animations) */
 .field-highlight {
-  box-shadow: 0 0 0 2px hsl(0 84% 60% / 0.45), inset 0 0 0 999px hsl(0 84% 60% / 0.10);
-  transition: box-shadow 1.6s ease-out, background-color 1.6s ease-out;
+  background-color: hsl(0 84% 60% / 0.10);
+  outline: 2px solid hsl(0 84% 60% / 0.55);
+  outline-offset: 2px;
+  transition: background-color 1.6s ease-out, outline-color 1.6s ease-out;
+}
+
+.field-highlight:focus {
+  outline-color: hsl(0 84% 60% / 0.65);
 }
 
