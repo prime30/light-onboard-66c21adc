@@ -895,7 +895,7 @@ const Auth = () => {
       "School name": "#schoolName",
       "Enrollment proof": "[data-field='enrollment-proof']",
       // Tax exemption
-      "Exemption status": "[data-field='tax-exemption']",
+      "Exemption status": "[data-field='tax-exemption-yes'], [data-field='tax-exemption-no']",
       "Tax document": "[data-field='tax-document']",
       // Wholesale terms
       "Terms agreement": "[data-field='wholesale-terms']",
@@ -913,13 +913,14 @@ const Auth = () => {
     // Delay to ensure step entrance animation completes before highlighting
     let clearHighlightTimer: number | null = null;
     const timeoutId = window.setTimeout(() => {
-      const element = document.querySelector(selector);
-      if (!element) {
+      // Use querySelectorAll to support multiple elements (e.g., tax exemption yes/no buttons)
+      const elements = document.querySelectorAll(selector);
+      if (elements.length === 0) {
         setHighlightField(null);
         return;
       }
 
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
 
       // For wholesale terms (a button), use React state to apply the class
       // so React re-renders/entrance animations don't clobber the highlight.
@@ -939,20 +940,21 @@ const Auth = () => {
         return;
       }
 
-      // For input-like fields, imperatively add a class to the element itself.
-      const highlightTarget = element as Element;
-      highlightTarget.classList.add("field-highlight");
+      // For all matched elements, imperatively add the highlight class
+      elements.forEach(el => el.classList.add("field-highlight"));
 
-      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
-        element.focus();
+      // Focus the first element if it's an input
+      const firstEl = elements[0];
+      if (firstEl instanceof HTMLInputElement || firstEl instanceof HTMLSelectElement || firstEl instanceof HTMLTextAreaElement) {
+        firstEl.focus();
       }
 
       // After 2s, start fade-out transition
       clearHighlightTimer = window.setTimeout(() => {
-        highlightTarget.classList.add("field-highlight-fade");
+        elements.forEach(el => el.classList.add("field-highlight-fade"));
         // After fade transition completes (1s), remove classes
         window.setTimeout(() => {
-          highlightTarget.classList.remove("field-highlight", "field-highlight-fade");
+          elements.forEach(el => el.classList.remove("field-highlight", "field-highlight-fade"));
           setHighlightField(null);
         }, 1000);
       }, 2000);
@@ -4543,14 +4545,14 @@ const TaxExemptionForm = ({
       </div>
 
       <div className="space-y-2 animate-stagger-3">
-        <div className="grid grid-cols-2 gap-3" data-field="tax-exemption">
-          <button onClick={handleYesClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+        <div className="grid grid-cols-2 gap-3">
+          <button data-field="tax-exemption-yes" onClick={handleYesClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === true ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === true ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span className={cn("text-sm font-medium", selectionError ? "text-destructive" : "text-foreground")}>Yes</span>
           </button>
-          <button onClick={handleNoClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+          <button data-field="tax-exemption-no" onClick={handleNoClick} className={cn("p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]", hasTaxExemption === false ? "border-foreground bg-foreground/8" : selectionError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
             <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", hasTaxExemption === false ? "border-foreground bg-foreground" : selectionError ? "border-destructive/50" : "border-muted-foreground/50")}>
               {hasTaxExemption === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
