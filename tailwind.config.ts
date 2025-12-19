@@ -74,12 +74,15 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xl: "calc(var(--radius) + 4px)",
-        "2xl": "calc(var(--radius) + 8px)",
-        // Standardized form element radii
+        // Standardized border-radius system: 3, 5, 10, 20, 30, 40, 9999
+        xs: "var(--radius-xs)",      // 3px - tiny badges
+        sm: "var(--radius-sm)",      // 5px - small badges
+        md: "var(--radius-md)",      // 10px - inputs, cards, medium elements
+        lg: "var(--radius-lg)",      // 20px - larger cards, containers
+        xl: "var(--radius-xl)",      // 30px - modal corners, large containers
+        "2xl": "var(--radius-2xl)",  // 40px - hero sections, large backgrounds
+        full: "var(--radius-full)",  // 9999px - pills, CTAs, circular buttons
+        // Form element specific
         form: "var(--radius-form)",
         "form-sm": "var(--radius-form-sm)",
       },
