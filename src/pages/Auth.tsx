@@ -1603,23 +1603,23 @@ const Auth = () => {
           missingFields: schoolMissing
         });
       }
-      // Step 3: Wholesale Terms
-      if (!wholesaleAgreed) {
-        incomplete.push({
-          step: 3,
-          name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
-        });
-      }
-      // Step 4: Tax Exemption
+      // Step 3: Tax Exemption
       const studentTaxMissing: string[] = [];
       if (hasTaxExemption === null) studentTaxMissing.push("Exemption status");
       else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax document");
       if (studentTaxMissing.length > 0) {
         incomplete.push({
-          step: 4,
+          step: 3,
           name: "Tax exemption",
           missingFields: studentTaxMissing
+        });
+      }
+      // Step 4: Wholesale Terms
+      if (!wholesaleAgreed) {
+        incomplete.push({
+          step: 4,
+          name: "Wholesale terms",
+          missingFields: ["Terms agreement"]
         });
       }
       // Step 5: Contact Info
@@ -1665,23 +1665,23 @@ const Auth = () => {
           missingFields: licenseMissing
         });
       }
-      // Step 4: Wholesale Terms
-      if (!wholesaleAgreed) {
-        incomplete.push({
-          step: 4,
-          name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
-        });
-      }
-      // Step 5: Tax Exemption
+      // Step 4: Tax Exemption
       const taxMissing: string[] = [];
       if (hasTaxExemption === null) taxMissing.push("Exemption status");
       else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax document");
       if (taxMissing.length > 0) {
         incomplete.push({
-          step: 5,
+          step: 4,
           name: "Tax exemption",
           missingFields: taxMissing
+        });
+      }
+      // Step 5: Wholesale Terms
+      if (!wholesaleAgreed) {
+        incomplete.push({
+          step: 5,
+          name: "Wholesale terms",
+          missingFields: ["Terms agreement"]
         });
       }
       // Step 6: Contact Info
@@ -1732,23 +1732,23 @@ const Auth = () => {
         missingFields: proLocationMissing
       });
     }
-    // Step 5: Wholesale Terms
-    if (!wholesaleAgreed) {
-      incomplete.push({
-        step: 5,
-        name: "Wholesale terms",
-        missingFields: ["Terms agreement"]
-      });
-    }
-    // Step 6: Tax Exemption
+    // Step 5: Tax Exemption
     const proTaxMissing: string[] = [];
     if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
     else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
     if (proTaxMissing.length > 0) {
       incomplete.push({
-        step: 6,
+        step: 5,
         name: "Tax exemption",
         missingFields: proTaxMissing
+      });
+    }
+    // Step 6: Wholesale Terms
+    if (!wholesaleAgreed) {
+      incomplete.push({
+        step: 6,
+        name: "Wholesale terms",
+        missingFields: ["Terms agreement"]
       });
     }
     // Step 7: Contact Info
@@ -1861,7 +1861,7 @@ const Auth = () => {
       // Auto-advance after grace period - navigate directly to next step
       setTimeout(() => {
         // Update display total steps based on selected type BEFORE transitioning
-        const newTotal = type === "student" ? 4 : type === "professional" ? 7 : 6;
+        const newTotal = type === "student" ? 5 : type === "professional" ? 7 : 6;
         setDisplayTotalSteps(newTotal);
         
         // Mark step 1 as completed
@@ -1923,18 +1923,18 @@ const Auth = () => {
         targetStep = "license";
         break;
       case "license":
-        targetStep = accountType === "professional" ? "business-location" : "wholesale-terms";
+        targetStep = accountType === "professional" ? "business-location" : "tax-exemption";
         break;
       case "business-location":
-        targetStep = accountType === "professional" ? "wholesale-terms" : "license";
+        targetStep = accountType === "professional" ? "tax-exemption" : "license";
         break;
       case "school-info":
+        targetStep = "tax-exemption";
+        break;
+      case "tax-exemption":
         targetStep = "wholesale-terms";
         break;
       case "wholesale-terms":
-        targetStep = accountType === "student" ? "contact-info" : "tax-exemption";
-        break;
-      case "tax-exemption":
         targetStep = "contact-info";
         break;
       case "contact-info":
@@ -1986,14 +1986,14 @@ const Auth = () => {
       case "school-info":
         targetStep = "account-type";
         break;
-      case "wholesale-terms":
+      case "tax-exemption":
         if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "business-location";else targetStep = "license";
         break;
-      case "tax-exemption":
-        targetStep = "wholesale-terms";
+      case "wholesale-terms":
+        targetStep = "tax-exemption";
         break;
       case "contact-info":
-        targetStep = accountType === "student" ? "wholesale-terms" : "tax-exemption";
+        targetStep = "wholesale-terms";
         break;
     }
     setNextStep(targetStep);
@@ -2007,40 +2007,41 @@ const Auth = () => {
     }, 150);
   };
   const getTotalSteps = () => {
-    // Student: account-type, school-info, wholesale-terms, contact-info = 4 steps
-    // Professional: 7 steps (account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info)
-    // Salon: 6 steps
+    // Student: account-type, school-info, tax-exemption, wholesale-terms, contact-info = 5 steps
+    // Professional: 7 steps (account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info)
+    // Salon: 6 steps (account-type, business-location, license, tax-exemption, wholesale-terms, contact-info)
     // Once account type is selected, use that type's total (even while still on account-type step)
     // Only show max steps (7) when no account type is selected yet
     if (!accountType) return 7;
-    if (accountType === "student") return 4;
+    if (accountType === "student") return 5;
     if (accountType === "professional") return 7;
     return 6;
   };
   const getCurrentStepNumber = () => {
     if (currentStep === "account-type") return 1;
     if (accountType === "student") {
-      // Student flow
+      // Student flow: account-type, school-info, tax-exemption, wholesale-terms, contact-info
       if (currentStep === "school-info") return 2;
-      if (currentStep === "wholesale-terms") return 3;
-      if (currentStep === "contact-info") return 4;
-      return 4;
+      if (currentStep === "tax-exemption") return 3;
+      if (currentStep === "wholesale-terms") return 4;
+      if (currentStep === "contact-info") return 5;
+      return 5;
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, license, business-location, wholesale-terms, tax-exemption, contact-info
+      // Professional flow: account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info
       if (currentStep === "business-operation") return 2;
       if (currentStep === "license") return 3;
       if (currentStep === "business-location") return 4;
-      if (currentStep === "wholesale-terms") return 5;
-      if (currentStep === "tax-exemption") return 6;
+      if (currentStep === "tax-exemption") return 5;
+      if (currentStep === "wholesale-terms") return 6;
       if (currentStep === "contact-info") return 7;
       return 7;
     }
-    // Salon flow
+    // Salon flow: account-type, business-location, license, tax-exemption, wholesale-terms, contact-info
     if (currentStep === "business-location") return 2;
     if (currentStep === "license") return 3;
-    if (currentStep === "wholesale-terms") return 4;
-    if (currentStep === "tax-exemption") return 5;
+    if (currentStep === "tax-exemption") return 4;
+    if (currentStep === "wholesale-terms") return 5;
     if (currentStep === "contact-info") return 6;
     return 6;
   };
@@ -2049,22 +2050,24 @@ const Auth = () => {
     if (stepNum === 0) return "onboarding";
     
     if (accountType === "student") {
-      // Student flow
+      // Student flow: account-type, school-info, tax-exemption, wholesale-terms, contact-info
       switch (stepNum) {
         case 1:
           return "account-type";
         case 2:
           return "school-info";
         case 3:
-          return "wholesale-terms";
+          return "tax-exemption";
         case 4:
+          return "wholesale-terms";
+        case 5:
           return "contact-info";
         default:
           return "account-type";
       }
     }
     if (accountType === "professional") {
-      // Professional flow
+      // Professional flow: account-type, business-operation, license, business-location, tax-exemption, wholesale-terms, contact-info
       switch (stepNum) {
         case 1:
           return "account-type";
@@ -2075,16 +2078,16 @@ const Auth = () => {
         case 4:
           return "business-location";
         case 5:
-          return "wholesale-terms";
-        case 6:
           return "tax-exemption";
+        case 6:
+          return "wholesale-terms";
         case 7:
           return "contact-info";
         default:
           return "account-type";
       }
     }
-    // Salon flow
+    // Salon flow: account-type, business-location, license, tax-exemption, wholesale-terms, contact-info
     switch (stepNum) {
       case 1:
         return "account-type";
@@ -2093,9 +2096,9 @@ const Auth = () => {
       case 3:
         return "license";
       case 4:
-        return "wholesale-terms";
-      case 5:
         return "tax-exemption";
+      case 5:
+        return "wholesale-terms";
       case 6:
         return "contact-info";
       default:
