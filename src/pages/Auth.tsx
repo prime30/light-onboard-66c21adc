@@ -2646,7 +2646,10 @@ const Auth = () => {
         
         {/* Mobile Saving Progress Overlay */}
         {isSavingProgress && (
-          <div className="sm:hidden absolute inset-0 z-[90] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className={cn(
+            "sm:hidden absolute inset-0 z-[90] flex justify-center bg-background/80 backdrop-blur-sm animate-fade-in",
+            footerVisible ? "items-end pb-[130px]" : "items-center"
+          )}>
             <div className="flex flex-col items-center gap-3">
               {/* Animated circle */}
               <div className="relative w-16 h-16">
