@@ -1994,6 +1994,7 @@ const Auth = () => {
   
   // Handle account type selection with auto-advance
   const handleAccountTypeSelect = (type: string | null) => {
+    const previousType = accountType;
     setAccountType(type);
     if (type) {
       // Auto-advance after grace period - navigate directly to next step
@@ -2002,8 +2003,16 @@ const Auth = () => {
         const newTotal = type === "student" ? 7 : type === "professional" ? 9 : 8;
         setDisplayTotalSteps(newTotal);
         
-        // Mark step 1 as completed
-        setCompletedSteps(prev => new Set([...prev, 1]));
+        // When switching to a different account type, reset and revalidate completed steps
+        if (previousType !== type) {
+          // Start fresh - only mark step 1 as completed since we're changing account types
+          // Each account type has different step requirements, so previous progress doesn't apply
+          setCompletedSteps(new Set([1]));
+        } else {
+          // Same type selected again, just mark step 1 as completed
+          setCompletedSteps(prev => new Set([...prev, 1]));
+        }
+        
         // Calculate next step based on selected type
         const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "business-operation" : "business-location";
         setTransitionDirection("forward");
