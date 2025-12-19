@@ -2986,15 +2986,15 @@ const Auth = () => {
           </div>
           
           {/* Close Button - Hidden on mobile (swipe to dismiss available), shown on tablet/desktop */}
-          <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-            {isSavingProgress && (
-              <span className={cn(
-                "text-sm font-medium transition-all duration-300",
-                saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
-              )}>
-                {saveProgressText === "saving" ? "Saving..." : "Saved"}
-              </span>
-            )}
+          <div className="hidden sm:flex items-center flex-shrink-0 relative">
+            {/* Saving text - positioned absolutely to the left so button doesn't move */}
+            <span className={cn(
+              "absolute right-full mr-2 text-sm font-medium whitespace-nowrap transition-all duration-300",
+              isSavingProgress ? "opacity-100" : "opacity-0 pointer-events-none",
+              saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
+            )}>
+              {saveProgressText === "saving" ? "Saving..." : "Saved"}
+            </span>
             <button 
               onClick={handleCloseModal} 
               disabled={isSavingProgress}
