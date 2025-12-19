@@ -53,6 +53,7 @@ import {
 } from "@/components/registration/helpers";
 import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
+import { signIn, signUp } from "@/lib/auth-service";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
 import { slides, stats, features, testimonials } from "@/data/auth-constants";
 import {
@@ -1197,6 +1198,67 @@ const Auth = () => {
       setIsSendingReset(false);
     }
   }, [email]);
+
+  // Handle sign in with Supabase auth
+  const handleSignIn = useCallback(async () => {
+    if (!isValidEmail(email) || password.length < 8) {
+      toast.error("Please enter valid credentials");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const result = await signIn({ email, password });
+      
+      if (result.success) {
+        toast.success(result.message || "Signed in successfully!");
+        // Clear form progress on successful login
+        sessionStorage.removeItem("auth_form_progress");
+        navigate("/");
+      } else {
+        toast.error(result.message || "Failed to sign in");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [email, password, navigate]);
+
+  // Handle sign up submission
+  const handleSignUpSubmit = useCallback(async () => {
+    setIsSubmitting(true);
+    try {
+      const result = await signUp({
+        email,
+        password,
+        metadata: {
+          firstName,
+          lastName,
+          preferredName,
+          accountType: accountType || undefined,
+          phoneNumber: phoneNumber ? `${phoneCountryCode}${phoneNumber}` : undefined,
+          businessName: businessName || undefined,
+        },
+      });
+      
+      if (result.success) {
+        // Clear form progress
+        sessionStorage.removeItem("auth_form_progress");
+        
+        // Show success step
+        setCurrentStep("success");
+        toast.success(result.message || "Application submitted successfully!");
+        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        toast.error(result.message || "Failed to submit application");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [email, password, firstName, lastName, preferredName, accountType, phoneNumber, phoneCountryCode, businessName]);
   
   const canContinue = () => {
     if (mode === "signin") {
@@ -1796,8 +1858,7 @@ const Auth = () => {
     
     setShowValidationErrors(false);
     if (mode === "signin") {
-      toast.success("Signed in successfully!");
-      navigate("/");
+      handleSignIn();
       return;
     }
 
@@ -1843,19 +1904,9 @@ const Auth = () => {
         break;
     }
     if (currentStep === "summary") {
-      // Don't use transition skeleton for summary->success, just show submitting state
-      setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setCurrentStep("success");
-        toast.success("Submitted. Our team will review and notify you within 24 hours.");
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-        // Auto-scroll to offer section after toast ends (~4s)
-        setTimeout(() => {
-          const offerSection = document.getElementById('success-offer-section');
-          offerSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 4200);
-      }, 1500);
+      // Submit the application using the real auth service
+      handleSignUpSubmit();
+      return;
     } else {
       setNextStep(targetStep);
       setTransitionDirection("forward");
