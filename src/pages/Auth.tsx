@@ -1735,20 +1735,23 @@ const Auth = () => {
   };
 
   const handleCloseModal = useCallback(() => {
-    // Check if there's form progress to save
+    // Check if there's form progress to save (only in signup mode with an account type selected)
     const hasProgress = 
-      firstName.trim() !== "" ||
-      lastName.trim() !== "" ||
-      email.trim() !== "" ||
-      phoneNumber.trim() !== "" ||
-      businessName.trim() !== "" ||
-      businessAddress.trim() !== "" ||
-      licenseNumber.trim() !== "" ||
-      schoolName.trim() !== "" ||
-      wholesaleAgreed ||
-      hasTaxExemption !== null ||
-      businessOperationType !== null ||
-      completedSteps.size > 1;
+      mode === "signup" && 
+      accountType !== null && (
+        firstName.trim() !== "" ||
+        lastName.trim() !== "" ||
+        email.trim() !== "" ||
+        phoneNumber.trim() !== "" ||
+        businessName.trim() !== "" ||
+        businessAddress.trim() !== "" ||
+        licenseNumber.trim() !== "" ||
+        schoolName.trim() !== "" ||
+        wholesaleAgreed ||
+        hasTaxExemption !== null ||
+        businessOperationType !== null ||
+        completedSteps.size > 1
+      );
     
     if (hasProgress && !isSavingProgress) {
       // Show saving animation
@@ -1769,13 +1772,13 @@ const Auth = () => {
         }, 600);
       }, 1200);
     } else if (!isSavingProgress) {
-      // No progress, close immediately
+      // No progress or signin mode, close immediately
       setIsClosing(true);
       setTimeout(() => {
         navigate("/");
       }, 300);
     }
-  }, [navigate, firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps, isSavingProgress]);
+  }, [navigate, mode, accountType, firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps, isSavingProgress]);
 
   const handleForgotPasswordSubmit = useCallback(async () => {
     if (!email.trim()) {
