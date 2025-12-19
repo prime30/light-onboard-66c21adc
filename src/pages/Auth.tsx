@@ -756,6 +756,7 @@ const Auth = () => {
   const [nextStep, setNextStep] = useState<Step | null>(null);
   const [highlightField, setHighlightField] = useState<string | null>(null);
   const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
+  const [highlightWholesaleFade, setHighlightWholesaleFade] = useState(false);
   // Display total steps - locked during account-type step to prevent indicator jump
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
 
@@ -924,9 +925,16 @@ const Auth = () => {
       // so React re-renders/entrance animations don't clobber the highlight.
       if (selector === "[data-field='wholesale-terms']") {
         setHighlightWholesaleTerms(true);
+        setHighlightWholesaleFade(false);
+        // After 2s, start fade
         clearHighlightTimer = window.setTimeout(() => {
-          setHighlightWholesaleTerms(false);
-          setHighlightField(null);
+          setHighlightWholesaleFade(true);
+          // After fade completes, remove highlight
+          window.setTimeout(() => {
+            setHighlightWholesaleTerms(false);
+            setHighlightWholesaleFade(false);
+            setHighlightField(null);
+          }, 1000);
         }, 2000);
         return;
       }
@@ -939,9 +947,14 @@ const Auth = () => {
         element.focus();
       }
 
+      // After 2s, start fade-out transition
       clearHighlightTimer = window.setTimeout(() => {
-        highlightTarget.classList.remove("field-highlight");
-        setHighlightField(null);
+        highlightTarget.classList.add("field-highlight-fade");
+        // After fade transition completes (1s), remove classes
+        window.setTimeout(() => {
+          highlightTarget.classList.remove("field-highlight", "field-highlight-fade");
+          setHighlightField(null);
+        }, 1000);
       }, 2000);
     }, 600);
 
@@ -2766,7 +2779,7 @@ const Auth = () => {
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                   {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} highlight={highlightWholesaleTerms} onAutoAdvance={() => {
+                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} highlight={highlightWholesaleTerms} highlightFade={highlightWholesaleFade} onAutoAdvance={() => {
                     // Auto-advance to contact-info step after toast ends
                     const stepNum = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
                     setCompletedSteps(prev => new Set([...prev, stepNum]));
@@ -4281,6 +4294,7 @@ const WholesaleTermsForm = ({
   agreed,
   onAgreeChange,
   highlight = false,
+  highlightFade = false,
   onAutoAdvance,
   showValidationErrors = false,
   validationStatus
@@ -4289,6 +4303,7 @@ const WholesaleTermsForm = ({
   agreed: boolean;
   onAgreeChange: (value: boolean) => void;
   highlight?: boolean;
+  highlightFade?: boolean;
   onAutoAdvance?: () => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
@@ -4347,7 +4362,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", highlight && "field-highlight", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", highlight && "field-highlight", highlightFade && "field-highlight-fade", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
