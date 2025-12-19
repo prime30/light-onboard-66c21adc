@@ -363,10 +363,100 @@ export function useFormValidation(data: FormValidationData) {
     return mode === "signup" && currentStep === "summary" && isAllStepsValid();
   }, [mode, currentStep, isAllStepsValid]);
 
+  // Calculate overall form progress as percentage
+  const getFormProgress = useCallback((): number => {
+    if (mode === "signin") {
+      let filled = 0;
+      if (email.trim() !== "") filled++;
+      if (password.length >= 8) filled++;
+      return filled / 2 * 100;
+    }
+
+    // For signup, calculate based on account type - must match isAllStepsValid logic exactly
+    if (accountType === "student") {
+      // Student: accountType (1), school-info (3), contact-basics (4), tax (1-2), wholesale (1)
+      let filled = 0;
+      let total = 10;
+      if (accountType) filled++;
+      if (schoolName.trim() !== "") filled++;
+      if (schoolState !== "") filled++;
+      if (enrollmentProofFiles.length > 0) filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (email.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true) {
+        total = 11;
+        if (taxExemptFile) filled++;
+      }
+      if (wholesaleAgreed) filled++;
+      return filled / total * 100;
+    }
+    
+    if (accountType === "salon") {
+      // Salon: accountType (1), business location (6), contact-basics (4), license (3), tax (1-2), wholesale (1)
+      let filled = 0;
+      let total = 16;
+      if (accountType) filled++;
+      if (businessName.trim() !== "") filled++;
+      if (businessAddress.trim() !== "") filled++;
+      if (country !== "") filled++;
+      if (city.trim() !== "") filled++;
+      if (state !== "") filled++;
+      if (zipCode.trim() !== "") filled++;
+      if (firstName.trim() !== "") filled++;
+      if (lastName.trim() !== "") filled++;
+      if (email.trim() !== "") filled++;
+      if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+      if (licenseNumber.trim() !== "") filled++;
+      if (salonSize !== "") filled++;
+      if (salonStructure !== "") filled++;
+      if (hasTaxExemption !== null) filled++;
+      if (hasTaxExemption === true) {
+        total = 17;
+        if (taxExemptFile) filled++;
+      }
+      if (wholesaleAgreed) filled++;
+      return filled / total * 100;
+    }
+
+    // Professional (stylist): accountType (1), businessOperation (1), contact-basics (4),
+    // license (1), business location (6), tax (1-2), wholesale (1)
+    let filled = 0;
+    let total = 15;
+    if (accountType) filled++;
+    if (businessOperationType !== null) filled++;
+    if (firstName.trim() !== "") filled++;
+    if (lastName.trim() !== "") filled++;
+    if (email.trim() !== "") filled++;
+    if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
+    if (licenseNumber.trim() !== "") filled++;
+    if (businessName.trim() !== "") filled++;
+    if (businessAddress.trim() !== "") filled++;
+    if (country !== "") filled++;
+    if (city.trim() !== "") filled++;
+    if (state !== "") filled++;
+    if (zipCode.trim() !== "") filled++;
+    if (hasTaxExemption !== null) filled++;
+    if (hasTaxExemption === true) {
+      total = 16;
+      if (taxExemptFile) filled++;
+    }
+    if (wholesaleAgreed) filled++;
+    return filled / total * 100;
+  }, [
+    mode, email, password, accountType, schoolName, schoolState, enrollmentProofFiles,
+    firstName, lastName, phoneNumber, hasTaxExemption, taxExemptFile, wholesaleAgreed,
+    businessName, businessAddress, country, city, state, zipCode, licenseNumber,
+    salonSize, salonStructure, businessOperationType
+  ]);
+
   return {
     canContinue,
     isAllStepsValid,
     getIncompleteSteps,
     isFormReadyToSubmit,
+    getFormProgress,
   };
 }
