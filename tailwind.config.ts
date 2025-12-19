@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ['Aeonik Pro', 'system-ui', 'sans-serif'],
         display: ['Aeonik Pro', 'system-ui', 'sans-serif'],
+        aeonik: ['Aeonik Pro', 'system-ui', 'sans-serif'],
         termina: ['Termina', 'Bebas Neue', 'system-ui', 'sans-serif'],
       },
       colors: {
