@@ -15,7 +15,7 @@ export interface FormState {
   displayTotalSteps: number;
   
   // Account info
-  accountType: AccountType | null;
+  accountType: string | null;
   
   // Contact basics
   firstName: string;
@@ -77,9 +77,9 @@ export interface FormState {
 export interface FormActions {
   setMode: (mode: AuthMode) => void;
   setCurrentStep: (step: Step) => void;
-  setCurrentSlide: (slide: number) => void;
+  setCurrentSlide: React.Dispatch<React.SetStateAction<number>>;
   setDisplayTotalSteps: (total: number) => void;
-  setAccountType: (type: AccountType | null) => void;
+  setAccountType: (type: string | null) => void;
   setFirstName: (value: string) => void;
   setLastName: (value: string) => void;
   setPreferredName: (value: string) => void;
@@ -262,8 +262,8 @@ export function useAuthFormState(): FormState & FormActions {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
   
-  // Account info
-  const [accountType, setAccountType] = useState<AccountType | null>(null);
+  // Account info - use string to allow any account type string from form
+  const [accountType, setAccountType] = useState<string | null>(null);
   
   // Contact basics
   const [firstName, setFirstName] = useState("");
