@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,15 @@ import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { FileSummary } from "@/components/registration/FileSummary";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { scrollToFirstError } from "@/lib/scroll-to-error";
+import {
+  contactBasicsSchema,
+  businessLocationSchema,
+  licenseSchema,
+  salonLicenseSchema,
+  schoolInfoSchema,
+  signInSchema,
+} from "@/lib/validations/auth-schemas";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
@@ -2280,12 +2290,102 @@ const Auth = () => {
     }, 800);
   };
 
+  // Validate current step using zod schemas and scroll to first error
+  const validateCurrentStep = useCallback((): boolean => {
+    let schema: z.ZodSchema | null = null;
+    let dataToValidate: Record<string, unknown> = {};
+
+    switch (currentStep) {
+      case "contact-basics":
+        schema = contactBasicsSchema;
+        dataToValidate = {
+          firstName,
+          lastName,
+          preferredName,
+          email,
+          phoneNumber,
+          phoneCountryCode,
+        };
+        break;
+      case "business-location":
+        schema = businessLocationSchema;
+        dataToValidate = {
+          businessName,
+          businessAddress,
+          suiteNumber,
+          country,
+          city,
+          state,
+          zipCode,
+        };
+        break;
+      case "license":
+        schema = accountType === "salon" ? salonLicenseSchema : licenseSchema;
+        dataToValidate = {
+          licenseNumber,
+          salonSize,
+          salonStructure,
+          licenseFile,
+          licenseProofFiles,
+        };
+        break;
+      case "school-info":
+        schema = schoolInfoSchema;
+        dataToValidate = {
+          schoolName,
+          schoolState,
+          enrollmentProofFiles,
+        };
+        break;
+    }
+
+    if (!schema) {
+      // No zod schema for this step, use existing canContinue logic
+      return canContinue();
+    }
+
+    const result = schema.safeParse(dataToValidate);
+    
+    if (!result.success) {
+      // Convert zod errors to field errors format for scroll-to-error
+      const fieldErrors: Record<string, { message: string }> = {};
+      result.error.errors.forEach((err) => {
+        const fieldName = err.path[0]?.toString() || "";
+        if (!fieldErrors[fieldName]) {
+          fieldErrors[fieldName] = { message: err.message };
+        }
+      });
+      
+      // Scroll to first error
+      scrollToFirstError(fieldErrors as any, { current: mainScrollRef.current } as React.RefObject<HTMLElement>);
+      
+      return false;
+    }
+
+    return true;
+  }, [
+    currentStep, accountType, firstName, lastName, preferredName, email, phoneNumber, phoneCountryCode,
+    businessName, businessAddress, suiteNumber, country, city, state, zipCode,
+    licenseNumber, salonSize, salonStructure, licenseFile, licenseProofFiles,
+    schoolName, schoolState, enrollmentProofFiles
+  ]);
+
   const handleNext = () => {
-    if (!canContinue()) {
+    // For steps with zod validation, use the new validation
+    const stepsWithZodValidation = ["contact-basics", "business-location", "license", "school-info"];
+    
+    if (mode === "signup" && stepsWithZodValidation.includes(currentStep)) {
+      if (!validateCurrentStep()) {
+        setShowValidationErrors(true);
+        toast.error("Please complete all required fields");
+        return;
+      }
+    } else if (!canContinue()) {
       setShowValidationErrors(true);
       toast.error("Please complete all required fields");
       return;
     }
+    
     setShowValidationErrors(false);
     if (mode === "signin") {
       toast.success("Signed in successfully!");
