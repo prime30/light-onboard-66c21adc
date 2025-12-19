@@ -42,6 +42,8 @@ import { AnimatedNumber, AnimatedProductCount, OdometerCounter, RotatingStylistA
 import { TestimonialCarousel } from "@/components/registration/helpers/TestimonialCarousel";
 import { PasswordInputField, PasswordStrengthMeter } from "@/components/registration/helpers/PasswordInputField";
 import { CircularProgress } from "@/components/registration/helpers/CircularProgress";
+import { MagneticFeatureBox } from "@/components/registration/helpers/MagneticFeatureBox";
+import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
 import {
@@ -137,45 +139,6 @@ const testimonials = [{
 
 // Email validation - requires @ symbol
 
-// Email validation - requires @ symbol
-const isValidEmail = (email: string): boolean => {
-  return email.trim() !== "" && email.includes("@");
-};
-
-// Format phone number as user types (local number only, no country code)
-const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters
-  const cleaned = value.replace(/\D/g, '').slice(0, 10);
-
-  // US format: (555) 123-4567
-  if (cleaned.length <= 3) return cleaned;
-  if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-  return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-};
-
-interface FeatureBoxProps {
-  icon: React.ElementType;
-  label: string;
-  desc: string;
-}
-const MagneticFeatureBox = ({
-  icon: Icon,
-  label,
-  desc
-}: FeatureBoxProps) => {
-  const magnetic = useMagnetic({
-    strength: 0.12
-  });
-  return <div ref={magnetic.ref} style={magnetic.style} onMouseMove={magnetic.onMouseMove} onMouseLeave={magnetic.onMouseLeave} className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-[10px] bg-white/10 backdrop-blur-md border border-white/20 hover:border-white/30 hover:bg-white/15 transition-all cursor-default">
-      <div className="w-[30px] h-[30px] rounded-[10px] bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-        <Icon className="w-[15px] h-[15px] text-white" />
-      </div>
-      <div className="flex flex-col">
-        <span className="text-sm font-medium text-white">{label}</span>
-        <span className="text-xs text-white/60">{desc}</span>
-      </div>
-    </div>;
-};
 
 const Auth = () => {
   const navigate = useNavigate();
