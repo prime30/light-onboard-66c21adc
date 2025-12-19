@@ -908,7 +908,7 @@ const Auth = () => {
       return;
     }
     
-    // Small delay to ensure DOM is ready after step transition
+    // Delay to ensure step entrance animation completes before highlighting
     const timeoutId = setTimeout(() => {
       const element = document.querySelector(selector);
       if (element) {
@@ -942,7 +942,7 @@ const Auth = () => {
       } else {
         setHighlightField(null);
       }
-    }, 200);
+    }, 600);
     
     return () => clearTimeout(timeoutId);
   }, [highlightField, isTransitioning]);
