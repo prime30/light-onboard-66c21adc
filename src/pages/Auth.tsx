@@ -1916,8 +1916,11 @@ const Auth = () => {
         {/* Subtle gradient behind footer on mobile/tablet */}
         {footerVisible && (
           <div 
-            className="lg:hidden fixed bottom-[70px] sm:bottom-[90px] md:bottom-[100px] left-0 right-0 h-[100px] sm:h-[120px] pointer-events-none bg-gradient-to-t from-background via-background/50 to-transparent z-0 transition-opacity duration-300"
-            style={{ opacity: footerGradientOpacity }}
+            className="lg:hidden fixed bottom-[65px] sm:bottom-[85px] md:bottom-[95px] left-0 right-0 h-[140px] sm:h-[160px] pointer-events-none z-0 transition-opacity duration-300"
+            style={{ 
+              opacity: footerGradientOpacity,
+              background: 'linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)) 20%, hsl(var(--background) / 0.8) 40%, hsl(var(--background) / 0.4) 60%, hsl(var(--background) / 0.1) 80%, transparent 100%)'
+            }}
           />
         )}
 
