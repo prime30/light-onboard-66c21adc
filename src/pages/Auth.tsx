@@ -2821,7 +2821,7 @@ const Auth = () => {
                           "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                           shimmerKey > 0 && "shimmer-trigger",
                           // when disabled, popover is triggered by wrapper, not the button
-                          currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
+                          currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
                         )}
                       >
                         <span className="relative z-10 flex items-center justify-center gap-[10px]">
@@ -2836,7 +2836,7 @@ const Auth = () => {
                                 ? "Login"
                                 : currentStep === "onboarding"
                                   ? "Get started"
-                                  : currentStep === "contact-info"
+                                  : currentStep === "summary"
                                     ? "Submit application"
                                     : "Continue"}
                               <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
@@ -2846,7 +2846,7 @@ const Auth = () => {
                       </Button>
                     </span>
                   </PopoverTrigger>
-                  {currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
+                  {currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0 && (
                     <PopoverContent
                       side="top"
                       className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto z-50"
