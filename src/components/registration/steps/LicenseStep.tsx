@@ -48,7 +48,7 @@ export const LicenseStep = ({
   const stepNumber = accountType === "professional" ? 5 : 4; // professional=5, salon=4
 
   return (
-    <div className="space-y-4 sm:space-y-[30px]">
+    <div className="space-y-5 sm:space-y-[30px]">
       <div className="space-y-[10px] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
@@ -64,14 +64,14 @@ export const LicenseStep = ({
         </p>
       </div>
 
-      <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
+      <div className="flex gap-[15px] pl-5 border-l-2 border-border animate-stagger-2">
         <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground/70 leading-relaxed">
           {isSalon ? "Wholesale pricing shown is exclusive to verified professionals." : "Please enter your license exactly as it appears from the state."}
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* License Number */}
         <div className="space-y-2.5">
           <Label htmlFor="license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>

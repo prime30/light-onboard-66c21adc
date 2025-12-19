@@ -102,7 +102,7 @@ export const ContactBasicsStep = ({
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* First and Last Name */}
         <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
           <div className="space-y-2.5 group">

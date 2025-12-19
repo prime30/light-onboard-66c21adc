@@ -48,7 +48,7 @@ export const SchoolInfoStep = ({
         </h1>
       </div>
 
-      <div className="space-y-4 animate-stagger-2">
+      <div className="space-y-5 animate-stagger-2">
         {/* School/Apprenticeship Name */}
         <div className="space-y-2.5">
           <Label htmlFor="schoolName" className="text-sm font-medium label-float">

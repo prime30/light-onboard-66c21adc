@@ -86,7 +86,7 @@ export const RegistrationFlow = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 md:p-6">
+      <header className="flex items-center justify-between p-5 md:p-[30px]">
         <div className="w-10" />
         <StepIndicator currentStep={getCurrentStepNumber()} totalSteps={getTotalSteps()} />
         <button className="w-10 h-10 rounded-full hover:bg-muted flex items-center justify-center transition-colors">
@@ -95,7 +95,7 @@ export const RegistrationFlow = () => {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-4xl">
           {currentStep === "account-type" && (
             <AccountTypeStep
@@ -137,9 +137,9 @@ export const RegistrationFlow = () => {
 
       {/* Footer */}
       {currentStep !== "success" && (
-        <footer className="p-4 md:p-6">
-          <div className="max-w-md mx-auto flex flex-col gap-4">
-            <div className="flex gap-3">
+        <footer className="p-5 md:p-[30px]">
+          <div className="max-w-md mx-auto flex flex-col gap-5">
+            <div className="flex gap-[10px]">
               {currentStep !== "account-type" && (
                 <Button
                   variant="outline"

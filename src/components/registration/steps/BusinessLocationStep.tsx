@@ -203,7 +203,7 @@ export const BusinessLocationStep = ({
         </h1>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Business Name */}
         <div className="space-y-2.5">
           <Label htmlFor="businessName" className="text-sm font-medium label-float">

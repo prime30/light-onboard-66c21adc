@@ -51,7 +51,7 @@ export const AccountTypeCard = ({
       </div>
 
       {/* Mobile: Horizontal layout with icon + content */}
-      <div className="flex gap-3 sm:block">
+      <div className="flex gap-[15px] sm:block">
         {/* Icon */}
         {Icon && (
           <div className={cn(
