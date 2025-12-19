@@ -119,17 +119,17 @@ export const TaxExemptionStep = ({
           {/* Blog card */}
           <div 
             key={`card-${toastKey}`}
-            className="rounded-[28px] border border-border/50 p-4 pb-5 bg-background hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] transition-shadow duration-300 animate-[slideUpFade_0.5s_cubic-bezier(0.34,1.56,0.64,1)_0.15s_both]"
+            className="rounded-xl border border-border/50 p-4 pb-5 bg-background hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] transition-shadow duration-300 animate-[slideUpFade_0.5s_cubic-bezier(0.34,1.56,0.64,1)_0.15s_both]"
           >
             <Link 
               to="/blog/resale-license"
               key={toastKey}
-              className="relative block rounded-[12px] bg-background hover:opacity-90 transition-all duration-300 group"
+              className="relative block rounded-md bg-background hover:opacity-90 transition-all duration-300 group"
             >
               {/* Image */}
-              <div className="relative aspect-[16/9] overflow-hidden rounded-[12px]">
+              <div className="relative aspect-[16/9] overflow-hidden rounded-md">
                 <img 
-                  src={blogResaleLicense} 
+                  src={blogResaleLicense}
                   alt="Professional reviewing business documents" 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />

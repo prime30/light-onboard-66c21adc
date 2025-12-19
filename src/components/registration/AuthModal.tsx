@@ -161,7 +161,7 @@ export const AuthModal = ({
   };
   const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent ref={contentRef} className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-2xl border-border overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={contentRef} className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-xl border-border overflow-hidden max-h-[90vh] overflow-y-auto">
         <VisuallyHidden>
           <DialogTitle>
             {mode === "signup" ? "Create an account" : "Sign in"}

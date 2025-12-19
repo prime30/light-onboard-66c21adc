@@ -28,7 +28,7 @@ const BlogResaleLicense = () => {
 
           {/* Bento Hero with Title */}
           <div className="px-5 sm:px-8 lg:px-12 pt-6">
-            <div className="relative aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-2xl sm:rounded-3xl">
+            <div className="relative aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-lg sm:rounded-xl">
               <img 
                 src={blogImage} 
                 alt="Professional reviewing business documents" 

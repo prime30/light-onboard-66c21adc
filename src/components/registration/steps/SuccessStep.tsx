@@ -38,7 +38,7 @@ export const SuccessStep = () => {
       </p>
 
       {/* Visual card preview */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-muted to-accent/10 border border-border">
+      <div className="p-5 rounded-lg bg-gradient-to-br from-muted to-accent/10 border border-border">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-background shadow-soft flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-accent" />
