@@ -3673,15 +3673,7 @@ const BusinessOperationForm = ({
           businessOperationType === "commission" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )} style={{ transitionTimingFunction: businessOperationType === "commission" ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
           <div className="overflow-hidden">
-            <div className={cn("space-y-4 px-5 pb-5 pt-0", businessOperationType === "commission" && "animate-fade-in")}>
-              {/* Info note */}
-              <div className="flex gap-3 pl-4 border-l-2 border-foreground/20">
-                <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground/70 leading-relaxed">
-                  Please enter your license exactly as it appears from the state.
-                </p>
-              </div>
-
+            <div className={cn("px-5 pb-5 pt-0", businessOperationType === "commission" && "animate-fade-in")}>
               {/* License Number Input */}
               <div className="space-y-2.5">
                 <Label htmlFor="pro-license-commission" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
@@ -3691,7 +3683,7 @@ const BusinessOperationForm = ({
                   <Input 
                     id="pro-license-commission" 
                     type="text" 
-                    placeholder="Enter your license number" 
+                    placeholder="Enter exactly as it appears from the state" 
                     value={licenseNumber} 
                     onChange={e => onLicenseChange(e.target.value)} 
                     className={cn("h-[55px] py-0 rounded-[15px] bg-background border-border/50 focus:border-foreground/30 transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
@@ -3737,15 +3729,7 @@ const BusinessOperationForm = ({
           businessOperationType === "independent" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )} style={{ transitionTimingFunction: businessOperationType === "independent" ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
           <div className="overflow-hidden">
-            <div className={cn("space-y-4 px-5 pb-5 pt-0", businessOperationType === "independent" && "animate-fade-in")}>
-              {/* Info note */}
-              <div className="flex gap-3 pl-4 border-l-2 border-foreground/20">
-                <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground/70 leading-relaxed">
-                  Please enter your license exactly as it appears from the state.
-                </p>
-              </div>
-
+            <div className={cn("px-5 pb-5 pt-0", businessOperationType === "independent" && "animate-fade-in")}>
               {/* License Number Input */}
               <div className="space-y-2.5">
                 <Label htmlFor="pro-license-independent" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
@@ -3755,7 +3739,7 @@ const BusinessOperationForm = ({
                   <Input 
                     id="pro-license-independent" 
                     type="text" 
-                    placeholder="Enter your license number" 
+                    placeholder="Enter exactly as it appears from the state" 
                     value={licenseNumber} 
                     onChange={e => onLicenseChange(e.target.value)} 
                     className={cn("h-[55px] py-0 rounded-[15px] bg-background border-border/50 focus:border-foreground/30 transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
