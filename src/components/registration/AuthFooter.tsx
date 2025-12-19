@@ -17,6 +17,8 @@ interface AuthFooterProps {
   canContinue: boolean;
   isAllStepsValid: boolean;
   isSubmitting: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
   footerTransitionsEnabled: boolean;
   footerEnterReady: boolean;
   incompleteSteps: IncompleteStep[];
@@ -32,6 +34,8 @@ export function AuthFooter({
   canContinue,
   isAllStepsValid,
   isSubmitting,
+  isUploading = false,
+  uploadProgress = 0,
   footerTransitionsEnabled,
   footerEnterReady,
   incompleteSteps,
@@ -48,12 +52,15 @@ export function AuthFooter({
   const showTooltip = isSummaryStep && !isAllStepsValid && incompleteSteps.length > 0;
 
   const getButtonLabel = () => {
+    if (isUploading) return null; // Will show upload progress
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
   };
+  
+  const isProcessing = isSubmitting || isUploading;
 
   return (
     <footer
@@ -122,15 +129,27 @@ export function AuthFooter({
                   key={`shimmer-${shimmerKey}`}
                   size="pill-lg"
                   onClick={onNext}
-                  disabled={isSummaryStep ? !isAllStepsValid || isSubmitting : !canContinue || isSubmitting}
+                  disabled={isSummaryStep ? !isAllStepsValid || isProcessing : !canContinue || isProcessing}
                   className={cn(
-                    "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                    "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
                     shimmerKey > 0 && "shimmer-trigger",
                     showTooltip && "pointer-events-none"
                   )}
                 >
+                  {/* Upload progress bar overlay */}
+                  {isUploading && (
+                    <div 
+                      className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  )}
                   <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                    {isSubmitting ? (
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                        <span>Uploading documents... {uploadProgress}%</span>
+                      </>
+                    ) : isSubmitting ? (
                       <>
                         <Loader2 className="w-[18px] h-[18px] animate-spin" />
                         Submitting...
