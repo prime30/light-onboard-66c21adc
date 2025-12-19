@@ -1,0 +1,261 @@
+import { FileCheck, ShieldCheck } from "lucide-react";
+import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
+interface SummaryFormProps {
+  accountType: string | null;
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  email: string;
+  phoneNumber: string;
+  phoneCountryCode: string;
+  licenseNumber: string;
+  state: string;
+  businessName: string;
+  businessAddress: string;
+  suiteNumber: string;
+  city: string;
+  zipCode: string;
+  country: string;
+  schoolName: string;
+  schoolState: string;
+  businessOperationType: "commission" | "independent" | null;
+  salonSize: string;
+  salonStructure: string;
+  hasTaxExemption: boolean | null;
+  birthdayMonth: string;
+  birthdayDay: string;
+  socialMediaHandle: string;
+  subscribeOrderUpdates: boolean;
+  subscribePromotions: boolean;
+  uploadedFiles?: { file: File; label: string }[];
+  onEditStep: (stepNum: number) => void;
+}
+
+export const SummaryForm = ({
+  accountType,
+  firstName,
+  lastName,
+  preferredName,
+  email,
+  phoneNumber,
+  phoneCountryCode,
+  licenseNumber,
+  state,
+  businessName,
+  businessAddress,
+  suiteNumber,
+  city,
+  zipCode,
+  country,
+  schoolName,
+  schoolState,
+  businessOperationType,
+  salonSize,
+  salonStructure,
+  hasTaxExemption,
+  birthdayMonth,
+  birthdayDay,
+  socialMediaHandle,
+  subscribeOrderUpdates,
+  subscribePromotions,
+  uploadedFiles = [],
+  onEditStep
+}: SummaryFormProps) => {
+  // Step number varies by account type: professional=9, salon=8, student=7
+  const stepNumber = accountType === "professional" ? 9 : accountType === "student" ? 7 : 8;
+  
+  const getAccountTypeLabel = () => {
+    if (accountType === "professional") return "Professional Stylist";
+    if (accountType === "student") return "Cosmetology Student";
+    if (accountType === "salon") return "Salon / Business";
+    return "";
+  };
+
+  const getBusinessOperationLabel = () => {
+    if (businessOperationType === "commission") return "Commission-based (work at a salon)";
+    if (businessOperationType === "independent") return "Independent (booth rent / freelance)";
+    return "";
+  };
+
+  const getSalonSizeLabel = () => {
+    if (salonSize === "1") return "Just me (solo)";
+    if (salonSize === "2-5") return "2-5 stylists";
+    if (salonSize === "6-10") return "6-10 stylists";
+    if (salonSize === "11+") return "11+ stylists";
+    return salonSize;
+  };
+
+  const getSalonStructureLabel = () => {
+    if (salonStructure === "owner") return "I own the salon";
+    if (salonStructure === "manager") return "I manage the salon";
+    if (salonStructure === "booth") return "I rent a booth/chair";
+    return salonStructure;
+  };
+
+  const getMonthName = (month: string) => {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const idx = parseInt(month, 10) - 1;
+    return months[idx] || month;
+  };
+
+  const formatPhoneDisplay = () => {
+    if (!phoneNumber) return "";
+    return `${phoneCountryCode} ${phoneNumber}`;
+  };
+
+  const SummarySection = ({ title, stepNum, children }: { title: string; stepNum: number; children: React.ReactNode }) => (
+    <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-foreground">{title}</span>
+        <button
+          type="button"
+          onClick={() => onEditStep(stepNum)}
+          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+        >
+          Edit
+        </button>
+      </div>
+      <div className="space-y-1.5 text-sm text-muted-foreground">
+        {children}
+      </div>
+    </div>
+  );
+
+  const SummaryRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
+    if (!value) return null;
+    return (
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground/70">{label}</span>
+        <span className="text-foreground text-right">{value}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-[25px]">
+      <div className="space-y-2.5 text-center animate-stagger-1">
+        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+          <StepValidationIcon status="complete" />
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+            Step {stepNumber}
+          </span>
+        </div>
+        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+          Review Your Application
+        </h1>
+      </div>
+
+      {/* Security Note */}
+      <div className="flex items-center gap-3 p-4 rounded-form bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 animate-stagger-2">
+        <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+          Your information is secure and never shared with third parties.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {/* Account Type */}
+        <div className="animate-stagger-2">
+          <SummarySection title="Account Type" stepNum={1}>
+            <SummaryRow label="Type" value={getAccountTypeLabel()} />
+          </SummarySection>
+        </div>
+
+        {/* Contact Information */}
+        <div className="animate-stagger-3">
+          <SummarySection title="Contact Information" stepNum={accountType === "student" ? 3 : accountType === "professional" ? 3 : 3}>
+            <SummaryRow label="Name" value={`${firstName} ${lastName}`} />
+            {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
+            <SummaryRow label="Email" value={email} />
+            <SummaryRow label="Phone" value={formatPhoneDisplay()} />
+          </SummarySection>
+        </div>
+
+        {/* Business Operation (Professional only) */}
+        {accountType === "professional" && (
+          <div className="animate-stagger-4">
+            <SummarySection title="Business Operation" stepNum={2}>
+              <SummaryRow label="Type" value={getBusinessOperationLabel()} />
+            </SummarySection>
+          </div>
+        )}
+
+        {/* School Information (Student only) */}
+        {accountType === "student" && (
+          <div className="animate-stagger-4">
+            <SummarySection title="School Information" stepNum={2}>
+              <SummaryRow label="School" value={schoolName} />
+              <SummaryRow label="State" value={schoolState} />
+            </SummarySection>
+          </div>
+        )}
+
+        {/* License Information */}
+        {accountType !== "student" && (
+          <div className="animate-stagger-5">
+            <SummarySection title="License Information" stepNum={accountType === "professional" ? 4 : 4}>
+              <SummaryRow label="License Number" value={licenseNumber} />
+              {state && <SummaryRow label="State" value={state} />}
+              {accountType === "salon" && (
+                <>
+                  <SummaryRow label="Salon Size" value={getSalonSizeLabel()} />
+                  <SummaryRow label="Structure" value={getSalonStructureLabel()} />
+                </>
+              )}
+            </SummarySection>
+          </div>
+        )}
+
+        {/* Business Location */}
+        {(accountType === "professional" || accountType === "salon") && (
+          <div className="animate-stagger-6">
+            <SummarySection title="Business Location" stepNum={accountType === "professional" ? 5 : 2}>
+              <SummaryRow label="Business Name" value={businessName} />
+              <SummaryRow label="Address" value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress} />
+              <SummaryRow label="City" value={`${city}, ${state} ${zipCode}`} />
+              <SummaryRow label="Country" value={country} />
+            </SummarySection>
+          </div>
+        )}
+
+        {/* Tax Exemption */}
+        <div className="animate-stagger-7">
+          <SummarySection title="Tax Exemption" stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}>
+            <SummaryRow label="Status" value={hasTaxExemption === true ? "Tax exempt" : hasTaxExemption === false ? "Not tax exempt" : "Not specified"} />
+          </SummarySection>
+        </div>
+
+        {/* Preferences */}
+        <div className="animate-stagger-8">
+          <SummarySection title="Preferences & Details" stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}>
+            {birthdayMonth && birthdayDay && (
+              <SummaryRow label="Birthday" value={`${getMonthName(birthdayMonth)} ${parseInt(birthdayDay, 10)}`} />
+            )}
+            {socialMediaHandle && <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />}
+            <SummaryRow label="Order Updates" value={subscribeOrderUpdates ? "Yes" : "No"} />
+            <SummaryRow label="Promotions" value={subscribePromotions ? "Yes" : "No"} />
+          </SummarySection>
+        </div>
+
+        {/* Uploaded Documents */}
+        {uploadedFiles.length > 0 && (
+          <div className="animate-stagger-9">
+            <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
+              <span className="text-sm font-medium text-foreground">Uploaded Documents</span>
+              <div className="space-y-1.5">
+                {uploadedFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <FileCheck className="w-4 h-4 text-emerald-500" />
+                    <span className="text-muted-foreground">{file.label}</span>
+                    <span className="text-foreground/60 text-xs truncate max-w-[150px]">({file.file.name})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
