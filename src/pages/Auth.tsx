@@ -1903,10 +1903,10 @@ const Auth = () => {
         </main>
 
 
-        {/* Scroll down hint - mobile only, positioned above footer, only if content is scrollable */}
+        {/* Scroll down hint - mobile/tablet, positioned above footer, only if content is scrollable */}
         {mode === "signup" && currentStep === "onboarding" && isScrollable && (
           <div className={cn(
-            "lg:hidden fixed bottom-[105px] left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-500",
+            "lg:hidden fixed bottom-[105px] md:bottom-[130px] left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-opacity duration-500",
             hasScrolled ? "opacity-0" : "opacity-100"
           )}>
             <div className="w-[4px] h-[8px] rounded-full bg-muted-foreground/40 animate-scroll-wheel" />
