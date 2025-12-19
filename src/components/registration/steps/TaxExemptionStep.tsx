@@ -119,7 +119,7 @@ export const TaxExemptionStep = ({
           {/* Blog card */}
           <div 
             key={`card-${toastKey}`}
-            className="rounded-xl border border-border/50 p-4 pb-5 bg-background hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] transition-shadow duration-300 animate-[slideUpFade_0.5s_cubic-bezier(0.34,1.56,0.64,1)_0.15s_both]"
+            className="rounded-xl border border-border/50 p-4 pb-5 bg-background hover:shadow-card-hover transition-shadow duration-300 animate-[slideUpFade_0.5s_cubic-bezier(0.34,1.56,0.64,1)_0.15s_both]"
           >
             <Link 
               to="/blog/resale-license"
@@ -137,7 +137,7 @@ export const TaxExemptionStep = ({
                   <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
                     Licensing
                   </span>
-                  <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-medium uppercase tracking-wider border border-white/30">
+                  <span className="px-2.5 py-1 rounded-full bg-background/20 backdrop-blur-md text-background text-[10px] font-medium uppercase tracking-wider border border-background/30">
                     Optional
                   </span>
                 </div>

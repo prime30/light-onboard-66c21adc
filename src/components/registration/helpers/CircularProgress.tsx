@@ -28,15 +28,15 @@ export const CircularProgress = ({ progress }: CircularProgressProps) => {
 
   // Color based on progress: green when complete, amber when partial, white/gray when empty
   const getProgressColor = () => {
-    if (progress >= 100) return "hsl(142, 76%, 45%)"; // Green
-    if (progress > 0) return "hsl(38, 92%, 55%)"; // Amber
-    return "rgba(255, 255, 255, 0.3)";
+    if (progress >= 100) return "hsl(var(--status-green))";
+    if (progress > 0) return "hsl(var(--status-amber))";
+    return "hsl(var(--background) / 0.3)";
   };
   
   const getTextColor = () => {
-    if (progress >= 100) return "hsl(142, 76%, 45%)";
-    if (progress > 0) return "hsl(38, 92%, 55%)";
-    return "rgba(255, 255, 255, 0.6)";
+    if (progress >= 100) return "hsl(var(--status-green))";
+    if (progress > 0) return "hsl(var(--status-amber))";
+    return "hsl(var(--background) / 0.6)";
   };
   
   return (
@@ -46,7 +46,7 @@ export const CircularProgress = ({ progress }: CircularProgressProps) => {
       
       <svg width={size} height={size} className="transform -rotate-90 relative z-10">
         {/* Background circle */}
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255, 255, 255, 0.1)" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--background) / 0.1)" strokeWidth={strokeWidth} />
         {/* Progress circle */}
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={getProgressColor()} strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-500 ease-out" />
       </svg>

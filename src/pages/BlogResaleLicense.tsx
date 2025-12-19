@@ -5,7 +5,7 @@ import blogImage from "@/assets/blog-resale-license.jpg";
 
 const BlogResaleLicense = () => {
   return (
-    <div className="min-h-screen bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center pt-12 sm:pt-0 px-0 sm:px-4">
+    <div className="min-h-screen bg-foreground/60 backdrop-blur-sm flex items-start sm:items-center justify-center pt-12 sm:pt-0 px-0 sm:px-4">
       <div 
         className="w-full sm:w-[95vw] lg:w-[90vw] max-w-[900px] h-[calc(100vh-3rem)] sm:h-[90vh] bg-background rounded-t-lg sm:rounded-xl lg:rounded-xl shadow-2xl overflow-hidden animate-[pageSlideUp_0.5s_cubic-bezier(0.16,1,0.3,1)_forwards] flex flex-col"
       >
@@ -38,14 +38,14 @@ const BlogResaleLicense = () => {
               
               {/* Badge */}
               <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
-                <span className="px-3 py-1 rounded-full bg-white/90 text-foreground text-xs font-medium backdrop-blur-sm">
+                <span className="px-3 py-1 rounded-full bg-background/90 text-foreground text-xs font-medium backdrop-blur-sm">
                   Licensing
                 </span>
               </div>
-              
+
               {/* Title inside image */}
               <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
-                <h1 className="font-termina text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.006em] text-white text-balance leading-tight">
+                <h1 className="font-termina text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.006em] text-background text-balance leading-tight">
                   Why You Need a Resale License in Your State
                 </h1>
               </div>

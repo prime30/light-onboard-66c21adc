@@ -1363,9 +1363,9 @@ const Auth = () => {
         {/* Account type change confirmation overlay */}
         {showAccountTypeConfirm && (
           <div className="absolute inset-0 z-[80]">
-            <div className="absolute inset-0 bg-black/50 animate-fade-in" />
+            <div className="absolute inset-0 bg-foreground/50 animate-fade-in" />
             <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm bg-white rounded-lg p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] animate-scale-in">
+              <div className="w-full max-w-sm bg-background rounded-lg p-4 border border-border/20 shadow-modal animate-scale-in">
                 <div className="space-y-1">
                   <p className="font-medium text-foreground">Change account type?</p>
                   <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
