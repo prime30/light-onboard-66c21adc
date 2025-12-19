@@ -19,6 +19,7 @@ import { useMagnetic } from "@/hooks/use-magnetic";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
+import { useFormValidation } from "@/hooks/use-form-validation";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
@@ -144,6 +145,34 @@ const Auth = () => {
     resetForm,
     hasFormProgress,
   } = formState;
+
+  // Form validation from dedicated hook
+  const { canContinue, isAllStepsValid, getIncompleteSteps, isFormReadyToSubmit } = useFormValidation({
+    mode,
+    currentStep,
+    accountType,
+    firstName,
+    lastName,
+    email,
+    password,
+    phoneNumber,
+    businessName,
+    businessAddress,
+    country,
+    city,
+    state,
+    zipCode,
+    licenseNumber,
+    salonSize,
+    salonStructure,
+    schoolName,
+    schoolState,
+    enrollmentProofFiles,
+    businessOperationType,
+    hasTaxExemption,
+    taxExemptFile,
+    wholesaleAgreed,
+  });
   
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
@@ -973,293 +1002,6 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   }, [email, password, firstName, lastName, preferredName, accountType, phoneNumber, phoneCountryCode, businessName]);
-  
-  const canContinue = () => {
-    if (mode === "signin") {
-      return isValidEmail(email) && password.length >= 8;
-    }
-    switch (currentStep) {
-      case "onboarding":
-        return true;
-      case "account-type":
-        return accountType !== null;
-      case "contact-basics":
-        return firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
-      case "license":
-        if (accountType === "salon") {
-          return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
-        }
-        return licenseNumber.trim() !== "";
-      case "business-operation":
-        return businessOperationType !== null;
-      case "business-location":
-        return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
-      case "school-info":
-        return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
-      case "wholesale-terms":
-        return wholesaleAgreed;
-      case "tax-exemption":
-        if (hasTaxExemption === true) {
-          return taxExemptFile !== null;
-        }
-        return hasTaxExemption !== null;
-      case "contact-info":
-        // This step now only has optional fields (birthday, social media, preferences)
-        return true;
-      case "summary":
-        // Summary is a review step, always valid if user reaches it
-        return isAllStepsValid();
-      default:
-        return true;
-    }
-  };
-
-  // Check if ALL steps in the form are valid (for final submission)
-  const isAllStepsValid = () => {
-    if (mode === "signin") {
-      return isValidEmail(email) && password.length >= 8;
-    }
-
-    // Must have account type selected
-    if (!accountType) return false;
-
-    // Contact basics validation (required for all flows)
-    const contactBasicsValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
-
-    // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info)
-    if (accountType === "student") {
-      const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
-      const wholesaleValid = wholesaleAgreed;
-      const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      return schoolValid && contactBasicsValid && wholesaleValid && taxValid;
-    }
-
-    // Salon flow - 7 steps
-    if (accountType === "salon") {
-      const licenseValid = licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
-      const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
-      const wholesaleValid = wholesaleAgreed;
-      const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-      return licenseValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
-    }
-
-    // Professional flow - 8 steps
-    const licenseValid = licenseNumber.trim() !== "";
-    const businessOperationValid = businessOperationType !== null;
-    const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
-    const wholesaleValid = wholesaleAgreed;
-    const taxValid = hasTaxExemption === false || hasTaxExemption === true && taxExemptFile !== null;
-    return licenseValid && businessOperationValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
-  };
-
-  // Get list of incomplete steps for tooltip display
-  const getIncompleteSteps = (): {
-    step: number;
-    name: string;
-    missingFields: string[];
-  }[] => {
-    if (mode !== "signup") return [];
-    const incomplete: {
-      step: number;
-      name: string;
-      missingFields: string[];
-    }[] = [];
-
-    // Step 1: Account Type - check if selected
-    if (!accountType) {
-      incomplete.push({
-        step: 1,
-        name: "Account type",
-        missingFields: ["Select account type"]
-      });
-      // Can't determine other steps without account type, return early
-      return incomplete;
-    }
-
-    if (accountType === "student") {
-      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info
-      // Step 2: School Info
-      const schoolMissing: string[] = [];
-      if (schoolName.trim() === "") schoolMissing.push("School name");
-      if (schoolState === "") schoolMissing.push("State/province");
-      if (enrollmentProofFiles.length === 0) schoolMissing.push("Enrollment proof");
-      if (schoolMissing.length > 0) {
-        incomplete.push({
-          step: 2,
-          name: "School information",
-          missingFields: schoolMissing
-        });
-      }
-      // Step 3: Contact Basics
-      const studentContactBasicsMissing: string[] = [];
-      if (firstName.trim() === "") studentContactBasicsMissing.push("First name");
-      if (lastName.trim() === "") studentContactBasicsMissing.push("Last name");
-      if (!isValidEmail(email)) studentContactBasicsMissing.push("Email");
-      if (!isValidPhoneNumber(phoneNumber)) studentContactBasicsMissing.push("Phone number");
-      if (studentContactBasicsMissing.length > 0) {
-        incomplete.push({
-          step: 3,
-          name: "Contact information",
-          missingFields: studentContactBasicsMissing
-        });
-      }
-      // Step 4: Tax Exemption
-      const studentTaxMissing: string[] = [];
-      if (hasTaxExemption === null) studentTaxMissing.push("Exemption status");
-      else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax document");
-      if (studentTaxMissing.length > 0) {
-        incomplete.push({
-          step: 4,
-          name: "Tax exemption",
-          missingFields: studentTaxMissing
-        });
-      }
-      // Step 5: Wholesale Terms
-      if (!wholesaleAgreed) {
-        incomplete.push({
-          step: 5,
-          name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
-        });
-      }
-      // Step 6: Preferences and Details (all optional)
-      return incomplete;
-    }
-    if (accountType === "salon") {
-      // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info
-      // Step 2: Business Location
-      const locationMissing: string[] = [];
-      if (businessName.trim() === "") locationMissing.push("Business name");
-      if (businessAddress.trim() === "") locationMissing.push("Address");
-      if (country === "") locationMissing.push("Country");
-      if (city.trim() === "") locationMissing.push("City");
-      if (state === "") locationMissing.push("State/province");
-      if (zipCode.trim() === "") locationMissing.push("ZIP code");
-      if (locationMissing.length > 0) {
-        incomplete.push({
-          step: 2,
-          name: "Business location",
-          missingFields: locationMissing
-        });
-      }
-      // Step 3: Contact Basics
-      const salonContactBasicsMissing: string[] = [];
-      if (firstName.trim() === "") salonContactBasicsMissing.push("First name");
-      if (lastName.trim() === "") salonContactBasicsMissing.push("Last name");
-      if (!isValidEmail(email)) salonContactBasicsMissing.push("Email");
-      if (!isValidPhoneNumber(phoneNumber)) salonContactBasicsMissing.push("Phone number");
-      if (salonContactBasicsMissing.length > 0) {
-        incomplete.push({
-          step: 3,
-          name: "Contact information",
-          missingFields: salonContactBasicsMissing
-        });
-      }
-      // Step 4: License
-      const licenseMissing: string[] = [];
-      if (licenseNumber.trim() === "") licenseMissing.push("License number");
-      if (salonSize === "") licenseMissing.push("Salon size");
-      if (salonStructure === "") licenseMissing.push("Salon structure");
-      if (licenseMissing.length > 0) {
-        incomplete.push({
-          step: 4,
-          name: "License verification",
-          missingFields: licenseMissing
-        });
-      }
-      // Step 5: Tax Exemption
-      const taxMissing: string[] = [];
-      if (hasTaxExemption === null) taxMissing.push("Exemption status");
-      else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax document");
-      if (taxMissing.length > 0) {
-        incomplete.push({
-          step: 5,
-          name: "Tax exemption",
-          missingFields: taxMissing
-        });
-      }
-      // Step 6: Wholesale Terms
-      if (!wholesaleAgreed) {
-        incomplete.push({
-          step: 6,
-          name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
-        });
-      }
-      // Step 7: Preferences and Details (all optional)
-      return incomplete;
-    }
-
-    // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info
-    // Step 2: Business Operation
-    if (businessOperationType === null) {
-      incomplete.push({
-        step: 2,
-        name: "Business operation",
-        missingFields: ["Operation type"]
-      });
-    }
-    // Step 3: Contact Basics
-    const proContactBasicsMissing: string[] = [];
-    if (firstName.trim() === "") proContactBasicsMissing.push("First name");
-    if (lastName.trim() === "") proContactBasicsMissing.push("Last name");
-    if (!isValidEmail(email)) proContactBasicsMissing.push("Email");
-    if (!isValidPhoneNumber(phoneNumber)) proContactBasicsMissing.push("Phone number");
-    if (proContactBasicsMissing.length > 0) {
-      incomplete.push({
-        step: 3,
-        name: "Contact information",
-        missingFields: proContactBasicsMissing
-      });
-    }
-    // Step 4: Business Location
-    const proLocationMissing: string[] = [];
-    if (businessName.trim() === "") proLocationMissing.push("Business name");
-    if (businessAddress.trim() === "") proLocationMissing.push("Address");
-    if (country === "") proLocationMissing.push("Country");
-    if (city.trim() === "") proLocationMissing.push("City");
-    if (state === "") proLocationMissing.push("State/province");
-    if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
-    if (proLocationMissing.length > 0) {
-      incomplete.push({
-        step: 4,
-        name: "Business location",
-        missingFields: proLocationMissing
-      });
-    }
-    // Step 5: License
-    if (licenseNumber.trim() === "") {
-      incomplete.push({
-        step: 5,
-        name: "License verification",
-        missingFields: ["License number"]
-      });
-    }
-    // Step 6: Tax Exemption
-    const proTaxMissing: string[] = [];
-    if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
-    else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
-    if (proTaxMissing.length > 0) {
-      incomplete.push({
-        step: 6,
-        name: "Tax exemption",
-        missingFields: proTaxMissing
-      });
-    }
-    // Step 7: Wholesale Terms
-    if (!wholesaleAgreed) {
-      incomplete.push({
-        step: 7,
-        name: "Wholesale terms",
-        missingFields: ["Terms agreement"]
-      });
-    }
-    // Step 8: Preferences and Details (all optional)
-    return incomplete;
-  };
-
-  // Check if form is ready to submit (on final step with all fields complete)
-  const isFormReadyToSubmit = mode === "signup" && currentStep === "summary" && isAllStepsValid();
 
   // Calculate overall form progress as percentage
   const getFormProgress = () => {
