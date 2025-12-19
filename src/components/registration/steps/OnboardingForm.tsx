@@ -42,98 +42,128 @@ const getOdometerBaseNumber = () => {
   return total;
 };
 
-// Odometer Counter Component
+// Odometer Counter Component - matches desktop hero style
 const OdometerCounter = ({ 
-  variant = "dark",
+  variant = "light",
   onIncrement
 }: { 
   variant?: "dark" | "light";
   onIncrement?: () => void;
 }) => {
-  const [displayNumber, setDisplayNumber] = useState(getOdometerBaseNumber());
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [prevDigits, setPrevDigits] = useState<string[]>([]);
-  const [animatingPositions, setAnimatingPositions] = useState<Set<number>>(new Set());
+  const baseNumber = getOdometerBaseNumber();
+  const basePrefix = Math.floor(baseNumber / 100);
+  const formattedPrefix = basePrefix >= 100 
+    ? `${Math.floor(basePrefix / 10)},${basePrefix % 10}` 
+    : `${Math.floor(basePrefix / 10)},${basePrefix % 10}`;
+  const initialTens = Math.floor((baseNumber % 100) / 10);
+  const initialOnes = baseNumber % 10;
   
+  const [tens, setTens] = useState(initialTens);
+  const [ones, setOnes] = useState(initialOnes);
+  const [prevOnes, setPrevOnes] = useState(initialOnes);
+  const [prevTens, setPrevTens] = useState(initialTens);
+  const [isRolling, setIsRolling] = useState(false);
+  const [isTensRolling, setIsTensRolling] = useState(false);
+  const [isBurst, setIsBurst] = useState(false);
+  const textColor = variant === "light" ? "text-muted-foreground" : "text-background/50";
+  
+  const onesRef = useRef(ones);
+  const tensRef = useRef(tens);
+  const onIncrementRef = useRef(onIncrement);
+  onesRef.current = ones;
+  tensRef.current = tens;
+  onIncrementRef.current = onIncrement;
+
   useEffect(() => {
-    const scheduleNextIncrement = () => {
-      const delay = 4000 + Math.random() * 3000;
-      return setTimeout(() => {
-        setPrevDigits(displayNumber.toString().split(''));
-        const newNumber = displayNumber + 1;
-        setDisplayNumber(newNumber);
-        setIsAnimating(true);
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
+    const scheduleNext = () => {
+      const delay = 3000 + Math.random() * 4000;
+      timeoutId = setTimeout(() => {
+        const isBurstIncrement = Math.random() < 0.2;
+        const increment = isBurstIncrement ? (Math.random() < 0.5 ? 2 : 3) : 1;
         
-        const oldStr = displayNumber.toString().padStart(5, '0');
-        const newStr = newNumber.toString().padStart(5, '0');
-        const changedPositions = new Set<number>();
-        for (let i = 0; i < newStr.length; i++) {
-          if (oldStr[i] !== newStr[i]) {
-            changedPositions.add(i);
-          }
+        if (isBurstIncrement) {
+          setIsBurst(true);
+          setTimeout(() => setIsBurst(false), 600);
         }
-        setAnimatingPositions(changedPositions);
         
-        onIncrement?.();
+        const currentOnes = onesRef.current;
+        const currentTens = tensRef.current;
+        
+        setPrevOnes(currentOnes);
+        setPrevTens(currentTens);
+        
+        const newOnes = (currentOnes + increment) % 10;
+        const tensIncrement = Math.floor((currentOnes + increment) / 10);
+        
+        if (tensIncrement > 0) {
+          setIsTensRolling(true);
+          setTens(prev => (prev + tensIncrement) % 10);
+        }
+        
+        setOnes(newOnes);
+        setIsRolling(true);
+        
+        onIncrementRef.current?.();
         
         setTimeout(() => {
-          setIsAnimating(false);
-          setAnimatingPositions(new Set());
-        }, 500);
+          setIsRolling(false);
+          setIsTensRolling(false);
+          scheduleNext();
+        }, 300);
       }, delay);
     };
     
-    const timerId = scheduleNextIncrement();
-    return () => clearTimeout(timerId);
-  }, [displayNumber, onIncrement]);
-  
-  const digits = displayNumber.toString().padStart(5, '0').split('');
-  const prevDigitsArr = prevDigits.length > 0 ? prevDigits : digits;
-  const paddedPrevDigits = prevDigitsArr.join('').padStart(5, '0').split('');
-  
-  const isDark = variant === "dark";
-  
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
-    <div className="flex items-center gap-[1px]">
-      {digits.map((digit, index) => (
-        <div 
-          key={index}
-          className={cn(
-            "relative w-[14px] h-[18px] rounded-[3px] overflow-hidden",
-            isDark 
-              ? "bg-background/10 border border-background/20" 
-              : "bg-foreground/5 border border-foreground/10"
-          )}
+    <span className={cn(
+      "text-xs tabular-nums transition-all duration-300",
+      textColor,
+      isBurst && "!text-[hsl(142,71%,45%)]"
+    )}>
+      {formattedPrefix}<span 
+        className="inline-block overflow-hidden"
+        style={{ 
+          height: '1em', 
+          width: '0.6em',
+          verticalAlign: 'text-bottom',
+          position: 'relative',
+          top: '-0.08em'
+        }}
+      >
+        <span 
+          className={isTensRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
+          style={{ transform: isTensRolling ? 'translateY(-50%)' : 'translateY(0)' }}
         >
-          <div 
-            className={cn(
-              "absolute inset-0 flex flex-col items-center justify-start transition-transform duration-500",
-              isAnimating && animatingPositions.has(index) ? "-translate-y-1/2" : "translate-y-0"
-            )}
-            style={{
-              transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-            }}
-          >
-            <span className={cn(
-              "text-[11px] font-semibold leading-[18px]",
-              isDark ? "text-background/90" : "text-foreground/70"
-            )}>
-              {paddedPrevDigits[index]}
-            </span>
-            <span className={cn(
-              "text-[11px] font-semibold leading-[18px]",
-              isDark ? "text-background/90" : "text-foreground/70"
-            )}>
-              {digit}
-            </span>
-          </div>
-        </div>
-      ))}
-      <span className={cn(
-        "text-[10px] ml-1",
-        isDark ? "text-background/60" : "text-muted-foreground"
-      )}>pros</span>
-    </div>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isTensRolling ? prevTens : tens}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{tens}</span>
+        </span>
+      </span><span 
+        className={cn(
+          "inline-block overflow-hidden transition-all duration-300",
+          isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
+        )}
+        style={{ 
+          height: '1em', 
+          width: '0.6em',
+          verticalAlign: 'text-bottom',
+          position: 'relative',
+          top: '-0.08em'
+        }}
+      >
+        <span 
+          className={isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
+          style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
+        >
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isRolling ? prevOnes : ones}</span>
+          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{ones}</span>
+        </span>
+      </span> pros
+    </span>
   );
 };
 
