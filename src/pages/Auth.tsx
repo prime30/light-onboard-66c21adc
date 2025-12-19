@@ -974,6 +974,103 @@ const Auth = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const fontsLoaded = useFontLoaded();
 
+  // localStorage persistence keys
+  const STORAGE_KEY = "auth_form_progress";
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.mode) setMode(data.mode);
+        if (data.currentStep && data.currentStep !== "success") setCurrentStep(data.currentStep);
+        if (data.accountType) setAccountType(data.accountType);
+        if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
+        if (data.state) setState(data.state);
+        if (data.firstName) setFirstName(data.firstName);
+        if (data.lastName) setLastName(data.lastName);
+        if (data.email) setEmail(data.email);
+        // Note: password intentionally not persisted for security
+        if (data.businessName) setBusinessName(data.businessName);
+        if (data.businessAddress) setBusinessAddress(data.businessAddress);
+        if (data.suiteNumber) setSuiteNumber(data.suiteNumber);
+        if (data.country) setCountry(data.country);
+        if (data.city) setCity(data.city);
+        if (data.zipCode) setZipCode(data.zipCode);
+        if (data.wholesaleAgreed !== undefined) setWholesaleAgreed(data.wholesaleAgreed);
+        if (data.hasTaxExemption !== undefined) setHasTaxExemption(data.hasTaxExemption);
+        if (data.preferredName) setPreferredName(data.preferredName);
+        if (data.phoneNumber) setPhoneNumber(data.phoneNumber);
+        if (data.phoneCountryCode) setPhoneCountryCode(data.phoneCountryCode);
+        if (data.salonSize) setSalonSize(data.salonSize);
+        if (data.salonStructure) setSalonStructure(data.salonStructure);
+        if (data.schoolName) setSchoolName(data.schoolName);
+        if (data.schoolState) setSchoolState(data.schoolState);
+        if (data.businessOperationType) setBusinessOperationType(data.businessOperationType);
+        if (data.birthday) setBirthday(data.birthday);
+        if (data.socialMediaHandle) setSocialMediaHandle(data.socialMediaHandle);
+        if (data.referralSource) setReferralSource(data.referralSource);
+        if (data.completedSteps) setCompletedSteps(new Set(data.completedSteps));
+      }
+    } catch (e) {
+      console.warn("Failed to load form progress from localStorage:", e);
+    }
+  }, []);
+
+  // Save to localStorage when form state changes
+  useEffect(() => {
+    // Don't save if on success step
+    if (currentStep === "success") {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    
+    try {
+      const data = {
+        mode,
+        currentStep,
+        accountType,
+        licenseNumber,
+        state,
+        firstName,
+        lastName,
+        email,
+        // password intentionally not saved for security
+        businessName,
+        businessAddress,
+        suiteNumber,
+        country,
+        city,
+        zipCode,
+        wholesaleAgreed,
+        hasTaxExemption,
+        preferredName,
+        phoneNumber,
+        phoneCountryCode,
+        salonSize,
+        salonStructure,
+        schoolName,
+        schoolState,
+        businessOperationType,
+        birthday,
+        socialMediaHandle,
+        referralSource,
+        completedSteps: Array.from(completedSteps)
+        // Note: File objects cannot be serialized to localStorage
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn("Failed to save form progress to localStorage:", e);
+    }
+  }, [
+    mode, currentStep, accountType, licenseNumber, state, firstName, lastName, email,
+    businessName, businessAddress, suiteNumber, country, city, zipCode, wholesaleAgreed,
+    hasTaxExemption, preferredName, phoneNumber, phoneCountryCode, salonSize, salonStructure,
+    schoolName, schoolState, businessOperationType, birthday, socialMediaHandle, referralSource,
+    completedSteps
+  ]);
+
   // Main content refs
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
