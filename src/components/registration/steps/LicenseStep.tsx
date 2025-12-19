@@ -78,7 +78,7 @@ export const LicenseStep = ({
             {isSalon ? "Salon License #*" : "License number*"}
           </Label>
           <div className="relative group input-glow rounded-form">
-            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-button py-0 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-button py-0 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", licenseError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>

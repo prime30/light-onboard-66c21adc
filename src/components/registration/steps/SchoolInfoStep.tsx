@@ -58,7 +58,7 @@ export const SchoolInfoStep = ({
             <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
               <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", schoolNameError && "border-destructive/50")} />
+            <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", schoolNameError && "border-destructive/50")} />
           </div>
           {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
         </div>
@@ -70,7 +70,7 @@ export const SchoolInfoStep = ({
           </Label>
             <div className="relative group">
               <Select value={schoolState} onValueChange={onSchoolStateChange}>
-                <SelectTrigger id="schoolState" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", stateError && "border-destructive/50")}>
+                <SelectTrigger id="schoolState" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus", stateError && "border-destructive/50")}>
                   <SelectValue placeholder="Select your state/province" />
                 </SelectTrigger>
               <SelectContent className="rounded-form bg-background border border-border z-50 max-h-[280px]">
