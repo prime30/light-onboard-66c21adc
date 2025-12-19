@@ -2802,7 +2802,7 @@ const Auth = () => {
                           window.clearTimeout(submitPopoverCloseTimer.current);
                           submitPopoverCloseTimer.current = null;
                         }
-                        if (currentStep === "contact-info" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
+                        if (currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0) {
                           setSubmitTooltipOpen(true);
                         }
                       }}
