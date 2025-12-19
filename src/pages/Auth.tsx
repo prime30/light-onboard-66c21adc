@@ -4871,7 +4871,7 @@ const WholesaleTermsForm = ({
     <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
       <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" aria-hidden="true" />
       <p className="text-sm text-muted-foreground/70 leading-relaxed">
-        All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
+        As a wholesale member, you get exclusive professional pricing. To keep your account in good standing, please use your own payment method for all purchases.
       </p>
     </div>
 
