@@ -20,6 +20,7 @@ import { useCountdown } from "@/hooks/use-countdown";
 import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
 import { useFormValidation } from "@/hooks/use-form-validation";
+import { useModalSwipe } from "@/hooks/use-modal-swipe";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
@@ -412,14 +413,22 @@ const Auth = () => {
   const mainSwipeStartX = useRef<number | null>(null);
   const mainSwipeEndX = useRef<number | null>(null);
   
+  // Modal swipe handling - using a ref to hold the close function since it's defined later
+  const handleCloseModalRef = useRef<() => void>(() => {});
   
-  // Modal swipe-down refs and state
-  const modalTouchStartY = useRef<number | null>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const isDragFromTop = useRef<boolean>(false);
-  const [modalDragOffset, setModalDragOffset] = useState(0);
-  const [isClosing, setIsClosing] = useState(false);
-  const [isBouncingBack, setIsBouncingBack] = useState(false);
+  const {
+    modalRef,
+    modalDragOffset,
+    isClosing,
+    isBouncingBack,
+    setIsClosing,
+    handleModalTouchStart,
+    handleModalTouchMove,
+    handleModalTouchEnd,
+    handleBackdropTouchStart,
+  } = useModalSwipe({
+    onClose: () => handleCloseModalRef.current(),
+  });
 
   // Preserved state refs for mode switching
   const signupStateRef = useRef<{
@@ -757,85 +766,6 @@ const Auth = () => {
     mainSwipeStartX.current = null;
     mainSwipeEndX.current = null;
   };
-  // Modal swipe-down handlers (mobile only)
-  const handleModalTouchStart = (e: React.TouchEvent) => {
-    // Only enable swipe-down on mobile (< 640px)
-    if (window.innerWidth >= 640) return;
-    
-    // Check if touch started in the top drag zone
-    const modalElement = modalRef.current;
-    if (!modalElement) return;
-    
-    const modalRect = modalElement.getBoundingClientRect();
-    const touchY = e.touches[0].clientY;
-    const relativeY = touchY - modalRect.top;
-    
-    // Allow drag if started within top 50px (just the drag handle area)
-    if (relativeY <= 50) {
-      isDragFromTop.current = true;
-      modalTouchStartY.current = touchY;
-    } else {
-      isDragFromTop.current = false;
-      modalTouchStartY.current = null;
-    }
-  };
-  
-  const handleModalTouchMove = (e: React.TouchEvent) => {
-    if (window.innerWidth >= 640 || !isDragFromTop.current || modalTouchStartY.current === null) return;
-    const currentY = e.touches[0].clientY;
-    const rawDiff = currentY - modalTouchStartY.current;
-    // Only allow dragging down, not up
-    if (rawDiff > 0) {
-      // Add resistance: drag slows down progressively
-      // Before threshold: normal drag
-      // After threshold: diminishing returns (rubber band effect)
-      const threshold = 100;
-      let resistedDiff;
-      if (rawDiff <= threshold) {
-        resistedDiff = rawDiff;
-      } else {
-        // Apply logarithmic resistance past threshold
-        const overflow = rawDiff - threshold;
-        resistedDiff = threshold + (overflow * 0.3);
-      }
-      setModalDragOffset(resistedDiff);
-    }
-  };
-  
-  const handleModalTouchEnd = () => {
-    if (!isDragFromTop.current || modalTouchStartY.current === null) return;
-    // If dragged more than 100px, close the modal
-    if (modalDragOffset > 100) {
-      handleCloseModal();
-    } else if (modalDragOffset > 0) {
-      // Snap back with bounce
-      setIsBouncingBack(true);
-      setModalDragOffset(0);
-      setTimeout(() => {
-        setIsBouncingBack(false);
-      }, 500);
-    }
-    modalTouchStartY.current = null;
-    isDragFromTop.current = false;
-  };
-  
-  // Backdrop touch handler - any touch on backdrop initiates drag
-  const handleBackdropTouchStart = (e: React.TouchEvent) => {
-    // Only enable swipe-down on mobile (< 640px)
-    if (window.innerWidth >= 640) return;
-    
-    const modalElement = modalRef.current;
-    if (!modalElement) return;
-    
-    const modalRect = modalElement.getBoundingClientRect();
-    const touchY = e.touches[0].clientY;
-    
-    // If touch is above the modal, allow drag
-    if (touchY < modalRect.top) {
-      isDragFromTop.current = true;
-      modalTouchStartY.current = touchY;
-    }
-  };
 
   const handleCloseModal = useCallback(() => {
     // Check if there's form progress to save (only in signup mode with an account type selected)
@@ -881,7 +811,10 @@ const Auth = () => {
         navigate("/");
       }, 300);
     }
-  }, [navigate, mode, accountType, firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps, isSavingProgress]);
+  }, [navigate, mode, accountType, firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps, isSavingProgress, setIsClosing]);
+
+  // Update the ref so the modal swipe hook can call handleCloseModal
+  handleCloseModalRef.current = handleCloseModal;
 
   const handleForgotPasswordSubmit = useCallback(async () => {
     if (!email.trim()) {
