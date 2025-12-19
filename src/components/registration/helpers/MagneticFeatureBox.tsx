@@ -21,7 +21,7 @@ export const MagneticFeatureBox = ({
       style={magnetic.style} 
       onMouseMove={magnetic.onMouseMove} 
       onMouseLeave={magnetic.onMouseLeave} 
-      className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-md bg-white/10 backdrop-blur-md border border-white/20 hover:border-white/30 hover:bg-white/15 transition-all cursor-default"
+      className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-md bg-background/10 backdrop-blur-md border border-background/20 hover:border-background/30 hover:bg-background/15 transition-all cursor-default"
     >
       <div className="w-[30px] h-[30px] rounded-[10px] bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
         <Icon className="w-[15px] h-[15px] text-white" />

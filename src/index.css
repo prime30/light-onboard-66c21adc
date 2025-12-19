@@ -208,6 +208,18 @@
     --button-height: 55px;
     --radius-form: 10px;
     --radius-form-sm: 10px;
+    
+    /* Standardized shadows */
+    --shadow-input-focus: inset 0 0 20px rgba(0,0,0,0.03);
+    --shadow-card-hover: 0 8px 30px -12px rgba(0,0,0,0.12);
+    --shadow-pill: 0 4px 20px -4px rgba(0,0,0,0.08);
+    --shadow-pill-hover: 0 8px 30px -8px rgba(0,0,0,0.12);
+    --shadow-toast: 0 8px 32px rgba(0,0,0,0.12);
+    --shadow-modal: 0 8px 32px rgba(0,0,0,0.3);
+    
+    /* Overlay colors */
+    --overlay-dark: 0 0% 0%;
+    --overlay-light: 0 0% 100%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
@@ -341,6 +353,11 @@
 }
 
 @layer utilities {
+  /* Form input focus shadow utility */
+  .focus-shadow-input:focus {
+    box-shadow: var(--shadow-input-focus);
+  }
+  
   .animate-modal-enter {
     animation: modalSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }

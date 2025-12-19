@@ -29,7 +29,7 @@ const Reviews = () => {
     : reviews.filter(review => review.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center pt-12 sm:pt-0 px-0 sm:px-4">
+    <div className="min-h-screen bg-foreground/60 backdrop-blur-sm flex items-start sm:items-center justify-center pt-12 sm:pt-0 px-0 sm:px-4">
       <div 
         className="w-full sm:w-[95vw] lg:w-[90vw] max-w-[1400px] h-[calc(100vh-3rem)] sm:h-[90vh] bg-background rounded-t-lg sm:rounded-xl lg:rounded-xl shadow-2xl overflow-hidden animate-[pageSlideUp_0.5s_cubic-bezier(0.16,1,0.3,1)_forwards] flex flex-col"
       >

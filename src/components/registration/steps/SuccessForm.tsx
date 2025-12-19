@@ -137,8 +137,8 @@ export const SuccessForm = ({
       </div>
 
       {/* Product Card */}
-      <div className="p-5 rounded-[20px] bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-accent-red text-white text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
+      <div className="p-5 rounded-lg bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 bg-accent-red text-background text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
           30% OFF
         </div>
         <div className="flex items-start gap-4">
