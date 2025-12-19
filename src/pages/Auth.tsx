@@ -27,11 +27,15 @@ import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
 import {
+  accountTypeSchema,
+  businessOperationSchema,
   contactBasicsSchema,
   businessLocationSchema,
   licenseSchema,
   salonLicenseSchema,
   schoolInfoSchema,
+  taxExemptionSchema,
+  wholesaleTermsSchema,
   signInSchema,
 } from "@/lib/validations/auth-schemas";
 import colorRingProduct from "@/assets/color-ring-product.png";
@@ -2296,6 +2300,18 @@ const Auth = () => {
     let dataToValidate: Record<string, unknown> = {};
 
     switch (currentStep) {
+      case "account-type":
+        schema = accountTypeSchema;
+        dataToValidate = {
+          accountType: accountType as "professional" | "salon" | "student" | undefined,
+        };
+        break;
+      case "business-operation":
+        schema = businessOperationSchema;
+        dataToValidate = {
+          businessOperationType: businessOperationType as "commission" | "independent" | undefined,
+        };
+        break;
       case "contact-basics":
         schema = contactBasicsSchema;
         dataToValidate = {
@@ -2337,6 +2353,19 @@ const Auth = () => {
           enrollmentProofFiles,
         };
         break;
+      case "tax-exemption":
+        schema = taxExemptionSchema;
+        dataToValidate = {
+          hasTaxExemption,
+          taxExemptFile,
+        };
+        break;
+      case "wholesale-terms":
+        schema = wholesaleTermsSchema;
+        dataToValidate = {
+          agreedToWholesaleTerms: wholesaleAgreed,
+        };
+        break;
     }
 
     if (!schema) {
@@ -2364,15 +2393,15 @@ const Auth = () => {
 
     return true;
   }, [
-    currentStep, accountType, firstName, lastName, preferredName, email, phoneNumber, phoneCountryCode,
+    currentStep, accountType, businessOperationType, firstName, lastName, preferredName, email, phoneNumber, phoneCountryCode,
     businessName, businessAddress, suiteNumber, country, city, state, zipCode,
     licenseNumber, salonSize, salonStructure, licenseFile, licenseProofFiles,
-    schoolName, schoolState, enrollmentProofFiles
+    schoolName, schoolState, enrollmentProofFiles, hasTaxExemption, taxExemptFile, wholesaleAgreed
   ]);
 
   const handleNext = () => {
     // For steps with zod validation, use the new validation
-    const stepsWithZodValidation = ["contact-basics", "business-location", "license", "school-info"];
+    const stepsWithZodValidation = ["account-type", "business-operation", "contact-basics", "business-location", "license", "school-info", "tax-exemption", "wholesale-terms"];
     
     if (mode === "signup" && stepsWithZodValidation.includes(currentStep)) {
       if (!validateCurrentStep()) {
