@@ -21,6 +21,7 @@ import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";
+import { useModeSwitch } from "@/hooks/use-mode-switch";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { StepValidationIcon, getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
@@ -430,43 +431,6 @@ const Auth = () => {
     onClose: () => handleCloseModalRef.current(),
   });
 
-  // Preserved state refs for mode switching
-  const signupStateRef = useRef<{
-    step: Step;
-    accountType: string | null;
-    licenseNumber: string;
-    state: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    businessName: string;
-    businessAddress: string;
-    suiteNumber: string;
-    country: string;
-    city: string;
-    zipCode: string;
-    wholesaleAgreed: boolean;
-    hasTaxExemption: boolean | null;
-    preferredName: string;
-    phoneNumber: string;
-    phoneCountryCode: string;
-    salonSize: string;
-    salonStructure: string;
-    licenseFile: File | null;
-    taxExemptFile: File | null;
-    schoolName: string;
-    schoolState: string;
-    enrollmentProofFiles: File[];
-    businessOperationType: "commission" | "independent" | null;
-    licenseProofFiles: File[];
-    completedSteps: Set<number>;
-  } | null>(null);
-  
-  const signinStateRef = useRef<{
-    email: string;
-    password: string;
-  } | null>(null);
 
   // UI-only local state (not persisted)
   const [shimmerKey, setShimmerKey] = useState(0);
@@ -529,6 +493,76 @@ const Auth = () => {
   // Main content refs
   const mainContentRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+
+  // Mode switching logic (preserves state between sign-in and sign-up)
+  const { handleModeChange } = useModeSwitch({
+    currentState: {
+      mode,
+      currentStep,
+      accountType,
+      licenseNumber,
+      state,
+      firstName,
+      lastName,
+      email,
+      password,
+      businessName,
+      businessAddress,
+      suiteNumber,
+      country,
+      city,
+      zipCode,
+      wholesaleAgreed,
+      hasTaxExemption,
+      preferredName,
+      phoneNumber,
+      phoneCountryCode,
+      salonSize,
+      salonStructure,
+      licenseFile,
+      taxExemptFile,
+      schoolName,
+      schoolState,
+      enrollmentProofFiles,
+      businessOperationType,
+      licenseProofFiles,
+      completedSteps,
+    },
+    setters: {
+      setMode,
+      setCurrentStep,
+      setAccountType,
+      setLicenseNumber,
+      setState,
+      setFirstName,
+      setLastName,
+      setEmail,
+      setPassword,
+      setBusinessName,
+      setBusinessAddress,
+      setSuiteNumber,
+      setCountry,
+      setCity,
+      setZipCode,
+      setWholesaleAgreed,
+      setHasTaxExemption,
+      setPreferredName,
+      setPhoneNumber,
+      setPhoneCountryCode,
+      setSalonSize,
+      setSalonStructure,
+      setLicenseFile,
+      setTaxExemptFile,
+      setSchoolName,
+      setSchoolState,
+      setEnrollmentProofFiles,
+      setBusinessOperationType,
+      setLicenseProofFiles,
+      setCompletedSteps,
+      setTransitionDirection,
+    },
+    mainScrollRef,
+  });
   
   // Parallax scroll effect for mobile hero
   const [parallaxOffset, setParallaxOffset] = useState(0);
@@ -627,96 +661,6 @@ const Auth = () => {
     };
   }, []);
   // resetForm is provided by useAuthFormState hook
-  const handleModeChange = (newMode: AuthMode) => {
-    // Set transition direction: signin→signup feels like going back, signup→signin feels like going forward
-    setTransitionDirection(newMode === "signup" ? "backward" : "forward");
-    
-    // Save current mode's state before switching
-    if (mode === "signup") {
-      signupStateRef.current = {
-        step: currentStep,
-        accountType,
-        licenseNumber,
-        state,
-        firstName,
-        lastName,
-        email,
-        password,
-        businessName,
-        businessAddress,
-        suiteNumber,
-        country,
-        city,
-        zipCode,
-        wholesaleAgreed,
-        hasTaxExemption,
-        preferredName,
-        phoneNumber,
-        phoneCountryCode,
-        salonSize,
-        salonStructure,
-        licenseFile,
-        taxExemptFile,
-        schoolName,
-        schoolState,
-        enrollmentProofFiles,
-        businessOperationType,
-        licenseProofFiles,
-        completedSteps
-      };
-    } else {
-      signinStateRef.current = {
-        email,
-        password
-      };
-    }
-    
-    setMode(newMode);
-    
-    // Restore the other mode's state if it exists
-    if (newMode === "signup" && signupStateRef.current) {
-      const saved = signupStateRef.current;
-      setCurrentStep(saved.step);
-      setAccountType(saved.accountType);
-      setLicenseNumber(saved.licenseNumber);
-      setState(saved.state);
-      setFirstName(saved.firstName);
-      setLastName(saved.lastName);
-      setEmail(saved.email);
-      setPassword(saved.password);
-      setBusinessName(saved.businessName);
-      setBusinessAddress(saved.businessAddress);
-      setSuiteNumber(saved.suiteNumber);
-      setCountry(saved.country);
-      setCity(saved.city);
-      setZipCode(saved.zipCode);
-      setWholesaleAgreed(saved.wholesaleAgreed);
-      setHasTaxExemption(saved.hasTaxExemption);
-      setPreferredName(saved.preferredName);
-      setPhoneNumber(saved.phoneNumber);
-      setPhoneCountryCode(saved.phoneCountryCode);
-      setSalonSize(saved.salonSize);
-      setSalonStructure(saved.salonStructure);
-      setLicenseFile(saved.licenseFile);
-      setTaxExemptFile(saved.taxExemptFile);
-      setSchoolName(saved.schoolName);
-      setSchoolState(saved.schoolState);
-      setEnrollmentProofFiles(saved.enrollmentProofFiles);
-      setBusinessOperationType(saved.businessOperationType);
-      setLicenseProofFiles(saved.licenseProofFiles);
-      setCompletedSteps(saved.completedSteps);
-    } else if (newMode === "signin" && signinStateRef.current) {
-      const saved = signinStateRef.current;
-      setEmail(saved.email);
-      setPassword(saved.password);
-    } else if (newMode === "signup") {
-      // First time switching to signup, reset to defaults
-      setCurrentStep("onboarding");
-    }
-    
-    // Scroll to top when switching modes
-    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-  };
   const goToNextSlide = useCallback(() => {
     setCurrentSlide(prev => (prev + 1) % slides.length);
   }, []);

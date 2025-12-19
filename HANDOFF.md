@@ -57,7 +57,8 @@ The following extractions have been completed to reduce Auth.tsx size:
 | Validation functions | ~290 lines | `use-form-validation.ts` |
 | Progress calculation | ~85 lines | `use-form-validation.ts` |
 | Modal swipe gestures | ~80 lines | `use-modal-swipe.ts` |
-| **Total** | **~1045 lines** | |
+| Mode switching logic | ~90 lines | `use-mode-switch.ts` |
+| **Total** | **~1135 lines** | |
 
 ### State Management
 
@@ -248,12 +249,33 @@ const {
 });
 ```
 
+### useModeSwitch
+
+Handles mode switching between sign-in and sign-up with preserved state:
+
+```typescript
+const { handleModeChange } = useModeSwitch({
+  currentState: {
+    mode, currentStep, accountType, firstName, lastName, email, password,
+    // ... all form fields
+  },
+  setters: {
+    setMode, setCurrentStep, setAccountType, setFirstName, setLastName,
+    // ... all setter functions
+    setTransitionDirection,
+  },
+  mainScrollRef,  // Ref to scroll container
+});
+
+// Switch modes - preserves state in refs
+handleModeChange("signin");  // or "signup"
+```
+
 ### Remaining Work in Auth.tsx
 
 The following can still be extracted:
 
-1. **Mode switching logic** - `handleModeChange`, preserved state refs (~80 lines)
-2. **Step content rendering** - The main switch/case for step components (~200 lines)
+1. **Step content rendering** - The main switch/case for step components (~200 lines)
 
 ### To add file uploads:
 1. Create Supabase storage bucket for documents
