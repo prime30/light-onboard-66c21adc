@@ -2644,6 +2644,62 @@ const Auth = () => {
           </div>
         )}
         
+        {/* Mobile Saving Progress Overlay */}
+        {isSavingProgress && (
+          <div className="sm:hidden absolute inset-0 z-[90] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
+            <div className="flex flex-col items-center gap-3">
+              {/* Animated circle */}
+              <div className="relative w-16 h-16">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
+                  {/* Background circle */}
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    fill="none"
+                    stroke="hsl(var(--muted-foreground) / 0.2)"
+                    strokeWidth="3"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    fill="none"
+                    stroke={saveProgressText === "saved" ? "rgb(16 185 129)" : "hsl(var(--muted-foreground))"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray="175.9"
+                    strokeDashoffset="175.9"
+                    className={cn(
+                      saveProgressText === "saving" && "animate-save-progress-large",
+                    )}
+                    style={{
+                      strokeDashoffset: saveProgressText === "saved" ? 0 : undefined,
+                      transition: saveProgressText === "saved" ? "stroke 0.3s ease-out" : undefined,
+                    }}
+                  />
+                </svg>
+                {/* Center icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {saveProgressText === "saved" ? (
+                    <Check className="w-6 h-6 text-emerald-600 animate-scale-in" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-muted-foreground/20" />
+                  )}
+                </div>
+              </div>
+              {/* Text */}
+              <span className={cn(
+                "text-sm font-medium transition-colors duration-300",
+                saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
+              )}>
+                {saveProgressText === "saving" ? "Saving progress..." : "Saved!"}
+              </span>
+            </div>
+          </div>
+        )}
+        
         {/* Drag Handle - Mobile Only */}
         <div 
           className={cn(
