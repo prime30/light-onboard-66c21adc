@@ -2242,9 +2242,12 @@ const Auth = () => {
       ), {
         duration: 15000,
         position: "top-center",
+        className: "!bg-transparent !backdrop-blur-none !border-none !shadow-none !p-0",
         style: {
           top: "50%",
           transform: "translateY(-50%)",
+          background: "transparent",
+          backdropFilter: "none",
         },
       });
       return;
