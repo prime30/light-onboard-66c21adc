@@ -883,6 +883,14 @@ const Auth = () => {
 
   // Form state
   const [accountType, setAccountType] = useState<string | null>(null);
+
+  // Keep the step indicator's total in sync with the selected flow.
+  // (Important for restored sessions from localStorage where accountType is set without using handleAccountTypeSelect.)
+  useEffect(() => {
+    if (!accountType) return;
+    setDisplayTotalSteps(accountType === "student" ? 7 : accountType === "professional" ? 9 : 8);
+  }, [accountType]);
+
   const [licenseNumber, setLicenseNumber] = useState("");
   const [state, setState] = useState("");
   const [firstName, setFirstName] = useState("");
