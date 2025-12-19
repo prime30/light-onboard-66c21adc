@@ -2263,7 +2263,7 @@ const Auth = () => {
           />
           {/* Toast content */}
           <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
-            <div className="flex flex-col gap-3 w-full max-w-sm bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] pointer-events-auto animate-scale-in">
+            <div className="flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm mx-4 bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] pointer-events-auto animate-scale-in">
               <div className="space-y-1">
                 <p className="font-medium text-foreground">Change account type?</p>
                 <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
@@ -2293,15 +2293,8 @@ const Auth = () => {
       ), {
         duration: Infinity,
         position: "top-center",
-        className: "!bg-transparent !backdrop-blur-none !border-none !shadow-none !p-0 !w-0 !h-0",
-        style: {
-          background: "transparent",
-          backdropFilter: "none",
-          width: 0,
-          height: 0,
-          padding: 0,
-          margin: 0,
-        },
+        unstyled: true,
+        className: "!fixed !inset-0 !w-full !h-full !p-0 !m-0 !bg-transparent !border-none !shadow-none",
       });
       return;
     }
