@@ -3305,7 +3305,7 @@ const Auth = () => {
                   )}
                   style={{ transition: footerTransitionsEnabled ? "width 300ms ease-out, opacity 300ms ease-out" : "none" }}
                 >
-                  <Button variant="outline" size="lg" onClick={handleBack} aria-label="Go back" className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
+                  <Button variant="outline" size="lg" onClick={handleBack} aria-label="Go back" className="h-button w-[55px] p-0 rounded-form border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
                     <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" aria-hidden="true" />
                   </Button>
                 </div>
@@ -3340,7 +3340,7 @@ const Auth = () => {
                         onClick={handleNext}
                         disabled={currentStep === "summary" ? !isAllStepsValid() || isSubmitting : !canContinue() || isSubmitting}
                         className={cn(
-                          "btn-premium w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
+                          "btn-premium w-full h-button rounded-form bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform",
                           shimmerKey > 0 && "shimmer-trigger",
                           // when disabled, popover is triggered by wrapper, not the button
                           currentStep === "summary" && !isAllStepsValid() && getIncompleteSteps().length > 0 && "pointer-events-none"
@@ -3705,7 +3705,7 @@ const SignInForm = ({
             <Label htmlFor="reset-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
               Email address
             </Label>
-            <div className={`relative group input-ultra input-ripple rounded-[15px] ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
+            <div className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
               <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
                 <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
               </div>
@@ -3716,7 +3716,7 @@ const SignInForm = ({
                 value={email} 
                 onChange={e => onEmailChange(e.target.value)} 
                 onBlur={() => setEmailTouched(true)}
-                className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+                className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`}
               />
             </div>
             {showEmailError && (
@@ -3727,7 +3727,7 @@ const SignInForm = ({
           <Button
             onClick={onForgotPasswordSubmit}
             disabled={!emailIsValid || isSendingReset}
-            className="w-full h-[55px] rounded-[15px] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
+            className="w-full h-button rounded-form bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
           >
             {isSendingReset ? (
               <>
@@ -3768,7 +3768,7 @@ const SignInForm = ({
           <Label htmlFor="login-email" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
             Email address
           </Label>
-          <div className={`relative group input-ultra input-ripple rounded-[15px] ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
+          <div className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? 'ring-2 ring-destructive/50' : ''}`}>
             <div className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-[12px] bg-gradient-to-br ${showEmailError ? 'from-destructive/20 to-destructive/10' : 'from-muted to-muted/50'} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}>
               <Mail className={`w-[15px] h-[15px] ${showEmailError ? 'text-destructive' : 'text-muted-foreground'} group-focus-within:text-background transition-all duration-300 icon-haptic`} />
             </div>
@@ -3779,7 +3779,7 @@ const SignInForm = ({
               value={email} 
               onChange={e => onEmailChange(e.target.value)} 
               onBlur={() => setEmailTouched(true)}
-              className={`h-[60px] pl-[60px] rounded-[15px] bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`} 
+              className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? 'border-destructive/50' : 'border-border/30'} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]`}
             />
           </div>
           {showEmailError && (
@@ -4140,8 +4140,8 @@ const LicenseForm = ({
           <Label htmlFor="license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
             {isSalon ? "Salon License #*" : "License number*"}
           </Label>
-          <div className="relative group input-glow rounded-[15px]">
-            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
+          <div className="relative group input-glow rounded-form">
+            <Input id="license" type="text" placeholder={isSalon ? "Salon License #" : "Enter your license number"} value={licenseNumber} onChange={e => onLicenseChange(e.target.value)} className={cn("h-button py-0 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {licenseError && <p className="text-xs text-destructive">License number is required</p>}
         </div>
@@ -4155,11 +4155,11 @@ const LicenseForm = ({
               </Label>
               <div className="flex flex-col gap-1">
                 <Select value={salonSize} onValueChange={onSalonSizeChange}>
-                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-input rounded-form border-border/50 bg-muted transition-all duration-300", salonSizeError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                    {salonSizes.map(size => <SelectItem key={size} value={size} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                  <SelectContent className="rounded-form bg-background border border-border z-50">
+                    {salonSizes.map(size => <SelectItem key={size} value={size} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
                         {size}
                       </SelectItem>)}
                   </SelectContent>
@@ -4175,11 +4175,11 @@ const LicenseForm = ({
               </Label>
               <div className="flex flex-col gap-1">
                 <Select value={salonStructure} onValueChange={onSalonStructureChange}>
-                  <SelectTrigger className={cn("w-full sm:w-[180px] h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
+                  <SelectTrigger className={cn("w-full sm:w-[180px] h-input rounded-form border-border/50 bg-muted transition-all duration-300", salonStructureError && "border-destructive/50 bg-destructive/5")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                    {salonStructures.map(structure => <SelectItem key={structure} value={structure} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+                  <SelectContent className="rounded-form bg-background border border-border z-50">
+                    {salonStructures.map(structure => <SelectItem key={structure} value={structure} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
                         {structure}
                       </SelectItem>)}
                   </SelectContent>
@@ -4479,11 +4479,11 @@ const BusinessLocationForm = ({
         <Label htmlFor="businessName" className="text-sm font-medium label-float">
           Business or salon name*
         </Label>
-        <div className="relative group input-glow input-ripple rounded-[15px]">
-          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+        <div className="relative group input-glow input-ripple rounded-form">
+          <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4493,8 +4493,8 @@ const BusinessLocationForm = ({
           Address*
         </Label>
         <div className="relative">
-          <div className="relative group input-glow input-ripple rounded-[15px]">
-            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+          <div className="relative group input-glow input-ripple rounded-form">
+            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
               <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
             <Input 
@@ -4506,7 +4506,7 @@ const BusinessLocationForm = ({
               onChange={e => handleAddressChange(e.target.value)} 
               onFocus={() => predictions.length > 0 && setShowPredictions(true)}
               autoComplete="off"
-              className="h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
+              className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" 
             />
             {isLoadingPredictions && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -4519,7 +4519,7 @@ const BusinessLocationForm = ({
           {showPredictions && predictions.length > 0 && (
             <div 
               ref={predictionsRef}
-              className="absolute z-50 w-full mt-1 bg-background border border-border rounded-[15px] shadow-lg overflow-hidden animate-fade-in"
+              className="absolute z-50 w-full mt-1 bg-background border border-border rounded-form shadow-lg overflow-hidden animate-fade-in"
             >
               {predictions.map((prediction, index) => (
                 <button
@@ -4545,8 +4545,8 @@ const BusinessLocationForm = ({
         <Label htmlFor="suiteNumber" className="text-sm font-medium label-float">
           Suite/Unit # (optional)
         </Label>
-        <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        <div className="input-glow input-ripple rounded-form">
+          <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -4556,11 +4556,11 @@ const BusinessLocationForm = ({
           Country*
         </Label>
         <Select value={country} onValueChange={onCountryChange}>
-          <SelectTrigger id="country" className="h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
+          <SelectTrigger id="country" className="h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]">
             <SelectValue placeholder="Country" />
           </SelectTrigger>
-          <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-            {countries.map(c => <SelectItem key={c} value={c} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+          <SelectContent className="rounded-form bg-background border border-border z-50">
+            {countries.map(c => <SelectItem key={c} value={c} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
                 {c}
               </SelectItem>)}
           </SelectContent>
@@ -4573,8 +4573,8 @@ const BusinessLocationForm = ({
           <Label htmlFor="city" className="text-sm font-medium label-float">
             City*
           </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+          <div className="input-glow input-ripple rounded-form">
+            <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
           </div>
         </div>
         <div className="space-y-2.5">
@@ -4586,12 +4586,12 @@ const BusinessLocationForm = ({
                 <StateIcon state={state} size={22} className="text-foreground" />
               </div>}
             <Select value={state} onValueChange={onStateChange}>
-              <SelectTrigger id="stateProvince" className={cn("h-[50px] rounded-[15px] border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
+              <SelectTrigger id="stateProvince" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
               >
                 <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
               </SelectTrigger>
-              <SelectContent className="rounded-[15px] bg-background border border-border z-50">
-                {(country === "Canada" ? provinces : states).map(s => <SelectItem key={s} value={s} className="rounded-[10px] transition-colors duration-200 hover:bg-muted/80">
+              <SelectContent className="rounded-form bg-background border border-border z-50">
+                {(country === "Canada" ? provinces : states).map(s => <SelectItem key={s} value={s} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
                     {s}
                   </SelectItem>)}
               </SelectContent>
@@ -4605,8 +4605,8 @@ const BusinessLocationForm = ({
         <Label htmlFor="zipCode" className="text-sm font-medium label-float">
           Zip/Postal code*
         </Label>
-        <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        <div className="input-glow input-ripple rounded-form">
+          <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
     </div>
@@ -5078,8 +5078,8 @@ const ContactBasicsForm = ({
           <Label htmlFor="legalFirstName" className={cn("text-sm font-medium label-float", firstNameError && "text-destructive")}>
             Legal first name*
           </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", firstNameError && "border-destructive/50 bg-destructive/5")} />
+          <div className="input-glow input-ripple rounded-form">
+            <Input id="legalFirstName" type="text" placeholder="Legal first name" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className={cn("h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", firstNameError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {firstNameError && <p className="text-xs text-destructive">First name is required</p>}
         </div>
@@ -5087,8 +5087,8 @@ const ContactBasicsForm = ({
           <Label htmlFor="legalLastName" className={cn("text-sm font-medium label-float", lastNameError && "text-destructive")}>
             Legal last name*
           </Label>
-          <div className="input-glow input-ripple rounded-[15px]">
-            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className={cn("h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", lastNameError && "border-destructive/50 bg-destructive/5")} />
+          <div className="input-glow input-ripple rounded-form">
+            <Input id="legalLastName" type="text" placeholder="Legal last name" value={lastName} onChange={e => onLastNameChange(e.target.value)} className={cn("h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", lastNameError && "border-destructive/50 bg-destructive/5")} />
           </div>
           {lastNameError && <p className="text-xs text-destructive">Last name is required</p>}
         </div>
@@ -5099,8 +5099,8 @@ const ContactBasicsForm = ({
         <Label htmlFor="preferredName" className="text-sm font-medium label-float">
           Preferred name <span className="text-muted-foreground font-normal">(if different from legal name)</span>
         </Label>
-        <div className="input-glow input-ripple rounded-[15px]">
-          <Input id="preferredName" type="text" placeholder="Preferred name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
+        <div className="input-glow input-ripple rounded-form">
+          <Input id="preferredName" type="text" placeholder="Preferred name" value={preferredName} onChange={e => onPreferredNameChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]" />
         </div>
       </div>
 
@@ -5109,11 +5109,11 @@ const ContactBasicsForm = ({
         <Label htmlFor="email" className={cn("text-sm font-medium label-float", emailError && "text-destructive")}>
           Email*
         </Label>
-        <div className="relative input-glow input-ripple rounded-[15px]">
-          <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", emailError ? "bg-destructive/10" : "bg-muted")}>
+        <div className="relative input-glow input-ripple rounded-form">
+          <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", emailError ? "bg-destructive/10" : "bg-muted")}>
             <Mail className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", emailError ? "text-destructive" : "text-muted-foreground")} />
           </div>
-          <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={e => onEmailChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", emailError && "border-destructive/50 bg-destructive/5")} />
+          <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={e => onEmailChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", emailError && "border-destructive/50 bg-destructive/5")} />
         </div>
         {emailError && <p className="text-xs text-destructive">Email is required</p>}
       </div>
@@ -5125,7 +5125,7 @@ const ContactBasicsForm = ({
         </Label>
         <div className="flex gap-2">
           <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
-            <SelectTrigger className={cn("w-[110px] h-[50px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
+            <SelectTrigger className={cn("w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", phoneError && "border-destructive/50 bg-destructive/5")}>
               <SelectValue>
                 <span className="flex items-center gap-2">
                   <CountryFlag iso={countryCodes.find(c => c.code === phoneCountryCode)?.iso || "us"} />
@@ -5146,11 +5146,11 @@ const ContactBasicsForm = ({
             </SelectContent>
           </Select>
           
-          <div className="relative flex-1 input-glow input-ripple rounded-[15px]">
-            <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", phoneError ? "bg-destructive/10" : "bg-muted")}>
+          <div className="relative flex-1 input-glow input-ripple rounded-form">
+            <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", phoneError ? "bg-destructive/10" : "bg-muted")}>
               <Phone className={cn("w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", phoneError ? "text-destructive" : "text-muted-foreground")} />
             </div>
-            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-[50px] pl-[55px] rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
+            <Input id="phoneNumber" type="tel" placeholder="(555) 123-4567" value={phoneNumber} onChange={e => onPhoneNumberChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", phoneError && "border-destructive/50 bg-destructive/5")} />
           </div>
         </div>
         {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
@@ -5725,12 +5725,12 @@ const PasswordInputField = ({
       <Label htmlFor={id} className={cn("font-medium label-float transition-all duration-300 text-left block", isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm")}>
         {label}
       </Label>
-      <div className={cn("relative group rounded-[15px] input-ripple", isSignin ? "input-ultra" : "input-glow")}>
-        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-[10px] bg-muted group-focus-within:bg-foreground")}>
+    <div className={cn("relative group rounded-form input-ripple", isSignin ? "input-ultra" : "input-glow")}>
+        <div className={cn("absolute left-[15px] top-1/2 -translate-y-1/2 rounded-[12px] flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", isSignin ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80" : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground")}>
           <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
         </div>
-        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-[15px] transition-all duration-500 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-[60px] pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-[55px] pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
-        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-[10px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press" aria-label={showPassword ? "Hide password" : "Show password"}>
+        <Input id={id} type={showPassword ? "text" : "password"} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} className={cn("pr-[50px] rounded-form transition-all duration-500 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", isSignin ? "h-input-prominent pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40" : "h-button pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background")} />
+        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press" aria-label={showPassword ? "Hide password" : "Show password"}>
           {showPassword ? <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" /> : <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />}
         </button>
       </div>
