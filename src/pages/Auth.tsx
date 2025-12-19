@@ -912,14 +912,22 @@ const Auth = () => {
     const timeoutId = setTimeout(() => {
       const element = document.querySelector(selector);
       if (element) {
-        // Find the parent container (usually the space-y-2.5 div)
-        const container = element.closest('.space-y-2\\.5') || element.parentElement || element;
+        // For input elements, highlight just the input wrapper (the .relative.group div)
+        // For data-field elements, highlight the element itself
+        let highlightTarget: Element;
+        if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+          // Find the closest input wrapper (usually .relative.group or just use input's parent)
+          highlightTarget = element.closest('.relative.group') || element.parentElement || element;
+        } else {
+          // For non-inputs (like data-field buttons), use the element itself
+          highlightTarget = element;
+        }
         
         // Scroll into view
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
         
         // Add highlight class
-        container.classList.add('animate-field-highlight');
+        highlightTarget.classList.add('animate-field-highlight');
         
         // Focus the input if it's an input element
         if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
@@ -928,7 +936,7 @@ const Auth = () => {
         
         // Remove highlight class after animation
         setTimeout(() => {
-          container.classList.remove('animate-field-highlight');
+          highlightTarget.classList.remove('animate-field-highlight');
           setHighlightField(null);
         }, 2000);
       } else {
