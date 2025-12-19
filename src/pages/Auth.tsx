@@ -2213,21 +2213,39 @@ const Auth = () => {
     
     // If switching to a different account type and there's existing progress, show confirmation
     if (type && previousType && previousType !== type && hasFormProgress()) {
-      toast("Change account type?", {
-        description: "Selecting a new account type will clear your form progress. Do you wish to proceed?",
-        duration: 10000,
-        action: {
-          label: "Yes, change",
-          onClick: () => {
-            executeAccountTypeSelect(type, previousType);
-          }
+      toast.custom((t) => (
+        <div className="flex flex-col gap-3 w-full max-w-sm bg-white/90 dark:bg-black/70 backdrop-blur-xl rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+          <div className="space-y-1">
+            <p className="font-medium text-foreground">Change account type?</p>
+            <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => {
+                toast.dismiss(t);
+              }}
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+            >
+              No, keep current
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t);
+                executeAccountTypeSelect(type, previousType);
+              }}
+              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+            >
+              Yes, change
+            </button>
+          </div>
+        </div>
+      ), {
+        duration: 15000,
+        position: "top-center",
+        style: {
+          top: "50%",
+          transform: "translateY(-50%)",
         },
-        cancel: {
-          label: "No, keep current",
-          onClick: () => {
-            // Don't change anything
-          }
-        }
       });
       return;
     }
