@@ -1874,9 +1874,12 @@ const Auth = () => {
     }
   };
 
-  // Handle business operation type selection (no auto-advance - user needs to fill license)
+  // Handle business operation type selection (untoggable - can only switch, not deselect)
   const handleBusinessOperationTypeSelect = (type: "commission" | "independent") => {
-    setBusinessOperationType(type);
+    // Only set if different from current (prevents any toggle behavior)
+    if (businessOperationType !== type) {
+      setBusinessOperationType(type);
+    }
     // No auto-advance since license input is now part of this step
   };
 
