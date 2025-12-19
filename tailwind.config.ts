@@ -79,6 +79,15 @@ export default {
         sm: "calc(var(--radius) - 4px)",
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
+        // Standardized form element radii
+        form: "var(--radius-form)",
+        "form-sm": "var(--radius-form-sm)",
+      },
+      height: {
+        // Standardized input heights
+        input: "var(--input-height)",
+        "input-prominent": "var(--input-height-prominent)",
+        button: "var(--button-height)",
       },
       boxShadow: {
         soft: "0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.08)",

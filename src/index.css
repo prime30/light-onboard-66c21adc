@@ -192,6 +192,13 @@
     --ring: 0 0% 8%;
 
     --radius: 0.75rem;
+    
+    /* Standardized form element sizing */
+    --input-height: 50px;
+    --input-height-prominent: 60px;
+    --button-height: 55px;
+    --radius-form: 15px;
+    --radius-form-sm: 10px;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
@@ -249,6 +256,18 @@
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 0 0% 98%;
+  }
+}
+
+/* Prefers reduced motion - disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

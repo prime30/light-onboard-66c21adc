@@ -103,7 +103,7 @@ const testimonials = [{
   avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face"
 }];
 
-// Country codes for phone numbers
+// Country codes for phone numbers - using iso as unique key
 const countryCodes = [
   { code: "+1", country: "US", iso: "us" },
   { code: "+1", country: "CA", iso: "ca" },
@@ -118,7 +118,7 @@ const countryCodes = [
   { code: "+91", country: "IN", iso: "in" },
   { code: "+52", country: "MX", iso: "mx" },
   { code: "+55", country: "BR", iso: "br" },
-];
+] as const;
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -348,7 +348,7 @@ const TestimonialCarousel = () => {
       
       {/* Carousel dots */}
       <div className="flex gap-1.5">
-        {testimonials.map((_, i) => <button key={i} onClick={() => setCurrentIndex(i)} className={cn("h-1 rounded-full transition-all duration-300", i === currentIndex ? "w-6 bg-background/60" : "w-1 bg-background/20 hover:bg-background/30")} />)}
+        {testimonials.map((_, i) => <button key={i} onClick={() => setCurrentIndex(i)} aria-label={`Go to testimonial ${i + 1}`} className={cn("h-1 rounded-full transition-all duration-300", i === currentIndex ? "w-6 bg-background/60" : "w-1 bg-background/20 hover:bg-background/30")} />)}
       </div>
     </div>
   );
@@ -1108,7 +1108,7 @@ const Auth = () => {
   const [pendingAccountType, setPendingAccountType] = useState<string | null>(null);
   const fontsLoaded = useFontLoaded();
 
-  // localStorage persistence keys
+  // sessionStorage persistence keys (cleared when browser tab closes)
   const STORAGE_KEY = "auth_form_progress";
 
   // Helper function to calculate completed steps based on form data
@@ -1215,10 +1215,10 @@ const Auth = () => {
     return completed;
   };
 
-  // Load from localStorage on mount
+  // Load from sessionStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         if (data.mode) setMode(data.mode);
@@ -1252,7 +1252,7 @@ const Auth = () => {
         if (data.referralSource) setReferralSource(data.referralSource);
         
         // Recalculate completed steps based on restored form data
-        // Note: Files can't be restored from localStorage, so file-dependent steps won't show as complete
+        // Note: Files can't be restored from sessionStorage, so file-dependent steps won't show as complete
         const recalculatedSteps = calculateCompletedSteps({
           accountType: data.accountType || null,
           firstName: data.firstName || "",
@@ -1290,15 +1290,15 @@ const Auth = () => {
         }
       }
     } catch (e) {
-      console.warn("Failed to load form progress from localStorage:", e);
+      console.warn("Failed to load form progress from sessionStorage:", e);
     }
   }, []);
 
-  // Save to localStorage when form state changes
+  // Save to sessionStorage when form state changes
   useEffect(() => {
     // Don't save if on success step
     if (currentStep === "success") {
-      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
       return;
     }
     
@@ -1334,11 +1334,11 @@ const Auth = () => {
         socialMediaHandle,
         referralSource,
         completedSteps: Array.from(completedSteps)
-        // Note: File objects cannot be serialized to localStorage
+        // Note: File objects cannot be serialized to sessionStorage
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.warn("Failed to save form progress to localStorage:", e);
+      console.warn("Failed to save form progress to sessionStorage:", e);
     }
   }, [
     mode, currentStep, accountType, licenseNumber, state, firstName, lastName, email,
@@ -2837,10 +2837,10 @@ const Auth = () => {
 
           {/* Nav Arrows - Desktop - Only on sign-up */}
           {mode === "signup" ? <div className="hidden lg:flex gap-2.5">
-              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <button onClick={goToPrevSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all" aria-label="Previous slide">
                 <ChevronLeft className="w-[15px] h-[15px] text-background/70" />
               </button>
-              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all">
+              <button onClick={goToNextSlide} className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all" aria-label="Next slide">
                 <ChevronRight className="w-[15px] h-[15px] text-background/70" />
               </button>
             </div> : <div />}
@@ -3202,17 +3202,7 @@ const Auth = () => {
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                   {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} highlight={highlightWholesaleTerms} highlightFade={highlightWholesaleFade} onAutoAdvance={() => {
-                    // Auto-advance to contact-info step after toast ends
-                    const stepNum = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
-                    setCompletedSteps(prev => new Set([...prev, stepNum]));
-                    setTransitionDirection("forward");
-                    setIsTransitioning(true);
-                    setTimeout(() => {
-                      setCurrentStep("contact-info");
-                      setIsTransitioning(false);
-                    }, 150);
-                  }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
+                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} highlight={highlightWholesaleTerms} highlightFade={highlightWholesaleFade} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                   {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} onAutoAdvance={() => {
                     // Auto-advance to wholesale-terms step when No is selected
                     const stepNum = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
@@ -3315,8 +3305,8 @@ const Auth = () => {
                   )}
                   style={{ transition: footerTransitionsEnabled ? "width 300ms ease-out, opacity 300ms ease-out" : "none" }}
                 >
-                  <Button variant="outline" size="lg" onClick={handleBack} className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
-                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" />
+                  <Button variant="outline" size="lg" onClick={handleBack} aria-label="Go back" className="h-[55px] w-[55px] p-0 rounded-[15px] border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform">
+                    <ArrowLeft className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1" aria-hidden="true" />
                   </Button>
                 </div>
                 <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
@@ -4720,7 +4710,6 @@ const WholesaleTermsForm = ({
   onAgreeChange,
   highlight = false,
   highlightFade = false,
-  onAutoAdvance,
   showValidationErrors = false,
   validationStatus
 }: {
@@ -4729,43 +4718,13 @@ const WholesaleTermsForm = ({
   onAgreeChange: (value: boolean) => void;
   highlight?: boolean;
   highlightFade?: boolean;
-  onAutoAdvance?: () => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
-  const [showToast, setShowToast] = useState(false);
-  const [toastKey, setToastKey] = useState(0);
   const [showTerms, setShowTerms] = useState(false);
-  const toastRef = useRef<HTMLDivElement>(null);
   const agreementError = showValidationErrors && !agreed;
-  const isStudent = accountType === "student";
   // Step number varies by account type: professional=7, salon=6, student=5
   const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
-  
-  const TOAST_DURATION = 5000; // 5 seconds
-
-  const handleAgreeChange = (value: boolean) => {
-    onAgreeChange(value);
-    if (value && !agreed) {
-      setShowToast(true);
-      setToastKey(prev => prev + 1);
-      // Scroll to toast after it appears
-      setTimeout(() => {
-        toastRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
-    }
-  };
-
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-        // Auto-advance after toast ends
-        onAutoAdvance?.();
-      }, TOAST_DURATION);
-      return () => clearTimeout(timer);
-    }
-  }, [showToast, toastKey, onAutoAdvance]);
 
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
@@ -4781,50 +4740,29 @@ const WholesaleTermsForm = ({
     </div>
 
     <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
-      <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+      <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" aria-hidden="true" />
       <p className="text-sm text-muted-foreground/70 leading-relaxed">
         All prices shown are wholesale. Please use your own card for purchases—not your client's. This policy helps prevent chargebacks and protects your business.
       </p>
     </div>
 
-    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+    <button data-field="wholesale-terms" onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")} aria-pressed={agreed}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", highlight && "field-highlight", highlightFade && "field-highlight-fade", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
-        {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
+        {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} aria-hidden="true" />}
       </div>
       <span className={cn("text-sm font-medium", agreementError ? "text-destructive" : "text-foreground")}>
         Yes, I agree to <span className="font-bold uppercase relative inline-block px-1.5 py-0.5 mx-0.5 bg-destructive/15 text-destructive rounded after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-destructive after:origin-left after:animate-[underline-grow_0.6s_ease-out_forwards]">NOT</span> use my client's card to purchase.*
       </span>
     </button>
 
-    {/* Warning about client card usage - shows when agreed */}
-    <div 
-      ref={toastRef}
-      className={cn(
-      "grid transition-all duration-400",
-      showToast ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-    )} style={{ transitionTimingFunction: showToast ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
-      <div className="overflow-hidden">
-        <div 
-          key={toastKey}
-          className="relative overflow-hidden flex gap-[15px] p-5 rounded-[15px] bg-destructive/5 border border-destructive/20 animate-haptic-pop"
-        >
-          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" />
-          <p className="text-sm text-destructive/90 leading-relaxed text-balance">
-            Using a client's payment method to purchase wholesale products violates our{" "}
-            <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>{" "}
-            and may result in account termination.
-          </p>
-          {/* Countdown timer bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-destructive/10 overflow-hidden">
-            <div 
-              className="h-full bg-destructive/40 origin-right rounded-full"
-              style={{
-                animation: `shrinkWidth ${TOAST_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`
-              }}
-            />
-          </div>
-        </div>
-      </div>
+    {/* Permanent Terms of Service link */}
+    <div className="flex gap-[15px] p-5 rounded-form bg-destructive/5 border border-destructive/20 animate-stagger-4">
+      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-[2px]" aria-hidden="true" />
+      <p className="text-sm text-destructive/90 leading-relaxed text-balance">
+        Using a client's payment method to purchase wholesale products violates our{" "}
+        <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-destructive transition-colors font-medium">Terms of Service</button>{" "}
+        and may result in account termination.
+      </p>
     </div>
     
     {agreementError && <p className="text-xs text-destructive text-center">Please agree to the wholesale terms to continue</p>}
@@ -5196,8 +5134,8 @@ const ContactBasicsForm = ({
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-background border border-border z-50">
-              {countryCodes.map((country, index) => (
-                <SelectItem key={`${country.code}-${country.country}-${index}`} value={country.code}>
+              {countryCodes.map((country) => (
+                <SelectItem key={country.iso} value={country.code}>
                   <span className="flex items-center gap-2">
                     <CountryFlag iso={country.iso} />
                     <span>{country.code}</span>
