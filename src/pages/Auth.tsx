@@ -2408,16 +2408,15 @@ const Auth = () => {
             
             {/* Step Indicator */}
             {showStepIndicator && <div 
-              className="flex items-center justify-end sm:justify-center h-[50px] flex-1 sm:flex-none sm:max-w-none touch-pan-y"
+              className="flex items-center justify-center h-[50px] flex-1 touch-pan-y"
               onTouchStart={handleStepSwipeStart}
               onTouchMove={handleStepSwipeMove}
               onTouchEnd={handleStepSwipeEnd}
             >
-              <div className="relative flex items-center justify-center overflow-visible" style={{
-              width: '160px',
+              <div className="relative flex items-center justify-center overflow-visible w-[160px] sm:w-[280px] lg:w-[320px]" style={{
               height: '50px',
-              maskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 25%, white 75%, transparent 100%)'
+              maskImage: 'linear-gradient(to right, transparent 0%, white 15%, white 85%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, white 15%, white 85%, transparent 100%)'
             }}>
                 {/* Sliding track that moves based on current step */}
                 <div className="flex items-center transition-transform duration-500 ease-out" style={{
