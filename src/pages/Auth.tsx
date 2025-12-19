@@ -755,6 +755,7 @@ const Auth = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
   const [highlightField, setHighlightField] = useState<string | null>(null);
+  const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
   // Display total steps - locked during account-type step to prevent indicator jump
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
 
@@ -909,42 +910,45 @@ const Auth = () => {
     }
     
     // Delay to ensure step entrance animation completes before highlighting
-    const timeoutId = setTimeout(() => {
+    let clearHighlightTimer: number | null = null;
+    const timeoutId = window.setTimeout(() => {
       const element = document.querySelector(selector);
-      if (element) {
-        // For input elements, highlight just the input wrapper (the .relative.group div)
-        // For data-field elements, highlight the element itself
-        let highlightTarget: Element;
-        if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
-          // Highlight just the input itself (not the whole field section)
-          highlightTarget = element;
-        } else {
-          // For non-inputs (like data-field buttons), use the element itself
-          highlightTarget = element;
-        }
-        
-        // Scroll into view
-        highlightTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Add highlight class
-        highlightTarget.classList.add('animate-field-highlight');
-        
-        // Focus the input if it's an input element
-        if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
-          element.focus();
-        }
-        
-        // Remove highlight class after animation
-        setTimeout(() => {
-          highlightTarget.classList.remove('animate-field-highlight');
+      if (!element) {
+        setHighlightField(null);
+        return;
+      }
+
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // For wholesale terms (a button), use React state to apply the class
+      // so React re-renders/entrance animations don't clobber the highlight.
+      if (selector === "[data-field='wholesale-terms']") {
+        setHighlightWholesaleTerms(true);
+        clearHighlightTimer = window.setTimeout(() => {
+          setHighlightWholesaleTerms(false);
           setHighlightField(null);
         }, 2000);
-      } else {
-        setHighlightField(null);
+        return;
       }
+
+      // For input-like fields, imperatively add a class to the element itself.
+      const highlightTarget = element as Element;
+      highlightTarget.classList.add("animate-field-highlight");
+
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+        element.focus();
+      }
+
+      clearHighlightTimer = window.setTimeout(() => {
+        highlightTarget.classList.remove("animate-field-highlight");
+        setHighlightField(null);
+      }, 2000);
     }, 600);
-    
-    return () => clearTimeout(timeoutId);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (clearHighlightTimer) window.clearTimeout(clearHighlightTimer);
+    };
   }, [highlightField, isTransitioning]);
 
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
@@ -2762,7 +2766,7 @@ const Auth = () => {
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                   {currentStep === "contact-basics" && <ContactBasicsForm accountType={accountType} firstName={firstName} lastName={lastName} preferredName={preferredName} email={email} phoneNumber={phoneNumber} phoneCountryCode={phoneCountryCode} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onPreferredNameChange={setPreferredName} onEmailChange={setEmail} onPhoneNumberChange={value => setPhoneNumber(formatPhoneNumber(value))} onPhoneCountryCodeChange={setPhoneCountryCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber), firstName.trim() !== "" || lastName.trim() !== "" || email.trim() !== "" || phoneNumber.trim() !== "", showValidationErrors)} />}
-                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} onAutoAdvance={() => {
+                  {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} highlight={highlightWholesaleTerms} onAutoAdvance={() => {
                     // Auto-advance to contact-info step after toast ends
                     const stepNum = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
                     setCompletedSteps(prev => new Set([...prev, stepNum]));
@@ -4276,6 +4280,7 @@ const WholesaleTermsForm = ({
   accountType,
   agreed,
   onAgreeChange,
+  highlight = false,
   onAutoAdvance,
   showValidationErrors = false,
   validationStatus
@@ -4283,6 +4288,7 @@ const WholesaleTermsForm = ({
   accountType: string | null;
   agreed: boolean;
   onAgreeChange: (value: boolean) => void;
+  highlight?: boolean;
   onAutoAdvance?: () => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
@@ -4341,7 +4347,7 @@ const WholesaleTermsForm = ({
       </p>
     </div>
 
-    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
+    <button data-field="wholesale-terms" onClick={() => handleAgreeChange(!agreed)} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", highlight && "animate-field-highlight", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")}>
       <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
         {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </div>
