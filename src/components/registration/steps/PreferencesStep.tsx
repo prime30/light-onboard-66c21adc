@@ -69,7 +69,7 @@ export const PreferencesStep = ({
         </h1>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Birthday (Optional) */}
         <div className="space-y-2.5 animate-stagger-2 group">
           <Label className="text-sm font-medium label-float">
@@ -136,10 +136,10 @@ export const PreferencesStep = ({
         )}
 
         {/* Subscription Preferences */}
-        <div className={cn("space-y-3 p-4 rounded-form bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
+        <div className={cn("space-y-[15px] p-5 rounded-form bg-muted border border-border/50", uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7")}>
           <p className="text-sm font-medium text-foreground">Communication Preferences</p>
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 cursor-pointer group">
+          <div className="space-y-[15px]">
+            <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox 
                 checked={subscribeOrderUpdates} 
                 onCheckedChange={onSubscribeOrderUpdatesChange} 
@@ -153,7 +153,7 @@ export const PreferencesStep = ({
                 <p className="text-xs text-muted-foreground">Receive shipping notifications and order status updates</p>
               </div>
             </label>
-            <label className="flex items-start gap-3 cursor-pointer group">
+            <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox 
                 checked={subscribePromotions} 
                 onCheckedChange={onSubscribePromotionsChange} 
@@ -171,7 +171,7 @@ export const PreferencesStep = ({
         </div>
 
         {/* SMS Consent Notice */}
-        <div className={cn("flex gap-3 pl-4 border-l-2 border-border", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+        <div className={cn("flex gap-[15px] pl-5 border-l-2 border-border", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
           <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground/70 leading-relaxed">
             You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}

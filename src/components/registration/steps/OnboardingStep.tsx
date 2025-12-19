@@ -213,7 +213,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
   const slide = slides[currentSlide];
 
   return (
-    <div className="animate-fade-in space-y-4">
+    <div className="animate-fade-in space-y-5">
       {/* Hero Section */}
       <div
         className="group relative overflow-hidden rounded-3xl bg-foreground h-[320px] md:h-[360px] touch-pan-y"
@@ -260,17 +260,17 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         </div>
 
         {/* Floating decorative elements */}
-        <div className="absolute top-8 right-8 flex gap-2">
+        <div className="absolute top-10 right-10 flex gap-2">
           <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '0s' }} />
           <div className="w-2 h-2 rounded-full bg-background/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
           <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-between p-6 md:p-8">
+        <div className="relative z-10 h-full flex flex-col justify-between p-[25px] md:p-10">
           <div key={currentSlide} className="animate-fade-in">
             {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-6">
+            <div className="inline-flex items-center gap-2 px-[15px] py-1.5 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-5">
               <Sparkles className="w-3 h-3 text-background/80" />
               <span className="text-xs font-medium text-background/80 uppercase tracking-widest">
                 {slide.eyebrow}
@@ -278,7 +278,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
             </div>
 
             {/* Large Typography */}
-            <div className="space-y-1 mb-4">
+            <div className="space-y-1 mb-5">
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-background/60 tracking-tight leading-none">
                 {slide.title}
               </h2>
@@ -293,8 +293,8 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           </div>
 
           {/* Stats Row */}
-          <div ref={statsRef} className="flex items-end justify-between mt-8">
-            <div className="flex gap-6">
+          <div ref={statsRef} className="flex items-end justify-between mt-10">
+            <div className="flex gap-[30px]">
               {stats.map((stat, i) => (
                 <div 
                   key={i} 
@@ -365,7 +365,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       </div>
 
       {/* Trust Badge */}
-      <div className="flex items-center justify-center gap-3 pt-2">
+      <div className="flex items-center justify-center gap-[15px] pt-[10px]">
         <div className="flex -space-x-2">
           {[...Array(4)].map((_, i) => (
             <div 

@@ -43,14 +43,14 @@ export const WholesaleTermsStep = ({
         </h1>
       </div>
 
-      <div className="flex gap-3 pl-4 border-l-2 border-border animate-stagger-2">
+      <div className="flex gap-[15px] pl-5 border-l-2 border-border animate-stagger-2">
         <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-sm text-muted-foreground/70 leading-relaxed">
           As a wholesale member, you get exclusive professional pricing. To keep your account in good standing, please use your own payment method for all purchases.
         </p>
       </div>
 
-      <button data-field="wholesale-terms" onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-5 rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")} aria-pressed={agreed}>
+      <button data-field="wholesale-terms" onClick={() => onAgreeChange(!agreed)} className={cn("w-full p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]", agreed ? "border-foreground bg-foreground/8" : agreementError ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-foreground/30 hover:bg-muted/60")} aria-pressed={agreed}>
         <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0", highlight && "field-highlight", highlightFade && "field-highlight-fade", agreed ? "border-foreground bg-foreground" : agreementError ? "border-destructive/50" : "border-muted-foreground/50")}>
           {agreed && <Check className="w-4 h-4 text-background" strokeWidth={3} aria-hidden="true" />}
         </div>
