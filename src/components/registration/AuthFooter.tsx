@@ -70,7 +70,7 @@ export function AuthFooter({
         footerEnterReady ? "animate-slide-up-fade" : "opacity-0 translate-y-[15px]"
       )}
     >
-      <div className="max-w-[38rem] mx-auto flex flex-col gap-[10px]">
+      <div className="lg:max-w-[38rem] mx-auto flex flex-col gap-[10px]">
         <div
           className={cn("flex", showBackButton ? "gap-[10px]" : "gap-0")}
           style={{ transition: footerTransitionsEnabled ? "gap 300ms ease-out" : "none" }}
