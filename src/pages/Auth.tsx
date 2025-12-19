@@ -2214,7 +2214,7 @@ const Auth = () => {
     // If switching to a different account type and there's existing progress, show confirmation
     if (type && previousType && previousType !== type && hasFormProgress()) {
       toast.custom((t) => (
-        <div className="flex flex-col gap-3 w-full max-w-sm bg-white/90 dark:bg-black/70 backdrop-blur-xl rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col gap-3 w-full max-w-sm bg-white rounded-2xl p-4 border border-border/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
           <div className="space-y-1">
             <p className="font-medium text-foreground">Change account type?</p>
             <p className="text-sm text-muted-foreground">Selecting a new account type will clear your form progress. Do you wish to proceed?</p>
