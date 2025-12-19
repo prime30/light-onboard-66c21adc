@@ -1507,7 +1507,8 @@ const Auth = () => {
         }
         return licenseNumber.trim() !== "";
       case "business-operation":
-        return businessOperationType !== null;
+        // Professional: business operation + license are combined in this step
+        return businessOperationType !== null && licenseNumber.trim() !== "";
       case "business-location":
         return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
       case "school-info":
@@ -1701,23 +1702,18 @@ const Auth = () => {
     }
 
     // Professional flow
-    // Step 2: License
-    if (licenseNumber.trim() === "") {
+    // Step 2: Business Operation + License (combined)
+    const step2Missing: string[] = [];
+    if (businessOperationType === null) step2Missing.push("Operation type");
+    if (licenseNumber.trim() === "") step2Missing.push("License number");
+    if (step2Missing.length > 0) {
       incomplete.push({
         step: 2,
-        name: "License verification",
-        missingFields: ["License number"]
-      });
-    }
-    // Step 3: Business Operation
-    if (businessOperationType === null) {
-      incomplete.push({
-        step: 3,
         name: "Business operation",
-        missingFields: ["Operation type"]
+        missingFields: step2Missing
       });
     }
-    // Step 4: Business Location
+    // Step 3: Business Location
     const proLocationMissing: string[] = [];
     if (businessName.trim() === "") proLocationMissing.push("Business name");
     if (businessAddress.trim() === "") proLocationMissing.push("Address");
@@ -1727,31 +1723,31 @@ const Auth = () => {
     if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
     if (proLocationMissing.length > 0) {
       incomplete.push({
-        step: 4,
+        step: 3,
         name: "Business location",
         missingFields: proLocationMissing
       });
     }
-    // Step 5: Wholesale Terms
+    // Step 4: Wholesale Terms
     if (!wholesaleAgreed) {
       incomplete.push({
-        step: 5,
+        step: 4,
         name: "Wholesale terms",
         missingFields: ["Terms agreement"]
       });
     }
-    // Step 6: Tax Exemption
+    // Step 5: Tax Exemption
     const proTaxMissing: string[] = [];
     if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
     else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
     if (proTaxMissing.length > 0) {
       incomplete.push({
-        step: 6,
+        step: 5,
         name: "Tax exemption",
         missingFields: proTaxMissing
       });
     }
-    // Step 7: Contact Info
+    // Step 6: Contact Info
     const proContactMissing: string[] = [];
     if (firstName.trim() === "") proContactMissing.push("First name");
     if (lastName.trim() === "") proContactMissing.push("Last name");
@@ -1759,7 +1755,7 @@ const Auth = () => {
     // Birthday and social media are optional - don't add to missing
     if (proContactMissing.length > 0) {
       incomplete.push({
-        step: 7,
+        step: 6,
         name: "Contact info",
         missingFields: proContactMissing
       });
@@ -1828,13 +1824,13 @@ const Auth = () => {
       return filled / total * 100;
     }
 
-    // Professional (stylist): accountType (1), license (1), businessOperation (1), 
+    // Professional (stylist): accountType (1), businessOperation+license (2), 
     // business location (6), wholesale (1), tax (1-2), contact (3 required)
     let filled = 0;
-    let total = 14; // Reduced by 2 (birthday and socialMedia now optional)
+    let total = 14; // Same total - fields are just reorganized into fewer steps
     if (accountType) filled++;
-    if (licenseNumber.trim() !== "") filled++;
     if (businessOperationType !== null) filled++;
+    if (licenseNumber.trim() !== "") filled++;
     if (businessName.trim() !== "") filled++;
     if (businessAddress.trim() !== "") filled++;
     if (country !== "") filled++;
@@ -1861,13 +1857,13 @@ const Auth = () => {
       // Auto-advance after grace period - navigate directly to next step
       setTimeout(() => {
         // Update display total steps based on selected type BEFORE transitioning
-        const newTotal = type === "student" ? 4 : type === "professional" ? 7 : 6;
+        const newTotal = type === "student" ? 4 : 6; // Both professional and salon now have 6 steps
         setDisplayTotalSteps(newTotal);
         
         // Mark step 1 as completed
         setCompletedSteps(prev => new Set([...prev, 1]));
         // Calculate next step based on selected type
-        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "license" : "business-location";
+        const nextStep: Step = type === "student" ? "school-info" : type === "professional" ? "business-operation" : "business-location";
         setTransitionDirection("forward");
         setIsTransitioning(true);
         setTimeout(() => {
@@ -1878,19 +1874,10 @@ const Auth = () => {
     }
   };
 
-  // Handle business operation type selection with auto-advance
+  // Handle business operation type selection (no auto-advance - user needs to fill license)
   const handleBusinessOperationTypeSelect = (type: "commission" | "independent") => {
     setBusinessOperationType(type);
-    // Auto-advance after grace period
-    setTimeout(() => {
-      setCompletedSteps(prev => new Set([...prev, 3]));
-      setTransitionDirection("forward");
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep("business-location");
-        setIsTransitioning(false);
-      }, 150);
-    }, 800);
+    // No auto-advance since license input is now part of this step
   };
 
   const handleNext = () => {
@@ -1917,7 +1904,9 @@ const Auth = () => {
         targetStep = "account-type";
         break;
       case "account-type":
-        if (accountType === "student") targetStep = "school-info";else if (accountType === "professional") targetStep = "license";else targetStep = "business-location";
+        if (accountType === "student") targetStep = "school-info";
+        else if (accountType === "professional") targetStep = "business-operation";
+        else targetStep = "business-location";
         break;
       case "business-location":
         targetStep = accountType === "professional" ? "wholesale-terms" : "license";
@@ -1926,9 +1915,11 @@ const Auth = () => {
         targetStep = "wholesale-terms";
         break;
       case "license":
-        targetStep = accountType === "professional" ? "business-operation" : "wholesale-terms";
+        // License step is now only for salon
+        targetStep = "wholesale-terms";
         break;
       case "business-operation":
+        // Professional: business-operation now goes directly to business-location
         targetStep = "business-location";
         break;
       case "wholesale-terms":
@@ -1975,10 +1966,12 @@ const Auth = () => {
         targetStep = "onboarding";
         break;
       case "license":
-        targetStep = accountType === "professional" ? "account-type" : "business-location";
+        // License step now only for salon - goes back to business-location
+        targetStep = "business-location";
         break;
       case "business-operation":
-        targetStep = "license";
+        // Professional: goes back to account-type (license step removed)
+        targetStep = "account-type";
         break;
       case "business-location":
         targetStep = accountType === "professional" ? "business-operation" : "account-type";
@@ -2008,13 +2001,13 @@ const Auth = () => {
   };
   const getTotalSteps = () => {
     // Student: account-type, school-info, wholesale-terms, contact-info = 4 steps
-    // Professional: 7 steps (account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info)
+    // Professional: 6 steps (account-type, business-operation+license, business-location, wholesale-terms, tax-exemption, contact-info)
     // Salon: 6 steps
     // Once account type is selected, use that type's total (even while still on account-type step)
-    // Only show max steps (7) when no account type is selected yet
-    if (!accountType) return 7;
+    // Only show max steps (6) when no account type is selected yet
+    if (!accountType) return 6;
     if (accountType === "student") return 4;
-    if (accountType === "professional") return 7;
+    if (accountType === "professional") return 6;
     return 6;
   };
   const getCurrentStepNumber = () => {
@@ -2027,14 +2020,13 @@ const Auth = () => {
       return 4;
     }
     if (accountType === "professional") {
-      // Professional flow: account-type, license, business-operation, business-location, wholesale-terms, tax-exemption, contact-info
-      if (currentStep === "license") return 2;
-      if (currentStep === "business-operation") return 3;
-      if (currentStep === "business-location") return 4;
-      if (currentStep === "wholesale-terms") return 5;
-      if (currentStep === "tax-exemption") return 6;
-      if (currentStep === "contact-info") return 7;
-      return 7;
+      // Professional flow: account-type, business-operation+license, business-location, wholesale-terms, tax-exemption, contact-info
+      if (currentStep === "business-operation") return 2;
+      if (currentStep === "business-location") return 3;
+      if (currentStep === "wholesale-terms") return 4;
+      if (currentStep === "tax-exemption") return 5;
+      if (currentStep === "contact-info") return 6;
+      return 6;
     }
     // Salon flow
     if (currentStep === "business-location") return 2;
@@ -2617,12 +2609,12 @@ const Auth = () => {
                   }} fontsLoaded={fontsLoaded} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={handleAccountTypeSelect} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseForm accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
-                  {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} onBusinessOperationTypeChange={handleBusinessOperationTypeSelect} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}
+                  {currentStep === "business-operation" && <BusinessOperationForm businessOperationType={businessOperationType} licenseNumber={licenseNumber} licenseProofFiles={licenseProofFiles} onBusinessOperationTypeChange={handleBusinessOperationTypeSelect} onLicenseChange={setLicenseNumber} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null && licenseNumber.trim() !== "", businessOperationType !== null || licenseNumber.trim() !== "", showValidationErrors)} />}
                   {currentStep === "business-location" && <BusinessLocationForm accountType={accountType} businessName={businessName} businessAddress={businessAddress} suiteNumber={suiteNumber} country={country} city={city} state={state} zipCode={zipCode} onBusinessNameChange={setBusinessName} onBusinessAddressChange={setBusinessAddress} onSuiteNumberChange={setSuiteNumber} onCountryChange={setCountry} onCityChange={setCity} onStateChange={setState} onZipCodeChange={setZipCode} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "", businessName.trim() !== "" || businessAddress.trim() !== "" || city.trim() !== "" || zipCode.trim() !== "", showValidationErrors)} />}
                   {currentStep === "school-info" && <SchoolInfoForm schoolName={schoolName} schoolState={schoolState} enrollmentProofFiles={enrollmentProofFiles} onSchoolNameChange={setSchoolName} onSchoolStateChange={setSchoolState} onEnrollmentProofFilesChange={setEnrollmentProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0, schoolName.trim() !== "" || schoolState !== "" || enrollmentProofFiles.length > 0, showValidationErrors)} />}
                   {currentStep === "wholesale-terms" && <WholesaleTermsForm accountType={accountType} agreed={wholesaleAgreed} onAgreeChange={setWholesaleAgreed} onAutoAdvance={() => {
                     // Auto-advance to tax-exemption step after toast ends
-                    const stepNum = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
+                    const stepNum = accountType === "professional" ? 4 : accountType === "student" ? 3 : 4;
                     setCompletedSteps(prev => new Set([...prev, stepNum]));
                     setTransitionDirection("forward");
                     setIsTransitioning(true);
@@ -2633,7 +2625,7 @@ const Auth = () => {
                   }} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(wholesaleAgreed, false, showValidationErrors)} />}
                   {currentStep === "tax-exemption" && <TaxExemptionForm accountType={accountType} hasTaxExemption={hasTaxExemption} taxExemptFile={taxExemptFile} onTaxExemptionChange={setHasTaxExemption} onTaxExemptFileChange={setTaxExemptFile} onAutoAdvance={() => {
                     // Auto-advance to contact-info step when No is selected
-                    const stepNum = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
+                    const stepNum = accountType === "professional" ? 5 : accountType === "student" ? 4 : 5;
                     setCompletedSteps(prev => new Set([...prev, stepNum]));
                     setTransitionDirection("forward");
                     setIsTransitioning(true);
@@ -3608,25 +3600,35 @@ const LicenseForm = ({
     </div>;
 };
 
-// Business Operation Form (Step 3 for professionals)
+// Business Operation Form (Step 2 for professionals - now includes license input)
 const BusinessOperationForm = ({
   businessOperationType,
+  licenseNumber,
+  licenseProofFiles,
   onBusinessOperationTypeChange,
+  onLicenseChange,
+  onLicenseProofFilesChange,
   showValidationErrors = false,
   validationStatus
 }: {
   businessOperationType: "commission" | "independent" | null;
+  licenseNumber: string;
+  licenseProofFiles: File[];
   onBusinessOperationTypeChange: (value: "commission" | "independent") => void;
+  onLicenseChange: (value: string) => void;
+  onLicenseProofFilesChange: (files: File[]) => void;
   showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }) => {
   const selectionError = showValidationErrors && businessOperationType === null;
+  const licenseError = showValidationErrors && businessOperationType !== null && licenseNumber.trim() === "";
+  
   return <div className="space-y-5 sm:space-y-[30px]">
     <div className="space-y-[10px] text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
         <StepValidationIcon status={validationStatus} />
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-          Step 3
+          Step 2
         </span>
       </div>
       <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -3649,7 +3651,6 @@ const BusinessOperationForm = ({
               <p className="text-sm text-muted-foreground/70">I work under a salon and receive commission</p>
             </div>
           </div>
-          {/* Illustration */}
           <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "commission" ? "bg-foreground/10" : "bg-muted")}>
             <Building2 className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "commission" ? "text-foreground" : "text-muted-foreground/60")} />
           </div>
@@ -3667,7 +3668,6 @@ const BusinessOperationForm = ({
               <p className="text-sm text-muted-foreground/70">I operate my own business or rent a chair</p>
             </div>
           </div>
-          {/* Illustration */}
           <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "independent" ? "bg-foreground/10" : "bg-muted")}>
             <User className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "independent" ? "text-foreground" : "text-muted-foreground/60")} />
           </div>
@@ -3676,6 +3676,57 @@ const BusinessOperationForm = ({
     </div>
 
     {selectionError && <p className="text-xs text-destructive text-center">Please select how you operate your business</p>}
+
+    {/* License input - appears with animation when business type is selected */}
+    <div className={cn(
+      "grid transition-all duration-500",
+      businessOperationType !== null ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+    )} style={{ transitionTimingFunction: businessOperationType !== null ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+      <div className="overflow-hidden">
+        <div className={cn("space-y-4 pt-2", businessOperationType !== null && "animate-fade-in")}>
+          {/* Info note */}
+          <div className="flex gap-3 pl-4 border-l-2 border-border">
+            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground/70 leading-relaxed">
+              Please enter your license exactly as it appears from the state.
+            </p>
+          </div>
+
+          {/* License Number Input */}
+          <div className="space-y-2.5">
+            <Label htmlFor="pro-license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
+              License number*
+            </Label>
+            <div className="relative group input-glow rounded-[15px]">
+              <Input 
+                id="pro-license" 
+                type="text" 
+                placeholder="Enter your license number" 
+                value={licenseNumber} 
+                onChange={e => onLicenseChange(e.target.value)} 
+                className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
+              />
+            </div>
+            {licenseError && <p className="text-xs text-destructive">License number is required</p>}
+          </div>
+
+          {/* License Photo Upload - shows after 3+ characters */}
+          <div className={cn(
+            "grid transition-all duration-400",
+            licenseNumber.trim().length >= 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          )} style={{ transitionTimingFunction: licenseNumber.trim().length >= 3 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+            <div className="overflow-hidden">
+              <div className={cn("space-y-2.5", licenseNumber.trim().length >= 3 && "animate-haptic-pop")}>
+                <Label className="text-sm font-medium">
+                  Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>;
 };
 
@@ -4120,8 +4171,8 @@ const WholesaleTermsForm = ({
   const toastRef = useRef<HTMLDivElement>(null);
   const agreementError = showValidationErrors && !agreed;
   const isStudent = accountType === "student";
-  // Step number varies by account type: professional=5, salon=4, student=3
-  const stepNumber = accountType === "professional" ? 5 : accountType === "student" ? 3 : 4;
+  // Step number varies by account type: professional=4, salon=4, student=3
+  const stepNumber = accountType === "professional" ? 4 : accountType === "student" ? 3 : 4;
   
   const TOAST_DURATION = 5000; // 5 seconds
 
@@ -4295,8 +4346,8 @@ const TaxExemptionForm = ({
   const [toastKey, setToastKey] = useState(0);
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
-  // Step number varies by account type: professional=6, salon=5
-  const stepNumber = accountType === "professional" ? 6 : 5;
+  // Step number varies by account type: professional=5, salon=5
+  const stepNumber = accountType === "professional" ? 5 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
   
   const TOAST_DURATION = 5000; // 5 seconds
@@ -4522,8 +4573,8 @@ const ContactInfoForm = ({
   // Birthday and social media are optional - no validation errors
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  // Step number varies by account type: professional=7, salon=6, student=4
-  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
+  // Step number varies by account type: professional=6, salon=6, student=4
+  const stepNumber = accountType === "professional" ? 6 : accountType === "student" ? 5 : 6;
   return <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
       <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
