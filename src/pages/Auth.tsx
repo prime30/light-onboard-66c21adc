@@ -3640,93 +3640,166 @@ const BusinessOperationForm = ({
     </div>
 
     <div className="space-y-3 animate-stagger-2">
-      <button type="button" onClick={() => onBusinessOperationTypeChange("commission")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "commission" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
-              {businessOperationType === "commission" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
+      {/* Commission Stylist Card */}
+      <div className={cn(
+        "w-full rounded-[15px] border-2 text-left transition-all duration-300",
+        businessOperationType === "commission" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60",
+        selectionError && "border-destructive/50"
+      )}>
+        <button 
+          type="button" 
+          onClick={() => onBusinessOperationTypeChange("commission")} 
+          className="w-full p-5 text-left hover:-translate-y-0.5 active:scale-[0.99] transition-transform duration-300"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "commission" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+                {businessOperationType === "commission" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
+              </div>
+              <div>
+                <p className="font-medium text-foreground">I am a commission stylist</p>
+                <p className="text-sm text-muted-foreground/70">I work under a salon and receive commission</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-foreground">I am a commission stylist</p>
-              <p className="text-sm text-muted-foreground/70">I work under a salon and receive commission</p>
-            </div>
-          </div>
-          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "commission" ? "bg-foreground/10" : "bg-muted")}>
-            <Building2 className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "commission" ? "text-foreground" : "text-muted-foreground/60")} />
-          </div>
-        </div>
-      </button>
-
-      <button type="button" onClick={() => onBusinessOperationTypeChange("independent")} className={cn("w-full p-5 rounded-[15px] border-2 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]", businessOperationType === "independent" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60", selectionError && "border-destructive/50")}>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
-              {businessOperationType === "independent" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
-            </div>
-            <div>
-              <p className="font-medium text-foreground">I am an independent stylist</p>
-              <p className="text-sm text-muted-foreground/70">I operate my own business or rent a chair</p>
+            <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "commission" ? "bg-foreground/10" : "bg-muted")}>
+              <Building2 className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "commission" ? "text-foreground" : "text-muted-foreground/60")} />
             </div>
           </div>
-          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "independent" ? "bg-foreground/10" : "bg-muted")}>
-            <User className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "independent" ? "text-foreground" : "text-muted-foreground/60")} />
-          </div>
-        </div>
-      </button>
-    </div>
+        </button>
+        
+        {/* License input inside commission card */}
+        <div className={cn(
+          "grid transition-all duration-500",
+          businessOperationType === "commission" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )} style={{ transitionTimingFunction: businessOperationType === "commission" ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+          <div className="overflow-hidden">
+            <div className={cn("space-y-4 px-5 pb-5 pt-0", businessOperationType === "commission" && "animate-fade-in")}>
+              {/* Info note */}
+              <div className="flex gap-3 pl-4 border-l-2 border-foreground/20">
+                <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground/70 leading-relaxed">
+                  Please enter your license exactly as it appears from the state.
+                </p>
+              </div>
 
-    {selectionError && <p className="text-xs text-destructive text-center">Please select how you operate your business</p>}
-
-    {/* License input - appears with animation when business type is selected */}
-    <div className={cn(
-      "grid transition-all duration-500",
-      businessOperationType !== null ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-    )} style={{ transitionTimingFunction: businessOperationType !== null ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
-      <div className="overflow-hidden">
-        <div className={cn("space-y-4 pt-2", businessOperationType !== null && "animate-fade-in")}>
-          {/* Info note */}
-          <div className="flex gap-3 pl-4 border-l-2 border-border">
-            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground/70 leading-relaxed">
-              Please enter your license exactly as it appears from the state.
-            </p>
-          </div>
-
-          {/* License Number Input */}
-          <div className="space-y-2.5">
-            <Label htmlFor="pro-license" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
-              License number*
-            </Label>
-            <div className="relative group input-glow rounded-[15px]">
-              <Input 
-                id="pro-license" 
-                type="text" 
-                placeholder="Enter your license number" 
-                value={licenseNumber} 
-                onChange={e => onLicenseChange(e.target.value)} 
-                className={cn("h-[55px] py-0 rounded-[15px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
-              />
-            </div>
-            {licenseError && <p className="text-xs text-destructive">License number is required</p>}
-          </div>
-
-          {/* License Photo Upload - shows after 3+ characters */}
-          <div className={cn(
-            "grid transition-all duration-400",
-            licenseNumber.trim().length >= 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          )} style={{ transitionTimingFunction: licenseNumber.trim().length >= 3 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
-            <div className="overflow-hidden">
-              <div className={cn("space-y-2.5", licenseNumber.trim().length >= 3 && "animate-haptic-pop")}>
-                <Label className="text-sm font-medium">
-                  Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+              {/* License Number Input */}
+              <div className="space-y-2.5">
+                <Label htmlFor="pro-license-commission" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
+                  License number*
                 </Label>
-                <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+                <div className="relative group input-glow rounded-[15px]">
+                  <Input 
+                    id="pro-license-commission" 
+                    type="text" 
+                    placeholder="Enter your license number" 
+                    value={licenseNumber} 
+                    onChange={e => onLicenseChange(e.target.value)} 
+                    className={cn("h-[55px] py-0 rounded-[15px] bg-background border-border/50 focus:border-foreground/30 transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
+                  />
+                </div>
+                {licenseError && <p className="text-xs text-destructive">License number is required</p>}
+              </div>
+
+              {/* License Photo Upload - shows after 3+ characters */}
+              <div className={cn(
+                "grid transition-all duration-400",
+                licenseNumber.trim().length >= 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              )} style={{ transitionTimingFunction: licenseNumber.trim().length >= 3 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+                <div className="overflow-hidden">
+                  <div className={cn("space-y-2.5", licenseNumber.trim().length >= 3 && "animate-haptic-pop")}>
+                    <Label className="text-sm font-medium">
+                      Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
+                    <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Independent Stylist Card */}
+      <div className={cn(
+        "w-full rounded-[15px] border-2 text-left transition-all duration-300",
+        businessOperationType === "independent" ? "border-foreground bg-foreground/8" : "border-border/50 hover:border-foreground/30 hover:bg-muted/60",
+        selectionError && "border-destructive/50"
+      )}>
+        <button 
+          type="button" 
+          onClick={() => onBusinessOperationTypeChange("independent")} 
+          className="w-full p-5 text-left hover:-translate-y-0.5 active:scale-[0.99] transition-transform duration-300"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className={cn("w-5 h-5 aspect-square rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0 mt-0.5", businessOperationType === "independent" ? "border-foreground bg-foreground" : "border-muted-foreground/40")}>
+                {businessOperationType === "independent" && <div className="w-2 h-2 aspect-square rounded-full bg-background" />}
+              </div>
+              <div>
+                <p className="font-medium text-foreground">I am an independent stylist</p>
+                <p className="text-sm text-muted-foreground/70">I operate my own business or rent a chair</p>
+              </div>
+            </div>
+            <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center transition-all duration-300 flex-shrink-0", businessOperationType === "independent" ? "bg-foreground/10" : "bg-muted")}>
+              <User className={cn("w-6 h-6 transition-colors duration-300", businessOperationType === "independent" ? "text-foreground" : "text-muted-foreground/60")} />
+            </div>
+          </div>
+        </button>
+        
+        {/* License input inside independent card */}
+        <div className={cn(
+          "grid transition-all duration-500",
+          businessOperationType === "independent" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )} style={{ transitionTimingFunction: businessOperationType === "independent" ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+          <div className="overflow-hidden">
+            <div className={cn("space-y-4 px-5 pb-5 pt-0", businessOperationType === "independent" && "animate-fade-in")}>
+              {/* Info note */}
+              <div className="flex gap-3 pl-4 border-l-2 border-foreground/20">
+                <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground/70 leading-relaxed">
+                  Please enter your license exactly as it appears from the state.
+                </p>
+              </div>
+
+              {/* License Number Input */}
+              <div className="space-y-2.5">
+                <Label htmlFor="pro-license-independent" className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}>
+                  License number*
+                </Label>
+                <div className="relative group input-glow rounded-[15px]">
+                  <Input 
+                    id="pro-license-independent" 
+                    type="text" 
+                    placeholder="Enter your license number" 
+                    value={licenseNumber} 
+                    onChange={e => onLicenseChange(e.target.value)} 
+                    className={cn("h-[55px] py-0 rounded-[15px] bg-background border-border/50 focus:border-foreground/30 transition-all duration-300 text-base focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]", licenseError && "border-destructive/50 bg-destructive/5")} 
+                  />
+                </div>
+                {licenseError && <p className="text-xs text-destructive">License number is required</p>}
+              </div>
+
+              {/* License Photo Upload - shows after 3+ characters */}
+              <div className={cn(
+                "grid transition-all duration-400",
+                licenseNumber.trim().length >= 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              )} style={{ transitionTimingFunction: licenseNumber.trim().length >= 3 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out' }}>
+                <div className="overflow-hidden">
+                  <div className={cn("space-y-2.5", licenseNumber.trim().length >= 3 && "animate-haptic-pop")}>
+                    <Label className="text-sm font-medium">
+                      Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
+                    <MultiFileUpload files={licenseProofFiles} onFilesChange={onLicenseProofFilesChange} placeholder="Upload photos of your license" maxFiles={3} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    {selectionError && <p className="text-xs text-destructive text-center">Please select how you operate your business</p>}
   </div>;
 };
 
