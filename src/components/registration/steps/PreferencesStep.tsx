@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,6 +52,27 @@ export const PreferencesStep = ({
 }: PreferencesStepProps) => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  
+  // SMS notice visibility with exit animation
+  const hasPreferenceSelected = subscribeOrderUpdates || subscribePromotions;
+  const [showSmsNotice, setShowSmsNotice] = useState(hasPreferenceSelected);
+  const [isExiting, setIsExiting] = useState(false);
+  
+  useEffect(() => {
+    if (hasPreferenceSelected) {
+      setIsExiting(false);
+      setShowSmsNotice(true);
+    } else if (showSmsNotice) {
+      // Start exit animation
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setShowSmsNotice(false);
+        setIsExiting(false);
+      }, 200); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [hasPreferenceSelected]);
+  
   // Step number varies by account type: professional=8, salon=7, student=6
   const stepNumber = accountType === "professional" ? 8 : accountType === "student" ? 6 : 7;
   
@@ -171,8 +192,14 @@ export const PreferencesStep = ({
         </div>
 
         {/* SMS Consent Notice - only shows when a preference is selected */}
-        {(subscribeOrderUpdates || subscribePromotions) && (
-          <div className={cn("flex gap-[15px] pl-5 border-l-2 border-border animate-in fade-in slide-in-from-bottom-2 duration-300", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+        {showSmsNotice && (
+          <div className={cn(
+            "flex gap-[15px] pl-5 border-l-2 border-border transition-all duration-200",
+            isExiting 
+              ? "opacity-0 translate-y-2" 
+              : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
+            uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6"
+          )}>
             <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground/70 leading-relaxed">
               You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
