@@ -1451,47 +1451,31 @@ const Auth = () => {
             "sm:hidden absolute inset-0 z-[90] flex justify-center bg-background/80 backdrop-blur-sm animate-fade-in",
             footerVisible ? "items-end pb-[130px]" : "items-center"
           )}>
-            <div className="flex flex-col items-center gap-3">
-              {/* Animated circle */}
-              <div className="relative w-16 h-16">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
-                  {/* Background circle */}
-                  <circle
-                    cx="32"
-                    cy="32"
-                    r="28"
-                    fill="none"
-                    stroke="hsl(var(--muted-foreground) / 0.2)"
-                    strokeWidth="3"
-                  />
-                  {/* Progress circle */}
-                  <circle
-                    cx="32"
-                    cy="32"
-                    r="28"
-                    fill="none"
-                    stroke={saveProgressText === "saved" ? "rgb(16 185 129)" : "hsl(var(--muted-foreground))"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray="175.9"
-                    strokeDashoffset="175.9"
-                    className={cn(
-                      saveProgressText === "saving" && "animate-save-progress-large",
-                    )}
-                    style={{
-                      strokeDashoffset: saveProgressText === "saved" ? 0 : undefined,
-                      transition: saveProgressText === "saved" ? "stroke 0.3s ease-out" : undefined,
-                    }}
-                  />
-                </svg>
-                {/* Center icon */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {saveProgressText === "saved" ? (
-                    <Check className="w-6 h-6 text-emerald-600 animate-scale-in" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-muted-foreground/20" />
-                  )}
-                </div>
+            <div className="flex flex-col items-center gap-4">
+              {/* Rippling circle loader */}
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                {saveProgressText === "saving" ? (
+                  <>
+                    <div 
+                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
+                      style={{ animation: 'ripple 2s ease-out infinite' }}
+                    />
+                    <div 
+                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
+                      style={{ animation: 'ripple 2s ease-out infinite 0.6s' }}
+                    />
+                    <div 
+                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
+                      style={{ animation: 'ripple 2s ease-out infinite 1.2s' }}
+                    />
+                    <div className="w-4 h-4 rounded-full bg-muted-foreground/60 animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <div className="absolute inset-0 rounded-full border-2 border-emerald-500/30 animate-scale-in" />
+                    <Check className="w-7 h-7 text-emerald-600 animate-scale-in" />
+                  </>
+                )}
               </div>
               {/* Text */}
               <span className={cn(
