@@ -54,6 +54,7 @@ export default {
           green: "hsl(var(--status-green))",
           red: "hsl(var(--status-red))",
         },
+        success: "hsl(var(--success))",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
