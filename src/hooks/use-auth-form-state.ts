@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { toast } from "sonner";
 import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
 import { isValidEmail } from "@/lib/validations/form-utils";
 import { isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
@@ -427,15 +426,8 @@ export function useAuthFormState(): FormState & FormActions {
             targetStep = "summary";
           }
           
-          // Set pending restore step and show toast
+          // Set pending restore step (animation communicates this to user)
           setPendingRestoreStep(targetStep);
-          
-          setTimeout(() => {
-            toast("Welcome back!", {
-              description: "Your progress has been restored.",
-              duration: 4000,
-            });
-          }, 300);
         }
       }
     } catch (e) {
