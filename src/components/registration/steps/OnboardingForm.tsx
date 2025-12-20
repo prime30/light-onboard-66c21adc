@@ -377,11 +377,22 @@ export const OnboardingForm = ({
       {isRestoring && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-2xl" />
-          <div className="relative flex flex-col items-center gap-3 animate-fade-in">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '200ms' }} />
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '400ms' }} />
+          <div className="relative flex flex-col items-center gap-4 animate-fade-in">
+            {/* Rippling circle loader */}
+            <div className="relative w-14 h-14 flex items-center justify-center">
+              <div 
+                className="absolute inset-0 rounded-full border-2 border-primary/40"
+                style={{ animation: 'ripple 2s ease-out infinite' }}
+              />
+              <div 
+                className="absolute inset-0 rounded-full border-2 border-primary/40"
+                style={{ animation: 'ripple 2s ease-out infinite 0.6s' }}
+              />
+              <div 
+                className="absolute inset-0 rounded-full border-2 border-primary/40"
+                style={{ animation: 'ripple 2s ease-out infinite 1.2s' }}
+              />
+              <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
             </div>
             <p className="text-sm font-medium text-foreground/80">Restoring your progress...</p>
           </div>
