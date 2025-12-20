@@ -1,4 +1,22 @@
-import { Check, Sparkles, ShoppingBag, Heart } from "lucide-react";
+import { Check, Sparkles, ShoppingBag, Heart, Percent, Truck, Gift } from "lucide-react";
+
+const benefits = [
+  {
+    icon: Percent,
+    title: "Wholesale Pricing",
+    description: "Up to 50% off retail prices",
+  },
+  {
+    icon: Gift,
+    title: "Rewards on Every Order",
+    description: "Earn points toward free products",
+  },
+  {
+    icon: Truck,
+    title: "Free 2-Day Shipping",
+    description: "On orders over $250",
+  },
+];
 
 export const SuccessStep = () => {
   return (
@@ -36,6 +54,30 @@ export const SuccessStep = () => {
       <p className="text-muted-foreground leading-relaxed mb-8">
         Your account has been created successfully. You can now start shopping with your professional perks.
       </p>
+
+      {/* Benefits Summary Card */}
+      <div className="p-5 rounded-lg bg-gradient-to-br from-muted to-accent/10 border border-border mb-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+          Your Pro Benefits
+        </p>
+        <div className="space-y-3">
+          {benefits.map((benefit, index) => (
+            <div 
+              key={benefit.title}
+              className="flex items-center gap-3 text-left animate-fade-in"
+              style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+            >
+              <div className="w-9 h-9 rounded-lg bg-background shadow-soft flex items-center justify-center shrink-0">
+                <benefit.icon className="w-4 h-4 text-accent" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{benefit.title}</p>
+                <p className="text-xs text-muted-foreground">{benefit.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Visual card preview */}
       <div className="p-5 rounded-lg bg-gradient-to-br from-muted to-accent/10 border border-border">
