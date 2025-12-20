@@ -183,6 +183,9 @@
     --status-amber: 38 92% 50%;
     --status-green: 142 71% 45%;
     --status-red: 0 84% 60%;
+    
+    /* Success color for form validation */
+    --success: 142 71% 45%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;

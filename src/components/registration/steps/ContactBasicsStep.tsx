@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { ValidatedInput } from "@/components/ui/validated-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
@@ -177,12 +178,13 @@ export const ContactBasicsStep = ({
                 emailError ? "text-destructive" : "text-muted-foreground"
               )} />
             </div>
-            <Input 
+            <ValidatedInput 
               id="email" 
               type="email" 
               placeholder="your@email.com" 
               value={email} 
               onChange={e => onEmailChange(e.target.value)} 
+              validationRule="email"
               className={cn(
                 "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                 emailError && "border-destructive/50 bg-destructive/5"
@@ -236,12 +238,13 @@ export const ContactBasicsStep = ({
                   phoneError ? "text-destructive" : "text-muted-foreground"
                 )} />
               </div>
-              <Input 
+              <ValidatedInput 
                 id="phoneNumber" 
                 type="tel" 
                 placeholder="(555) 123-4567" 
                 value={phoneNumber} 
                 onChange={e => onPhoneNumberChange(e.target.value)} 
+                validationRule="phone"
               className={cn(
                   "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
                   phoneError && "border-destructive/50 bg-destructive/5"
