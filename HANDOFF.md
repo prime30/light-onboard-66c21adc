@@ -130,7 +130,10 @@ Three account types with different step sequences:
 - ✅ Multi-step registration flow with 3 account types
 - ✅ Form validation with Zod schemas
 - ✅ Step navigation (next/back/jump to step)
-- ✅ Form persistence to sessionStorage
+- ✅ Form persistence to sessionStorage with restore flow
+  - Shows onboarding screen first with toast "Welcome back!"
+  - Animates to first incomplete step after toast dismisses
+  - Rippling circle loading indicator during restore
 - ✅ Supabase sign up / sign in
 - ✅ Password reset flow
 - ✅ Mobile-responsive design with tablet breakpoints
@@ -138,6 +141,7 @@ Three account types with different step sequences:
 - ✅ File upload with image compression
 - ✅ File preview thumbnails with lightbox zoom
 - ✅ Upload progress indicator on submit button
+- ✅ Save progress animation (rippling circles) on modal close
 - ✅ Smooth footer gradient transition on scroll
 - ✅ Font loading detection with skeleton states
 - ✅ **Profiles table with RLS**
