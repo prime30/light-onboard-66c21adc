@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
 import { isValidEmail } from "@/lib/validations/form-utils";
 import { isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
+import { getStepOrder } from "@/hooks/use-step-navigation";
 
 // Session storage key for form persistence
 const STORAGE_KEY = "auth_form_progress";
@@ -120,6 +122,9 @@ export interface FormActions {
   setCompletedSteps: (value: Set<number> | ((prev: Set<number>) => Set<number>)) => void;
   resetForm: () => void;
   hasFormProgress: () => boolean;
+  // Restore flow
+  pendingRestoreStep: Step | null;
+  triggerRestoreTransition: () => void;
 }
 
 // Preserved state refs for mode switching
@@ -321,6 +326,9 @@ export function useAuthFormState(): FormState & FormActions {
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
+  // Restore flow state - track the step we should animate to after showing onboarding
+  const [pendingRestoreStep, setPendingRestoreStep] = useState<Step | null>(null);
+  
   // Mode switch state preservation refs
   const signupStateRef = useRef<SignupState | null>(null);
   const signinStateRef = useRef<SigninState | null>(null);
@@ -337,8 +345,17 @@ export function useAuthFormState(): FormState & FormActions {
       const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
+        
+        // Check if there's meaningful progress to restore
+        const hasProgress = data.accountType || data.firstName || data.lastName || 
+          data.email || data.businessName || data.licenseNumber;
+        
+        if (!hasProgress) return;
+        
+        // Always start on onboarding when restoring
+        setCurrentStep("onboarding");
+        
         if (data.mode) setMode(data.mode);
-        if (data.currentStep && data.currentStep !== "success") setCurrentStep(data.currentStep);
         if (data.accountType) setAccountType(data.accountType);
         if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
         if (data.state) setState(data.state);
@@ -390,6 +407,36 @@ export function useAuthFormState(): FormState & FormActions {
           wholesaleAgreed: data.wholesaleAgreed || false,
         });
         setCompletedSteps(recalculatedSteps);
+        
+        // Calculate the first incomplete step to navigate to
+        if (data.accountType) {
+          const stepOrder = getStepOrder(data.accountType as AccountType);
+          // Find first incomplete step (skip account-type since that's step 1 which is complete if we have accountType)
+          let targetStep: Step = "account-type";
+          
+          for (let i = 0; i < stepOrder.length; i++) {
+            const stepNum = i + 1;
+            if (!recalculatedSteps.has(stepNum)) {
+              targetStep = stepOrder[i];
+              break;
+            }
+          }
+          
+          // If all steps are complete, go to summary
+          if (recalculatedSteps.size >= stepOrder.length - 1) {
+            targetStep = "summary";
+          }
+          
+          // Set pending restore step and show toast
+          setPendingRestoreStep(targetStep);
+          
+          setTimeout(() => {
+            toast("Welcome back!", {
+              description: "Your progress has been restored.",
+              duration: 4000,
+            });
+          }, 300);
+        }
       }
     } catch (e) {
       console.warn("Failed to load form progress:", e);
@@ -500,6 +547,14 @@ export function useAuthFormState(): FormState & FormActions {
     );
   }, [firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps]);
   
+  // Trigger restore transition - navigates to pending step and clears it
+  const triggerRestoreTransition = useCallback(() => {
+    if (pendingRestoreStep) {
+      setCurrentStep(pendingRestoreStep);
+      setPendingRestoreStep(null);
+    }
+  }, [pendingRestoreStep]);
+  
   return {
     // State
     mode,
@@ -592,5 +647,9 @@ export function useAuthFormState(): FormState & FormActions {
     setCompletedSteps,
     resetForm,
     hasFormProgress,
+    
+    // Restore flow
+    pendingRestoreStep,
+    triggerRestoreTransition,
   };
 }

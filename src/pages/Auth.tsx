@@ -148,6 +148,8 @@ const Auth = () => {
     completedSteps, setCompletedSteps,
     resetForm,
     hasFormProgress,
+    pendingRestoreStep,
+    triggerRestoreTransition,
   } = formState;
 
   // Form validation from dedicated hook
@@ -655,6 +657,19 @@ const Auth = () => {
   useEffect(() => {
     setHasScrolled(false);
   }, [currentStep]);
+
+  // Handle restore transition - after showing onboarding with toast, animate to first incomplete step
+  useEffect(() => {
+    if (pendingRestoreStep && currentStep === "onboarding") {
+      // Wait for onboarding to render and toast to show, then animate to target step
+      const timer = setTimeout(() => {
+        setTransitionDirection("forward");
+        triggerRestoreTransition();
+      }, 1200); // Give time for onboarding to show and toast to appear
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pendingRestoreStep, currentStep, triggerRestoreTransition]);
 
   // Safari-compatible viewport height fix
   useEffect(() => {
