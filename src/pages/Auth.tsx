@@ -1845,7 +1845,7 @@ const Auth = () => {
                     setMode("signin");
                   }} onStepClick={() => {
                     setShimmerKey(k => k + 1);
-                  }} fontsLoaded={fontsLoaded} />}
+                  }} fontsLoaded={fontsLoaded} isRestoring={!!pendingRestoreStep} />}
                   {currentStep === "account-type" && <AccountTypeForm selectedType={accountType} onSelect={handleAccountTypeSelect} validationStatus={getStepValidationStatus(accountType !== null, true, showValidationErrors)} />}
                   {currentStep === "license" && <LicenseStep accountType={accountType} licenseNumber={licenseNumber} salonSize={salonSize} salonStructure={salonStructure} licenseFile={licenseFile} licenseProofFiles={licenseProofFiles} onLicenseChange={setLicenseNumber} onSalonSizeChange={setSalonSize} onSalonStructureChange={setSalonStructure} onLicenseFileChange={setLicenseFile} onLicenseProofFilesChange={setLicenseProofFiles} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(accountType === "salon" ? licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "" : licenseNumber.trim() !== "", licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "", showValidationErrors)} />}
                   {currentStep === "business-operation" && <BusinessOperationStep businessOperationType={businessOperationType} onBusinessOperationTypeChange={handleBusinessOperationTypeSelect} showValidationErrors={showValidationErrors} validationStatus={getStepValidationStatus(businessOperationType !== null, false, showValidationErrors)} />}

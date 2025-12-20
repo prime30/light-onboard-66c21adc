@@ -348,13 +348,15 @@ interface OnboardingFormProps {
   onSignIn: () => void;
   onStepClick?: () => void;
   fontsLoaded?: boolean;
+  isRestoring?: boolean;
 }
 
 export const OnboardingForm = ({
   onContinue,
   onSignIn,
   onStepClick,
-  fontsLoaded = true
+  fontsLoaded = true,
+  isRestoring = false
 }: OnboardingFormProps) => {
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -370,7 +372,21 @@ export const OnboardingForm = ({
   }, []);
 
   return (
-    <div className="space-y-3 lg:space-y-8">
+    <div className="space-y-3 lg:space-y-8 relative">
+      {/* Restoring progress indicator */}
+      {isRestoring && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-2xl" />
+          <div className="relative flex flex-col items-center gap-3 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '200ms' }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '400ms' }} />
+            </div>
+            <p className="text-sm font-medium text-foreground/80">Restoring your progress...</p>
+          </div>
+        </div>
+      )}
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
       <div className="hidden lg:block text-center space-y-3 animate-stagger-1">
