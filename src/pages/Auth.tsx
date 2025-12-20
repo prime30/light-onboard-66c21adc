@@ -661,11 +661,11 @@ const Auth = () => {
   // Handle restore transition - after showing onboarding with toast, animate to first incomplete step
   useEffect(() => {
     if (pendingRestoreStep && currentStep === "onboarding") {
-      // Wait for onboarding to render and toast to show, then animate to target step
+      // Wait for toast to finish (4000ms duration) plus grace period before transitioning
       const timer = setTimeout(() => {
         setTransitionDirection("forward");
         triggerRestoreTransition();
-      }, 1200); // Give time for onboarding to show and toast to appear
+      }, 4800); // Toast duration (4000ms) + grace period (800ms)
       
       return () => clearTimeout(timer);
     }
