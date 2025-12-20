@@ -170,16 +170,18 @@ export const PreferencesStep = ({
           </div>
         </div>
 
-        {/* SMS Consent Notice */}
-        <div className={cn("flex gap-[15px] pl-5 border-l-2 border-border", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
-          <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground/70 leading-relaxed">
-            You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
-            <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
-            {" & "}
-            <button type="button" onClick={() => setShowPrivacy(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
-          </p>
-        </div>
+        {/* SMS Consent Notice - only shows when a preference is selected */}
+        {(subscribeOrderUpdates || subscribePromotions) && (
+          <div className={cn("flex gap-[15px] pl-5 border-l-2 border-border animate-in fade-in slide-in-from-bottom-2 duration-300", uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6")}>
+            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              You may receive text messages about orders, promos, and updates. Msg & data rates may apply. Reply STOP to cancel. View our{" "}
+              <button type="button" onClick={() => setShowTerms(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Terms</button>
+              {" & "}
+              <button type="button" onClick={() => setShowPrivacy(true)} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</button>.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Terms of Service Modal */}
