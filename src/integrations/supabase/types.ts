@@ -14,7 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          account_type: string | null
+          application_status: string | null
+          birthday_day: string | null
+          birthday_month: string | null
+          business_address: string | null
+          business_name: string | null
+          business_operation_type: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          enrollment_proof_paths: string[] | null
+          first_name: string | null
+          has_tax_exemption: boolean | null
+          id: string
+          last_name: string | null
+          license_document_path: string | null
+          license_number: string | null
+          license_proof_paths: string[] | null
+          phone_country_code: string | null
+          phone_number: string | null
+          preferred_name: string | null
+          salon_size: string | null
+          salon_structure: string | null
+          school_name: string | null
+          school_state: string | null
+          social_media_handle: string | null
+          state: string | null
+          subscribe_order_updates: boolean | null
+          subscribe_promotions: boolean | null
+          suite_number: string | null
+          tax_exempt_document_path: string | null
+          updated_at: string | null
+          wholesale_agreed: boolean | null
+          zip_code: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          application_status?: string | null
+          birthday_day?: string | null
+          birthday_month?: string | null
+          business_address?: string | null
+          business_name?: string | null
+          business_operation_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          enrollment_proof_paths?: string[] | null
+          first_name?: string | null
+          has_tax_exemption?: boolean | null
+          id: string
+          last_name?: string | null
+          license_document_path?: string | null
+          license_number?: string | null
+          license_proof_paths?: string[] | null
+          phone_country_code?: string | null
+          phone_number?: string | null
+          preferred_name?: string | null
+          salon_size?: string | null
+          salon_structure?: string | null
+          school_name?: string | null
+          school_state?: string | null
+          social_media_handle?: string | null
+          state?: string | null
+          subscribe_order_updates?: boolean | null
+          subscribe_promotions?: boolean | null
+          suite_number?: string | null
+          tax_exempt_document_path?: string | null
+          updated_at?: string | null
+          wholesale_agreed?: boolean | null
+          zip_code?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          application_status?: string | null
+          birthday_day?: string | null
+          birthday_month?: string | null
+          business_address?: string | null
+          business_name?: string | null
+          business_operation_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          enrollment_proof_paths?: string[] | null
+          first_name?: string | null
+          has_tax_exemption?: boolean | null
+          id?: string
+          last_name?: string | null
+          license_document_path?: string | null
+          license_number?: string | null
+          license_proof_paths?: string[] | null
+          phone_country_code?: string | null
+          phone_number?: string | null
+          preferred_name?: string | null
+          salon_size?: string | null
+          salon_structure?: string | null
+          school_name?: string | null
+          school_state?: string | null
+          social_media_handle?: string | null
+          state?: string | null
+          subscribe_order_updates?: boolean | null
+          subscribe_promotions?: boolean | null
+          suite_number?: string | null
+          tax_exempt_document_path?: string | null
+          updated_at?: string | null
+          wholesale_agreed?: boolean | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
