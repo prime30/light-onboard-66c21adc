@@ -38,13 +38,13 @@ Deno.serve((req) => {
       },
       status: 200,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in hello-world function:", error);
 
     return new Response(
       JSON.stringify({
         error: "Internal server error",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       }),
       {
         headers: {
