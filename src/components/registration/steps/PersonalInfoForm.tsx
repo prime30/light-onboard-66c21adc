@@ -1,7 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail } from "lucide-react";
-import { PasswordInputField, PasswordStrengthMeter } from "@/components/registration/helpers/PasswordInputField";
+import {
+  PasswordInputField,
+  PasswordStrengthMeter,
+} from "@/components/registration/helpers/PasswordInputField";
 
 interface PersonalInfoFormProps {
   firstName: string;
@@ -22,7 +25,7 @@ export const PersonalInfoForm = ({
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
-  onPasswordChange
+  onPasswordChange,
 }: PersonalInfoFormProps) => (
   <div className="space-y-[25px]">
     <div className="space-y-2.5 text-center animate-stagger-1">
@@ -34,9 +37,7 @@ export const PersonalInfoForm = ({
       <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
         Create your account
       </h1>
-      <p className="text-muted-foreground">
-        Enter your details to get started
-      </p>
+      <p className="text-muted-foreground">Enter your details to get started</p>
     </div>
 
     <div className="space-y-5">
@@ -46,7 +47,14 @@ export const PersonalInfoForm = ({
             First name
           </Label>
           <div className="input-glow input-ripple rounded-form-sm sm:rounded-form">
-            <Input id="firstName" type="text" placeholder="Jane" value={firstName} onChange={e => onFirstNameChange(e.target.value)} className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="Jane"
+              value={firstName}
+              onChange={(e) => onFirstNameChange(e.target.value)}
+              className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+            />
           </div>
         </div>
         <div className="space-y-2.5 group">
@@ -54,7 +62,14 @@ export const PersonalInfoForm = ({
             Last name
           </Label>
           <div className="input-glow input-ripple rounded-form-sm sm:rounded-form">
-            <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={e => onLastNameChange(e.target.value)} className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => onLastNameChange(e.target.value)}
+              className="h-[45px] sm:h-input rounded-form-sm sm:rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+            />
           </div>
         </div>
       </div>
@@ -67,12 +82,26 @@ export const PersonalInfoForm = ({
           <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
             <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
           </div>
-          <Input id="email" type="email" placeholder="jane@example.com" value={email} onChange={e => onEmailChange(e.target.value)} className="h-button pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="jane@example.com"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            className="h-button pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+          />
         </div>
       </div>
 
       <div className="space-y-2.5 animate-stagger-4">
-        <PasswordInputField id="password" label="Password" value={password} onChange={onPasswordChange} placeholder="Create a password" variant="signup" />
+        <PasswordInputField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={onPasswordChange}
+          placeholder="Create a password"
+          variant="signup"
+        />
         <PasswordStrengthMeter password={password} />
       </div>
     </div>

@@ -9,30 +9,30 @@ interface StepValidationIconProps {
 
 export const StepValidationIcon = ({ status, className }: StepValidationIconProps) => {
   const baseClasses = "w-[6px] h-[6px] rounded-full animate-pulse";
-  
+
   if (status === "complete") {
     return (
-      <div 
-        className={cn(baseClasses, "bg-status-green", className)} 
-        style={{ boxShadow: '0 0 8px hsl(var(--status-green) / 0.6)' }}
+      <div
+        className={cn(baseClasses, "bg-status-green", className)}
+        style={{ boxShadow: "0 0 8px hsl(var(--status-green) / 0.6)" }}
       />
     );
   }
-  
+
   if (status === "in-progress") {
     return (
-      <div 
-        className={cn(baseClasses, "bg-foreground", className)} 
-        style={{ boxShadow: '0 0 8px hsl(var(--foreground) / 0.3)' }}
+      <div
+        className={cn(baseClasses, "bg-foreground", className)}
+        style={{ boxShadow: "0 0 8px hsl(var(--foreground) / 0.3)" }}
       />
     );
   }
-  
+
   // error status
   return (
-    <div 
-      className={cn(baseClasses, "bg-status-red", className)} 
-      style={{ boxShadow: '0 0 8px hsl(var(--status-red) / 0.6)' }}
+    <div
+      className={cn(baseClasses, "bg-status-red", className)}
+      style={{ boxShadow: "0 0 8px hsl(var(--status-red) / 0.6)" }}
     />
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 export function useFontLoaded() {
   // Start false to show skeletons initially
@@ -33,7 +33,7 @@ export function useFontLoaded() {
     }, MAX_WAIT_MS);
 
     // If no Font Loading API, rely on the min/max timers.
-    if (typeof document === 'undefined' || !document.fonts) {
+    if (typeof document === "undefined" || !document.fonts) {
       return () => {
         clearTimeout(minTimer);
         clearTimeout(maxTimer);
@@ -61,29 +61,30 @@ export function useFontLoaded() {
 }
 
 // Skeleton text component for loading state
-export function TextSkeleton({ 
-  className = '', 
-  width = '100%',
-  height = '1em',
-  variant = 'default'
-}: { 
+export function TextSkeleton({
+  className = "",
+  width = "100%",
+  height = "1em",
+  variant = "default",
+}: {
   className?: string;
   width?: string | number;
   height?: string | number;
-  variant?: 'default' | 'light';
+  variant?: "default" | "light";
 }) {
-  const bgStyle = variant === 'light' 
-    ? 'linear-gradient(90deg, hsl(var(--background) / 0.15) 25%, hsl(var(--background) / 0.3) 50%, hsl(var(--background) / 0.15) 75%)'
-    : 'linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%)';
-  
+  const bgStyle =
+    variant === "light"
+      ? "linear-gradient(90deg, hsl(var(--background) / 0.15) 25%, hsl(var(--background) / 0.3) 50%, hsl(var(--background) / 0.15) 75%)"
+      : "linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%)";
+
   return (
-    <span 
+    <span
       className={`inline-block rounded animate-shimmer ${className}`}
-      style={{ 
-        width, 
+      style={{
+        width,
         height,
         background: bgStyle,
-        backgroundSize: '200% 100%',
+        backgroundSize: "200% 100%",
       }}
       aria-hidden="true"
     />

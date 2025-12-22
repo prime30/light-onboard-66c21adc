@@ -52,11 +52,7 @@ export function FilePreviewThumbnail({
     >
       {isImage && preview ? (
         <>
-          <img
-            src={preview}
-            alt={file.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={preview} alt={file.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors flex items-center justify-center">
             <ZoomIn className="w-4 h-4 text-background opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
@@ -97,9 +93,7 @@ export function FilePreviewThumbnail({
               alt={file.name}
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
             />
-            <p className="text-center text-sm text-muted-foreground mt-2 truncate">
-              {file.name}
-            </p>
+            <p className="text-center text-sm text-muted-foreground mt-2 truncate">{file.name}</p>
           </DialogContent>
         </Dialog>
         {showLabel && label && (

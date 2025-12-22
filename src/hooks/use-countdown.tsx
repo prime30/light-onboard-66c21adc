@@ -9,7 +9,7 @@ interface CountdownTime {
 
 export const useCountdown = (durationInHours: number): CountdownTime => {
   const endTimeRef = useRef<number | null>(null);
-  
+
   // Initialize end time once on first render
   if (endTimeRef.current === null) {
     endTimeRef.current = Date.now() + durationInHours * 60 * 60 * 1000;

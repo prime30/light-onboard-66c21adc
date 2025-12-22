@@ -59,7 +59,7 @@ export function AuthFooter({
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
   };
-  
+
   const isProcessing = isSubmitting || isUploading;
 
   return (
@@ -129,7 +129,9 @@ export function AuthFooter({
                   key={`shimmer-${shimmerKey}`}
                   size="pill-lg"
                   onClick={onNext}
-                  disabled={isSummaryStep ? !isAllStepsValid || isProcessing : !canContinue || isProcessing}
+                  disabled={
+                    isSummaryStep ? !isAllStepsValid || isProcessing : !canContinue || isProcessing
+                  }
                   className={cn(
                     "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
                     shimmerKey > 0 && "shimmer-trigger",
@@ -138,7 +140,7 @@ export function AuthFooter({
                 >
                   {/* Upload progress bar overlay */}
                   {isUploading && (
-                    <div 
+                    <div
                       className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out"
                       style={{ width: `${uploadProgress}%` }}
                     />
@@ -157,9 +159,9 @@ export function AuthFooter({
                     ) : (
                       <>
                         {getButtonLabel()}
-                        <ArrowRight 
-                          className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" 
-                          aria-hidden="true" 
+                        <ArrowRight
+                          className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1"
+                          aria-hidden="true"
                         />
                       </>
                     )}
@@ -191,11 +193,13 @@ export function AuthFooter({
                 onPointerDownOutside={() => setSubmitTooltipOpen(false)}
               >
                 <div className="space-y-2.5">
-                  <p className="text-xs font-medium text-background/70">Complete these steps first:</p>
+                  <p className="text-xs font-medium text-background/70">
+                    Complete these steps first:
+                  </p>
                   <div className="space-y-2">
                     {incompleteSteps.map(({ step, name, missingFields }) => (
-                      <button 
-                        key={step} 
+                      <button
+                        key={step}
                         onClick={() => {
                           setSubmitTooltipOpen(false);
                           onGoToStep(step, missingFields);
@@ -211,7 +215,10 @@ export function AuthFooter({
                         </div>
                         <div className="pl-7 flex flex-wrap gap-1">
                           {missingFields.map((field) => (
-                            <span key={field} className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium">
+                            <span
+                              key={field}
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium"
+                            >
                               {field}
                             </span>
                           ))}

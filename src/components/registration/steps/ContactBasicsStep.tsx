@@ -1,7 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { ValidatedInput } from "@/components/ui/validated-input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -25,7 +31,7 @@ export const countryCodes = [
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
-  <img 
+  <img
     src={`https://flagcdn.com/w40/${iso}.png`}
     srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
     alt={iso.toUpperCase()}
@@ -37,7 +43,7 @@ export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: 
 // Phone number validation - validates the local number part (without country code)
 export const isValidPhoneNumber = (phone: string): boolean => {
   // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
+  const cleaned = phone.replace(/\D/g, "");
   // Must have exactly 10 digits for US/CA format
   return cleaned.length === 10;
 };
@@ -75,7 +81,7 @@ export const ContactBasicsStep = ({
   onPhoneNumberChange,
   onPhoneCountryCodeChange,
   showValidationErrors = false,
-  validationStatus
+  validationStatus,
 }: ContactBasicsStepProps) => {
   const firstNameError = showValidationErrors && firstName.trim() === "";
   const lastNameError = showValidationErrors && lastName.trim() === "";
@@ -84,7 +90,7 @@ export const ContactBasicsStep = ({
   const phoneInvalid = !phoneEmpty && !isValidPhoneNumber(phoneNumber);
   const phoneError = showValidationErrors && (phoneEmpty || phoneInvalid);
   const stepNumber = 3;
-  
+
   return (
     <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
@@ -107,18 +113,24 @@ export const ContactBasicsStep = ({
         {/* First and Last Name */}
         <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
           <div className="space-y-2.5 group">
-            <Label htmlFor="legalFirstName" className={cn("text-sm font-medium label-float", firstNameError && "text-destructive")}>
+            <Label
+              htmlFor="legalFirstName"
+              className={cn(
+                "text-sm font-medium label-float",
+                firstNameError && "text-destructive"
+              )}
+            >
               Legal first name*
             </Label>
             <div className="input-glow input-ripple rounded-form">
-              <Input 
-                id="legalFirstName" 
-                type="text" 
-                placeholder="Legal first name" 
-                value={firstName} 
-                onChange={e => onFirstNameChange(e.target.value)} 
+              <Input
+                id="legalFirstName"
+                type="text"
+                placeholder="Legal first name"
+                value={firstName}
+                onChange={(e) => onFirstNameChange(e.target.value)}
                 className={cn(
-                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
+                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
                   firstNameError && "border-destructive/50 bg-destructive/5"
                 )}
               />
@@ -126,18 +138,21 @@ export const ContactBasicsStep = ({
             {firstNameError && <p className="text-xs text-destructive">First name is required</p>}
           </div>
           <div className="space-y-2.5 group">
-            <Label htmlFor="legalLastName" className={cn("text-sm font-medium label-float", lastNameError && "text-destructive")}>
+            <Label
+              htmlFor="legalLastName"
+              className={cn("text-sm font-medium label-float", lastNameError && "text-destructive")}
+            >
               Legal last name*
             </Label>
             <div className="input-glow input-ripple rounded-form">
-              <Input 
-                id="legalLastName" 
-                type="text" 
-                placeholder="Legal last name" 
-                value={lastName} 
-                onChange={e => onLastNameChange(e.target.value)} 
+              <Input
+                id="legalLastName"
+                type="text"
+                placeholder="Legal last name"
+                value={lastName}
+                onChange={(e) => onLastNameChange(e.target.value)}
                 className={cn(
-                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
+                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
                   lastNameError && "border-destructive/50 bg-destructive/5"
                 )}
               />
@@ -149,44 +164,54 @@ export const ContactBasicsStep = ({
         {/* Preferred Name */}
         <div className="space-y-2.5 animate-stagger-3 group">
           <Label htmlFor="preferredName" className="text-sm font-medium label-float">
-            Preferred name <span className="text-muted-foreground font-normal">(if different from legal name)</span>
+            Preferred name{" "}
+            <span className="text-muted-foreground font-normal">
+              (if different from legal name)
+            </span>
           </Label>
           <div className="input-glow input-ripple rounded-form">
-            <Input 
-              id="preferredName" 
-              type="text" 
-              placeholder="Preferred name" 
-              value={preferredName} 
-              onChange={e => onPreferredNameChange(e.target.value)} 
-              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" 
+            <Input
+              id="preferredName"
+              type="text"
+              placeholder="Preferred name"
+              value={preferredName}
+              onChange={(e) => onPreferredNameChange(e.target.value)}
+              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
             />
           </div>
         </div>
 
         {/* Email */}
         <div className="space-y-2.5 animate-stagger-4 group">
-          <Label htmlFor="email" className={cn("text-sm font-medium label-float", emailError && "text-destructive")}>
+          <Label
+            htmlFor="email"
+            className={cn("text-sm font-medium label-float", emailError && "text-destructive")}
+          >
             Email*
           </Label>
           <div className="relative input-glow input-ripple rounded-form">
-            <div className={cn(
-              "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", 
-              emailError ? "bg-destructive/10" : "bg-muted"
-            )}>
-              <Mail className={cn(
-                "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", 
-                emailError ? "text-destructive" : "text-muted-foreground"
-              )} />
+            <div
+              className={cn(
+                "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+                emailError ? "bg-destructive/10" : "bg-muted"
+              )}
+            >
+              <Mail
+                className={cn(
+                  "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+                  emailError ? "text-destructive" : "text-muted-foreground"
+                )}
+              />
             </div>
-            <ValidatedInput 
-              id="email" 
-              type="email" 
-              placeholder="your@email.com" 
-              value={email} 
-              onChange={e => onEmailChange(e.target.value)} 
+            <ValidatedInput
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => onEmailChange(e.target.value)}
               validationRule="email"
               className={cn(
-                "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
+                "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
                 emailError && "border-destructive/50 bg-destructive/5"
               )}
             />
@@ -196,21 +221,26 @@ export const ContactBasicsStep = ({
 
         {/* Phone Number with Country Code */}
         <div className="space-y-2.5 animate-stagger-5 group">
-          <Label htmlFor="phoneNumber" className={cn("text-sm font-medium label-float", phoneError && "text-destructive")}>
+          <Label
+            htmlFor="phoneNumber"
+            className={cn("text-sm font-medium label-float", phoneError && "text-destructive")}
+          >
             Phone number*
           </Label>
           <div className="flex gap-2">
             <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
-              <SelectTrigger 
-                aria-label="Select country code" 
+              <SelectTrigger
+                aria-label="Select country code"
                 className={cn(
-                  "w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300", 
+                  "w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300",
                   phoneError && "border-destructive/50 bg-destructive/5"
                 )}
               >
                 <SelectValue>
                   <span className="flex items-center gap-2">
-                    <CountryFlag iso={countryCodes.find(c => c.code === phoneCountryCode)?.iso || "us"} />
+                    <CountryFlag
+                      iso={countryCodes.find((c) => c.code === phoneCountryCode)?.iso || "us"}
+                    />
                     <span>{phoneCountryCode}</span>
                   </span>
                 </SelectValue>
@@ -227,33 +257,41 @@ export const ContactBasicsStep = ({
                 ))}
               </SelectContent>
             </Select>
-            
+
             <div className="relative flex-1 input-glow input-ripple rounded-form">
-              <div className={cn(
-                "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10", 
-                phoneError ? "bg-destructive/10" : "bg-muted"
-              )}>
-                <Phone className={cn(
-                  "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic", 
-                  phoneError ? "text-destructive" : "text-muted-foreground"
-                )} />
+              <div
+                className={cn(
+                  "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+                  phoneError ? "bg-destructive/10" : "bg-muted"
+                )}
+              >
+                <Phone
+                  className={cn(
+                    "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+                    phoneError ? "text-destructive" : "text-muted-foreground"
+                  )}
+                />
               </div>
-              <ValidatedInput 
-                id="phoneNumber" 
-                type="tel" 
-                placeholder="(555) 123-4567" 
-                value={phoneNumber} 
-                onChange={e => onPhoneNumberChange(e.target.value)} 
+              <ValidatedInput
+                id="phoneNumber"
+                type="tel"
+                placeholder="(555) 123-4567"
+                value={phoneNumber}
+                onChange={(e) => onPhoneNumberChange(e.target.value)}
                 validationRule="phone"
-              className={cn(
-                  "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", 
+                className={cn(
+                  "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
                   phoneError && "border-destructive/50 bg-destructive/5"
                 )}
               />
             </div>
           </div>
-          {showValidationErrors && phoneEmpty && <p className="text-xs text-destructive">Phone number is required</p>}
-          {phoneInvalid && <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>}
+          {showValidationErrors && phoneEmpty && (
+            <p className="text-xs text-destructive">Phone number is required</p>
+          )}
+          {phoneInvalid && (
+            <p className="text-xs text-destructive">Please enter a valid 10-digit phone number</p>
+          )}
         </div>
       </div>
     </div>

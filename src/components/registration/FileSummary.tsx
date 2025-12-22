@@ -13,8 +13,7 @@ interface FileSummaryProps {
 }
 
 const isImageFile = (file: File) => {
-  return file.type.startsWith("image/") || 
-    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
 };
 
 const formatFileSize = (bytes: number) => {
@@ -23,12 +22,12 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const FilePreviewItem = ({ 
-  file, 
+const FilePreviewItem = ({
+  file,
   label,
-  onPreview 
-}: { 
-  file: File; 
+  onPreview,
+}: {
+  file: File;
   label: string;
   onPreview: () => void;
 }) => {
@@ -50,9 +49,9 @@ const FilePreviewItem = ({
           onClick={onPreview}
           className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
         >
-          <img 
-            src={previewUrl} 
-            alt="Preview" 
+          <img
+            src={previewUrl}
+            alt="Preview"
             className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors duration-200 flex items-center justify-center">
@@ -91,11 +90,7 @@ const HeaderThumbnail = ({ file }: { file: File | null }) => {
   if (previewUrl) {
     return (
       <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 border border-border/50">
-        <img 
-          src={previewUrl} 
-          alt="Preview" 
-          className="w-full h-full object-cover"
-        />
+        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
       </div>
     );
   }
@@ -114,7 +109,7 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
 
   // Find the first image file for the header thumbnail
   const firstImageFile = useMemo(() => {
-    return files.find(item => isImageFile(item.file))?.file || null;
+    return files.find((item) => isImageFile(item.file))?.file || null;
   }, [files]);
 
   if (files.length === 0) return null;
@@ -142,12 +137,12 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
         closeLightbox();
       }
     };
-    
+
     if (lightboxUrl) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
     }
-    
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
@@ -166,7 +161,9 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
             <HeaderThumbnail file={firstImageFile} />
             <div className="text-left">
               <p className="text-sm font-medium text-foreground">{title}</p>
-              <p className="text-xs text-muted-foreground">{files.length} file{files.length !== 1 ? "s" : ""} ready for submission</p>
+              <p className="text-xs text-muted-foreground">
+                {files.length} file{files.length !== 1 ? "s" : ""} ready for submission
+              </p>
             </div>
           </div>
           {isExpanded ? (
@@ -175,7 +172,7 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
-        
+
         {isExpanded && (
           <div className="px-4 pb-4 space-y-2 border-t border-border/30 pt-3">
             {files.map((item, index) => (
@@ -192,12 +189,12 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
 
       {/* Lightbox Modal */}
       {lightboxUrl && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in duration-200"
           onClick={closeLightbox}
         >
           <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
-          
+
           <button
             type="button"
             onClick={closeLightbox}
@@ -206,16 +203,16 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
             <X className="w-6 h-6 text-foreground" />
           </button>
 
-          <div 
+          <div
             className="relative max-w-[90vw] max-h-[90vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <img 
-              src={lightboxUrl} 
-              alt={lightboxFile?.name || "Preview"} 
+            <img
+              src={lightboxUrl}
+              alt={lightboxFile?.name || "Preview"}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
-            
+
             {lightboxFile && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent rounded-b-lg">
                 <p className="text-sm font-medium text-foreground truncate">{lightboxFile.name}</p>

@@ -8,72 +8,72 @@
 
 /* Termina Font Family */
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-thin.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-thin.otf") format("opentype");
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-extralight.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-extralight.otf") format("opentype");
   font-weight: 200;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-light.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-regular.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-regular.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-medium.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-demi.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-demi.otf") format("opentype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-bold.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-heavy.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-heavy.otf") format("opentype");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Termina';
-  src: url('/fonts/termina-black.otf') format('opentype');
+  font-family: "Termina";
+  src: url("/fonts/termina-black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -81,72 +81,72 @@
 
 /* Aeonik Pro Font Family */
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-light.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-regular.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-regular.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-medium.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-semibold.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-semibold.otf") format("opentype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-bold.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-black.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-regular-italic.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-regular-italic.otf") format("opentype");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-medium-italic.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-medium-italic.otf") format("opentype");
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Aeonik Pro';
-  src: url('/fonts/aeonik-pro-semibold-italic.otf') format('opentype');
+  font-family: "Aeonik Pro";
+  src: url("/fonts/aeonik-pro-semibold-italic.otf") format("opentype");
   font-weight: 600;
   font-style: italic;
   font-display: swap;
@@ -206,7 +206,7 @@
 
     /* Legacy radius (for shadcn compatibility) */
     --radius: 0.75rem;
-    
+
     /* Standardized border-radius system: 3, 5, 10, 20, 30, 40, 9999 */
     --radius-xs: 3px;
     --radius-sm: 5px;
@@ -215,22 +215,22 @@
     --radius-xl: 30px;
     --radius-2xl: 40px;
     --radius-full: 9999px;
-    
+
     /* Form element sizing */
     --input-height: 50px;
     --input-height-prominent: 60px;
     --button-height: 55px;
     --radius-form: 10px;
     --radius-form-sm: 10px;
-    
+
     /* Shadows */
-    --shadow-input-focus: inset 0 0 20px rgba(0,0,0,0.03);
-    --shadow-card-hover: 0 8px 30px -12px rgba(0,0,0,0.12);
-    --shadow-pill: 0 4px 20px -4px rgba(0,0,0,0.08);
-    --shadow-pill-hover: 0 8px 30px -8px rgba(0,0,0,0.12);
-    --shadow-toast: 0 8px 32px rgba(0,0,0,0.12);
-    --shadow-modal: 0 8px 32px rgba(0,0,0,0.3);
-    
+    --shadow-input-focus: inset 0 0 20px rgba(0, 0, 0, 0.03);
+    --shadow-card-hover: 0 8px 30px -12px rgba(0, 0, 0, 0.12);
+    --shadow-pill: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+    --shadow-pill-hover: 0 8px 30px -8px rgba(0, 0, 0, 0.12);
+    --shadow-toast: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.3);
+
     /* Overlay colors */
     --overlay-dark: 0 0% 0%;
     --overlay-light: 0 0% 100%;
@@ -350,18 +350,23 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Aeonik Pro', system-ui, sans-serif;
+    font-family: "Aeonik Pro", system-ui, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Aeonik Pro', system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Aeonik Pro", system-ui, sans-serif;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
@@ -381,16 +386,16 @@
   .focus-shadow-input:focus {
     box-shadow: var(--shadow-input-focus);
   }
-  
+
   /* Modal animations - responsive */
   .animate-modal-enter {
     animation: modalSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  
+
   .animate-modal-exit {
     animation: modalSlideDown 0.45s ease-out forwards;
   }
-  
+
   @media (min-width: 640px) {
     .animate-modal-enter {
       animation: modalEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -488,14 +493,18 @@
   }
 
   .input-ultra::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: -1px;
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(135deg, transparent, transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
@@ -505,11 +514,16 @@
 
   .input-ultra:focus-within::before {
     opacity: 1;
-    background: linear-gradient(135deg, hsl(var(--foreground) / 0.4), hsl(var(--foreground) / 0.1), hsl(var(--foreground) / 0.2));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--foreground) / 0.4),
+      hsl(var(--foreground) / 0.1),
+      hsl(var(--foreground) / 0.2)
+    );
   }
 
   .input-ultra:focus-within {
-    box-shadow: 
+    box-shadow:
       0 0 0 1px hsl(var(--foreground) / 0.1),
       0 4px 20px hsl(var(--foreground) / 0.06),
       0 8px 40px hsl(var(--foreground) / 0.03);
@@ -549,7 +563,7 @@
   }
 
   .border-draw::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 50%;
@@ -599,18 +613,13 @@
   }
 
   .btn-premium::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--background) / 0.08),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, hsl(var(--background) / 0.08), transparent);
     transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -619,7 +628,7 @@
   }
 
   .btn-premium:hover {
-    box-shadow: 
+    box-shadow:
       0 10px 40px hsl(var(--foreground) / 0.12),
       0 5px 20px hsl(var(--foreground) / 0.08);
     transform: translateY(-2px);
@@ -639,7 +648,7 @@
 
   /* Grain texture overlay */
   .grain-overlay::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     opacity: 0.03;
@@ -655,10 +664,14 @@
   }
 
   .social-btn::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, hsl(var(--foreground) / 0.03), hsl(var(--foreground) / 0.08));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--foreground) / 0.03),
+      hsl(var(--foreground) / 0.08)
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -756,8 +769,12 @@
    =========================================== */
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
@@ -912,16 +929,31 @@
 }
 
 @keyframes hapticBounce {
-  0% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-3px) scale(1.015); }
-  50% { transform: translateY(-2px) scale(1.01); }
-  70% { transform: translateY(-2.5px) scale(1.008); }
-  100% { transform: translateY(-2px) scale(1.008); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-3px) scale(1.015);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  70% {
+    transform: translateY(-2.5px) scale(1.008);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.008);
+  }
 }
 
 @keyframes textShimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes badgePop {
@@ -1004,12 +1036,31 @@
 }
 
 @keyframes gentlePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
 }
 
 @keyframes shakeSubtle {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
 }

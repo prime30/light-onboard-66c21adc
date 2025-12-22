@@ -27,7 +27,7 @@ export const compressImage = async (
 
       // Calculate new dimensions while maintaining aspect ratio
       let { width, height } = img;
-      
+
       if (width > maxWidth || height > maxHeight) {
         const ratio = Math.min(maxWidth / width, maxHeight / height);
         width = Math.round(width * ratio);

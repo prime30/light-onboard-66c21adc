@@ -6,7 +6,7 @@ export const isValidEmail = (email: string): boolean => {
 // Format phone number as user types (local number only, no country code)
 export const formatPhoneNumber = (value: string): string => {
   // Remove all non-digit characters
-  const cleaned = value.replace(/\D/g, '').slice(0, 10);
+  const cleaned = value.replace(/\D/g, "").slice(0, 10);
 
   // US format: (555) 123-4567
   if (cleaned.length <= 3) return cleaned;

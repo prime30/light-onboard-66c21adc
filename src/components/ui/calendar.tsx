@@ -30,13 +30,14 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         vhidden: "sr-only",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
-          "h-8 w-8 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl p-0 inline-flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95",
+          "h-8 w-8 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl p-0 inline-flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse",
         head_row: "flex gap-1 mb-2",
-        head_cell: "text-muted-foreground/70 rounded-lg w-10 font-medium text-[0.7rem] uppercase tracking-wider",
+        head_cell:
+          "text-muted-foreground/70 rounded-lg w-10 font-medium text-[0.7rem] uppercase tracking-wider",
         row: "flex w-full gap-1 mt-1",
         cell: cn(
           "relative h-10 w-10 text-center text-sm p-0 focus-within:relative focus-within:z-20",
@@ -58,15 +59,13 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           "focus:bg-foreground focus:text-background",
           "shadow-sm"
         ),
-        day_today: cn(
-          "bg-primary/10 text-foreground font-semibold",
-          "ring-1 ring-primary/30"
-        ),
+        day_today: cn("bg-primary/10 text-foreground font-semibold", "ring-1 ring-primary/30"),
         day_outside: cn(
           "day-outside text-muted-foreground/40",
           "aria-selected:bg-primary/5 aria-selected:text-muted-foreground/60"
         ),
-        day_disabled: "text-muted-foreground/30 hover:bg-transparent hover:scale-100 cursor-not-allowed",
+        day_disabled:
+          "text-muted-foreground/30 hover:bg-transparent hover:scale-100 cursor-not-allowed",
         day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-foreground",
         day_hidden: "invisible",
         ...classNames,

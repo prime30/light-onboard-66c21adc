@@ -1,4 +1,15 @@
-import { Scissors, Building2, GraduationCap, Tag, Headphones, Users, ShieldCheck, FileCheck, Check, ArrowUpRight } from "lucide-react";
+import {
+  Scissors,
+  Building2,
+  GraduationCap,
+  Tag,
+  Headphones,
+  Users,
+  ShieldCheck,
+  FileCheck,
+  Check,
+  ArrowUpRight,
+} from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
 
@@ -11,40 +22,44 @@ interface AccountTypeFormProps {
 export const AccountTypeForm = ({
   selectedType,
   onSelect,
-  validationStatus
+  validationStatus,
 }: AccountTypeFormProps) => {
-  const types = [{
-    id: "professional",
-    icon: Scissors,
-    title: "Licensed stylist",
-    description: "Commission, or independent stylist",
-    features: [
-      { label: "Pro discount", icon: Tag },
-      { label: "Priority support", icon: Headphones },
-      { label: "Stylist community access", icon: Users }
-    ]
-  }, {
-    id: "salon",
-    icon: Building2,
-    title: "Salon owner or manager",
-    description: "Business accounts",
-    features: [
-      { label: "Pro discount", icon: Tag },
-      { label: "Top level support", icon: ShieldCheck },
-      { label: "Salon leadership community access", icon: Users },
-      { label: "Education discounts", icon: GraduationCap }
-    ]
-  }, {
-    id: "student",
-    icon: GraduationCap,
-    title: "Cosmetology student or apprentice",
-    description: "Currently enrolled",
-    features: [
-      { label: "Student pricing", icon: Tag },
-      { label: "Learning resources", icon: FileCheck },
-      { label: "Community access", icon: Users }
-    ]
-  }];
+  const types = [
+    {
+      id: "professional",
+      icon: Scissors,
+      title: "Licensed stylist",
+      description: "Commission, or independent stylist",
+      features: [
+        { label: "Pro discount", icon: Tag },
+        { label: "Priority support", icon: Headphones },
+        { label: "Stylist community access", icon: Users },
+      ],
+    },
+    {
+      id: "salon",
+      icon: Building2,
+      title: "Salon owner or manager",
+      description: "Business accounts",
+      features: [
+        { label: "Pro discount", icon: Tag },
+        { label: "Top level support", icon: ShieldCheck },
+        { label: "Salon leadership community access", icon: Users },
+        { label: "Education discounts", icon: GraduationCap },
+      ],
+    },
+    {
+      id: "student",
+      icon: GraduationCap,
+      title: "Cosmetology student or apprentice",
+      description: "Currently enrolled",
+      features: [
+        { label: "Student pricing", icon: Tag },
+        { label: "Learning resources", icon: FileCheck },
+        { label: "Community access", icon: Users },
+      ],
+    },
+  ];
 
   return (
     <div className="space-y-5 sm:space-y-[30px]">
@@ -78,7 +93,7 @@ export const AccountTypeForm = ({
             )}
             style={{
               animationDelay: `${index * 0.05}s`,
-              transform: selectedType === type.id ? 'translateY(-2px)' : undefined
+              transform: selectedType === type.id ? "translateY(-2px)" : undefined,
             }}
           >
             <div
@@ -127,9 +142,7 @@ export const AccountTypeForm = ({
                   >
                     {type.title}
                   </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {type.description}
-                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
                   {/* Features - inline on desktop */}
                   <div className="hidden sm:flex flex-wrap gap-[5px] mt-2.5">
                     {type.features.map((feature, i) => {
@@ -144,7 +157,7 @@ export const AccountTypeForm = ({
                               : "bg-muted text-muted-foreground"
                           )}
                           style={{
-                            transitionDelay: `${i * 50}ms`
+                            transitionDelay: `${i * 50}ms`,
                           }}
                         >
                           {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
@@ -170,7 +183,7 @@ export const AccountTypeForm = ({
                           : "bg-muted text-muted-foreground"
                       )}
                       style={{
-                        transitionDelay: `${i * 50}ms`
+                        transitionDelay: `${i * 50}ms`,
                       }}
                     >
                       {FeatureIcon && <FeatureIcon className="w-3 h-3" />}

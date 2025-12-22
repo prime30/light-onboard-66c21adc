@@ -1,11 +1,18 @@
 /**
  * Registration Context
- * 
+ *
  * Centralized state management for the multi-step registration flow.
  * Uses useReducer for predictable state updates and easier debugging.
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import type {
   Step,
   AccountType,
@@ -103,21 +110,25 @@ const initialState: RegistrationState = {
 
 type RegistrationAction =
   // Form data actions
-  | { type: "SET_FORM_FIELD"; field: keyof RegistrationFormData; value: RegistrationFormData[keyof RegistrationFormData] }
+  | {
+      type: "SET_FORM_FIELD";
+      field: keyof RegistrationFormData;
+      value: RegistrationFormData[keyof RegistrationFormData];
+    }
   | { type: "SET_FORM_DATA"; data: Partial<RegistrationFormData> }
   | { type: "RESET_FORM" }
-  
+
   // Navigation actions
   | { type: "SET_STEP"; step: Step }
   | { type: "GO_TO_NEXT_STEP" }
   | { type: "GO_TO_PREVIOUS_STEP" }
   | { type: "SET_CURRENT_SLIDE"; slide: number }
-  
+
   // Transition actions
   | { type: "START_TRANSITION"; nextStep: Step; direction: TransitionDirection }
   | { type: "END_TRANSITION" }
   | { type: "SET_MODE_TRANSITION_DIRECTION"; direction: ModeTransitionDirection }
-  
+
   // UI state actions
   | { type: "SET_DISPLAY_TOTAL_STEPS"; total: number }
   | { type: "ADD_COMPLETED_STEP"; stepNumber: number }
@@ -125,7 +136,7 @@ type RegistrationAction =
   | { type: "SET_HIGHLIGHT_FIELDS"; fields: string[] }
   | { type: "SET_HIGHLIGHT_WHOLESALE_TERMS"; value: boolean }
   | { type: "SET_HIGHLIGHT_WHOLESALE_FADE"; value: boolean }
-  
+
   // Modal actions
   | { type: "SET_MODAL_DRAG_OFFSET"; offset: number }
   | { type: "SET_IS_CLOSING"; value: boolean }
@@ -134,24 +145,24 @@ type RegistrationAction =
   | { type: "SET_PENDING_ACCOUNT_TYPE"; value: AccountType }
   | { type: "SET_SHOW_FORGOT_PASSWORD"; value: boolean }
   | { type: "SET_SUBMIT_TOOLTIP_OPEN"; value: boolean }
-  
+
   // Loading actions
   | { type: "SET_IS_SUBMITTING"; value: boolean }
   | { type: "SET_IS_SENDING_RESET"; value: boolean }
   | { type: "SET_IS_SAVING_PROGRESS"; value: boolean }
   | { type: "SET_SAVE_PROGRESS_TEXT"; value: "saving" | "saved" }
-  
+
   // Validation actions
   | { type: "SET_SHOW_VALIDATION_ERRORS"; value: boolean }
-  
+
   // Footer actions
   | { type: "SET_FOOTER_TRANSITIONS_ENABLED"; value: boolean }
   | { type: "SET_FOOTER_ENTER_READY"; value: boolean }
-  
+
   // Misc actions
   | { type: "SET_HAS_SCROLLED"; value: boolean }
   | { type: "INCREMENT_SHIMMER_KEY" }
-  
+
   // Bulk state restoration
   | { type: "RESTORE_STATE"; state: Partial<RegistrationState> };
 
@@ -159,7 +170,10 @@ type RegistrationAction =
 // Reducer
 // ============================================================================
 
-function registrationReducer(state: RegistrationState, action: RegistrationAction): RegistrationState {
+function registrationReducer(
+  state: RegistrationState,
+  action: RegistrationAction
+): RegistrationState {
   switch (action.type) {
     // Form data actions
     case "SET_FORM_FIELD":
@@ -345,7 +359,9 @@ function registrationReducer(state: RegistrationState, action: RegistrationActio
     // Bulk state restoration
     case "RESTORE_STATE":
       return {
-        formData: action.state.formData ? { ...state.formData, ...action.state.formData } : state.formData,
+        formData: action.state.formData
+          ? { ...state.formData, ...action.state.formData }
+          : state.formData,
         ui: action.state.ui ? { ...state.ui, ...action.state.ui } : state.ui,
       };
 
@@ -361,21 +377,24 @@ function registrationReducer(state: RegistrationState, action: RegistrationActio
 interface RegistrationContextValue {
   state: RegistrationState;
   dispatch: React.Dispatch<RegistrationAction>;
-  
+
   // Convenience accessors
   formData: RegistrationFormData;
   ui: RegistrationUIState;
-  
+
   // Form field helpers
-  setFormField: <K extends keyof RegistrationFormData>(field: K, value: RegistrationFormData[K]) => void;
+  setFormField: <K extends keyof RegistrationFormData>(
+    field: K,
+    value: RegistrationFormData[K]
+  ) => void;
   setFormData: (data: Partial<RegistrationFormData>) => void;
   resetForm: () => void;
-  
+
   // Navigation helpers
   goToStep: (step: Step) => void;
   startTransition: (nextStep: Step, direction: TransitionDirection) => void;
   endTransition: () => void;
-  
+
   // UI helpers
   setIsSubmitting: (value: boolean) => void;
   setShowValidationErrors: (value: boolean) => void;
@@ -399,12 +418,16 @@ export function RegistrationProvider({ children }: RegistrationProviderProps) {
   const ui = state.ui;
 
   // Form field helpers
-  const setFormField = useCallback(<K extends keyof RegistrationFormData>(
-    field: K,
-    value: RegistrationFormData[K]
-  ) => {
-    dispatch({ type: "SET_FORM_FIELD", field, value: value as RegistrationFormData[keyof RegistrationFormData] });
-  }, []);
+  const setFormField = useCallback(
+    <K extends keyof RegistrationFormData>(field: K, value: RegistrationFormData[K]) => {
+      dispatch({
+        type: "SET_FORM_FIELD",
+        field,
+        value: value as RegistrationFormData[keyof RegistrationFormData],
+      });
+    },
+    []
+  );
 
   const setFormData = useCallback((data: Partial<RegistrationFormData>) => {
     dispatch({ type: "SET_FORM_DATA", data });
@@ -451,11 +474,7 @@ export function RegistrationProvider({ children }: RegistrationProviderProps) {
     setShowValidationErrors,
   };
 
-  return (
-    <RegistrationContext.Provider value={value}>
-      {children}
-    </RegistrationContext.Provider>
-  );
+  return <RegistrationContext.Provider value={value}>{children}</RegistrationContext.Provider>;
 }
 
 // ============================================================================

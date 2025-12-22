@@ -6,21 +6,17 @@ interface FeatureBoxProps {
   desc: string;
 }
 
-export const MagneticFeatureBox = ({
-  icon: Icon,
-  label,
-  desc
-}: FeatureBoxProps) => {
+export const MagneticFeatureBox = ({ icon: Icon, label, desc }: FeatureBoxProps) => {
   const magnetic = useMagnetic({
-    strength: 0.12
+    strength: 0.12,
   });
-  
+
   return (
-    <div 
-      ref={magnetic.ref} 
-      style={magnetic.style} 
-      onMouseMove={magnetic.onMouseMove} 
-      onMouseLeave={magnetic.onMouseLeave} 
+    <div
+      ref={magnetic.ref}
+      style={magnetic.style}
+      onMouseMove={magnetic.onMouseMove}
+      onMouseLeave={magnetic.onMouseLeave}
       className="group/pill flex items-center gap-2.5 px-[15px] py-2.5 rounded-md bg-background/10 backdrop-blur-md border border-background/20 hover:border-background/30 hover:bg-background/15 transition-all cursor-default"
     >
       <div className="w-[30px] h-[30px] rounded-[10px] bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">

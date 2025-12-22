@@ -4,7 +4,9 @@ interface MagneticOptions {
   strength?: number;
 }
 
-export const useMagnetic = <T extends HTMLElement = HTMLDivElement>({ strength = 0.3 }: MagneticOptions = {}) => {
+export const useMagnetic = <T extends HTMLElement = HTMLDivElement>({
+  strength = 0.3,
+}: MagneticOptions = {}) => {
   const ref = useRef<T>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0 });
 
@@ -32,7 +34,10 @@ export const useMagnetic = <T extends HTMLElement = HTMLDivElement>({ strength =
     ref,
     style: {
       transform: `translate(${transform.x}px, ${transform.y}px)`,
-      transition: transform.x === 0 && transform.y === 0 ? "transform 0.3s ease-out" : "transform 0.1s ease-out",
+      transition:
+        transform.x === 0 && transform.y === 0
+          ? "transform 0.3s ease-out"
+          : "transform 0.1s ease-out",
     },
     onMouseMove: handleMouseMove,
     onMouseLeave: handleMouseLeave,

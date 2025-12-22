@@ -1,13 +1,70 @@
 import { GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { cn } from "@/lib/utils";
 
-const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+const states = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming",
+];
 
 interface SchoolInfoStepProps {
   schoolName: string;
@@ -28,7 +85,7 @@ export const SchoolInfoStep = ({
   onSchoolStateChange,
   onEnrollmentProofFilesChange,
   showValidationErrors = false,
-  validationStatus
+  validationStatus,
 }: SchoolInfoStepProps) => {
   const schoolNameError = showValidationErrors && schoolName.trim() === "";
   const stateError = showValidationErrors && schoolState === "";
@@ -58,9 +115,21 @@ export const SchoolInfoStep = ({
             <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
               <GraduationCap className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            <Input id="schoolName" type="text" placeholder="Enter your school or apprenticeship name" value={schoolName} onChange={e => onSchoolNameChange(e.target.value)} className={cn("h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus", schoolNameError && "border-destructive/50")} />
+            <Input
+              id="schoolName"
+              type="text"
+              placeholder="Enter your school or apprenticeship name"
+              value={schoolName}
+              onChange={(e) => onSchoolNameChange(e.target.value)}
+              className={cn(
+                "h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
+                schoolNameError && "border-destructive/50"
+              )}
+            />
           </div>
-          {schoolNameError && <p className="text-xs text-destructive">School/Apprenticeship name is required</p>}
+          {schoolNameError && (
+            <p className="text-xs text-destructive">School/Apprenticeship name is required</p>
+          )}
         </div>
 
         {/* State/Province */}
@@ -68,18 +137,30 @@ export const SchoolInfoStep = ({
           <Label htmlFor="schoolState" className="text-sm font-medium label-float">
             State/Province*
           </Label>
-            <div className="relative group">
-              <Select value={schoolState} onValueChange={onSchoolStateChange}>
-                <SelectTrigger id="schoolState" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus", stateError && "border-destructive/50")}>
-                  <SelectValue placeholder="Select your state/province" />
-                </SelectTrigger>
+          <div className="relative group">
+            <Select value={schoolState} onValueChange={onSchoolStateChange}>
+              <SelectTrigger
+                id="schoolState"
+                className={cn(
+                  "h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus",
+                  stateError && "border-destructive/50"
+                )}
+              >
+                <SelectValue placeholder="Select your state/province" />
+              </SelectTrigger>
               <SelectContent className="rounded-form bg-background border border-border z-50 max-h-[280px]">
-                {states.map(s => <SelectItem key={s} value={s} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
+                {states.map((s) => (
+                  <SelectItem
+                    key={s}
+                    value={s}
+                    className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80"
+                  >
                     <div className="flex items-center gap-2.5">
                       {hasStateIcon(s) && <StateIcon state={s} className="w-4 h-4" />}
                       <span>{s}</span>
                     </div>
-                  </SelectItem>)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -95,7 +176,14 @@ export const SchoolInfoStep = ({
             Upload school ID, apprenticeship license, enrollment letter, etc.
           </p>
           <div data-field="enrollment-proof">
-            <MultiFileUpload files={enrollmentProofFiles} onFilesChange={onEnrollmentProofFilesChange} placeholder="Upload your documents" maxFiles={5} error={fileError} errorMessage="Please upload at least one proof of enrollment or apprenticeship" />
+            <MultiFileUpload
+              files={enrollmentProofFiles}
+              onFilesChange={onEnrollmentProofFilesChange}
+              placeholder="Upload your documents"
+              maxFiles={5}
+              error={fileError}
+              errorMessage="Please upload at least one proof of enrollment or apprenticeship"
+            />
           </div>
         </div>
       </div>

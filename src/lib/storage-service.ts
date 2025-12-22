@@ -1,6 +1,6 @@
 /**
  * Storage Service for Supabase Storage
- * 
+ *
  * Handles file uploads to the registration-documents bucket.
  * Files are organized by user ID for RLS policy compliance.
  */
@@ -43,12 +43,10 @@ export async function uploadFile(
   try {
     const filePath = generateFilePath(userId, category, file.name);
 
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+    const { data, error } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
     if (error) {
       console.error("Storage upload error:", error);
@@ -85,9 +83,7 @@ export async function uploadFiles(
   userId: string,
   category: "license" | "enrollment" | "tax-exempt" | "license-proof"
 ): Promise<UploadResult[]> {
-  const results = await Promise.all(
-    files.map((file) => uploadFile(file, userId, category))
-  );
+  const results = await Promise.all(files.map((file) => uploadFile(file, userId, category)));
   return results;
 }
 
@@ -96,9 +92,7 @@ export async function uploadFiles(
  */
 export async function deleteFile(filePath: string): Promise<boolean> {
   try {
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove([filePath]);
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove([filePath]);
 
     if (error) {
       console.error("Storage delete error:", error);
@@ -117,9 +111,7 @@ export async function deleteFile(filePath: string): Promise<boolean> {
  */
 export async function deleteFiles(filePaths: string[]): Promise<boolean> {
   try {
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove(filePaths);
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove(filePaths);
 
     if (error) {
       console.error("Storage delete error:", error);
@@ -166,10 +158,8 @@ export async function listUserFiles(
 ): Promise<string[]> {
   try {
     const path = category ? `${userId}/${category}` : userId;
-    
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .list(path);
+
+    const { data, error } = await supabase.storage.from(BUCKET_NAME).list(path);
 
     if (error) {
       console.error("Error listing files:", error);

@@ -1,6 +1,6 @@
 /**
  * Authentication and Registration Types
- * 
+ *
  * This file contains all type definitions for the auth/registration flow.
  * Centralized here to ensure consistency across components.
  */
@@ -9,19 +9,19 @@
 export type AuthMode = "signup" | "signin";
 
 /** Registration flow steps */
-export type Step = 
-  | "onboarding" 
-  | "reviews" 
-  | "account-type" 
-  | "contact-basics" 
-  | "license" 
-  | "business-operation" 
-  | "business-location" 
-  | "school-info" 
-  | "wholesale-terms" 
-  | "tax-exemption" 
-  | "contact-info" 
-  | "summary" 
+export type Step =
+  | "onboarding"
+  | "reviews"
+  | "account-type"
+  | "contact-basics"
+  | "license"
+  | "business-operation"
+  | "business-location"
+  | "school-info"
+  | "wholesale-terms"
+  | "tax-exemption"
+  | "contact-info"
+  | "summary"
   | "success";
 
 /** Account type options */
@@ -43,10 +43,10 @@ export type ModeTransitionDirection = "left" | "right";
 export interface RegistrationFormData {
   // Account type
   accountType: AccountType;
-  
+
   // Business operation (professional only)
   businessOperationType: BusinessOperationType;
-  
+
   // Contact basics
   firstName: string;
   lastName: string;
@@ -54,7 +54,7 @@ export interface RegistrationFormData {
   email: string;
   phoneNumber: string;
   phoneCountryCode: string;
-  
+
   // Business location (professional and salon)
   businessName: string;
   businessAddress: string;
@@ -63,26 +63,26 @@ export interface RegistrationFormData {
   city: string;
   state: string;
   zipCode: string;
-  
+
   // School info (student only)
   schoolName: string;
   schoolState: string;
   enrollmentProofFiles: File[];
-  
+
   // License (professional and salon)
   licenseNumber: string;
   salonSize: string;
   salonStructure: string;
   licenseFile: File | null;
   licenseProofFiles: File[];
-  
+
   // Tax exemption
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
-  
+
   // Wholesale terms
   wholesaleAgreed: boolean;
-  
+
   // Preferences
   birthdayMonth: string;
   birthdayDay: string;
@@ -91,7 +91,7 @@ export interface RegistrationFormData {
   subscribeOrderUpdates: boolean;
   subscribeMarketing: boolean;
   subscribePromotions: boolean;
-  
+
   // Password
   password: string;
 }
@@ -109,12 +109,12 @@ export interface RegistrationUIState {
   nextStep: Step | null;
   displayTotalSteps: number;
   completedSteps: Set<number>;
-  
+
   // Highlight states
   highlightFields: string[];
   highlightWholesaleTerms: boolean;
   highlightWholesaleFade: boolean;
-  
+
   // Modal states
   modalDragOffset: number;
   isClosing: boolean;
@@ -123,20 +123,20 @@ export interface RegistrationUIState {
   pendingAccountType: AccountType;
   showForgotPassword: boolean;
   submitTooltipOpen: boolean;
-  
+
   // Loading states
   isSubmitting: boolean;
   isSendingReset: boolean;
   isSavingProgress: boolean;
   saveProgressText: "saving" | "saved";
-  
+
   // Validation
   showValidationErrors: boolean;
-  
+
   // Footer animation
   footerTransitionsEnabled: boolean;
   footerEnterReady: boolean;
-  
+
   // Scroll tracking
   hasScrolled: boolean;
   shimmerKey: number;

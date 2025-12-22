@@ -74,37 +74,83 @@ export function useFormValidation(data: FormValidationData) {
     if (!accountType) return false;
 
     // Contact basics validation (required for all flows)
-    const contactBasicsValid = firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
+    const contactBasicsValid =
+      firstName.trim() !== "" &&
+      lastName.trim() !== "" &&
+      isValidEmail(email) &&
+      isValidPhoneNumber(phoneNumber);
 
     // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info)
     if (accountType === "student") {
-      const schoolValid = schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
+      const schoolValid =
+        schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
-      const taxValid = hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+      const taxValid =
+        hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
       return schoolValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
     // Salon flow - 7 steps
     if (accountType === "salon") {
       const licenseValid = licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
-      const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+      const businessValid =
+        businessName.trim() !== "" &&
+        businessAddress.trim() !== "" &&
+        country !== "" &&
+        city.trim() !== "" &&
+        state !== "" &&
+        zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
-      const taxValid = hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+      const taxValid =
+        hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
       return licenseValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
     // Professional flow - 8 steps
     const licenseValid = licenseNumber.trim() !== "";
     const businessOperationValid = businessOperationType !== null;
-    const businessValid = businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+    const businessValid =
+      businessName.trim() !== "" &&
+      businessAddress.trim() !== "" &&
+      country !== "" &&
+      city.trim() !== "" &&
+      state !== "" &&
+      zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
-    const taxValid = hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
-    return licenseValid && businessOperationValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
+    const taxValid =
+      hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+    return (
+      licenseValid &&
+      businessOperationValid &&
+      businessValid &&
+      contactBasicsValid &&
+      wholesaleValid &&
+      taxValid
+    );
   }, [
-    mode, email, password, accountType, firstName, lastName, phoneNumber,
-    schoolName, schoolState, enrollmentProofFiles, wholesaleAgreed,
-    hasTaxExemption, taxExemptFile, licenseNumber, salonSize, salonStructure,
-    businessName, businessAddress, country, city, state, zipCode, businessOperationType
+    mode,
+    email,
+    password,
+    accountType,
+    firstName,
+    lastName,
+    phoneNumber,
+    schoolName,
+    schoolState,
+    enrollmentProofFiles,
+    wholesaleAgreed,
+    hasTaxExemption,
+    taxExemptFile,
+    licenseNumber,
+    salonSize,
+    salonStructure,
+    businessName,
+    businessAddress,
+    country,
+    city,
+    state,
+    zipCode,
+    businessOperationType,
   ]);
 
   // Check if current step can continue
@@ -118,7 +164,12 @@ export function useFormValidation(data: FormValidationData) {
       case "account-type":
         return accountType !== null;
       case "contact-basics":
-        return firstName.trim() !== "" && lastName.trim() !== "" && isValidEmail(email) && isValidPhoneNumber(phoneNumber);
+        return (
+          firstName.trim() !== "" &&
+          lastName.trim() !== "" &&
+          isValidEmail(email) &&
+          isValidPhoneNumber(phoneNumber)
+        );
       case "license":
         if (accountType === "salon") {
           return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
@@ -127,7 +178,14 @@ export function useFormValidation(data: FormValidationData) {
       case "business-operation":
         return businessOperationType !== null;
       case "business-location":
-        return businessName.trim() !== "" && businessAddress.trim() !== "" && country !== "" && city.trim() !== "" && state !== "" && zipCode.trim() !== "";
+        return (
+          businessName.trim() !== "" &&
+          businessAddress.trim() !== "" &&
+          country !== "" &&
+          city.trim() !== "" &&
+          state !== "" &&
+          zipCode.trim() !== ""
+        );
       case "school-info":
         return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       case "wholesale-terms":
@@ -147,11 +205,31 @@ export function useFormValidation(data: FormValidationData) {
         return true;
     }
   }, [
-    mode, email, password, currentStep, accountType, firstName, lastName, phoneNumber,
-    licenseNumber, salonSize, salonStructure, businessOperationType,
-    businessName, businessAddress, country, city, state, zipCode,
-    schoolName, schoolState, enrollmentProofFiles, wholesaleAgreed,
-    hasTaxExemption, taxExemptFile, isAllStepsValid
+    mode,
+    email,
+    password,
+    currentStep,
+    accountType,
+    firstName,
+    lastName,
+    phoneNumber,
+    licenseNumber,
+    salonSize,
+    salonStructure,
+    businessOperationType,
+    businessName,
+    businessAddress,
+    country,
+    city,
+    state,
+    zipCode,
+    schoolName,
+    schoolState,
+    enrollmentProofFiles,
+    wholesaleAgreed,
+    hasTaxExemption,
+    taxExemptFile,
+    isAllStepsValid,
   ]);
 
   // Get list of incomplete steps for tooltip display
@@ -164,7 +242,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 1,
         name: "Account type",
-        missingFields: ["Select account type"]
+        missingFields: ["Select account type"],
       });
       // Can't determine other steps without account type, return early
       return incomplete;
@@ -181,7 +259,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 2,
           name: "School information",
-          missingFields: schoolMissing
+          missingFields: schoolMissing,
         });
       }
       // Step 3: Contact Basics
@@ -194,7 +272,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 3,
           name: "Contact information",
-          missingFields: studentContactBasicsMissing
+          missingFields: studentContactBasicsMissing,
         });
       }
       // Step 4: Tax Exemption
@@ -205,7 +283,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 4,
           name: "Tax exemption",
-          missingFields: studentTaxMissing
+          missingFields: studentTaxMissing,
         });
       }
       // Step 5: Wholesale Terms
@@ -213,7 +291,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 5,
           name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
+          missingFields: ["Terms agreement"],
         });
       }
       // Step 6: Preferences and Details (all optional)
@@ -234,7 +312,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 2,
           name: "Business location",
-          missingFields: locationMissing
+          missingFields: locationMissing,
         });
       }
       // Step 3: Contact Basics
@@ -247,7 +325,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 3,
           name: "Contact information",
-          missingFields: salonContactBasicsMissing
+          missingFields: salonContactBasicsMissing,
         });
       }
       // Step 4: License
@@ -259,7 +337,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 4,
           name: "License verification",
-          missingFields: licenseMissing
+          missingFields: licenseMissing,
         });
       }
       // Step 5: Tax Exemption
@@ -270,7 +348,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 5,
           name: "Tax exemption",
-          missingFields: taxMissing
+          missingFields: taxMissing,
         });
       }
       // Step 6: Wholesale Terms
@@ -278,7 +356,7 @@ export function useFormValidation(data: FormValidationData) {
         incomplete.push({
           step: 6,
           name: "Wholesale terms",
-          missingFields: ["Terms agreement"]
+          missingFields: ["Terms agreement"],
         });
       }
       // Step 7: Preferences and Details (all optional)
@@ -291,7 +369,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 2,
         name: "Business operation",
-        missingFields: ["Operation type"]
+        missingFields: ["Operation type"],
       });
     }
     // Step 3: Contact Basics
@@ -304,7 +382,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 3,
         name: "Contact information",
-        missingFields: proContactBasicsMissing
+        missingFields: proContactBasicsMissing,
       });
     }
     // Step 4: Business Location
@@ -319,7 +397,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 4,
         name: "Business location",
-        missingFields: proLocationMissing
+        missingFields: proLocationMissing,
       });
     }
     // Step 5: License
@@ -327,7 +405,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 5,
         name: "License verification",
-        missingFields: ["License number"]
+        missingFields: ["License number"],
       });
     }
     // Step 6: Tax Exemption
@@ -338,7 +416,7 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 6,
         name: "Tax exemption",
-        missingFields: proTaxMissing
+        missingFields: proTaxMissing,
       });
     }
     // Step 7: Wholesale Terms
@@ -346,16 +424,34 @@ export function useFormValidation(data: FormValidationData) {
       incomplete.push({
         step: 7,
         name: "Wholesale terms",
-        missingFields: ["Terms agreement"]
+        missingFields: ["Terms agreement"],
       });
     }
     // Step 8: Preferences and Details (all optional)
     return incomplete;
   }, [
-    mode, accountType, schoolName, schoolState, enrollmentProofFiles,
-    firstName, lastName, email, phoneNumber, hasTaxExemption, taxExemptFile,
-    wholesaleAgreed, businessName, businessAddress, country, city, state,
-    zipCode, licenseNumber, salonSize, salonStructure, businessOperationType
+    mode,
+    accountType,
+    schoolName,
+    schoolState,
+    enrollmentProofFiles,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    hasTaxExemption,
+    taxExemptFile,
+    wholesaleAgreed,
+    businessName,
+    businessAddress,
+    country,
+    city,
+    state,
+    zipCode,
+    licenseNumber,
+    salonSize,
+    salonStructure,
+    businessOperationType,
   ]);
 
   // Check if form is ready to submit (on final step with all fields complete)
@@ -369,7 +465,7 @@ export function useFormValidation(data: FormValidationData) {
       let filled = 0;
       if (email.trim() !== "") filled++;
       if (password.length >= 8) filled++;
-      return filled / 2 * 100;
+      return (filled / 2) * 100;
     }
 
     // For signup, calculate based on account type - must match isAllStepsValid logic exactly
@@ -391,9 +487,9 @@ export function useFormValidation(data: FormValidationData) {
         if (taxExemptFile) filled++;
       }
       if (wholesaleAgreed) filled++;
-      return filled / total * 100;
+      return (filled / total) * 100;
     }
-    
+
     if (accountType === "salon") {
       // Salon: accountType (1), business location (6), contact-basics (4), license (3), tax (1-2), wholesale (1)
       let filled = 0;
@@ -418,7 +514,7 @@ export function useFormValidation(data: FormValidationData) {
         if (taxExemptFile) filled++;
       }
       if (wholesaleAgreed) filled++;
-      return filled / total * 100;
+      return (filled / total) * 100;
     }
 
     // Professional (stylist): accountType (1), businessOperation (1), contact-basics (4),
@@ -444,12 +540,31 @@ export function useFormValidation(data: FormValidationData) {
       if (taxExemptFile) filled++;
     }
     if (wholesaleAgreed) filled++;
-    return filled / total * 100;
+    return (filled / total) * 100;
   }, [
-    mode, email, password, accountType, schoolName, schoolState, enrollmentProofFiles,
-    firstName, lastName, phoneNumber, hasTaxExemption, taxExemptFile, wholesaleAgreed,
-    businessName, businessAddress, country, city, state, zipCode, licenseNumber,
-    salonSize, salonStructure, businessOperationType
+    mode,
+    email,
+    password,
+    accountType,
+    schoolName,
+    schoolState,
+    enrollmentProofFiles,
+    firstName,
+    lastName,
+    phoneNumber,
+    hasTaxExemption,
+    taxExemptFile,
+    wholesaleAgreed,
+    businessName,
+    businessAddress,
+    country,
+    city,
+    state,
+    zipCode,
+    licenseNumber,
+    salonSize,
+    salonStructure,
+    businessOperationType,
   ]);
 
   return {

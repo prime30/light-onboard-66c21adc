@@ -1,5 +1,15 @@
 import { AccountTypeCard } from "../AccountTypeCard";
-import { Scissors, Building2, GraduationCap, Sparkles, ArrowUpRight, Tag, Headphones, Users, BookOpen } from "lucide-react";
+import {
+  Scissors,
+  Building2,
+  GraduationCap,
+  Sparkles,
+  ArrowUpRight,
+  Tag,
+  Headphones,
+  Users,
+  BookOpen,
+} from "lucide-react";
 
 interface AccountTypeStepProps {
   selectedType: string | null;
@@ -15,7 +25,7 @@ const accountTypes = [
     features: [
       { label: "Rewards on every order", icon: Tag },
       { label: "Free 2-day shipping", icon: Tag },
-      { label: "Wholesale pricing", icon: Tag }
+      { label: "Wholesale pricing", icon: Tag },
     ],
     icon: Scissors,
   },
@@ -27,7 +37,7 @@ const accountTypes = [
     features: [
       { label: "1.25x rewards multiplier", icon: Tag },
       { label: "Free 2-day shipping", icon: Tag },
-      { label: "Volume discounts", icon: Tag }
+      { label: "Volume discounts", icon: Tag },
     ],
     icon: Building2,
   },
@@ -38,7 +48,7 @@ const accountTypes = [
     features: [
       { label: "Training discounts", icon: Tag },
       { label: "Free ground shipping", icon: Tag },
-      { label: "Student perks", icon: GraduationCap }
+      { label: "Student perks", icon: GraduationCap },
     ],
     icon: GraduationCap,
   },
@@ -50,10 +60,11 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
       {/* Modern header - compact */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-foreground/5 to-foreground/10 border border-foreground/10 p-4">
         {/* Subtle gradient accent */}
-        <div 
+        <div
           className="absolute top-0 right-0 w-[120px] h-[120px] rounded-full blur-[60px] opacity-30"
-          style={{ 
-            background: 'radial-gradient(circle, hsl(var(--foreground) / 0.15) 0%, transparent 70%)'
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--foreground) / 0.15) 0%, transparent 70%)",
           }}
         />
 
@@ -97,8 +108,8 @@ export const AccountTypeStep = ({ selectedType, onSelect }: AccountTypeStepProps
       {/* Non-professional link */}
       <div className="text-center text-sm text-muted-foreground">
         Not a professional? Find a stylist/retailer{" "}
-        <a 
-          href="#" 
+        <a
+          href="#"
           className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group"
         >
           here

@@ -116,47 +116,11 @@ export function useModeSwitch({ currentState, setters, mainScrollRef }: UseModeS
   const signupStateRef = useRef<SignupState | null>(null);
   const signinStateRef = useRef<SigninState | null>(null);
 
-  const handleModeChange = useCallback((newMode: AuthMode) => {
-    const {
-      mode,
-      currentStep,
-      accountType,
-      licenseNumber,
-      state,
-      firstName,
-      lastName,
-      email,
-      password,
-      businessName,
-      businessAddress,
-      suiteNumber,
-      country,
-      city,
-      zipCode,
-      wholesaleAgreed,
-      hasTaxExemption,
-      preferredName,
-      phoneNumber,
-      phoneCountryCode,
-      salonSize,
-      salonStructure,
-      licenseFile,
-      taxExemptFile,
-      schoolName,
-      schoolState,
-      enrollmentProofFiles,
-      businessOperationType,
-      licenseProofFiles,
-      completedSteps,
-    } = currentState;
-
-    // Set transition direction: signin→signup feels like going back, signup→signin feels like going forward
-    setters.setTransitionDirection(newMode === "signup" ? "backward" : "forward");
-
-    // Save current mode's state before switching
-    if (mode === "signup") {
-      signupStateRef.current = {
-        step: currentStep,
+  const handleModeChange = useCallback(
+    (newMode: AuthMode) => {
+      const {
+        mode,
+        currentStep,
         accountType,
         licenseNumber,
         state,
@@ -185,60 +149,99 @@ export function useModeSwitch({ currentState, setters, mainScrollRef }: UseModeS
         businessOperationType,
         licenseProofFiles,
         completedSteps,
-      };
-    } else {
-      signinStateRef.current = {
-        email,
-        password,
-      };
-    }
+      } = currentState;
 
-    setters.setMode(newMode);
+      // Set transition direction: signin→signup feels like going back, signup→signin feels like going forward
+      setters.setTransitionDirection(newMode === "signup" ? "backward" : "forward");
 
-    // Restore the other mode's state if it exists
-    if (newMode === "signup" && signupStateRef.current) {
-      const saved = signupStateRef.current;
-      setters.setCurrentStep(saved.step);
-      setters.setAccountType(saved.accountType);
-      setters.setLicenseNumber(saved.licenseNumber);
-      setters.setState(saved.state);
-      setters.setFirstName(saved.firstName);
-      setters.setLastName(saved.lastName);
-      setters.setEmail(saved.email);
-      setters.setPassword(saved.password);
-      setters.setBusinessName(saved.businessName);
-      setters.setBusinessAddress(saved.businessAddress);
-      setters.setSuiteNumber(saved.suiteNumber);
-      setters.setCountry(saved.country);
-      setters.setCity(saved.city);
-      setters.setZipCode(saved.zipCode);
-      setters.setWholesaleAgreed(saved.wholesaleAgreed);
-      setters.setHasTaxExemption(saved.hasTaxExemption);
-      setters.setPreferredName(saved.preferredName);
-      setters.setPhoneNumber(saved.phoneNumber);
-      setters.setPhoneCountryCode(saved.phoneCountryCode);
-      setters.setSalonSize(saved.salonSize);
-      setters.setSalonStructure(saved.salonStructure);
-      setters.setLicenseFile(saved.licenseFile);
-      setters.setTaxExemptFile(saved.taxExemptFile);
-      setters.setSchoolName(saved.schoolName);
-      setters.setSchoolState(saved.schoolState);
-      setters.setEnrollmentProofFiles(saved.enrollmentProofFiles);
-      setters.setBusinessOperationType(saved.businessOperationType);
-      setters.setLicenseProofFiles(saved.licenseProofFiles);
-      setters.setCompletedSteps(saved.completedSteps);
-    } else if (newMode === "signin" && signinStateRef.current) {
-      const saved = signinStateRef.current;
-      setters.setEmail(saved.email);
-      setters.setPassword(saved.password);
-    } else if (newMode === "signup") {
-      // First time switching to signup, reset to defaults
-      setters.setCurrentStep("onboarding");
-    }
+      // Save current mode's state before switching
+      if (mode === "signup") {
+        signupStateRef.current = {
+          step: currentStep,
+          accountType,
+          licenseNumber,
+          state,
+          firstName,
+          lastName,
+          email,
+          password,
+          businessName,
+          businessAddress,
+          suiteNumber,
+          country,
+          city,
+          zipCode,
+          wholesaleAgreed,
+          hasTaxExemption,
+          preferredName,
+          phoneNumber,
+          phoneCountryCode,
+          salonSize,
+          salonStructure,
+          licenseFile,
+          taxExemptFile,
+          schoolName,
+          schoolState,
+          enrollmentProofFiles,
+          businessOperationType,
+          licenseProofFiles,
+          completedSteps,
+        };
+      } else {
+        signinStateRef.current = {
+          email,
+          password,
+        };
+      }
 
-    // Scroll to top when switching modes
-    mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-  }, [currentState, setters, mainScrollRef]);
+      setters.setMode(newMode);
+
+      // Restore the other mode's state if it exists
+      if (newMode === "signup" && signupStateRef.current) {
+        const saved = signupStateRef.current;
+        setters.setCurrentStep(saved.step);
+        setters.setAccountType(saved.accountType);
+        setters.setLicenseNumber(saved.licenseNumber);
+        setters.setState(saved.state);
+        setters.setFirstName(saved.firstName);
+        setters.setLastName(saved.lastName);
+        setters.setEmail(saved.email);
+        setters.setPassword(saved.password);
+        setters.setBusinessName(saved.businessName);
+        setters.setBusinessAddress(saved.businessAddress);
+        setters.setSuiteNumber(saved.suiteNumber);
+        setters.setCountry(saved.country);
+        setters.setCity(saved.city);
+        setters.setZipCode(saved.zipCode);
+        setters.setWholesaleAgreed(saved.wholesaleAgreed);
+        setters.setHasTaxExemption(saved.hasTaxExemption);
+        setters.setPreferredName(saved.preferredName);
+        setters.setPhoneNumber(saved.phoneNumber);
+        setters.setPhoneCountryCode(saved.phoneCountryCode);
+        setters.setSalonSize(saved.salonSize);
+        setters.setSalonStructure(saved.salonStructure);
+        setters.setLicenseFile(saved.licenseFile);
+        setters.setTaxExemptFile(saved.taxExemptFile);
+        setters.setSchoolName(saved.schoolName);
+        setters.setSchoolState(saved.schoolState);
+        setters.setEnrollmentProofFiles(saved.enrollmentProofFiles);
+        setters.setBusinessOperationType(saved.businessOperationType);
+        setters.setLicenseProofFiles(saved.licenseProofFiles);
+        setters.setCompletedSteps(saved.completedSteps);
+      } else if (newMode === "signin" && signinStateRef.current) {
+        const saved = signinStateRef.current;
+        setters.setEmail(saved.email);
+        setters.setPassword(saved.password);
+      } else if (newMode === "signup") {
+        // First time switching to signup, reset to defaults
+        setters.setCurrentStep("onboarding");
+      }
+
+      // Scroll to top when switching modes
+      mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    },
+    [currentState, setters, mainScrollRef]
+  );
 
   return {
     handleModeChange,

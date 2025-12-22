@@ -1,6 +1,6 @@
 /**
  * useAuth Hook
- * 
+ *
  * React hook for managing authentication state and operations.
  * Provides reactive auth state and methods for sign up, sign in, and sign out.
  */
@@ -26,13 +26,13 @@ interface UseAuthReturn {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  
+
   // Auth operations
   signUp: (data: SignUpData) => Promise<AuthResult>;
   signIn: (data: SignInData) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
   resetPassword: (email: string) => Promise<AuthResult>;
-  
+
   // Refresh
   refreshSession: () => Promise<void>;
 }

@@ -21,40 +21,40 @@ Complete reference for the design system tokens, components, and utilities.
 
 ### Font Families
 
-| Token | Font | Usage |
-|-------|------|-------|
-| `font-sans` | Aeonik Pro | Default body text |
-| `font-aeonik` | Aeonik Pro | Body, UI elements |
-| `font-termina` | Termina | Headlines, display |
-| `font-display` | Aeonik Pro | Alternate display |
+| Token          | Font       | Usage              |
+| -------------- | ---------- | ------------------ |
+| `font-sans`    | Aeonik Pro | Default body text  |
+| `font-aeonik`  | Aeonik Pro | Body, UI elements  |
+| `font-termina` | Termina    | Headlines, display |
+| `font-display` | Aeonik Pro | Alternate display  |
 
 ### Termina Weights
 
-| Weight | Class | File |
-|--------|-------|------|
-| 100 | `font-thin` | termina-thin.otf |
-| 200 | `font-extralight` | termina-extralight.otf |
-| 300 | `font-light` | termina-light.otf |
-| 400 | `font-normal` | termina-regular.otf |
-| 500 | `font-medium` | termina-medium.otf |
-| 600 | `font-semibold` | termina-demi.otf |
-| 700 | `font-bold` | termina-bold.otf |
-| 800 | `font-extrabold` | termina-heavy.otf |
-| 900 | `font-black` | termina-black.otf |
+| Weight | Class             | File                   |
+| ------ | ----------------- | ---------------------- |
+| 100    | `font-thin`       | termina-thin.otf       |
+| 200    | `font-extralight` | termina-extralight.otf |
+| 300    | `font-light`      | termina-light.otf      |
+| 400    | `font-normal`     | termina-regular.otf    |
+| 500    | `font-medium`     | termina-medium.otf     |
+| 600    | `font-semibold`   | termina-demi.otf       |
+| 700    | `font-bold`       | termina-bold.otf       |
+| 800    | `font-extrabold`  | termina-heavy.otf      |
+| 900    | `font-black`      | termina-black.otf      |
 
 ### Aeonik Pro Weights
 
-| Weight | Class | File |
-|--------|-------|------|
-| 300 | `font-light` | aeonik-pro-light.otf |
-| 400 | `font-normal` | aeonik-pro-regular.otf |
-| 400 italic | `font-normal italic` | aeonik-pro-regular-italic.otf |
-| 500 | `font-medium` | aeonik-pro-medium.otf |
-| 500 italic | `font-medium italic` | aeonik-pro-medium-italic.otf |
-| 600 | `font-semibold` | aeonik-pro-semibold.otf |
+| Weight     | Class                  | File                           |
+| ---------- | ---------------------- | ------------------------------ |
+| 300        | `font-light`           | aeonik-pro-light.otf           |
+| 400        | `font-normal`          | aeonik-pro-regular.otf         |
+| 400 italic | `font-normal italic`   | aeonik-pro-regular-italic.otf  |
+| 500        | `font-medium`          | aeonik-pro-medium.otf          |
+| 500 italic | `font-medium italic`   | aeonik-pro-medium-italic.otf   |
+| 600        | `font-semibold`        | aeonik-pro-semibold.otf        |
 | 600 italic | `font-semibold italic` | aeonik-pro-semibold-italic.otf |
-| 700 | `font-bold` | aeonik-pro-bold.otf |
-| 900 | `font-black` | aeonik-pro-black.otf |
+| 700        | `font-bold`            | aeonik-pro-bold.otf            |
+| 900        | `font-black`           | aeonik-pro-black.otf           |
 
 ### Usage
 
@@ -83,51 +83,51 @@ All colors use HSL format via CSS variables for easy theming.
 
 ### Core Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--background` | `0 0% 100%` | `0 0% 5%` | Page background |
-| `--foreground` | `0 0% 8%` | `0 0% 98%` | Primary text |
-| `--card` | `0 0% 100%` | `0 0% 8%` | Card background |
-| `--card-foreground` | `0 0% 8%` | `0 0% 98%` | Card text |
-| `--popover` | `0 0% 100%` | `0 0% 8%` | Popover background |
-| `--popover-foreground` | `0 0% 8%` | `0 0% 98%` | Popover text |
+| Token                  | Light       | Dark       | Usage              |
+| ---------------------- | ----------- | ---------- | ------------------ |
+| `--background`         | `0 0% 100%` | `0 0% 5%`  | Page background    |
+| `--foreground`         | `0 0% 8%`   | `0 0% 98%` | Primary text       |
+| `--card`               | `0 0% 100%` | `0 0% 8%`  | Card background    |
+| `--card-foreground`    | `0 0% 8%`   | `0 0% 98%` | Card text          |
+| `--popover`            | `0 0% 100%` | `0 0% 8%`  | Popover background |
+| `--popover-foreground` | `0 0% 8%`   | `0 0% 98%` | Popover text       |
 
 ### Interactive Colors
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--primary` | `0 0% 8%` | `0 0% 98%` | Primary buttons/actions |
-| `--primary-foreground` | `0 0% 100%` | `0 0% 5%` | Text on primary |
-| `--secondary` | `0 0% 96%` | `0 0% 12%` | Secondary elements |
-| `--secondary-foreground` | `0 0% 20%` | `0 0% 90%` | Text on secondary |
-| `--muted` | `0 0% 96.22%` | `0 0% 15%` | Muted backgrounds |
-| `--muted-foreground` | `0 0% 45%` | `0 0% 55%` | Muted text |
-| `--accent` | `0 0% 92%` | `0 0% 18%` | Accent backgrounds |
-| `--accent-foreground` | `0 0% 8%` | `0 0% 98%` | Text on accent |
+| Token                    | Light         | Dark       | Usage                   |
+| ------------------------ | ------------- | ---------- | ----------------------- |
+| `--primary`              | `0 0% 8%`     | `0 0% 98%` | Primary buttons/actions |
+| `--primary-foreground`   | `0 0% 100%`   | `0 0% 5%`  | Text on primary         |
+| `--secondary`            | `0 0% 96%`    | `0 0% 12%` | Secondary elements      |
+| `--secondary-foreground` | `0 0% 20%`    | `0 0% 90%` | Text on secondary       |
+| `--muted`                | `0 0% 96.22%` | `0 0% 15%` | Muted backgrounds       |
+| `--muted-foreground`     | `0 0% 45%`    | `0 0% 55%` | Muted text              |
+| `--accent`               | `0 0% 92%`    | `0 0% 18%` | Accent backgrounds      |
+| `--accent-foreground`    | `0 0% 8%`     | `0 0% 98%` | Text on accent          |
 
 ### Status Colors
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--status-amber` | `38 92% 50%` | Warnings, pending |
-| `--status-green` | `142 71% 45%` | Success, valid |
-| `--status-red` | `0 84% 60%` | Error, invalid |
-| `--destructive` | `0 84% 60%` | Destructive actions |
+| Token            | Value         | Usage               |
+| ---------------- | ------------- | ------------------- |
+| `--status-amber` | `38 92% 50%`  | Warnings, pending   |
+| `--status-green` | `142 71% 45%` | Success, valid      |
+| `--status-red`   | `0 84% 60%`   | Error, invalid      |
+| `--destructive`  | `0 84% 60%`   | Destructive actions |
 
 ### Accent Colors
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--accent-red` | `0 72% 51%` | Red accent |
+| Token               | Value       | Usage           |
+| ------------------- | ----------- | --------------- |
+| `--accent-red`      | `0 72% 51%` | Red accent      |
 | `--accent-red-soft` | `0 60% 60%` | Soft red accent |
 
 ### Border & Input
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
+| Token      | Light      | Dark       | Usage           |
+| ---------- | ---------- | ---------- | --------------- |
 | `--border` | `0 0% 90%` | `0 0% 15%` | Default borders |
-| `--input` | `0 0% 90%` | `0 0% 15%` | Input borders |
-| `--ring` | `0 0% 8%` | `0 0% 98%` | Focus rings |
+| `--input`  | `0 0% 90%` | `0 0% 15%` | Input borders   |
+| `--ring`   | `0 0% 8%`  | `0 0% 98%` | Focus rings     |
 
 ### Usage
 
@@ -151,17 +151,17 @@ All colors use HSL format via CSS variables for easy theming.
 
 Standardized radius system: 3, 5, 10, 20, 30, 40, 9999px
 
-| Token | Value | CSS Variable | Usage |
-|-------|-------|--------------|-------|
-| `rounded-xs` | 3px | `--radius-xs` | Tiny badges |
-| `rounded-sm` | 5px | `--radius-sm` | Small badges |
-| `rounded-md` | 10px | `--radius-md` | Inputs, cards |
-| `rounded-lg` | 20px | `--radius-lg` | Large cards |
-| `rounded-xl` | 30px | `--radius-xl` | Modals |
-| `rounded-2xl` | 40px | `--radius-2xl` | Hero sections |
-| `rounded-full` | 9999px | `--radius-full` | Pills, circles |
-| `rounded-form` | 10px | `--radius-form` | Form elements |
-| `rounded-form-sm` | 10px | `--radius-form-sm` | Small form elements |
+| Token             | Value  | CSS Variable       | Usage               |
+| ----------------- | ------ | ------------------ | ------------------- |
+| `rounded-xs`      | 3px    | `--radius-xs`      | Tiny badges         |
+| `rounded-sm`      | 5px    | `--radius-sm`      | Small badges        |
+| `rounded-md`      | 10px   | `--radius-md`      | Inputs, cards       |
+| `rounded-lg`      | 20px   | `--radius-lg`      | Large cards         |
+| `rounded-xl`      | 30px   | `--radius-xl`      | Modals              |
+| `rounded-2xl`     | 40px   | `--radius-2xl`     | Hero sections       |
+| `rounded-full`    | 9999px | `--radius-full`    | Pills, circles      |
+| `rounded-form`    | 10px   | `--radius-form`    | Form elements       |
+| `rounded-form-sm` | 10px   | `--radius-form-sm` | Small form elements |
 
 ### Usage
 
@@ -176,27 +176,27 @@ Standardized radius system: 3, 5, 10, 20, 30, 40, 9999px
 
 ## Shadows
 
-| Token | CSS Variable | Usage |
-|-------|--------------|-------|
-| `shadow-soft` | - | Subtle elevation |
-| `shadow-card` | - | Card default |
-| `shadow-elevated` | - | High elevation |
-| `shadow-input-focus` | `--shadow-input-focus` | Focused inputs |
-| `shadow-card-hover` | `--shadow-card-hover` | Hovered cards |
-| `shadow-pill` | `--shadow-pill` | Pill buttons |
-| `shadow-pill-hover` | `--shadow-pill-hover` | Hovered pills |
-| `shadow-toast` | `--shadow-toast` | Toast notifications |
-| `shadow-modal` | `--shadow-modal` | Modal dialogs |
+| Token                | CSS Variable           | Usage               |
+| -------------------- | ---------------------- | ------------------- |
+| `shadow-soft`        | -                      | Subtle elevation    |
+| `shadow-card`        | -                      | Card default        |
+| `shadow-elevated`    | -                      | High elevation      |
+| `shadow-input-focus` | `--shadow-input-focus` | Focused inputs      |
+| `shadow-card-hover`  | `--shadow-card-hover`  | Hovered cards       |
+| `shadow-pill`        | `--shadow-pill`        | Pill buttons        |
+| `shadow-pill-hover`  | `--shadow-pill-hover`  | Hovered pills       |
+| `shadow-toast`       | `--shadow-toast`       | Toast notifications |
+| `shadow-modal`       | `--shadow-modal`       | Modal dialogs       |
 
 ### CSS Variable Values
 
 ```css
---shadow-input-focus: inset 0 0 20px rgba(0,0,0,0.03);
---shadow-card-hover: 0 8px 30px -12px rgba(0,0,0,0.12);
---shadow-pill: 0 4px 20px -4px rgba(0,0,0,0.08);
---shadow-pill-hover: 0 8px 30px -8px rgba(0,0,0,0.12);
---shadow-toast: 0 8px 32px rgba(0,0,0,0.12);
---shadow-modal: 0 8px 32px rgba(0,0,0,0.3);
+--shadow-input-focus: inset 0 0 20px rgba(0, 0, 0, 0.03);
+--shadow-card-hover: 0 8px 30px -12px rgba(0, 0, 0, 0.12);
+--shadow-pill: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+--shadow-pill-hover: 0 8px 30px -8px rgba(0, 0, 0, 0.12);
+--shadow-toast: 0 8px 32px rgba(0, 0, 0, 0.12);
+--shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.3);
 ```
 
 ---
@@ -205,11 +205,11 @@ Standardized radius system: 3, 5, 10, 20, 30, 40, 9999px
 
 ### Form Elements
 
-| Token | Value | CSS Variable | Usage |
-|-------|-------|--------------|-------|
-| `h-input` | 50px | `--input-height` | Standard inputs |
-| `h-input-prominent` | 60px | `--input-height-prominent` | Prominent inputs |
-| `h-button` | 55px | `--button-height` | Standard buttons |
+| Token               | Value | CSS Variable               | Usage            |
+| ------------------- | ----- | -------------------------- | ---------------- |
+| `h-input`           | 50px  | `--input-height`           | Standard inputs  |
+| `h-input-prominent` | 60px  | `--input-height-prominent` | Prominent inputs |
+| `h-button`          | 55px  | `--button-height`          | Standard buttons |
 
 ---
 
@@ -217,43 +217,43 @@ Standardized radius system: 3, 5, 10, 20, 30, 40, 9999px
 
 ### Modal Animations
 
-| Class | Effect | Duration |
-|-------|--------|----------|
-| `animate-modal-enter` | Slide up + fade (mobile) / scale + fade (desktop) | 0.6s |
-| `animate-modal-exit` | Slide down (mobile) / fade out (desktop) | 0.45s |
+| Class                 | Effect                                            | Duration |
+| --------------------- | ------------------------------------------------- | -------- |
+| `animate-modal-enter` | Slide up + fade (mobile) / scale + fade (desktop) | 0.6s     |
+| `animate-modal-exit`  | Slide down (mobile) / fade out (desktop)          | 0.45s    |
 
 ### Fade Animations
 
-| Class | Effect | Duration |
-|-------|--------|----------|
-| `animate-fade-in` | Simple fade in | 0.6s |
-| `animate-rise-fade-in` | Fade in + rise from below | 0.7s |
+| Class                  | Effect                    | Duration |
+| ---------------------- | ------------------------- | -------- |
+| `animate-fade-in`      | Simple fade in            | 0.6s     |
+| `animate-rise-fade-in` | Fade in + rise from below | 0.7s     |
 
 ### Slide Animations
 
-| Class | Effect | Duration |
-|-------|--------|----------|
-| `animate-slide-up` | Slide up + fade | 0.6s |
-| `animate-slide-in-right` | Slide in from right | 0.5s |
-| `animate-slide-out-left` | Slide out to left | 0.6s |
-| `animate-slide-up-fade` | Gentle slide up + fade | 0.7s |
-| `animate-slide-down-fade` | Slide down + fade | 0.7s |
+| Class                     | Effect                 | Duration |
+| ------------------------- | ---------------------- | -------- |
+| `animate-slide-up`        | Slide up + fade        | 0.6s     |
+| `animate-slide-in-right`  | Slide in from right    | 0.5s     |
+| `animate-slide-out-left`  | Slide out to left      | 0.6s     |
+| `animate-slide-up-fade`   | Gentle slide up + fade | 0.7s     |
+| `animate-slide-down-fade` | Slide down + fade      | 0.7s     |
 
 ### Step Transitions
 
-| Class | Effect | Duration |
-|-------|--------|----------|
-| `animate-step-enter-right` | Enter from right with blur | 0.7s |
-| `animate-step-enter-left` | Enter from left with blur | 0.7s |
-| `animate-step-exit-left` | Exit to left with blur | 0.25s |
-| `animate-step-exit-right` | Exit to right with blur | 0.25s |
+| Class                      | Effect                     | Duration |
+| -------------------------- | -------------------------- | -------- |
+| `animate-step-enter-right` | Enter from right with blur | 0.7s     |
+| `animate-step-enter-left`  | Enter from left with blur  | 0.7s     |
+| `animate-step-exit-left`   | Exit to left with blur     | 0.25s    |
+| `animate-step-exit-right`  | Exit to right with blur    | 0.25s    |
 
 ### Stagger Animations
 
 Apply sequential delays to child elements:
 
-| Class | Delay |
-|-------|-------|
+| Class               | Delay |
+| ------------------- | ----- |
 | `animate-stagger-1` | 0.08s |
 | `animate-stagger-2` | 0.18s |
 | `animate-stagger-3` | 0.28s |
@@ -264,22 +264,22 @@ Apply sequential delays to child elements:
 
 ### Scale & Bounce
 
-| Class | Effect | Duration |
-|-------|--------|----------|
-| `animate-scale-in` | Scale up + fade | 0.4s |
-| `animate-bounce-in` | Bounce entrance | 0.8s |
-| `animate-haptic-pop` | Bouncy pop entrance | 0.7s |
-| `animate-badge-pop` | Badge pop entrance | 0.5s |
+| Class                | Effect              | Duration |
+| -------------------- | ------------------- | -------- |
+| `animate-scale-in`   | Scale up + fade     | 0.4s     |
+| `animate-bounce-in`  | Bounce entrance     | 0.8s     |
+| `animate-haptic-pop` | Bouncy pop entrance | 0.7s     |
+| `animate-badge-pop`  | Badge pop entrance  | 0.5s     |
 
 ### Tailwind Config Animations
 
-| Class | Effect |
-|-------|--------|
-| `animate-accordion-down` | Accordion open |
-| `animate-accordion-up` | Accordion close |
-| `animate-shimmer` | Loading shimmer |
-| `animate-bounce-subtle` | Gentle bounce |
-| `animate-scroll-wheel` | Scroll indicator |
+| Class                    | Effect           |
+| ------------------------ | ---------------- |
+| `animate-accordion-down` | Accordion open   |
+| `animate-accordion-up`   | Accordion close  |
+| `animate-shimmer`        | Loading shimmer  |
+| `animate-bounce-subtle`  | Gentle bounce    |
+| `animate-scroll-wheel`   | Scroll indicator |
 
 ---
 
@@ -287,34 +287,34 @@ Apply sequential delays to child elements:
 
 ### Button Effects
 
-| Class | Effect |
-|-------|--------|
-| `btn-premium` | Shine sweep on hover + lift |
-| `btn-lift` | Lift on hover |
-| `haptic-press` | Scale down on click |
+| Class          | Effect                      |
+| -------------- | --------------------------- |
+| `btn-premium`  | Shine sweep on hover + lift |
+| `btn-lift`     | Lift on hover               |
+| `haptic-press` | Scale down on click         |
 
 ### Input Styling
 
-| Class | Effect |
-|-------|--------|
-| `input-ultra` | Gradient border on focus + glow |
-| `input-glow` | Focus glow effect |
-| `focus-shadow-input` | Inner shadow on focus |
-| `floating-label` | Floating label animation |
+| Class                | Effect                          |
+| -------------------- | ------------------------------- |
+| `input-ultra`        | Gradient border on focus + glow |
+| `input-glow`         | Focus glow effect               |
+| `focus-shadow-input` | Inner shadow on focus           |
+| `floating-label`     | Floating label animation        |
 
 ### Visual Effects
 
-| Class | Effect |
-|-------|--------|
-| `glass-card` | Frosted glass effect |
-| `grain-overlay` | Subtle grain texture |
-| `text-shimmer` | Animated text gradient |
-| `magnetic-container` | Magnetic hover effect |
+| Class                | Effect                 |
+| -------------------- | ---------------------- |
+| `glass-card`         | Frosted glass effect   |
+| `grain-overlay`      | Subtle grain texture   |
+| `text-shimmer`       | Animated text gradient |
+| `magnetic-container` | Magnetic hover effect  |
 
 ### Validation
 
-| Class | Effect |
-|-------|--------|
+| Class          | Effect           |
+| -------------- | ---------------- |
 | `shake-subtle` | Validation shake |
 
 ---
@@ -340,7 +340,7 @@ import { Button } from "@/components/ui/button";
 ```tsx
 import { Input } from "@/components/ui/input";
 
-<Input placeholder="Email" className="h-input rounded-form" />
+<Input placeholder="Email" className="h-input rounded-form" />;
 ```
 
 ### Card
@@ -374,12 +374,7 @@ import { Badge } from "@/components/ui/badge";
 ### Dialog
 
 ```tsx
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 <Dialog>
   <DialogTrigger>Open</DialogTrigger>
@@ -389,7 +384,7 @@ import {
     </DialogHeader>
     Content here
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Toast (Sonner)
@@ -410,7 +405,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 <Tooltip>
   <TooltipTrigger>Hover me</TooltipTrigger>
   <TooltipContent>Tooltip text</TooltipContent>
-</Tooltip>
+</Tooltip>;
 ```
 
 ---
@@ -424,7 +419,7 @@ import { ThemeProvider } from "next-themes";
 
 <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
   <App />
-</ThemeProvider>
+</ThemeProvider>;
 ```
 
 ### Customizing Colors
@@ -447,6 +442,7 @@ Edit CSS variables in `index.css`:
 ### Adding New Colors
 
 1. Add CSS variable in `index.css`:
+
 ```css
 :root {
   --brand-purple: 270 70% 50%;
@@ -454,6 +450,7 @@ Edit CSS variables in `index.css`:
 ```
 
 2. Add to `tailwind.config.ts`:
+
 ```ts
 colors: {
   brand: {
@@ -463,6 +460,7 @@ colors: {
 ```
 
 3. Use in components:
+
 ```tsx
 <div className="bg-brand-purple">...</div>
 ```

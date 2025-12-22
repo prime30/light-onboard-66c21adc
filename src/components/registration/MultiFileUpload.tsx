@@ -1,6 +1,16 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FolderOpen, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn, GripVertical } from "lucide-react";
+import {
+  Upload,
+  FolderOpen,
+  X,
+  FileCheck,
+  Loader2,
+  FileText,
+  AlertCircle,
+  ZoomIn,
+  GripVertical,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
 
@@ -25,14 +35,13 @@ const formatFileSizeLimit = (bytes: number) => {
 };
 
 const isImageFile = (file: File) => {
-  return file.type.startsWith("image/") || 
-    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
 };
 
 const formatAcceptedTypes = (accept: string) => {
   return accept
     .split(",")
-    .map(t => t.trim().toUpperCase().replace(".", ""))
+    .map((t) => t.trim().toUpperCase().replace(".", ""))
     .join(", ");
 };
 
@@ -43,8 +52,8 @@ const formatFileSize = (bytes: number) => {
 };
 
 // File item component with preview and drag handle
-const FileItem = ({ 
-  file, 
+const FileItem = ({
+  file,
   index,
   onRemove,
   onPreview,
@@ -53,8 +62,8 @@ const FileItem = ({
   onDragEnd,
   isDragging,
   isDragOver,
-}: { 
-  file: File; 
+}: {
+  file: File;
   index: number;
   onRemove: () => void;
   onPreview: () => void;
@@ -75,7 +84,7 @@ const FileItem = ({
   }, [file]);
 
   return (
-    <div 
+    <div
       draggable
       onDragStart={(e) => onDragStart(e, index)}
       onDragOver={(e) => onDragOver(e, index)}
@@ -91,16 +100,16 @@ const FileItem = ({
       <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-foreground/10 transition-colors">
         <GripVertical className="w-4 h-4 text-muted-foreground" />
       </div>
-      
+
       {previewUrl ? (
         <button
           type="button"
           onClick={onPreview}
           className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
         >
-          <img 
-            src={previewUrl} 
-            alt="Preview" 
+          <img
+            src={previewUrl}
+            alt="Preview"
             className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors duration-200 flex items-center justify-center">
@@ -150,7 +159,7 @@ export const MultiFileUpload = ({
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<File | null>(null);
-  
+
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -162,12 +171,12 @@ export const MultiFileUpload = ({
         closeLightbox();
       }
     };
-    
+
     if (lightboxUrl) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
     }
-    
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
@@ -185,7 +194,7 @@ export const MultiFileUpload = ({
     const fileSizeKB = totalSize / 1024;
     const baseTime = 300;
     const sizeMultiplier = Math.min(fileSizeKB / 500, 1);
-    const totalTime = baseTime + (sizeMultiplier * 700);
+    const totalTime = baseTime + sizeMultiplier * 700;
     const steps = 20;
     const stepTime = totalTime / steps;
 
@@ -208,13 +217,16 @@ export const MultiFileUpload = ({
     return () => clearInterval(interval);
   }, [pendingFiles]);
 
-  const validateFileType = useCallback((file: File): boolean => {
-    const acceptedTypes = accept.split(",").map(t => t.trim().toLowerCase());
-    const fileExt = `.${file.name.split(".").pop()?.toLowerCase()}`;
-    return acceptedTypes.some(type => 
-      fileExt === type || file.type.includes(type.replace(".", ""))
-    );
-  }, [accept]);
+  const validateFileType = useCallback(
+    (file: File): boolean => {
+      const acceptedTypes = accept.split(",").map((t) => t.trim().toLowerCase());
+      const fileExt = `.${file.name.split(".").pop()?.toLowerCase()}`;
+      return acceptedTypes.some(
+        (type) => fileExt === type || file.type.includes(type.replace(".", ""))
+      );
+    },
+    [accept]
+  );
 
   const processFiles = async (newFiles: File[]) => {
     // Compress images if enabled
@@ -244,13 +256,17 @@ export const MultiFileUpload = ({
       errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
     }
     if (oversizedFiles.length > 0) {
-      errors.push(`Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`);
+      errors.push(
+        `Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`
+      );
     }
 
     // Check max files limit
     const availableSlots = maxFiles - files.length;
     if (validFiles.length > availableSlots) {
-      errors.push(`Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`);
+      errors.push(
+        `Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`
+      );
       validFiles.splice(availableSlots);
     }
 
@@ -285,16 +301,19 @@ export const MultiFileUpload = ({
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
 
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    if (droppedFiles.length > 0) {
-      processFiles(droppedFiles);
-    }
-  }, [files.length, maxFiles, validateFileType]);
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        processFiles(droppedFiles);
+      }
+    },
+    [files.length, maxFiles, validateFileType]
+  );
 
   const handleRemoveFile = (index: number) => {
     const newFiles = files.filter((_, i) => i !== index);
@@ -332,7 +351,7 @@ export const MultiFileUpload = ({
           <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30 animate-in fade-in slide-in-from-top-1 duration-200">
             <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
             <p className="text-xs text-destructive flex-1">{fileTypeError}</p>
-            <button 
+            <button
               type="button"
               onClick={clearFileTypeError}
               className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
@@ -349,10 +368,10 @@ export const MultiFileUpload = ({
           onDrop={handleDrop}
           className={cn(
             "relative flex flex-col items-center justify-center gap-3 p-6 rounded-lg border-2 border-dashed transition-all duration-300 overflow-hidden",
-            isDragOver 
-              ? "border-foreground bg-foreground/5 scale-[1.01]" 
-              : hasError 
-                ? "border-destructive/50 bg-destructive/5" 
+            isDragOver
+              ? "border-foreground bg-foreground/5 scale-[1.01]"
+              : hasError
+                ? "border-destructive/50 bg-destructive/5"
                 : isProcessing
                   ? "border-foreground/50 bg-foreground/5"
                   : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
@@ -361,7 +380,7 @@ export const MultiFileUpload = ({
         >
           {/* Progress bar background */}
           {isProcessing && (
-            <div 
+            <div
               className="absolute inset-0 bg-foreground/10 transition-all duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
@@ -376,13 +395,13 @@ export const MultiFileUpload = ({
             disabled={isProcessing || !canAddMore}
             multiple
           />
-          
+
           {isProcessing ? (
             <div className="relative flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-foreground animate-spin" />
               <div className="flex items-center gap-3 w-48">
                 <div className="flex-1 h-1.5 bg-border/50 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-foreground rounded-full transition-all duration-100 ease-out"
                     style={{ width: `${progress}%` }}
                   />
@@ -397,20 +416,26 @@ export const MultiFileUpload = ({
             </div>
           ) : (
             <>
-              <div className={cn(
-                "w-12 h-12 rounded-md flex items-center justify-center transition-colors duration-300",
-                isDragOver ? "bg-foreground text-background" : "bg-muted"
-              )}>
-                <Upload className={cn(
-                  "w-6 h-6 transition-colors duration-300",
-                  isDragOver ? "text-background" : "text-muted-foreground"
-                )} />
+              <div
+                className={cn(
+                  "w-12 h-12 rounded-md flex items-center justify-center transition-colors duration-300",
+                  isDragOver ? "bg-foreground text-background" : "bg-muted"
+                )}
+              >
+                <Upload
+                  className={cn(
+                    "w-6 h-6 transition-colors duration-300",
+                    isDragOver ? "text-background" : "text-muted-foreground"
+                  )}
+                />
               </div>
               <div className="text-center">
-                <p className={cn(
-                  "text-sm font-medium",
-                  hasError ? "text-destructive" : "text-foreground"
-                )}>
+                <p
+                  className={cn(
+                    "text-sm font-medium",
+                    hasError ? "text-destructive" : "text-foreground"
+                  )}
+                >
                   {isDragOver ? "Drop files here" : placeholder}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -438,7 +463,10 @@ export const MultiFileUpload = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Uploaded Files ({files.length}) {files.length > 1 && <span className="normal-case font-normal">• Drag to reorder</span>}
+                Uploaded Files ({files.length}){" "}
+                {files.length > 1 && (
+                  <span className="normal-case font-normal">• Drag to reorder</span>
+                )}
               </p>
               {files.length > 1 && (
                 <button
@@ -470,7 +498,11 @@ export const MultiFileUpload = ({
                     }
                   }}
                   onDragEnd={() => {
-                    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+                    if (
+                      draggedIndex !== null &&
+                      dragOverIndex !== null &&
+                      draggedIndex !== dragOverIndex
+                    ) {
                       const newFiles = [...files];
                       const [draggedFile] = newFiles.splice(draggedIndex, 1);
                       newFiles.splice(dragOverIndex, 0, draggedFile);
@@ -494,12 +526,12 @@ export const MultiFileUpload = ({
 
       {/* Lightbox Modal */}
       {lightboxUrl && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in duration-200"
           onClick={closeLightbox}
         >
           <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
-          
+
           <button
             type="button"
             onClick={closeLightbox}
@@ -508,16 +540,16 @@ export const MultiFileUpload = ({
             <X className="w-6 h-6 text-foreground" />
           </button>
 
-          <div 
+          <div
             className="relative max-w-[90vw] max-h-[90vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <img 
-              src={lightboxUrl} 
-              alt={lightboxFile?.name || "Preview"} 
+            <img
+              src={lightboxUrl}
+              alt={lightboxFile?.name || "Preview"}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
-            
+
             {lightboxFile && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent rounded-b-lg">
                 <p className="text-sm font-medium text-foreground truncate">{lightboxFile.name}</p>

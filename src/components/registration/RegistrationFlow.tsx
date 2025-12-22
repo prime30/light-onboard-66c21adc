@@ -98,10 +98,7 @@ export const RegistrationFlow = () => {
       <main className="flex-1 flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-4xl">
           {currentStep === "account-type" && (
-            <AccountTypeStep
-              selectedType={accountType}
-              onSelect={setAccountType}
-            />
+            <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />
           )}
           {currentStep === "license" && (
             <LicenseStep
@@ -160,7 +157,7 @@ export const RegistrationFlow = () => {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            
+
             {currentStep === "account-type" && (
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
