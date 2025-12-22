@@ -1,5 +1,5 @@
 import { uploadFile } from "@/components/registration/actions/uploadFile";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 export interface UploadFileItem {
   id: string;
@@ -77,22 +77,25 @@ export const useUploadFile = (): UseUploadFileReturn => {
     }
   }, [queue, updateFileStatus]);
 
-  const addFiles = useCallback(
-    (files: File[]) => {
-      const newItems: UploadFileItem[] = files.map((file) => ({
-        id: generateId(),
-        file,
-        status: "pending",
-        progress: 0,
-      }));
+  useEffect(() => {
+    if (isUploadingRef.current) return;
+    if (queue.length === 0) return;
 
-      setQueue((prevQueue) => [...prevQueue, ...newItems]);
+    // Auto-start upload
+    console.log("process");
+    processQueue();
+  }, [queue.length, processQueue]);
 
-      // Auto-start upload
-      processQueue();
-    },
-    [processQueue]
-  );
+  const addFiles = useCallback((files: File[]) => {
+    const newItems: UploadFileItem[] = files.map((file) => ({
+      id: generateId(),
+      file,
+      status: "pending",
+      progress: 0,
+    }));
+
+    setQueue((prevQueue) => [...prevQueue, ...newItems]);
+  }, []);
 
   const clearQueue = useCallback(() => {
     setQueue([]);
