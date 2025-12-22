@@ -6,7 +6,6 @@ export async function uploadFile(file: File): Promise<string> {
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-file`, {
       method: "POST",
       headers: {
-        ContentType: "multipart/form-data",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
       body: formData,
