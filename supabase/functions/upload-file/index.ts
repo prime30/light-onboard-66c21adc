@@ -1,8 +1,10 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
 };
 
 const BUCKET_NAME = "registration-documents";
@@ -11,7 +13,7 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_
 const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -95,7 +97,7 @@ Deno.serve(async (req) => {
     console.log("File uploaded successfully:", uploadData.path);
 
     // Get the public URL
-    const { data: urlData } = sbAdmin.storage.from("uploads").getPublicUrl(fileName);
+    const { data: urlData } = sbAdmin.storage.from(BUCKET_NAME).getPublicUrl(fileName);
 
     return new Response(
       JSON.stringify({
