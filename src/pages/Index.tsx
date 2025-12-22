@@ -11,10 +11,12 @@ const Index = () => {
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border/50 mb-2">
           <Sparkles className="w-3 h-3 text-muted-foreground" />
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-            Preview
+            Jason Edit
           </span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight">Only for development purposes</h1>
+        <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight">
+          Only for development purposes
+        </h1>
         <Button
           size="lg"
           onClick={() => navigate("/auth")}
