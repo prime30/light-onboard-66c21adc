@@ -63,3 +63,8 @@ static/
 
 # SVG files (often generated or optimized)
 *.svg
+
+# Supabase
+.branches/
+.temp/
+supabase/functions/
