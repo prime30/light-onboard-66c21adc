@@ -49,57 +49,68 @@ export function useModalSwipe({
   const modalRef = useRef<HTMLDivElement>(null);
   const modalTouchStartY = useRef<number | null>(null);
   const isDragFromTop = useRef<boolean>(false);
-  
+
   const [modalDragOffset, setModalDragOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
   const [isBouncingBack, setIsBouncingBack] = useState(false);
 
-  const handleModalTouchStart = useCallback((e: React.TouchEvent) => {
-    // Only enable swipe-down on mobile
-    if (window.innerWidth >= mobileBreakpoint) return;
-    
-    const modalElement = modalRef.current;
-    if (!modalElement) return;
-    
-    const modalRect = modalElement.getBoundingClientRect();
-    const touchY = e.touches[0].clientY;
-    const relativeY = touchY - modalRect.top;
-    
-    // Allow drag if started within the drag zone
-    if (relativeY <= dragZoneHeight) {
-      isDragFromTop.current = true;
-      modalTouchStartY.current = touchY;
-    } else {
-      isDragFromTop.current = false;
-      modalTouchStartY.current = null;
-    }
-  }, [mobileBreakpoint, dragZoneHeight]);
+  const handleModalTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      // Only enable swipe-down on mobile
+      if (window.innerWidth >= mobileBreakpoint) return;
 
-  const handleModalTouchMove = useCallback((e: React.TouchEvent) => {
-    if (window.innerWidth >= mobileBreakpoint || !isDragFromTop.current || modalTouchStartY.current === null) return;
-    
-    const currentY = e.touches[0].clientY;
-    const rawDiff = currentY - modalTouchStartY.current;
-    
-    // Only allow dragging down, not up
-    if (rawDiff > 0) {
-      // Add resistance: drag slows down progressively
-      const threshold = closeThreshold;
-      let resistedDiff;
-      if (rawDiff <= threshold) {
-        resistedDiff = rawDiff;
+      const modalElement = modalRef.current;
+      if (!modalElement) return;
+
+      const modalRect = modalElement.getBoundingClientRect();
+      const touchY = e.touches[0].clientY;
+      const relativeY = touchY - modalRect.top;
+
+      // Allow drag if started within the drag zone
+      if (relativeY <= dragZoneHeight) {
+        isDragFromTop.current = true;
+        modalTouchStartY.current = touchY;
       } else {
-        // Apply logarithmic resistance past threshold
-        const overflow = rawDiff - threshold;
-        resistedDiff = threshold + (overflow * 0.3);
+        isDragFromTop.current = false;
+        modalTouchStartY.current = null;
       }
-      setModalDragOffset(resistedDiff);
-    }
-  }, [mobileBreakpoint, closeThreshold]);
+    },
+    [mobileBreakpoint, dragZoneHeight]
+  );
+
+  const handleModalTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (
+        window.innerWidth >= mobileBreakpoint ||
+        !isDragFromTop.current ||
+        modalTouchStartY.current === null
+      )
+        return;
+
+      const currentY = e.touches[0].clientY;
+      const rawDiff = currentY - modalTouchStartY.current;
+
+      // Only allow dragging down, not up
+      if (rawDiff > 0) {
+        // Add resistance: drag slows down progressively
+        const threshold = closeThreshold;
+        let resistedDiff;
+        if (rawDiff <= threshold) {
+          resistedDiff = rawDiff;
+        } else {
+          // Apply logarithmic resistance past threshold
+          const overflow = rawDiff - threshold;
+          resistedDiff = threshold + overflow * 0.3;
+        }
+        setModalDragOffset(resistedDiff);
+      }
+    },
+    [mobileBreakpoint, closeThreshold]
+  );
 
   const handleModalTouchEnd = useCallback(() => {
     if (!isDragFromTop.current || modalTouchStartY.current === null) return;
-    
+
     // If dragged more than threshold, close the modal
     if (modalDragOffset > closeThreshold) {
       onClose();
@@ -111,27 +122,30 @@ export function useModalSwipe({
         setIsBouncingBack(false);
       }, 500);
     }
-    
+
     modalTouchStartY.current = null;
     isDragFromTop.current = false;
   }, [modalDragOffset, closeThreshold, onClose]);
 
-  const handleBackdropTouchStart = useCallback((e: React.TouchEvent) => {
-    // Only enable swipe-down on mobile
-    if (window.innerWidth >= mobileBreakpoint) return;
-    
-    const modalElement = modalRef.current;
-    if (!modalElement) return;
-    
-    const modalRect = modalElement.getBoundingClientRect();
-    const touchY = e.touches[0].clientY;
-    
-    // If touch is above the modal, allow drag
-    if (touchY < modalRect.top) {
-      isDragFromTop.current = true;
-      modalTouchStartY.current = touchY;
-    }
-  }, [mobileBreakpoint]);
+  const handleBackdropTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      // Only enable swipe-down on mobile
+      if (window.innerWidth >= mobileBreakpoint) return;
+
+      const modalElement = modalRef.current;
+      if (!modalElement) return;
+
+      const modalRect = modalElement.getBoundingClientRect();
+      const touchY = e.touches[0].clientY;
+
+      // If touch is above the modal, allow drag
+      if (touchY < modalRect.top) {
+        isDragFromTop.current = true;
+        modalTouchStartY.current = touchY;
+      }
+    },
+    [mobileBreakpoint]
+  );
 
   const getBackdropOpacity = useCallback((): number => {
     return Math.max(0.6 - modalDragOffset * 0.003, 0.2);
@@ -153,10 +167,10 @@ export function useModalSwipe({
 
   const getModalTransition = useCallback((): string | undefined => {
     if (modalDragOffset > 0) {
-      return 'none';
+      return "none";
     }
     if (isBouncingBack) {
-      return 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out';
+      return "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out";
     }
     return undefined;
   }, [modalDragOffset, isBouncingBack]);

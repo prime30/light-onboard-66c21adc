@@ -21,7 +21,9 @@ const ResetPassword = () => {
   // Check if user has a valid session from the reset link
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast.error("Invalid or expired reset link");
         navigate("/auth");
@@ -41,7 +43,7 @@ const ResetPassword = () => {
     setIsSubmitting(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
-      
+
       if (error) {
         toast.error(error.message);
       } else {
@@ -82,15 +84,16 @@ const ResetPassword = () => {
               <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-[-0.02em] text-balance">
                 Create new password
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Enter a new password for your account
-              </p>
+              <p className="text-sm text-muted-foreground">Enter a new password for your account</p>
             </div>
 
             <div className="space-y-4">
               {/* New Password */}
               <div className="space-y-2">
-                <Label htmlFor="new-password" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
+                <Label
+                  htmlFor="new-password"
+                  className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]"
+                >
                   New Password
                 </Label>
                 <div className="relative group">
@@ -111,21 +114,34 @@ const ResetPassword = () => {
                     className="absolute right-[15px] top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
-                <p className={cn(
-                  "text-xs transition-colors",
-                  password.length > 0 && isValidPassword ? "text-green-600" : "text-muted-foreground"
-                )}>
-                  {password.length > 0 && isValidPassword && <Check className="w-3 h-3 inline mr-1" />}
+                <p
+                  className={cn(
+                    "text-xs transition-colors",
+                    password.length > 0 && isValidPassword
+                      ? "text-green-600"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {password.length > 0 && isValidPassword && (
+                    <Check className="w-3 h-3 inline mr-1" />
+                  )}
                   Must be at least 8 characters
                 </p>
               </div>
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]">
+                <Label
+                  htmlFor="confirm-password"
+                  className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em]"
+                >
                   Confirm Password
                 </Label>
                 <div className="relative group">
@@ -146,16 +162,25 @@ const ResetPassword = () => {
                     className="absolute right-[15px] top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
                 {confirmPassword.length > 0 && (
-                  <p className={cn(
-                    "text-xs transition-colors",
-                    passwordsMatch ? "text-green-600" : "text-destructive"
-                  )}>
+                  <p
+                    className={cn(
+                      "text-xs transition-colors",
+                      passwordsMatch ? "text-green-600" : "text-destructive"
+                    )}
+                  >
                     {passwordsMatch ? (
-                      <><Check className="w-3 h-3 inline mr-1" />Passwords match</>
+                      <>
+                        <Check className="w-3 h-3 inline mr-1" />
+                        Passwords match
+                      </>
                     ) : (
                       "Passwords do not match"
                     )}

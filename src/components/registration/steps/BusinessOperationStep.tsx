@@ -13,7 +13,7 @@ export const BusinessOperationStep = ({
   businessOperationType,
   onBusinessOperationTypeChange,
   showValidationErrors = false,
-  validationStatus
+  validationStatus,
 }: BusinessOperationStepProps) => {
   const options = [
     {
@@ -23,8 +23,8 @@ export const BusinessOperationStep = ({
       description: "Work at a salon and earn commission",
       features: [
         { label: "Salon employment", icon: Building2 },
-        { label: "Team environment", icon: Users }
-      ]
+        { label: "Team environment", icon: Users },
+      ],
     },
     {
       id: "independent" as const,
@@ -33,9 +33,9 @@ export const BusinessOperationStep = ({
       description: "Booth rental or self-employed stylist",
       features: [
         { label: "Self-employed", icon: Tag },
-        { label: "Flexible schedule", icon: Headphones }
-      ]
-    }
+        { label: "Flexible schedule", icon: Headphones },
+      ],
+    },
   ];
 
   return (
@@ -70,7 +70,7 @@ export const BusinessOperationStep = ({
             )}
             style={{
               animationDelay: `${index * 0.05}s`,
-              transform: businessOperationType === option.id ? 'translateY(-2px)' : undefined
+              transform: businessOperationType === option.id ? "translateY(-2px)" : undefined,
             }}
           >
             <div
@@ -119,9 +119,7 @@ export const BusinessOperationStep = ({
                   >
                     {option.title}
                   </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {option.description}
-                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{option.description}</p>
                   {/* Features - inline on desktop */}
                   <div className="hidden sm:flex flex-wrap gap-[5px] mt-2.5">
                     {option.features.map((feature, i) => {
@@ -136,7 +134,7 @@ export const BusinessOperationStep = ({
                               : "bg-muted text-muted-foreground"
                           )}
                           style={{
-                            transitionDelay: `${i * 50}ms`
+                            transitionDelay: `${i * 50}ms`,
                           }}
                         >
                           {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
@@ -162,7 +160,7 @@ export const BusinessOperationStep = ({
                           : "bg-muted text-muted-foreground"
                       )}
                       style={{
-                        transitionDelay: `${i * 50}ms`
+                        transitionDelay: `${i * 50}ms`,
                       }}
                     >
                       {FeatureIcon && <FeatureIcon className="w-3 h-3" />}

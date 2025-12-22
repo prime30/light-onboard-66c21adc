@@ -15,7 +15,7 @@ export const AnimatedNumber = ({
   value,
   suffix,
   delay = 0,
-  totalDuration = 2600
+  totalDuration = 2600,
 }: {
   value: number;
   suffix: string;
@@ -43,34 +43,42 @@ export const AnimatedNumber = ({
     }, delay);
     return () => clearTimeout(timeoutId);
   }, [value, delay, totalDuration]);
-  return <span>{count}{suffix}</span>;
+  return (
+    <span>
+      {count}
+      {suffix}
+    </span>
+  );
 };
 
 export const AnimatedProductCount = ({
   delay = 0,
-  totalDuration = 2600
+  totalDuration = 2600,
 }: {
   delay?: number;
   totalDuration?: number;
 }) => {
   const [count, setCount] = useState(0);
-  
+
   useEffect(() => {
     const sequence: number[] = [];
     for (let i = 0; i <= 1800; i += 100) sequence.push(i);
     for (let i = 1810; i <= 1980; i += 10) sequence.push(i);
     for (let i = 1981; i <= 2000; i += 1) sequence.push(i);
-    
+
     const duration = totalDuration - delay;
     const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-    
+
     const timeoutId = setTimeout(() => {
       const startTime = performance.now();
       const animate = (currentTime: number) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easedProgress = easeOutCubic(progress);
-        const index = Math.max(0, Math.min(Math.floor(easedProgress * sequence.length), sequence.length - 1));
+        const index = Math.max(
+          0,
+          Math.min(Math.floor(easedProgress * sequence.length), sequence.length - 1)
+        );
         setCount(sequence[index] ?? 0);
         if (progress < 1) {
           requestAnimationFrame(animate);
@@ -80,10 +88,10 @@ export const AnimatedProductCount = ({
       };
       requestAnimationFrame(animate);
     }, delay);
-    
+
     return () => clearTimeout(timeoutId);
   }, [delay, totalDuration]);
-  
+
   const formatDisplay = (num: number): string => {
     if (num == null) return "0";
     if (num >= 2000) return "2K+";
@@ -91,7 +99,7 @@ export const AnimatedProductCount = ({
     if (num >= 1000) return num.toLocaleString();
     return num.toString();
   };
-  
+
   return <span>{formatDisplay(count)}</span>;
 };
 
@@ -100,31 +108,38 @@ const getOdometerBaseNumber = () => {
   const baseDate = new Date(2025, 11, 1);
   const baseNumber = 8340;
   const now = new Date();
-  
-  const monthsElapsed = (now.getFullYear() - baseDate.getFullYear()) * 12 + 
-                        (now.getMonth() - baseDate.getMonth());
-  
+
+  const monthsElapsed =
+    (now.getFullYear() - baseDate.getFullYear()) * 12 + (now.getMonth() - baseDate.getMonth());
+
   if (monthsElapsed <= 0) return baseNumber;
-  
+
   let total = baseNumber;
   for (let i = 1; i <= monthsElapsed; i++) {
     const monthIndex = (baseDate.getMonth() + i) % 12;
     const monthNumber = monthIndex + 1;
     total += monthNumber % 2 === 1 ? 122 : 123;
   }
-  
+
   return total;
 };
 
-export const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: "light" | "dark"; onIncrement?: () => void }) => {
+export const OdometerCounter = ({
+  variant = "light",
+  onIncrement,
+}: {
+  variant?: "light" | "dark";
+  onIncrement?: () => void;
+}) => {
   const baseNumber = getOdometerBaseNumber();
   const basePrefix = Math.floor(baseNumber / 100);
-  const formattedPrefix = basePrefix >= 100 
-    ? `${Math.floor(basePrefix / 10)},${basePrefix % 10}` 
-    : `${Math.floor(basePrefix / 10)},${basePrefix % 10}`;
+  const formattedPrefix =
+    basePrefix >= 100
+      ? `${Math.floor(basePrefix / 10)},${basePrefix % 10}`
+      : `${Math.floor(basePrefix / 10)},${basePrefix % 10}`;
   const initialTens = Math.floor((baseNumber % 100) / 10);
   const initialOnes = baseNumber % 10;
-  
+
   const [tens, setTens] = useState(initialTens);
   const [ones, setOnes] = useState(initialOnes);
   const [prevOnes, setPrevOnes] = useState(initialOnes);
@@ -133,7 +148,7 @@ export const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: 
   const [isTensRolling, setIsTensRolling] = useState(false);
   const [isBurst, setIsBurst] = useState(false);
   const textColor = variant === "dark" ? "text-background/50" : "text-muted-foreground";
-  
+
   const onesRef = useRef(ones);
   const tensRef = useRef(tens);
   const onIncrementRef = useRef(onIncrement);
@@ -143,37 +158,37 @@ export const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: 
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
-    
+
     const scheduleNext = () => {
       const delay = 3000 + Math.random() * 4000;
       timeoutId = setTimeout(() => {
         const isBurstIncrement = Math.random() < 0.2;
         const increment = isBurstIncrement ? (Math.random() < 0.5 ? 2 : 3) : 1;
-        
+
         if (isBurstIncrement) {
           setIsBurst(true);
           setTimeout(() => setIsBurst(false), 600);
         }
-        
+
         const currentOnes = onesRef.current;
         const currentTens = tensRef.current;
-        
+
         setPrevOnes(currentOnes);
         setPrevTens(currentTens);
-        
+
         const newOnes = (currentOnes + increment) % 10;
         const tensIncrement = Math.floor((currentOnes + increment) / 10);
-        
+
         if (tensIncrement > 0) {
           setIsTensRolling(true);
-          setTens(prev => (prev + tensIncrement) % 10);
+          setTens((prev) => (prev + tensIncrement) % 10);
         }
-        
+
         setOnes(newOnes);
         setIsRolling(true);
-        
+
         onIncrementRef.current?.();
-        
+
         setTimeout(() => {
           setIsRolling(false);
           setIsTensRolling(false);
@@ -181,55 +196,74 @@ export const OdometerCounter = ({ variant = "light", onIncrement }: { variant?: 
         }, 300);
       }, delay);
     };
-    
+
     scheduleNext();
     return () => clearTimeout(timeoutId);
   }, []);
 
   return (
-    <span className={cn(
-      "text-xs tabular-nums transition-all duration-300",
-      textColor,
-      isBurst && "!text-[hsl(142,71%,45%)]"
-    )}>
-      {formattedPrefix}<span 
+    <span
+      className={cn(
+        "text-xs tabular-nums transition-all duration-300",
+        textColor,
+        isBurst && "!text-[hsl(142,71%,45%)]"
+      )}
+    >
+      {formattedPrefix}
+      <span
         className="inline-block overflow-hidden"
-        style={{ 
-          height: '1em', 
-          width: '0.6em',
-          verticalAlign: 'text-bottom',
-          position: 'relative',
-          top: '-0.08em'
+        style={{
+          height: "1em",
+          width: "0.6em",
+          verticalAlign: "text-bottom",
+          position: "relative",
+          top: "-0.08em",
         }}
       >
-        <span 
-          className={isTensRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
-          style={{ transform: isTensRolling ? 'translateY(-50%)' : 'translateY(0)' }}
+        <span
+          className={
+            isTensRolling
+              ? "block transition-transform duration-300 ease-out"
+              : "block transition-none"
+          }
+          style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isTensRolling ? prevTens : tens}</span>
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{tens}</span>
+          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+            {isTensRolling ? prevTens : tens}
+          </span>
+          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+            {tens}
+          </span>
         </span>
-      </span><span 
+      </span>
+      <span
         className={cn(
           "inline-block overflow-hidden transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{ 
-          height: '1em', 
-          width: '0.6em',
-          verticalAlign: 'text-bottom',
-          position: 'relative',
-          top: '-0.08em'
+        style={{
+          height: "1em",
+          width: "0.6em",
+          verticalAlign: "text-bottom",
+          position: "relative",
+          top: "-0.08em",
         }}
       >
-        <span 
-          className={isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"}
-          style={{ transform: isRolling ? 'translateY(-50%)' : 'translateY(0)' }}
+        <span
+          className={
+            isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"
+          }
+          style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{isRolling ? prevOnes : ones}</span>
-          <span className="block" style={{ height: '1em', lineHeight: '1em' }}>{ones}</span>
+          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+            {isRolling ? prevOnes : ones}
+          </span>
+          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+            {ones}
+          </span>
         </span>
-      </span> pros
+      </span>{" "}
+      pros
     </span>
   );
 };
@@ -259,19 +293,19 @@ export const RotatingStylistAvatars = () => {
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3);
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
-  
+
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
     const positionToReplace = Math.floor(Math.random() * 3);
-    
+
     let nextIndex = nextAvatarRef.current;
     nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
-    
+
     while (prev.includes(nextIndex)) {
       nextIndex = nextAvatarRef.current;
       nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
     }
-    
+
     setFadingIndex(positionToReplace);
 
     const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
@@ -279,9 +313,9 @@ export const RotatingStylistAvatars = () => {
     setFloatingEmoji({
       position: positionToReplace,
       emoji: randomEmoji,
-      id: emojiIdRef.current
+      id: emojiIdRef.current,
     });
-    
+
     setTimeout(() => {
       setFadingIndex(null);
     }, 300);
@@ -289,7 +323,7 @@ export const RotatingStylistAvatars = () => {
     setTimeout(() => {
       setFloatingEmoji(null);
     }, 1000);
-    
+
     const newIndices = [...prev];
     newIndices[positionToReplace] = nextIndex;
     setVisibleIndices(newIndices);
@@ -298,21 +332,36 @@ export const RotatingStylistAvatars = () => {
   const magnetic = useMagnetic<HTMLAnchorElement>({ strength: 0.15 });
 
   return (
-    <Link 
-      to="/reviews" 
+    <Link
+      to="/reviews"
       ref={magnetic.ref}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
       style={magnetic.style}
       className="flex items-center gap-2.5 transition-all duration-200 cursor-pointer group"
     >
-      <span className="text-xs text-background/40 hidden lg:inline transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
+      <span className="text-xs text-background/40 hidden lg:inline transition-opacity duration-200 group-hover:opacity-70">
+        Loved by
+      </span>
       <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
-          <div key={`${i}-${avatarIndex}`} className="relative hover:z-10 transition-transform duration-200 hover:scale-125">
-            <img src={stylistAvatars[avatarIndex]} alt={`Stylist ${avatarIndex + 1}`} className={cn("w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300", fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100")} />
+          <div
+            key={`${i}-${avatarIndex}`}
+            className="relative hover:z-10 transition-transform duration-200 hover:scale-125"
+          >
+            <img
+              src={stylistAvatars[avatarIndex]}
+              alt={`Stylist ${avatarIndex + 1}`}
+              className={cn(
+                "w-5 h-5 rounded-full border-2 border-foreground object-cover transition-all duration-300",
+                fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
+              )}
+            />
             {floatingEmoji && floatingEmoji.position === i && (
-              <span key={floatingEmoji.id} className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none">
+              <span
+                key={floatingEmoji.id}
+                className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none"
+              >
                 {floatingEmoji.emoji}
               </span>
             )}
@@ -337,19 +386,19 @@ export const RotatingStylistAvatarsLight = () => {
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3);
   const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
-  
+
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
     const positionToReplace = Math.floor(Math.random() * 3);
-    
+
     let nextIndex = nextAvatarRef.current;
     nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
-    
+
     while (prev.includes(nextIndex)) {
       nextIndex = nextAvatarRef.current;
       nextAvatarRef.current = (nextAvatarRef.current + 1) % stylistAvatars.length;
     }
-    
+
     setFadingIndex(positionToReplace);
 
     const randomEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
@@ -357,9 +406,9 @@ export const RotatingStylistAvatarsLight = () => {
     setFloatingEmoji({
       position: positionToReplace,
       emoji: randomEmoji,
-      id: emojiIdRef.current
+      id: emojiIdRef.current,
     });
-    
+
     setTimeout(() => {
       setFadingIndex(null);
     }, 300);
@@ -367,38 +416,43 @@ export const RotatingStylistAvatarsLight = () => {
     setTimeout(() => {
       setFloatingEmoji(null);
     }, 1000);
-    
+
     const newIndices = [...prev];
     newIndices[positionToReplace] = nextIndex;
     setVisibleIndices(newIndices);
   }, []);
-  
+
   const magnetic = useMagnetic<HTMLAnchorElement>({ strength: 0.15 });
 
   return (
-    <Link 
-      to="/reviews" 
+    <Link
+      to="/reviews"
       ref={magnetic.ref}
       onMouseMove={magnetic.onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
       style={magnetic.style}
       className="flex items-center justify-center gap-2.5 pt-2 animate-stagger-4 transition-all duration-200 cursor-pointer group"
     >
-      <span className="text-xs text-muted-foreground transition-opacity duration-200 group-hover:opacity-70">Loved by</span>
+      <span className="text-xs text-muted-foreground transition-opacity duration-200 group-hover:opacity-70">
+        Loved by
+      </span>
       <div className="flex -space-x-[5px]">
         {visibleIndices.map((avatarIndex, i) => (
-          <div key={`${i}-${avatarIndex}`} className="relative hover:z-10 transition-transform duration-200 hover:scale-125">
-            <img 
-              src={stylistAvatars[avatarIndex]} 
-              alt={`Stylist ${avatarIndex + 1}`} 
+          <div
+            key={`${i}-${avatarIndex}`}
+            className="relative hover:z-10 transition-transform duration-200 hover:scale-125"
+          >
+            <img
+              src={stylistAvatars[avatarIndex]}
+              alt={`Stylist ${avatarIndex + 1}`}
               className={cn(
                 "w-6 h-6 rounded-full border-2 border-background object-cover transition-all duration-300",
                 fadingIndex === i ? "opacity-0 scale-75" : "opacity-100 scale-100"
-              )} 
+              )}
             />
             {floatingEmoji && floatingEmoji.position === i && (
-              <span 
-                key={floatingEmoji.id} 
+              <span
+                key={floatingEmoji.id}
                 className="absolute -top-1 left-1/2 -translate-x-1/2 text-sm animate-float-up pointer-events-none"
               >
                 {floatingEmoji.emoji}

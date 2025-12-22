@@ -22,15 +22,19 @@ const MagneticFeatureBox = ({ icon: Icon, label, desc }: FeatureBoxProps) => {
     >
       {/* Subtle gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.01] to-transparent opacity-0 group-hover/pill:opacity-100 transition-opacity duration-500" />
-      
+
       <div className="relative w-8 h-8 rounded-lg bg-background/80 backdrop-blur-sm border border-background/60 flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover/pill:scale-105 shadow-sm">
         <Icon className="w-4 h-4 text-foreground/60 transition-transform duration-300 group-hover/pill:scale-110" />
       </div>
       <div className="relative flex flex-col">
-        <span className="text-sm font-medium text-foreground transition-colors duration-300 group-hover/pill:text-foreground">{label}</span>
-        <span className="text-xs text-muted-foreground transition-colors duration-300 group-hover/pill:text-muted-foreground/80">{desc}</span>
+        <span className="text-sm font-medium text-foreground transition-colors duration-300 group-hover/pill:text-foreground">
+          {label}
+        </span>
+        <span className="text-xs text-muted-foreground transition-colors duration-300 group-hover/pill:text-muted-foreground/80">
+          {desc}
+        </span>
       </div>
-      
+
       {/* Shine effect on hover */}
       <div className="absolute inset-0 -translate-x-full group-hover/pill:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-foreground/5 to-transparent skew-x-12" />
     </div>
@@ -77,46 +81,61 @@ const features = [
   { icon: Star, label: "Wholesale", desc: "Pro pricing" },
 ];
 
-const AnimatedNumber = ({ value, suffix, delay = 0, isInView = false }: { value: number; suffix: string; delay?: number; isInView?: boolean }) => {
+const AnimatedNumber = ({
+  value,
+  suffix,
+  delay = 0,
+  isInView = false,
+}: {
+  value: number;
+  suffix: string;
+  delay?: number;
+  isInView?: boolean;
+}) => {
   const [count, setCount] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
-  
+
   useEffect(() => {
     if (!isInView) return;
-    
+
     // Wait for entrance animation + delay before starting counter
     const startTimer = setTimeout(() => {
       setHasStarted(true);
     }, delay);
-    
+
     return () => clearTimeout(startTimer);
   }, [delay, isInView]);
-  
+
   useEffect(() => {
     if (!hasStarted) return;
-    
+
     const duration = 1500;
     const startTime = performance.now();
-    
+
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Linear interpolation - no easing
       const currentValue = Math.floor(progress * value);
       setCount(currentValue);
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
         setCount(value);
       }
     };
-    
+
     requestAnimationFrame(animate);
   }, [value, hasStarted]);
-  
-  return <span>{hasStarted ? count : 0}{suffix}</span>;
+
+  return (
+    <span>
+      {hasStarted ? count : 0}
+      {suffix}
+    </span>
+  );
 };
 
 export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
@@ -224,34 +243,34 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
         {/* Animated mesh gradient background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground" />
-          
+
           {/* Animated gradient orbs */}
-          <div 
+          <div
             className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full blur-[100px] animate-pulse"
-            style={{ 
-              background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-              animationDuration: '4s'
+            style={{
+              background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)",
+              animationDuration: "4s",
             }}
           />
-          <div 
+          <div
             className="absolute bottom-0 left-0 w-[250px] h-[250px] rounded-full blur-[80px] animate-pulse"
-            style={{ 
-              background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)',
-              animationDuration: '5s',
-              animationDelay: '1s'
+            style={{
+              background: "radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)",
+              animationDuration: "5s",
+              animationDelay: "1s",
             }}
           />
-          <div 
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[120px] animate-pulse"
-            style={{ 
-              background: 'radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%)',
-              animationDuration: '6s',
-              animationDelay: '2s'
+            style={{
+              background: "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%)",
+              animationDuration: "6s",
+              animationDelay: "2s",
             }}
           />
-          
+
           {/* Noise texture overlay */}
-          <div 
+          <div
             className="absolute inset-0 opacity-[0.15]"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
@@ -261,9 +280,18 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
         {/* Floating decorative elements */}
         <div className="absolute top-10 right-10 flex gap-2">
-          <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '0s' }} />
-          <div className="w-2 h-2 rounded-full bg-background/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <div className="w-2 h-2 rounded-full bg-background/20 animate-pulse" style={{ animationDelay: '1s' }} />
+          <div
+            className="w-2 h-2 rounded-full bg-background/20 animate-pulse"
+            style={{ animationDelay: "0s" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-background/30 animate-pulse"
+            style={{ animationDelay: "0.5s" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-background/20 animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
         </div>
 
         {/* Content */}
@@ -296,19 +324,28 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
           <div ref={statsRef} className="flex items-end justify-between mt-10">
             <div className="flex gap-[30px]">
               {stats.map((stat, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className={cn(
                     "text-center",
                     statsInView ? "opacity-0 animate-fade-in" : "opacity-0"
                   )}
-                  style={statsInView ? { 
-                    animationDelay: `${100 + i * 100}ms`,
-                    animationFillMode: 'forwards'
-                  } : undefined}
+                  style={
+                    statsInView
+                      ? {
+                          animationDelay: `${100 + i * 100}ms`,
+                          animationFillMode: "forwards",
+                        }
+                      : undefined
+                  }
                 >
                   <div className="text-2xl md:text-3xl font-semibold text-background tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} delay={800 + i * 150} isInView={statsInView} />
+                    <AnimatedNumber
+                      value={stat.value}
+                      suffix={stat.suffix}
+                      delay={800 + i * 150}
+                      isInView={statsInView}
+                    />
                   </div>
                   <div className="text-[10px] text-background/40 uppercase tracking-wider mt-1">
                     {stat.label}
@@ -318,7 +355,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
             </div>
 
             {/* CTA Arrow */}
-            <button 
+            <button
               onClick={onContinue}
               className="group/btn flex items-center justify-center w-12 h-12 rounded-full bg-background text-foreground hover:scale-105 transition-transform"
             >
@@ -345,7 +382,7 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
 
         {/* Progress Line */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10">
-          <div 
+          <div
             className="h-full bg-background/60 transition-all duration-500"
             style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}
           />
@@ -368,11 +405,11 @@ export const OnboardingStep = ({ onContinue }: OnboardingStepProps) => {
       <div className="flex items-center justify-center gap-[15px] pt-[10px]">
         <div className="flex -space-x-2">
           {[...Array(4)].map((_, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="w-6 h-6 rounded-full bg-muted border-2 border-background"
-              style={{ 
-                background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`
+              style={{
+                background: `linear-gradient(135deg, hsl(0 0% ${85 - i * 5}%) 0%, hsl(0 0% ${75 - i * 5}%) 100%)`,
               }}
             />
           ))}

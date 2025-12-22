@@ -11,7 +11,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position="bottom-center"
-      style={{ bottom: '80px' }}
+      style={{ bottom: "80px" }}
       toastOptions={{
         classNames: {
           toast:
@@ -19,8 +19,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-          error: "group-[.toaster]:bg-destructive/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-destructive group-[.toaster]:border-destructive/30",
-          success: "group-[.toaster]:bg-emerald-500/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-emerald-700 group-[.toaster]:dark:text-emerald-300 group-[.toaster]:border-emerald-500/30",
+          error:
+            "group-[.toaster]:bg-destructive/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-destructive group-[.toaster]:border-destructive/30",
+          success:
+            "group-[.toaster]:bg-emerald-500/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-emerald-700 group-[.toaster]:dark:text-emerald-300 group-[.toaster]:border-emerald-500/30",
         },
       }}
       {...props}

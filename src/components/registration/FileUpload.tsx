@@ -1,6 +1,15 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FolderOpen, X, FileCheck, Loader2, FileText, AlertCircle, ZoomIn } from "lucide-react";
+import {
+  Upload,
+  FolderOpen,
+  X,
+  FileCheck,
+  Loader2,
+  FileText,
+  AlertCircle,
+  ZoomIn,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/imageCompression";
 
@@ -24,14 +33,13 @@ const formatFileSizeLimit = (bytes: number) => {
 };
 
 const isImageFile = (file: File) => {
-  return file.type.startsWith("image/") || 
-    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
 };
 
 const formatAcceptedTypes = (accept: string) => {
   return accept
     .split(",")
-    .map(t => t.trim().toUpperCase().replace(".", ""))
+    .map((t) => t.trim().toUpperCase().replace(".", ""))
     .join(", ");
 };
 
@@ -72,12 +80,12 @@ export const FileUpload = ({
         setShowLightbox(false);
       }
     };
-    
+
     if (showLightbox) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
     }
-    
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
@@ -95,7 +103,7 @@ export const FileUpload = ({
     const fileSizeKB = pendingFile.size / 1024;
     const baseTime = 300; // minimum time in ms
     const sizeMultiplier = Math.min(fileSizeKB / 500, 1); // max multiplier at 500KB
-    const totalTime = baseTime + (sizeMultiplier * 700); // 300-1000ms total
+    const totalTime = baseTime + sizeMultiplier * 700; // 300-1000ms total
     const steps = 20;
     const stepTime = totalTime / steps;
 
@@ -119,29 +127,32 @@ export const FileUpload = ({
     return () => clearInterval(interval);
   }, [pendingFile, onFileChange]);
 
-  const validateFile = useCallback((selectedFile: File): boolean => {
-    // Check file type
-    const acceptedTypes = accept.split(",").map(t => t.trim().toLowerCase());
-    const fileExt = `.${selectedFile.name.split(".").pop()?.toLowerCase()}`;
-    const isValidType = acceptedTypes.some(type => 
-      fileExt === type || selectedFile.type.includes(type.replace(".", ""))
-    );
-    
-    if (!isValidType) {
-      const acceptedFormats = formatAcceptedTypes(accept);
-      setFileTypeError(`Invalid file type. Please upload: ${acceptedFormats}`);
-      return false;
-    }
+  const validateFile = useCallback(
+    (selectedFile: File): boolean => {
+      // Check file type
+      const acceptedTypes = accept.split(",").map((t) => t.trim().toLowerCase());
+      const fileExt = `.${selectedFile.name.split(".").pop()?.toLowerCase()}`;
+      const isValidType = acceptedTypes.some(
+        (type) => fileExt === type || selectedFile.type.includes(type.replace(".", ""))
+      );
 
-    // Check file size
-    if (selectedFile.size > maxFileSize) {
-      setFileTypeError(`File too large. Maximum size: ${formatFileSizeLimit(maxFileSize)}`);
-      return false;
-    }
-    
-    setFileTypeError(null);
-    return true;
-  }, [accept, maxFileSize]);
+      if (!isValidType) {
+        const acceptedFormats = formatAcceptedTypes(accept);
+        setFileTypeError(`Invalid file type. Please upload: ${acceptedFormats}`);
+        return false;
+      }
+
+      // Check file size
+      if (selectedFile.size > maxFileSize) {
+        setFileTypeError(`File too large. Maximum size: ${formatFileSizeLimit(maxFileSize)}`);
+        return false;
+      }
+
+      setFileTypeError(null);
+      return true;
+    },
+    [accept, maxFileSize]
+  );
 
   const processFile = async (selectedFile: File) => {
     // Compress image if enabled
@@ -149,7 +160,7 @@ export const FileUpload = ({
     if (enableCompression && selectedFile.type.startsWith("image/")) {
       fileToProcess = await compressImage(selectedFile);
     }
-    
+
     if (validateFile(fileToProcess)) {
       setPendingFile(fileToProcess);
     }
@@ -178,16 +189,19 @@ export const FileUpload = ({
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
 
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      processFile(droppedFile);
-    }
-  }, [validateFile]);
+      const droppedFile = e.dataTransfer.files?.[0];
+      if (droppedFile) {
+        processFile(droppedFile);
+      }
+    },
+    [validateFile]
+  );
 
   const handleRemoveFile = () => {
     onFileChange(null);
@@ -221,7 +235,7 @@ export const FileUpload = ({
           <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30 animate-in fade-in slide-in-from-top-1 duration-200">
             <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
             <p className="text-xs text-destructive flex-1">{fileTypeError}</p>
-            <button 
+            <button
               type="button"
               onClick={clearFileTypeError}
               className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
@@ -237,10 +251,10 @@ export const FileUpload = ({
           onDrop={handleDrop}
           className={cn(
             "relative flex flex-col sm:flex-row items-center gap-3 sm:gap-4 p-4 rounded-lg border-2 border-dashed transition-all duration-300 overflow-hidden",
-            isDragOver 
-              ? "border-foreground bg-foreground/5 scale-[1.01]" 
-              : hasError 
-                ? "border-destructive/50 bg-destructive/5" 
+            isDragOver
+              ? "border-foreground bg-foreground/5 scale-[1.01]"
+              : hasError
+                ? "border-destructive/50 bg-destructive/5"
                 : isProcessing
                   ? "border-foreground/50 bg-foreground/5"
                   : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
@@ -249,7 +263,7 @@ export const FileUpload = ({
         >
           {/* Progress bar background */}
           {isProcessing && (
-            <div 
+            <div
               className="absolute inset-0 bg-foreground/10 transition-all duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
@@ -263,19 +277,17 @@ export const FileUpload = ({
             className="hidden"
             disabled={isProcessing}
           />
-          
+
           {isProcessing ? (
             <>
               <div className="relative w-10 h-10 rounded-md bg-foreground/10 flex items-center justify-center flex-shrink-0">
                 <Loader2 className="w-5 h-5 text-foreground animate-spin" />
               </div>
               <div className="relative flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {pendingFile?.name}
-                </p>
+                <p className="text-sm font-medium text-foreground truncate">{pendingFile?.name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 h-1.5 bg-border/50 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-foreground rounded-full transition-all duration-100 ease-out"
                       style={{ width: `${progress}%` }}
                     />
@@ -294,9 +306,9 @@ export const FileUpload = ({
                   onClick={() => setShowLightbox(true)}
                   className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0 border border-border/50 group cursor-pointer"
                 >
-                  <img 
-                    src={previewUrl} 
-                    alt="Preview" 
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
                     className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors duration-200 flex items-center justify-center">
@@ -314,9 +326,7 @@ export const FileUpload = ({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(file.size)}
-                </p>
+                <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
               </div>
               <Button
                 type="button"
@@ -330,25 +340,26 @@ export const FileUpload = ({
             </>
           ) : (
             <>
-              <div className={cn(
-                "w-12 h-12 sm:w-10 sm:h-10 rounded-md flex items-center justify-center flex-shrink-0 transition-colors duration-300",
-                isDragOver ? "bg-foreground text-background" : "bg-muted"
-              )}>
-                <Upload className={cn(
-                  "w-6 h-6 sm:w-5 sm:h-5 transition-colors duration-300",
-                  isDragOver ? "text-background" : "text-muted-foreground"
-                )} />
+              <div
+                className={cn(
+                  "w-12 h-12 sm:w-10 sm:h-10 rounded-md flex items-center justify-center flex-shrink-0 transition-colors duration-300",
+                  isDragOver ? "bg-foreground text-background" : "bg-muted"
+                )}
+              >
+                <Upload
+                  className={cn(
+                    "w-6 h-6 sm:w-5 sm:h-5 transition-colors duration-300",
+                    isDragOver ? "text-background" : "text-muted-foreground"
+                  )}
+                />
               </div>
               <div className="flex-1 min-w-0 text-center sm:text-left">
-                <p className={cn(
-                  "text-sm",
-                  hasError ? "text-destructive" : "text-muted-foreground"
-                )}>
+                <p
+                  className={cn("text-sm", hasError ? "text-destructive" : "text-muted-foreground")}
+                >
                   {isDragOver ? "Drop file here" : placeholder}
                 </p>
-                <p className="text-xs text-muted-foreground/70">
-                  Drag & drop or click to browse
-                </p>
+                <p className="text-xs text-muted-foreground/70">Drag & drop or click to browse</p>
               </div>
               <Button
                 type="button"
@@ -372,13 +383,13 @@ export const FileUpload = ({
 
       {/* Lightbox Modal */}
       {showLightbox && previewUrl && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in duration-200"
           onClick={() => setShowLightbox(false)}
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
-          
+
           {/* Close button */}
           <button
             type="button"
@@ -389,16 +400,16 @@ export const FileUpload = ({
           </button>
 
           {/* Image container */}
-          <div 
+          <div
             className="relative max-w-[90vw] max-h-[90vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <img 
-              src={previewUrl} 
-              alt={file?.name || "Preview"} 
+            <img
+              src={previewUrl}
+              alt={file?.name || "Preview"}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
-            
+
             {/* File info */}
             {file && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent rounded-b-lg">

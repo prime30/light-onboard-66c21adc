@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,10 +19,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Aeonik Pro', 'system-ui', 'sans-serif'],
-        display: ['Aeonik Pro', 'system-ui', 'sans-serif'],
-        aeonik: ['Aeonik Pro', 'system-ui', 'sans-serif'],
-        termina: ['Termina', 'Bebas Neue', 'system-ui', 'sans-serif'],
+        sans: ["Aeonik Pro", "system-ui", "sans-serif"],
+        display: ["Aeonik Pro", "system-ui", "sans-serif"],
+        aeonik: ["Aeonik Pro", "system-ui", "sans-serif"],
+        termina: ["Termina", "Bebas Neue", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -76,13 +81,13 @@ export default {
       },
       borderRadius: {
         // Standardized border-radius system: 3, 5, 10, 20, 30, 40, 9999
-        xs: "var(--radius-xs)",      // 3px - tiny badges
-        sm: "var(--radius-sm)",      // 5px - small badges
-        md: "var(--radius-md)",      // 10px - inputs, cards, medium elements
-        lg: "var(--radius-lg)",      // 20px - larger cards, containers
-        xl: "var(--radius-xl)",      // 30px - modal corners, large containers
-        "2xl": "var(--radius-2xl)",  // 40px - hero sections, large backgrounds
-        full: "var(--radius-full)",  // 9999px - pills, CTAs, circular buttons
+        xs: "var(--radius-xs)", // 3px - tiny badges
+        sm: "var(--radius-sm)", // 5px - small badges
+        md: "var(--radius-md)", // 10px - inputs, cards, medium elements
+        lg: "var(--radius-lg)", // 20px - larger cards, containers
+        xl: "var(--radius-xl)", // 30px - modal corners, large containers
+        "2xl": "var(--radius-2xl)", // 40px - hero sections, large backgrounds
+        full: "var(--radius-full)", // 9999px - pills, CTAs, circular buttons
         // Form element specific
         form: "var(--radius-form)",
         "form-sm": "var(--radius-form-sm)",
@@ -113,7 +118,7 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "shimmer": {
+        shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
@@ -138,7 +143,7 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "shimmer": "shimmer 1.5s ease-in-out infinite",
+        shimmer: "shimmer 1.5s ease-in-out infinite",
         "bounce-subtle": "bounce-subtle 6s ease-in-out infinite",
         "scroll-wheel": "scroll-wheel 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite",
         "scroll-chevron-1": "scroll-chevron-1 1.5s ease-in-out infinite",

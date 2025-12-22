@@ -1,6 +1,6 @@
 /**
  * useStepNavigation Hook
- * 
+ *
  * Handles step navigation logic including:
  * - Step order based on account type
  * - Step validation
@@ -14,7 +14,7 @@ import { isValidEmail } from "@/lib/validations/form-utils";
 
 // Helper to check valid phone number
 const isValidPhoneNumber = (phone: string): boolean => {
-  const digits = phone.replace(/\D/g, '');
+  const digits = phone.replace(/\D/g, "");
   return digits.length >= 10 && digits.length <= 15;
 };
 
@@ -24,7 +24,7 @@ const isValidPhoneNumber = (phone: string): boolean => {
 const STEP_ORDER: Record<string, Step[]> = {
   professional: [
     "account-type",
-    "business-operation", 
+    "business-operation",
     "contact-basics",
     "business-location",
     "license",
@@ -77,7 +77,7 @@ export function getTotalStepsForAccountType(accountType: AccountType): number {
 export function getStepNumber(step: Step, accountType: AccountType): number {
   if (step === "onboarding" || step === "reviews") return 0;
   if (step === "success") return getTotalStepsForAccountType(accountType) + 1;
-  
+
   const steps = getStepOrder(accountType);
   const index = steps.indexOf(step);
   return index >= 0 ? index + 1 : 0;
@@ -88,10 +88,10 @@ export function getStepNumber(step: Step, accountType: AccountType): number {
  */
 export function getStepByNumber(stepNumber: number, accountType: AccountType): Step {
   if (stepNumber <= 0) return "onboarding";
-  
+
   const steps = getStepOrder(accountType);
   if (stepNumber > steps.length) return "success";
-  
+
   return steps[stepNumber - 1];
 }
 
@@ -144,65 +144,68 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
   /**
    * Check if a specific step is valid
    */
-  const isStepValid = useCallback((step: Step): boolean => {
-    if (mode === "signin") {
-      return isValidEmail(formData.email) && formData.password.length >= 8;
-    }
+  const isStepValid = useCallback(
+    (step: Step): boolean => {
+      if (mode === "signin") {
+        return isValidEmail(formData.email) && formData.password.length >= 8;
+      }
 
-    switch (step) {
-      case "onboarding":
-        return true;
-      case "account-type":
-        return formData.accountType !== null;
-      case "contact-basics":
-        return (
-          formData.firstName.trim() !== "" &&
-          formData.lastName.trim() !== "" &&
-          isValidEmail(formData.email) &&
-          isValidPhoneNumber(formData.phoneNumber)
-        );
-      case "license":
-        if (formData.accountType === "salon") {
+      switch (step) {
+        case "onboarding":
+          return true;
+        case "account-type":
+          return formData.accountType !== null;
+        case "contact-basics":
           return (
-            formData.licenseNumber.trim() !== "" &&
-            formData.salonSize !== "" &&
-            formData.salonStructure !== ""
+            formData.firstName.trim() !== "" &&
+            formData.lastName.trim() !== "" &&
+            isValidEmail(formData.email) &&
+            isValidPhoneNumber(formData.phoneNumber)
           );
-        }
-        return formData.licenseNumber.trim() !== "";
-      case "business-operation":
-        return formData.businessOperationType !== null;
-      case "business-location":
-        return (
-          formData.businessName.trim() !== "" &&
-          formData.businessAddress.trim() !== "" &&
-          formData.country !== "" &&
-          formData.city.trim() !== "" &&
-          formData.state !== "" &&
-          formData.zipCode.trim() !== ""
-        );
-      case "school-info":
-        return (
-          formData.schoolName.trim() !== "" &&
-          formData.schoolState !== "" &&
-          formData.enrollmentProofFiles.length > 0
-        );
-      case "wholesale-terms":
-        return formData.wholesaleAgreed;
-      case "tax-exemption":
-        if (formData.hasTaxExemption === true) {
-          return formData.taxExemptFile !== null;
-        }
-        return formData.hasTaxExemption !== null;
-      case "contact-info":
-        // Optional fields, always valid
-        return true;
-      case "summary":
-        return isAllStepsValid();
-      default:
-        return true;
-    }
-  }, [formData, mode]);
+        case "license":
+          if (formData.accountType === "salon") {
+            return (
+              formData.licenseNumber.trim() !== "" &&
+              formData.salonSize !== "" &&
+              formData.salonStructure !== ""
+            );
+          }
+          return formData.licenseNumber.trim() !== "";
+        case "business-operation":
+          return formData.businessOperationType !== null;
+        case "business-location":
+          return (
+            formData.businessName.trim() !== "" &&
+            formData.businessAddress.trim() !== "" &&
+            formData.country !== "" &&
+            formData.city.trim() !== "" &&
+            formData.state !== "" &&
+            formData.zipCode.trim() !== ""
+          );
+        case "school-info":
+          return (
+            formData.schoolName.trim() !== "" &&
+            formData.schoolState !== "" &&
+            formData.enrollmentProofFiles.length > 0
+          );
+        case "wholesale-terms":
+          return formData.wholesaleAgreed;
+        case "tax-exemption":
+          if (formData.hasTaxExemption === true) {
+            return formData.taxExemptFile !== null;
+          }
+          return formData.hasTaxExemption !== null;
+        case "contact-info":
+          // Optional fields, always valid
+          return true;
+        case "summary":
+          return isAllStepsValid();
+        default:
+          return true;
+      }
+    },
+    [formData, mode]
+  );
 
   /**
    * Check if ALL steps are valid (for final submission)
@@ -244,7 +247,9 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
         formData.city.trim() !== "" &&
         formData.state !== "" &&
         formData.zipCode.trim() !== "";
-      return licenseValid && businessValid && contactBasicsValid && formData.wholesaleAgreed && taxValid;
+      return (
+        licenseValid && businessValid && contactBasicsValid && formData.wholesaleAgreed && taxValid
+      );
     }
 
     // Professional
@@ -270,28 +275,34 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
   /**
    * Get the next step from current step
    */
-  const getNextStep = useCallback((currentStep: Step): Step | null => {
-    if (currentStep === "onboarding") return "account-type";
-    if (currentStep === "success") return null;
+  const getNextStep = useCallback(
+    (currentStep: Step): Step | null => {
+      if (currentStep === "onboarding") return "account-type";
+      if (currentStep === "success") return null;
 
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex < 0 || currentIndex >= stepOrder.length - 1) {
-      return "success";
-    }
-    return stepOrder[currentIndex + 1];
-  }, [stepOrder]);
+      const currentIndex = stepOrder.indexOf(currentStep);
+      if (currentIndex < 0 || currentIndex >= stepOrder.length - 1) {
+        return "success";
+      }
+      return stepOrder[currentIndex + 1];
+    },
+    [stepOrder]
+  );
 
   /**
    * Get the previous step from current step
    */
-  const getPreviousStep = useCallback((currentStep: Step): Step | null => {
-    if (currentStep === "onboarding") return null;
-    if (currentStep === "account-type") return "onboarding";
+  const getPreviousStep = useCallback(
+    (currentStep: Step): Step | null => {
+      if (currentStep === "onboarding") return null;
+      if (currentStep === "account-type") return "onboarding";
 
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex <= 0) return "onboarding";
-    return stepOrder[currentIndex - 1];
-  }, [stepOrder]);
+      const currentIndex = stepOrder.indexOf(currentStep);
+      if (currentIndex <= 0) return "onboarding";
+      return stepOrder[currentIndex - 1];
+    },
+    [stepOrder]
+  );
 
   /**
    * Get list of incomplete steps with their missing fields
@@ -355,7 +366,8 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
           break;
         case "tax-exemption":
           if (formData.hasTaxExemption === null) missing.push("Exemption status");
-          else if (formData.hasTaxExemption && !formData.taxExemptFile) missing.push("Tax document");
+          else if (formData.hasTaxExemption && !formData.taxExemptFile)
+            missing.push("Tax document");
           break;
         case "wholesale-terms":
           if (!formData.wholesaleAgreed) missing.push("Terms agreement");
@@ -364,19 +376,19 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
 
       if (missing.length > 0) {
         const stepNames: Record<Step, string> = {
-          "onboarding": "Onboarding",
-          "reviews": "Reviews",
+          onboarding: "Onboarding",
+          reviews: "Reviews",
           "account-type": "Account type",
           "contact-basics": "Contact info",
-          "license": "License",
+          license: "License",
           "business-operation": "Business type",
           "business-location": "Business location",
           "school-info": "School info",
           "wholesale-terms": "Wholesale terms",
           "tax-exemption": "Tax exemption",
           "contact-info": "Preferences",
-          "summary": "Summary",
-          "success": "Success",
+          summary: "Summary",
+          success: "Success",
         };
 
         incomplete.push({
@@ -393,15 +405,18 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
   /**
    * Calculate progress percentage
    */
-  const calculateProgress = useCallback((currentStep: Step): number => {
-    if (currentStep === "onboarding" || currentStep === "reviews") return 0;
-    if (currentStep === "success") return 100;
+  const calculateProgress = useCallback(
+    (currentStep: Step): number => {
+      if (currentStep === "onboarding" || currentStep === "reviews") return 0;
+      if (currentStep === "success") return 100;
 
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex < 0) return 0;
+      const currentIndex = stepOrder.indexOf(currentStep);
+      if (currentIndex < 0) return 0;
 
-    return Math.round(((currentIndex + 1) / stepOrder.length) * 100);
-  }, [stepOrder]);
+      return Math.round(((currentIndex + 1) / stepOrder.length) * 100);
+    },
+    [stepOrder]
+  );
 
   return {
     stepOrder,
@@ -416,5 +431,3 @@ export function useStepNavigation({ formData, mode }: UseStepNavigationOptions) 
     getStepByNumber: (num: number) => getStepByNumber(num, accountType),
   };
 }
-
-

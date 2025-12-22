@@ -53,16 +53,19 @@ function App() {
 ## What's Included
 
 ### Fonts
+
 - **Termina** (9 weights): Display/headline font
 - **Aeonik Pro** (6 weights + italics): Body/UI font
 
 ### CSS Variables
+
 - Complete light/dark theme tokens
 - Standardized radius system (3, 5, 10, 20, 30, 40, 9999px)
 - Form element sizing
 - Shadow presets
 
 ### Animations
+
 - Modal enter/exit
 - Step transitions (left/right)
 - Stagger fade-in (1-7)
@@ -71,6 +74,7 @@ function App() {
 - Glass morphism
 
 ### Components
+
 - Button (with pill variants)
 - Input, Label
 - Card

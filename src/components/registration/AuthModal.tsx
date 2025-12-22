@@ -17,10 +17,7 @@ interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-export const AuthModal = ({
-  open,
-  onOpenChange
-}: AuthModalProps) => {
+export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   // Prevent iOS Safari pull-to-refresh while the modal is open (it conflicts with swipe-to-dismiss)
   const touchStartYRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -99,7 +96,12 @@ export const AuthModal = ({
       case "license":
         return licenseNumber.trim() !== "" && state !== "";
       case "personal-info":
-        return firstName.trim() !== "" && lastName.trim() !== "" && email.trim() !== "" && password.length >= 8;
+        return (
+          firstName.trim() !== "" &&
+          lastName.trim() !== "" &&
+          email.trim() !== "" &&
+          password.length >= 8
+        );
       default:
         return true;
     }
@@ -114,9 +116,9 @@ export const AuthModal = ({
         description: "You're seeing exclusive professional pricing on all products.",
         action: {
           label: "View Dashboard",
-          onClick: () => window.location.href = "/account"
+          onClick: () => (window.location.href = "/account"),
         },
-        duration: 5000
+        duration: 5000,
       });
       onOpenChange(false);
       return;
@@ -159,13 +161,16 @@ export const AuthModal = ({
     if (currentStep === "personal-info") return accountType === "student" ? 2 : 3;
     return accountType === "student" ? 3 : 4;
   };
-  const showStepIndicator = mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
-  return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent ref={contentRef} className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-xl border-border overflow-hidden max-h-[90vh] overflow-y-auto">
+  const showStepIndicator =
+    mode === "signup" && currentStep !== "success" && currentStep !== "onboarding";
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        ref={contentRef}
+        className="sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 rounded-xl border-border overflow-hidden max-h-[90vh] overflow-y-auto"
+      >
         <VisuallyHidden>
-          <DialogTitle>
-            {mode === "signup" ? "Create an account" : "Sign in"}
-          </DialogTitle>
+          <DialogTitle>{mode === "signup" ? "Create an account" : "Sign in"}</DialogTitle>
         </VisuallyHidden>
 
         {/* Header */}
@@ -173,34 +178,94 @@ export const AuthModal = ({
           <div className="flex items-center justify-between">
             <AuthToggle mode={mode} onModeChange={handleModeChange} />
           </div>
-          {showStepIndicator && <div className="flex justify-center">
+          {showStepIndicator && (
+            <div className="flex justify-center">
               <StepIndicator currentStep={getCurrentStepNumber()} totalSteps={getTotalSteps()} />
-            </div>}
+            </div>
+          )}
         </div>
 
         {/* Content */}
         <div className="p-3 md:p-5">
-          {mode === "signin" ? <LoginStep email={email} password={password} onEmailChange={setEmail} onPasswordChange={setPassword} /> : <>
+          {mode === "signin" ? (
+            <LoginStep
+              email={email}
+              password={password}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+            />
+          ) : (
+            <>
               {currentStep === "onboarding" && <OnboardingStep onContinue={handleNext} />}
-              {currentStep === "account-type" && <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />}
-              {currentStep === "license" && <LicenseStep accountType={accountType} licenseNumber={licenseNumber} salonSize="" salonStructure="" licenseFile={null} licenseProofFiles={[]} onLicenseChange={setLicenseNumber} onSalonSizeChange={() => {}} onSalonStructureChange={() => {}} onLicenseFileChange={() => {}} onLicenseProofFilesChange={() => {}} validationStatus="in-progress" />}
-              {currentStep === "personal-info" && <PersonalInfoStep firstName={firstName} lastName={lastName} email={email} password={password} onFirstNameChange={setFirstName} onLastNameChange={setLastName} onEmailChange={setEmail} onPasswordChange={setPassword} />}
+              {currentStep === "account-type" && (
+                <AccountTypeStep selectedType={accountType} onSelect={setAccountType} />
+              )}
+              {currentStep === "license" && (
+                <LicenseStep
+                  accountType={accountType}
+                  licenseNumber={licenseNumber}
+                  salonSize=""
+                  salonStructure=""
+                  licenseFile={null}
+                  licenseProofFiles={[]}
+                  onLicenseChange={setLicenseNumber}
+                  onSalonSizeChange={() => {}}
+                  onSalonStructureChange={() => {}}
+                  onLicenseFileChange={() => {}}
+                  onLicenseProofFilesChange={() => {}}
+                  validationStatus="in-progress"
+                />
+              )}
+              {currentStep === "personal-info" && (
+                <PersonalInfoStep
+                  firstName={firstName}
+                  lastName={lastName}
+                  email={email}
+                  password={password}
+                  onFirstNameChange={setFirstName}
+                  onLastNameChange={setLastName}
+                  onEmailChange={setEmail}
+                  onPasswordChange={setPassword}
+                />
+              )}
               {currentStep === "success" && <SuccessStep />}
-            </>}
+            </>
+          )}
         </div>
 
         {/* Footer */}
-        {(mode === "signin" || currentStep !== "success") && <div className="p-3 md:p-5 border-t border-border/50">
+        {(mode === "signin" || currentStep !== "success") && (
+          <div className="p-3 md:p-5 border-t border-border/50">
             <div className="flex gap-2">
-              {mode === "signup" && currentStep !== "onboarding" && <Button variant="outline" size="lg" onClick={handleBack} className="h-11 px-5 rounded-xl border-border">
+              {mode === "signup" && currentStep !== "onboarding" && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleBack}
+                  className="h-11 px-5 rounded-xl border-border"
+                >
                   <ArrowLeft className="w-4 h-4" />
-                </Button>}
-              <Button size="lg" onClick={handleNext} disabled={!canContinue()} className="flex-1 h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
-                {mode === "signin" ? "Sign in" : currentStep === "onboarding" ? "Get Started" : currentStep === "personal-info" ? "Submit Application" : "Continue"}
+                </Button>
+              )}
+              <Button
+                size="lg"
+                onClick={handleNext}
+                disabled={!canContinue()}
+                className="flex-1 h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
+              >
+                {mode === "signin"
+                  ? "Sign in"
+                  : currentStep === "onboarding"
+                    ? "Get Started"
+                    : currentStep === "personal-info"
+                      ? "Submit Application"
+                      : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-          </div>}
+          </div>
+        )}
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

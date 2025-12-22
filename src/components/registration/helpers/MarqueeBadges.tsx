@@ -13,7 +13,7 @@ const badges = [
 ];
 
 interface BadgeItemProps {
-  badge: typeof badges[0];
+  badge: (typeof badges)[0];
   badgeKey: string;
   intensity: number;
 }
@@ -21,15 +21,15 @@ interface BadgeItemProps {
 const BadgeItem = ({ badge, badgeKey, intensity }: BadgeItemProps) => {
   const Icon = badge.icon;
   const grayscaleAmount = 1 - intensity;
-  
+
   return (
-    <div 
+    <div
       data-badge={badgeKey}
       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-green-500/10 border-green-500/30"
       style={{
         filter: `grayscale(${grayscaleAmount})`,
         opacity: 0.5 + intensity * 0.5,
-        transition: 'filter 0.2s ease-out, opacity 0.2s ease-out',
+        transition: "filter 0.2s ease-out, opacity 0.2s ease-out",
       }}
     >
       <Icon className="w-3 h-3 flex-shrink-0 text-green-600" />
@@ -65,15 +65,15 @@ export const MarqueeBadges = () => {
       const centerX = containerRect.left + containerRect.width / 2;
       const maxDistance = 120;
 
-      const badgeElements = container.querySelectorAll('[data-badge]');
+      const badgeElements = container.querySelectorAll("[data-badge]");
       const newIntensities: Record<string, number> = {};
 
       badgeElements.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const badgeCenterX = rect.left + rect.width / 2;
         const distance = Math.abs(badgeCenterX - centerX);
-        const key = el.getAttribute('data-badge') || '';
-        newIntensities[key] = Math.max(0, 1 - (distance / maxDistance));
+        const key = el.getAttribute("data-badge") || "";
+        newIntensities[key] = Math.max(0, 1 - distance / maxDistance);
       });
 
       setBadgeIntensities(newIntensities);
@@ -87,7 +87,7 @@ export const MarqueeBadges = () => {
   const getCurrentTranslateX = () => {
     if (!trackRef.current) return 0;
     const transform = window.getComputedStyle(trackRef.current).transform;
-    if (transform === 'none') return 0;
+    if (transform === "none") return 0;
     const matrix = new DOMMatrix(transform);
     return matrix.m41;
   };
@@ -96,34 +96,34 @@ export const MarqueeBadges = () => {
     const friction = 0.95;
     const minVelocity = 0.5;
     const lastDirection = Math.sign(dragState.current.velocity);
-    
+
     const animate = () => {
       if (!trackRef.current) return;
-      
+
       dragState.current.velocity *= friction;
-      
+
       if (Math.abs(dragState.current.velocity) < minVelocity) {
         const bounceDistance = lastDirection * -3;
         const currentX = getCurrentTranslateX();
-        trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        trackRef.current.style.transition = "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
         trackRef.current.style.transform = `translateX(${currentX + bounceDistance}px)`;
-        
+
         setTimeout(() => {
           if (trackRef.current) {
-            trackRef.current.style.transition = '';
+            trackRef.current.style.transition = "";
           }
           setIsCoasting(false);
           momentumRef.current = null;
         }, 300);
         return;
       }
-      
+
       const currentX = getCurrentTranslateX();
       trackRef.current.style.transform = `translateX(${currentX + dragState.current.velocity}px)`;
-      
+
       momentumRef.current = requestAnimationFrame(animate);
     };
-    
+
     setIsCoasting(true);
     animate();
   };
@@ -147,18 +147,18 @@ export const MarqueeBadges = () => {
 
   const handleDragMove = (pageX: number) => {
     if (!isDragging || !trackRef.current) return;
-    
+
     const now = Date.now();
     const dt = now - dragState.current.lastTime;
-    
+
     if (dt > 0) {
       const dx = pageX - dragState.current.lastX;
-      dragState.current.velocity = dx / dt * 16;
+      dragState.current.velocity = (dx / dt) * 16;
     }
-    
+
     dragState.current.lastX = pageX;
     dragState.current.lastTime = now;
-    
+
     const walk = pageX - dragState.current.startX;
     trackRef.current.style.transform = `translateX(${dragState.current.scrollLeft + walk}px)`;
   };
@@ -166,7 +166,7 @@ export const MarqueeBadges = () => {
   const handleDragEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    
+
     if (Math.abs(dragState.current.velocity) > 1) {
       startMomentum();
     }
@@ -194,13 +194,14 @@ export const MarqueeBadges = () => {
   const isAnimating = !isDragging && !isCoasting;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="relative w-full overflow-hidden select-none mt-[3px] lg:mt-0"
-      style={{ 
-        maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', 
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
-        cursor: isDragging ? 'grabbing' : 'grab',
+      style={{
+        maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+        WebkitMaskImage:
+          "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+        cursor: isDragging ? "grabbing" : "grab",
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -210,16 +211,13 @@ export const MarqueeBadges = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleDragEnd}
     >
-      <div 
-        ref={trackRef}
-        className={cn("flex", isAnimating && "animate-marquee-seamless-long")}
-      >
+      <div ref={trackRef} className={cn("flex", isAnimating && "animate-marquee-seamless-long")}>
         {[0, 1, 2, 3].map((setIndex) => (
           <div key={setIndex} className="flex items-center gap-3 shrink-0 pr-3">
             {badges.map((badge, i) => (
-              <BadgeItem 
-                key={`${setIndex}-${i}`} 
-                badge={badge} 
+              <BadgeItem
+                key={`${setIndex}-${i}`}
+                badge={badge}
                 badgeKey={`${setIndex}-${i}`}
                 intensity={badgeIntensities[`${setIndex}-${i}`] || 0}
               />

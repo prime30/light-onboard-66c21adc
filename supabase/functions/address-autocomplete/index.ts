@@ -11,8 +11,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("test");
-
   try {
     const { input, sessionToken, country } = await req.json();
 

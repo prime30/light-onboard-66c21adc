@@ -3,7 +3,7 @@ export {
   AnimatedProductCount,
   OdometerCounter,
   RotatingStylistAvatars,
-  RotatingStylistAvatarsLight
+  RotatingStylistAvatarsLight,
 } from "./AnimatedCounters";
 export { CircularProgress } from "./CircularProgress";
 export { MagneticFeatureBox } from "./MagneticFeatureBox";

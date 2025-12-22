@@ -13,6 +13,7 @@ dist-ssr
 *.local
 
 .env
+.env.prod
 
 # Editor directories and files
 .zed
@@ -25,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase
+.branches
+.temp

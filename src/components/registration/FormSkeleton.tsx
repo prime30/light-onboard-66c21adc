@@ -2,7 +2,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface FormSkeletonProps {
-  variant?: "default" | "account-type" | "license" | "location" | "terms" | "contact" | "business-operation";
+  variant?:
+    | "default"
+    | "account-type"
+    | "license"
+    | "location"
+    | "terms"
+    | "contact"
+    | "business-operation";
 }
 
 export const FormSkeleton = ({ variant = "default" }: FormSkeletonProps) => {

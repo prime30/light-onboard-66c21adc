@@ -1,10 +1,10 @@
 /**
  * useRegistrationSync Hook
- * 
+ *
  * This hook bridges the existing Auth.tsx state management with the new
  * RegistrationContext. It provides a way to gradually migrate from
  * scattered useState calls to centralized context state.
- * 
+ *
  * Usage:
  * 1. Import this hook in Auth.tsx
  * 2. Pass current state values to syncToContext
@@ -113,7 +113,7 @@ export function useRegistrationSync(
     // Only update if state has actually changed
     if (formStateString !== lastFormState.current) {
       lastFormState.current = formStateString;
-      
+
       // Sync to context (excluding File objects which can't be serialized)
       setFormData({
         accountType: formState.accountType,

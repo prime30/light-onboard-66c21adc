@@ -14,10 +14,10 @@ export interface FormState {
   currentStep: Step;
   currentSlide: number;
   displayTotalSteps: number;
-  
+
   // Account info
   accountType: string | null;
-  
+
   // Contact basics
   firstName: string;
   lastName: string;
@@ -26,7 +26,7 @@ export interface FormState {
   password: string;
   phoneNumber: string;
   phoneCountryCode: string;
-  
+
   // Business location
   businessName: string;
   businessAddress: string;
@@ -35,38 +35,38 @@ export interface FormState {
   city: string;
   state: string;
   zipCode: string;
-  
+
   // Salon-specific
   salonSize: string;
   salonStructure: string;
   licenseNumber: string;
   licenseFile: File | null;
-  
+
   // Student-specific
   schoolName: string;
   schoolState: string;
   enrollmentProofFiles: File[];
-  
+
   // Professional-specific
   businessOperationType: BusinessOperationType | null;
   licenseProofFiles: File[];
-  
+
   // Tax & terms
   hasTaxExemption: boolean | null;
   taxExemptFile: File | null;
   wholesaleAgreed: boolean;
-  
+
   // Profile (optional)
   birthdayMonth: string;
   birthdayDay: string;
   socialMediaHandle: string;
   referralSource: string;
-  
+
   // Subscriptions
   subscribeOrderUpdates: boolean;
   subscribeMarketing: boolean;
   subscribePromotions: boolean;
-  
+
   // UI state
   showValidationErrors: boolean;
   isSubmitting: boolean;
@@ -189,45 +189,42 @@ const calculateCompletedSteps = (data: {
   wholesaleAgreed: boolean;
 }): Set<number> => {
   const completed = new Set<number>();
-  
+
   if (!data.accountType) return completed;
   completed.add(1);
-  
-  const contactBasicsValid = 
-    data.firstName.trim() !== "" && 
-    data.lastName.trim() !== "" && 
-    isValidEmail(data.email) && 
+
+  const contactBasicsValid =
+    data.firstName.trim() !== "" &&
+    data.lastName.trim() !== "" &&
+    isValidEmail(data.email) &&
     isValidPhoneNumber(data.phoneNumber);
-  
-  const taxExemptionValid = 
-    data.hasTaxExemption === false || 
-    (data.hasTaxExemption === true && data.hasTaxExemptFile);
-  
+
+  const taxExemptionValid =
+    data.hasTaxExemption === false || (data.hasTaxExemption === true && data.hasTaxExemptFile);
+
   if (data.accountType === "student") {
-    const schoolInfoValid = 
-      data.schoolName.trim() !== "" && 
-      data.schoolState !== "" && 
+    const schoolInfoValid =
+      data.schoolName.trim() !== "" &&
+      data.schoolState !== "" &&
       data.enrollmentProofFilesCount > 0;
-    
+
     if (schoolInfoValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (taxExemptionValid) completed.add(4);
     if (data.wholesaleAgreed) completed.add(5);
     completed.add(6);
   } else if (data.accountType === "salon") {
-    const businessLocationValid = 
-      data.businessName.trim() !== "" && 
-      data.businessAddress.trim() !== "" && 
-      data.country !== "" && 
-      data.city.trim() !== "" && 
-      data.state !== "" && 
+    const businessLocationValid =
+      data.businessName.trim() !== "" &&
+      data.businessAddress.trim() !== "" &&
+      data.country !== "" &&
+      data.city.trim() !== "" &&
+      data.state !== "" &&
       data.zipCode.trim() !== "";
-    
-    const licenseValid = 
-      data.licenseNumber.trim() !== "" && 
-      data.salonSize !== "" && 
-      data.salonStructure !== "";
-    
+
+    const licenseValid =
+      data.licenseNumber.trim() !== "" && data.salonSize !== "" && data.salonStructure !== "";
+
     if (businessLocationValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (licenseValid) completed.add(4);
@@ -236,17 +233,17 @@ const calculateCompletedSteps = (data: {
     completed.add(7);
   } else {
     const businessOperationValid = data.businessOperationType !== null;
-    
-    const businessLocationValid = 
-      data.businessName.trim() !== "" && 
-      data.businessAddress.trim() !== "" && 
-      data.country !== "" && 
-      data.city.trim() !== "" && 
-      data.state !== "" && 
+
+    const businessLocationValid =
+      data.businessName.trim() !== "" &&
+      data.businessAddress.trim() !== "" &&
+      data.country !== "" &&
+      data.city.trim() !== "" &&
+      data.state !== "" &&
       data.zipCode.trim() !== "";
-    
+
     const licenseValid = data.licenseNumber.trim() !== "";
-    
+
     if (businessOperationValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (businessLocationValid) completed.add(4);
@@ -255,7 +252,7 @@ const calculateCompletedSteps = (data: {
     if (data.wholesaleAgreed) completed.add(7);
     completed.add(8);
   }
-  
+
   return completed;
 };
 
@@ -265,10 +262,10 @@ export function useAuthFormState(): FormState & FormActions {
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [displayTotalSteps, setDisplayTotalSteps] = useState(7);
-  
+
   // Account info - use string to allow any account type string from form
   const [accountType, setAccountType] = useState<string | null>(null);
-  
+
   // Contact basics
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -277,7 +274,7 @@ export function useAuthFormState(): FormState & FormActions {
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
-  
+
   // Business location
   const [businessName, setBusinessName] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
@@ -286,74 +283,81 @@ export function useAuthFormState(): FormState & FormActions {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
-  
+
   // Salon-specific
   const [salonSize, setSalonSize] = useState("");
   const [salonStructure, setSalonStructure] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
-  
+
   // Student-specific
   const [schoolName, setSchoolName] = useState("");
   const [schoolState, setSchoolState] = useState("");
   const [enrollmentProofFiles, setEnrollmentProofFiles] = useState<File[]>([]);
-  
+
   // Professional-specific
-  const [businessOperationType, setBusinessOperationType] = useState<BusinessOperationType | null>(null);
+  const [businessOperationType, setBusinessOperationType] = useState<BusinessOperationType | null>(
+    null
+  );
   const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
-  
+
   // Tax & terms
   const [hasTaxExemption, setHasTaxExemption] = useState<boolean | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const [wholesaleAgreed, setWholesaleAgreed] = useState(false);
-  
+
   // Profile (optional)
   const [birthdayMonth, setBirthdayMonth] = useState("");
   const [birthdayDay, setBirthdayDay] = useState("");
   const [socialMediaHandle, setSocialMediaHandle] = useState("");
   const [referralSource, setReferralSource] = useState("");
-  
+
   // Subscriptions
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
   const [subscribeMarketing, setSubscribeMarketing] = useState(true);
   const [subscribePromotions, setSubscribePromotions] = useState(true);
-  
+
   // UI state
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  
+
   // Restore flow state - track the step we should animate to after showing onboarding
   const [pendingRestoreStep, setPendingRestoreStep] = useState<Step | null>(null);
-  
+
   // Mode switch state preservation refs
   const signupStateRef = useRef<SignupState | null>(null);
   const signinStateRef = useRef<SigninState | null>(null);
-  
+
   // Sync displayTotalSteps with accountType
   useEffect(() => {
     if (!accountType) return;
     setDisplayTotalSteps(accountType === "student" ? 7 : accountType === "professional" ? 9 : 8);
   }, [accountType]);
-  
+
   // Load from sessionStorage on mount
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
-        
+
         // Check if there's meaningful progress to restore
-        const hasProgress = data.accountType || data.firstName || data.lastName || 
-          data.email || data.businessName || data.licenseNumber;
-        
+        const hasProgress =
+          data.accountType ||
+          data.firstName ||
+          data.lastName ||
+          data.email ||
+          data.businessName ||
+          data.licenseNumber;
+
         if (!hasProgress) return;
-        
+
         // Always start on onboarding when restoring
         setCurrentStep("onboarding");
-        
+
         if (data.mode) setMode(data.mode);
         if (data.accountType) setAccountType(data.accountType);
         if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
@@ -381,7 +385,7 @@ export function useAuthFormState(): FormState & FormActions {
         if (data.birthdayDay) setBirthdayDay(data.birthdayDay);
         if (data.socialMediaHandle) setSocialMediaHandle(data.socialMediaHandle);
         if (data.referralSource) setReferralSource(data.referralSource);
-        
+
         const recalculatedSteps = calculateCompletedSteps({
           accountType: data.accountType || null,
           firstName: data.firstName || "",
@@ -406,13 +410,13 @@ export function useAuthFormState(): FormState & FormActions {
           wholesaleAgreed: data.wholesaleAgreed || false,
         });
         setCompletedSteps(recalculatedSteps);
-        
+
         // Calculate the first incomplete step to navigate to
         if (data.accountType) {
           const stepOrder = getStepOrder(data.accountType as AccountType);
           // Find first incomplete step (skip account-type since that's step 1 which is complete if we have accountType)
           let targetStep: Step = "account-type";
-          
+
           for (let i = 0; i < stepOrder.length; i++) {
             const stepNum = i + 1;
             if (!recalculatedSteps.has(stepNum)) {
@@ -420,12 +424,12 @@ export function useAuthFormState(): FormState & FormActions {
               break;
             }
           }
-          
+
           // If all steps are complete, go to summary
           if (recalculatedSteps.size >= stepOrder.length - 1) {
             targetStep = "summary";
           }
-          
+
           // Set pending restore step (animation communicates this to user)
           setPendingRestoreStep(targetStep);
         }
@@ -434,14 +438,14 @@ export function useAuthFormState(): FormState & FormActions {
       console.warn("Failed to load form progress:", e);
     }
   }, []);
-  
+
   // Save to sessionStorage when form state changes
   useEffect(() => {
     if (currentStep === "success") {
       sessionStorage.removeItem(STORAGE_KEY);
       return;
     }
-    
+
     try {
       const data = {
         mode,
@@ -472,20 +476,44 @@ export function useAuthFormState(): FormState & FormActions {
         birthdayDay,
         socialMediaHandle,
         referralSource,
-        completedSteps: Array.from(completedSteps)
+        completedSteps: Array.from(completedSteps),
       };
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.warn("Failed to save form progress:", e);
     }
   }, [
-    mode, currentStep, accountType, licenseNumber, state, firstName, lastName, email,
-    businessName, businessAddress, suiteNumber, country, city, zipCode, wholesaleAgreed,
-    hasTaxExemption, preferredName, phoneNumber, phoneCountryCode, salonSize, salonStructure,
-    schoolName, schoolState, businessOperationType, birthdayMonth, birthdayDay, socialMediaHandle, referralSource,
-    completedSteps
+    mode,
+    currentStep,
+    accountType,
+    licenseNumber,
+    state,
+    firstName,
+    lastName,
+    email,
+    businessName,
+    businessAddress,
+    suiteNumber,
+    country,
+    city,
+    zipCode,
+    wholesaleAgreed,
+    hasTaxExemption,
+    preferredName,
+    phoneNumber,
+    phoneCountryCode,
+    salonSize,
+    salonStructure,
+    schoolName,
+    schoolState,
+    businessOperationType,
+    birthdayMonth,
+    birthdayDay,
+    socialMediaHandle,
+    referralSource,
+    completedSteps,
   ]);
-  
+
   const resetForm = useCallback(() => {
     setCurrentStep("onboarding");
     setAccountType(null);
@@ -521,7 +549,7 @@ export function useAuthFormState(): FormState & FormActions {
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
   }, []);
-  
+
   const hasFormProgress = useCallback(() => {
     return (
       firstName.trim() !== "" ||
@@ -537,8 +565,21 @@ export function useAuthFormState(): FormState & FormActions {
       businessOperationType !== null ||
       completedSteps.size > 1
     );
-  }, [firstName, lastName, email, phoneNumber, businessName, businessAddress, licenseNumber, schoolName, wholesaleAgreed, hasTaxExemption, businessOperationType, completedSteps]);
-  
+  }, [
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    businessName,
+    businessAddress,
+    licenseNumber,
+    schoolName,
+    wholesaleAgreed,
+    hasTaxExemption,
+    businessOperationType,
+    completedSteps,
+  ]);
+
   // Trigger restore transition - navigates to pending step and clears it
   const triggerRestoreTransition = useCallback(() => {
     if (pendingRestoreStep) {
@@ -546,7 +587,7 @@ export function useAuthFormState(): FormState & FormActions {
       setPendingRestoreStep(null);
     }
   }, [pendingRestoreStep]);
-  
+
   return {
     // State
     mode,
@@ -592,7 +633,7 @@ export function useAuthFormState(): FormState & FormActions {
     showForgotPassword,
     isSendingReset,
     completedSteps,
-    
+
     // Actions
     setMode,
     setCurrentStep,
@@ -639,7 +680,7 @@ export function useAuthFormState(): FormState & FormActions {
     setCompletedSteps,
     resetForm,
     hasFormProgress,
-    
+
     // Restore flow
     pendingRestoreStep,
     triggerRestoreTransition,

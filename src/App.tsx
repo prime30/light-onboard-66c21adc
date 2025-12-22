@@ -15,7 +15,7 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   useClickRipple();
-  
+
   return (
     <>
       <Toaster />

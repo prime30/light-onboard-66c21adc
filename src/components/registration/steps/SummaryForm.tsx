@@ -61,11 +61,11 @@ export const SummaryForm = ({
   subscribeOrderUpdates,
   subscribePromotions,
   uploadedFiles = [],
-  onEditStep
+  onEditStep,
 }: SummaryFormProps) => {
   // Step number varies by account type: professional=9, salon=8, student=7
   const stepNumber = accountType === "professional" ? 9 : accountType === "student" ? 7 : 8;
-  
+
   const getAccountTypeLabel = () => {
     if (accountType === "professional") return "Professional Stylist";
     if (accountType === "student") return "Cosmetology Student";
@@ -95,7 +95,20 @@ export const SummaryForm = ({
   };
 
   const getMonthName = (month: string) => {
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     const idx = parseInt(month, 10) - 1;
     return months[idx] || month;
   };
@@ -105,7 +118,15 @@ export const SummaryForm = ({
     return `${phoneCountryCode} ${phoneNumber}`;
   };
 
-  const SummarySection = ({ title, stepNum, children }: { title: string; stepNum: number; children: React.ReactNode }) => (
+  const SummarySection = ({
+    title,
+    stepNum,
+    children,
+  }: {
+    title: string;
+    stepNum: number;
+    children: React.ReactNode;
+  }) => (
     <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">{title}</span>
@@ -117,9 +138,7 @@ export const SummaryForm = ({
           Edit
         </button>
       </div>
-      <div className="space-y-1.5 text-sm text-muted-foreground">
-        {children}
-      </div>
+      <div className="space-y-1.5 text-sm text-muted-foreground">{children}</div>
     </div>
   );
 
@@ -165,7 +184,10 @@ export const SummaryForm = ({
 
         {/* Contact Information */}
         <div className="animate-stagger-3">
-          <SummarySection title="Contact Information" stepNum={accountType === "student" ? 3 : accountType === "professional" ? 3 : 3}>
+          <SummarySection
+            title="Contact Information"
+            stepNum={accountType === "student" ? 3 : accountType === "professional" ? 3 : 3}
+          >
             <SummaryRow label="Name" value={`${firstName} ${lastName}`} />
             {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
             <SummaryRow label="Email" value={email} />
@@ -195,7 +217,10 @@ export const SummaryForm = ({
         {/* License Information */}
         {accountType !== "student" && (
           <div className="animate-stagger-5">
-            <SummarySection title="License Information" stepNum={accountType === "professional" ? 4 : 4}>
+            <SummarySection
+              title="License Information"
+              stepNum={accountType === "professional" ? 4 : 4}
+            >
               <SummaryRow label="License Number" value={licenseNumber} />
               {state && <SummaryRow label="State" value={state} />}
               {accountType === "salon" && (
@@ -211,9 +236,15 @@ export const SummaryForm = ({
         {/* Business Location */}
         {(accountType === "professional" || accountType === "salon") && (
           <div className="animate-stagger-6">
-            <SummarySection title="Business Location" stepNum={accountType === "professional" ? 5 : 2}>
+            <SummarySection
+              title="Business Location"
+              stepNum={accountType === "professional" ? 5 : 2}
+            >
               <SummaryRow label="Business Name" value={businessName} />
-              <SummaryRow label="Address" value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress} />
+              <SummaryRow
+                label="Address"
+                value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress}
+              />
               <SummaryRow label="City" value={`${city}, ${state} ${zipCode}`} />
               <SummaryRow label="Country" value={country} />
             </SummarySection>
@@ -222,18 +253,38 @@ export const SummaryForm = ({
 
         {/* Tax Exemption */}
         <div className="animate-stagger-7">
-          <SummarySection title="Tax Exemption" stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}>
-            <SummaryRow label="Status" value={hasTaxExemption === true ? "Tax exempt" : hasTaxExemption === false ? "Not tax exempt" : "Not specified"} />
+          <SummarySection
+            title="Tax Exemption"
+            stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}
+          >
+            <SummaryRow
+              label="Status"
+              value={
+                hasTaxExemption === true
+                  ? "Tax exempt"
+                  : hasTaxExemption === false
+                    ? "Not tax exempt"
+                    : "Not specified"
+              }
+            />
           </SummarySection>
         </div>
 
         {/* Preferences */}
         <div className="animate-stagger-8">
-          <SummarySection title="Preferences & Details" stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}>
+          <SummarySection
+            title="Preferences & Details"
+            stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}
+          >
             {birthdayMonth && birthdayDay && (
-              <SummaryRow label="Birthday" value={`${getMonthName(birthdayMonth)} ${parseInt(birthdayDay, 10)}`} />
+              <SummaryRow
+                label="Birthday"
+                value={`${getMonthName(birthdayMonth)} ${parseInt(birthdayDay, 10)}`}
+              />
             )}
-            {socialMediaHandle && <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />}
+            {socialMediaHandle && (
+              <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
+            )}
             <SummaryRow label="Order Updates" value={subscribeOrderUpdates ? "Yes" : "No"} />
             <SummaryRow label="Promotions" value={subscribePromotions ? "Yes" : "No"} />
           </SummarySection>

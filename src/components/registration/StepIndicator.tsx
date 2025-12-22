@@ -11,15 +11,15 @@ interface StepIndicatorProps {
   introIcon?: LucideIcon;
 }
 
-export const StepIndicator = ({ 
-  currentStep, 
-  totalSteps, 
+export const StepIndicator = ({
+  currentStep,
+  totalSteps,
   hasIntroStep = false,
-  introIcon: IntroIcon = Sparkles 
+  introIcon: IntroIcon = Sparkles,
 }: StepIndicatorProps) => {
   // When hasIntroStep is true, step 0 = intro, steps 1+ = regular numbered steps
   // totalSteps still represents numbered steps only
-  
+
   return (
     <div className="flex items-center justify-center gap-1">
       {/* Intro step with icon */}
@@ -32,20 +32,22 @@ export const StepIndicator = ({
               : "w-6 h-6 bg-foreground/80 text-background"
           )}
         >
-          <IntroIcon className={cn(
-            "transition-all duration-300",
-            currentStep === 0 ? "w-4 h-4" : "w-3.5 h-3.5"
-          )} />
+          <IntroIcon
+            className={cn(
+              "transition-all duration-300",
+              currentStep === 0 ? "w-4 h-4" : "w-3.5 h-3.5"
+            )}
+          />
         </div>
       )}
-      
+
       {/* Regular numbered steps with connecting lines */}
       {Array.from({ length: totalSteps }, (_, i) => {
         const stepNumber = i + 1;
         const isActive = currentStep === stepNumber;
         const isCompleted = currentStep > stepNumber;
         const isFirst = i === 0;
-        
+
         return (
           <div key={i} className="flex items-center gap-1">
             {/* Connecting line before step (except first, unless there's an intro step) */}
@@ -67,8 +69,8 @@ export const StepIndicator = ({
                 isActive
                   ? "w-8 bg-foreground"
                   : isCompleted
-                  ? "w-1.5 bg-foreground"
-                  : "w-1.5 bg-border"
+                    ? "w-1.5 bg-foreground"
+                    : "w-1.5 bg-border"
               )}
             />
           </div>

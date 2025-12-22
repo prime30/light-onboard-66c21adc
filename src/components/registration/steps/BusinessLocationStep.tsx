@@ -2,14 +2,85 @@ import { useState, useEffect, useRef } from "react";
 import { Building2, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { cn } from "@/lib/utils";
 
 export const countries = ["United States", "Canada"];
-export const provinces = ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon"];
-export const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+export const provinces = [
+  "Alberta",
+  "British Columbia",
+  "Manitoba",
+  "New Brunswick",
+  "Newfoundland and Labrador",
+  "Northwest Territories",
+  "Nova Scotia",
+  "Nunavut",
+  "Ontario",
+  "Prince Edward Island",
+  "Quebec",
+  "Saskatchewan",
+  "Yukon",
+];
+export const states = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming",
+];
 
 interface BusinessLocationStepProps {
   accountType: string | null;
@@ -48,9 +119,11 @@ export const BusinessLocationStep = ({
   onStateChange,
   onZipCodeChange,
   showValidationErrors = false,
-  validationStatus
+  validationStatus,
 }: BusinessLocationStepProps) => {
-  const [predictions, setPredictions] = useState<Array<{ description: string; place_id: string }>>([]);
+  const [predictions, setPredictions] = useState<Array<{ description: string; place_id: string }>>(
+    []
+  );
   const [showPredictions, setShowPredictions] = useState(false);
   const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
   const [sessionToken] = useState(() => crypto.randomUUID());
@@ -76,18 +149,21 @@ export const BusinessLocationStep = ({
 
     setIsLoadingPredictions(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-autocomplete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          input,
-          sessionToken,
-          country: country || undefined,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-autocomplete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            input,
+            sessionToken,
+            country: country || undefined,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.predictions) {
@@ -95,7 +171,7 @@ export const BusinessLocationStep = ({
         setShowPredictions(data.predictions.length > 0);
       }
     } catch (error) {
-      console.error('Error fetching address predictions:', error);
+      console.error("Error fetching address predictions:", error);
       setPredictions([]);
     } finally {
       setIsLoadingPredictions(false);
@@ -108,46 +184,57 @@ export const BusinessLocationStep = ({
     onBusinessAddressChange(description);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-details`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          placeId,
-          sessionToken,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-details`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            placeId,
+            sessionToken,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.details) {
-        const { streetAddress, city: detailCity, state: detailState, country: detailCountry, postalCode } = data.details;
-        
+        const {
+          streetAddress,
+          city: detailCity,
+          state: detailState,
+          country: detailCountry,
+          postalCode,
+        } = data.details;
+
         // Update form fields with parsed address
         if (streetAddress) onBusinessAddressChange(streetAddress);
         if (detailCity) onCityChange(detailCity);
         if (postalCode) onZipCodeChange(postalCode);
-        
+
         // Set country first so state dropdown updates
         if (detailCountry) {
-          const mappedCountry = detailCountry === 'United States' || detailCountry === 'US' 
-            ? 'United States' 
-            : detailCountry === 'Canada' || detailCountry === 'CA' 
-              ? 'Canada' 
-              : detailCountry;
+          const mappedCountry =
+            detailCountry === "United States" || detailCountry === "US"
+              ? "United States"
+              : detailCountry === "Canada" || detailCountry === "CA"
+                ? "Canada"
+                : detailCountry;
           if (countries.includes(mappedCountry)) {
             onCountryChange(mappedCountry);
           }
         }
-        
+
         // Set state/province
         if (detailState) {
           // Try to match the full state name
-          const stateList = detailCountry === 'Canada' ? provinces : states;
-          const matchedState = stateList.find(s => 
-            s.toLowerCase() === detailState.toLowerCase() || 
-            s.toLowerCase() === data.details.stateShort?.toLowerCase()
+          const stateList = detailCountry === "Canada" ? provinces : states;
+          const matchedState = stateList.find(
+            (s) =>
+              s.toLowerCase() === detailState.toLowerCase() ||
+              s.toLowerCase() === data.details.stateShort?.toLowerCase()
           );
           if (matchedState) {
             onStateChange(matchedState);
@@ -155,18 +242,18 @@ export const BusinessLocationStep = ({
         }
       }
     } catch (error) {
-      console.error('Error fetching place details:', error);
+      console.error("Error fetching place details:", error);
     }
   };
 
   // Handle address input change with debounce
   const handleAddressChange = (value: string) => {
     onBusinessAddressChange(value);
-    
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    
+
     debounceRef.current = setTimeout(() => {
       fetchPredictions(value);
     }, 300);
@@ -176,7 +263,7 @@ export const BusinessLocationStep = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        predictionsRef.current && 
+        predictionsRef.current &&
         !predictionsRef.current.contains(event.target as Node) &&
         addressInputRef.current &&
         !addressInputRef.current.contains(event.target as Node)
@@ -185,8 +272,8 @@ export const BusinessLocationStep = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -213,7 +300,14 @@ export const BusinessLocationStep = ({
             <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
               <Building2 className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            <Input id="businessName" type="text" placeholder="Business or salon name" value={businessName} onChange={e => onBusinessNameChange(e.target.value)} className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+            <Input
+              id="businessName"
+              type="text"
+              placeholder="Business or salon name"
+              value={businessName}
+              onChange={(e) => onBusinessNameChange(e.target.value)}
+              className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+            />
           </div>
         </div>
 
@@ -227,16 +321,16 @@ export const BusinessLocationStep = ({
               <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
                 <MapPin className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
               </div>
-              <Input 
+              <Input
                 ref={addressInputRef}
-                id="businessAddress" 
-                type="text" 
-                placeholder="Start typing your address..." 
-                value={businessAddress} 
-                onChange={e => handleAddressChange(e.target.value)} 
+                id="businessAddress"
+                type="text"
+                placeholder="Start typing your address..."
+                value={businessAddress}
+                onChange={(e) => handleAddressChange(e.target.value)}
                 onFocus={() => predictions.length > 0 && setShowPredictions(true)}
                 autoComplete="off"
-                className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" 
+                className="h-input pl-[55px] rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
               />
               {isLoadingPredictions && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -244,10 +338,10 @@ export const BusinessLocationStep = ({
                 </div>
               )}
             </div>
-            
+
             {/* Predictions Dropdown */}
             {showPredictions && predictions.length > 0 && (
-              <div 
+              <div
                 ref={predictionsRef}
                 className="absolute z-50 w-full mt-1 bg-background border border-border rounded-form shadow-lg overflow-hidden animate-fade-in"
               >
@@ -276,7 +370,14 @@ export const BusinessLocationStep = ({
             Suite/Unit # (optional)
           </Label>
           <div className="input-glow input-ripple rounded-form">
-            <Input id="suiteNumber" type="text" placeholder="Suite, Unit, Apt #" value={suiteNumber} onChange={e => onSuiteNumberChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+            <Input
+              id="suiteNumber"
+              type="text"
+              placeholder="Suite, Unit, Apt #"
+              value={suiteNumber}
+              onChange={(e) => onSuiteNumberChange(e.target.value)}
+              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+            />
           </div>
         </div>
 
@@ -286,13 +387,22 @@ export const BusinessLocationStep = ({
             Country*
           </Label>
           <Select value={country} onValueChange={onCountryChange}>
-            <SelectTrigger id="country" className="h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus">
+            <SelectTrigger
+              id="country"
+              className="h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus"
+            >
               <SelectValue placeholder="Country" />
             </SelectTrigger>
             <SelectContent className="rounded-form bg-background border border-border z-50">
-              {countries.map(c => <SelectItem key={c} value={c} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
+              {countries.map((c) => (
+                <SelectItem
+                  key={c}
+                  value={c}
+                  className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80"
+                >
                   {c}
-                </SelectItem>)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -304,7 +414,14 @@ export const BusinessLocationStep = ({
               City*
             </Label>
             <div className="input-glow input-ripple rounded-form">
-              <Input id="city" type="text" placeholder="City" value={city} onChange={e => onCityChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+              <Input
+                id="city"
+                type="text"
+                placeholder="City"
+                value={city}
+                onChange={(e) => onCityChange(e.target.value)}
+                className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+              />
             </div>
           </div>
           <div className="space-y-2.5">
@@ -312,18 +429,31 @@ export const BusinessLocationStep = ({
               State/Province*
             </Label>
             <div className="relative">
-              {state && country === "United States" && hasStateIcon(state) && <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] flex items-center justify-center z-10">
+              {state && country === "United States" && hasStateIcon(state) && (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] flex items-center justify-center z-10">
                   <StateIcon state={state} size={22} className="text-foreground" />
-                </div>}
+                </div>
+              )}
               <Select value={state} onValueChange={onStateChange}>
-                <SelectTrigger id="stateProvince" className={cn("h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus", state && country === "United States" && hasStateIcon(state) && "pl-[42px]")}
+                <SelectTrigger
+                  id="stateProvince"
+                  className={cn(
+                    "h-input rounded-form border-border/50 bg-muted transition-all duration-300 focus:shadow-input-focus",
+                    state && country === "United States" && hasStateIcon(state) && "pl-[42px]"
+                  )}
                 >
                   <SelectValue placeholder={country === "Canada" ? "Province" : "State"} />
                 </SelectTrigger>
                 <SelectContent className="rounded-form bg-background border border-border z-50">
-                  {(country === "Canada" ? provinces : states).map(s => <SelectItem key={s} value={s} className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80">
+                  {(country === "Canada" ? provinces : states).map((s) => (
+                    <SelectItem
+                      key={s}
+                      value={s}
+                      className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80"
+                    >
                       {s}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -336,7 +466,14 @@ export const BusinessLocationStep = ({
             Zip/Postal code*
           </Label>
           <div className="input-glow input-ripple rounded-form">
-            <Input id="zipCode" type="text" placeholder="Zip/Postal code" value={zipCode} onChange={e => onZipCodeChange(e.target.value)} className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus" />
+            <Input
+              id="zipCode"
+              type="text"
+              placeholder="Zip/Postal code"
+              value={zipCode}
+              onChange={(e) => onZipCodeChange(e.target.value)}
+              className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus"
+            />
           </div>
         </div>
       </div>

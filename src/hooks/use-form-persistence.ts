@@ -1,6 +1,6 @@
 /**
  * useFormPersistence Hook
- * 
+ *
  * Handles saving and restoring form progress to/from sessionStorage.
  * Form data persists within a browser tab session but is cleared when the tab closes.
  */
@@ -15,7 +15,7 @@ const STORAGE_KEY = "auth_form_progress";
 
 // Helper to check valid phone number
 const isValidPhoneNumber = (phone: string): boolean => {
-  const digits = phone.replace(/\D/g, '');
+  const digits = phone.replace(/\D/g, "");
   return digits.length >= 10 && digits.length <= 15;
 };
 
@@ -83,30 +83,29 @@ export function calculateCompletedSteps(data: {
   wholesaleAgreed: boolean;
 }): Set<number> {
   const completed = new Set<number>();
-  
+
   // Step 1 is always complete if we have an account type
   if (!data.accountType) return completed;
   completed.add(1);
-  
+
   // Contact basics validation (shared across all flows)
-  const contactBasicsValid = 
-    data.firstName.trim() !== "" && 
-    data.lastName.trim() !== "" && 
-    isValidEmail(data.email) && 
+  const contactBasicsValid =
+    data.firstName.trim() !== "" &&
+    data.lastName.trim() !== "" &&
+    isValidEmail(data.email) &&
     isValidPhoneNumber(data.phoneNumber);
-  
+
   // Tax exemption validation (shared across all flows)
-  const taxExemptionValid = 
-    data.hasTaxExemption === false || 
-    (data.hasTaxExemption === true && data.hasTaxExemptFile);
-  
+  const taxExemptionValid =
+    data.hasTaxExemption === false || (data.hasTaxExemption === true && data.hasTaxExemptFile);
+
   if (data.accountType === "student") {
     // Student flow: 1-account-type, 2-school-info, 3-contact-basics, 4-tax-exemption, 5-wholesale-terms, 6-contact-info
-    const schoolInfoValid = 
-      data.schoolName.trim() !== "" && 
-      data.schoolState !== "" && 
+    const schoolInfoValid =
+      data.schoolName.trim() !== "" &&
+      data.schoolState !== "" &&
       data.enrollmentProofFilesCount > 0;
-    
+
     if (schoolInfoValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (taxExemptionValid) completed.add(4);
@@ -114,19 +113,17 @@ export function calculateCompletedSteps(data: {
     completed.add(6); // Step 6 (contact-info) is optional, always complete
   } else if (data.accountType === "salon") {
     // Salon flow: 1-account-type, 2-business-location, 3-contact-basics, 4-license, 5-tax-exemption, 6-wholesale-terms, 7-contact-info
-    const businessLocationValid = 
-      data.businessName.trim() !== "" && 
-      data.businessAddress.trim() !== "" && 
-      data.country !== "" && 
-      data.city.trim() !== "" && 
-      data.state !== "" && 
+    const businessLocationValid =
+      data.businessName.trim() !== "" &&
+      data.businessAddress.trim() !== "" &&
+      data.country !== "" &&
+      data.city.trim() !== "" &&
+      data.state !== "" &&
       data.zipCode.trim() !== "";
-    
-    const licenseValid = 
-      data.licenseNumber.trim() !== "" && 
-      data.salonSize !== "" && 
-      data.salonStructure !== "";
-    
+
+    const licenseValid =
+      data.licenseNumber.trim() !== "" && data.salonSize !== "" && data.salonStructure !== "";
+
     if (businessLocationValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (licenseValid) completed.add(4);
@@ -136,17 +133,17 @@ export function calculateCompletedSteps(data: {
   } else {
     // Professional flow: 1-account-type, 2-business-operation, 3-contact-basics, 4-business-location, 5-license, 6-tax-exemption, 7-wholesale-terms, 8-contact-info
     const businessOperationValid = data.businessOperationType !== null;
-    
-    const businessLocationValid = 
-      data.businessName.trim() !== "" && 
-      data.businessAddress.trim() !== "" && 
-      data.country !== "" && 
-      data.city.trim() !== "" && 
-      data.state !== "" && 
+
+    const businessLocationValid =
+      data.businessName.trim() !== "" &&
+      data.businessAddress.trim() !== "" &&
+      data.country !== "" &&
+      data.city.trim() !== "" &&
+      data.state !== "" &&
       data.zipCode.trim() !== "";
-    
+
     const licenseValid = data.licenseNumber.trim() !== "";
-    
+
     if (businessOperationValid) completed.add(2);
     if (contactBasicsValid) completed.add(3);
     if (businessLocationValid) completed.add(4);
@@ -155,7 +152,7 @@ export function calculateCompletedSteps(data: {
     if (data.wholesaleAgreed) completed.add(7);
     completed.add(8); // Step 8 (contact-info) is optional, always complete
   }
-  
+
   return completed;
 }
 
@@ -229,7 +226,7 @@ export function useFormPersistence(options: UseFormPersistenceOptions = {}) {
       sessionStorage.removeItem(STORAGE_KEY);
       return;
     }
-    
+
     try {
       const toSave = {
         ...data,

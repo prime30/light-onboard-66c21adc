@@ -6,13 +6,13 @@ This is a production-ready multi-step registration/authentication flow for **Dro
 
 ## ✅ Deployment Status
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Frontend | ✅ Ready | React + Vite + TailwindCSS |
-| Database | ✅ Configured | Profiles table with RLS |
-| Storage | ✅ Configured | registration-documents bucket with RLS |
-| Authentication | ✅ Configured | Email/password with auto-confirm |
-| Edge Functions | ✅ Deployed | Address autocomplete (Google Places) |
+| Component      | Status        | Notes                                  |
+| -------------- | ------------- | -------------------------------------- |
+| Frontend       | ✅ Ready      | React + Vite + TailwindCSS             |
+| Database       | ✅ Configured | Profiles table with RLS                |
+| Storage        | ✅ Configured | registration-documents bucket with RLS |
+| Authentication | ✅ Configured | Email/password with auto-confirm       |
+| Edge Functions | ✅ Deployed   | Address autocomplete (Google Places)   |
 
 ## Architecture
 
@@ -101,6 +101,7 @@ CREATE TABLE public.profiles (
 **Bucket:** `registration-documents` (private)
 
 **Structure:**
+
 ```
 registration-documents/
 └── {user_id}/
@@ -117,12 +118,15 @@ registration-documents/
 Three account types with different step sequences:
 
 ### Professional (Stylist) - 10 steps
+
 1. Onboarding → 2. Account Type → 3. Business Operation → 4. Contact Basics → 5. License → 6. Business Location → 7. Tax Exemption → 8. Wholesale Terms → 9. Preferences → 10. Summary
 
 ### Salon Owner - 9 steps
+
 1. Onboarding → 2. Account Type → 3. Business Location → 4. Contact Basics → 5. License → 6. Tax Exemption → 7. Wholesale Terms → 8. Preferences → 9. Summary
 
 ### Student - 8 steps
+
 1. Onboarding → 2. Account Type → 3. School Info → 4. Contact Basics → 5. Tax Exemption → 6. Wholesale Terms → 7. Preferences → 8. Summary
 
 ## What's Complete
@@ -152,22 +156,26 @@ Three account types with different step sequences:
 ## What Needs Integration
 
 ### High Priority (Backend Connection)
+
 1. **Connect form submission to profiles table** - Update auth-service.ts to save profile data
 2. **Connect file uploads to storage** - Update upload handlers to use Supabase Storage
 3. **Handle application status** - Admin review workflow
 
 ### Medium Priority
+
 1. **Admin dashboard** - Review pending applications
 2. **Email notifications** - Approval/rejection emails
 3. **E2E tests** - Playwright or Cypress tests
 
 ### Nice to Have
+
 1. **Unit tests** - Vitest tests for hooks
 2. **Storybook** - Component documentation
 
 ## Edge Functions
 
 ### address-autocomplete
+
 - **Path:** `/functions/v1/address-autocomplete`
 - **Method:** GET
 - **Query Params:** `input` (address string)
@@ -175,6 +183,7 @@ Three account types with different step sequences:
 - **Secret:** `GOOGLE_PLACES_API_KEY`
 
 ### address-details
+
 - **Path:** `/functions/v1/address-details`
 - **Method:** GET
 - **Query Params:** `place_id`
@@ -190,7 +199,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 async function saveProfile(userId: string, profileData: ProfileData) {
   const { error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({
       account_type: profileData.accountType,
       first_name: profileData.firstName,
@@ -198,8 +207,8 @@ async function saveProfile(userId: string, profileData: ProfileData) {
       // ... all other fields
       license_document_path: profileData.licenseDocumentPath,
     })
-    .eq('id', userId);
-    
+    .eq("id", userId);
+
   if (error) throw error;
 }
 ```
@@ -211,14 +220,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 async function uploadDocument(userId: string, file: File, folder: string) {
   const path = `${userId}/${folder}/${file.name}`;
-  
-  const { data, error } = await supabase.storage
-    .from('registration-documents')
-    .upload(path, file, {
-      cacheControl: '3600',
-      upsert: true
-    });
-    
+
+  const { data, error } = await supabase.storage.from("registration-documents").upload(path, file, {
+    cacheControl: "3600",
+    upsert: true,
+  });
+
   if (error) throw error;
   return data.path;
 }
@@ -234,14 +241,15 @@ VITE_SUPABASE_PROJECT_ID=<auto-configured>
 
 ## Secrets (Edge Functions)
 
-| Secret | Purpose |
-|--------|---------|
-| GOOGLE_PLACES_API_KEY | Address autocomplete |
-| SUPABASE_SERVICE_ROLE_KEY | Admin operations |
+| Secret                    | Purpose              |
+| ------------------------- | -------------------- |
+| GOOGLE_PLACES_API_KEY     | Address autocomplete |
+| SUPABASE_SERVICE_ROLE_KEY | Admin operations     |
 
 ## Design System
 
 ### Key CSS Variables (index.css)
+
 - `--background` / `--foreground` - Main colors
 - `--muted` / `--muted-foreground` - Subdued elements
 - `--primary` - Brand color
@@ -249,6 +257,7 @@ VITE_SUPABASE_PROJECT_ID=<auto-configured>
 - `--radius` - Border radius tokens
 
 ### Custom Classes
+
 - `rounded-form` - Standard form element border radius
 - `h-button` / `h-input` - Standard heights
 - `story-link` - Animated underline link
@@ -256,6 +265,7 @@ VITE_SUPABASE_PROJECT_ID=<auto-configured>
 - `animate-stagger-*` - Staggered entrance animations
 
 ### Fonts
+
 - **Termina** - Headlines (uppercase)
 - **Aeonik Pro** - Body text
 
@@ -269,6 +279,7 @@ npm run dev
 ## Testing Auth
 
 With auto-confirm email enabled:
+
 1. Sign up with any email
 2. Account is immediately active
 3. Sign in with the same credentials
@@ -286,4 +297,4 @@ For questions about the codebase, refer to the original Lovable project or reach
 
 ---
 
-*Last updated: December 2024*
+_Last updated: December 2024_

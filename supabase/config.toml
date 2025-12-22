@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.address-details]
 verify_jwt = false
+
+[functions.hello-world]
+verify_jwt = false
