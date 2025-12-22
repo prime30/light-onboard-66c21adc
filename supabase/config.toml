@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.hello-world]
 verify_jwt = false
+
+[functions.upload-file]
+verify_jwt = false

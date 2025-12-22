@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
+import { useUploadFile } from "@/hooks/use-upload-file";
 
 interface MultiFileUploadProps {
   files: File[];
@@ -159,6 +160,7 @@ export const MultiFileUpload = ({
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<File | null>(null);
+  const { addFiles, queue } = useUploadFile();
 
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -276,6 +278,7 @@ export const MultiFileUpload = ({
 
     if (validFiles.length > 0) {
       setPendingFiles(validFiles);
+      addFiles(validFiles);
     }
   };
 
