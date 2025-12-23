@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { User, FileCheck, Mail, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
-import { TextSkeleton } from "@/hooks/use-font-loaded";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
 
 // Stylist avatars
@@ -15,6 +14,7 @@ import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
 import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
+import { TextSkeleton } from "../TextSkeleton";
 
 const stylistAvatars = [
   stylistPink1,

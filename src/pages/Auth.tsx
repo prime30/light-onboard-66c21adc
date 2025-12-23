@@ -62,7 +62,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { useCountdown } from "@/hooks/use-countdown";
-import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
+import { useFontLoaded } from "@/hooks/use-font-loaded";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";
@@ -112,7 +112,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { signIn, signUp } from "@/lib/auth-service";
 import { scrollToFirstError } from "@/lib/scroll-to-error";
 import { useRegistrationUpload } from "@/hooks/use-registration-upload";
-import { slides, stats, features, testimonials } from "@/data/auth-constants";
+import { slides, features } from "@/data/auth-constants";
 import {
   accountTypeSchema,
   businessOperationSchema,
@@ -140,6 +140,7 @@ import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
+import { TextSkeleton } from "@/components/registration/TextSkeleton";
 
 // Email validation - requires @ symbol
 

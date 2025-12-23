@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
 import { isValidEmail } from "@/lib/validations/form-utils";
 import { isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
-import { getStepOrder } from "@/hooks/use-step-navigation";
+import { getStepOrder } from "@/data/step-order";
 
 // Session storage key for form persistence
 const STORAGE_KEY = "auth_form_progress";
