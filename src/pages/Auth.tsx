@@ -1,96 +1,24 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { format } from "date-fns";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Sparkles,
-  Star,
-  Truck,
-  Gift,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  Mail,
-  Lock,
-  User,
-  FileCheck,
-  MapPin,
-  Check,
-  ShoppingBag,
-  Heart,
-  ArrowUpRight,
-  Building2,
-  GraduationCap,
-  X,
-  Eye,
-  EyeOff,
-  Phone,
-  Info,
-  AlertTriangle,
-  Clock,
-  Headphones,
-  Users,
-  Tag,
-  Loader2,
-  BadgeCheck,
-  Upload,
-  ShieldCheck,
-  Flag,
-  Wand2,
-  Scissors,
-  Calendar,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useMagnetic } from "@/hooks/use-magnetic";
-import { useCountdown } from "@/hooks/use-countdown";
 import { useFontLoaded } from "@/hooks/use-font-loaded";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";
 import { useModeSwitch } from "@/hooks/use-mode-switch";
-import { StateIcon, hasStateIcon } from "@/components/StateIcon";
-import {
-  StepValidationIcon,
-  getStepValidationStatus,
-} from "@/components/registration/StepValidationIcon";
-import { FileUpload } from "@/components/registration/FileUpload";
-import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
-import { FileSummary } from "@/components/registration/FileSummary";
+import { getStepValidationStatus } from "@/components/registration/StepValidationIcon";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
 import {
   ContactBasicsStep,
-  countryCodes,
-  CountryFlag,
   isValidPhoneNumber,
 } from "@/components/registration/steps/ContactBasicsStep";
 import { PreferencesStep } from "@/components/registration/steps/PreferencesStep";
-import {
-  BusinessLocationStep,
-  countries,
-  provinces,
-  states,
-} from "@/components/registration/steps/BusinessLocationStep";
+import { BusinessLocationStep } from "@/components/registration/steps/BusinessLocationStep";
 import { SchoolInfoStep } from "@/components/registration/steps/SchoolInfoStep";
 import { LicenseStep } from "@/components/registration/steps/LicenseStep";
 import { WholesaleTermsStep } from "@/components/registration/steps/WholesaleTermsStep";
@@ -123,28 +51,12 @@ import {
   schoolInfoSchema,
   taxExemptionSchema,
   wholesaleTermsSchema,
-  signInSchema,
 } from "@/lib/validations/auth-schemas";
-import { useRegistration } from "@/components/registration/context/RegistrationContext";
 import { useRegistrationSync } from "@/hooks/use-registration-sync";
-import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
-import colorRingProduct from "@/assets/color-ring-product.png";
+import type { Step, AccountType, BusinessOperationType } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
-import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
-import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
-import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
-import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
-import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
-import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
-import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
-import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
-import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
-
-// Email validation - requires @ symbol
-
-// Email validation - requires @ symbol
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -2302,7 +2214,6 @@ const Auth = () => {
                       <BusinessOperationStep
                         businessOperationType={businessOperationType}
                         onBusinessOperationTypeChange={handleBusinessOperationTypeSelect}
-                        showValidationErrors={showValidationErrors}
                         validationStatus={getStepValidationStatus(
                           businessOperationType !== null,
                           false,

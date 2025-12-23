@@ -35,8 +35,6 @@ export const TaxExemptionStep = ({
   const stepNumber = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
 
-  const TOAST_DURATION = 5000; // 5 seconds
-
   const handleYesClick = () => {
     if (hasTaxExemption === true) {
       onTaxExemptionChange(null);

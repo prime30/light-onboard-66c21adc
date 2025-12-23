@@ -131,12 +131,6 @@ export const BusinessLocationStep = ({
   const predictionsRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const businessNameError = showValidationErrors && businessName.trim() === "";
-  const businessAddressError = showValidationErrors && businessAddress.trim() === "";
-  const countryError = showValidationErrors && country === "";
-  const cityError = showValidationErrors && city.trim() === "";
-  const stateError = showValidationErrors && state === "";
-  const zipCodeError = showValidationErrors && zipCode.trim() === "";
   const isStudent = accountType === "student";
   const stepNumber = accountType === "professional" ? 4 : 2; // professional=4, salon=2
 

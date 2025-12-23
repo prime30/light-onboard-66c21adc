@@ -5,14 +5,12 @@ import { cn } from "@/lib/utils";
 interface BusinessOperationStepProps {
   businessOperationType: "commission" | "independent" | null;
   onBusinessOperationTypeChange: (type: "commission" | "independent") => void;
-  showValidationErrors?: boolean;
   validationStatus: "complete" | "in-progress" | "error";
 }
 
 export const BusinessOperationStep = ({
   businessOperationType,
   onBusinessOperationTypeChange,
-  showValidationErrors = false,
   validationStatus,
 }: BusinessOperationStepProps) => {
   const options = [

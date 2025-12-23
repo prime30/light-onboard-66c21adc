@@ -5,18 +5,10 @@
  * Uses useReducer for predictable state updates and easier debugging.
  */
 
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useReducer, useCallback } from "react";
 import type {
   Step,
   AccountType,
-  BusinessOperationType,
   TransitionDirection,
   ModeTransitionDirection,
   RegistrationFormData,
