@@ -101,19 +101,11 @@ import { AccountTypeForm } from "@/components/registration/steps/AccountTypeForm
 import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { SummaryForm } from "@/components/registration/steps/SummaryForm";
 import { SuccessForm } from "@/components/registration/steps/SuccessForm";
-import { PersonalInfoForm } from "@/components/registration/steps/PersonalInfoForm";
 import {
-  AnimatedNumber,
-  AnimatedProductCount,
-  OdometerCounter,
   RotatingStylistAvatars,
-  RotatingStylistAvatarsLight,
   TestimonialCarousel,
-  PasswordInputField,
-  PasswordStrengthMeter,
   CircularProgress,
   MagneticFeatureBox,
-  MarqueeBadges,
 } from "@/components/registration/helpers";
 import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";

@@ -1,15 +1,5 @@
 import { AccountTypeCard } from "../AccountTypeCard";
-import {
-  Scissors,
-  Building2,
-  GraduationCap,
-  Sparkles,
-  ArrowUpRight,
-  Tag,
-  Headphones,
-  Users,
-  BookOpen,
-} from "lucide-react";
+import { Scissors, Building2, GraduationCap, Sparkles, ArrowUpRight, Tag } from "lucide-react";
 
 interface AccountTypeStepProps {
   selectedType: string | null;

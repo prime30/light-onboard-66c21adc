@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { User, FileCheck, Mail, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
-import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
+import { TextSkeleton } from "@/hooks/use-font-loaded";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
 
 // Stylist avatars
