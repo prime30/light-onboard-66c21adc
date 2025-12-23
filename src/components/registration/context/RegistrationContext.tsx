@@ -11,9 +11,9 @@ import type {
   AccountType,
   TransitionDirection,
   ModeTransitionDirection,
-  RegistrationFormData,
   RegistrationUIState,
 } from "@/types/auth";
+import { RegistrationFormData } from "@/lib/validations/auth-schemas";
 
 // ============================================================================
 // Initial State
@@ -53,7 +53,6 @@ const initialFormData: RegistrationFormData = {
   subscribeOrderUpdates: true,
   subscribeMarketing: true,
   subscribePromotions: true,
-  password: "",
 };
 
 const initialUIState: RegistrationUIState = {

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { z } from "zod";
-import { ChevronLeft, ChevronRight, Check, BadgeCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, BadgeCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useFontLoaded } from "@/hooks/use-font-loaded";
@@ -57,8 +57,10 @@ import type { Step, AccountType, BusinessOperationType } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
+import { useAuthForm } from "@/hooks/use-auth-form";
 
 const Auth = () => {
+  useAuthForm();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -1119,7 +1121,7 @@ const Auth = () => {
     if (!result.success) {
       // Convert zod errors to field errors format for scroll-to-error
       const fieldErrors: Record<string, { message: string }> = {};
-      result.error.errors.forEach((err) => {
+      result.error.flatten((err) => {
         const fieldName = err.path[0]?.toString() || "";
         if (!fieldErrors[fieldName]) {
           fieldErrors[fieldName] = { message: err.message };
