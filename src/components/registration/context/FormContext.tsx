@@ -1,5 +1,5 @@
-import { createContext, useContext, ReactNode, useCallback } from "react";
-import { FieldError, useForm, UseFormRegister } from "react-hook-form";
+import { createContext, useContext, ReactNode, useCallback, useMemo } from "react";
+import { FieldError, useForm as useReactHookForm, UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
 
@@ -17,13 +17,16 @@ export type FormFieldProps = {
 
 export type AuthFormContextType = {
   register: UseFormRegister<RegistrationFormData>;
-  watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
-  reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
-  handleSubmit: ReturnType<typeof useForm<RegistrationFormData>>["handleSubmit"];
-  setValue: ReturnType<typeof useForm<RegistrationFormData>>["setValue"];
-  errors: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["errors"];
+  watch: ReturnType<typeof useReactHookForm<RegistrationFormData>>["watch"];
+  reset: ReturnType<typeof useReactHookForm<RegistrationFormData>>["reset"];
+  handleSubmit: ReturnType<typeof useReactHookForm<RegistrationFormData>>["handleSubmit"];
+  setValue: ReturnType<typeof useReactHookForm<RegistrationFormData>>["setValue"];
+  errors: ReturnType<typeof useReactHookForm<RegistrationFormData>>["formState"]["errors"];
   getValidationStatus: (fields: ValidFieldNames | ValidFieldNames[]) => ValidationStatus;
-  dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
+  dirtyFields: ReturnType<
+    typeof useReactHookForm<RegistrationFormData>
+  >["formState"]["dirtyFields"];
+  formProgress: number;
 };
 
 const defaultValues: Partial<RegistrationFormData> = {
@@ -34,10 +37,10 @@ const defaultValues: Partial<RegistrationFormData> = {
 };
 
 // Create the context
-const AuthFormContext = createContext<AuthFormContextType | null>(null);
+const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Provider component
-export function AuthFormProvider({ children }: { children: ReactNode }) {
+export function FormProvider({ children }: { children: ReactNode }) {
   const {
     register,
     handleSubmit,
@@ -45,11 +48,12 @@ export function AuthFormProvider({ children }: { children: ReactNode }) {
     setValue,
     watch,
     formState: { errors, dirtyFields },
-  } = useForm<RegistrationFormData>({
+  } = useReactHookForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
     defaultValues,
   });
-  
+  const totalFields = 10;
+
   console.log("current values:", watch());
 
   const getValidationStatus = useCallback(
@@ -74,6 +78,13 @@ export function AuthFormProvider({ children }: { children: ReactNode }) {
     [errors]
   );
 
+  const formProgress = useMemo(() => {
+    const dirtyFieldCount = Object.values(dirtyFields).filter(Boolean).length;
+    const errorsCount = Object.keys(errors).length;
+    const progress = ((dirtyFieldCount - errorsCount) / totalFields) * 100;
+    return progress > 0 ? progress : 0;
+  }, [dirtyFields, errors, totalFields]);
+
   const value: AuthFormContextType = {
     register,
     watch,
@@ -83,14 +94,15 @@ export function AuthFormProvider({ children }: { children: ReactNode }) {
     errors,
     getValidationStatus,
     dirtyFields,
+    formProgress,
   };
 
-  return <AuthFormContext.Provider value={value}>{children}</AuthFormContext.Provider>;
+  return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 
 // Hook to consume the context
-export function useAuthForm(): AuthFormContextType {
-  const context = useContext(AuthFormContext);
+export function useForm(): AuthFormContextType {
+  const context = useContext(FormContext);
 
   if (!context) {
     throw new Error("useAuthFormContext must be used within an AuthFormProvider");

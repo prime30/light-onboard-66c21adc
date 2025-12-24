@@ -8,7 +8,7 @@ import AuthPage from "./pages/AuthPage";
 import Reviews from "./pages/Reviews";
 import BlogResaleLicense from "./pages/BlogResaleLicense";
 import NotFound from "./pages/NotFound";
-import { AuthFormProvider } from "./hooks/use-auth-form";
+import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 
 const queryClient = new QueryClient();
 
@@ -32,13 +32,13 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <AuthFormProvider>
+  <GlobalAppProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
-  </AuthFormProvider>
+  </GlobalAppProvider>
 );
 
 export default App;

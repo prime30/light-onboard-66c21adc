@@ -1,41 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useForm } from "../context/FormContext";
 
-interface CircularProgressProps {
-  progress: number;
-}
-
-export const CircularProgress = ({ progress }: CircularProgressProps) => {
+export const CircularProgress = () => {
+  const { formProgress } = useForm();
   const [showGlow, setShowGlow] = useState(false);
-  const prevProgressRef = useRef(progress);
+  const prevProgressRef = useRef(formProgress);
   const size = 40;
   const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (progress / 100) * circumference;
+  const offset = circumference - (formProgress / 100) * circumference;
 
   // Trigger glow once when reaching 100%
   useEffect(() => {
-    if (progress >= 100 && prevProgressRef.current < 100) {
+    if (formProgress >= 100 && prevProgressRef.current < 100) {
       setShowGlow(true);
       const timer = setTimeout(() => {
         setShowGlow(false);
       }, 1500);
       return () => clearTimeout(timer);
     }
-    prevProgressRef.current = progress;
-  }, [progress]);
+    prevProgressRef.current = formProgress;
+  }, [formProgress]);
 
   // Color based on progress: green when complete, amber when partial, white/gray when empty
   const getProgressColor = () => {
-    if (progress >= 100) return "hsl(var(--status-green))";
-    if (progress > 0) return "hsl(var(--status-amber))";
+    if (formProgress >= 100) return "hsl(var(--status-green))";
+    if (formProgress > 0) return "hsl(var(--status-amber))";
     return "hsl(var(--background) / 0.3)";
   };
 
   const getTextColor = () => {
-    if (progress >= 100) return "hsl(var(--status-green))";
-    if (progress > 0) return "hsl(var(--status-amber))";
+    if (formProgress >= 100) return "hsl(var(--status-green))";
+    if (formProgress > 0) return "hsl(var(--status-amber))";
     return "hsl(var(--background) / 0.6)";
   };
 
@@ -79,7 +77,7 @@ export const CircularProgress = ({ progress }: CircularProgressProps) => {
           color: getTextColor(),
         }}
       >
-        {Math.round(progress)}%
+        {Math.round(formProgress)}%
       </span>
     </div>
   );

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
-import { useAuthForm } from "@/hooks/use-auth-form";
+import { useForm } from "@/components/registration/context/FormContext";
 import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
@@ -104,7 +104,7 @@ export const AccountTypeForm = ({
   setIsTransitioning,
   setCurrentStep,
 }: AccountTypeFormProps) => {
-  const { watch, setValue, getValidationStatus, dirtyFields, reset } = useAuthForm();
+  const { watch, setValue, getValidationStatus, dirtyFields, reset } = useForm();
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);

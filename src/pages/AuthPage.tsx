@@ -7,12 +7,15 @@
 
 import { RegistrationProvider } from "@/components/registration/context/RegistrationContext";
 import Auth from "./Auth";
+import { FormProvider } from "@/components/registration/context/FormContext";
 
 const AuthPage = () => {
   return (
-    <RegistrationProvider>
-      <Auth />
-    </RegistrationProvider>
+    <FormProvider>
+      <RegistrationProvider>
+        <Auth />
+      </RegistrationProvider>
+    </FormProvider>
   );
 };
 
