@@ -58,6 +58,10 @@ import salonHero from "@/assets/salon-hero.jpg";
 import logoSvg from "@/assets/logo.svg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
 import { useAuthForm } from "@/hooks/use-auth-form";
+import { MobileSavingProgress } from "@/components/registration/MobileSavingProgress";
+import { MobileDragHandle } from "@/components/registration/MobileDragHandle";
+import { AuthToggle } from "@/components/registration/AuthToggle";
+import { CloseButton } from "@/components/registration/CloseButton";
 
 const Auth = () => {
   useAuthForm();
@@ -464,8 +468,6 @@ const Auth = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
-  const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
-  const [pendingAccountType, setPendingAccountType] = useState<string | null>(null);
   const fontsLoaded = useFontLoaded();
 
   // Sync local state to RegistrationContext for step components
@@ -946,81 +948,6 @@ const Auth = () => {
     uploadAllDocuments,
     resetDocumentUploadState,
   ]);
-
-  // Execute account type selection and auto-advance
-  const executeAccountTypeSelect = (type: string | null, previousType: string | null) => {
-    setAccountType(type);
-    if (type) {
-      // Auto-advance after grace period - navigate directly to next step
-      setTimeout(() => {
-        // Update display total steps based on selected type BEFORE transitioning
-        const newTotal = type === "student" ? 7 : type === "professional" ? 9 : 8;
-        setDisplayTotalSteps(newTotal);
-
-        // When switching to a different account type, reset form fields and completed steps
-        if (previousType !== type && previousType !== null) {
-          // Clear all form progress for the new flow
-          setLicenseNumber("");
-          setState("");
-          setBusinessName("");
-          setBusinessAddress("");
-          setSuiteNumber("");
-          setCity("");
-          setZipCode("");
-          setCountry("");
-          setSalonSize("");
-          setSalonStructure("");
-          setSchoolName("");
-          setSchoolState("");
-          setEnrollmentProofFiles([]);
-          setBusinessOperationType(null);
-          setHasTaxExemption(null);
-          setTaxExemptFile(null);
-          setWholesaleAgreed(false);
-          setLicenseFile(null);
-          setLicenseProofFiles([]);
-          // Keep personal info (firstName, lastName, email, phone) as it's reusable
-          // Start fresh - only mark step 1 as completed
-          setCompletedSteps(new Set([1]));
-        } else if (previousType !== type) {
-          // First time selecting, just mark step 1 as completed
-          setCompletedSteps(new Set([1]));
-        } else {
-          // Same type selected again, just mark step 1 as completed
-          setCompletedSteps((prev) => new Set([...prev, 1]));
-        }
-
-        // Calculate next step based on selected type
-        const nextStep: Step =
-          type === "student"
-            ? "school-info"
-            : type === "professional"
-              ? "business-operation"
-              : "business-location";
-        setTransitionDirection("forward");
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setCurrentStep(nextStep);
-          setIsTransitioning(false);
-        }, 150);
-      }, 800);
-    }
-  };
-
-  // Handle account type selection with auto-advance
-  const handleAccountTypeSelect = (type: string | null) => {
-    const previousType = accountType;
-
-    // If switching to a different account type and there's existing progress, show confirmation overlay
-    if (type && previousType && previousType !== type && hasFormProgress()) {
-      setPendingAccountType(type);
-      setShowAccountTypeConfirm(true);
-      return;
-    }
-
-    // No existing progress or same type selected, proceed directly
-    executeAccountTypeSelect(type, previousType);
-  };
 
   // Handle business operation type selection with auto-advance
   const handleBusinessOperationTypeSelect = (type: "commission" | "independent") => {
@@ -1531,104 +1458,12 @@ const Auth = () => {
         {/* Mobile background gradient - fades to light gray at bottom */}
         <div className="lg:hidden absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-muted/30 via-40% to-muted" />
 
-        {/* Account type change confirmation overlay */}
-        {showAccountTypeConfirm && (
-          <div className="absolute inset-0 z-[80]">
-            <div className="absolute inset-0 bg-foreground/50 animate-fade-in" />
-            <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm bg-background rounded-lg p-4 border border-border/20 shadow-modal animate-scale-in">
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">Change account type?</p>
-                  <p className="text-sm text-muted-foreground">
-                    Selecting a new account type will clear your form progress. Do you wish to
-                    proceed?
-                  </p>
-                </div>
-                <div className="flex gap-2 w-full mt-3">
-                  <button
-                    onClick={() => {
-                      setShowAccountTypeConfirm(false);
-                      setPendingAccountType(null);
-                    }}
-                    className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
-                  >
-                    No, keep current
-                  </button>
-                  <button
-                    onClick={() => {
-                      const nextType = pendingAccountType;
-                      setShowAccountTypeConfirm(false);
-                      setPendingAccountType(null);
-                      if (nextType) executeAccountTypeSelect(nextType, accountType);
-                    }}
-                    className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
-                  >
-                    Yes, change
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Saving Progress Overlay */}
-        {isSavingProgress && (
-          <div
-            className={cn(
-              "sm:hidden absolute inset-0 z-[90] flex justify-center bg-background/80 backdrop-blur-sm animate-fade-in",
-              footerVisible ? "items-end pb-[130px]" : "items-center"
-            )}
-          >
-            <div className="flex flex-col items-center gap-4">
-              {/* Rippling circle loader */}
-              <div className="relative w-16 h-16 flex items-center justify-center">
-                {saveProgressText === "saving" ? (
-                  <>
-                    <div
-                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
-                      style={{ animation: "ripple 2s ease-out infinite" }}
-                    />
-                    <div
-                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
-                      style={{ animation: "ripple 2s ease-out infinite 0.6s" }}
-                    />
-                    <div
-                      className="absolute inset-0 rounded-full border-2 border-muted-foreground/40"
-                      style={{ animation: "ripple 2s ease-out infinite 1.2s" }}
-                    />
-                    <div className="w-4 h-4 rounded-full bg-muted-foreground/60 animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="absolute inset-0 rounded-full border-2 border-emerald-500/30 animate-scale-in" />
-                    <Check className="w-7 h-7 text-emerald-600 animate-scale-in" />
-                  </>
-                )}
-              </div>
-              {/* Text */}
-              <span
-                className={cn(
-                  "text-sm font-medium transition-colors duration-300",
-                  saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
-                )}
-              >
-                {saveProgressText === "saving" ? "Saving progress..." : "Saved!"}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Drag Handle - Mobile Only */}
-        <div
-          className={cn(
-            "sm:hidden absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full z-10 transition-all duration-150",
-            modalDragOffset >= 100
-              ? "bg-destructive/60 w-12 scale-110"
-              : modalDragOffset > 50
-                ? "bg-muted-foreground/50 w-11"
-                : "bg-muted-foreground/30"
-          )}
+        <MobileSavingProgress
+          isSavingProgress={isSavingProgress}
+          saveProgressText={saveProgressText}
+          footerVisible={footerVisible}
         />
+        <MobileDragHandle modalDragOffset={modalDragOffset} />
 
         {/* Left Panel - Hero/Branding */}
         <div
@@ -1860,18 +1695,6 @@ const Auth = () => {
               <div />
             )}
           </div>
-
-          {/* Progress Bar - Mobile/Tablet only - Only on sign-up */}
-          {mode === "signup" && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/10 lg:hidden z-10">
-              <div
-                className="h-full bg-background/60 transition-all duration-500"
-                style={{
-                  width: `${((currentSlide + 1) / slides.length) * 100}%`,
-                }}
-              />
-            </div>
-          )}
         </div>
 
         {/* Right Panel - Form */}
@@ -1883,126 +1706,23 @@ const Auth = () => {
           <header className="relative flex items-center justify-between px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
             {/* Left side - Auth Toggle + Step Indicator */}
             <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px] min-h-[50px]">
-              {/* Auth Toggle */}
-              <div className="inline-flex bg-muted backdrop-blur-sm rounded-full p-[5px] border border-border/50 relative flex-shrink-0">
-                {/* Sliding pill indicator */}
-                <div
-                  className="absolute top-[5px] bottom-[5px] rounded-full bg-foreground shadow-lg shadow-foreground/10 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                  style={{
-                    left: mode === "signup" ? "5px" : "50%",
-                    width: "calc(50% - 5px)",
-                  }}
-                />
-                <button
-                  onClick={() => handleModeChange("signup")}
-                  className={cn(
-                    "relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300",
-                    mode === "signup"
-                      ? "text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Apply
-                </button>
-                <button
-                  onClick={() => handleModeChange("signin")}
-                  className={cn(
-                    "relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300",
-                    mode === "signin"
-                      ? "text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Login
-                </button>
-              </div>
-
-              {/* Step Indicator */}
-              {showStepIndicator && (
-                <StepIndicatorBar
-                  mode={mode}
-                  currentStep={currentStep}
-                  displayTotalSteps={displayTotalSteps}
-                  completedSteps={completedSteps}
-                  getCurrentStepNumber={getCurrentStepNumber}
-                  onGoToStep={goToStep}
-                />
-              )}
+              <AuthToggle mode={mode} handleModeChange={handleModeChange} />
+              <StepIndicatorBar
+                show={showStepIndicator}
+                mode={mode}
+                currentStep={currentStep}
+                displayTotalSteps={displayTotalSteps}
+                completedSteps={completedSteps}
+                getCurrentStepNumber={getCurrentStepNumber}
+                onGoToStep={goToStep}
+              />
             </div>
 
-            {/* Close Button - Hidden on mobile (swipe to dismiss available), shown on tablet/desktop */}
-            <div className="hidden sm:flex items-center flex-shrink-0 relative">
-              {/* Saving text - positioned absolutely to the left so button doesn't move */}
-              <span
-                className={cn(
-                  "absolute right-full mr-2 text-sm font-medium whitespace-nowrap transition-all duration-300",
-                  isSavingProgress ? "opacity-100" : "opacity-0 pointer-events-none",
-                  saveProgressText === "saving" ? "text-muted-foreground" : "text-emerald-600"
-                )}
-              >
-                {/* Use invisible text to maintain consistent width */}
-                <span className="invisible">Saving...</span>
-                <span className="absolute inset-0 flex items-center justify-end">
-                  {saveProgressText === "saving" ? "Saving..." : "Saved"}
-                </span>
-              </span>
-              <button
-                onClick={handleCloseModal}
-                disabled={isSavingProgress}
-                className="relative p-2.5 rounded-full bg-muted hover:bg-muted/80 transition-colors group disabled:cursor-default"
-                aria-label="Close"
-              >
-                {/* Animated saving circle */}
-                {isSavingProgress && (
-                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 44 44">
-                    {/* Background circle */}
-                    <circle
-                      cx="22"
-                      cy="22"
-                      r="20"
-                      fill="none"
-                      stroke="hsl(var(--muted-foreground) / 0.2)"
-                      strokeWidth="2"
-                    />
-                    {/* Progress circle */}
-                    <circle
-                      cx="22"
-                      cy="22"
-                      r="20"
-                      fill="none"
-                      stroke={
-                        saveProgressText === "saved"
-                          ? "rgb(16 185 129)"
-                          : "hsl(var(--muted-foreground))"
-                      }
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeDasharray="125.6"
-                      strokeDashoffset="125.6"
-                      className={cn(
-                        saveProgressText === "saving" && "animate-save-progress",
-                        saveProgressText === "saved" && "!stroke-dashoffset-0"
-                      )}
-                      style={{
-                        strokeDashoffset: saveProgressText === "saved" ? 0 : undefined,
-                        transition:
-                          saveProgressText === "saved" ? "stroke 0.3s ease-out" : undefined,
-                      }}
-                    />
-                  </svg>
-                )}
-                {isSavingProgress && saveProgressText === "saved" ? (
-                  <Check className="w-5 h-5 text-emerald-600 animate-scale-in" />
-                ) : (
-                  <X
-                    className={cn(
-                      "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                      !isSavingProgress && "group-hover:rotate-90 group-active:scale-75"
-                    )}
-                  />
-                )}
-              </button>
-            </div>
+            <CloseButton
+              isSavingProgress={isSavingProgress}
+              saveProgressText={saveProgressText}
+              handleCloseModal={handleCloseModal}
+            />
           </header>
 
           {/* Subtle gradient below header on mobile */}
@@ -2178,13 +1898,9 @@ const Auth = () => {
                     )}
                     {currentStep === "account-type" && (
                       <AccountTypeForm
-                        selectedType={accountType}
-                        onSelect={handleAccountTypeSelect}
-                        validationStatus={getStepValidationStatus(
-                          accountType !== null,
-                          true,
-                          showValidationErrors
-                        )}
+                        setTransitionDirection={setTransitionDirection}
+                        setIsTransitioning={setIsTransitioning}
+                        setCurrentStep={setCurrentStep}
                       />
                     )}
                     {currentStep === "license" && (

@@ -4,6 +4,7 @@ import { Check, Flag } from "lucide-react";
 import type { Step } from "@/types/auth";
 
 interface StepIndicatorBarProps {
+  show: boolean;
   mode: "signup" | "signin";
   currentStep: Step;
   displayTotalSteps: number;
@@ -13,6 +14,7 @@ interface StepIndicatorBarProps {
 }
 
 export function StepIndicatorBar({
+  show,
   mode,
   currentStep,
   displayTotalSteps,
@@ -20,6 +22,8 @@ export function StepIndicatorBar({
   getCurrentStepNumber,
   onGoToStep,
 }: StepIndicatorBarProps) {
+  if (!show) return null;
+
   // Swipe refs
   const stepSwipeStartX = useRef<number | null>(null);
   const stepSwipeEndX = useRef<number | null>(null);

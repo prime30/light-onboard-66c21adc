@@ -14,6 +14,8 @@ export const accountTypeSchema = z.object({
   }),
 });
 
+export type AccountType = z.infer<typeof accountTypeSchema>["accountType"];
+
 // Business Operation Schema (for professionals)
 export const businessOperationSchema = z.object({
   businessOperationType: z.enum(["commission", "independent"], {
