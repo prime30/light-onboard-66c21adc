@@ -58,8 +58,8 @@ export type StepContextType = {
   mainScrollRef: MutableRefObject<HTMLElement | null>;
   formProgress: number;
   completedSteps: Record<Step, ValidationStatus>;
-  completedStepsSet: Set<number>; // For backward compatibility
   getStepValidationStatus: (step: Step) => ValidationStatus;
+  steps: Step[];
 };
 
 // Create the context
@@ -129,7 +129,11 @@ export function StepProvider({ children }: { children: ReactNode }) {
         newCompletedSteps[step] = getStepValidationStatus(step);
       });
 
-      setCompletedSteps(newCompletedSteps);
+      // Only update state if validation states actually changed
+      setCompletedSteps((prev) => {
+        const hasChanges = steps.some((step) => prev[step] !== newCompletedSteps[step]);
+        return hasChanges ? newCompletedSteps : prev;
+      });
     };
 
     // Initial update
@@ -148,17 +152,6 @@ export function StepProvider({ children }: { children: ReactNode }) {
 
     return () => unsubscribe();
   }, [steps, getStepValidationStatus, subscribe]);
-
-  // Create Set<number> version for backward compatibility
-  const completedStepsSet = useMemo(() => {
-    const set = new Set<number>();
-    steps.forEach((step, index) => {
-      if (completedSteps[step] === "complete") {
-        set.add(index + 1); // Add 1-based step numbers
-      }
-    });
-    return set;
-  }, [completedSteps, steps]);
 
   const goToNextStep = () => {
     console.log("goNext");
@@ -225,8 +218,8 @@ export function StepProvider({ children }: { children: ReactNode }) {
     mainScrollRef,
     formProgress,
     completedSteps,
-    completedStepsSet,
     getStepValidationStatus,
+    steps,
   };
 
   return <StepContext.Provider value={value}>{children}</StepContext.Provider>;

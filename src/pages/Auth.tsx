@@ -55,14 +55,13 @@ import { useRegistrationSync } from "@/hooks/use-registration-sync";
 import type { Step, AccountType, BusinessOperationType } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
-import { useForm } from "@/components/registration/context/FormContext";
 import { MobileSavingProgress } from "@/components/registration/MobileSavingProgress";
 import { MobileDragHandle } from "@/components/registration/MobileDragHandle";
 import { AuthToggle } from "@/components/registration/AuthToggle";
 import { CloseButton } from "@/components/registration/CloseButton";
 import { useGlobalApp } from "@/contexts";
 import { LeftPanel } from "@/components/registration/LeftPanel";
-import { useToast } from "@/hooks/use-toast";
+import { useStepContext } from "@/components/registration/context";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -81,7 +80,7 @@ const Auth = () => {
     isTransitioning,
     setIsTransitioning,
     showValidationErrors,
-  } = useForm();
+  } = useStepContext();
   const formState = useAuthFormState();
   const {
     currentSlide,
@@ -1312,7 +1311,7 @@ const Auth = () => {
       setNextStep(null);
     }, 150);
   };
-  const showStepIndicator = mode === "signup";
+
   return (
     <div
       className="fixed inset-0 flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10 overflow-hidden"
@@ -1388,15 +1387,7 @@ const Auth = () => {
             {/* Left side - Auth Toggle + Step Indicator */}
             <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px] min-h-[50px]">
               <AuthToggle mode={mode} handleModeChange={handleModeChange} />
-              <StepIndicatorBar
-                show={showStepIndicator}
-                mode={mode}
-                currentStep={currentStep}
-                displayTotalSteps={displayTotalSteps}
-                completedSteps={completedSteps}
-                getCurrentStepNumber={getCurrentStepNumber}
-                onGoToStep={goToStep}
-              />
+              <StepIndicatorBar onGoToStep={goToStep} />
             </div>
 
             <CloseButton
@@ -1419,7 +1410,7 @@ const Auth = () => {
             ref={mainScrollRef}
             className={cn(
               "flex-1 flex flex-col items-center px-5 sm:px-5 md:px-[25px] lg:px-[30px] pb-10 lg:pb-5 overflow-y-auto scrollbar-hide",
-              showStepIndicator ? "pt-0" : "pt-2"
+              mode === "signup" ? "pt-0" : "pt-2"
             )}
             onTouchStart={
               mode === "signin" || currentStep === "onboarding" ? handleMainSwipeStart : undefined
