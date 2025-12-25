@@ -5,6 +5,8 @@
  * Centralized here to ensure consistency across components.
  */
 
+import { RegistrationFormData } from "@/lib/validations/auth-schemas";
+
 /** Authentication mode - either signing up or signing in */
 export type AuthMode = "signup" | "signin";
 
