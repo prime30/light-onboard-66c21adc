@@ -1,9 +1,16 @@
-import { createContext, useContext, ReactNode, useMemo, MutableRefObject } from "react";
+import { createContext, useContext, ReactNode, useMemo, MutableRefObject, useEffect } from "react";
 import { useForm as useReactHookForm, UseFormRegister } from "react-hook-form";
 import { RegistrationFormData } from "@/lib/validations/auth-schemas";
 import { AuthMode, Step } from "@/types/auth";
 import { useStep } from "./use-step";
-import { useRegistrationForm, ValidationStatus, ValidFieldNames } from "./use-registration-form";
+import {
+  defaultValues,
+  useRegistrationForm,
+  ValidationStatus,
+  ValidFieldNames,
+} from "./use-registration-form";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { useAtom } from "jotai/react";
 
 export type AuthFormContextType = {
   mode: AuthMode;
@@ -33,13 +40,40 @@ export type AuthFormContextType = {
 // Create the context
 const FormContext = createContext<AuthFormContextType | null>(null);
 
+// Storage
+const storage = createJSONStorage(
+  // getStringStorage
+  () => sessionStorage // or sessionStorage, asyncStorage or alike
+  // options (optional)
+);
+const formAtom = atomWithStorage("_registration_form", defaultValues, storage, {
+  getOnInit: true,
+});
+
 // Provider component
 export function FormProvider({ children }: { children: ReactNode }) {
+  const [storedForm, setStoredForm] = useAtom(formAtom);
+  console.log("storedForm", storedForm);
+
   const {
     watch,
+    subscribe,
     formState: { errors, dirtyFields },
     ...registrationRest
-  } = useRegistrationForm();
+  } = useRegistrationForm({ initialValues: storedForm });
+
+  useEffect(() => {
+    const callback = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        setStoredForm(values);
+      },
+    });
+
+    return () => callback();
+  }, [subscribe]);
 
   const { totalSteps, ...stepRest } = useStep({ watch });
 

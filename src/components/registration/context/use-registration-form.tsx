@@ -15,19 +15,22 @@ export type FormFieldProps = {
   valueAsNumber?: boolean;
 };
 
-const defaultValues: Partial<RegistrationFormData> = {
+export const defaultValues: Partial<RegistrationFormData> = {
   country: "US",
   subscribeOrderUpdates: true,
   subscribeMarketing: false,
   subscribePromotions: true,
 };
 
-// Provider component
-export function useRegistrationForm() {
-  const { register, handleSubmit, reset, setValue, watch, formState } =
+type UseRegistrationFormProps = {
+  initialValues?: Partial<RegistrationFormData>;
+};
+
+export function useRegistrationForm({ initialValues = defaultValues }: UseRegistrationFormProps) {
+  const { register, handleSubmit, reset, setValue, watch, formState, subscribe } =
     useForm<RegistrationFormData>({
       resolver: zodResolver(registrationSchema),
-      defaultValues,
+      defaultValues: initialValues,
     });
   const { errors, dirtyFields } = formState;
 
@@ -37,7 +40,6 @@ export function useRegistrationForm() {
         fields = [fields];
       }
 
-      console.log(errors);
       const hasErrors = fields.some((field) => errors[field as ValidFieldNames]);
       if (hasErrors) {
         return "error";
@@ -60,6 +62,7 @@ export function useRegistrationForm() {
     handleSubmit,
     setValue,
     formState,
+    subscribe,
     getValidationStatus,
   };
 }
