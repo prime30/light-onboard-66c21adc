@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
-import { useForm } from "@/components/registration/context/FormContext";
 import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
+import { useFormData } from "../context";
 
 type AccountTypeConfirmationOverlayProps = {
   showAccountTypeConfirm: boolean;
@@ -104,7 +104,7 @@ export const AccountTypeForm = ({
   setIsTransitioning,
   setCurrentStep,
 }: AccountTypeFormProps) => {
-  const { watch, setValue, getValidationStatus, dirtyFields, reset } = useForm();
+  const { watch, setValue, getValidationStatus, dirtyFields, reset } = useFormData();
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
