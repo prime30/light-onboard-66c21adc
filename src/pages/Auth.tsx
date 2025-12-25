@@ -54,7 +54,6 @@ import {
 import { useRegistrationSync } from "@/hooks/use-registration-sync";
 import type { Step, AccountType, BusinessOperationType } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
-import logoSvg from "@/assets/logo.svg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
 import { useForm } from "@/components/registration/context/FormContext";
 import { MobileSavingProgress } from "@/components/registration/MobileSavingProgress";
@@ -62,24 +61,32 @@ import { MobileDragHandle } from "@/components/registration/MobileDragHandle";
 import { AuthToggle } from "@/components/registration/AuthToggle";
 import { CloseButton } from "@/components/registration/CloseButton";
 import { useGlobalApp } from "@/contexts";
-import { LeftPanel, SignInSlide } from "@/components/registration/LeftPanel";
+import { LeftPanel } from "@/components/registration/LeftPanel";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
-  useForm();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Form state from centralized hook (includes sessionStorage persistence)
-  const formState = useAuthFormState();
   const {
     mode,
     setMode,
     currentStep,
     setCurrentStep,
+    goToNextStep,
+    mainScrollRef,
+    transitionDirection,
+    setTransitionDirection,
+    isTransitioning,
+    setIsTransitioning,
+    showValidationErrors,
+  } = useForm();
+  const formState = useAuthFormState();
+  const {
     currentSlide,
     setCurrentSlide,
     displayTotalSteps,
-    setDisplayTotalSteps,
     accountType,
     setAccountType,
     firstName,
@@ -148,7 +155,6 @@ const Auth = () => {
     setSubscribeMarketing,
     subscribePromotions,
     setSubscribePromotions,
-    showValidationErrors,
     setShowValidationErrors,
     isSubmitting,
     setIsSubmitting,
@@ -195,8 +201,6 @@ const Auth = () => {
 
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
-  const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextStep, setNextStep] = useState<Step | null>(null);
   const [highlightFields, setHighlightFields] = useState<string[]>([]);
   const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
@@ -519,10 +523,6 @@ const Auth = () => {
       isTransitioning,
     }
   );
-
-  // Main content refs
-  const mainContentRef = useRef<HTMLDivElement | null>(null);
-  const mainScrollRef = useRef<HTMLElement | null>(null);
 
   // Mode switching logic (preserves state between sign-in and sign-up)
   const { handleModeChange } = useModeSwitch({
@@ -1098,100 +1098,15 @@ const Auth = () => {
   ]);
 
   const handleNext = () => {
-    // For steps with zod validation, use the new validation
-    const stepsWithZodValidation = [
-      "account-type",
-      "business-operation",
-      "contact-basics",
-      "business-location",
-      "license",
-      "school-info",
-      "tax-exemption",
-      "wholesale-terms",
-    ];
-
-    if (mode === "signup" && stepsWithZodValidation.includes(currentStep)) {
-      if (!validateCurrentStep()) {
-        setShowValidationErrors(true);
-        toast.error("Please complete all required fields");
-        return;
-      }
-    } else if (!canContinue()) {
-      setShowValidationErrors(true);
-      toast.error("Please complete all required fields");
-      return;
-    }
-
-    setShowValidationErrors(false);
-    if (mode === "signin") {
-      handleSignIn();
-      return;
-    }
-
-    // Mark current step as completed
-    const currentStepNum = getCurrentStepNumber();
-    setCompletedSteps((prev) => new Set([...prev, currentStepNum]));
-
-    // Calculate next step for skeleton
-    let targetStep: Step = currentStep;
-    switch (currentStep) {
-      case "onboarding":
-        targetStep = "account-type";
-        break;
-      case "account-type":
-        if (accountType === "student") targetStep = "school-info";
-        else if (accountType === "professional") targetStep = "business-operation";
-        else targetStep = "business-location";
-        break;
-      case "business-operation":
-        targetStep = "contact-basics";
-        break;
-      case "school-info":
-        targetStep = "contact-basics";
-        break;
-      case "business-location":
-        targetStep = accountType === "professional" ? "license" : "contact-basics";
-        break;
-      case "contact-basics":
-        targetStep =
-          accountType === "student"
-            ? "tax-exemption"
-            : accountType === "professional"
-              ? "business-location"
-              : "license";
-        break;
-      case "license":
-        targetStep = accountType === "professional" ? "tax-exemption" : "tax-exemption";
-        break;
-      case "tax-exemption":
-        targetStep = "wholesale-terms";
-        break;
-      case "wholesale-terms":
-        targetStep = "contact-info";
-        break;
-      case "contact-info":
-        targetStep = "summary";
-        break;
-      case "summary":
-        targetStep = "success";
-        break;
-    }
     if (currentStep === "summary") {
       // Submit the application using the real auth service
       handleSignUpSubmit();
       return;
     } else {
-      setNextStep(targetStep);
-      setTransitionDirection("forward");
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep(targetStep);
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-        setIsTransitioning(false);
-        setNextStep(null);
-      }, 150);
+      goToNextStep();
     }
   };
+
   const handleBack = () => {
     // Calculate previous step for skeleton
     let targetStep: Step = currentStep;
@@ -1397,7 +1312,6 @@ const Auth = () => {
       setNextStep(null);
     }, 150);
   };
-  const slide = slides[currentSlide];
   const showStepIndicator = mode === "signup";
   return (
     <div
@@ -1468,10 +1382,7 @@ const Auth = () => {
         <LeftPanel mode={mode} />
 
         {/* Right Panel - Form */}
-        <div
-          ref={mainContentRef}
-          className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-y-auto overflow-x-hidden"
-        >
+        <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-y-auto overflow-x-hidden">
           {/* Header - fixed height to keep toggle position consistent */}
           <header className="relative flex items-center justify-between px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
             {/* Left side - Auth Toggle + Step Indicator */}

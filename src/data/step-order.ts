@@ -3,7 +3,7 @@ import type { Step, AccountType } from "@/types/auth";
 /**
  * Step configuration by account type
  */
-const STEP_ORDER: Record<string, Step[]> = {
+export const STEP_ORDER: Record<string, Step[]> = {
   professional: [
     "account-type",
     "business-operation",

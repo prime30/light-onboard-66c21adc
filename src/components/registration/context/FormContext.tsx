@@ -1,21 +1,16 @@
-import { createContext, useContext, ReactNode, useCallback, useMemo } from "react";
-import { FieldError, useForm as useReactHookForm, UseFormRegister } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
-
-export type ValidFieldNames = keyof RegistrationFormData;
-export type ValidationStatus = "complete" | "in-progress" | "error";
-
-export type FormFieldProps = {
-  type: string;
-  placeholder: string;
-  name: ValidFieldNames;
-  register: UseFormRegister<RegistrationFormData>;
-  error: FieldError | undefined;
-  valueAsNumber?: boolean;
-};
+import { createContext, useContext, ReactNode, useMemo, MutableRefObject } from "react";
+import { useForm as useReactHookForm, UseFormRegister } from "react-hook-form";
+import { RegistrationFormData } from "@/lib/validations/auth-schemas";
+import { AuthMode, Step } from "@/types/auth";
+import { useStep } from "./use-step";
+import { useRegistrationForm, ValidationStatus, ValidFieldNames } from "./use-registration-form";
 
 export type AuthFormContextType = {
+  mode: AuthMode;
+  setMode: React.Dispatch<React.SetStateAction<AuthMode>>;
+  currentStep: Step;
+  setCurrentStep: React.Dispatch<React.SetStateAction<Step>>;
+  goToNextStep: () => void;
   register: UseFormRegister<RegistrationFormData>;
   watch: ReturnType<typeof useReactHookForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useReactHookForm<RegistrationFormData>>["reset"];
@@ -27,13 +22,12 @@ export type AuthFormContextType = {
     typeof useReactHookForm<RegistrationFormData>
   >["formState"]["dirtyFields"];
   formProgress: number;
-};
-
-const defaultValues: Partial<RegistrationFormData> = {
-  country: "US",
-  subscribeOrderUpdates: true,
-  subscribeMarketing: false,
-  subscribePromotions: true,
+  isTransitioning: boolean;
+  setIsTransitioning: React.Dispatch<React.SetStateAction<boolean>>;
+  transitionDirection: "forward" | "backward";
+  setTransitionDirection: React.Dispatch<React.SetStateAction<"forward" | "backward">>;
+  mainScrollRef: MutableRefObject<HTMLElement> | null;
+  showValidationErrors: boolean;
 };
 
 // Create the context
@@ -42,57 +36,28 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 // Provider component
 export function FormProvider({ children }: { children: ReactNode }) {
   const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
     watch,
     formState: { errors, dirtyFields },
-  } = useReactHookForm<RegistrationFormData>({
-    resolver: zodResolver(registrationSchema),
-    defaultValues,
-  });
-  const totalFields = 10;
+    ...registrationRest
+  } = useRegistrationForm();
 
+  const { totalSteps, ...stepRest } = useStep({ watch });
+
+  console.log("total steps", totalSteps);
   console.log("current values:", watch());
-
-  const getValidationStatus = useCallback(
-    (fields: ValidFieldNames | ValidFieldNames[]): ValidationStatus => {
-      if (!Array.isArray(fields)) {
-        fields = [fields];
-      }
-
-      console.log(errors);
-      const hasErrors = fields.some((field) => errors[field as ValidFieldNames]);
-      if (hasErrors) {
-        return "error";
-      }
-
-      const allDirty = fields.every((field) => dirtyFields[field as ValidFieldNames]);
-      if (allDirty) {
-        return "complete";
-      }
-
-      return "in-progress";
-    },
-    [errors]
-  );
 
   const formProgress = useMemo(() => {
     const dirtyFieldCount = Object.values(dirtyFields).filter(Boolean).length;
     const errorsCount = Object.keys(errors).length;
-    const progress = ((dirtyFieldCount - errorsCount) / totalFields) * 100;
+    const progress = ((dirtyFieldCount - errorsCount) / totalSteps) * 100;
     return progress > 0 ? progress : 0;
-  }, [dirtyFields, errors, totalFields]);
+  }, [dirtyFields, errors, totalSteps]);
 
   const value: AuthFormContextType = {
-    register,
+    ...registrationRest,
+    ...stepRest,
     watch,
-    reset,
-    handleSubmit,
-    setValue,
     errors,
-    getValidationStatus,
     dirtyFields,
     formProgress,
   };
