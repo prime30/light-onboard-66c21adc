@@ -67,7 +67,7 @@ const StepContext = createContext<StepContextType | null>(null);
 
 // Provider component
 export function StepProvider({ children }: { children: ReactNode }) {
-  const { watch, errors, dirtyFields, getValidationStatus, subscribe } = useFormData();
+  const { watch, errors, dirtyFields, subscribe } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
 
@@ -110,9 +110,17 @@ export function StepProvider({ children }: { children: ReactNode }) {
         return "complete";
       }
 
-      return getValidationStatus(stepFields);
+      const hasErrors = stepFields.some((field) => {
+        return errors[field as ValidFieldNames];
+      });
+
+      if (hasErrors) {
+        return "error";
+      }
+
+      return "in-progress";
     },
-    [getValidationStatus, watch]
+    [errors, watch]
   );
 
   useEffect(() => {
