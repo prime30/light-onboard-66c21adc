@@ -4,30 +4,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
+import { useForm } from "../context";
 
-interface WholesaleTermsStepProps {
-  accountType: string | null;
-  agreed: boolean;
-  onAgreeChange: (value: boolean) => void;
-  highlight?: boolean;
-  highlightFade?: boolean;
-  showValidationErrors?: boolean;
-  validationStatus: "complete" | "in-progress" | "error";
-}
+export const WholesaleTermsStep = () => {
+  const {
+    watch,
+    setValue,
+    currentStep,
+    getStepValidationStatus,
+    getStepNumber,
+    showValidationErrors,
+  } = useForm();
 
-export const WholesaleTermsStep = ({
-  accountType,
-  agreed,
-  onAgreeChange,
-  highlight = false,
-  highlightFade = false,
-  showValidationErrors = false,
-  validationStatus,
-}: WholesaleTermsStepProps) => {
   const [showTerms, setShowTerms] = useState(false);
+
+  // Watch form values
+  const agreed = watch("wholesaleAgreed");
+
+  const validationStatus = getStepValidationStatus(currentStep);
   const agreementError = showValidationErrors && !agreed;
-  // Step number varies by account type: professional=7, salon=6, student=5
-  const stepNumber = accountType === "professional" ? 7 : accountType === "student" ? 5 : 6;
 
   return (
     <div className="space-y-[25px]">
@@ -35,7 +30,7 @@ export const WholesaleTermsStep = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -53,7 +48,7 @@ export const WholesaleTermsStep = ({
 
       <button
         data-field="wholesale-terms"
-        onClick={() => onAgreeChange(!agreed)}
+        onClick={() => setValue("wholesaleAgreed", agreed ? undefined : true)}
         className={cn(
           "w-full p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 animate-stagger-3 hover:-translate-y-0.5 active:scale-[0.99]",
           agreed
@@ -67,8 +62,6 @@ export const WholesaleTermsStep = ({
         <div
           className={cn(
             "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-            highlight && "field-highlight",
-            highlightFade && "field-highlight-fade",
             agreed
               ? "border-foreground bg-foreground"
               : agreementError

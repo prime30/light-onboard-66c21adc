@@ -1561,31 +1561,7 @@ const Auth = () => {
                       />
                     )}
                     {currentStep === "account-type" && <AccountTypeForm />}
-                    {currentStep === "license" && (
-                      <LicenseStep
-                        accountType={accountType}
-                        licenseNumber={licenseNumber}
-                        salonSize={salonSize}
-                        salonStructure={salonStructure}
-                        licenseFile={licenseFile}
-                        licenseProofFiles={licenseProofFiles}
-                        onLicenseChange={setLicenseNumber}
-                        onSalonSizeChange={setSalonSize}
-                        onSalonStructureChange={setSalonStructure}
-                        onLicenseFileChange={setLicenseFile}
-                        onLicenseProofFilesChange={setLicenseProofFiles}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          accountType === "salon"
-                            ? licenseNumber.trim() !== "" &&
-                                salonSize !== "" &&
-                                salonStructure !== ""
-                            : licenseNumber.trim() !== "",
-                          licenseNumber.trim() !== "" || salonSize !== "" || salonStructure !== "",
-                          showValidationErrors
-                        )}
-                      />
-                    )}
+                    {currentStep === "license" && <LicenseStep />}
                     {currentStep === "business-operation" && <BusinessOperationStep />}
                     {currentStep === "business-location" && <BusinessLocationStep />}
                     {currentStep === "school-info" && (
@@ -1609,49 +1585,8 @@ const Auth = () => {
                       />
                     )}
                     {currentStep === "contact-basics" && <ContactBasicsStep />}
-                    {currentStep === "wholesale-terms" && (
-                      <WholesaleTermsStep
-                        accountType={accountType}
-                        agreed={wholesaleAgreed}
-                        onAgreeChange={setWholesaleAgreed}
-                        highlight={highlightWholesaleTerms}
-                        highlightFade={highlightWholesaleFade}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          wholesaleAgreed,
-                          false,
-                          showValidationErrors
-                        )}
-                      />
-                    )}
-                    {currentStep === "tax-exemption" && (
-                      <TaxExemptionStep
-                        accountType={accountType}
-                        hasTaxExemption={hasTaxExemption}
-                        taxExemptFile={taxExemptFile}
-                        onTaxExemptionChange={setHasTaxExemption}
-                        onTaxExemptFileChange={setTaxExemptFile}
-                        onAutoAdvance={() => {
-                          // Auto-advance to wholesale-terms step when No is selected
-                          const stepNum =
-                            accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
-                          setCompletedSteps((prev) => new Set([...prev, stepNum]));
-                          setTransitionDirection("forward");
-                          setIsTransitioning(true);
-                          setTimeout(() => {
-                            setCurrentStep("wholesale-terms");
-                            setIsTransitioning(false);
-                          }, 150);
-                        }}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          hasTaxExemption !== null &&
-                            (hasTaxExemption === false || taxExemptFile !== null),
-                          hasTaxExemption !== null,
-                          showValidationErrors
-                        )}
-                      />
-                    )}
+                    {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+                    {currentStep === "tax-exemption" && <TaxExemptionStep />}
                     {currentStep === "contact-info" && (
                       <PreferencesStep
                         accountType={accountType}
@@ -1781,7 +1716,184 @@ const Auth = () => {
                 hasScrolled ? "opacity-0" : "opacity-100"
               )}
             >
-              <div className="w-[4px] h-[8px] rounded-full bg-muted-foreground/40 animate-scroll-wheel" />
+              {mode === "signin" ? (
+                <SignInForm
+                  email={email}
+                  password={password}
+                  onEmailChange={setEmail}
+                  onPasswordChange={setPassword}
+                  onSignUp={() => {
+                    setModeTransitionDirection("left");
+                    setMode("signup");
+                    setCurrentStep("onboarding");
+                    setShowForgotPassword(false);
+                  }}
+                  showForgotPassword={showForgotPassword}
+                  onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
+                  onForgotPasswordSubmit={handleForgotPasswordSubmit}
+                  isSendingReset={isSendingReset}
+                  fontsLoaded={fontsLoaded}
+                />
+              ) : (
+                <>
+                  {currentStep === "onboarding" && (
+                    <OnboardingForm
+                      onContinue={handleNext}
+                      onSignIn={() => {
+                        setModeTransitionDirection("right");
+                        setMode("signin");
+                      }}
+                      onStepClick={() => {
+                        setShimmerKey((k) => k + 1);
+                      }}
+                      fontsLoaded={fontsLoaded}
+                      isRestoring={!!pendingRestoreStep}
+                    />
+                  )}
+                  {currentStep === "account-type" && <AccountTypeForm />}
+                  {currentStep === "license" && <LicenseStep />}
+                  {currentStep === "business-operation" && <BusinessOperationStep />}
+                  {currentStep === "business-location" && <BusinessLocationStep />}
+                  {currentStep === "school-info" && (
+                    <SchoolInfoStep
+                      schoolName={schoolName}
+                      schoolState={schoolState}
+                      enrollmentProofFiles={enrollmentProofFiles}
+                      onSchoolNameChange={setSchoolName}
+                      onSchoolStateChange={setSchoolState}
+                      onEnrollmentProofFilesChange={setEnrollmentProofFiles}
+                      showValidationErrors={showValidationErrors}
+                      validationStatus={getStepValidationStatus(
+                        schoolName.trim() !== "" &&
+                          schoolState !== "" &&
+                          enrollmentProofFiles.length > 0,
+                        schoolName.trim() !== "" ||
+                          schoolState !== "" ||
+                          enrollmentProofFiles.length > 0,
+                        showValidationErrors
+                      )}
+                    />
+                  )}
+                  {currentStep === "contact-basics" && <ContactBasicsStep />}
+                  {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+                  {currentStep === "tax-exemption" && <TaxExemptionStep />}
+                  {currentStep === "contact-info" && (
+                    <PreferencesStep
+                      accountType={accountType}
+                      birthdayMonth={birthdayMonth}
+                      birthdayDay={birthdayDay}
+                      socialMediaHandle={socialMediaHandle}
+                      onBirthdayMonthChange={setBirthdayMonth}
+                      onBirthdayDayChange={setBirthdayDay}
+                      onSocialMediaHandleChange={setSocialMediaHandle}
+                      subscribeOrderUpdates={subscribeOrderUpdates}
+                      subscribeMarketing={subscribeMarketing}
+                      subscribePromotions={subscribePromotions}
+                      onSubscribeOrderUpdatesChange={setSubscribeOrderUpdates}
+                      onSubscribeMarketingChange={setSubscribeMarketing}
+                      onSubscribePromotionsChange={setSubscribePromotions}
+                      showValidationErrors={showValidationErrors}
+                      validationStatus={getStepValidationStatus(true, true, showValidationErrors)}
+                      uploadedFiles={[
+                        ...(licenseFile
+                          ? [
+                              {
+                                file: licenseFile,
+                                label: accountType === "salon" ? "Salon License" : "License",
+                              },
+                            ]
+                          : []),
+                        ...(accountType === "professional"
+                          ? licenseProofFiles.map((f, i) => ({
+                              file: f,
+                              label:
+                                `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim(),
+                            }))
+                          : []),
+                        ...(accountType === "student"
+                          ? enrollmentProofFiles.map((f, i) => ({
+                              file: f,
+                              label:
+                                `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim(),
+                            }))
+                          : []),
+                        ...(taxExemptFile
+                          ? [
+                              {
+                                file: taxExemptFile,
+                                label: "Tax Exemption Document",
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  )}
+                  {currentStep === "summary" && (
+                    <SummaryForm
+                      accountType={accountType}
+                      firstName={firstName}
+                      lastName={lastName}
+                      preferredName={preferredName}
+                      email={email}
+                      phoneNumber={phoneNumber}
+                      phoneCountryCode={phoneCountryCode}
+                      licenseNumber={licenseNumber}
+                      state={state}
+                      businessName={businessName}
+                      businessAddress={businessAddress}
+                      suiteNumber={suiteNumber}
+                      city={city}
+                      zipCode={zipCode}
+                      country={country}
+                      schoolName={schoolName}
+                      schoolState={schoolState}
+                      businessOperationType={businessOperationType}
+                      salonSize={salonSize}
+                      salonStructure={salonStructure}
+                      hasTaxExemption={hasTaxExemption}
+                      birthdayMonth={birthdayMonth}
+                      birthdayDay={birthdayDay}
+                      socialMediaHandle={socialMediaHandle}
+                      subscribeOrderUpdates={subscribeOrderUpdates}
+                      subscribePromotions={subscribePromotions}
+                      uploadedFiles={[
+                        ...(licenseFile
+                          ? [
+                              {
+                                file: licenseFile,
+                                label: accountType === "salon" ? "Salon License" : "License",
+                              },
+                            ]
+                          : []),
+                        ...(accountType === "professional"
+                          ? licenseProofFiles.map((f, i) => ({
+                              file: f,
+                              label:
+                                `License Photo ${licenseProofFiles.length > 1 ? i + 1 : ""}`.trim(),
+                            }))
+                          : []),
+                        ...(accountType === "student"
+                          ? enrollmentProofFiles.map((f, i) => ({
+                              file: f,
+                              label:
+                                `Enrollment Proof ${enrollmentProofFiles.length > 1 ? i + 1 : ""}`.trim(),
+                            }))
+                          : []),
+                        ...(taxExemptFile
+                          ? [{ file: taxExemptFile, label: "Tax Exemption Document" }]
+                          : []),
+                      ]}
+                      onEditStep={goToStep}
+                    />
+                  )}
+                  {currentStep === "success" && (
+                    <SuccessForm
+                      referralSource={referralSource}
+                      onReferralSourceChange={setReferralSource}
+                    />
+                  )}
+                </>
+              )}
             </div>
           )}
 
