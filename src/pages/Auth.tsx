@@ -1587,39 +1587,7 @@ const Auth = () => {
                       />
                     )}
                     {currentStep === "business-operation" && <BusinessOperationStep />}
-                    {currentStep === "business-location" && (
-                      <BusinessLocationStep
-                        accountType={accountType}
-                        businessName={businessName}
-                        businessAddress={businessAddress}
-                        suiteNumber={suiteNumber}
-                        country={country}
-                        city={city}
-                        state={state}
-                        zipCode={zipCode}
-                        onBusinessNameChange={setBusinessName}
-                        onBusinessAddressChange={setBusinessAddress}
-                        onSuiteNumberChange={setSuiteNumber}
-                        onCountryChange={setCountry}
-                        onCityChange={setCity}
-                        onStateChange={setState}
-                        onZipCodeChange={setZipCode}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          businessName.trim() !== "" &&
-                            businessAddress.trim() !== "" &&
-                            country !== "" &&
-                            city.trim() !== "" &&
-                            state !== "" &&
-                            zipCode.trim() !== "",
-                          businessName.trim() !== "" ||
-                            businessAddress.trim() !== "" ||
-                            city.trim() !== "" ||
-                            zipCode.trim() !== "",
-                          showValidationErrors
-                        )}
-                      />
-                    )}
+                    {currentStep === "business-location" && <BusinessLocationStep />}
                     {currentStep === "school-info" && (
                       <SchoolInfoStep
                         schoolName={schoolName}
