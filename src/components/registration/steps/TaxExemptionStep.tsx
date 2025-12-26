@@ -4,44 +4,38 @@ import { Info, Check, ArrowUpRight, Calendar } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
 import { cn } from "@/lib/utils";
+import { useForm } from "../context";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 
-interface TaxExemptionStepProps {
-  accountType: string | null;
-  hasTaxExemption: boolean | null;
-  taxExemptFile: File | null;
-  onTaxExemptionChange: (value: boolean | null) => void;
-  onTaxExemptFileChange: (file: File | null) => void;
-  onAutoAdvance?: () => void;
-  showValidationErrors?: boolean;
-  validationStatus: "complete" | "in-progress" | "error";
-}
+export const TaxExemptionStep = () => {
+  const {
+    watch,
+    setValue,
+    currentStep,
+    getStepValidationStatus,
+    getStepNumber,
+    showValidationErrors,
+  } = useForm();
 
-export const TaxExemptionStep = ({
-  accountType,
-  hasTaxExemption,
-  taxExemptFile,
-  onTaxExemptionChange,
-  onTaxExemptFileChange,
-  onAutoAdvance,
-  showValidationErrors = false,
-  validationStatus,
-}: TaxExemptionStepProps) => {
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const fileUploadRef = useRef<HTMLDivElement>(null);
+
+  // Watch form values
+  const watchedValues = watch(["hasTaxExemption", "taxExemptFile"]);
+  const [hasTaxExemption, taxExemptFile] = watchedValues;
+
+  const validationStatus = getStepValidationStatus(currentStep);
   const selectionError = showValidationErrors && hasTaxExemption === null;
   const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
-  // Step number varies by account type: professional=6, salon=5, student=4
-  const stepNumber = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
-  const fileUploadRef = useRef<HTMLDivElement>(null);
 
   const handleYesClick = () => {
     if (hasTaxExemption === true) {
-      onTaxExemptionChange(null);
-      onTaxExemptFileChange(null);
+      setValue("hasTaxExemption", null);
+      setValue("taxExemptFile", null);
       return;
     }
-    onTaxExemptionChange(true);
+    setValue("hasTaxExemption", true);
     setShowToast(false);
     // Scroll to file upload after a brief delay for animation
     setTimeout(() => {
@@ -51,12 +45,12 @@ export const TaxExemptionStep = ({
 
   const handleNoClick = () => {
     if (hasTaxExemption === false) {
-      onTaxExemptionChange(null);
+      setValue("hasTaxExemption", null);
       setShowToast(false);
       return;
     }
-    onTaxExemptionChange(false);
-    onTaxExemptFileChange(null);
+    setValue("hasTaxExemption", false);
+    setValue("taxExemptFile", null);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
   };
@@ -67,7 +61,7 @@ export const TaxExemptionStep = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -263,7 +257,7 @@ export const TaxExemptionStep = ({
           >
             <FileUpload
               file={taxExemptFile}
-              onFileChange={onTaxExemptFileChange}
+              onFileChange={(file) => setValue("taxExemptFile", file)}
               placeholder="Upload your state tax-exempt license"
               error={fileError}
               errorMessage="Please upload your tax exemption document"
