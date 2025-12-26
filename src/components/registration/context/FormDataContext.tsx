@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback } from "react";
+import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError, useForm, UseFormRegister } from "react-hook-form";
@@ -37,6 +37,12 @@ export type FormDataContextType = {
   dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
 };
 
+export const dirtyFieldOptions = {
+  shouldDirty: true,
+  shouldTouch: true,
+  shouldValidate: true,
+};
+
 // Create the context
 const FormDataContext = createContext<FormDataContextType | null>(null);
 
@@ -61,7 +67,7 @@ export function FormDataProvider({
   const { register, handleSubmit, reset, setValue, watch, formState, subscribe } =
     useForm<RegistrationFormData>({
       resolver: zodResolver(registrationSchema),
-      defaultValues: initialValues || storedForm,
+      defaultValues: initialValues,
     });
 
   const { errors, dirtyFields } = formState;
@@ -86,6 +92,16 @@ export function FormDataProvider({
     },
     [errors, dirtyFields]
   );
+
+  // On mount, populate form with stored values
+  useEffect(() => {
+    if (storedForm) {
+      Object.entries(storedForm).forEach(([key, value]) => {
+        setValue(key as ValidFieldNames, value, dirtyFieldOptions);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const callback = subscribe({

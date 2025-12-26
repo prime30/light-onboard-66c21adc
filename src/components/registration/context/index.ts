@@ -2,7 +2,7 @@
 export { FormProvider, useForm } from "./FormContext";
 
 // Individual contexts for more granular control
-export { FormDataProvider, useFormData, defaultValues } from "./FormDataContext";
+export { FormDataProvider, useFormData, defaultValues, dirtyFieldOptions } from "./FormDataContext";
 export { StepProvider, useStepContext } from "./StepContext";
 
 // Types

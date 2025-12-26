@@ -1,18 +1,46 @@
 import { Building2, Users, Check, Headphones, Tag } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
+import { dirtyFieldOptions, useForm, ValidFieldNames } from "../context";
+import { Step } from "@/types/auth";
 
-interface BusinessOperationStepProps {
-  businessOperationType: "commission" | "independent" | null;
-  onBusinessOperationTypeChange: (type: "commission" | "independent") => void;
-  validationStatus: "complete" | "in-progress" | "error";
-}
+const STEP: Step = "business-operation";
+const fieldName: ValidFieldNames = "businessOperationType";
 
-export const BusinessOperationStep = ({
-  businessOperationType,
-  onBusinessOperationTypeChange,
-  validationStatus,
-}: BusinessOperationStepProps) => {
+export const BusinessOperationStep = () => {
+  const {
+    getStepValidationStatus,
+    setTransitionDirection,
+    setIsTransitioning,
+    setCurrentStep,
+    setValue,
+    watch,
+  } = useForm();
+
+  const validationStatus = getStepValidationStatus(STEP);
+  const businessOperationType = watch(fieldName);
+
+  // Handle business operation type selection with auto-advance
+  const onBusinessOperationTypeChange = (type: "commission" | "independent") => {
+    // Deselect if the same option is clicked
+    if (type === businessOperationType) {
+      setValue(fieldName, null, dirtyFieldOptions);
+      return;
+    }
+
+    setValue(fieldName, type, dirtyFieldOptions);
+
+    // Auto-advance after grace period
+    setTimeout(() => {
+      setTransitionDirection("forward");
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep("contact-basics");
+        setIsTransitioning(false);
+      }, 150);
+    }, 800);
+  };
+
   const options = [
     {
       id: "commission" as const,

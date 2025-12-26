@@ -13,10 +13,10 @@ import {
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
-import { useFormData } from "../context";
+import { dirtyFieldOptions, useForm } from "../context";
 
 type AccountTypeConfirmationOverlayProps = {
   showAccountTypeConfirm: boolean;
@@ -87,24 +87,18 @@ type RenderAccountTypeProps = {
   features: { label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }[];
 };
 
-const touchedFieldOptions = {
-  shouldDirty: true,
-  shouldTouch: true,
-  shouldValidate: true,
-};
+export const AccountTypeForm = () => {
+  const {
+    watch,
+    setValue,
+    getValidationStatus,
+    dirtyFields,
+    reset,
+    setTransitionDirection,
+    setIsTransitioning,
+    setCurrentStep,
+  } = useForm();
 
-type AccountTypeFormProps = {
-  setTransitionDirection: (direction: "forward" | "backward") => void;
-  setIsTransitioning: (isTransitioning: boolean) => void;
-  setCurrentStep: (step: Step) => void;
-};
-
-export const AccountTypeForm = ({
-  setTransitionDirection,
-  setIsTransitioning,
-  setCurrentStep,
-}: AccountTypeFormProps) => {
-  const { watch, setValue, getValidationStatus, dirtyFields, reset } = useFormData();
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
@@ -120,7 +114,7 @@ export const AccountTypeForm = ({
   // Execute account type selection and auto-advance
   const executeAccountTypeSelect = useCallback(
     (type: AccountType | null, previousType: AccountType | null) => {
-      setValue("accountType", type, touchedFieldOptions);
+      setValue("accountType", type, dirtyFieldOptions);
       if (type) {
         // Auto-advance after grace period - navigate directly to next step
         setTimeout(() => {
@@ -135,11 +129,11 @@ export const AccountTypeForm = ({
 
             reset();
 
-            setValue("accountType", type, touchedFieldOptions);
-            setValue("firstName", firstName, touchedFieldOptions);
-            setValue("lastName", lastName, touchedFieldOptions);
-            setValue("email", email, touchedFieldOptions);
-            setValue("phoneNumber", phoneNumber, touchedFieldOptions);
+            setValue("accountType", type, dirtyFieldOptions);
+            setValue("firstName", firstName, dirtyFieldOptions);
+            setValue("lastName", lastName, dirtyFieldOptions);
+            setValue("email", email, dirtyFieldOptions);
+            setValue("phoneNumber", phoneNumber, dirtyFieldOptions);
 
             // setCompletedSteps(new Set([1]));
           } else if (previousType !== type) {
@@ -173,7 +167,6 @@ export const AccountTypeForm = ({
       const previousType = accountType;
 
       // If switching to a different account type and there's existing progress, show confirmation overlay
-      console.log(type, previousType, hasFormProgress);
       if (type && previousType && previousType !== type && hasFormProgress) {
         setPendingAccountType(type);
         setShowAccountTypeConfirm(true);
@@ -183,7 +176,7 @@ export const AccountTypeForm = ({
       // No existing progress or same type selected, proceed directly
       executeAccountTypeSelect(type, previousType);
     },
-    [accountType]
+    [accountType, executeAccountTypeSelect, hasFormProgress]
   );
 
   const types: RenderAccountTypeProps[] = [

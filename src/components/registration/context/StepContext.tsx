@@ -91,21 +91,14 @@ export function StepProvider({ children }: { children: ReactNode }) {
   const totalSteps = steps.length;
   const currentStepNumber = steps.indexOf(currentStep);
 
-  // Function to get validation status for a specific step
-  // This dynamically extracts field names from the step's Zod schema,
-  // ensuring we always validate the correct fields without manual maintenance
   const getStepValidationStatus = useCallback(
     (step: Step): ValidationStatus => {
       const schema = stepValidations[step];
 
-      // Steps without schema are considered complete (e.g., onboarding, summary, success, reviews)
       if (!schema) {
         return "complete";
       }
 
-      // Extract field names directly from the Zod schema shape
-      // This automatically includes all fields defined in the schema,
-      // so when fields are added/removed from schemas, this stays in sync
       const stepFields = Object.keys(schema.shape) as ValidFieldNames[];
 
       if (stepFields.length === 0) {
@@ -117,7 +110,6 @@ export function StepProvider({ children }: { children: ReactNode }) {
     [getValidationStatus]
   );
 
-  // Subscribe to form data changes and update completed steps
   useEffect(() => {
     const updateCompletedSteps = () => {
       const newCompletedSteps: Record<Step, ValidationStatus> = {} as Record<
@@ -201,6 +193,8 @@ export function StepProvider({ children }: { children: ReactNode }) {
     const progress = ((dirtyFieldCount - errorsCount) / totalSteps) * 100;
     return progress > 0 ? progress : 0;
   }, [dirtyFields, errors, totalSteps]);
+
+  console.log(currentStep, getStepValidationStatus(currentStep));
 
   const value: StepContextType = {
     mode,

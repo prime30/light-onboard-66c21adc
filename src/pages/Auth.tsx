@@ -1563,13 +1563,7 @@ const Auth = () => {
                         isRestoring={!!pendingRestoreStep}
                       />
                     )}
-                    {currentStep === "account-type" && (
-                      <AccountTypeForm
-                        setTransitionDirection={setTransitionDirection}
-                        setIsTransitioning={setIsTransitioning}
-                        setCurrentStep={setCurrentStep}
-                      />
-                    )}
+                    {currentStep === "account-type" && <AccountTypeForm />}
                     {currentStep === "license" && (
                       <LicenseStep
                         accountType={accountType}
@@ -1595,17 +1589,7 @@ const Auth = () => {
                         )}
                       />
                     )}
-                    {currentStep === "business-operation" && (
-                      <BusinessOperationStep
-                        businessOperationType={businessOperationType}
-                        onBusinessOperationTypeChange={handleBusinessOperationTypeSelect}
-                        validationStatus={getStepValidationStatus(
-                          businessOperationType !== null,
-                          false,
-                          showValidationErrors
-                        )}
-                      />
-                    )}
+                    {currentStep === "business-operation" && <BusinessOperationStep />}
                     {currentStep === "business-location" && (
                       <BusinessLocationStep
                         accountType={accountType}
