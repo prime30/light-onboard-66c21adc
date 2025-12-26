@@ -116,7 +116,22 @@ export function FormDataProvider({
         values: true,
       },
       callback: ({ values }) => {
-        setStoredForm(values);
+        const newStore = Object.entries(values).reduce((acc, [key, value]) => {
+          if (
+            value instanceof File ||
+            (Array.isArray(value) && value.length === 0) ||
+            (Array.isArray(value) && value[0] instanceof File)
+          ) {
+            return acc;
+          }
+
+          if (value !== undefined && value !== "") {
+            acc[key] = value;
+          }
+
+          return acc;
+        }, {} as Partial<RegistrationFormData>);
+        setStoredForm(newStore);
       },
     });
 
