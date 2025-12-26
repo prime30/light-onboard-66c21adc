@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
+import { useStepContext } from "./context";
 
 interface IncompleteStep {
   step: number;
@@ -14,7 +15,6 @@ interface IncompleteStep {
 interface AuthFooterProps {
   mode: AuthMode;
   currentStep: Step;
-  canContinue: boolean;
   isAllStepsValid: boolean;
   isSubmitting: boolean;
   isUploading?: boolean;
@@ -30,8 +30,6 @@ interface AuthFooterProps {
 
 export function AuthFooter({
   mode,
-  currentStep,
-  canContinue,
   isAllStepsValid,
   isSubmitting,
   isUploading = false,
@@ -46,10 +44,13 @@ export function AuthFooter({
 }: AuthFooterProps) {
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
+  const { getStepValidationStatus, currentStep } = useStepContext();
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
   const showTooltip = isSummaryStep && !isAllStepsValid && incompleteSteps.length > 0;
+
+  const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
@@ -130,7 +131,7 @@ export function AuthFooter({
                   size="pill-lg"
                   onClick={onNext}
                   disabled={
-                    isSummaryStep ? !isAllStepsValid || isProcessing : !canContinue || isProcessing
+                    isSummaryStep ? !isAllStepsValid || isProcessing : !isStepValid || isProcessing
                   }
                   className={cn(
                     "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",

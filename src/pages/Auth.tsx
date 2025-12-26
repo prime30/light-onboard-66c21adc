@@ -170,7 +170,7 @@ const Auth = () => {
   } = formState;
 
   // Form validation from dedicated hook
-  const { canContinue, isAllStepsValid, getIncompleteSteps, isFormReadyToSubmit, getFormProgress } =
+  const { isAllStepsValid, getIncompleteSteps, isFormReadyToSubmit, getFormProgress } =
     useFormValidation({
       mode,
       currentStep,
@@ -1039,11 +1039,6 @@ const Auth = () => {
         break;
     }
 
-    if (!schema) {
-      // No zod schema for this step, use existing canContinue logic
-      return canContinue();
-    }
-
     const result = schema.safeParse(dataToValidate);
 
     if (!result.success) {
@@ -1886,7 +1881,6 @@ const Auth = () => {
             <AuthFooter
               mode={mode}
               currentStep={currentStep}
-              canContinue={canContinue()}
               isAllStepsValid={isAllStepsValid()}
               isSubmitting={isSubmitting}
               isUploading={isUploadingDocuments}

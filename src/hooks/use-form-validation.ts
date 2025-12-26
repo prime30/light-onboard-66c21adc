@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from "react";
 import { isValidEmail } from "@/lib/validations/form-utils";
 import { isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
-import type { AuthMode, Step, AccountType, BusinessOperationType } from "@/types/auth";
+import type { AuthMode, Step, BusinessOperationType } from "@/types/auth";
 
 interface IncompleteStep {
   step: number;
@@ -151,85 +151,6 @@ export function useFormValidation(data: FormValidationData) {
     state,
     zipCode,
     businessOperationType,
-  ]);
-
-  // Check if current step can continue
-  const canContinue = useCallback((): boolean => {
-    if (mode === "signin") {
-      return isValidEmail(email) && password.length >= 8;
-    }
-    switch (currentStep) {
-      case "onboarding":
-        return true;
-      case "account-type":
-        return accountType !== null;
-      case "contact-basics":
-        return (
-          firstName.trim() !== "" &&
-          lastName.trim() !== "" &&
-          isValidEmail(email) &&
-          isValidPhoneNumber(phoneNumber)
-        );
-      case "license":
-        if (accountType === "salon") {
-          return licenseNumber.trim() !== "" && salonSize !== "" && salonStructure !== "";
-        }
-        return licenseNumber.trim() !== "";
-      case "business-operation":
-        return businessOperationType !== null;
-      case "business-location":
-        return (
-          businessName.trim() !== "" &&
-          businessAddress.trim() !== "" &&
-          country !== "" &&
-          city.trim() !== "" &&
-          state !== "" &&
-          zipCode.trim() !== ""
-        );
-      case "school-info":
-        return schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
-      case "wholesale-terms":
-        return wholesaleAgreed;
-      case "tax-exemption":
-        if (hasTaxExemption === true) {
-          return taxExemptFile !== null;
-        }
-        return hasTaxExemption !== null;
-      case "contact-info":
-        // This step now only has optional fields (birthday, social media, preferences)
-        return true;
-      case "summary":
-        // Summary is a review step, always valid if user reaches it
-        return isAllStepsValid();
-      default:
-        return true;
-    }
-  }, [
-    mode,
-    email,
-    password,
-    currentStep,
-    accountType,
-    firstName,
-    lastName,
-    phoneNumber,
-    licenseNumber,
-    salonSize,
-    salonStructure,
-    businessOperationType,
-    businessName,
-    businessAddress,
-    country,
-    city,
-    state,
-    zipCode,
-    schoolName,
-    schoolState,
-    enrollmentProofFiles,
-    wholesaleAgreed,
-    hasTaxExemption,
-    taxExemptFile,
-    isAllStepsValid,
   ]);
 
   // Get list of incomplete steps for tooltip display
@@ -568,7 +489,6 @@ export function useFormValidation(data: FormValidationData) {
   ]);
 
   return {
-    canContinue,
     isAllStepsValid,
     getIncompleteSteps,
     isFormReadyToSubmit,
