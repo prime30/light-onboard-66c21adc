@@ -12,10 +12,7 @@ import { getStepValidationStatus } from "@/components/registration/StepValidatio
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
-import {
-  ContactBasicsStep,
-  isValidPhoneNumber,
-} from "@/components/registration/steps/ContactBasicsStep";
+import { ContactBasicsStep } from "@/components/registration/steps/ContactBasicsStep";
 import { PreferencesStep } from "@/components/registration/steps/PreferencesStep";
 import { BusinessLocationStep } from "@/components/registration/steps/BusinessLocationStep";
 import { SchoolInfoStep } from "@/components/registration/steps/SchoolInfoStep";
@@ -1643,35 +1640,7 @@ const Auth = () => {
                         )}
                       />
                     )}
-                    {currentStep === "contact-basics" && (
-                      <ContactBasicsStep
-                        accountType={accountType}
-                        firstName={firstName}
-                        lastName={lastName}
-                        preferredName={preferredName}
-                        email={email}
-                        phoneNumber={phoneNumber}
-                        phoneCountryCode={phoneCountryCode}
-                        onFirstNameChange={setFirstName}
-                        onLastNameChange={setLastName}
-                        onPreferredNameChange={setPreferredName}
-                        onEmailChange={setEmail}
-                        onPhoneNumberChange={(value) => setPhoneNumber(formatPhoneNumber(value))}
-                        onPhoneCountryCodeChange={setPhoneCountryCode}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          firstName.trim() !== "" &&
-                            lastName.trim() !== "" &&
-                            isValidEmail(email) &&
-                            isValidPhoneNumber(phoneNumber),
-                          firstName.trim() !== "" ||
-                            lastName.trim() !== "" ||
-                            email.trim() !== "" ||
-                            phoneNumber.trim() !== "",
-                          showValidationErrors
-                        )}
-                      />
-                    )}
+                    {currentStep === "contact-basics" && <ContactBasicsStep />}
                     {currentStep === "wholesale-terms" && (
                       <WholesaleTermsStep
                         accountType={accountType}

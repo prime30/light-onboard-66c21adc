@@ -10,7 +10,7 @@ export type ValidationStatus = "complete" | "in-progress" | "error";
 
 export type FormFieldProps = {
   type: string;
-  placeholder: string;
+  placeholder?: string;
   name: ValidFieldNames;
   register: UseFormRegister<RegistrationFormData>;
   error: FieldError | undefined;
@@ -18,6 +18,7 @@ export type FormFieldProps = {
 };
 
 export const defaultValues: Partial<RegistrationFormData> = {
+  phoneCountryCode: "+1",
   country: "US",
   subscribeOrderUpdates: true,
   subscribeMarketing: false,
@@ -66,6 +67,7 @@ export function FormDataProvider({
 
   const { register, handleSubmit, reset, setValue, watch, formState, subscribe } =
     useForm<RegistrationFormData>({
+      mode: "onChange",
       resolver: zodResolver(registrationSchema),
       defaultValues: initialValues,
     });

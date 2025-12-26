@@ -99,6 +99,11 @@ export function StepProvider({ children }: { children: ReactNode }) {
         return "complete";
       }
 
+      const isValid = schema.safeParse(watch());
+      if (isValid.success) {
+        return "complete";
+      }
+
       const stepFields = Object.keys(schema.shape) as ValidFieldNames[];
 
       if (stepFields.length === 0) {
@@ -107,7 +112,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
 
       return getValidationStatus(stepFields);
     },
-    [getValidationStatus]
+    [getValidationStatus, watch]
   );
 
   useEffect(() => {
@@ -146,15 +151,12 @@ export function StepProvider({ children }: { children: ReactNode }) {
   }, [steps, getStepValidationStatus, subscribe]);
 
   const goToNextStep = () => {
-    console.log("goNext");
-
     const schema = stepValidations[currentStep];
     if (schema) {
       // Perform validation using the corresponding Zod schema
       const result = schema.safeParse(watch());
 
       if (!result.success) {
-        console.log("Validation errors:", z.treeifyError(result.error));
         setShowValidationErrors(true);
         toast({
           title: "Please complete all required fields",
@@ -193,8 +195,6 @@ export function StepProvider({ children }: { children: ReactNode }) {
     const progress = ((dirtyFieldCount - errorsCount) / totalSteps) * 100;
     return progress > 0 ? progress : 0;
   }, [dirtyFields, errors, totalSteps]);
-
-  console.log(currentStep, getStepValidationStatus(currentStep));
 
   const value: StepContextType = {
     mode,

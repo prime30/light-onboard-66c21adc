@@ -35,7 +35,6 @@ function AccountTypeConfirmationOverlay({
   executeAccountTypeSelect,
   accountType,
 }: AccountTypeConfirmationOverlayProps) {
-  console.log("fixed");
   if (!showAccountTypeConfirm) return null;
 
   const overlay = (

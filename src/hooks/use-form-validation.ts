@@ -1,6 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { isValidEmail } from "@/lib/validations/form-utils";
-import { isValidPhoneNumber } from "@/components/registration/steps/ContactBasicsStep";
+import { isValidEmail, isValidPhoneNumber } from "@/lib/validations/form-utils";
 import type { AuthMode, Step, BusinessOperationType } from "@/types/auth";
 
 interface IncompleteStep {

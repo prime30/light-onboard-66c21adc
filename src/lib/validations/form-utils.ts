@@ -13,3 +13,11 @@ export const formatPhoneNumber = (value: string): string => {
   if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
   return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
 };
+
+// Phone number validation - validates the local number part (without country code)
+export const isValidPhoneNumber = (phone: string): boolean => {
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, "");
+  // Must have exactly 10 digits for US/CA format
+  return cleaned.length === 10;
+};
