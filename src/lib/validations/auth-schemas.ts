@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { countryCodes } from "@/data/country-codes";
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
@@ -62,7 +63,18 @@ export const contactBasicsSchema = z.object({
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
     .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number"),
-  phoneCountryCode: z.string().min(1, "Country code is required"),
+  phoneCountryCode: z
+    .string()
+    .min(1, "Country code is required")
+    .refine(
+      (iso) => countryCodes.some((country) => country.iso === iso),
+      "Invalid country selected"
+    )
+    .transform((iso) => {
+      // Transform ISO code to phone code (e.g., "us" -> "+1")
+      const country = countryCodes.find((c) => c.iso === iso);
+      return country!.code; // Safe to use ! since we validated above
+    }),
 });
 
 // Business Location Schema

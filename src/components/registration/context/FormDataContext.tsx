@@ -22,7 +22,7 @@ export type FormControlFieldProps = Omit<FormFieldProps, "register"> & {
 };
 
 export const defaultValues: Partial<RegistrationFormData> = {
-  phoneCountryCode: "+1",
+  phoneCountryCode: "us",
   country: "US",
   subscribeOrderUpdates: true,
   subscribeMarketing: false,

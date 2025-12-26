@@ -1,33 +1,11 @@
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { TextInput } from "@/components/TextInput";
+import { SelectInput } from "@/components/SelectInput";
 import { useForm } from "../context";
-
-// Country codes for phone numbers - using iso as unique key
-export const countryCodes = [
-  { code: "+1", country: "US", iso: "us" },
-  { code: "+1", country: "CA", iso: "ca" },
-  { code: "+44", country: "UK", iso: "gb" },
-  { code: "+61", country: "AU", iso: "au" },
-  { code: "+33", country: "FR", iso: "fr" },
-  { code: "+49", country: "DE", iso: "de" },
-  { code: "+39", country: "IT", iso: "it" },
-  { code: "+34", country: "ES", iso: "es" },
-  { code: "+81", country: "JP", iso: "jp" },
-  { code: "+86", country: "CN", iso: "cn" },
-  { code: "+91", country: "IN", iso: "in" },
-  { code: "+52", country: "MX", iso: "mx" },
-  { code: "+55", country: "BR", iso: "br" },
-] as const;
+import { countryCodes } from "@/data/country-codes";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -77,9 +55,27 @@ function PhonePrefixIcon({ error }: { error: boolean }) {
 }
 
 export const ContactBasicsStep = () => {
-  const { register, errors, getValidationStatus, currentStep, getStepValidationStatus } = useForm();
+  const { register, control, errors, getValidationStatus, currentStep, getStepValidationStatus } =
+    useForm();
   const stepNumber = 3;
   const validationStatus = getStepValidationStatus(currentStep);
+
+  const countryCodeOptions = countryCodes.map((country) => ({
+    value: country.iso,
+    label: (
+      <span className="flex items-center gap-2">
+        <CountryFlag iso={country.iso} />
+        <span>{country.code}</span>
+        <span className="text-muted-foreground text-xs">({country.name})</span>
+      </span>
+    ),
+    triggerContent: (
+      <span className="flex items-center gap-2">
+        <CountryFlag iso={country.iso} />
+        <span>{country.code}</span>
+      </span>
+    ),
+  }));
 
   return (
     <div className="space-y-[25px]">
@@ -165,39 +161,16 @@ export const ContactBasicsStep = () => {
             Phone number*
           </Label>
           <div className="flex gap-2">
-            {/*<Select
-              value={phoneCountryCode}
-              onValueChange={onPhoneCountryCodeChange}
-              {...register("phoneCountryCode")}
-            >
-              <SelectTrigger
-                aria-label="Select country code"
-                className={cn(
-                  "w-[110px] h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300",
-                  errors.phoneCountryCode && "border-destructive/50 bg-destructive/5"
-                )}
-              >
-                <SelectValue>
-                  <span className="flex items-center gap-2">
-                    <CountryFlag
-                      iso={countryCodes.find((c) => c.code === phoneCountryCode)?.iso || "us"}
-                    />
-                    <span>{phoneCountryCode}</span>
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-background border border-border z-50">
-                {countryCodes.map((country) => (
-                  <SelectItem key={country.iso} value={country.code}>
-                    <span className="flex items-center gap-2">
-                      <CountryFlag iso={country.iso} />
-                      <span>{country.code}</span>
-                      <span className="text-muted-foreground text-xs">({country.country})</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>*/}
+            <div className="w-[110px]">
+              <SelectInput
+                name="phoneCountryCode"
+                control={control}
+                error={errors.phoneCountryCode}
+                options={countryCodeOptions}
+                placeholder="Select"
+                className="w-full"
+              />
+            </div>
 
             <div className="relative flex-1 input-glow input-ripple rounded-form">
               <TextInput
