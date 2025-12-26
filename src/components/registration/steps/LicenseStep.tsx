@@ -1,57 +1,46 @@
 import { Info } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
+import { TextInput } from "@/components/TextInput";
+import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
+import { useForm } from "../context";
 
 const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
 const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-operated"];
 
-interface LicenseStepProps {
-  accountType: string | null;
-  licenseNumber: string;
-  salonSize: string;
-  salonStructure: string;
-  licenseFile: File | null;
-  licenseProofFiles: File[];
-  onLicenseChange: (value: string) => void;
-  onSalonSizeChange: (value: string) => void;
-  onSalonStructureChange: (value: string) => void;
-  onLicenseFileChange: (file: File | null) => void;
-  onLicenseProofFilesChange: (files: File[]) => void;
-  showValidationErrors?: boolean;
-  validationStatus: "complete" | "in-progress" | "error";
-}
+export const LicenseStep = () => {
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    errors,
+    getValidationStatus,
+    currentStep,
+    getStepValidationStatus,
+    getStepNumber,
+  } = useForm();
 
-export const LicenseStep = ({
-  accountType,
-  licenseNumber,
-  salonSize,
-  salonStructure,
-  licenseFile,
-  licenseProofFiles,
-  onLicenseChange,
-  onSalonSizeChange,
-  onSalonStructureChange,
-  onLicenseFileChange,
-  onLicenseProofFilesChange,
-  showValidationErrors = false,
-  validationStatus,
-}: LicenseStepProps) => {
+  // Watch form values
+  const watchedValues = watch(["accountType", "licenseNumber", "licenseFile", "licenseProofFiles"]);
+  const [accountType, licenseNumber, licenseFile, licenseProofFiles] = watchedValues;
+
   const isSalon = accountType === "salon";
-  const licenseError = showValidationErrors && licenseNumber.trim() === "";
-  const salonSizeError = showValidationErrors && isSalon && salonSize === "";
-  const salonStructureError = showValidationErrors && isSalon && salonStructure === "";
-  const stepNumber = accountType === "professional" ? 5 : 4; // professional=5, salon=4
+  const validationStatus = getStepValidationStatus(currentStep);
+
+  // Create options for selects
+  const salonSizeOptions = salonSizes.map((size) => ({
+    value: size,
+    label: size,
+  }));
+
+  const salonStructureOptions = salonStructures.map((structure) => ({
+    value: structure,
+    label: structure,
+  }));
 
   return (
     <div className="space-y-5 sm:space-y-[30px]">
@@ -59,7 +48,7 @@ export const LicenseStep = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -83,108 +72,56 @@ export const LicenseStep = ({
 
       <div className="space-y-5">
         {/* License Number */}
-        <div className="space-y-2.5">
-          <Label
-            htmlFor="license"
-            className={cn("text-sm font-medium label-float", licenseError && "text-destructive")}
-          >
-            {isSalon ? "Salon License #*" : "License number*"}
-          </Label>
-          <div className="relative group input-glow rounded-form">
-            <Input
-              id="license"
-              type="text"
-              placeholder={isSalon ? "Salon License #" : "Enter your license number"}
-              value={licenseNumber}
-              onChange={(e) => onLicenseChange(e.target.value)}
-              className={cn(
-                "h-button py-0 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
-                licenseError && "border-destructive/50 bg-destructive/5"
-              )}
-            />
-          </div>
-          {licenseError && <p className="text-xs text-destructive">License number is required</p>}
+        <div className="animate-stagger-3">
+          <TextInput
+            name="licenseNumber"
+            type="text"
+            register={register}
+            error={errors.licenseNumber}
+            placeholder={isSalon ? "Salon License #" : "Enter your license number"}
+            label={isSalon ? "Salon License #*" : "License number*"}
+            isValid={getValidationStatus("licenseNumber") === "complete"}
+          />
         </div>
 
         {/* Salon-specific fields */}
         {isSalon && (
           <>
             {/* Salon Size */}
-            <div
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
-              data-field="salon-size"
-            >
-              <Label className={cn("text-sm font-medium", salonSizeError && "text-destructive")}>
-                What's the size of your salon?*
-              </Label>
-              <div className="flex flex-col gap-1">
-                <Select value={salonSize} onValueChange={onSalonSizeChange}>
-                  <SelectTrigger
-                    className={cn(
-                      "w-full sm:w-[180px] h-input rounded-form border-border/50 bg-muted transition-all duration-300",
-                      salonSizeError && "border-destructive/50 bg-destructive/5"
-                    )}
-                  >
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-form bg-background border border-border z-50">
-                    {salonSizes.map((size) => (
-                      <SelectItem
-                        key={size}
-                        value={size}
-                        className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80"
-                      >
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {salonSizeError && <p className="text-xs text-destructive">Required</p>}
-              </div>
+            <div className="animate-stagger-4">
+              <SelectInput
+                name="salonSize"
+                control={control}
+                error={errors.salonSize}
+                options={salonSizeOptions}
+                label="What's the size of your salon?*"
+                placeholder="Select salon size"
+                isValid={getValidationStatus("salonSize") === "complete"}
+              />
             </div>
 
             {/* Salon Structure */}
-            <div
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
-              data-field="salon-structure"
-            >
-              <Label
-                className={cn("text-sm font-medium", salonStructureError && "text-destructive")}
-              >
-                Select your salon structure*
-              </Label>
-              <div className="flex flex-col gap-1">
-                <Select value={salonStructure} onValueChange={onSalonStructureChange}>
-                  <SelectTrigger
-                    className={cn(
-                      "w-full sm:w-[180px] h-input rounded-form border-border/50 bg-muted transition-all duration-300",
-                      salonStructureError && "border-destructive/50 bg-destructive/5"
-                    )}
-                  >
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-form bg-background border border-border z-50">
-                    {salonStructures.map((structure) => (
-                      <SelectItem
-                        key={structure}
-                        value={structure}
-                        className="rounded-form-sm transition-colors duration-200 hover:bg-muted/80"
-                      >
-                        {structure}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {salonStructureError && <p className="text-xs text-destructive">Required</p>}
-              </div>
+            <div className="animate-stagger-5">
+              <SelectInput
+                name="salonStructure"
+                control={control}
+                error={errors.salonStructure}
+                options={salonStructureOptions}
+                label="Select your salon structure*"
+                placeholder="Select salon structure"
+                isValid={getValidationStatus("salonStructure") === "complete"}
+              />
             </div>
 
             {/* File Upload */}
-            <FileUpload
-              file={licenseFile}
-              onFileChange={onLicenseFileChange}
-              placeholder="Upload your salon license"
-            />
+            <div className="space-y-2.5 animate-stagger-6">
+              <Label className="text-sm font-medium">Upload your salon license*</Label>
+              <FileUpload
+                file={licenseFile}
+                onFileChange={(file) => setValue("licenseFile", file)}
+                placeholder="Upload your salon license"
+              />
+            </div>
           </>
         )}
 
@@ -192,21 +129,23 @@ export const LicenseStep = ({
         {!isSalon && (
           <div
             className={cn(
-              "grid transition-all duration-400",
-              licenseNumber.trim().length >= 3
+              "grid transition-all duration-400 animate-stagger-4",
+              (licenseNumber?.trim()?.length || 0) >= 3
                 ? "grid-rows-[1fr] opacity-100"
                 : "grid-rows-[0fr] opacity-0"
             )}
             style={{
               transitionTimingFunction:
-                licenseNumber.trim().length >= 3 ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+                (licenseNumber?.trim()?.length || 0) >= 3
+                  ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
+                  : "ease-out",
             }}
           >
             <div className="overflow-hidden">
               <div
                 className={cn(
                   "space-y-2.5",
-                  licenseNumber.trim().length >= 3 && "animate-haptic-pop"
+                  (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
                 )}
               >
                 <Label className="text-sm font-medium">
@@ -214,8 +153,8 @@ export const LicenseStep = ({
                   <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
                 <MultiFileUpload
-                  files={licenseProofFiles}
-                  onFilesChange={onLicenseProofFilesChange}
+                  files={licenseProofFiles || []}
+                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
                   placeholder="Upload photos of your license"
                   maxFiles={3}
                 />
