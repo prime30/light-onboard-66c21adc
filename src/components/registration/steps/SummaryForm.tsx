@@ -1,70 +1,43 @@
 import { FileCheck, ShieldCheck } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
+import { useForm } from "@/components/registration/context/FormContext";
 
 interface SummaryFormProps {
-  accountType: string | null;
-  firstName: string;
-  lastName: string;
-  preferredName: string;
-  email: string;
-  phoneNumber: string;
-  phoneCountryCode: string;
-  licenseNumber: string;
-  state: string;
-  businessName: string;
-  businessAddress: string;
-  suiteNumber: string;
-  city: string;
-  zipCode: string;
-  country: string;
-  schoolName: string;
-  schoolState: string;
-  businessOperationType: "commission" | "independent" | null;
-  salonSize: string;
-  salonStructure: string;
-  hasTaxExemption: boolean | null;
-  birthdayMonth: string;
-  birthdayDay: string;
-  socialMediaHandle: string;
-  subscribeOrderUpdates: boolean;
-  subscribePromotions: boolean;
-  uploadedFiles?: { file: File; label: string }[];
   onEditStep: (stepNum: number) => void;
 }
 
-export const SummaryForm = ({
-  accountType,
-  firstName,
-  lastName,
-  preferredName,
-  email,
-  phoneNumber,
-  phoneCountryCode,
-  licenseNumber,
-  state,
-  businessName,
-  businessAddress,
-  suiteNumber,
-  city,
-  zipCode,
-  country,
-  schoolName,
-  schoolState,
-  businessOperationType,
-  salonSize,
-  salonStructure,
-  hasTaxExemption,
-  birthdayMonth,
-  birthdayDay,
-  socialMediaHandle,
-  subscribeOrderUpdates,
-  subscribePromotions,
-  uploadedFiles = [],
-  onEditStep,
-}: SummaryFormProps) => {
-  // Step number varies by account type: professional=9, salon=8, student=7
-  const stepNumber = accountType === "professional" ? 9 : accountType === "student" ? 7 : 8;
+export const SummaryForm = ({ onEditStep }: SummaryFormProps) => {
+  const { watch, currentStep } = useForm();
+
+  // Watch all form values
+  const accountType = watch("accountType");
+  const firstName = watch("firstName");
+  const lastName = watch("lastName");
+  const preferredName = watch("preferredName");
+  const email = watch("email");
+  const phoneNumber = watch("phoneNumber");
+  const phoneCountryCode = watch("phoneCountryCode");
+  const licenseNumber = watch("licenseNumber");
+  const state = watch("state");
+  const businessName = watch("businessName");
+  const businessAddress = watch("businessAddress");
+  const suiteNumber = watch("suiteNumber");
+  const city = watch("city");
+  const zipCode = watch("zipCode");
+  const country = watch("country");
+  const schoolName = watch("schoolName");
+  const schoolState = watch("schoolState");
+  const businessOperationType = watch("businessOperationType");
+  const salonSize = watch("salonSize");
+  const salonStructure = watch("salonStructure");
+  const hasTaxExemption = watch("hasTaxExemption");
+  const birthdayMonth = watch("birthdayMonth");
+  const birthdayDay = watch("birthdayDay");
+  const socialMediaHandle = watch("socialMediaHandle");
+  const subscribeOrderUpdates = watch("subscribeOrderUpdates");
+  const subscribePromotions = watch("subscribePromotions");
+  const uploadedFiles = watch("uploadedFiles") || [];
 
   const getAccountTypeLabel = () => {
     if (accountType === "professional") return "Professional Stylist";
@@ -158,7 +131,7 @@ export const SummaryForm = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status="complete" />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {currentStep}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
