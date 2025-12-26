@@ -12,5 +12,6 @@ export type {
   ValidFieldNames,
   ValidationStatus,
   FormFieldProps,
+  FormControlFieldProps,
 } from "./FormDataContext";
 export type { StepContextType } from "./StepContext";

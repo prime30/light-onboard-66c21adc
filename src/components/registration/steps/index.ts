@@ -2,12 +2,7 @@
 export { AccountTypeForm } from "./AccountTypeForm";
 export { BusinessLocationStep, countries, provinces, states } from "./BusinessLocationStep";
 export { BusinessOperationStep } from "./BusinessOperationStep";
-export {
-  ContactBasicsStep,
-  countryCodes,
-  CountryFlag,
-  isValidPhoneNumber,
-} from "./ContactBasicsStep";
+export { ContactBasicsStep, countryCodes, CountryFlag } from "./ContactBasicsStep";
 export { LicenseStep } from "./LicenseStep";
 export { OnboardingForm } from "./OnboardingForm";
 export { PreferencesStep } from "./PreferencesStep";

@@ -5,6 +5,7 @@ import { StepProvider, useStepContext } from "./StepContext";
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
   register: ReturnType<typeof useFormData>["register"];
+  control: ReturnType<typeof useFormData>["control"];
   watch: ReturnType<typeof useFormData>["watch"];
   reset: ReturnType<typeof useFormData>["reset"];
   handleSubmit: ReturnType<typeof useFormData>["handleSubmit"];

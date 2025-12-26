@@ -1,7 +1,7 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
+import { createContext, useContext, ReactNode, useEffect, useCallback } from "react";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FieldError, useForm, UseFormRegister } from "react-hook-form";
+import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 
@@ -17,6 +17,10 @@ export type FormFieldProps = {
   valueAsNumber?: boolean;
 };
 
+export type FormControlFieldProps = Omit<FormFieldProps, "register"> & {
+  control: Control<RegistrationFormData>;
+};
+
 export const defaultValues: Partial<RegistrationFormData> = {
   phoneCountryCode: "+1",
   country: "US",
@@ -27,6 +31,7 @@ export const defaultValues: Partial<RegistrationFormData> = {
 
 export type FormDataContextType = {
   register: UseFormRegister<RegistrationFormData>;
+  control: Control<RegistrationFormData>;
   watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
   handleSubmit: ReturnType<typeof useForm<RegistrationFormData>>["handleSubmit"];
@@ -65,7 +70,7 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
 
-  const { register, handleSubmit, reset, setValue, watch, formState, subscribe } =
+  const { register, handleSubmit, reset, setValue, watch, formState, subscribe, control } =
     useForm<RegistrationFormData>({
       mode: "onChange",
       resolver: zodResolver(registrationSchema),
@@ -120,6 +125,7 @@ export function FormDataProvider({
 
   const value: FormDataContextType = {
     register,
+    control,
     watch,
     reset,
     handleSubmit,
