@@ -55,9 +55,15 @@ function PhonePrefixIcon({ error }: { error: boolean }) {
 }
 
 export const ContactBasicsStep = () => {
-  const { register, control, errors, getValidationStatus, currentStep, getStepValidationStatus } =
-    useForm();
-  const stepNumber = 3;
+  const {
+    register,
+    control,
+    errors,
+    getValidationStatus,
+    currentStep,
+    getStepValidationStatus,
+    getStepNumber,
+  } = useForm();
   const validationStatus = getStepValidationStatus(currentStep);
 
   const countryCodeOptions = countryCodes.map((country) => ({
@@ -83,7 +89,7 @@ export const ContactBasicsStep = () => {
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">

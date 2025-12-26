@@ -96,6 +96,7 @@ export const AccountTypeForm = () => {
     setTransitionDirection,
     setIsTransitioning,
     setCurrentStep,
+    getStepNumber,
   } = useForm();
 
   const validationStatus = getValidationStatus("accountType");
@@ -229,7 +230,7 @@ export const AccountTypeForm = () => {
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step 1
+            Step {getStepNumber("account-type")}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">

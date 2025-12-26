@@ -35,6 +35,7 @@ export type AuthFormContextType = {
   formProgress: number;
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
+  getStepNumber: ReturnType<typeof useStepContext>["getStepNumber"];
   steps: ReturnType<typeof useStepContext>["steps"];
 };
 

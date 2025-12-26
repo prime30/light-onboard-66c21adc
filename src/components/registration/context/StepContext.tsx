@@ -59,6 +59,7 @@ export type StepContextType = {
   formProgress: number;
   completedSteps: Record<Step, ValidationStatus>;
   getStepValidationStatus: (step: Step) => ValidationStatus;
+  getStepNumber: (step: Step) => number;
   steps: Step[];
 };
 
@@ -80,6 +81,11 @@ export function StepProvider({ children }: { children: ReactNode }) {
   const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+
+  // TODO: Remove after development
+  useEffect(() => {
+    setCurrentStep("business-location");
+  }, []);
 
   const steps = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
@@ -121,6 +127,13 @@ export function StepProvider({ children }: { children: ReactNode }) {
       return "in-progress";
     },
     [errors, watch]
+  );
+
+  const getStepNumber = useCallback(
+    (step: Step): number => {
+      return steps.indexOf(step);
+    },
+    [steps]
   );
 
   useEffect(() => {
@@ -221,6 +234,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     formProgress,
     completedSteps,
     getStepValidationStatus,
+    getStepNumber,
     steps,
   };
 
@@ -233,7 +247,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
  *
  * @example
  * ```tsx
- * const { completedSteps, getStepValidationStatus } = useStepContext();
+ * const { completedSteps, getStepValidationStatus, getStepNumber } = useStepContext();
  *
  * // Check if a step is complete
  * if (completedSteps["contact-basics"] === "complete") {
@@ -243,6 +257,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
  * // Get current validation status for any step
  * const status = getStepValidationStatus("business-location");
  * // Returns: "complete" | "in-progress" | "error"
+ *
+ * // Get step number (1-based index)
+ * const stepNum = getStepNumber("contact-basics");
+ * // Returns: number representing the step position in the flow
  *
  * // The completedSteps object automatically updates when form data changes
  * // and reflects real-time validation status for each step
