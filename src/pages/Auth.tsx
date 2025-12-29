@@ -758,7 +758,7 @@ const Auth = () => {
             {/* Left side - Auth Toggle + Step Indicator */}
             <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px] min-h-[50px]">
               <AuthToggle mode={mode} handleModeChange={setMode} />
-              <StepIndicatorBar onGoToStep={goToStep} />
+              <StepIndicatorBar />
             </div>
 
             <CloseButton

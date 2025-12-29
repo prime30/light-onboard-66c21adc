@@ -122,6 +122,7 @@ export const AccountTypeForm = () => {
           // setDisplayTotalSteps(newTotal);
 
           if (previousType !== type && previousType !== null) {
+            console.log(previousType, type);
             const firstName = watch("firstName");
             const lastName = watch("lastName");
             const email = watch("email");
@@ -174,7 +175,7 @@ export const AccountTypeForm = () => {
       }
 
       // No existing progress or same type selected, proceed directly
-      executeAccountTypeSelect(type, previousType);
+      executeAccountTypeSelect(type, previousType || null);
     },
     [accountType, executeAccountTypeSelect, hasFormProgress]
   );

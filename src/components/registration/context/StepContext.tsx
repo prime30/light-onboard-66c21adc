@@ -76,6 +76,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AuthMode>("signup");
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
+  const [dirtySteps, setDirtySteps] = useState<Set<Step>>(new Set() as Set<Step>);
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
     {} as Record<Step, ValidationStatus>
   );
@@ -90,15 +91,24 @@ export function StepProvider({ children }: { children: ReactNode }) {
 
   console.log(watch());
 
-  const steps = useMemo(() => {
+  const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
-    return newSteps;
-  }, [accountType]);
 
-  const totalSteps = steps.length;
-  const currentStepNumber = steps.indexOf(currentStep);
+    const totalSteps = newSteps.length;
+    const currentStepNumber = newSteps.indexOf(currentStep);
+
+    setDirtySteps((prev) => {
+      return prev.add(currentStep);
+    });
+
+    return {
+      steps: newSteps,
+      totalSteps,
+      currentStepNumber,
+    };
+  }, [accountType, currentStep]);
 
   const getStepValidationStatus = useCallback(
     (step: Step): ValidationStatus => {
@@ -220,11 +230,19 @@ export function StepProvider({ children }: { children: ReactNode }) {
   };
 
   const formProgress = useMemo(() => {
-    const dirtyFieldCount = Object.values(dirtyFields).filter(Boolean).length;
-    const errorsCount = Object.keys(errors).length;
-    const progress = ((dirtyFieldCount - errorsCount) / totalSteps) * 100;
-    return progress > 0 ? progress : 0;
-  }, [dirtyFields, errors, totalSteps]);
+    // Get only the valid steps (exclude onboarding and summary)
+    const validSteps = steps.filter((step) => step !== "onboarding" && step !== "summary");
+
+    if (validSteps.length === 0) return 0;
+
+    // Count completed steps
+    const completedStepsCount = validSteps.filter(
+      (step) => completedSteps[step] === "complete" && dirtySteps.has(step)
+    ).length;
+
+    const progress = (completedStepsCount / validSteps.length) * 100;
+    return progress;
+  }, [steps, completedSteps, dirtySteps]);
 
   const value: StepContextType = {
     mode,
