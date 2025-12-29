@@ -69,7 +69,7 @@ const StepContext = createContext<StepContextType | null>(null);
 
 // Provider component
 export function StepProvider({ children }: { children: ReactNode }) {
-  const { watch, errors, dirtyFields, subscribe } = useFormData();
+  const { watch, errors, subscribe, reset } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
 
@@ -86,7 +86,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
 
   // TODO: Remove after development
   useEffect(() => {
-    setCurrentStep("school-info");
+    // setTimeout(() => {
+    //   reset(defaultValues);
+    // }, 1000);
+    // setCurrentStep("school-info");
   }, []);
 
   console.log(watch());

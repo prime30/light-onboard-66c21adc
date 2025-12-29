@@ -68,7 +68,7 @@ export const BusinessLocationStep = () => {
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Get country metadata
-  const selectedCountry = countries.find((c) => c.name === country);
+  const selectedCountry = countries.find((c) => c.code === country);
 
   // Address autocomplete functionality
   const { isLoading, inputRef, handleInputChange, handleInputFocus, AddressDropdown } =
@@ -85,7 +85,7 @@ export const BusinessLocationStep = () => {
           const matchedCountry = countries.find((c) => [c.name, c.code].includes(details.country));
 
           if (matchedCountry) {
-            setValue("country", matchedCountry.name);
+            setValue("country", matchedCountry.code);
 
             // Set state/province for the matched country
             if (details.state || details.stateShort) {
@@ -95,7 +95,7 @@ export const BusinessLocationStep = () => {
               );
 
               if (matchedSubdivision) {
-                setValue("state", matchedSubdivision.name);
+                setValue("state", matchedSubdivision.code);
               }
             }
           }
@@ -105,14 +105,14 @@ export const BusinessLocationStep = () => {
 
   // Create options for selects
   const countryOptions = countries.map((c) => ({
-    value: c.name,
+    value: c.code,
     label: c.name,
   }));
 
   // Get subdivisions based on selected country
   const subdivisions = selectedCountry?.code === "US" ? states : provinces;
   const subdivisionOptions = subdivisions.map((s) => ({
-    value: s.name,
+    value: s.code,
     label: s.name,
   }));
 

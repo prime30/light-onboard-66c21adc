@@ -6,6 +6,7 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { useForm } from "../context";
 import { countryCodes } from "@/data/country-codes";
+import { formatPhoneNumber } from "@/lib/validations/form-utils";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -63,6 +64,7 @@ export const ContactBasicsStep = () => {
     currentStep,
     getStepValidationStatus,
     getStepNumber,
+    setValue,
   } = useForm();
   const validationStatus = getStepValidationStatus(currentStep);
 
@@ -187,6 +189,9 @@ export const ContactBasicsStep = () => {
                 placeholder="(555) 123-4567"
                 isValid={getValidationStatus("phoneNumber") === "complete"}
                 prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
+                onBlur={(event) => {
+                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                }}
               />
             </div>
           </div>

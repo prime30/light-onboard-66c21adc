@@ -2,6 +2,7 @@ import { FileCheck, ShieldCheck } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
+import { countryCodes } from "@/data/country-codes";
 
 interface SummaryFormProps {
   onEditStep: (stepNum: number) => void;
@@ -88,7 +89,8 @@ export const SummaryForm = ({ onEditStep }: SummaryFormProps) => {
 
   const formatPhoneDisplay = () => {
     if (!phoneNumber) return "";
-    return `${phoneCountryCode} ${phoneNumber}`;
+    const code = countryCodes.find((c) => c.iso === phoneCountryCode)?.code || "";
+    return `${code} ${phoneNumber}`;
   };
 
   const SummarySection = ({
@@ -218,7 +220,7 @@ export const SummaryForm = ({ onEditStep }: SummaryFormProps) => {
                 label="Address"
                 value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress}
               />
-              <SummaryRow label="City" value={`${city}, ${state} ${zipCode}`} />
+              <SummaryRow label="City, State Postal" value={`${city}, ${state} ${zipCode}`} />
               <SummaryRow label="Country" value={country} />
             </SummarySection>
           </div>

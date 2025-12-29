@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { countryCodes } from "@/data/country-codes";
+import { formatPhoneNumber } from "./form-utils";
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
@@ -62,19 +63,20 @@ export const contactBasicsSchema = z.object({
     .string()
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
-    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number"),
+    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number")
+    .transform((val) => formatPhoneNumber(val)),
   phoneCountryCode: z
     .string()
     .min(1, "Country code is required")
     .refine(
       (iso) => countryCodes.some((country) => country.iso === iso),
       "Invalid country selected"
-    )
-    .transform((iso) => {
-      // Transform ISO code to phone code (e.g., "us" -> "+1")
-      const country = countryCodes.find((c) => c.iso === iso);
-      return country!.code; // Safe to use ! since we validated above
-    }),
+    ),
+  // .transform((iso) => {
+  //   // Transform ISO code to phone code (e.g., "us" -> "+1")
+  //   const country = countryCodes.find((c) => c.iso === iso);
+  //   return country!.code; // Safe to use ! since we validated above
+  // }),
 });
 
 // Business Location Schema
@@ -170,6 +172,12 @@ export const registrationSchema = accountTypeSchema
   .and(wholesaleTermsSchema)
   .and(preferencesSchema);
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
+
+export function transformRegistrationSchema(data: RegistrationFormData) {
+  data.phoneCountryCode =
+    countryCodes.find((c) => c.iso === data.phoneCountryCode)?.code || data.phoneCountryCode;
+  return data;
+}
 
 // Type exports
 export type AccountTypeFormData = z.infer<typeof accountTypeSchema>;
