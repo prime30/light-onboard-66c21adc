@@ -79,3 +79,91 @@ export const fieldsForStep: Record<Step, ValidFieldNames[]> = Object.fromEntries
     schema ? Object.keys(schema.shape) : [],
   ])
 ) as Record<Step, ValidFieldNames[]>;
+
+type StepInfo = {
+  name: Step;
+  fields: ValidFieldNames[];
+  schema: ZodObject | null;
+  accountTypes?: AccountType[];
+};
+
+export const STEPS: Record<Step, StepInfo> = {
+  reviews: {
+    name: "reviews",
+    fields: fieldsForStep.reviews,
+    schema: stepValidations.reviews,
+    accountTypes: [],
+  },
+  onboarding: {
+    name: "onboarding",
+    fields: fieldsForStep.onboarding,
+    schema: stepValidations.onboarding,
+    accountTypes: [],
+  },
+  "account-type": {
+    name: "account-type",
+    fields: fieldsForStep["account-type"],
+    schema: stepValidations["account-type"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  "contact-basics": {
+    name: "contact-basics",
+    fields: fieldsForStep["contact-basics"],
+    schema: stepValidations["contact-basics"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  license: {
+    name: "license",
+    fields: fieldsForStep.license,
+    schema: stepValidations.license,
+    accountTypes: ["professional", "salon"],
+  },
+  "business-operation": {
+    name: "business-operation",
+    fields: fieldsForStep["business-operation"],
+    schema: stepValidations["business-operation"],
+    accountTypes: ["professional"],
+  },
+  "business-location": {
+    name: "business-location",
+    fields: fieldsForStep["business-location"],
+    schema: stepValidations["business-location"],
+    accountTypes: ["professional", "salon"],
+  },
+  "school-info": {
+    name: "school-info",
+    fields: fieldsForStep["school-info"],
+    schema: stepValidations["school-info"],
+    accountTypes: ["student"],
+  },
+  "wholesale-terms": {
+    name: "wholesale-terms",
+    fields: fieldsForStep["wholesale-terms"],
+    schema: stepValidations["wholesale-terms"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  "tax-exemption": {
+    name: "tax-exemption",
+    fields: fieldsForStep["tax-exemption"],
+    schema: stepValidations["tax-exemption"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  "contact-info": {
+    name: "contact-info",
+    fields: fieldsForStep["contact-info"],
+    schema: stepValidations["contact-info"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  summary: {
+    name: "summary",
+    fields: fieldsForStep.summary,
+    schema: stepValidations.summary,
+    accountTypes: ["professional", "salon", "student"],
+  },
+  success: {
+    name: "success",
+    fields: fieldsForStep.success,
+    schema: stepValidations.success,
+    accountTypes: [],
+  },
+};

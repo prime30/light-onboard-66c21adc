@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
+import z from "zod";
 
 export type ValidFieldNames = keyof RegistrationFormData;
 export type ValidationStatus = "complete" | "in-progress" | "error";
@@ -42,6 +43,7 @@ export type FormDataContextType = {
   errors: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["errors"];
   dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
   isFormValid: boolean;
+  fullErrors: ReturnType<typeof z.treeifyError<RegistrationFormData>>;
 };
 
 export const dirtyFieldOptions = {
@@ -102,11 +104,16 @@ export function FormDataProvider({
   );
 
   const fields = watch();
-  const isFormValid = useMemo(() => {
+  const { isFormValid, fullErrors } = useMemo(() => {
     const currentData = fields;
     const result = registrationSchema.safeParse(currentData);
-    console.log(JSON.parse(result.error?.message));
-    return result.success;
+    const fullErrors: ReturnType<typeof z.treeifyError<RegistrationFormData>> = result.success
+      ? { errors: [], properties: {} }
+      : z.treeifyError(result.error);
+    return {
+      isFormValid: result.success,
+      fullErrors,
+    };
   }, [fields]);
 
   // On mount, populate form with stored values
@@ -160,6 +167,7 @@ export function FormDataProvider({
     errors,
     dirtyFields,
     isFormValid,
+    fullErrors,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

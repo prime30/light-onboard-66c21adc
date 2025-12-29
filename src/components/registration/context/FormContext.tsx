@@ -16,6 +16,7 @@ export type AuthFormContextType = {
   errors: ReturnType<typeof useFormData>["errors"];
   dirtyFields: ReturnType<typeof useFormData>["dirtyFields"];
   isFormValid: ReturnType<typeof useFormData>["isFormValid"];
+  fullErrors: ReturnType<typeof useFormData>["fullErrors"];
 
   // Step-related (from StepContext)
   mode: ReturnType<typeof useStepContext>["mode"];
