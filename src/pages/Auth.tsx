@@ -90,7 +90,6 @@ const Auth = () => {
 
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
-  const [nextStep, setNextStep] = useState<Step | null>(null);
   const [highlightFields, setHighlightFields] = useState<string[]>([]);
 
   // File upload hook for registration documents
@@ -523,166 +522,6 @@ const Auth = () => {
     uploadAllDocuments,
   ]);
 
-  const handleNext = () => {
-    if (currentStep === "summary") {
-      // Submit the application using the real auth service
-      handleSignUpSubmit();
-      return;
-    } else {
-      goToNextStep();
-    }
-  };
-
-  const handleBack = () => {
-    goToPrevStep();
-  };
-
-  const getCurrentStepNumber = () => {
-    if (currentStep === "account-type") return 1;
-    if (accountType === "student") {
-      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info, summary
-      if (currentStep === "school-info") return 2;
-      if (currentStep === "contact-basics") return 3;
-      if (currentStep === "tax-exemption") return 4;
-      if (currentStep === "wholesale-terms") return 5;
-      if (currentStep === "contact-info") return 6;
-      if (currentStep === "summary") return 7;
-      return 7;
-    }
-    if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, contact-basics, business-location, license, tax-exemption, wholesale-terms, contact-info, summary
-      if (currentStep === "business-operation") return 2;
-      if (currentStep === "contact-basics") return 3;
-      if (currentStep === "business-location") return 4;
-      if (currentStep === "license") return 5;
-      if (currentStep === "tax-exemption") return 6;
-      if (currentStep === "wholesale-terms") return 7;
-      if (currentStep === "contact-info") return 8;
-      if (currentStep === "summary") return 9;
-      return 9;
-    }
-    // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info, summary
-    if (currentStep === "business-location") return 2;
-    if (currentStep === "contact-basics") return 3;
-    if (currentStep === "license") return 4;
-    if (currentStep === "tax-exemption") return 5;
-    if (currentStep === "wholesale-terms") return 6;
-    if (currentStep === "contact-info") return 7;
-    if (currentStep === "summary") return 8;
-    return 8;
-  };
-  const getStepFromNumber = (stepNum: number): Step => {
-    // Step 0 is always onboarding
-    if (stepNum === 0) return "onboarding";
-
-    if (accountType === "student") {
-      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info, summary
-      switch (stepNum) {
-        case 1:
-          return "account-type";
-        case 2:
-          return "school-info";
-        case 3:
-          return "contact-basics";
-        case 4:
-          return "tax-exemption";
-        case 5:
-          return "wholesale-terms";
-        case 6:
-          return "contact-info";
-        case 7:
-          return "summary";
-        default:
-          return "account-type";
-      }
-    }
-    if (accountType === "professional") {
-      // Professional flow: account-type, business-operation, contact-basics, business-location, license, tax-exemption, wholesale-terms, contact-info, summary
-      switch (stepNum) {
-        case 1:
-          return "account-type";
-        case 2:
-          return "business-operation";
-        case 3:
-          return "contact-basics";
-        case 4:
-          return "business-location";
-        case 5:
-          return "license";
-        case 6:
-          return "tax-exemption";
-        case 7:
-          return "wholesale-terms";
-        case 8:
-          return "contact-info";
-        case 9:
-          return "summary";
-        default:
-          return "account-type";
-      }
-    }
-    // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info, summary
-    switch (stepNum) {
-      case 1:
-        return "account-type";
-      case 2:
-        return "business-location";
-      case 3:
-        return "contact-basics";
-      case 4:
-        return "license";
-      case 5:
-        return "tax-exemption";
-      case 6:
-        return "wholesale-terms";
-      case 7:
-        return "contact-info";
-      case 8:
-        return "summary";
-      default:
-        return "account-type";
-    }
-  };
-  const goToStep = (stepNum: number, missingFields?: string[]) => {
-    // Handle onboarding step (step 0) and success step
-    const currentNum =
-      currentStep === "onboarding"
-        ? 0
-        : currentStep === "success"
-          ? displayTotalSteps + 1
-          : getCurrentStepNumber();
-    if (stepNum === currentNum) return;
-
-    // If no account type selected and trying to go to step 7, show toast and go to account-type
-    if (!accountType && stepNum === 7) {
-      toast.error("You must select an account type to continue.");
-      if (currentStep !== "account-type") {
-        setNextStep("account-type");
-        setTransitionDirection("backward");
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setCurrentStep("account-type");
-          setIsTransitioning(false);
-          setNextStep(null);
-        }, 150);
-      }
-      return;
-    }
-
-    // Store all missing fields to highlight after navigation
-    setHighlightFields(missingFields || []);
-
-    const targetStep = getStepFromNumber(stepNum);
-    setNextStep(targetStep);
-    setTransitionDirection(stepNum > currentNum ? "forward" : "backward");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentStep(targetStep);
-      setIsTransitioning(false);
-      setNextStep(null);
-    }, 150);
-  };
-
   return (
     <div
       className="fixed inset-0 flex items-end sm:items-center justify-center p-0 pt-12 sm:p-5 lg:p-10 overflow-hidden"
@@ -799,7 +638,7 @@ const Auth = () => {
                 className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform w-full max-w-[38rem] mb-4"
                 onClick={() => {
                   mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-                  handleNext();
+                  goToNextStep();
                 }}
               >
                 <div className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-5 overflow-hidden relative">
@@ -904,7 +743,7 @@ const Auth = () => {
                 <>
                   {currentStep === "onboarding" && (
                     <OnboardingForm
-                      onContinue={handleNext}
+                      onContinue={goToNextStep}
                       onSignIn={() => {
                         setModeTransitionDirection("right");
                         setMode("signin");
@@ -924,7 +763,7 @@ const Auth = () => {
                   {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
                   {currentStep === "tax-exemption" && <TaxExemptionStep />}
                   {currentStep === "contact-info" && <PreferencesStep />}
-                  {currentStep === "summary" && <SummaryForm onEditStep={goToStep} />}
+                  {currentStep === "summary" && <SummaryForm />}
                   {currentStep === "success" && (
                     <SuccessForm
                       referralSource={referralSource}
@@ -961,9 +800,6 @@ const Auth = () => {
               footerEnterReady={footerEnterReady}
               incompleteSteps={getIncompleteSteps()}
               shimmerKey={shimmerKey}
-              onBack={handleBack}
-              onNext={handleNext}
-              onGoToStep={goToStep}
             />
           )}
         </div>
