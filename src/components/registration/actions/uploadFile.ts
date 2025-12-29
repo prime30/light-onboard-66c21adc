@@ -12,7 +12,7 @@ export async function uploadFile(file: File): Promise<string> {
     });
 
     const data = await response.json();
-    return data.fileUrl;
+    return data.publicUrl;
   } catch (error) {
     console.error("Error fetching address predictions:", error);
     return "";

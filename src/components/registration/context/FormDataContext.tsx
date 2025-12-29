@@ -132,11 +132,12 @@ export function FormDataProvider({
         values: true,
       },
       callback: ({ values }) => {
-        const newStore = Object.entries(values).reduce((acc, [key, value]) => {
+        type ValueType = (typeof values)[keyof typeof values];
+        const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
           if (
-            value instanceof File ||
+            (typeof value === "object" && value?.file instanceof File) ||
             (Array.isArray(value) && value.length === 0) ||
-            (Array.isArray(value) && value[0] instanceof File)
+            (Array.isArray(value) && value[0]?.file instanceof File)
           ) {
             return acc;
           }

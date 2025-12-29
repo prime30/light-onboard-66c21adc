@@ -9,6 +9,7 @@ import Reviews from "./pages/Reviews";
 import BlogResaleLicense from "./pages/BlogResaleLicense";
 import NotFound from "./pages/NotFound";
 import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
+import { UploadFileProvider } from "./contexts";
 
 const queryClient = new QueryClient();
 
@@ -34,9 +35,11 @@ const AppContent = () => {
 const App = () => (
   <GlobalAppProvider>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppContent />
-      </TooltipProvider>
+      <UploadFileProvider>
+        <TooltipProvider>
+          <AppContent />
+        </TooltipProvider>
+      </UploadFileProvider>
     </QueryClientProvider>
   </GlobalAppProvider>
 );

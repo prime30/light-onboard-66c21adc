@@ -13,11 +13,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
-import { useUploadFile } from "@/hooks/use-upload-file";
+import { useUploadFile } from "@/contexts";
+import { UploadFileItem } from "@/lib/validations/file-schema";
 
 interface MultiFileUploadProps {
-  files: File[];
-  onFilesChange: (files: File[]) => void;
+  files: UploadFileItem[];
+  onFilesChange: (files: UploadFileItem[]) => void;
   accept?: string;
   placeholder?: string;
   error?: boolean;
@@ -36,7 +37,7 @@ const formatFileSizeLimit = (bytes: number) => {
 };
 
 const isImageFile = (file: File) => {
-  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+  return file.type?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file?.name || "");
 };
 
 const formatAcceptedTypes = (accept: string) => {
@@ -54,7 +55,7 @@ const formatFileSize = (bytes: number) => {
 
 // File item component with preview and drag handle
 const FileItem = ({
-  file,
+  item,
   index,
   onRemove,
   onPreview,
@@ -64,7 +65,7 @@ const FileItem = ({
   isDragging,
   isDragOver,
 }: {
-  file: File;
+  item: UploadFileItem;
   index: number;
   onRemove: () => void;
   onPreview: () => void;
@@ -77,12 +78,12 @@ const FileItem = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isImageFile(file)) {
-      const url = URL.createObjectURL(file);
+    if (isImageFile(item.file)) {
+      const url = URL.createObjectURL(item.file);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     }
-  }, [file]);
+  }, [item.file]);
 
   return (
     <div
@@ -119,7 +120,7 @@ const FileItem = ({
         </button>
       ) : (
         <div className="w-10 h-10 rounded-md bg-foreground/10 flex items-center justify-center flex-shrink-0">
-          {file.type === "application/pdf" ? (
+          {item.file.type === "application/pdf" ? (
             <FileText className="w-4 h-4 text-foreground" />
           ) : (
             <FileCheck className="w-4 h-4 text-foreground" />
@@ -127,8 +128,8 @@ const FileItem = ({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+        <p className="text-sm font-medium text-foreground truncate">{item.file.name}</p>
+        <p className="text-xs text-muted-foreground">{formatFileSize(item.file.size)}</p>
       </div>
       <button
         type="button"
@@ -156,10 +157,10 @@ export const MultiFileUpload = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<UploadFileItem[]>([]);
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [lightboxFile, setLightboxFile] = useState<File | null>(null);
+  const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
   const { addFiles, queue } = useUploadFile();
 
   // Drag-and-drop reordering state
@@ -192,7 +193,7 @@ export const MultiFileUpload = ({
     setIsProcessing(true);
     setProgress(0);
 
-    const totalSize = pendingFiles.reduce((acc, f) => acc + f.size, 0);
+    const totalSize = pendingFiles.reduce((acc, item) => acc + item.file.size, 0);
     const fileSizeKB = totalSize / 1024;
     const baseTime = 300;
     const sizeMultiplier = Math.min(fileSizeKB / 500, 1);
@@ -277,10 +278,13 @@ export const MultiFileUpload = ({
     }
 
     if (validFiles.length > 0) {
-      setPendingFiles(validFiles);
-      addFiles(validFiles);
+      const newItems = addFiles(validFiles);
+      setPendingFiles(newItems);
+      console.log(newItems);
     }
   };
+
+  console.log(queue);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -319,19 +323,19 @@ export const MultiFileUpload = ({
   );
 
   const handleRemoveFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    onFilesChange(newFiles);
+    const newItems = files.filter((_, i) => i !== index);
+    onFilesChange(newItems);
   };
 
   const clearFileTypeError = () => {
     setFileTypeError(null);
   };
 
-  const openLightbox = (file: File) => {
-    if (isImageFile(file)) {
-      const url = URL.createObjectURL(file);
+  const openLightbox = (item: UploadFileItem) => {
+    if (isImageFile(item.file)) {
+      const url = URL.createObjectURL(item.file);
       setLightboxUrl(url);
-      setLightboxFile(file);
+      setLightboxFile(item);
     }
   };
 
@@ -482,13 +486,13 @@ export const MultiFileUpload = ({
               )}
             </div>
             <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-              {files.map((file, index) => (
+              {files.map((item, index) => (
                 <FileItem
-                  key={`${file.name}-${file.lastModified}-${index}`}
-                  file={file}
+                  key={`${item.file.name}-${item.file.lastModified}-${index}`}
+                  item={item}
                   index={index}
                   onRemove={() => handleRemoveFile(index)}
-                  onPreview={() => openLightbox(file)}
+                  onPreview={() => openLightbox(item)}
                   onDragStart={(e, idx) => {
                     e.dataTransfer.effectAllowed = "move";
                     setDraggedIndex(idx);
@@ -506,10 +510,10 @@ export const MultiFileUpload = ({
                       dragOverIndex !== null &&
                       draggedIndex !== dragOverIndex
                     ) {
-                      const newFiles = [...files];
-                      const [draggedFile] = newFiles.splice(draggedIndex, 1);
-                      newFiles.splice(dragOverIndex, 0, draggedFile);
-                      onFilesChange(newFiles);
+                      const newItems = [...files];
+                      const [draggedItem] = newItems.splice(draggedIndex, 1);
+                      newItems.splice(dragOverIndex, 0, draggedItem);
+                      onFilesChange(newItems);
                     }
                     setDraggedIndex(null);
                     setDragOverIndex(null);
@@ -549,14 +553,18 @@ export const MultiFileUpload = ({
           >
             <img
               src={lightboxUrl}
-              alt={lightboxFile?.name || "Preview"}
+              alt={lightboxFile?.file.name || "Preview"}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
 
             {lightboxFile && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent rounded-b-lg">
-                <p className="text-sm font-medium text-foreground truncate">{lightboxFile.name}</p>
-                <p className="text-xs text-muted-foreground">{formatFileSize(lightboxFile.size)}</p>
+                <p className="text-sm font-medium text-foreground truncate">
+                  {lightboxFile.file.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(lightboxFile.file.size)}
+                </p>
               </div>
             )}
           </div>

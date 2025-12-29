@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { countryCodes } from "@/data/country-codes";
 import { formatPhoneNumber } from "./form-utils";
+import { uploadFileItemSchema } from "./file-schema";
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
@@ -35,7 +36,7 @@ const schoolInfoValidators = {
     .max(200, "Name must be less than 200 characters"),
   schoolState: z.string().min(1, "State/Province is required"),
   enrollmentProofFiles: z
-    .array(z.instanceof(File))
+    .array(uploadFileItemSchema)
     .min(1, "Please upload at least one proof of enrollment"),
 };
 export const schoolInfoSchema = z.object(schoolInfoValidators);
@@ -112,8 +113,8 @@ const licenseValidators = {
     .trim()
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
-  licenseFile: z.instanceof(File).nullable().optional(),
-  licenseProofFiles: z.array(z.instanceof(File)).optional(),
+  licenseFile: uploadFileItemSchema.nullable().optional(),
+  licenseProofFiles: z.array(uploadFileItemSchema).optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
@@ -129,7 +130,7 @@ const taxExemptionValidators = {
   hasTaxExemption: z.boolean({
     error: "Please select an option",
   }),
-  taxExemptFile: z.instanceof(File).nullable().optional(),
+  taxExemptFile: uploadFileItemSchema.nullable().optional(),
 };
 export const taxExemptionSchema = z.object(taxExemptionValidators);
 

@@ -1,23 +1,30 @@
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { uploadFile } from "@/components/registration/actions/uploadFile";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { UploadFileItem } from "@/lib/validations/file-schema";
 
-export interface UploadFileItem {
-  id: string;
-  file: File;
-  status: "pending" | "uploading" | "completed" | "error";
-  progress: number;
-  error?: string;
-}
-
-export interface UseUploadFileReturn {
+export interface UploadFileContextType {
   queue: UploadFileItem[];
   isUploading: boolean;
-  addFiles: (files: File[]) => void;
+  addFiles: (files: File[]) => UploadFileItem[];
   clearQueue: () => void;
   retryFile: (id: string) => void;
 }
 
-export const useUploadFile = (): UseUploadFileReturn => {
+const UploadFileContext = createContext<UploadFileContextType | undefined>(undefined);
+
+export const useUploadFile = () => {
+  const context = useContext(UploadFileContext);
+  if (context === undefined) {
+    throw new Error("useUploadFile must be used within an UploadFileProvider");
+  }
+  return context;
+};
+
+interface UploadFileProviderProps {
+  children: React.ReactNode;
+}
+
+export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children }) => {
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadingRef = useRef(false);
@@ -33,9 +40,17 @@ export const useUploadFile = (): UseUploadFileReturn => {
   }, []);
 
   const updateFileStatus = useCallback(
-    (id: string, status: UploadFileItem["status"], error?: string) => {
+    (
+      id: string,
+      status: UploadFileItem["status"],
+      options?: { error?: string; publicUrl?: string }
+    ) => {
       setQueue((prevQueue) =>
-        prevQueue.map((item) => (item.id === id ? { ...item, status, error } : item))
+        prevQueue.map((item) =>
+          item.id === id
+            ? { ...item, status, error: options?.error, url: options?.publicUrl }
+            : item
+        )
       );
     },
     []
@@ -56,7 +71,7 @@ export const useUploadFile = (): UseUploadFileReturn => {
         updateFileStatus(item.id, "uploading");
 
         try {
-          await uploadFile(
+          const result = await uploadFile(
             item.file
             // (progress) => {
             //   updateFileProgress(item.id, progress);
@@ -64,11 +79,12 @@ export const useUploadFile = (): UseUploadFileReturn => {
           );
 
           // Mark as completed
+          console.log("upload", result);
           updateFileStatus(item.id, "completed");
         } catch (error) {
           // Mark as error
           const errorMessage = error instanceof Error ? error.message : "Upload failed";
-          updateFileStatus(item.id, "error", errorMessage);
+          updateFileStatus(item.id, "error", { error: errorMessage });
         }
       }
     } finally {
@@ -94,7 +110,13 @@ export const useUploadFile = (): UseUploadFileReturn => {
       progress: 0,
     }));
 
-    setQueue((prevQueue) => [...prevQueue, ...newItems]);
+    setQueue((prevQueue) => {
+      for (const newItem of newItems) {
+        prevQueue.push(newItem);
+      }
+      return prevQueue.slice();
+    });
+    return newItems;
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -117,11 +139,13 @@ export const useUploadFile = (): UseUploadFileReturn => {
     [processQueue]
   );
 
-  return {
+  const value: UploadFileContextType = {
     queue,
     isUploading,
     addFiles,
     clearQueue,
     retryFile,
   };
+
+  return <UploadFileContext.Provider value={value}>{children}</UploadFileContext.Provider>;
 };
