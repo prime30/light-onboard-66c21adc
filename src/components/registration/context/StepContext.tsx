@@ -23,7 +23,7 @@ import {
   wholesaleTermsSchema,
 } from "@/lib/validations/auth-schemas";
 import { AuthMode, Step } from "@/types/auth";
-import z, { ZodObject } from "zod";
+import { ZodObject } from "zod";
 import { useFormData, ValidationStatus, ValidFieldNames } from "./FormDataContext";
 
 const stepValidations: Record<Step, ZodObject | null> = {
@@ -50,6 +50,7 @@ export type StepContextType = {
   setCurrentStep: React.Dispatch<React.SetStateAction<Step>>;
   goToNextStep: () => void;
   goToPrevStep: () => void;
+  goToStep: (step: Step) => void;
   showValidationErrors: boolean;
   isTransitioning: boolean;
   setIsTransitioning: React.Dispatch<React.SetStateAction<boolean>>;
@@ -84,8 +85,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
 
   // TODO: Remove after development
   useEffect(() => {
-    setCurrentStep("business-location");
+    setCurrentStep("school-info");
   }, []);
+
+  console.log(watch());
 
   const steps = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
@@ -188,21 +191,27 @@ export function StepProvider({ children }: { children: ReactNode }) {
     }
 
     const nextStep = steps[currentStepNumber + 1] || currentStep;
-    setCurrentStep(nextStep);
-
-    setTransitionDirection("forward");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-      setIsTransitioning(false);
-    }, 150);
+    goToStep(nextStep);
   };
 
   const goToPrevStep = () => {
     const previousStepNumber = Math.max(currentStepNumber - 1, 0);
-    const nextStep = steps[previousStepNumber] || currentStep;
-    setCurrentStep(nextStep);
-    setTransitionDirection("backward");
+    const prevStep = steps[previousStepNumber] || currentStep;
+    goToStep(prevStep);
+  };
+
+  const goToStep = (step: Step) => {
+    // Check if the step is valid (exists in the steps array)
+    if (!steps.includes(step)) {
+      console.warn(`Invalid step: ${step}. Valid steps are:`, steps);
+      return;
+    }
+
+    const targetStepNumber = steps.indexOf(step);
+    const direction = targetStepNumber > currentStepNumber ? "forward" : "backward";
+
+    setCurrentStep(step);
+    setTransitionDirection(direction);
     setIsTransitioning(true);
     setTimeout(() => {
       setIsTransitioning(false);
@@ -225,6 +234,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     setCurrentStep,
     goToNextStep,
     goToPrevStep,
+    goToStep,
     showValidationErrors,
     isTransitioning,
     setIsTransitioning,
@@ -247,7 +257,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
  *
  * @example
  * ```tsx
- * const { completedSteps, getStepValidationStatus, getStepNumber } = useStepContext();
+ * const { completedSteps, getStepValidationStatus, getStepNumber, goToStep } = useStepContext();
  *
  * // Check if a step is complete
  * if (completedSteps["contact-basics"] === "complete") {
@@ -261,6 +271,11 @@ export function StepProvider({ children }: { children: ReactNode }) {
  * // Get step number (1-based index)
  * const stepNum = getStepNumber("contact-basics");
  * // Returns: number representing the step position in the flow
+ *
+ * // Navigate directly to any valid step
+ * goToStep("business-location");
+ * // Automatically handles transition direction and scroll behavior
+ * // Validates that the step exists in the current flow
  *
  * // The completedSteps object automatically updates when form data changes
  * // and reflects real-time validation status for each step

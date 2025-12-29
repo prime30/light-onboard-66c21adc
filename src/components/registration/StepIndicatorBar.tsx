@@ -3,13 +3,7 @@ import { cn } from "@/lib/utils";
 import { Check, Flag, AlertCircle } from "lucide-react";
 import { useStepContext } from "./context/StepContext";
 
-interface StepIndicatorBarProps {
-  onGoToStep: (stepNum: number) => void;
-}
-
-export const StepIndicatorBar = memo(function StepIndicatorBar({
-  onGoToStep,
-}: StepIndicatorBarProps) {
+export const StepIndicatorBar = memo(function StepIndicatorBar() {
   // Get all step data from context
   const {
     currentStep,
@@ -17,6 +11,9 @@ export const StepIndicatorBar = memo(function StepIndicatorBar({
     completedSteps,
     steps,
     mode,
+    goToStep,
+    goToNextStep,
+    goToPrevStep,
   } = useStepContext();
 
   // Memoize the current step number to prevent recalculation on every render
@@ -59,20 +56,19 @@ export const StepIndicatorBar = memo(function StepIndicatorBar({
 
     const diff = stepSwipeStartX.current - stepSwipeEndX.current;
     const threshold = 30;
-    const currentStepNum = getCurrentStepNumber;
 
     // Swipe left → next step
-    if (diff > threshold && currentStepNum < displayTotalSteps) {
-      onGoToStep(currentStepNum + 1);
+    if (diff > threshold) {
+      goToNextStep();
     }
     // Swipe right → previous step
-    else if (diff < -threshold && currentStepNum >= 1) {
-      onGoToStep(currentStepNum - 1);
+    else if (diff < -threshold) {
+      goToPrevStep();
     }
 
     stepSwipeStartX.current = null;
     stepSwipeEndX.current = null;
-  }, [getCurrentStepNumber, displayTotalSteps, onGoToStep]);
+  }, [goToNextStep, goToPrevStep]);
 
   // Only show for signup mode
   if (mode !== "signup") return null;
@@ -103,7 +99,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar({
         >
           {/* Intro/Onboarding step with icon */}
           <button
-            onClick={() => currentStep !== "onboarding" && onGoToStep(0)}
+            onClick={() => currentStep !== "onboarding" && goToStep("onboarding")}
             aria-label="Go to introduction step"
             className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
             style={{
@@ -184,7 +180,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar({
             return (
               <div key={step} className="flex items-center">
                 <button
-                  onClick={() => onGoToStep(stepIndex)}
+                  onClick={() => goToStep(step)}
                   aria-label={`Go to step ${stepNum}`}
                   className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
                   style={{
