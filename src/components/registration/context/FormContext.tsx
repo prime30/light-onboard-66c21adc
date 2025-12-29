@@ -15,6 +15,7 @@ export type AuthFormContextType = {
   getValidationStatus: ReturnType<typeof useFormData>["getValidationStatus"];
   errors: ReturnType<typeof useFormData>["errors"];
   dirtyFields: ReturnType<typeof useFormData>["dirtyFields"];
+  isFormValid: ReturnType<typeof useFormData>["isFormValid"];
 
   // Step-related (from StepContext)
   mode: ReturnType<typeof useStepContext>["mode"];
@@ -24,6 +25,7 @@ export type AuthFormContextType = {
   setCurrentStep: ReturnType<typeof useStepContext>["setCurrentStep"];
   goToNextStep: ReturnType<typeof useStepContext>["goToNextStep"];
   goToPrevStep: ReturnType<typeof useStepContext>["goToPrevStep"];
+  goToStep: ReturnType<typeof useStepContext>["goToStep"];
   showValidationErrors: ReturnType<typeof useStepContext>["showValidationErrors"];
   isTransitioning: ReturnType<typeof useStepContext>["isTransitioning"];
   setIsTransitioning: ReturnType<typeof useStepContext>["setIsTransitioning"];
@@ -36,6 +38,7 @@ export type AuthFormContextType = {
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
   getStepNumber: ReturnType<typeof useStepContext>["getStepNumber"];
+  getStepForField: ReturnType<typeof useStepContext>["getStepForField"];
   steps: ReturnType<typeof useStepContext>["steps"];
 };
 

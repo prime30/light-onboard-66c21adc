@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback } from "react";
+import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
@@ -41,6 +41,7 @@ export type FormDataContextType = {
   getValidationStatus: (fields: ValidFieldNames | ValidFieldNames[]) => ValidationStatus;
   errors: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["errors"];
   dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
+  isFormValid: boolean;
 };
 
 export const dirtyFieldOptions = {
@@ -100,6 +101,14 @@ export function FormDataProvider({
     [errors, dirtyFields]
   );
 
+  const fields = watch();
+  const isFormValid = useMemo(() => {
+    const currentData = fields;
+    const result = registrationSchema.safeParse(currentData);
+    console.log(JSON.parse(result.error?.message));
+    return result.success;
+  }, [fields]);
+
   // On mount, populate form with stored values
   useEffect(() => {
     if (storedForm) {
@@ -150,6 +159,7 @@ export function FormDataProvider({
     getValidationStatus,
     errors,
     dirtyFields,
+    isFormValid,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

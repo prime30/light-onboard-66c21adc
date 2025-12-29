@@ -9,38 +9,10 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { getStepOrder } from "@/data/step-order";
+import { fieldsForStep, getStepOrder, stepValidations } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
-import {
-  accountTypeSchema,
-  businessLocationSchema,
-  businessOperationSchema,
-  contactBasicsSchema,
-  licenseSchema,
-  preferencesSchema,
-  schoolInfoSchema,
-  taxExemptionSchema,
-  wholesaleTermsSchema,
-} from "@/lib/validations/auth-schemas";
 import { AuthMode, Step } from "@/types/auth";
-import { ZodObject } from "zod";
 import { useFormData, ValidationStatus, ValidFieldNames } from "./FormDataContext";
-
-const stepValidations: Record<Step, ZodObject | null> = {
-  reviews: null,
-  onboarding: null,
-  "account-type": accountTypeSchema,
-  "contact-basics": contactBasicsSchema,
-  license: licenseSchema,
-  "business-operation": businessOperationSchema,
-  "business-location": businessLocationSchema,
-  "school-info": schoolInfoSchema,
-  "wholesale-terms": wholesaleTermsSchema,
-  "tax-exemption": taxExemptionSchema,
-  "contact-info": preferencesSchema,
-  summary: null,
-  success: null,
-};
 
 export type StepContextType = {
   mode: AuthMode;
@@ -61,6 +33,7 @@ export type StepContextType = {
   completedSteps: Record<Step, ValidationStatus>;
   getStepValidationStatus: (step: Step) => ValidationStatus;
   getStepNumber: (step: Step) => number;
+  getStepForField: (fieldName: ValidFieldNames) => Step | null;
   steps: Step[];
 };
 
@@ -91,8 +64,6 @@ export function StepProvider({ children }: { children: ReactNode }) {
     // }, 1000);
     // setCurrentStep("school-info");
   }, []);
-
-  console.log(watch());
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
@@ -151,6 +122,15 @@ export function StepProvider({ children }: { children: ReactNode }) {
     },
     [steps]
   );
+
+  const getStepForField = useCallback((fieldName: ValidFieldNames): Step | null => {
+    for (const [step, fields] of Object.entries(fieldsForStep)) {
+      if (fields.includes(fieldName)) {
+        return step as Step;
+      }
+    }
+    return null;
+  }, []);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
@@ -266,6 +246,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     completedSteps,
     getStepValidationStatus,
     getStepNumber,
+    getStepForField,
     steps,
   };
 
@@ -297,6 +278,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
  * goToStep("business-location");
  * // Automatically handles transition direction and scroll behavior
  * // Validates that the step exists in the current flow
+ *
+ * // Find which step contains a specific field
+ * const stepForField = getStepForField("companyName");
+ * // Returns: "contact-basics" | null if field not found
  *
  * // The completedSteps object automatically updates when form data changes
  * // and reflects real-time validation status for each step
