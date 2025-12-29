@@ -386,25 +386,10 @@ interface OnboardingFormProps {
 }
 
 export const OnboardingForm = ({
-  onContinue,
   onSignIn,
-  onStepClick,
   fontsLoaded = true,
   isRestoring = false,
 }: OnboardingFormProps) => {
-  const [hasScrolled, setHasScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setHasScrolled(true);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="space-y-3 lg:space-y-8 relative">
       {/* Restoring progress indicator */}

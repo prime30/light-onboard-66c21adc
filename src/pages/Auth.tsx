@@ -1,15 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { z } from "zod";
-import { ChevronLeft, ChevronRight, Check, BadgeCheck, X } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuthFormState } from "@/hooks/use-auth-form-state";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";
-import { useModeSwitch } from "@/hooks/use-mode-switch";
-import { getStepValidationStatus } from "@/components/registration/StepValidationIcon";
-import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
 import { ContactBasicsStep } from "@/components/registration/steps/ContactBasicsStep";
@@ -25,31 +21,10 @@ import { AccountTypeForm } from "@/components/registration/steps/AccountTypeForm
 import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { SummaryForm } from "@/components/registration/steps/SummaryForm";
 import { SuccessForm } from "@/components/registration/steps/SuccessForm";
-import {
-  RotatingStylistAvatars,
-  TestimonialCarousel,
-  CircularProgress,
-  MagneticFeatureBox,
-} from "@/components/registration/helpers";
-import { isValidEmail, formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
-import { signIn, signUp } from "@/lib/auth-service";
-import { scrollToFirstError } from "@/lib/scroll-to-error";
+import { signUp } from "@/lib/auth-service";
 import { useRegistrationUpload } from "@/hooks/use-registration-upload";
-import { slides, features } from "@/data/auth-constants";
-import {
-  accountTypeSchema,
-  businessOperationSchema,
-  contactBasicsSchema,
-  businessLocationSchema,
-  licenseSchema,
-  salonLicenseSchema,
-  schoolInfoSchema,
-  taxExemptionSchema,
-  wholesaleTermsSchema,
-} from "@/lib/validations/auth-schemas";
-import { useRegistrationSync } from "@/hooks/use-registration-sync";
-import type { Step, AccountType, BusinessOperationType } from "@/types/auth";
+import type { Step } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
 import { MobileSavingProgress } from "@/components/registration/MobileSavingProgress";
@@ -59,6 +34,8 @@ import { CloseButton } from "@/components/registration/CloseButton";
 import { useGlobalApp } from "@/contexts";
 import { LeftPanel } from "@/components/registration/LeftPanel";
 import { useStepContext } from "@/components/registration/context";
+import { useScroll } from "@/hooks/use-scroll";
+import { useSafariViewportFix } from "@/hooks/use-safari-viewport-fix";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -71,136 +48,50 @@ const Auth = () => {
     currentStep,
     setCurrentStep,
     goToNextStep,
+    goToPrevStep,
     mainScrollRef,
     transitionDirection,
     setTransitionDirection,
     isTransitioning,
     setIsTransitioning,
-    showValidationErrors,
   } = useStepContext();
+
   const formState = useAuthFormState();
   const {
-    currentSlide,
-    setCurrentSlide,
     displayTotalSteps,
     accountType,
-    setAccountType,
     firstName,
-    setFirstName,
     lastName,
-    setLastName,
     preferredName,
-    setPreferredName,
     email,
     setEmail,
     password,
     setPassword,
     phoneNumber,
-    setPhoneNumber,
     phoneCountryCode,
-    setPhoneCountryCode,
     businessName,
-    setBusinessName,
-    businessAddress,
-    setBusinessAddress,
-    suiteNumber,
-    setSuiteNumber,
-    country,
-    setCountry,
-    city,
-    setCity,
-    state,
-    setState,
-    zipCode,
-    setZipCode,
-    salonSize,
-    setSalonSize,
-    salonStructure,
-    setSalonStructure,
-    licenseNumber,
-    setLicenseNumber,
     licenseFile,
-    setLicenseFile,
-    schoolName,
-    setSchoolName,
-    schoolState,
-    setSchoolState,
     enrollmentProofFiles,
-    setEnrollmentProofFiles,
-    businessOperationType,
-    setBusinessOperationType,
     licenseProofFiles,
-    setLicenseProofFiles,
-    hasTaxExemption,
-    setHasTaxExemption,
     taxExemptFile,
-    setTaxExemptFile,
-    wholesaleAgreed,
-    setWholesaleAgreed,
-    birthdayMonth,
-    setBirthdayMonth,
-    birthdayDay,
-    setBirthdayDay,
-    socialMediaHandle,
-    setSocialMediaHandle,
     referralSource,
     setReferralSource,
-    subscribeOrderUpdates,
-    setSubscribeOrderUpdates,
-    subscribeMarketing,
-    setSubscribeMarketing,
-    subscribePromotions,
-    setSubscribePromotions,
-    setShowValidationErrors,
     isSubmitting,
     setIsSubmitting,
     showForgotPassword,
     setShowForgotPassword,
     isSendingReset,
     setIsSendingReset,
-    completedSteps,
-    setCompletedSteps,
-    resetForm,
-    hasFormProgress,
-    pendingRestoreStep,
-    triggerRestoreTransition,
   } = formState;
 
   // Form validation from dedicated hook
   const { isAllStepsValid, getIncompleteSteps, isFormReadyToSubmit, getFormProgress } =
-    useFormValidation({
-      mode,
-      currentStep,
-      accountType,
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      businessName,
-      businessAddress,
-      country,
-      city,
-      state,
-      zipCode,
-      licenseNumber,
-      salonSize,
-      salonStructure,
-      schoolName,
-      schoolState,
-      enrollmentProofFiles,
-      businessOperationType,
-      hasTaxExemption,
-      taxExemptFile,
-      wholesaleAgreed,
-    });
+    useFormValidation({});
 
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
   const [nextStep, setNextStep] = useState<Step | null>(null);
   const [highlightFields, setHighlightFields] = useState<string[]>([]);
-  const [highlightWholesaleTerms, setHighlightWholesaleTerms] = useState(false);
-  const [highlightWholesaleFade, setHighlightWholesaleFade] = useState(false);
 
   // File upload hook for registration documents
   const {
@@ -229,6 +120,7 @@ const Auth = () => {
     const raf = window.requestAnimationFrame(() => setFooterEnterReady(true));
     return () => window.cancelAnimationFrame(raf);
   }, [footerVisible]);
+
   // Handle incoming navigation state or URL params to advance to specific step
   useEffect(() => {
     // Check URL query params first (e.g., ?step=1 goes to account-type)
@@ -378,22 +270,6 @@ const Auth = () => {
             elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
           }
 
-          // Special handling for wholesale terms button (uses React state)
-          if (selector === "[data-field='wholesale-terms']") {
-            setHighlightWholesaleTerms(true);
-            setHighlightWholesaleFade(false);
-            const fadeTimer = window.setTimeout(() => {
-              setHighlightWholesaleFade(true);
-              const removeTimer = window.setTimeout(() => {
-                setHighlightWholesaleTerms(false);
-                setHighlightWholesaleFade(false);
-              }, FADE_DURATION);
-              timers.push(removeTimer);
-            }, HIGHLIGHT_DURATION);
-            timers.push(fadeTimer);
-            return;
-          }
-
           // Add highlight class to all matched elements
           elements.forEach((el) => el.classList.add("field-highlight"));
 
@@ -440,9 +316,6 @@ const Auth = () => {
     };
   }, [highlightFields, isTransitioning]);
 
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-
   // Main content swipe refs for mode switching
   const mainSwipeStartX = useRef<number | null>(null);
   const mainSwipeEndX = useRef<number | null>(null);
@@ -466,262 +339,19 @@ const Auth = () => {
 
   // UI-only local state (not persisted)
   const [shimmerKey, setShimmerKey] = useState(0);
-  const [hasScrolled, setHasScrolled] = useState(false);
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
   const { fontsLoaded } = useGlobalApp();
 
-  // Sync local state to RegistrationContext for step components
-  useRegistrationSync(
-    {
-      accountType: accountType as AccountType,
-      businessOperationType: businessOperationType as BusinessOperationType,
-      firstName,
-      lastName,
-      preferredName,
-      email,
-      phoneNumber,
-      phoneCountryCode,
-      businessName,
-      businessAddress,
-      suiteNumber,
-      country,
-      city,
-      state,
-      zipCode,
-      schoolName,
-      schoolState,
-      enrollmentProofFiles,
-      licenseNumber,
-      salonSize,
-      salonStructure,
-      licenseFile,
-      licenseProofFiles,
-      hasTaxExemption,
-      taxExemptFile,
-      wholesaleAgreed,
-      birthdayMonth,
-      birthdayDay,
-      socialMediaHandle,
-      referralSource,
-      subscribeOrderUpdates,
-      subscribeMarketing,
-      subscribePromotions,
-      password,
-    },
-    {
-      currentStep,
-      currentSlide,
-      displayTotalSteps,
-      completedSteps,
-      showValidationErrors,
-      isSubmitting,
-      isTransitioning,
-    }
-  );
-
-  // Mode switching logic (preserves state between sign-in and sign-up)
-  const { handleModeChange } = useModeSwitch({
-    currentState: {
-      mode,
-      currentStep,
-      accountType,
-      licenseNumber,
-      state,
-      firstName,
-      lastName,
-      email,
-      password,
-      businessName,
-      businessAddress,
-      suiteNumber,
-      country,
-      city,
-      zipCode,
-      wholesaleAgreed,
-      hasTaxExemption,
-      preferredName,
-      phoneNumber,
-      phoneCountryCode,
-      salonSize,
-      salonStructure,
-      licenseFile,
-      taxExemptFile,
-      schoolName,
-      schoolState,
-      enrollmentProofFiles,
-      businessOperationType,
-      licenseProofFiles,
-      completedSteps,
-    },
-    setters: {
-      setMode,
-      setCurrentStep,
-      setAccountType,
-      setLicenseNumber,
-      setState,
-      setFirstName,
-      setLastName,
-      setEmail,
-      setPassword,
-      setBusinessName,
-      setBusinessAddress,
-      setSuiteNumber,
-      setCountry,
-      setCity,
-      setZipCode,
-      setWholesaleAgreed,
-      setHasTaxExemption,
-      setPreferredName,
-      setPhoneNumber,
-      setPhoneCountryCode,
-      setSalonSize,
-      setSalonStructure,
-      setLicenseFile,
-      setTaxExemptFile,
-      setSchoolName,
-      setSchoolState,
-      setEnrollmentProofFiles,
-      setBusinessOperationType,
-      setLicenseProofFiles,
-      setCompletedSteps,
-      setTransitionDirection,
-    },
+  // Scrolling and parallax effect hook
+  useSafariViewportFix();
+  const { parallaxOffset, headerGradientOpacity, footerGradientOpacity, resetScroll } = useScroll({
     mainScrollRef,
   });
 
-  // Parallax scroll effect for mobile hero
-  const [parallaxOffset, setParallaxOffset] = useState(0);
-  const [headerGradientOpacity, setHeaderGradientOpacity] = useState(0);
-  const [footerGradientOpacity, setFooterGradientOpacity] = useState(1);
-  const [isScrollable, setIsScrollable] = useState(false);
-
-  // Scroll hint reappear delay
-  const scrollHintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Check if content is scrollable
   useEffect(() => {
-    const el = mainScrollRef.current;
-    if (!el) return;
-
-    const checkScrollable = () => {
-      setIsScrollable(el.scrollHeight > el.clientHeight + 10);
-    };
-
-    // Check initially after a brief delay to let content render
-    const timeout = setTimeout(checkScrollable, 100);
-
-    // Recheck on resize
-    const resizeObserver = new ResizeObserver(checkScrollable);
-    resizeObserver.observe(el);
-
-    return () => {
-      clearTimeout(timeout);
-      resizeObserver.disconnect();
-    };
-  }, [mode, currentStep, mainScrollRef]);
-
-  useEffect(() => {
-    const el = mainScrollRef.current;
-    if (!el) return;
-
-    const handleScroll = () => {
-      const scrollTop = el.scrollTop;
-      // Parallax factor - image moves at 30% of scroll speed
-      setParallaxOffset(scrollTop * 0.3);
-
-      // Dynamic header gradient opacity based on scroll position (0-200px range)
-      const gradientOpacity = Math.min(scrollTop / 200, 1);
-      setHeaderGradientOpacity(gradientOpacity);
-
-      // Dynamic footer gradient opacity based on distance from bottom (stronger when further from bottom)
-      const scrollHeight = el.scrollHeight;
-      const clientHeight = el.clientHeight;
-      const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
-      const footerOpacity = Math.min(distanceFromBottom / 150, 1);
-      setFooterGradientOpacity(footerOpacity);
-
-      // Hide scroll hint immediately when scrolling past 50px
-      if (scrollTop > 50) {
-        if (scrollHintTimeoutRef.current) {
-          clearTimeout(scrollHintTimeoutRef.current);
-          scrollHintTimeoutRef.current = null;
-        }
-        setHasScrolled(true);
-      } else {
-        // Delay showing hint again when back at top
-        if (!scrollHintTimeoutRef.current && hasScrolled) {
-          scrollHintTimeoutRef.current = setTimeout(() => {
-            setHasScrolled(false);
-            scrollHintTimeoutRef.current = null;
-          }, 800);
-        }
-      }
-    };
-
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      el.removeEventListener("scroll", handleScroll);
-      if (scrollHintTimeoutRef.current) {
-        clearTimeout(scrollHintTimeoutRef.current);
-      }
-    };
-  }, [mode, currentStep, hasScrolled, mainScrollRef]);
-
-  // Reset hasScrolled when step changes
-  useEffect(() => {
-    setHasScrolled(false);
-  }, [currentStep]);
-
-  // Handle restore transition - after showing onboarding with toast, animate to first incomplete step
-  useEffect(() => {
-    if (pendingRestoreStep && currentStep === "onboarding") {
-      // Wait for toast to finish (4000ms duration) plus grace period before transitioning
-      const timer = setTimeout(() => {
-        setTransitionDirection("forward");
-        triggerRestoreTransition();
-      }, 4800); // Toast duration (4000ms) + grace period (800ms)
-
-      return () => clearTimeout(timer);
-    }
-  }, [pendingRestoreStep, currentStep, triggerRestoreTransition]);
-
-  // Safari-compatible viewport height fix
-  useEffect(() => {
-    const setAppHeight = () => {
-      document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
-    };
-    setAppHeight();
-    window.addEventListener("resize", setAppHeight);
-    window.addEventListener("orientationchange", setAppHeight);
-    return () => {
-      window.removeEventListener("resize", setAppHeight);
-      window.removeEventListener("orientationchange", setAppHeight);
-    };
-  }, []);
-  // resetForm is provided by useAuthFormState hook
-  const goToNextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  }, []);
-  const goToPrevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  }, []);
-  const handleTouchStart = (e: React.TouchEvent) => {
-    console.log("start");
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = () => {
-    if (touchStartX.current === null || touchEndX.current === null) return;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? goToNextSlide() : goToPrevSlide();
-    }
-    touchStartX.current = null;
-    touchEndX.current = null;
-  };
+    resetScroll();
+  }, [mode, currentStep, resetScroll]);
 
   // Main content swipe handlers for mode switching (onboarding <-> sign-in)
   const handleMainSwipeStart = (e: React.TouchEvent) => {
@@ -740,11 +370,11 @@ const Auth = () => {
 
     // Swipe left on onboarding → go to sign-in
     if (diff > threshold && mode === "signup" && currentStep === "onboarding") {
-      handleModeChange("signin");
+      setMode("signin");
     }
     // Swipe right on sign-in → go to sign-up (onboarding)
     else if (diff < -threshold && mode === "signin") {
-      handleModeChange("signup");
+      setMode("signup");
     }
 
     mainSwipeStartX.current = null;
@@ -753,21 +383,8 @@ const Auth = () => {
 
   const handleCloseModal = useCallback(() => {
     // Check if there's form progress to save (only in signup mode with an account type selected)
-    const hasProgress =
-      mode === "signup" &&
-      accountType !== null &&
-      (firstName.trim() !== "" ||
-        lastName.trim() !== "" ||
-        email.trim() !== "" ||
-        phoneNumber.trim() !== "" ||
-        businessName.trim() !== "" ||
-        businessAddress.trim() !== "" ||
-        licenseNumber.trim() !== "" ||
-        schoolName.trim() !== "" ||
-        wholesaleAgreed ||
-        hasTaxExemption !== null ||
-        businessOperationType !== null ||
-        completedSteps.size > 1);
+    // TODO: Check for progress.
+    const hasProgress = true;
 
     if (hasProgress && !isSavingProgress) {
       // Show saving animation
@@ -794,25 +411,7 @@ const Auth = () => {
         navigate("/");
       }, 300);
     }
-  }, [
-    navigate,
-    mode,
-    accountType,
-    firstName,
-    lastName,
-    email,
-    phoneNumber,
-    businessName,
-    businessAddress,
-    licenseNumber,
-    schoolName,
-    wholesaleAgreed,
-    hasTaxExemption,
-    businessOperationType,
-    completedSteps,
-    isSavingProgress,
-    setIsClosing,
-  ]);
+  }, [navigate, isSavingProgress, setIsClosing]);
 
   // Update the ref so the modal swipe hook can call handleCloseModal
   handleCloseModalRef.current = handleCloseModal;
@@ -839,32 +438,6 @@ const Auth = () => {
       setIsSendingReset(false);
     }
   }, [email]);
-
-  // Handle sign in with Supabase auth
-  const handleSignIn = useCallback(async () => {
-    if (!isValidEmail(email) || password.length < 8) {
-      toast.error("Please enter valid credentials");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const result = await signIn({ email, password });
-
-      if (result.success) {
-        toast.success(result.message || "Signed in successfully!");
-        // Clear form progress on successful login
-        sessionStorage.removeItem("auth_form_progress");
-        navigate("/");
-      } else {
-        toast.error(result.message || "Failed to sign in");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [email, password, navigate]);
 
   // Handle sign up submission
   const handleSignUpSubmit = useCallback(async () => {
@@ -930,6 +503,7 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   }, [
+    setIsSubmitting,
     email,
     password,
     firstName,
@@ -943,149 +517,10 @@ const Auth = () => {
     licenseProofFiles,
     enrollmentProofFiles,
     taxExemptFile,
-    uploadAllDocuments,
     resetDocumentUploadState,
-  ]);
-
-  // Handle business operation type selection with auto-advance
-  const handleBusinessOperationTypeSelect = (type: "commission" | "independent") => {
-    setBusinessOperationType(type);
-    // Auto-advance after grace period
-    setTimeout(() => {
-      setCompletedSteps((prev) => new Set([...prev, 2]));
-      setTransitionDirection("forward");
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep("contact-basics");
-        setIsTransitioning(false);
-      }, 150);
-    }, 800);
-  };
-
-  // Validate current step using zod schemas and scroll to first error
-  const validateCurrentStep = useCallback((): boolean => {
-    let schema: z.ZodSchema | null = null;
-    let dataToValidate: Record<string, unknown> = {};
-
-    switch (currentStep) {
-      case "account-type":
-        schema = accountTypeSchema;
-        dataToValidate = {
-          accountType: accountType as "professional" | "salon" | "student" | undefined,
-        };
-        break;
-      case "business-operation":
-        schema = businessOperationSchema;
-        dataToValidate = {
-          businessOperationType: businessOperationType as "commission" | "independent" | undefined,
-        };
-        break;
-      case "contact-basics":
-        schema = contactBasicsSchema;
-        dataToValidate = {
-          firstName,
-          lastName,
-          preferredName,
-          email,
-          phoneNumber,
-          phoneCountryCode,
-        };
-        break;
-      case "business-location":
-        schema = businessLocationSchema;
-        dataToValidate = {
-          businessName,
-          businessAddress,
-          suiteNumber,
-          country,
-          city,
-          state,
-          zipCode,
-        };
-        break;
-      case "license":
-        schema = accountType === "salon" ? salonLicenseSchema : licenseSchema;
-        dataToValidate = {
-          licenseNumber,
-          salonSize,
-          salonStructure,
-          licenseFile,
-          licenseProofFiles,
-        };
-        break;
-      case "school-info":
-        schema = schoolInfoSchema;
-        dataToValidate = {
-          schoolName,
-          schoolState,
-          enrollmentProofFiles,
-        };
-        break;
-      case "tax-exemption":
-        schema = taxExemptionSchema;
-        dataToValidate = {
-          hasTaxExemption,
-          taxExemptFile,
-        };
-        break;
-      case "wholesale-terms":
-        schema = wholesaleTermsSchema;
-        dataToValidate = {
-          agreedToWholesaleTerms: wholesaleAgreed,
-        };
-        break;
-    }
-
-    const result = schema.safeParse(dataToValidate);
-
-    if (!result.success) {
-      // Convert zod errors to field errors format for scroll-to-error
-      const fieldErrors: Record<string, { message: string }> = {};
-      result.error.flatten((err) => {
-        const fieldName = err.path[0]?.toString() || "";
-        if (!fieldErrors[fieldName]) {
-          fieldErrors[fieldName] = { message: err.message };
-        }
-      });
-
-      // Scroll to first error
-      scrollToFirstError(
-        fieldErrors as any,
-        { current: mainScrollRef.current } as React.RefObject<HTMLElement>
-      );
-
-      return false;
-    }
-
-    return true;
-  }, [
-    currentStep,
-    accountType,
-    businessOperationType,
-    firstName,
-    lastName,
-    preferredName,
-    email,
-    phoneNumber,
-    phoneCountryCode,
-    businessName,
-    businessAddress,
-    suiteNumber,
-    country,
-    city,
-    state,
-    zipCode,
-    licenseNumber,
-    salonSize,
-    salonStructure,
-    licenseFile,
-    licenseProofFiles,
-    schoolName,
-    schoolState,
-    enrollmentProofFiles,
-    hasTaxExemption,
-    taxExemptFile,
-    wholesaleAgreed,
+    setCurrentStep,
+    mainScrollRef,
+    uploadAllDocuments,
   ]);
 
   const handleNext = () => {
@@ -1099,65 +534,9 @@ const Auth = () => {
   };
 
   const handleBack = () => {
-    // Calculate previous step for skeleton
-    let targetStep: Step = currentStep;
-    switch (currentStep) {
-      case "account-type":
-        targetStep = "onboarding";
-        break;
-      case "business-operation":
-        targetStep = "account-type";
-        break;
-      case "school-info":
-        targetStep = "account-type";
-        break;
-      case "business-location":
-        targetStep = accountType === "professional" ? "contact-basics" : "account-type";
-        break;
-      case "contact-basics":
-        if (accountType === "student") targetStep = "school-info";
-        else if (accountType === "professional") targetStep = "business-operation";
-        else targetStep = "business-location";
-        break;
-      case "license":
-        targetStep = accountType === "professional" ? "business-location" : "contact-basics";
-        break;
-      case "tax-exemption":
-        if (accountType === "student") targetStep = "contact-basics";
-        else if (accountType === "professional") targetStep = "license";
-        else targetStep = "license";
-        break;
-      case "wholesale-terms":
-        targetStep = "tax-exemption";
-        break;
-      case "contact-info":
-        targetStep = "wholesale-terms";
-        break;
-      case "summary":
-        targetStep = "contact-info";
-        break;
-    }
-    setNextStep(targetStep);
-    setTransitionDirection("backward");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentStep(targetStep);
-      setIsTransitioning(false);
-      setNextStep(null);
-      mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-    }, 150);
+    goToPrevStep();
   };
-  const getTotalSteps = () => {
-    // Student: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info, summary = 7 steps
-    // Professional: 9 steps (account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info, summary)
-    // Salon: 8 steps (account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info, summary)
-    // Once account type is selected, use that type's total (even while still on account-type step)
-    // Only show max steps (9) when no account type is selected yet
-    if (!accountType) return 9;
-    if (accountType === "student") return 7;
-    if (accountType === "professional") return 9;
-    return 8;
-  };
+
   const getCurrentStepNumber = () => {
     if (currentStep === "account-type") return 1;
     if (accountType === "student") {
@@ -1378,7 +757,7 @@ const Auth = () => {
           <header className="relative flex items-center justify-between px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
             {/* Left side - Auth Toggle + Step Indicator */}
             <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px] min-h-[50px]">
-              <AuthToggle mode={mode} handleModeChange={handleModeChange} />
+              <AuthToggle mode={mode} handleModeChange={setMode} />
               <StepIndicatorBar onGoToStep={goToStep} />
             </div>
 
@@ -1484,121 +863,77 @@ const Auth = () => {
               </div>
             )}
 
-            {isTransitioning ? (
-              <div className="w-full max-w-[38rem]">
-                <FormSkeleton
-                  variant={
-                    (nextStep || currentStep) === "account-type"
-                      ? "account-type"
-                      : (nextStep || currentStep) === "license" ||
-                          (nextStep || currentStep) === "school-info"
-                        ? "license"
-                        : (nextStep || currentStep) === "business-location"
-                          ? "location"
-                          : (nextStep || currentStep) === "business-operation"
-                            ? "business-operation"
-                            : (nextStep || currentStep) === "wholesale-terms" ||
-                                (nextStep || currentStep) === "tax-exemption"
-                              ? "terms"
-                              : (nextStep || currentStep) === "contact-info"
-                                ? "contact"
-                                : "default"
-                  }
-                />
-              </div>
-            ) : (
-              <div
-                key={`${mode}-${currentStep}`}
-                className={cn(
-                  "w-full max-w-[38rem]",
-                  currentStep === "success"
-                    ? "animate-fade-in"
-                    : mode === "signin"
-                      ? modeTransitionDirection === "right"
+            <div
+              key={`${mode}-${currentStep}`}
+              className={cn(
+                "w-full max-w-[38rem]",
+                currentStep === "success"
+                  ? "animate-fade-in"
+                  : mode === "signin"
+                    ? modeTransitionDirection === "right"
+                      ? "animate-step-enter-right"
+                      : "animate-step-enter-left"
+                    : currentStep === "onboarding"
+                      ? modeTransitionDirection === "left"
+                        ? "animate-step-enter-left"
+                        : "animate-step-enter-right"
+                      : transitionDirection === "forward"
                         ? "animate-step-enter-right"
                         : "animate-step-enter-left"
-                      : currentStep === "onboarding"
-                        ? modeTransitionDirection === "left"
-                          ? "animate-step-enter-left"
-                          : "animate-step-enter-right"
-                        : transitionDirection === "forward"
-                          ? "animate-step-enter-right"
-                          : "animate-step-enter-left"
-                )}
-              >
-                {mode === "signin" ? (
-                  <SignInForm
-                    email={email}
-                    password={password}
-                    onEmailChange={setEmail}
-                    onPasswordChange={setPassword}
-                    onSignUp={() => {
-                      setModeTransitionDirection("left");
-                      setMode("signup");
-                      setCurrentStep("onboarding");
-                      setShowForgotPassword(false);
-                    }}
-                    showForgotPassword={showForgotPassword}
-                    onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
-                    onForgotPasswordSubmit={handleForgotPasswordSubmit}
-                    isSendingReset={isSendingReset}
-                    fontsLoaded={fontsLoaded}
-                  />
-                ) : (
-                  <>
-                    {currentStep === "onboarding" && (
-                      <OnboardingForm
-                        onContinue={handleNext}
-                        onSignIn={() => {
-                          setModeTransitionDirection("right");
-                          setMode("signin");
-                        }}
-                        onStepClick={() => {
-                          setShimmerKey((k) => k + 1);
-                        }}
-                        fontsLoaded={fontsLoaded}
-                        isRestoring={!!pendingRestoreStep}
-                      />
-                    )}
-                    {currentStep === "account-type" && <AccountTypeForm />}
-                    {currentStep === "license" && <LicenseStep />}
-                    {currentStep === "business-operation" && <BusinessOperationStep />}
-                    {currentStep === "business-location" && <BusinessLocationStep />}
-                    {currentStep === "school-info" && (
-                      <SchoolInfoStep
-                        schoolName={schoolName}
-                        schoolState={schoolState}
-                        enrollmentProofFiles={enrollmentProofFiles}
-                        onSchoolNameChange={setSchoolName}
-                        onSchoolStateChange={setSchoolState}
-                        onEnrollmentProofFilesChange={setEnrollmentProofFiles}
-                        showValidationErrors={showValidationErrors}
-                        validationStatus={getStepValidationStatus(
-                          schoolName.trim() !== "" &&
-                            schoolState !== "" &&
-                            enrollmentProofFiles.length > 0,
-                          schoolName.trim() !== "" ||
-                            schoolState !== "" ||
-                            enrollmentProofFiles.length > 0,
-                          showValidationErrors
-                        )}
-                      />
-                    )}
-                    {currentStep === "contact-basics" && <ContactBasicsStep />}
-                    {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
-                    {currentStep === "tax-exemption" && <TaxExemptionStep />}
-                    {currentStep === "contact-info" && <PreferencesStep />}
-                    {currentStep === "summary" && <SummaryForm onEditStep={goToStep} />}
-                    {currentStep === "success" && (
-                      <SuccessForm
-                        referralSource={referralSource}
-                        onReferralSourceChange={setReferralSource}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            )}
+              )}
+            >
+              {mode === "signin" ? (
+                <SignInForm
+                  email={email}
+                  password={password}
+                  onEmailChange={setEmail}
+                  onPasswordChange={setPassword}
+                  onSignUp={() => {
+                    setModeTransitionDirection("left");
+                    setMode("signup");
+                    setCurrentStep("onboarding");
+                    setShowForgotPassword(false);
+                  }}
+                  showForgotPassword={showForgotPassword}
+                  onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
+                  onForgotPasswordSubmit={handleForgotPasswordSubmit}
+                  isSendingReset={isSendingReset}
+                  fontsLoaded={fontsLoaded}
+                />
+              ) : (
+                <>
+                  {currentStep === "onboarding" && (
+                    <OnboardingForm
+                      onContinue={handleNext}
+                      onSignIn={() => {
+                        setModeTransitionDirection("right");
+                        setMode("signin");
+                      }}
+                      onStepClick={() => {
+                        setShimmerKey((k) => k + 1);
+                      }}
+                      fontsLoaded={fontsLoaded}
+                    />
+                  )}
+                  {currentStep === "account-type" && <AccountTypeForm />}
+                  {currentStep === "license" && <LicenseStep />}
+                  {currentStep === "business-operation" && <BusinessOperationStep />}
+                  {currentStep === "business-location" && <BusinessLocationStep />}
+                  {currentStep === "school-info" && <SchoolInfoStep />}
+                  {currentStep === "contact-basics" && <ContactBasicsStep />}
+                  {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+                  {currentStep === "tax-exemption" && <TaxExemptionStep />}
+                  {currentStep === "contact-info" && <PreferencesStep />}
+                  {currentStep === "summary" && <SummaryForm onEditStep={goToStep} />}
+                  {currentStep === "success" && (
+                    <SuccessForm
+                      referralSource={referralSource}
+                      onReferralSourceChange={setReferralSource}
+                    />
+                  )}
+                </>
+              )}
+            </div>
           </main>
 
           {/* Subtle gradient behind footer on mobile/tablet */}
