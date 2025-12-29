@@ -71,12 +71,9 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
         updateFileStatus(item.id, "uploading");
 
         try {
-          const result = await uploadFile(
-            item.file
-            // (progress) => {
-            //   updateFileProgress(item.id, progress);
-            // }
-          );
+          const result = await uploadFile(item.file, (progress) => {
+            updateFileProgress(item.id, progress);
+          });
 
           // Mark as completed
           console.log("upload", result);

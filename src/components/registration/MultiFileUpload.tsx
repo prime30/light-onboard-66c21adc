@@ -155,9 +155,7 @@ export const MultiFileUpload = ({
 }: MultiFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [pendingFiles, setPendingFiles] = useState<UploadFileItem[]>([]);
+  const [pendingFileIds, setPendingFileIds] = useState<string[]>([]);
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
@@ -166,6 +164,19 @@ export const MultiFileUpload = ({
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Derive pending files from queue using IDs
+  const pendingFiles = queue.filter((item) => pendingFileIds.includes(item.id));
+
+  // Derive upload state from pending files
+  const isProcessing = pendingFiles.some(
+    (file) => file.status === "uploading" || file.status === "pending"
+  );
+  const totalPendingFiles = pendingFiles.length;
+  const progress =
+    totalPendingFiles > 0
+      ? Math.round(pendingFiles.reduce((acc, file) => acc + file.progress, 0) / totalPendingFiles)
+      : 0;
 
   // Close lightbox on escape key
   useEffect(() => {
@@ -186,39 +197,22 @@ export const MultiFileUpload = ({
     };
   }, [lightboxUrl]);
 
-  // Process pending files with progress animation
+  // Handle completed uploads
   useEffect(() => {
-    if (pendingFiles.length === 0) return;
+    if (pendingFileIds.length === 0) return;
 
-    setIsProcessing(true);
-    setProgress(0);
+    const allCompleted = pendingFiles.every(
+      (file) => file.status === "completed" || file.status === "error"
+    );
+    const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
-    const totalSize = pendingFiles.reduce((acc, item) => acc + item.file.size, 0);
-    const fileSizeKB = totalSize / 1024;
-    const baseTime = 300;
-    const sizeMultiplier = Math.min(fileSizeKB / 500, 1);
-    const totalTime = baseTime + sizeMultiplier * 700;
-    const steps = 20;
-    const stepTime = totalTime / steps;
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      currentStep++;
-      const linearProgress = currentStep / steps;
-      const easedProgress = 1 - Math.pow(1 - linearProgress, 3);
-      setProgress(Math.round(easedProgress * 100));
-
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        setIsProcessing(false);
-        setProgress(100);
-        onFilesChange([...files, ...pendingFiles]);
-        setPendingFiles([]);
-      }
-    }, stepTime);
-
-    return () => clearInterval(interval);
-  }, [pendingFiles]);
+    if (allCompleted && completedItems.length > 0) {
+      // Add completed files to the component's files state
+      onFilesChange([...files, ...completedItems]);
+      // Clear pending file IDs
+      setPendingFileIds([]);
+    }
+  }, [pendingFiles, pendingFileIds.length, files, onFilesChange]);
 
   const validateFileType = useCallback(
     (file: File): boolean => {
@@ -279,7 +273,7 @@ export const MultiFileUpload = ({
 
     if (validFiles.length > 0) {
       const newItems = addFiles(validFiles);
-      setPendingFiles(newItems);
+      setPendingFileIds(newItems.map((item) => item.id));
       console.log(newItems);
     }
   };
@@ -418,7 +412,7 @@ export const MultiFileUpload = ({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Processing {pendingFiles.length} file{pendingFiles.length > 1 ? "s" : ""}...
+                Processing {totalPendingFiles} file{totalPendingFiles > 1 ? "s" : ""}...
               </p>
             </div>
           ) : (
