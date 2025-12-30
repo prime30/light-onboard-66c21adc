@@ -67,4 +67,3 @@ static/
 # Supabase
 .branches/
 .temp/
-supabase/functions/
