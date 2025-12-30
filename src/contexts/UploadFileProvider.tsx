@@ -40,16 +40,10 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
   }, []);
 
   const updateFileStatus = useCallback(
-    (
-      id: string,
-      status: UploadFileItem["status"],
-      options?: { error?: string; publicUrl?: string }
-    ) => {
+    (id: string, status: UploadFileItem["status"], options?: { error?: string; url?: string }) => {
       setQueue((prevQueue) =>
         prevQueue.map((item) =>
-          item.id === id
-            ? { ...item, status, error: options?.error, url: options?.publicUrl }
-            : item
+          item.id === id ? { ...item, status, error: options?.error, url: options?.url } : item
         )
       );
     },
@@ -71,13 +65,12 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
         updateFileStatus(item.id, "uploading");
 
         try {
-          const result = await uploadFile(item.file, (progress) => {
+          const url = await uploadFile(item.file, (progress) => {
             updateFileProgress(item.id, progress);
           });
 
           // Mark as completed
-          console.log("upload", result);
-          updateFileStatus(item.id, "completed");
+          updateFileStatus(item.id, "completed", { url });
         } catch (error) {
           // Mark as error
           const errorMessage = error instanceof Error ? error.message : "Upload failed";
@@ -88,7 +81,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
       isUploadingRef.current = false;
       setIsUploading(false);
     }
-  }, [queue, updateFileStatus]);
+  }, [queue, updateFileProgress, updateFileStatus]);
 
   useEffect(() => {
     if (isUploadingRef.current) return;

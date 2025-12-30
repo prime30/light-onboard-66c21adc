@@ -2,10 +2,11 @@ import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Info, Check, ArrowUpRight, Calendar } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
-import { FileUpload } from "@/components/registration/FileUpload";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
+import { MultiFileUpload } from "../MultiFileUpload";
+import { UploadFileItem } from "@/contexts";
 
 export const TaxExemptionStep = () => {
   const {
@@ -15,6 +16,7 @@ export const TaxExemptionStep = () => {
     getStepValidationStatus,
     getStepNumber,
     showValidationErrors,
+    errors,
   } = useForm();
 
   const [showToast, setShowToast] = useState(false);
@@ -255,12 +257,13 @@ export const TaxExemptionStep = () => {
             className={cn(hasTaxExemption === true && "animate-haptic-pop")}
             data-field="tax-document"
           >
-            <FileUpload
-              file={taxExemptFile}
-              onFileChange={(file) => setValue("taxExemptFile", file)}
+            <MultiFileUpload
+              files={taxExemptFile || []}
+              onFilesChange={(files: UploadFileItem[]) => setValue("taxExemptFile", files)}
               placeholder="Upload your state tax-exempt license"
-              error={fileError}
+              error={!!errors.taxExemptFile}
               errorMessage="Please upload your tax exemption document"
+              maxFiles={1}
             />
           </div>
         </div>

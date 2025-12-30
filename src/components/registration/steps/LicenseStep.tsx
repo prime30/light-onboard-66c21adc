@@ -1,7 +1,6 @@
 import { Info } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
-import { FileUpload } from "@/components/registration/FileUpload";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
@@ -25,10 +24,17 @@ export const LicenseStep = () => {
   } = useForm();
 
   // Watch form values
-  const watchedValues = watch(["accountType", "licenseNumber", "licenseFile", "licenseProofFiles"]);
-  const [accountType, licenseNumber, licenseFile, licenseProofFiles] = watchedValues;
+  const watchedValues = watch(["accountType", "licenseNumber", "licenseProofFiles"]);
+  const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
 
   const isSalon = accountType === "salon";
+  const label = isSalon ? (
+    "Upload your salon license*"
+  ) : (
+    <>
+      Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
+    </>
+  );
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Create options for selects
@@ -112,56 +118,41 @@ export const LicenseStep = () => {
                 isValid={getValidationStatus("salonStructure") === "complete"}
               />
             </div>
-
-            {/* File Upload */}
-            <div className="space-y-2.5 animate-stagger-6">
-              <Label className="text-sm font-medium">Upload your salon license*</Label>
-              <FileUpload
-                file={licenseFile}
-                onFileChange={(file) => setValue("licenseFile", file)}
-                placeholder="Upload your salon license"
-              />
-            </div>
           </>
         )}
 
         {/* Professional-specific file upload (optional) - shows after 3+ characters in license number */}
-        {!isSalon && (
-          <div
-            className={cn(
-              "grid transition-all duration-400 animate-stagger-4",
+        <div
+          className={cn(
+            "grid transition-all duration-400 animate-stagger-4",
+            (licenseNumber?.trim()?.length || 0) >= 3
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
+          )}
+          style={{
+            transitionTimingFunction:
               (licenseNumber?.trim()?.length || 0) >= 3
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0"
-            )}
-            style={{
-              transitionTimingFunction:
-                (licenseNumber?.trim()?.length || 0) >= 3
-                  ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
-                  : "ease-out",
-            }}
-          >
-            <div className="overflow-hidden">
-              <div
-                className={cn(
-                  "space-y-2.5",
-                  (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
-                )}
-              >
-                <Label className="text-sm font-medium">
-                  Upload license photo{" "}
-                  <span className="text-muted-foreground font-normal">(optional)</span>
-                </Label>
-                <MultiFileUpload
-                  files={licenseProofFiles || []}
-                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
-                  placeholder="Upload photos of your license"
-                  maxFiles={3}
-                />
-              </div>
+                ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
+                : "ease-out",
+          }}
+        >
+          <div className="overflow-hidden">
+            <div
+              className={cn(
+                "space-y-2.5",
+                (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
+              )}
+            >
+              <Label className="text-sm font-medium">{label}</Label>
+              <MultiFileUpload
+                files={licenseProofFiles || []}
+                onFilesChange={(files) => setValue("licenseProofFiles", files)}
+                placeholder="Upload photos of your license"
+                maxFiles={3}
+              />
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

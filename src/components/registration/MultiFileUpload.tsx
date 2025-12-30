@@ -145,7 +145,7 @@ const FileItem = ({
 export const MultiFileUpload = ({
   files,
   onFilesChange,
-  accept = ".pdf,.jpg,.jpeg,.png",
+  accept = ".pdf,.jpg,.jpeg,.png,.webp",
   placeholder = "No files chosen",
   error = false,
   errorMessage,
@@ -178,6 +178,14 @@ export const MultiFileUpload = ({
       ? Math.round(pendingFiles.reduce((acc, file) => acc + file.progress, 0) / totalPendingFiles)
       : 0;
 
+  const closeLightbox = useCallback(() => {
+    if (lightboxUrl) {
+      URL.revokeObjectURL(lightboxUrl);
+    }
+    setLightboxUrl(null);
+    setLightboxFile(null);
+  }, [lightboxUrl]);
+
   // Close lightbox on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -195,7 +203,7 @@ export const MultiFileUpload = ({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [lightboxUrl]);
+  }, [closeLightbox, lightboxUrl]);
 
   // Handle completed uploads
   useEffect(() => {
@@ -207,6 +215,7 @@ export const MultiFileUpload = ({
     const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
     if (allCompleted && completedItems.length > 0) {
+      console.log(completedItems);
       // Add completed files to the component's files state
       onFilesChange([...files, ...completedItems]);
       // Clear pending file IDs
@@ -225,58 +234,61 @@ export const MultiFileUpload = ({
     [accept]
   );
 
-  const processFiles = async (newFiles: File[]) => {
-    // Compress images if enabled
-    let filesToProcess = newFiles;
-    if (enableCompression) {
-      filesToProcess = await compressImages(newFiles);
-    }
-
-    const validFiles: File[] = [];
-    const invalidTypeFiles: string[] = [];
-    const oversizedFiles: string[] = [];
-
-    for (const file of filesToProcess) {
-      if (!validateFileType(file)) {
-        invalidTypeFiles.push(file.name);
-      } else if (file.size > maxFileSize) {
-        oversizedFiles.push(file.name);
-      } else {
-        validFiles.push(file);
+  const processFiles = useCallback(
+    async (newFiles: File[]) => {
+      // Compress images if enabled
+      let filesToProcess = newFiles;
+      if (enableCompression) {
+        filesToProcess = await compressImages(newFiles);
       }
-    }
 
-    // Build error message
-    const errors: string[] = [];
-    if (invalidTypeFiles.length > 0) {
-      const acceptedFormats = formatAcceptedTypes(accept);
-      errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
-    }
-    if (oversizedFiles.length > 0) {
-      errors.push(
-        `Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`
-      );
-    }
+      const validFiles: File[] = [];
+      const invalidTypeFiles: string[] = [];
+      const oversizedFiles: string[] = [];
 
-    // Check max files limit
-    const availableSlots = maxFiles - files.length;
-    if (validFiles.length > availableSlots) {
-      errors.push(
-        `Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`
-      );
-      validFiles.splice(availableSlots);
-    }
+      for (const file of filesToProcess) {
+        if (!validateFileType(file)) {
+          invalidTypeFiles.push(file.name);
+        } else if (file.size > maxFileSize) {
+          oversizedFiles.push(file.name);
+        } else {
+          validFiles.push(file);
+        }
+      }
 
-    if (errors.length > 0) {
-      setFileTypeError(errors.join(" • "));
-    }
+      // Build error message
+      const errors: string[] = [];
+      if (invalidTypeFiles.length > 0) {
+        const acceptedFormats = formatAcceptedTypes(accept);
+        errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
+      }
+      if (oversizedFiles.length > 0) {
+        errors.push(
+          `Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`
+        );
+      }
 
-    if (validFiles.length > 0) {
-      const newItems = addFiles(validFiles);
-      setPendingFileIds(newItems.map((item) => item.id));
-      console.log(newItems);
-    }
-  };
+      // Check max files limit
+      const availableSlots = maxFiles - files.length;
+      if (validFiles.length > availableSlots) {
+        errors.push(
+          `Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`
+        );
+        validFiles.splice(availableSlots);
+      }
+
+      if (errors.length > 0) {
+        setFileTypeError(errors.join(" • "));
+      }
+
+      if (validFiles.length > 0) {
+        const newItems = addFiles(validFiles);
+        setPendingFileIds(newItems.map((item) => item.id));
+        console.log(newItems);
+      }
+    },
+    [accept, addFiles, enableCompression, files.length, maxFileSize, maxFiles, validateFileType]
+  );
 
   console.log(queue);
 
@@ -313,7 +325,7 @@ export const MultiFileUpload = ({
         processFiles(droppedFiles);
       }
     },
-    [files.length, maxFiles, validateFileType]
+    [processFiles]
   );
 
   const handleRemoveFile = (index: number) => {
@@ -331,14 +343,6 @@ export const MultiFileUpload = ({
       setLightboxUrl(url);
       setLightboxFile(item);
     }
-  };
-
-  const closeLightbox = () => {
-    if (lightboxUrl) {
-      URL.revokeObjectURL(lightboxUrl);
-    }
-    setLightboxUrl(null);
-    setLightboxFile(null);
   };
 
   const hasError = error || !!fileTypeError;

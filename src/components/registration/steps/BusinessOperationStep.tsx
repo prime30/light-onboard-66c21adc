@@ -1,7 +1,8 @@
 import { Building2, Users, Check, Headphones, Tag } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
-import { dirtyFieldOptions, useForm, ValidFieldNames } from "../context";
+import { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { dirtyFieldOptions, useForm } from "../context";
 import { Step } from "@/types/auth";
 
 const STEP: Step = "business-operation";

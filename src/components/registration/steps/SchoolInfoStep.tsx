@@ -7,6 +7,7 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
+import { UploadFileItem } from "@/contexts";
 
 const states = [
   "Alabama",
@@ -110,7 +111,7 @@ export const SchoolInfoStep = () => {
   }));
 
   // Handle file upload
-  const handleEnrollmentProofFilesChange = (files: File[]) => {
+  const handleEnrollmentProofFilesChange = (files: UploadFileItem[]) => {
     setValue("enrollmentProofFiles", files, {
       shouldDirty: true,
       shouldTouch: true,

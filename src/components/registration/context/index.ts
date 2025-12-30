@@ -9,7 +9,6 @@ export { StepProvider, useStepContext } from "./StepContext";
 export type { AuthFormContextType } from "./FormContext";
 export type {
   FormDataContextType,
-  ValidFieldNames,
   ValidationStatus,
   FormFieldProps,
   FormControlFieldProps,

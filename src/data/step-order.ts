@@ -1,4 +1,4 @@
-import { ValidFieldNames } from "@/components/registration/context";
+import { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import {
   accountTypeSchema,
   businessLocationSchema,

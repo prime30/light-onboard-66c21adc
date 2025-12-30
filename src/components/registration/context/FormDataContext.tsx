@@ -1,12 +1,15 @@
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
-import { RegistrationFormData, registrationSchema } from "@/lib/validations/auth-schemas";
+import {
+  RegistrationFormData,
+  registrationSchema,
+  ValidFieldNames,
+} from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
 
-export type ValidFieldNames = keyof RegistrationFormData;
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
 export type FormFieldProps = {

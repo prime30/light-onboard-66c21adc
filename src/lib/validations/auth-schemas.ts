@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { countryCodes } from "@/data/country-codes";
 import { formatPhoneNumber } from "./form-utils";
-import { uploadFileItemSchema } from "./file-schema";
+import { UploadFileItem, uploadFileItemSchema } from "./file-schema";
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
@@ -113,7 +113,6 @@ const licenseValidators = {
     .trim()
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
-  licenseFile: uploadFileItemSchema.nullable().optional(),
   licenseProofFiles: z.array(uploadFileItemSchema).optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
@@ -130,7 +129,7 @@ const taxExemptionValidators = {
   hasTaxExemption: z.boolean({
     error: "Please select an option",
   }),
-  taxExemptFile: uploadFileItemSchema.nullable().optional(),
+  taxExemptFile: z.array(uploadFileItemSchema).nullable().optional(),
 };
 export const taxExemptionSchema = z.object(taxExemptionValidators);
 
@@ -173,7 +172,7 @@ const baseValidators = {
   ...preferencesValidators,
 };
 
-export const registrationSchema = z.discriminatedUnion("accountType", [
+const schema = z.discriminatedUnion("accountType", [
   z.object({ accountType: z.literal("professional") }).extend({
     ...baseValidators,
     ...businessOperationValidators,
@@ -193,14 +192,30 @@ export const registrationSchema = z.discriminatedUnion("accountType", [
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
 
-export function transformRegistrationSchema(data: RegistrationFormData) {
+const fileKeys: ValidFieldNames[] = ["enrollmentProofFiles", "licenseProofFiles", "taxExemptFile"];
+
+export const registrationSchema = schema.transform((data) => {
   data.phoneCountryCode =
     countryCodes.find((c) => c.iso === data.phoneCountryCode)?.code || data.phoneCountryCode;
-  return data;
-}
 
-// Type exports
+  for (const key of fileKeys) {
+    if (!data[key]) continue;
+
+    if (!Array.isArray(data[key])) {
+      data[key] = [data[key]];
+    }
+
+    data[key] = data[key].map((item: UploadFileItem) => {
+      return item.url;
+    });
+  }
+
+  return data;
+});
+
 export type AccountTypeFormData = z.infer<typeof accountTypeSchema>;
 export type BusinessOperationFormData = z.infer<typeof businessOperationSchema>;
 export type SchoolInfoFormData = z.infer<typeof schoolInfoSchema>;
