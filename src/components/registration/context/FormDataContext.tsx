@@ -38,7 +38,7 @@ export type FormDataContextType = {
   control: Control<RegistrationFormData>;
   watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
-  handleSubmit: ReturnType<typeof useForm<RegistrationFormData>>["handleSubmit"];
+  submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useForm<RegistrationFormData>>["setValue"];
   formState: ReturnType<typeof useForm<RegistrationFormData>>["formState"];
   subscribe: ReturnType<typeof useForm<RegistrationFormData>>["subscribe"];
@@ -82,6 +82,15 @@ export function FormDataProvider({
       resolver: zodResolver(registrationSchema),
       defaultValues: initialValues,
     });
+
+  const submitForm = handleSubmit(
+    (values) => {
+      console.log("submit values:", values);
+    },
+    (errors) => {
+      console.log("errors: ", errors);
+    }
+  );
 
   const { errors, dirtyFields } = formState;
 
@@ -163,7 +172,7 @@ export function FormDataProvider({
     control,
     watch,
     reset,
-    handleSubmit,
+    submitForm,
     setValue,
     formState,
     subscribe,

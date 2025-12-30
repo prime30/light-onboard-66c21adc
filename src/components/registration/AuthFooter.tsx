@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -46,6 +46,7 @@ export function AuthFooter({
     goToStep,
     steps,
     errors,
+    submitForm,
   } = useForm();
 
   console.log(errors, isFormValid);
@@ -66,6 +67,15 @@ export function AuthFooter({
   };
 
   const isProcessing = isSubmitting || isUploading;
+
+  const handleContinue = useCallback(() => {
+    if (isSummaryStep) {
+      submitForm();
+      return;
+    }
+
+    goToNextStep();
+  }, [goToNextStep, isSummaryStep, submitForm]);
 
   return (
     <footer
@@ -133,7 +143,7 @@ export function AuthFooter({
                 <Button
                   key={`shimmer-${shimmerKey}`}
                   size="pill-lg"
-                  onClick={goToNextStep}
+                  onClick={handleContinue}
                   disabled={
                     isSummaryStep ? !isFormValid || isProcessing : !isStepValid || isProcessing
                   }

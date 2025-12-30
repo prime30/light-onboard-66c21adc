@@ -8,7 +8,7 @@ export type AuthFormContextType = {
   control: ReturnType<typeof useFormData>["control"];
   watch: ReturnType<typeof useFormData>["watch"];
   reset: ReturnType<typeof useFormData>["reset"];
-  handleSubmit: ReturnType<typeof useFormData>["handleSubmit"];
+  submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useFormData>["setValue"];
   formState: ReturnType<typeof useFormData>["formState"];
   subscribe: ReturnType<typeof useFormData>["subscribe"];
