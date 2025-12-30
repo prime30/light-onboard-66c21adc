@@ -84,8 +84,20 @@ export function FormDataProvider({
     });
 
   const submitForm = handleSubmit(
-    (values) => {
+    async (values) => {
       console.log("submit values:", values);
+      const result = await fetch("http://127.0.0.1:54321/functions/v1/create-customer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "NEW_CUSTOMER",
+          data: values,
+        }),
+      });
+
+      console.log(result);
     },
     (errors) => {
       console.log("errors: ", errors);
@@ -147,9 +159,9 @@ export function FormDataProvider({
         type ValueType = (typeof values)[keyof typeof values];
         const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
           if (
-            (typeof value === "object" && value?.file instanceof File) ||
+            (typeof value === "object" && !Array.isArray(value) && value?.file instanceof File) ||
             (Array.isArray(value) && value.length === 0) ||
-            (Array.isArray(value) && value[0]?.file instanceof File)
+            (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
           ) {
             return acc;
           }

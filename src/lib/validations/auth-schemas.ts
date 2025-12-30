@@ -3,6 +3,42 @@ import { countryCodes } from "@/data/country-codes";
 import { formatPhoneNumber } from "./form-utils";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema";
 
+function convertFileUploadToUrl(
+  value: UploadFileItem | UploadFileItem[] | string | string[] | undefined
+) {
+  if (!value) return undefined;
+
+  if (typeof value === "string") {
+    return [value];
+  }
+
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+
+  const converted: string[] = value.map((item: UploadFileItem | string) => {
+    if (typeof item === "string") return item;
+    return item.url;
+  });
+
+  return converted;
+}
+
+function fileUploadSchema(optional: boolean) {
+  const fileSchema = z.union([
+    z.array(uploadFileItemSchema).min(1),
+    uploadFileItemSchema,
+    z.string(),
+    z.array(z.string()).min(1),
+  ]);
+
+  if (optional) {
+    return fileSchema.optional().nullable().overwrite(convertFileUploadToUrl);
+  }
+
+  return fileSchema.overwrite(convertFileUploadToUrl);
+}
+
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
 const isValidPhoneNumber = (phone: string): boolean => {
@@ -35,9 +71,7 @@ const schoolInfoValidators = {
     .min(1, "School/Apprenticeship name is required")
     .max(200, "Name must be less than 200 characters"),
   schoolState: z.string().min(1, "State/Province is required"),
-  enrollmentProofFiles: z
-    .array(uploadFileItemSchema)
-    .min(1, "Please upload at least one proof of enrollment"),
+  enrollmentProofFiles: fileUploadSchema(true),
 };
 export const schoolInfoSchema = z.object(schoolInfoValidators);
 
@@ -74,7 +108,11 @@ const contactBasicsValidators = {
     .refine(
       (iso) => countryCodes.some((country) => country.iso === iso),
       "Invalid country selected"
-    ),
+    )
+    .overwrite((value) => {
+      const phoneCountryCode = countryCodes.find((c) => c.iso === value)?.code || value;
+      return phoneCountryCode;
+    }),
 };
 export const contactBasicsSchema = z.object(contactBasicsValidators);
 
@@ -113,7 +151,7 @@ const licenseValidators = {
     .trim()
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
-  licenseProofFiles: z.array(uploadFileItemSchema).optional(),
+  licenseProofFiles: fileUploadSchema(true),
 };
 export const licenseSchema = z.object(licenseValidators);
 
@@ -129,7 +167,7 @@ const taxExemptionValidators = {
   hasTaxExemption: z.boolean({
     error: "Please select an option",
   }),
-  taxExemptFile: z.array(uploadFileItemSchema).nullable().optional(),
+  taxExemptFile: fileUploadSchema(true),
 };
 export const taxExemptionSchema = z.object(taxExemptionValidators);
 
@@ -172,7 +210,7 @@ const baseValidators = {
   ...preferencesValidators,
 };
 
-const schema = z.discriminatedUnion("accountType", [
+export const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({ accountType: z.literal("professional") }).extend({
     ...baseValidators,
     ...businessOperationValidators,
@@ -194,27 +232,6 @@ const schema = z.discriminatedUnion("accountType", [
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
-
-const fileKeys: ValidFieldNames[] = ["enrollmentProofFiles", "licenseProofFiles", "taxExemptFile"];
-
-export const registrationSchema = schema.transform((data) => {
-  data.phoneCountryCode =
-    countryCodes.find((c) => c.iso === data.phoneCountryCode)?.code || data.phoneCountryCode;
-
-  for (const key of fileKeys) {
-    if (!data[key]) continue;
-
-    if (!Array.isArray(data[key])) {
-      data[key] = [data[key]];
-    }
-
-    data[key] = data[key].map((item: UploadFileItem) => {
-      return item.url;
-    });
-  }
-
-  return data;
-});
 
 export type AccountTypeFormData = z.infer<typeof accountTypeSchema>;
 export type BusinessOperationFormData = z.infer<typeof businessOperationSchema>;
