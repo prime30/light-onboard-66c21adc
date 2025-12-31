@@ -63,7 +63,7 @@ const schoolInfoValidators = {
     .min(1, "School/Apprenticeship name is required")
     .max(200, "Name must be less than 200 characters"),
   schoolState: z.string().min(1, "State/Province is required"),
-  enrollmentProofFiles: fileUploadSchema(true),
+  enrollmentProofFiles: fileUploadSchema(false),
 };
 export const schoolInfoSchema = z.object(schoolInfoValidators);
 

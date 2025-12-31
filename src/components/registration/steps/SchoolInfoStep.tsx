@@ -2,65 +2,16 @@ import { GraduationCap } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
-import { StateIcon, hasStateIcon } from "@/components/StateIcon";
+// import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import { UploadFileItem } from "@/contexts";
+import { states, provinces } from "@/data/locations";
 
-const states = [
-  "Alabama",
-  "Alaska",
-  "Arizona",
-  "Arkansas",
-  "California",
-  "Colorado",
-  "Connecticut",
-  "Delaware",
-  "Florida",
-  "Georgia",
-  "Hawaii",
-  "Idaho",
-  "Illinois",
-  "Indiana",
-  "Iowa",
-  "Kansas",
-  "Kentucky",
-  "Louisiana",
-  "Maine",
-  "Maryland",
-  "Massachusetts",
-  "Michigan",
-  "Minnesota",
-  "Mississippi",
-  "Missouri",
-  "Montana",
-  "Nebraska",
-  "Nevada",
-  "New Hampshire",
-  "New Jersey",
-  "New Mexico",
-  "New York",
-  "North Carolina",
-  "North Dakota",
-  "Ohio",
-  "Oklahoma",
-  "Oregon",
-  "Pennsylvania",
-  "Rhode Island",
-  "South Carolina",
-  "South Dakota",
-  "Tennessee",
-  "Texas",
-  "Utah",
-  "Vermont",
-  "Virginia",
-  "Washington",
-  "West Virginia",
-  "Wisconsin",
-  "Wyoming",
-];
+// Combine and sort US states and Canadian provinces alphabetically
+const allLocations = [...states, ...provinces].map((location) => location.name).sort();
 
 function SchoolNamePrefixIcon({ error }: { error: boolean }) {
   return (
@@ -99,13 +50,13 @@ export const SchoolInfoStep = () => {
   // Watch form values
   const [enrollmentProofFiles] = watch(["enrollmentProofFiles"]);
 
-  // Create state options with icons
-  const stateOptions = states.map((state) => ({
-    value: state,
+  // Create location options with icons
+  const locationOptions = allLocations.map((location) => ({
+    value: location,
     label: (
       <div className="flex items-center gap-2.5">
-        {hasStateIcon(state) && <StateIcon state={state} className="w-4 h-4" />}
-        <span>{state}</span>
+        {/*{hasStateIcon(location) && <StateIcon state={location} className="w-4 h-4" />}*/}
+        <span>{location}</span>
       </div>
     ),
   }));
@@ -154,7 +105,7 @@ export const SchoolInfoStep = () => {
             name="schoolState"
             control={control}
             error={errors.schoolState}
-            options={stateOptions}
+            options={locationOptions}
             label="State/Province*"
             placeholder="Select your state/province"
             isValid={getValidationStatus("schoolState") === "complete"}
