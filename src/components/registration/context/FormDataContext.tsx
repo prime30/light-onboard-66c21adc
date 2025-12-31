@@ -158,7 +158,6 @@ export function FormDataProvider({
         type ValueType = (typeof values)[keyof typeof values];
         const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
           if (
-            (typeof value === "object" && !Array.isArray(value) && value?.file instanceof File) ||
             (Array.isArray(value) && value.length === 0) ||
             (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
           ) {

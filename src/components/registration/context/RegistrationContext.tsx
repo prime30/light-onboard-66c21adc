@@ -44,7 +44,7 @@ const initialFormData: RegistrationFormData = {
   licenseFile: null,
   licenseProofFiles: [],
   taxExempt: null,
-  taxExemptFile: null,
+  taxExemptFile: [],
   wholesaleAgreed: false,
   birthdayMonth: "",
   birthdayDay: "",

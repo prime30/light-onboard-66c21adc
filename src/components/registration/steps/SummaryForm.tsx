@@ -1,9 +1,11 @@
-import { FileCheck, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
 import { countryCodes } from "@/data/country-codes";
 import { AccountType, BusinessOperationType } from "@/types/auth";
+import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
+import { UploadFileItem } from "@/lib/validations/file-schema";
 
 const SummarySection = ({
   title,
@@ -101,34 +103,59 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 export const SummaryForm = () => {
   const { watch, currentStep } = useForm();
 
-  // Watch all form values
-  const accountType = watch("accountType");
-  const firstName = watch("firstName");
-  const lastName = watch("lastName");
-  const preferredName = watch("preferredName");
-  const email = watch("email");
-  const phoneNumber = watch("phoneNumber");
-  const phoneCountryCode = watch("phoneCountryCode");
-  const licenseNumber = watch("licenseNumber");
-  const provinceCode = watch("provinceCode");
-  const businessName = watch("businessName");
-  const businessAddress = watch("businessAddress");
-  const suiteNumber = watch("suiteNumber");
-  const city = watch("city");
-  const zipCode = watch("zipCode");
-  const countryCode = watch("countryCode");
-  const schoolName = watch("schoolName");
-  const schoolState = watch("schoolState");
-  const businessOperationType = watch("businessOperationType");
-  const salonSize = watch("salonSize");
-  const salonStructure = watch("salonStructure");
-  const taxExempt = watch("taxExempt");
-  const birthdayMonth = watch("birthdayMonth");
-  const birthdayDay = watch("birthdayDay");
-  const socialMediaHandle = watch("socialMediaHandle");
-  const subscribeOrderUpdates = watch("subscribeOrderUpdates");
-  const acceptsMarketing = watch("acceptsMarketing");
-  const uploadedFiles = watch("uploadedFiles") || [];
+  // Watch all form values at once
+  const formData = watch() as AllRegistrationFormData;
+  const {
+    accountType,
+    firstName,
+    lastName,
+    preferredName,
+    email,
+    phoneNumber,
+    phoneCountryCode,
+    licenseNumber,
+    provinceCode,
+    businessName,
+    businessAddress,
+    suiteNumber,
+    city,
+    zipCode,
+    countryCode,
+    schoolName,
+    schoolState,
+    businessOperationType,
+    salonSize,
+    salonStructure,
+    taxExempt,
+    birthdayMonth,
+    birthdayDay,
+    socialMediaHandle,
+    subscribeOrderUpdates,
+    acceptsMarketing,
+    licenseProofFiles = [],
+    enrollmentProofFiles = [],
+    taxExemptFile = [],
+  } = formData;
+
+  // Type guard for UploadFileItem
+  const isUploadFileItem = (file: UploadFileItem | string): file is UploadFileItem => {
+    return file && typeof file === "object" && file.file instanceof File;
+  };
+
+  const uploadedFiles = [
+    ...licenseProofFiles.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "License Document",
+    })),
+    ...enrollmentProofFiles.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "Enrollment Document",
+    })),
+    ...taxExemptFile.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "Tax Exemption Document",
+    })),
+  ];
 
   return (
     <div className="space-y-[25px]">

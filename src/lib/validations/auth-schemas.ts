@@ -3,18 +3,8 @@ import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 
-function convertFileUploadToUrl(
-  value: UploadFileItem | UploadFileItem[] | string | string[] | undefined
-) {
+function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
   if (!value) return undefined;
-
-  if (typeof value === "string") {
-    return [value];
-  }
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
 
   const converted: string[] = value.map((item: UploadFileItem | string) => {
     if (typeof item === "string") return item;
@@ -25,18 +15,20 @@ function convertFileUploadToUrl(
 }
 
 function fileUploadSchema(optional: boolean) {
-  const fileSchema = z.union([
-    z.array(uploadFileItemSchema).min(1),
-    uploadFileItemSchema,
-    z.string(),
-    z.array(z.string()).min(1),
-  ]);
+  let fileArraySchema = z.array(uploadFileItemSchema);
+  let stringArraySchema = z.array(z.string());
 
-  if (optional) {
-    return fileSchema.optional().nullable().overwrite(convertFileUploadToUrl);
+  if (!optional) {
+    fileArraySchema = fileArraySchema.min(1, "At least one file is required");
+    stringArraySchema = stringArraySchema.min(1, "At least one file is required");
   }
 
-  return fileSchema.overwrite(convertFileUploadToUrl);
+  const filesSchema = z.union([fileArraySchema, stringArraySchema]);
+
+  if (optional) {
+    return filesSchema.optional().nullable().overwrite(convertFileUploadToUrl);
+  }
+  return filesSchema.overwrite(convertFileUploadToUrl);
 }
 
 // Phone number validation (10 digits, various formats)
@@ -176,14 +168,10 @@ export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
     }
 
     // If tax exempt is true, tax exempt file is required
-    if (!data.taxExemptFile) return false;
+    if (!data.taxExemptFile || !Array.isArray(data.taxExemptFile)) return false;
 
-    // Handle different file types
-    if (typeof data.taxExemptFile === "string") return data.taxExemptFile.length > 0;
-    if (Array.isArray(data.taxExemptFile)) return data.taxExemptFile.length > 0;
-
-    // Handle single UploadFileItem
-    return true;
+    // Files are always arrays now, check if array has items
+    return data.taxExemptFile.length > 0;
   },
   {
     message: "Tax exemption document is required when claiming tax exemption",
@@ -250,6 +238,26 @@ export const registrationSchema = z.discriminatedUnion("accountType", [
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
+
+// Generic type to extract specific account type data (supports single or multiple types)
+export type RegistrationFormDataByType<T extends AccountType | AccountType[]> =
+  T extends AccountType[]
+    ? Extract<RegistrationFormData, { accountType: T[number] }>
+    : Extract<RegistrationFormData, { accountType: T }>;
+
+export type ProfessionalRegistrationData = Omit<
+  RegistrationFormDataByType<"professional">,
+  "accountType"
+>;
+export type SalonRegistrationData = Omit<RegistrationFormDataByType<"salon">, "accountType">;
+export type StudentRegistrationData = RegistrationFormDataByType<"student">;
+
+export type AllRegistrationFormData = { accountType: AccountType } & Omit<
+  RegistrationFormDataByType<"professional">,
+  "accountType"
+> &
+  Omit<RegistrationFormDataByType<"salon">, "accountType"> &
+  Omit<RegistrationFormDataByType<"student">, "accountType">;
 
 export type AccountTypeFormData = z.infer<typeof accountTypeSchema>;
 export type BusinessOperationFormData = z.infer<typeof businessOperationSchema>;

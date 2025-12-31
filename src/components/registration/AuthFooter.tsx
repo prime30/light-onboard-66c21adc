@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
-import { useForm, useStepContext } from "./context";
+import { useForm } from "./context";
 
 interface IncompleteStep {
   step: number;
@@ -44,7 +44,6 @@ export function AuthFooter({
     goToNextStep,
     goToPrevStep,
     goToStep,
-    steps,
     errors,
     submitForm,
   } = useForm();

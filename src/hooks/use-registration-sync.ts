@@ -40,7 +40,7 @@ interface FormStateToSync {
   licenseFile: File | null;
   licenseProofFiles: File[];
   taxExempt: boolean | null;
-  taxExemptFile: File | null;
+  taxExemptFile: File[];
   wholesaleAgreed: boolean;
   birthdayMonth: string;
   birthdayDay: string;

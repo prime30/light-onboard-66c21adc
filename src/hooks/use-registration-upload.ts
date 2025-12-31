@@ -13,7 +13,7 @@ export interface RegistrationUploadData {
   licenseFile: File | null;
   licenseProofFiles: File[];
   enrollmentProofFiles: File[];
-  taxExemptFile: File | null;
+  taxExemptFile: File[];
 }
 
 export interface UploadedDocumentPaths {
@@ -48,7 +48,7 @@ export function useRegistrationUpload() {
         // Count total files to upload
         const totalFiles = [
           data.licenseFile,
-          data.taxExemptFile,
+          ...data.taxExemptFile,
           ...data.licenseProofFiles,
           ...data.enrollmentProofFiles,
         ].filter(Boolean).length;
@@ -101,9 +101,9 @@ export function useRegistrationUpload() {
           }
         }
 
-        // Upload tax exempt file
-        if (data.taxExemptFile) {
-          const result = await uploadFile(data.taxExemptFile, userId, "tax-exempt");
+        // Upload tax exempt files
+        if (data.taxExemptFile.length > 0) {
+          const result = await uploadFile(data.taxExemptFile[0], userId, "tax-exempt");
           if (result.success && result.path) {
             paths.taxExemptPath = result.path;
           } else {

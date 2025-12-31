@@ -31,7 +31,7 @@ interface FormValidationData {
   enrollmentProofFiles: File[];
   businessOperationType: BusinessOperationType | null;
   taxExempt: boolean | null;
-  taxExemptFile: File | null;
+  taxExemptFile: File[];
   wholesaleAgreed: boolean;
 }
 
@@ -84,7 +84,7 @@ export function useFormValidation(data: FormValidationData) {
       const schoolValid =
         schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
-      const taxValid = taxExempt === false || (taxExempt === true && taxExemptFile !== null);
+      const taxValid = taxExempt === false || (taxExempt === true && taxExemptFile.length > 0);
       return schoolValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 

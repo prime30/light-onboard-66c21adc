@@ -9,15 +9,8 @@ import { MultiFileUpload } from "../MultiFileUpload";
 import { UploadFileItem } from "@/contexts";
 
 export const TaxExemptionStep = () => {
-  const {
-    watch,
-    setValue,
-    currentStep,
-    getStepValidationStatus,
-    getStepNumber,
-    showValidationErrors,
-    errors,
-  } = useForm();
+  const { watch, setValue, currentStep, getStepValidationStatus, getStepNumber, errors } =
+    useForm();
 
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
@@ -28,13 +21,12 @@ export const TaxExemptionStep = () => {
   const [taxExempt, taxExemptFile] = watchedValues;
 
   const validationStatus = getStepValidationStatus(currentStep);
-  const selectionError = showValidationErrors && taxExempt === null;
-  const fileError = showValidationErrors && taxExempt === true && taxExemptFile === null;
+  const selectionError = taxExempt === null;
 
   const handleYesClick = () => {
     if (taxExempt === true) {
       setValue("taxExempt", null);
-      setValue("taxExemptFile", null);
+      setValue("taxExemptFile", []);
       return;
     }
     setValue("taxExempt", true);
@@ -52,7 +44,7 @@ export const TaxExemptionStep = () => {
       return;
     }
     setValue("taxExempt", false);
-    setValue("taxExemptFile", null);
+    setValue("taxExemptFile", []);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
   };
@@ -251,7 +243,12 @@ export const TaxExemptionStep = () => {
         <div className="overflow-hidden">
           <div className={cn(taxExempt === true && "animate-haptic-pop")} data-field="tax-document">
             <MultiFileUpload
-              files={taxExemptFile || []}
+              files={
+                Array.isArray(taxExemptFile) &&
+                taxExemptFile.every((item) => typeof item === "object")
+                  ? (taxExemptFile as UploadFileItem[])
+                  : []
+              }
               onFilesChange={(files: UploadFileItem[]) => setValue("taxExemptFile", files)}
               placeholder="Upload your state tax-exempt license"
               error={!!errors.taxExemptFile}
