@@ -51,8 +51,7 @@ const initialFormData: RegistrationFormData = {
   socialMediaHandle: "",
   referralSource: "",
   subscribeOrderUpdates: true,
-  subscribeMarketing: true,
-  subscribePromotions: true,
+  acceptsMarketing: true,
 };
 
 const initialUIState: RegistrationUIState = {

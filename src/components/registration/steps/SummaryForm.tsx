@@ -127,7 +127,7 @@ export const SummaryForm = () => {
   const birthdayDay = watch("birthdayDay");
   const socialMediaHandle = watch("socialMediaHandle");
   const subscribeOrderUpdates = watch("subscribeOrderUpdates");
-  const subscribePromotions = watch("subscribePromotions");
+  const acceptsMarketing = watch("acceptsMarketing");
   const uploadedFiles = watch("uploadedFiles") || [];
 
   return (
@@ -264,7 +264,7 @@ export const SummaryForm = () => {
               <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
             )}
             <SummaryRow label="Order Updates" value={subscribeOrderUpdates ? "Yes" : "No"} />
-            <SummaryRow label="Promotions" value={subscribePromotions ? "Yes" : "No"} />
+            <SummaryRow label="Promotions" value={acceptsMarketing ? "Yes" : "No"} />
           </SummarySection>
         </div>
 

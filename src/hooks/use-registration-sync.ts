@@ -47,8 +47,7 @@ interface FormStateToSync {
   socialMediaHandle: string;
   referralSource: string;
   subscribeOrderUpdates: boolean;
-  subscribeMarketing: boolean;
-  subscribePromotions: boolean;
+  acceptsMarketing: boolean;
   password: string;
 }
 
@@ -105,8 +104,7 @@ export function useRegistrationSync(
       socialMediaHandle: formState.socialMediaHandle,
       referralSource: formState.referralSource,
       subscribeOrderUpdates: formState.subscribeOrderUpdates,
-      subscribeMarketing: formState.subscribeMarketing,
-      subscribePromotions: formState.subscribePromotions,
+      acceptsMarketing: formState.acceptsMarketing,
       password: formState.password,
     });
 
@@ -147,8 +145,7 @@ export function useRegistrationSync(
         socialMediaHandle: formState.socialMediaHandle ?? "",
         referralSource: formState.referralSource ?? "",
         subscribeOrderUpdates: formState.subscribeOrderUpdates ?? true,
-        subscribeMarketing: formState.subscribeMarketing ?? true,
-        subscribePromotions: formState.subscribePromotions ?? true,
+        acceptsMarketing: formState.acceptsMarketing ?? true,
         password: formState.password ?? "",
       });
     }

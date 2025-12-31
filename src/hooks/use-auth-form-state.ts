@@ -63,8 +63,7 @@ export interface FormState {
 
   // Subscriptions
   subscribeOrderUpdates: boolean;
-  subscribeMarketing: boolean;
-  subscribePromotions: boolean;
+  acceptsMarketing: boolean;
 
   // UI state
   showValidationErrors: boolean;
@@ -111,8 +110,7 @@ export interface FormActions {
   setSocialMediaHandle: (value: string) => void;
   setReferralSource: (value: string) => void;
   setSubscribeOrderUpdates: (value: boolean) => void;
-  setSubscribeMarketing: (value: boolean) => void;
-  setSubscribePromotions: (value: boolean) => void;
+  setAcceptsMarketing: (value: boolean) => void;
   setShowValidationErrors: (value: boolean) => void;
   setIsSubmitting: (value: boolean) => void;
   setShowForgotPassword: (value: boolean) => void;
@@ -313,8 +311,7 @@ export function useAuthFormState(): FormState & FormActions {
 
   // Subscriptions
   const [subscribeOrderUpdates, setSubscribeOrderUpdates] = useState(true);
-  const [subscribeMarketing, setSubscribeMarketing] = useState(true);
-  const [subscribePromotions, setSubscribePromotions] = useState(true);
+  const [acceptsMarketing, setAcceptsMarketing] = useState(true);
 
   // UI state
   const [showValidationErrors, setShowValidationErrors] = useState(false);
@@ -543,8 +540,7 @@ export function useAuthFormState(): FormState & FormActions {
     setBusinessOperationType(null);
     setLicenseProofFiles([]);
     setSubscribeOrderUpdates(true);
-    setSubscribeMarketing(true);
-    setSubscribePromotions(true);
+    setAcceptsMarketing(true);
     setShowValidationErrors(false);
     setCompletedSteps(new Set());
   }, []);
@@ -625,8 +621,7 @@ export function useAuthFormState(): FormState & FormActions {
     socialMediaHandle,
     referralSource,
     subscribeOrderUpdates,
-    subscribeMarketing,
-    subscribePromotions,
+    acceptsMarketing,
     showValidationErrors,
     isSubmitting,
     showForgotPassword,
@@ -670,8 +665,7 @@ export function useAuthFormState(): FormState & FormActions {
     setSocialMediaHandle,
     setReferralSource,
     setSubscribeOrderUpdates,
-    setSubscribeMarketing,
-    setSubscribePromotions,
+    setAcceptsMarketing,
     setShowValidationErrors,
     setIsSubmitting,
     setShowForgotPassword,

@@ -29,8 +29,7 @@ export const defaultValues: Partial<RegistrationFormData> = {
   phoneCountryCode: "us",
   country: "US",
   subscribeOrderUpdates: true,
-  subscribeMarketing: false,
-  subscribePromotions: true,
+  acceptsMarketing: true,
 };
 
 export type FormDataContextType = {

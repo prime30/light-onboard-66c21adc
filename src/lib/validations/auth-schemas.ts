@@ -192,11 +192,8 @@ const preferencesValidators = {
     .boolean()
     .optional()
     .transform((val) => val ?? true),
-  subscribeMarketing: z
-    .boolean()
-    .optional()
-    .transform((val) => val ?? false),
-  subscribePromotions: z
+
+  acceptsMarketing: z
     .boolean()
     .optional()
     .transform((val) => val ?? true),

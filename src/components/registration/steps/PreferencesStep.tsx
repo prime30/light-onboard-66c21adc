@@ -25,14 +25,14 @@ export const PreferencesStep = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Watch form values
-  const watchedValues = watch(["subscribeOrderUpdates", "subscribePromotions"]);
+  const watchedValues = watch(["subscribeOrderUpdates", "acceptsMarketing"]);
 
-  const [subscribeOrderUpdates, subscribePromotions] = watchedValues;
+  const [subscribeOrderUpdates, acceptsMarketing] = watchedValues;
 
   const validationStatus = getStepValidationStatus(currentStep);
 
   // SMS notice visibility with exit animation
-  const hasPreferenceSelected = subscribeOrderUpdates || subscribePromotions;
+  const hasPreferenceSelected = subscribeOrderUpdates || acceptsMarketing;
   const [showSmsNotice, setShowSmsNotice] = useState(hasPreferenceSelected);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -180,9 +180,9 @@ export const PreferencesStep = () => {
             </label>
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
-                checked={subscribePromotions || false}
+                checked={acceptsMarketing || false}
                 onCheckedChange={(checked) => {
-                  setValue("subscribePromotions", !!checked, dirtyFieldOptions);
+                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
                 }}
                 className="mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
