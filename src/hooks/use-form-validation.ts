@@ -30,7 +30,7 @@ interface FormValidationData {
   schoolState: string;
   enrollmentProofFiles: File[];
   businessOperationType: BusinessOperationType | null;
-  hasTaxExemption: boolean | null;
+  taxExempt: boolean | null;
   taxExemptFile: File | null;
   wholesaleAgreed: boolean;
 }
@@ -58,7 +58,7 @@ export function useFormValidation(data: FormValidationData) {
     schoolState,
     enrollmentProofFiles,
     businessOperationType,
-    hasTaxExemption,
+    taxExempt,
     taxExemptFile,
     wholesaleAgreed,
   } = data;
@@ -84,8 +84,7 @@ export function useFormValidation(data: FormValidationData) {
       const schoolValid =
         schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
       const wholesaleValid = wholesaleAgreed;
-      const taxValid =
-        hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+      const taxValid = taxExempt === false || (taxExempt === true && taxExemptFile !== null);
       return schoolValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
@@ -100,8 +99,7 @@ export function useFormValidation(data: FormValidationData) {
         provinceCode !== "" &&
         zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
-      const taxValid =
-        hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+      const taxValid = taxExempt === false || (taxExempt === true && taxExemptFile !== null);
       return licenseValid && businessValid && contactBasicsValid && wholesaleValid && taxValid;
     }
 
@@ -116,8 +114,7 @@ export function useFormValidation(data: FormValidationData) {
       provinceCode !== "" &&
       zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
-    const taxValid =
-      hasTaxExemption === false || (hasTaxExemption === true && taxExemptFile !== null);
+    const taxValid = taxExempt === false || (taxExempt === true && taxExemptFile !== null);
     return (
       licenseValid &&
       businessOperationValid &&
@@ -138,7 +135,7 @@ export function useFormValidation(data: FormValidationData) {
     schoolState,
     enrollmentProofFiles,
     wholesaleAgreed,
-    hasTaxExemption,
+    taxExempt,
     taxExemptFile,
     licenseNumber,
     salonSize,
@@ -197,8 +194,8 @@ export function useFormValidation(data: FormValidationData) {
       }
       // Step 4: Tax Exemption
       const studentTaxMissing: string[] = [];
-      if (hasTaxExemption === null) studentTaxMissing.push("Exemption status");
-      else if (hasTaxExemption === true && !taxExemptFile) studentTaxMissing.push("Tax document");
+      if (taxExempt === null) studentTaxMissing.push("Exemption status");
+      else if (taxExempt === true && !taxExemptFile) studentTaxMissing.push("Tax document");
       if (studentTaxMissing.length > 0) {
         incomplete.push({
           step: 4,
@@ -262,8 +259,8 @@ export function useFormValidation(data: FormValidationData) {
       }
       // Step 5: Tax Exemption
       const taxMissing: string[] = [];
-      if (hasTaxExemption === null) taxMissing.push("Exemption status");
-      else if (hasTaxExemption === true && !taxExemptFile) taxMissing.push("Tax document");
+      if (taxExempt === null) taxMissing.push("Exemption status");
+      else if (taxExempt === true && !taxExemptFile) taxMissing.push("Tax document");
       if (taxMissing.length > 0) {
         incomplete.push({
           step: 5,
@@ -330,8 +327,8 @@ export function useFormValidation(data: FormValidationData) {
     }
     // Step 6: Tax Exemption
     const proTaxMissing: string[] = [];
-    if (hasTaxExemption === null) proTaxMissing.push("Exemption status");
-    else if (hasTaxExemption === true && !taxExemptFile) proTaxMissing.push("Tax document");
+    if (taxExempt === null) proTaxMissing.push("Exemption status");
+    else if (taxExempt === true && !taxExemptFile) proTaxMissing.push("Tax document");
     if (proTaxMissing.length > 0) {
       incomplete.push({
         step: 6,
@@ -359,7 +356,7 @@ export function useFormValidation(data: FormValidationData) {
     lastName,
     email,
     phoneNumber,
-    hasTaxExemption,
+    taxExempt,
     taxExemptFile,
     wholesaleAgreed,
     businessName,
@@ -401,8 +398,8 @@ export function useFormValidation(data: FormValidationData) {
       if (lastName.trim() !== "") filled++;
       if (email.trim() !== "") filled++;
       if (phoneNumber.trim() !== "" && phoneNumber.replace(/\D/g, "").length >= 10) filled++;
-      if (hasTaxExemption !== null) filled++;
-      if (hasTaxExemption === true) {
+      if (taxExempt !== null) filled++;
+      if (taxExempt === true) {
         total = 11;
         if (taxExemptFile) filled++;
       }
@@ -428,8 +425,8 @@ export function useFormValidation(data: FormValidationData) {
       if (licenseNumber.trim() !== "") filled++;
       if (salonSize !== "") filled++;
       if (salonStructure !== "") filled++;
-      if (hasTaxExemption !== null) filled++;
-      if (hasTaxExemption === true) {
+      if (taxExempt !== null) filled++;
+      if (taxExempt === true) {
         total = 17;
         if (taxExemptFile) filled++;
       }
@@ -454,8 +451,8 @@ export function useFormValidation(data: FormValidationData) {
     if (city.trim() !== "") filled++;
     if (provinceCode !== "") filled++;
     if (zipCode.trim() !== "") filled++;
-    if (hasTaxExemption !== null) filled++;
-    if (hasTaxExemption === true) {
+    if (taxExempt !== null) filled++;
+    if (taxExempt === true) {
       total = 16;
       if (taxExemptFile) filled++;
     }
@@ -472,7 +469,7 @@ export function useFormValidation(data: FormValidationData) {
     firstName,
     lastName,
     phoneNumber,
-    hasTaxExemption,
+    taxExempt,
     taxExemptFile,
     wholesaleAgreed,
     businessName,

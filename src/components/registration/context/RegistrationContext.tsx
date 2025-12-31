@@ -43,7 +43,7 @@ const initialFormData: RegistrationFormData = {
   salonStructure: "",
   licenseFile: null,
   licenseProofFiles: [],
-  hasTaxExemption: null,
+  taxExempt: null,
   taxExemptFile: null,
   wholesaleAgreed: false,
   birthdayMonth: "",

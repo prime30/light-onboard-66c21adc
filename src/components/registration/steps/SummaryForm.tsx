@@ -122,7 +122,7 @@ export const SummaryForm = () => {
   const businessOperationType = watch("businessOperationType");
   const salonSize = watch("salonSize");
   const salonStructure = watch("salonStructure");
-  const hasTaxExemption = watch("hasTaxExemption");
+  const taxExempt = watch("taxExempt");
   const birthdayMonth = watch("birthdayMonth");
   const birthdayDay = watch("birthdayDay");
   const socialMediaHandle = watch("socialMediaHandle");
@@ -241,9 +241,9 @@ export const SummaryForm = () => {
             <SummaryRow
               label="Status"
               value={
-                hasTaxExemption === true
+                taxExempt === true
                   ? "Tax exempt"
-                  : hasTaxExemption === false
+                  : taxExempt === false
                     ? "Not tax exempt"
                     : "Not specified"
               }

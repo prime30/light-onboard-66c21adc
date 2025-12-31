@@ -24,20 +24,20 @@ export const TaxExemptionStep = () => {
   const fileUploadRef = useRef<HTMLDivElement>(null);
 
   // Watch form values
-  const watchedValues = watch(["hasTaxExemption", "taxExemptFile"]);
-  const [hasTaxExemption, taxExemptFile] = watchedValues;
+  const watchedValues = watch(["taxExempt", "taxExemptFile"]);
+  const [taxExempt, taxExemptFile] = watchedValues;
 
   const validationStatus = getStepValidationStatus(currentStep);
-  const selectionError = showValidationErrors && hasTaxExemption === null;
-  const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
+  const selectionError = showValidationErrors && taxExempt === null;
+  const fileError = showValidationErrors && taxExempt === true && taxExemptFile === null;
 
   const handleYesClick = () => {
-    if (hasTaxExemption === true) {
-      setValue("hasTaxExemption", null);
+    if (taxExempt === true) {
+      setValue("taxExempt", null);
       setValue("taxExemptFile", null);
       return;
     }
-    setValue("hasTaxExemption", true);
+    setValue("taxExempt", true);
     setShowToast(false);
     // Scroll to file upload after a brief delay for animation
     setTimeout(() => {
@@ -46,12 +46,12 @@ export const TaxExemptionStep = () => {
   };
 
   const handleNoClick = () => {
-    if (hasTaxExemption === false) {
-      setValue("hasTaxExemption", null);
+    if (taxExempt === false) {
+      setValue("taxExempt", null);
       setShowToast(false);
       return;
     }
-    setValue("hasTaxExemption", false);
+    setValue("taxExempt", false);
     setValue("taxExemptFile", null);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
@@ -85,7 +85,7 @@ export const TaxExemptionStep = () => {
             onClick={handleYesClick}
             className={cn(
               "p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 hover:-translate-y-0.5 active:scale-[0.99]",
-              hasTaxExemption === true
+              taxExempt === true
                 ? "border-foreground bg-foreground/8"
                 : selectionError
                   ? "border-destructive/50 bg-destructive/5"
@@ -96,16 +96,14 @@ export const TaxExemptionStep = () => {
               data-field="tax-exemption-yes"
               className={cn(
                 "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-                hasTaxExemption === true
+                taxExempt === true
                   ? "border-foreground bg-foreground"
                   : selectionError
                     ? "border-destructive/50"
                     : "border-muted-foreground/50"
               )}
             >
-              {hasTaxExemption === true && (
-                <Check className="w-4 h-4 text-background" strokeWidth={3} />
-              )}
+              {taxExempt === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span
               className={cn(
@@ -120,7 +118,7 @@ export const TaxExemptionStep = () => {
             onClick={handleNoClick}
             className={cn(
               "p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 hover:-translate-y-0.5 active:scale-[0.99]",
-              hasTaxExemption === false
+              taxExempt === false
                 ? "border-foreground bg-foreground/8"
                 : selectionError
                   ? "border-destructive/50 bg-destructive/5"
@@ -131,16 +129,14 @@ export const TaxExemptionStep = () => {
               data-field="tax-exemption-no"
               className={cn(
                 "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-                hasTaxExemption === false
+                taxExempt === false
                   ? "border-foreground bg-foreground"
                   : selectionError
                     ? "border-destructive/50"
                     : "border-muted-foreground/50"
               )}
             >
-              {hasTaxExemption === false && (
-                <Check className="w-4 h-4 text-background" strokeWidth={3} />
-              )}
+              {taxExempt === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span
               className={cn(
@@ -161,7 +157,7 @@ export const TaxExemptionStep = () => {
       <div
         className={cn(
           "grid transition-all duration-400",
-          showToast && hasTaxExemption === false
+          showToast && taxExempt === false
             ? "grid-rows-[1fr] opacity-100"
             : "grid-rows-[0fr] opacity-0"
         )}
@@ -245,18 +241,15 @@ export const TaxExemptionStep = () => {
         ref={fileUploadRef}
         className={cn(
           "grid transition-all duration-400",
-          hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )}
         style={{
           transitionTimingFunction:
-            hasTaxExemption === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+            taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
         }}
       >
         <div className="overflow-hidden">
-          <div
-            className={cn(hasTaxExemption === true && "animate-haptic-pop")}
-            data-field="tax-document"
-          >
+          <div className={cn(taxExempt === true && "animate-haptic-pop")} data-field="tax-document">
             <MultiFileUpload
               files={taxExemptFile || []}
               onFilesChange={(files: UploadFileItem[]) => setValue("taxExemptFile", files)}

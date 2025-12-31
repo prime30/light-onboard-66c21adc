@@ -51,7 +51,7 @@ export interface FormState {
   licenseProofFiles: File[];
 
   // Tax & terms
-  hasTaxExemption: boolean | null;
+  taxExempt: boolean | null;
   taxExemptFile: File | null;
   wholesaleAgreed: boolean;
 
@@ -102,7 +102,7 @@ export interface FormActions {
   setEnrollmentProofFiles: (files: File[]) => void;
   setBusinessOperationType: (type: BusinessOperationType | null) => void;
   setLicenseProofFiles: (files: File[]) => void;
-  setHasTaxExemption: (value: boolean | null) => void;
+  setTaxExempt: (value: boolean | null) => void;
   setTaxExemptFile: (file: File | null) => void;
   setWholesaleAgreed: (value: boolean) => void;
   setBirthdayMonth: (value: string) => void;
@@ -140,7 +140,7 @@ interface SignupState {
   city: string;
   zipCode: string;
   wholesaleAgreed: boolean;
-  hasTaxExemption: boolean | null;
+  taxExempt: boolean | null;
   preferredName: string;
   phoneNumber: string;
   phoneCountryCode: string;
@@ -181,7 +181,7 @@ const calculateCompletedSteps = (data: {
   schoolState: string;
   enrollmentProofFilesCount: number;
   businessOperationType: BusinessOperationType | null;
-  hasTaxExemption: boolean | null;
+  taxExempt: boolean | null;
   hasTaxExemptFile: boolean;
   wholesaleAgreed: boolean;
 }): Set<number> => {
@@ -197,7 +197,7 @@ const calculateCompletedSteps = (data: {
     isValidPhoneNumber(data.phoneNumber);
 
   const taxExemptionValid =
-    data.hasTaxExemption === false || (data.hasTaxExemption === true && data.hasTaxExemptFile);
+    data.taxExempt === false || (data.taxExempt === true && data.hasTaxExemptFile);
 
   if (data.accountType === "student") {
     const schoolInfoValid =
@@ -299,7 +299,7 @@ export function useAuthFormState(): FormState & FormActions {
   const [licenseProofFiles, setLicenseProofFiles] = useState<File[]>([]);
 
   // Tax & terms
-  const [hasTaxExemption, setHasTaxExemption] = useState<boolean | null>(null);
+  const [taxExempt, setTaxExempt] = useState<boolean | null>(null);
   const [taxExemptFile, setTaxExemptFile] = useState<File | null>(null);
   const [wholesaleAgreed, setWholesaleAgreed] = useState(false);
 
@@ -368,7 +368,7 @@ export function useAuthFormState(): FormState & FormActions {
         if (data.city) setCity(data.city);
         if (data.zipCode) setZipCode(data.zipCode);
         if (data.wholesaleAgreed !== undefined) setWholesaleAgreed(data.wholesaleAgreed);
-        if (data.hasTaxExemption !== undefined) setHasTaxExemption(data.hasTaxExemption);
+        if (data.taxExempt !== undefined) setTaxExempt(data.taxExempt);
         if (data.preferredName) setPreferredName(data.preferredName);
         if (data.phoneNumber) setPhoneNumber(data.phoneNumber);
         if (data.phoneCountryCode) setPhoneCountryCode(data.phoneCountryCode);
@@ -401,7 +401,7 @@ export function useAuthFormState(): FormState & FormActions {
           schoolState: data.schoolState || "",
           enrollmentProofFilesCount: 0,
           businessOperationType: data.businessOperationType || null,
-          hasTaxExemption: data.hasTaxExemption ?? null,
+          taxExempt: data.taxExempt ?? null,
           hasTaxExemptFile: false,
           wholesaleAgreed: data.wholesaleAgreed || false,
         });
@@ -459,7 +459,7 @@ export function useAuthFormState(): FormState & FormActions {
         city,
         zipCode,
         wholesaleAgreed,
-        hasTaxExemption,
+        taxExempt,
         preferredName,
         phoneNumber,
         phoneCountryCode,
@@ -494,7 +494,7 @@ export function useAuthFormState(): FormState & FormActions {
     city,
     zipCode,
     wholesaleAgreed,
-    hasTaxExemption,
+    taxExempt,
     preferredName,
     phoneNumber,
     phoneCountryCode,
@@ -527,7 +527,7 @@ export function useAuthFormState(): FormState & FormActions {
     setProvinceCode("");
     setZipCode("");
     setWholesaleAgreed(false);
-    setHasTaxExemption(null);
+    setTaxExempt(null);
     setPreferredName("");
     setPhoneNumber("");
     setPhoneCountryCode("+1");
@@ -557,7 +557,7 @@ export function useAuthFormState(): FormState & FormActions {
       licenseNumber.trim() !== "" ||
       schoolName.trim() !== "" ||
       wholesaleAgreed ||
-      hasTaxExemption !== null ||
+      taxExempt !== null ||
       businessOperationType !== null ||
       completedSteps.size > 1
     );
@@ -571,7 +571,7 @@ export function useAuthFormState(): FormState & FormActions {
     licenseNumber,
     schoolName,
     wholesaleAgreed,
-    hasTaxExemption,
+    taxExempt,
     businessOperationType,
     completedSteps,
   ]);
@@ -614,7 +614,7 @@ export function useAuthFormState(): FormState & FormActions {
     enrollmentProofFiles,
     businessOperationType,
     licenseProofFiles,
-    hasTaxExemption,
+    taxExempt,
     taxExemptFile,
     wholesaleAgreed,
     birthdayMonth,
@@ -658,7 +658,7 @@ export function useAuthFormState(): FormState & FormActions {
     setEnrollmentProofFiles,
     setBusinessOperationType,
     setLicenseProofFiles,
-    setHasTaxExemption,
+    setTaxExempt,
     setTaxExemptFile,
     setWholesaleAgreed,
     setBirthdayMonth,

@@ -39,7 +39,7 @@ interface FormStateToSync {
   salonStructure: string;
   licenseFile: File | null;
   licenseProofFiles: File[];
-  hasTaxExemption: boolean | null;
+  taxExempt: boolean | null;
   taxExemptFile: File | null;
   wholesaleAgreed: boolean;
   birthdayMonth: string;
@@ -97,7 +97,7 @@ export function useRegistrationSync(
       licenseNumber: formState.licenseNumber,
       salonSize: formState.salonSize,
       salonStructure: formState.salonStructure,
-      hasTaxExemption: formState.hasTaxExemption,
+      taxExempt: formState.taxExempt,
       wholesaleAgreed: formState.wholesaleAgreed,
       birthdayMonth: formState.birthdayMonth,
       birthdayDay: formState.birthdayDay,
@@ -137,7 +137,7 @@ export function useRegistrationSync(
         salonStructure: formState.salonStructure ?? "",
         licenseFile: formState.licenseFile ?? null,
         licenseProofFiles: formState.licenseProofFiles ?? [],
-        hasTaxExemption: formState.hasTaxExemption ?? null,
+        taxExempt: formState.taxExempt ?? null,
         taxExemptFile: formState.taxExemptFile ?? null,
         wholesaleAgreed: formState.wholesaleAgreed ?? false,
         birthdayMonth: formState.birthdayMonth ?? "",
