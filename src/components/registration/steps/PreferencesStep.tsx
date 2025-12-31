@@ -164,7 +164,7 @@ export const PreferencesStep = () => {
                 onCheckedChange={(checked) => {
                   setValue("subscribeOrderUpdates", !!checked, dirtyFieldOptions);
                 }}
-                className="mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
                 <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
@@ -184,7 +184,7 @@ export const PreferencesStep = () => {
                 onCheckedChange={(checked) => {
                   setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
                 }}
-                className="mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
                 <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
