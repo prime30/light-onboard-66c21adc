@@ -197,7 +197,7 @@ const BlogResaleLicense = () => {
                     Continue your registration to join our community.
                   </p>
                 </div>
-                <Link to="/auth" state={{ advanceToStep: "contact-info" }}>
+                <Link to="/auth" state={{ advanceToStep: "preferences" }}>
                   <Button className="gap-2 rounded-full">
                     Continue Registration
                     <ArrowUpRight className="h-4 w-4" />

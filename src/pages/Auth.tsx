@@ -762,7 +762,7 @@ const Auth = () => {
                   {currentStep === "contact-basics" && <ContactBasicsStep />}
                   {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
                   {currentStep === "tax-exemption" && <TaxExemptionStep />}
-                  {currentStep === "contact-info" && <PreferencesStep />}
+                  {currentStep === "preferences" && <PreferencesStep />}
                   {currentStep === "summary" && <SummaryForm />}
                   {currentStep === "success" && (
                     <SuccessForm

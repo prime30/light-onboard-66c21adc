@@ -25,7 +25,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "license",
     "tax-exemption",
     "wholesale-terms",
-    "contact-info",
+    "preferences",
     "summary",
   ],
   salon: [
@@ -35,7 +35,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "license",
     "tax-exemption",
     "wholesale-terms",
-    "contact-info",
+    "preferences",
     "summary",
   ],
   student: [
@@ -44,7 +44,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "contact-basics",
     "tax-exemption",
     "wholesale-terms",
-    "contact-info",
+    "preferences",
     "summary",
   ],
 };
@@ -68,7 +68,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "school-info": schoolInfoSchema,
   "wholesale-terms": wholesaleTermsSchema,
   "tax-exemption": taxExemptionSchema,
-  "contact-info": preferencesSchema,
+  preferences: preferencesSchema,
   summary: null,
   success: null,
 };
@@ -148,10 +148,10 @@ export const STEPS: Record<Step, StepInfo> = {
     schema: stepValidations["tax-exemption"],
     accountTypes: ["professional", "salon", "student"],
   },
-  "contact-info": {
-    name: "contact-info",
-    fields: fieldsForStep["contact-info"],
-    schema: stepValidations["contact-info"],
+  preferences: {
+    name: "preferences",
+    fields: fieldsForStep["preferences"],
+    schema: stepValidations["preferences"],
     accountTypes: ["professional", "salon", "student"],
   },
   summary: {

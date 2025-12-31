@@ -79,7 +79,7 @@ export function useFormValidation(data: FormValidationData) {
       isValidEmail(email) &&
       isValidPhoneNumber(phoneNumber);
 
-    // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info)
+    // Student flow - 6 steps (account-type, school-info, contact-basics, tax-exemption, wholesale-terms, preferences)
     if (accountType === "student") {
       const schoolValid =
         schoolName.trim() !== "" && schoolState !== "" && enrollmentProofFiles.length > 0;
@@ -166,7 +166,7 @@ export function useFormValidation(data: FormValidationData) {
     }
 
     if (accountType === "student") {
-      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, contact-info
+      // Student flow: account-type, school-info, contact-basics, tax-exemption, wholesale-terms, preferences
       // Step 2: School Info
       const schoolMissing: string[] = [];
       if (schoolName.trim() === "") schoolMissing.push("School name");
@@ -216,7 +216,7 @@ export function useFormValidation(data: FormValidationData) {
     }
 
     if (accountType === "salon") {
-      // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, contact-info
+      // Salon flow: account-type, business-location, contact-basics, license, tax-exemption, wholesale-terms, preferences
       // Step 2: Business Location
       const locationMissing: string[] = [];
       if (businessName.trim() === "") locationMissing.push("Business name");
@@ -280,7 +280,7 @@ export function useFormValidation(data: FormValidationData) {
       return incomplete;
     }
 
-    // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, contact-info
+    // Professional flow: account-type, business-operation, contact-basics, license, business-location, tax-exemption, wholesale-terms, preferences
     // Step 2: Business Operation
     if (businessOperationType === null) {
       incomplete.push({

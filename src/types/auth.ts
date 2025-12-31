@@ -22,7 +22,7 @@ export type Step =
   | "school-info"
   | "wholesale-terms"
   | "tax-exemption"
-  | "contact-info"
+  | "preferences"
   | "summary"
   | "success";
 
