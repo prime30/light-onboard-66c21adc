@@ -91,7 +91,7 @@ export function FormDataProvider({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "NEW_CUSTOMER",
+          action: "CREATE_CUSTOMER",
           data: values,
         }),
       });
