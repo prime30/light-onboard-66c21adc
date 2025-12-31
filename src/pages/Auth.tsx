@@ -227,7 +227,7 @@ const Auth = () => {
       // Business location fields
       "Business name": "#businessName",
       Address: "#businessAddress",
-      Country: "#country",
+      Country: "#countryCode",
       City: "#city",
       "State/province": "#stateProvince",
       "ZIP code": "#zipCode",

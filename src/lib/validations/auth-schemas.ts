@@ -129,13 +129,13 @@ const businessLocationValidators = {
     .min(1, "Address is required")
     .max(500, "Address must be less than 500 characters"),
   suiteNumber: z.string().trim().max(50, "Suite number must be less than 50 characters").optional(),
-  country: z.string().min(1, "Country is required"),
+  countryCode: z.string().min(1, "Country is required"),
   city: z
     .string()
     .trim()
     .min(1, "City is required")
     .max(100, "City must be less than 100 characters"),
-  state: z.string().min(1, "State/Province is required"),
+  provinceCode: z.string().min(1, "State/Province is required"),
   zipCode: z
     .string()
     .trim()
@@ -216,6 +216,7 @@ export const registrationSchema = z.discriminatedUnion("accountType", [
   }),
   z.object({ accountType: z.literal("salon") }).extend({
     ...baseValidators,
+    ...businessLocationValidators,
     ...salonLicenseValidators,
     ...licenseValidators,
   }),

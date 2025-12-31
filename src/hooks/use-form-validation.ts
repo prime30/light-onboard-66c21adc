@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { isValidEmail, isValidPhoneNumber } from "@/lib/validations/form-utils";
-import type { AuthMode, Step, BusinessOperationType } from "@/types/auth";
+import type { AuthMode, Step, BusinessOperationType, AccountType } from "@/types/auth";
 
 interface IncompleteStep {
   step: number;
@@ -11,7 +11,7 @@ interface IncompleteStep {
 interface FormValidationData {
   mode: AuthMode;
   currentStep: Step;
-  accountType: string | null;
+  accountType: AccountType | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -19,9 +19,9 @@ interface FormValidationData {
   phoneNumber: string;
   businessName: string;
   businessAddress: string;
-  country: string;
+  countryCode: string;
   city: string;
-  state: string;
+  provinceCode: string;
   zipCode: string;
   licenseNumber: string;
   salonSize: string;
@@ -47,9 +47,9 @@ export function useFormValidation(data: FormValidationData) {
     phoneNumber,
     businessName,
     businessAddress,
-    country,
+    countryCode,
     city,
-    state,
+    provinceCode,
     zipCode,
     licenseNumber,
     salonSize,
@@ -95,9 +95,9 @@ export function useFormValidation(data: FormValidationData) {
       const businessValid =
         businessName.trim() !== "" &&
         businessAddress.trim() !== "" &&
-        country !== "" &&
+        countryCode !== "" &&
         city.trim() !== "" &&
-        state !== "" &&
+        provinceCode !== "" &&
         zipCode.trim() !== "";
       const wholesaleValid = wholesaleAgreed;
       const taxValid =
@@ -111,9 +111,9 @@ export function useFormValidation(data: FormValidationData) {
     const businessValid =
       businessName.trim() !== "" &&
       businessAddress.trim() !== "" &&
-      country !== "" &&
+      countryCode !== "" &&
       city.trim() !== "" &&
-      state !== "" &&
+      provinceCode !== "" &&
       zipCode.trim() !== "";
     const wholesaleValid = wholesaleAgreed;
     const taxValid =
@@ -145,9 +145,9 @@ export function useFormValidation(data: FormValidationData) {
     salonStructure,
     businessName,
     businessAddress,
-    country,
+    countryCode,
     city,
-    state,
+    provinceCode,
     zipCode,
     businessOperationType,
   ]);
@@ -224,9 +224,9 @@ export function useFormValidation(data: FormValidationData) {
       const locationMissing: string[] = [];
       if (businessName.trim() === "") locationMissing.push("Business name");
       if (businessAddress.trim() === "") locationMissing.push("Address");
-      if (country === "") locationMissing.push("Country");
+      if (countryCode === "") locationMissing.push("Country");
       if (city.trim() === "") locationMissing.push("City");
-      if (state === "") locationMissing.push("State/province");
+      if (provinceCode === "") locationMissing.push("State/province");
       if (zipCode.trim() === "") locationMissing.push("ZIP code");
       if (locationMissing.length > 0) {
         incomplete.push({
@@ -309,9 +309,9 @@ export function useFormValidation(data: FormValidationData) {
     const proLocationMissing: string[] = [];
     if (businessName.trim() === "") proLocationMissing.push("Business name");
     if (businessAddress.trim() === "") proLocationMissing.push("Address");
-    if (country === "") proLocationMissing.push("Country");
+    if (countryCode === "") proLocationMissing.push("Country");
     if (city.trim() === "") proLocationMissing.push("City");
-    if (state === "") proLocationMissing.push("State/province");
+    if (provinceCode === "") proLocationMissing.push("State/province");
     if (zipCode.trim() === "") proLocationMissing.push("ZIP code");
     if (proLocationMissing.length > 0) {
       incomplete.push({
@@ -364,9 +364,9 @@ export function useFormValidation(data: FormValidationData) {
     wholesaleAgreed,
     businessName,
     businessAddress,
-    country,
+    countryCode,
     city,
-    state,
+    provinceCode,
     zipCode,
     licenseNumber,
     salonSize,
@@ -417,9 +417,9 @@ export function useFormValidation(data: FormValidationData) {
       if (accountType) filled++;
       if (businessName.trim() !== "") filled++;
       if (businessAddress.trim() !== "") filled++;
-      if (country !== "") filled++;
+      if (countryCode !== "") filled++;
       if (city.trim() !== "") filled++;
-      if (state !== "") filled++;
+      if (provinceCode !== "") filled++;
       if (zipCode.trim() !== "") filled++;
       if (firstName.trim() !== "") filled++;
       if (lastName.trim() !== "") filled++;
@@ -450,9 +450,9 @@ export function useFormValidation(data: FormValidationData) {
     if (licenseNumber.trim() !== "") filled++;
     if (businessName.trim() !== "") filled++;
     if (businessAddress.trim() !== "") filled++;
-    if (country !== "") filled++;
+    if (countryCode !== "") filled++;
     if (city.trim() !== "") filled++;
-    if (state !== "") filled++;
+    if (provinceCode !== "") filled++;
     if (zipCode.trim() !== "") filled++;
     if (hasTaxExemption !== null) filled++;
     if (hasTaxExemption === true) {
@@ -477,9 +477,9 @@ export function useFormValidation(data: FormValidationData) {
     wholesaleAgreed,
     businessName,
     businessAddress,
-    country,
+    countryCode,
     city,
-    state,
+    provinceCode,
     zipCode,
     licenseNumber,
     salonSize,

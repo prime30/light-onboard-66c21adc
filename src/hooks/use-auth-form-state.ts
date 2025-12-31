@@ -30,9 +30,9 @@ export interface FormState {
   businessName: string;
   businessAddress: string;
   suiteNumber: string;
-  country: string;
+  countryCode: string;
   city: string;
-  state: string;
+  provinceCode: string;
   zipCode: string;
 
   // Salon-specific
@@ -89,9 +89,9 @@ export interface FormActions {
   setBusinessName: (value: string) => void;
   setBusinessAddress: (value: string) => void;
   setSuiteNumber: (value: string) => void;
-  setCountry: (value: string) => void;
+  setCountryCode: (value: string) => void;
   setCity: (value: string) => void;
-  setState: (value: string) => void;
+  setProvinceCode: (value: string) => void;
   setZipCode: (value: string) => void;
   setSalonSize: (value: string) => void;
   setSalonStructure: (value: string) => void;
@@ -128,7 +128,7 @@ interface SignupState {
   step: Step;
   accountType: AccountType | null;
   licenseNumber: string;
-  state: string;
+  provinceCode: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -136,7 +136,7 @@ interface SignupState {
   businessName: string;
   businessAddress: string;
   suiteNumber: string;
-  country: string;
+  countryCode: string;
   city: string;
   zipCode: string;
   wholesaleAgreed: boolean;
@@ -170,9 +170,9 @@ const calculateCompletedSteps = (data: {
   phoneNumber: string;
   businessName: string;
   businessAddress: string;
-  country: string;
+  countryCode: string;
   city: string;
-  state: string;
+  provinceCode: string;
   zipCode: string;
   licenseNumber: string;
   salonSize: string;
@@ -214,9 +214,9 @@ const calculateCompletedSteps = (data: {
     const businessLocationValid =
       data.businessName.trim() !== "" &&
       data.businessAddress.trim() !== "" &&
-      data.country !== "" &&
+      data.countryCode !== "" &&
       data.city.trim() !== "" &&
-      data.state !== "" &&
+      data.provinceCode !== "" &&
       data.zipCode.trim() !== "";
 
     const licenseValid =
@@ -234,9 +234,9 @@ const calculateCompletedSteps = (data: {
     const businessLocationValid =
       data.businessName.trim() !== "" &&
       data.businessAddress.trim() !== "" &&
-      data.country !== "" &&
+      data.countryCode !== "" &&
       data.city.trim() !== "" &&
-      data.state !== "" &&
+      data.provinceCode !== "" &&
       data.zipCode.trim() !== "";
 
     const licenseValid = data.licenseNumber.trim() !== "";
@@ -276,9 +276,9 @@ export function useAuthFormState(): FormState & FormActions {
   const [businessName, setBusinessName] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
   const [suiteNumber, setSuiteNumber] = useState("");
-  const [country, setCountry] = useState("United States");
+  const [countryCode, setCountryCode] = useState("United States");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [provinceCode, setProvinceCode] = useState("");
   const [zipCode, setZipCode] = useState("");
 
   // Salon-specific
@@ -357,14 +357,14 @@ export function useAuthFormState(): FormState & FormActions {
         if (data.mode) setMode(data.mode);
         if (data.accountType) setAccountType(data.accountType);
         if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
-        if (data.state) setState(data.state);
+        if (data.provinceCode) setProvinceCode(data.provinceCode);
         if (data.firstName) setFirstName(data.firstName);
         if (data.lastName) setLastName(data.lastName);
         if (data.email) setEmail(data.email);
         if (data.businessName) setBusinessName(data.businessName);
         if (data.businessAddress) setBusinessAddress(data.businessAddress);
         if (data.suiteNumber) setSuiteNumber(data.suiteNumber);
-        if (data.country) setCountry(data.country);
+        if (data.countryCode) setCountryCode(data.countryCode);
         if (data.city) setCity(data.city);
         if (data.zipCode) setZipCode(data.zipCode);
         if (data.wholesaleAgreed !== undefined) setWholesaleAgreed(data.wholesaleAgreed);
@@ -390,9 +390,9 @@ export function useAuthFormState(): FormState & FormActions {
           phoneNumber: data.phoneNumber || "",
           businessName: data.businessName || "",
           businessAddress: data.businessAddress || "",
-          country: data.country || "",
+          countryCode: data.countryCode || "",
           city: data.city || "",
-          state: data.state || "",
+          provinceCode: data.provinceCode || "",
           zipCode: data.zipCode || "",
           licenseNumber: data.licenseNumber || "",
           salonSize: data.salonSize || "",
@@ -448,14 +448,14 @@ export function useAuthFormState(): FormState & FormActions {
         currentStep,
         accountType,
         licenseNumber,
-        state,
+        provinceCode,
         firstName,
         lastName,
         email,
         businessName,
         businessAddress,
         suiteNumber,
-        country,
+        countryCode,
         city,
         zipCode,
         wholesaleAgreed,
@@ -483,14 +483,14 @@ export function useAuthFormState(): FormState & FormActions {
     currentStep,
     accountType,
     licenseNumber,
-    state,
+    provinceCode,
     firstName,
     lastName,
     email,
     businessName,
     businessAddress,
     suiteNumber,
-    country,
+    countryCode,
     city,
     zipCode,
     wholesaleAgreed,
@@ -514,7 +514,7 @@ export function useAuthFormState(): FormState & FormActions {
     setCurrentStep("onboarding");
     setAccountType(null);
     setLicenseNumber("");
-    setState("");
+    setProvinceCode("");
     setFirstName("");
     setLastName("");
     setEmail("");
@@ -522,8 +522,9 @@ export function useAuthFormState(): FormState & FormActions {
     setBusinessName("");
     setBusinessAddress("");
     setSuiteNumber("");
-    setCountry("United States");
+    setCountryCode("United States");
     setCity("");
+    setProvinceCode("");
     setZipCode("");
     setWholesaleAgreed(false);
     setHasTaxExemption(null);
@@ -600,9 +601,9 @@ export function useAuthFormState(): FormState & FormActions {
     businessName,
     businessAddress,
     suiteNumber,
-    country,
+    countryCode,
     city,
-    state,
+    provinceCode,
     zipCode,
     salonSize,
     salonStructure,
@@ -644,9 +645,9 @@ export function useAuthFormState(): FormState & FormActions {
     setBusinessName,
     setBusinessAddress,
     setSuiteNumber,
-    setCountry,
+    setCountryCode,
     setCity,
-    setState,
+    setProvinceCode,
     setZipCode,
     setSalonSize,
     setSalonStructure,

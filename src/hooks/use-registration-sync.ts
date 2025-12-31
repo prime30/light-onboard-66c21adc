@@ -27,9 +27,9 @@ interface FormStateToSync {
   businessName: string;
   businessAddress: string;
   suiteNumber: string;
-  country: string;
+  countryCode: string;
   city: string;
-  state: string;
+  provinceCode: string;
   zipCode: string;
   schoolName: string;
   schoolState: string;
@@ -88,9 +88,9 @@ export function useRegistrationSync(
       businessName: formState.businessName,
       businessAddress: formState.businessAddress,
       suiteNumber: formState.suiteNumber,
-      country: formState.country,
+      countryCode: formState.countryCode,
       city: formState.city,
-      state: formState.state,
+      provinceCode: formState.provinceCode,
       zipCode: formState.zipCode,
       schoolName: formState.schoolName,
       schoolState: formState.schoolState,
@@ -125,9 +125,9 @@ export function useRegistrationSync(
         businessName: formState.businessName ?? "",
         businessAddress: formState.businessAddress ?? "",
         suiteNumber: formState.suiteNumber ?? "",
-        country: formState.country ?? "United States",
+        countryCode: formState.countryCode ?? "United States",
         city: formState.city ?? "",
-        state: formState.state ?? "",
+        provinceCode: formState.provinceCode ?? "",
         zipCode: formState.zipCode ?? "",
         schoolName: formState.schoolName ?? "",
         schoolState: formState.schoolState ?? "",

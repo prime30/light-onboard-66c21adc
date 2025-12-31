@@ -110,13 +110,13 @@ export const SummaryForm = () => {
   const phoneNumber = watch("phoneNumber");
   const phoneCountryCode = watch("phoneCountryCode");
   const licenseNumber = watch("licenseNumber");
-  const state = watch("state");
+  const provinceCode = watch("provinceCode");
   const businessName = watch("businessName");
   const businessAddress = watch("businessAddress");
   const suiteNumber = watch("suiteNumber");
   const city = watch("city");
   const zipCode = watch("zipCode");
-  const country = watch("country");
+  const countryCode = watch("countryCode");
   const schoolName = watch("schoolName");
   const schoolState = watch("schoolState");
   const businessOperationType = watch("businessOperationType");
@@ -200,7 +200,7 @@ export const SummaryForm = () => {
               stepNum={accountType === "professional" ? 4 : 4}
             >
               <SummaryRow label="License Number" value={licenseNumber} />
-              {state && <SummaryRow label="State" value={state} />}
+              {provinceCode && <SummaryRow label="State" value={provinceCode} />}
               {accountType === "salon" && (
                 <>
                   <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />
@@ -223,8 +223,11 @@ export const SummaryForm = () => {
                 label="Address"
                 value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress}
               />
-              <SummaryRow label="City, State Postal" value={`${city}, ${state} ${zipCode}`} />
-              <SummaryRow label="Country" value={country} />
+              <SummaryRow
+                label="City, State Postal"
+                value={`${city}, ${provinceCode} ${zipCode}`}
+              />
+              <SummaryRow label="Country" value={countryCode} />
             </SummarySection>
           </div>
         )}

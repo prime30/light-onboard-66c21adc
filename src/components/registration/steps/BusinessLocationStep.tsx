@@ -61,14 +61,14 @@ export const BusinessLocationStep = () => {
   } = useForm();
 
   // Watch form values
-  const watchedValues = watch(["accountType", "businessAddress", "country", "state"]);
-  const [accountType, businessAddress, country, state] = watchedValues;
+  const watchedValues = watch(["accountType", "businessAddress", "countryCode", "provinceCode"]);
+  const [accountType, businessAddress, countryCode, provinceCode] = watchedValues;
 
   const isStudent = accountType === "student";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Get country metadata
-  const selectedCountry = countries.find((c) => c.code === country);
+  const selectedCountry = countries.find((c) => c.code === countryCode);
 
   // Address autocomplete functionality
   const { isLoading, inputRef, handleInputChange, handleInputFocus, AddressDropdown } =
@@ -85,7 +85,7 @@ export const BusinessLocationStep = () => {
           const matchedCountry = countries.find((c) => [c.name, c.code].includes(details.country));
 
           if (matchedCountry) {
-            setValue("country", matchedCountry.code);
+            setValue("countryCode", matchedCountry.code);
 
             // Set state/province for the matched country
             if (details.state || details.stateShort) {
@@ -95,7 +95,7 @@ export const BusinessLocationStep = () => {
               );
 
               if (matchedSubdivision) {
-                setValue("state", matchedSubdivision.code);
+                setValue("provinceCode", matchedSubdivision.code);
               }
             }
           }
@@ -215,13 +215,13 @@ export const BusinessLocationStep = () => {
         {/* Country */}
         <div className="animate-stagger-5">
           <SelectInput
-            name="country"
+            name="countryCode"
             control={control}
-            error={errors.country}
+            error={errors.countryCode}
             options={countryOptions}
             label="Country*"
             placeholder="Select country"
-            isValid={getValidationStatus("country") === "complete"}
+            isValid={getValidationStatus("countryCode") === "complete"}
           />
         </div>
 
@@ -241,27 +241,30 @@ export const BusinessLocationStep = () => {
           <div className="space-y-2.5 group">
             <Label
               htmlFor="stateProvince"
-              className={cn("text-sm font-medium label-float", errors.state && "text-destructive")}
+              className={cn(
+                "text-sm font-medium label-float",
+                errors.provinceCode && "text-destructive"
+              )}
             >
               {selectedCountry?.subdivisionLabel || "State/Province"}*
             </Label>
             <div className="input-glow input-ripple rounded-form relative">
-              {state && selectedCountry?.code === "US" && hasStateIcon(state) && (
+              {provinceCode && selectedCountry?.code === "US" && hasStateIcon(provinceCode) && (
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[24px] h-[24px] flex items-center justify-center z-10">
-                  <StateIcon state={state} size={22} className="text-foreground" />
+                  <StateIcon state={provinceCode} size={22} className="text-foreground" />
                 </div>
               )}
               <SelectInput
-                name="state"
+                name="provinceCode"
                 control={control}
-                error={errors.state}
+                error={errors.provinceCode}
                 options={subdivisionOptions}
                 placeholder={`Select ${selectedCountry?.subdivisionType || "state/province"}`}
-                isValid={getValidationStatus("state") === "complete"}
+                isValid={getValidationStatus("provinceCode") === "complete"}
                 className={cn(
-                  state &&
+                  provinceCode &&
                     selectedCountry?.code === "US" &&
-                    hasStateIcon(state) &&
+                    hasStateIcon(provinceCode) &&
                     "[&_button]:pl-[42px]"
                 )}
               />
