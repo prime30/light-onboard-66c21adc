@@ -103,7 +103,7 @@ export function AuthFooter({
               size="pill-lg"
               onClick={goToPrevStep}
               aria-label="Go back"
-              className="h-button w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
+              className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
             >
               <ArrowLeft
                 className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
@@ -144,7 +144,7 @@ export function AuthFooter({
                     isSummaryStep ? !isFormValid || isProcessing : !isStepValid || isProcessing
                   }
                   className={cn(
-                    "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
+                    "btn-premium w-full bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
                     shimmerKey > 0 && "shimmer-trigger",
                     showTooltip && "pointer-events-none"
                   )}
