@@ -1,21 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { FunctionResponse } from "../../lib/types.ts";
 import { corsHeaders } from "../../lib/corsHeaders.ts";
 import { sendError } from "../../lib/sendError.ts";
-
-type IsOk<T> =
-  | {
-      success: true;
-      data: T;
-    }
-  | {
-      success: false;
-      errors: string[];
-      statusCode?: number;
-    };
+import { validateRequestMethod } from "../../lib/validateRequestMethod.ts";
+import { parseRequestBody } from "../../lib/parseRequestBody.ts";
+import { registrationSchema } from "../../../src/lib/validations/auth-schemas.ts";
+import z from "zod";
+import { objectKeysToSnake } from "../../lib/caseConverter.ts";
 
 // Interface for the incoming request payload
-interface CustomerSyncRequest {
+interface CustomerCreateRequest {
   action: "NEW_CUSTOMER";
   data: {
     firstName: string;
@@ -24,14 +17,25 @@ interface CustomerSyncRequest {
   };
 }
 
+type CustomerCreateInput = {
+  account_type?: string;
+  business_operation_type?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  default_address: {
+    address1: string;
+    address2: string;
+    province: string;
+    zip: string;
+    country: string;
+  };
+};
+
 // Interface for the Customer Fields API request
 interface CustomerFieldsRequest {
   form_id: string;
-  customer: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
+  customer: CustomerCreateInput;
 }
 
 // Interface for the Customer Fields API response
@@ -45,42 +49,11 @@ interface CustomerFieldsResponse {
   };
 }
 
-function validateRequestMethod(req: Request): Response | null {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  // Only accept POST requests
-  if (req.method !== "POST") {
-    return sendError(405, ["Method not allowed. Only POST requests are accepted."]);
-  }
-
-  return null;
-}
-
-async function parseRequestBody(req: Request): Promise<IsOk<CustomerSyncRequest>> {
-  // Parse the request body
-  try {
-    const requestBody = await req.json();
-    return {
-      success: true,
-      data: requestBody,
-    };
-  } catch (parseError) {
-    console.error("Failed to parse request body:", parseError);
-    return {
-      success: false,
-      errors: ["Invalid JSON in request body"],
-      statusCode: 400,
-    };
-  }
-}
-
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   console.log("Customer create function called");
 
-  const methodResponse = validateRequestMethod(req);
+  // Validate request method
+  const methodResponse = validateRequestMethod(req, ["POST"]);
   if (methodResponse) {
     return methodResponse;
   }
@@ -96,33 +69,40 @@ serve(async (req: Request) => {
     return sendError(500, ["Server configuration error: Missing form ID"]);
   }
 
-  const bodyParseResponse = await parseRequestBody(req);
+  // Parse the request body
+  const bodyParseResponse = await parseRequestBody<CustomerCreateRequest>(req);
   if (!bodyParseResponse.success) {
     return sendError(bodyParseResponse.statusCode || 400, bodyParseResponse.errors);
   }
 
   const requestBody = bodyParseResponse.data;
 
-  // TODO: Validate request body schema
+  // Validate the request body against the schema
+  const parseResult = registrationSchema.safeParse(requestBody.data);
+  if (!parseResult.success) {
+    const validationErrors = z.treeifyError(parseResult.error);
+    console.log("Request body validation failed:", validationErrors);
+    return sendError(400, validationErrors.errors, "Invalid request data");
+  }
 
   try {
-    // // Validate the request structure
-    // if (!requestBody.action || requestBody.action !== "NEW_CUSTOMER") {
-    //   return sendError(400, ["Invalid action. Expected 'NEW_CUSTOMER'"]);
-    // }
-
-    // if (
-    //   !requestBody.data ||
-    //   !requestBody.data.firstName ||
-    //   !requestBody.data.lastName ||
-    //   !requestBody.data.email
-    // ) {
-    //   return sendError(400, [
-    //     "Missing required customer data. Expected firstName, lastName, and email",
-    //   ]);
-    // }
-
     console.log("Processing customer sync for:", requestBody.data.email);
+    const customer = objectKeysToSnake(parseResult.data);
+    console.log("customer", customer);
+
+    const customerCreateInput: CustomerCreateInput = {
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      email: customer.email,
+      default_address: {
+        address1: customer.address1 || "",
+      },
+      // customer: {
+      //   first_name: requestBody.data.firstName,
+      //   last_name: requestBody.data.lastName,
+      //   email: requestBody.data.email,
+      // },
+    };
 
     // Prepare the Customer Fields API request
     const customerFieldsRequest = {

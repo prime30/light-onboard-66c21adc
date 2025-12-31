@@ -1,5 +1,6 @@
 {
   "imports": {
+    "zod": "npm:zod",
     "supabase": "npm:@supabase/supabase-js@2",
     "~lib": "../../lib/index.ts"
   }
