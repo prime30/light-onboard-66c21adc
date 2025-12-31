@@ -156,11 +156,11 @@ const licenseValidators = {
 export const licenseSchema = z.object(licenseValidators);
 
 // License Schema for salons (includes additional fields)
-const salonLicenseValidators = {
+const salonValidators = {
   salonSize: z.string().min(1, "Salon size is required"),
   salonStructure: z.string().min(1, "Salon structure is required"),
 };
-export const salonLicenseSchema = z.object(salonLicenseValidators);
+export const salonSchema = z.object(salonValidators);
 
 // Tax Exemption Schema
 const taxExemptionValidators = {
@@ -169,7 +169,27 @@ const taxExemptionValidators = {
   }),
   taxExemptFile: fileUploadSchema(true),
 };
-export const taxExemptionSchema = z.object(taxExemptionValidators);
+export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
+  (data) => {
+    if (!data.taxExempt) {
+      return true;
+    }
+
+    // If tax exempt is true, tax exempt file is required
+    if (!data.taxExemptFile) return false;
+
+    // Handle different file types
+    if (typeof data.taxExemptFile === "string") return data.taxExemptFile.length > 0;
+    if (Array.isArray(data.taxExemptFile)) return data.taxExemptFile.length > 0;
+
+    // Handle single UploadFileItem
+    return true;
+  },
+  {
+    message: "Tax exemption document is required when claiming tax exemption",
+    path: ["taxExemptFile"],
+  }
+);
 
 // Wholesale Terms Schema
 const wholesaleValidators = {
@@ -217,7 +237,7 @@ export const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({ accountType: z.literal("salon") }).extend({
     ...baseValidators,
     ...businessLocationValidators,
-    ...salonLicenseValidators,
+    ...salonValidators,
     ...licenseValidators,
   }),
   z.object({ accountType: z.literal("student") }).extend({
@@ -237,7 +257,7 @@ export type SchoolInfoFormData = z.infer<typeof schoolInfoSchema>;
 export type ContactBasicsFormData = z.infer<typeof contactBasicsSchema>;
 export type BusinessLocationFormData = z.infer<typeof businessLocationSchema>;
 export type LicenseFormData = z.infer<typeof licenseSchema>;
-export type SalonLicenseFormData = z.infer<typeof salonLicenseSchema>;
+export type SalonLicenseFormData = z.infer<typeof salonSchema>;
 export type TaxExemptionFormData = z.infer<typeof taxExemptionSchema>;
 export type WholesaleTermsFormData = z.infer<typeof wholesaleTermsSchema>;
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;
