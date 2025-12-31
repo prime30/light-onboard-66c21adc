@@ -9,7 +9,6 @@ import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
-import { set } from "zod/v3";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 

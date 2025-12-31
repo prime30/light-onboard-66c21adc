@@ -8,7 +8,7 @@ import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import { countries, states, provinces } from "@/data/locations";
-import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
+import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
 import type { AddressDetails } from "@/services/address";
 
 function BusinessNamePrefixIcon({ error }: { error: boolean }) {
