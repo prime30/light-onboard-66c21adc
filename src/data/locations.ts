@@ -1,21 +1,3 @@
-// Countries with additional metadata
-export const countries = [
-  {
-    code: "US",
-    name: "United States",
-    subdivisionType: "state",
-    subdivisionLabel: "State",
-    postalCodeLabel: "ZIP Code",
-  },
-  {
-    code: "CA",
-    name: "Canada",
-    subdivisionType: "province",
-    subdivisionLabel: "Province/Territory",
-    postalCodeLabel: "Postal Code",
-  },
-];
-
 // US States with codes
 export const states = [
   { code: "AL", name: "Alabama" },
@@ -86,3 +68,33 @@ export const provinces = [
   { code: "SK", name: "Saskatchewan" },
   { code: "YT", name: "Yukon" },
 ];
+
+// Countries with additional metadata
+export const countries = [
+  {
+    code: "US",
+    name: "United States",
+    subdivisionType: "state",
+    subdivisionLabel: "State",
+    postalCodeLabel: "ZIP Code",
+    subdivisions: states,
+  },
+  {
+    code: "CA",
+    name: "Canada",
+    subdivisionType: "province",
+    subdivisionLabel: "Province/Territory",
+    postalCodeLabel: "Postal Code",
+    subdivisions: provinces,
+  },
+];
+
+export function getProvinceName(
+  code: string,
+  countryCode: (typeof countries)[number]["code"]
+): string | undefined {
+  const country = countries.find((c) => c.code === countryCode);
+  if (!country) return undefined;
+  const subdivision = country.subdivisions.find((s) => s.code === code);
+  return subdivision ? subdivision.name : undefined;
+}

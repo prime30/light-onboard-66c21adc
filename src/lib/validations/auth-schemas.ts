@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { countryCodes } from "@/data/country-codes";
-import { formatPhoneNumber } from "./form-utils";
-import { UploadFileItem, uploadFileItemSchema } from "./file-schema";
+import { countryCodes } from "../../data/country-codes.ts";
+import { formatPhoneNumber } from "./form-utils.ts";
+import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 
 function convertFileUploadToUrl(
   value: UploadFileItem | UploadFileItem[] | string | string[] | undefined
@@ -106,7 +106,7 @@ const contactBasicsValidators = {
     .string()
     .min(1, "Country code is required")
     .refine(
-      (iso) => countryCodes.some((country) => country.iso === iso),
+      (value) => countryCodes.some((country) => country.iso === value || country.code === value),
       "Invalid country selected"
     )
     .overwrite((value) => {

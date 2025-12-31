@@ -15,4 +15,16 @@ export const countryCodes = [
   { code: "+55", country: "BR", iso: "br", name: "Brazil" },
 ] as const;
 
+export function getCountryName(value: string) {
+  const country = countryCodes.find(
+    (country) =>
+      country.iso === value ||
+      country.country === value ||
+      country.code === value ||
+      country.name === value
+  );
+
+  return country ? country.name : null;
+}
+
 export type CountryCode = (typeof countryCodes)[number];
