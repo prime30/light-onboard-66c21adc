@@ -7,4 +7,15 @@ export type FunctionResponse<T> = {
   errorMessage?: string[];
 };
 
+export type IsOk<T> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      errors: string[];
+      statusCode?: number;
+    };
+
 export const hello: string = "hi";
