@@ -5,6 +5,7 @@ import { UploadFileItem } from "@/lib/validations/file-schema";
 export interface UploadFileContextType {
   queue: UploadFileItem[];
   isUploading: boolean;
+  overallProgress: number;
   addFiles: (files: File[]) => UploadFileItem[];
   clearQueue: () => void;
   retryFile: (id: string) => void;
@@ -28,6 +29,9 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadingRef = useRef(false);
+
+  const overallProgress =
+    queue.length === 0 ? 0 : queue.reduce((sum, item) => sum + item.progress, 0) / queue.length;
 
   const generateId = (): string => {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -132,6 +136,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
   const value: UploadFileContextType = {
     queue,
     isUploading,
+    overallProgress,
     addFiles,
     clearQueue,
     retryFile,

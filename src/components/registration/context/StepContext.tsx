@@ -12,7 +12,8 @@ import {
 import { fieldsForStep, getStepOrder, stepValidations } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
 import { AuthMode, Step } from "@/types/auth";
-import { useFormData, ValidationStatus, ValidFieldNames } from "./FormDataContext";
+import { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { defaultValues, useFormData, ValidationStatus } from "./FormDataContext";
 
 export type StepContextType = {
   mode: AuthMode;
@@ -31,6 +32,7 @@ export type StepContextType = {
   mainScrollRef: MutableRefObject<HTMLElement | null>;
   formProgress: number;
   completedSteps: Record<Step, ValidationStatus>;
+  incompleteSteps: Step[];
   getStepValidationStatus: (step: Step) => ValidationStatus;
   getStepNumber: (step: Step) => number;
   getStepForField: (fieldName: ValidFieldNames) => Step | null;
@@ -62,7 +64,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     // setTimeout(() => {
     //   reset(defaultValues);
     // }, 1000);
-    // setCurrentStep("school-info");
+    // setCurrentStep("business-location");
   }, []);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
@@ -227,6 +229,10 @@ export function StepProvider({ children }: { children: ReactNode }) {
     return progress;
   }, [steps, completedSteps, dirtySteps]);
 
+  const incompleteSteps = useMemo(() => {
+    return steps.filter((step) => completedSteps[step] !== "complete");
+  }, [steps, completedSteps]);
+
   const value: StepContextType = {
     mode,
     setMode,
@@ -244,6 +250,7 @@ export function StepProvider({ children }: { children: ReactNode }) {
     mainScrollRef,
     formProgress,
     completedSteps,
+    incompleteSteps,
     getStepValidationStatus,
     getStepNumber,
     getStepForField,

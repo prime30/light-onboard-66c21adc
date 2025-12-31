@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useEffect } from "react";
 import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 
@@ -17,6 +17,9 @@ export type AuthFormContextType = {
   dirtyFields: ReturnType<typeof useFormData>["dirtyFields"];
   isFormValid: ReturnType<typeof useFormData>["isFormValid"];
   fullErrors: ReturnType<typeof useFormData>["fullErrors"];
+  isSubmitted: ReturnType<typeof useFormData>["isSubmitted"];
+  isSubmitSuccessful: ReturnType<typeof useFormData>["isSubmitSuccessful"];
+  isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
 
   // Step-related (from StepContext)
   mode: ReturnType<typeof useStepContext>["mode"];
@@ -37,6 +40,7 @@ export type AuthFormContextType = {
   // Computed values (now in StepContext)
   formProgress: number;
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
+  incompleteSteps: ReturnType<typeof useStepContext>["incompleteSteps"];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
   getStepNumber: ReturnType<typeof useStepContext>["getStepNumber"];
   getStepForField: ReturnType<typeof useStepContext>["getStepForField"];
@@ -48,10 +52,52 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Internal component that combines both contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
-  const formDataContext = useFormData();
-  const stepContext = useStepContext();
+  const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
+  const { setCurrentStep, ...stepContext } = useStepContext();
+
+  const email = watch("email");
+
+  const submitForm = handleSubmit(
+    async (values) => {
+      console.log("submit values:", values);
+      // const result = await fetch("http://127.0.0.1:54321/functions/v1/create-customer", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     action: "CREATE_CUSTOMER",
+      //     data: values,
+      //   }),
+      // });
+
+      // const resultData = await result.json();
+      // if (resultData.success) {
+      //   // Clear stored form on success
+
+      //   stepContext.setCurrentStep("success");
+      // }
+
+      // return resultData;
+    },
+    (errors) => {
+      console.log("errors: ", errors);
+    }
+  );
+
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset({ email });
+      setCurrentStep("success");
+    }
+  }, [isSubmitSuccessful, setCurrentStep, email, reset]);
 
   const value: AuthFormContextType = {
+    submitForm,
+    setCurrentStep,
+    isSubmitSuccessful,
+    watch,
+    reset,
     ...formDataContext,
     ...stepContext,
   };

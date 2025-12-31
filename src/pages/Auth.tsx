@@ -1,10 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BadgeCheck } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useAuthFormState } from "@/hooks/use-auth-form-state";
-import { useFormValidation } from "@/hooks/use-form-validation";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
@@ -21,9 +18,6 @@ import { AccountTypeForm } from "@/components/registration/steps/AccountTypeForm
 import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { SummaryForm } from "@/components/registration/steps/SummaryForm";
 import { SuccessForm } from "@/components/registration/steps/SuccessForm";
-import { supabase } from "@/integrations/supabase/client";
-import { signUp } from "@/lib/auth-service";
-import { useRegistrationUpload } from "@/hooks/use-registration-upload";
 import type { Step } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
@@ -31,15 +25,19 @@ import { MobileSavingProgress } from "@/components/registration/MobileSavingProg
 import { MobileDragHandle } from "@/components/registration/MobileDragHandle";
 import { AuthToggle } from "@/components/registration/AuthToggle";
 import { CloseButton } from "@/components/registration/CloseButton";
-import { useGlobalApp } from "@/contexts";
+import { useGlobalApp, useUploadFile } from "@/contexts";
 import { LeftPanel } from "@/components/registration/LeftPanel";
-import { useStepContext } from "@/components/registration/context";
+import { useFormData, useStepContext } from "@/components/registration/context";
 import { useScroll } from "@/hooks/use-scroll";
 import { useSafariViewportFix } from "@/hooks/use-safari-viewport-fix";
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { watch, setValue, isFormValid, isSubmitting } = useFormData();
+  const { isUploading, overallProgress } = useUploadFile();
+  const [referralSource, setReferralSource] = useState<string>("");
 
   // Form state from centralized hook (includes sessionStorage persistence)
   const {
@@ -48,57 +46,15 @@ const Auth = () => {
     currentStep,
     setCurrentStep,
     goToNextStep,
-    goToPrevStep,
     mainScrollRef,
     transitionDirection,
-    setTransitionDirection,
     isTransitioning,
-    setIsTransitioning,
+    incompleteSteps,
   } = useStepContext();
-
-  const formState = useAuthFormState();
-  const {
-    displayTotalSteps,
-    accountType,
-    firstName,
-    lastName,
-    preferredName,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    phoneNumber,
-    phoneCountryCode,
-    businessName,
-    licenseFile,
-    enrollmentProofFiles,
-    licenseProofFiles,
-    taxExemptFile,
-    referralSource,
-    setReferralSource,
-    isSubmitting,
-    setIsSubmitting,
-    showForgotPassword,
-    setShowForgotPassword,
-    isSendingReset,
-    setIsSendingReset,
-  } = formState;
-
-  // Form validation from dedicated hook
-  const { isAllStepsValid, getIncompleteSteps, isFormReadyToSubmit, getFormProgress } =
-    useFormValidation({});
 
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
   const [highlightFields, setHighlightFields] = useState<string[]>([]);
-
-  // File upload hook for registration documents
-  const {
-    isUploading: isUploadingDocuments,
-    uploadProgress: documentUploadProgress,
-    uploadAllDocuments,
-    resetUploadState: resetDocumentUploadState,
-  } = useRegistrationUpload();
 
   // Prevent footer layout transitions from running during the initial footer entrance animation
   const [footerTransitionsEnabled, setFooterTransitionsEnabled] = useState(false);
@@ -138,7 +94,7 @@ const Auth = () => {
       // Clear the state to prevent re-triggering on re-renders
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, location.search]);
+  }, [location.state, location.search, location.pathname, setCurrentStep]);
 
   // Disable pull-to-refresh when modal is open to prevent interference with swipe-to-dismiss
   // But only block it in the drag handle areas (backdrop and top of modal), not in scrollable content
@@ -416,111 +372,28 @@ const Auth = () => {
   handleCloseModalRef.current = handleCloseModal;
 
   const handleForgotPasswordSubmit = useCallback(async () => {
-    if (!email.trim()) {
-      toast.error("Please enter your email address");
-      return;
-    }
-    setIsSendingReset(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Check your email for a reset link!");
-        setShowForgotPassword(false);
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send reset email");
-    } finally {
-      setIsSendingReset(false);
-    }
-  }, [email]);
-
-  // Handle sign up submission
-  const handleSignUpSubmit = useCallback(async () => {
-    setIsSubmitting(true);
-    try {
-      const result = await signUp({
-        email,
-        password,
-        metadata: {
-          firstName,
-          lastName,
-          preferredName,
-          accountType: accountType || undefined,
-          phoneNumber: phoneNumber ? `${phoneCountryCode}${phoneNumber}` : undefined,
-          businessName: businessName || undefined,
-        },
-      });
-
-      if (result.success && result.user?.id) {
-        // Upload all registration documents
-        const hasDocuments =
-          licenseFile ||
-          licenseProofFiles.length > 0 ||
-          enrollmentProofFiles.length > 0 ||
-          taxExemptFile;
-
-        if (hasDocuments) {
-          const uploadedPaths = await uploadAllDocuments(result.user.id, {
-            licenseFile,
-            licenseProofFiles,
-            enrollmentProofFiles,
-            taxExemptFile,
-          });
-
-          if (!uploadedPaths) {
-            // Upload failed but user was created - show partial success
-            toast.warning(
-              "Account created but some documents failed to upload. You can upload them later."
-            );
-          }
-        }
-
-        // Clear form progress
-        sessionStorage.removeItem("auth_form_progress");
-        resetDocumentUploadState();
-
-        // Show success step
-        setCurrentStep("success");
-        toast.success(result.message || "Application submitted successfully!");
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-      } else if (result.success) {
-        // User created but no ID returned - still show success
-        sessionStorage.removeItem("auth_form_progress");
-        setCurrentStep("success");
-        toast.success(result.message || "Application submitted successfully!");
-        mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-      } else {
-        toast.error(result.message || "Failed to submit application");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    setIsSubmitting,
-    email,
-    password,
-    firstName,
-    lastName,
-    preferredName,
-    accountType,
-    phoneNumber,
-    phoneCountryCode,
-    businessName,
-    licenseFile,
-    licenseProofFiles,
-    enrollmentProofFiles,
-    taxExemptFile,
-    resetDocumentUploadState,
-    setCurrentStep,
-    mainScrollRef,
-    uploadAllDocuments,
-  ]);
+    console.log("Forgot password submit triggered");
+    // if (!email.trim()) {
+    //   toast.error("Please enter your email address");
+    //   return;
+    // }
+    // setIsSendingReset(true);
+    // try {
+    //   const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    //     redirectTo: `${window.location.origin}/reset-password`,
+    //   });
+    //   if (error) {
+    //     toast.error(error.message);
+    //   } else {
+    //     toast.success("Check your email for a reset link!");
+    //     setShowForgotPassword(false);
+    //   }
+    // } catch (error: any) {
+    //   toast.error(error.message || "Failed to send reset email");
+    // } finally {
+    //   setIsSendingReset(false);
+    // }
+  }, []);
 
   return (
     <div
@@ -723,20 +596,19 @@ const Auth = () => {
             >
               {mode === "signin" ? (
                 <SignInForm
-                  email={email}
-                  password={password}
-                  onEmailChange={setEmail}
-                  onPasswordChange={setPassword}
+                  email={watch("email")}
+                  password={""}
+                  onEmailChange={(email) => setValue("email", email)}
+                  onPasswordChange={() => {}}
                   onSignUp={() => {
                     setModeTransitionDirection("left");
                     setMode("signup");
                     setCurrentStep("onboarding");
-                    setShowForgotPassword(false);
                   }}
-                  showForgotPassword={showForgotPassword}
-                  onForgotPasswordToggle={() => setShowForgotPassword(!showForgotPassword)}
+                  showForgotPassword={false}
+                  onForgotPasswordToggle={() => false}
                   onForgotPasswordSubmit={handleForgotPasswordSubmit}
-                  isSendingReset={isSendingReset}
+                  isSendingReset={false}
                   fontsLoaded={fontsLoaded}
                 />
               ) : (
@@ -792,13 +664,19 @@ const Auth = () => {
             <AuthFooter
               mode={mode}
               currentStep={currentStep}
-              isAllStepsValid={isAllStepsValid()}
+              isAllStepsValid={isFormValid}
               isSubmitting={isSubmitting}
-              isUploading={isUploadingDocuments}
-              uploadProgress={documentUploadProgress}
+              isUploading={isUploading}
+              uploadProgress={overallProgress}
               footerTransitionsEnabled={footerTransitionsEnabled}
               footerEnterReady={footerEnterReady}
-              incompleteSteps={getIncompleteSteps()}
+              incompleteSteps={incompleteSteps.map((item) => {
+                return {
+                  step: item,
+                  name: item,
+                  missingFields: [],
+                };
+              })}
               shimmerKey={shimmerKey}
             />
           )}

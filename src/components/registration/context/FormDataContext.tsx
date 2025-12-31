@@ -9,6 +9,7 @@ import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
+import { set } from "zod/v3";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -37,7 +38,7 @@ export type FormDataContextType = {
   control: Control<RegistrationFormData>;
   watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
-  submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  handleSubmit: ReturnType<typeof useForm<RegistrationFormData>>["handleSubmit"];
   setValue: ReturnType<typeof useForm<RegistrationFormData>>["setValue"];
   formState: ReturnType<typeof useForm<RegistrationFormData>>["formState"];
   subscribe: ReturnType<typeof useForm<RegistrationFormData>>["subscribe"];
@@ -46,6 +47,9 @@ export type FormDataContextType = {
   dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
   isFormValid: boolean;
   fullErrors: ReturnType<typeof z.treeifyError<RegistrationFormData>>;
+  isSubmitted: boolean;
+  isSubmitSuccessful: boolean;
+  isSubmitting: boolean;
 };
 
 export const dirtyFieldOptions = {
@@ -75,35 +79,22 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
 
-  const { register, handleSubmit, reset, setValue, watch, formState, subscribe, control } =
-    useForm<RegistrationFormData>({
-      mode: "onChange",
-      resolver: zodResolver(registrationSchema),
-      defaultValues: initialValues,
-    });
+  const {
+    register,
+    handleSubmit,
+    reset: hookFormReset,
+    setValue,
+    watch,
+    formState,
+    subscribe,
+    control,
+  } = useForm<RegistrationFormData>({
+    mode: "onChange",
+    resolver: zodResolver(registrationSchema),
+    defaultValues: initialValues,
+  });
 
-  const submitForm = handleSubmit(
-    async (values) => {
-      console.log("submit values:", values);
-      const result = await fetch("http://127.0.0.1:54321/functions/v1/create-customer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "CREATE_CUSTOMER",
-          data: values,
-        }),
-      });
-
-      console.log(result);
-    },
-    (errors) => {
-      console.log("errors: ", errors);
-    }
-  );
-
-  const { errors, dirtyFields } = formState;
+  const { errors, dirtyFields, isSubmitted, isSubmitSuccessful, isSubmitting } = formState;
 
   const getValidationStatus = useCallback(
     (fields: ValidFieldNames | ValidFieldNames[]): ValidationStatus => {
@@ -149,40 +140,56 @@ export function FormDataProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const setStoredFormValues = useCallback(
+    ({ values }: { values: Partial<RegistrationFormData> }) => {
+      type ValueType = (typeof values)[keyof typeof values];
+      const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
+        if (
+          (Array.isArray(value) && value.length === 0) ||
+          (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
+        ) {
+          return acc;
+        }
+
+        if (value !== undefined && value !== "") {
+          acc[key] = value;
+        }
+
+        return acc;
+      }, {} as Partial<RegistrationFormData>);
+      setStoredForm(newStore);
+    },
+    [setStoredForm]
+  );
+
   useEffect(() => {
     const callback = subscribe({
       formState: {
         values: true,
       },
-      callback: ({ values }) => {
-        type ValueType = (typeof values)[keyof typeof values];
-        const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
-          if (
-            (Array.isArray(value) && value.length === 0) ||
-            (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
-          ) {
-            return acc;
-          }
-
-          if (value !== undefined && value !== "") {
-            acc[key] = value;
-          }
-
-          return acc;
-        }, {} as Partial<RegistrationFormData>);
-        setStoredForm(newStore);
-      },
+      callback: setStoredFormValues,
     });
 
     return () => callback();
-  }, [subscribe, setStoredForm]);
+  }, [subscribe, setStoredForm, setStoredFormValues]);
+
+  const reset = useCallback(
+    (values: Partial<RegistrationFormData> = {}) => {
+      const resetValues = { ...defaultValues, ...values };
+      hookFormReset(resetValues);
+      setStoredFormValues({ values: resetValues });
+    },
+    [hookFormReset, setStoredFormValues]
+  );
+
+  console.log(storedForm);
 
   const value: FormDataContextType = {
     register,
     control,
     watch,
     reset,
-    submitForm,
+    handleSubmit,
     setValue,
     formState,
     subscribe,
@@ -191,6 +198,9 @@ export function FormDataProvider({
     dirtyFields,
     isFormValid,
     fullErrors,
+    isSubmitted,
+    isSubmitSuccessful,
+    isSubmitting,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

@@ -7,7 +7,7 @@ import type { AuthMode, Step } from "@/types/auth";
 import { useForm } from "./context";
 
 interface IncompleteStep {
-  step: number;
+  step: Step;
   name: string;
   missingFields: string[];
 }
@@ -44,11 +44,8 @@ export function AuthFooter({
     goToNextStep,
     goToPrevStep,
     goToStep,
-    errors,
     submitForm,
   } = useForm();
-
-  console.log(errors, isFormValid);
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
@@ -216,9 +213,7 @@ export function AuthFooter({
                         key={step}
                         onClick={() => {
                           setSubmitTooltipOpen(false);
-                          if (name) {
-                            goToStep(name);
-                          }
+                          goToStep(step);
                         }}
                         className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
                       >
