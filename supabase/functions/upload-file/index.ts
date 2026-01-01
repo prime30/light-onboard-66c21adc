@@ -86,14 +86,14 @@ Deno.serve(async (req) => {
 
     console.log("File uploaded successfully:", uploadData.path);
 
-    // Get the public URL
-    const { data: urlData } = sbAdmin.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    // Generate URL that points to our get-image function
+    const imageUrl = `${supabaseUrl}/functions/v1/get-image?path=${encodeURIComponent(fileName)}`;
 
     return new Response(
       JSON.stringify({
         success: true,
         path: uploadData.path,
-        publicUrl: urlData.publicUrl,
+        publicUrl: imageUrl,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
