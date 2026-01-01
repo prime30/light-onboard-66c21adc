@@ -1,5 +1,6 @@
 {
   "imports": {
-    "supabase": "npm:@supabase/supabase-js@2"
+    "supabase": "npm:@supabase/supabase-js@2",
+    "~lib": "../../lib/index.ts"
   }
 }

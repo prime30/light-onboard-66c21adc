@@ -1,12 +1,13 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
+import { useForm } from "./context";
 
 interface IncompleteStep {
-  step: number;
+  step: Step;
   name: string;
   missingFields: string[];
 }
@@ -14,7 +15,6 @@ interface IncompleteStep {
 interface AuthFooterProps {
   mode: AuthMode;
   currentStep: Step;
-  canContinue: boolean;
   isAllStepsValid: boolean;
   isSubmitting: boolean;
   isUploading?: boolean;
@@ -23,16 +23,10 @@ interface AuthFooterProps {
   footerEnterReady: boolean;
   incompleteSteps: IncompleteStep[];
   shimmerKey?: number;
-  onBack: () => void;
-  onNext: () => void;
-  onGoToStep: (step: number, missingFields?: string[]) => void;
 }
 
 export function AuthFooter({
   mode,
-  currentStep,
-  canContinue,
-  isAllStepsValid,
   isSubmitting,
   isUploading = false,
   uploadProgress = 0,
@@ -40,16 +34,24 @@ export function AuthFooter({
   footerEnterReady,
   incompleteSteps,
   shimmerKey = 0,
-  onBack,
-  onNext,
-  onGoToStep,
 }: AuthFooterProps) {
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
   const submitPopoverCloseTimer = useRef<number | null>(null);
+  const {
+    getStepValidationStatus,
+    currentStep,
+    isFormValid,
+    goToNextStep,
+    goToPrevStep,
+    goToStep,
+    submitForm,
+  } = useForm();
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
-  const showTooltip = isSummaryStep && !isAllStepsValid && incompleteSteps.length > 0;
+  const showTooltip = isSummaryStep && !isFormValid && incompleteSteps.length > 0;
+
+  const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
@@ -61,6 +63,15 @@ export function AuthFooter({
   };
 
   const isProcessing = isSubmitting || isUploading;
+
+  const handleContinue = useCallback(() => {
+    if (isSummaryStep) {
+      submitForm();
+      return;
+    }
+
+    goToNextStep();
+  }, [goToNextStep, isSummaryStep, submitForm]);
 
   return (
     <footer
@@ -90,9 +101,9 @@ export function AuthFooter({
             <Button
               variant="outline"
               size="pill-lg"
-              onClick={onBack}
+              onClick={goToPrevStep}
               aria-label="Go back"
-              className="h-button w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
+              className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
             >
               <ArrowLeft
                 className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
@@ -128,12 +139,12 @@ export function AuthFooter({
                 <Button
                   key={`shimmer-${shimmerKey}`}
                   size="pill-lg"
-                  onClick={onNext}
+                  onClick={handleContinue}
                   disabled={
-                    isSummaryStep ? !isAllStepsValid || isProcessing : !canContinue || isProcessing
+                    isSummaryStep ? !isFormValid || isProcessing : !isStepValid || isProcessing
                   }
                   className={cn(
-                    "btn-premium w-full h-button bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
+                    "btn-premium w-full bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
                     shimmerKey > 0 && "shimmer-trigger",
                     showTooltip && "pointer-events-none"
                   )}
@@ -202,7 +213,7 @@ export function AuthFooter({
                         key={step}
                         onClick={() => {
                           setSubmitTooltipOpen(false);
-                          onGoToStep(step, missingFields);
+                          goToStep(step);
                         }}
                         className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
                       >

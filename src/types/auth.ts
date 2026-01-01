@@ -5,6 +5,8 @@
  * Centralized here to ensure consistency across components.
  */
 
+import { RegistrationFormData } from "@/lib/validations/auth-schemas";
+
 /** Authentication mode - either signing up or signing in */
 export type AuthMode = "signup" | "signin";
 
@@ -20,7 +22,7 @@ export type Step =
   | "school-info"
   | "wholesale-terms"
   | "tax-exemption"
-  | "contact-info"
+  | "preferences"
   | "summary"
   | "success";
 
@@ -35,66 +37,6 @@ export type TransitionDirection = "forward" | "backward";
 
 /** Mode transition direction for signup/signin switch */
 export type ModeTransitionDirection = "left" | "right";
-
-/**
- * Form data structure for the registration flow
- * Contains all fields collected across all steps
- */
-export interface RegistrationFormData {
-  // Account type
-  accountType: AccountType;
-
-  // Business operation (professional only)
-  businessOperationType: BusinessOperationType;
-
-  // Contact basics
-  firstName: string;
-  lastName: string;
-  preferredName: string;
-  email: string;
-  phoneNumber: string;
-  phoneCountryCode: string;
-
-  // Business location (professional and salon)
-  businessName: string;
-  businessAddress: string;
-  suiteNumber: string;
-  country: string;
-  city: string;
-  state: string;
-  zipCode: string;
-
-  // School info (student only)
-  schoolName: string;
-  schoolState: string;
-  enrollmentProofFiles: File[];
-
-  // License (professional and salon)
-  licenseNumber: string;
-  salonSize: string;
-  salonStructure: string;
-  licenseFile: File | null;
-  licenseProofFiles: File[];
-
-  // Tax exemption
-  hasTaxExemption: boolean | null;
-  taxExemptFile: File | null;
-
-  // Wholesale terms
-  wholesaleAgreed: boolean;
-
-  // Preferences
-  birthdayMonth: string;
-  birthdayDay: string;
-  socialMediaHandle: string;
-  referralSource: string;
-  subscribeOrderUpdates: boolean;
-  subscribeMarketing: boolean;
-  subscribePromotions: boolean;
-
-  // Password
-  password: string;
-}
 
 /**
  * UI state for the registration flow

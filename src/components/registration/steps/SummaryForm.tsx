@@ -1,138 +1,32 @@
-import { FileCheck, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
+import { useForm } from "@/components/registration/context/FormContext";
+import { countryCodes } from "@/data/country-codes";
+import { AccountType, BusinessOperationType } from "@/types/auth";
+import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
+import { UploadFileItem } from "@/lib/validations/file-schema";
 
-interface SummaryFormProps {
-  accountType: string | null;
-  firstName: string;
-  lastName: string;
-  preferredName: string;
-  email: string;
-  phoneNumber: string;
-  phoneCountryCode: string;
-  licenseNumber: string;
-  state: string;
-  businessName: string;
-  businessAddress: string;
-  suiteNumber: string;
-  city: string;
-  zipCode: string;
-  country: string;
-  schoolName: string;
-  schoolState: string;
-  businessOperationType: "commission" | "independent" | null;
-  salonSize: string;
-  salonStructure: string;
-  hasTaxExemption: boolean | null;
-  birthdayMonth: string;
-  birthdayDay: string;
-  socialMediaHandle: string;
-  subscribeOrderUpdates: boolean;
-  subscribePromotions: boolean;
-  uploadedFiles?: { file: File; label: string }[];
-  onEditStep: (stepNum: number) => void;
-}
-
-export const SummaryForm = ({
-  accountType,
-  firstName,
-  lastName,
-  preferredName,
-  email,
-  phoneNumber,
-  phoneCountryCode,
-  licenseNumber,
-  state,
-  businessName,
-  businessAddress,
-  suiteNumber,
-  city,
-  zipCode,
-  country,
-  schoolName,
-  schoolState,
-  businessOperationType,
-  salonSize,
-  salonStructure,
-  hasTaxExemption,
-  birthdayMonth,
-  birthdayDay,
-  socialMediaHandle,
-  subscribeOrderUpdates,
-  subscribePromotions,
-  uploadedFiles = [],
-  onEditStep,
-}: SummaryFormProps) => {
-  // Step number varies by account type: professional=9, salon=8, student=7
-  const stepNumber = accountType === "professional" ? 9 : accountType === "student" ? 7 : 8;
-
-  const getAccountTypeLabel = () => {
-    if (accountType === "professional") return "Professional Stylist";
-    if (accountType === "student") return "Cosmetology Student";
-    if (accountType === "salon") return "Salon / Business";
-    return "";
-  };
-
-  const getBusinessOperationLabel = () => {
-    if (businessOperationType === "commission") return "Commission-based (work at a salon)";
-    if (businessOperationType === "independent") return "Independent (booth rent / freelance)";
-    return "";
-  };
-
-  const getSalonSizeLabel = () => {
-    if (salonSize === "1") return "Just me (solo)";
-    if (salonSize === "2-5") return "2-5 stylists";
-    if (salonSize === "6-10") return "6-10 stylists";
-    if (salonSize === "11+") return "11+ stylists";
-    return salonSize;
-  };
-
-  const getSalonStructureLabel = () => {
-    if (salonStructure === "owner") return "I own the salon";
-    if (salonStructure === "manager") return "I manage the salon";
-    if (salonStructure === "booth") return "I rent a booth/chair";
-    return salonStructure;
-  };
-
-  const getMonthName = (month: string) => {
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    const idx = parseInt(month, 10) - 1;
-    return months[idx] || month;
-  };
-
-  const formatPhoneDisplay = () => {
-    if (!phoneNumber) return "";
-    return `${phoneCountryCode} ${phoneNumber}`;
-  };
-
-  const SummarySection = ({
-    title,
-    stepNum,
-    children,
-  }: {
-    title: string;
-    stepNum: number;
-    children: React.ReactNode;
-  }) => (
+const SummarySection = ({
+  title,
+  stepNum,
+  children,
+}: {
+  title: string;
+  stepNum: number;
+  children: React.ReactNode;
+}) => {
+  const { steps, goToStep } = useForm();
+  return (
     <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">{title}</span>
         <button
           type="button"
-          onClick={() => onEditStep(stepNum)}
+          onClick={() => {
+            const step = steps[stepNum] || "summary";
+            goToStep(step);
+          }}
           className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
         >
           Edit
@@ -141,16 +35,127 @@ export const SummaryForm = ({
       <div className="space-y-1.5 text-sm text-muted-foreground">{children}</div>
     </div>
   );
+};
 
-  const SummaryRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
-    if (!value) return null;
-    return (
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground/70">{label}</span>
-        <span className="text-foreground text-right">{value}</span>
-      </div>
-    );
+const SummaryRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
+  if (!value) return null;
+  return (
+    <div className="flex justify-between gap-4">
+      <span className="text-muted-foreground/70">{label}</span>
+      <span className="text-foreground text-right">{value}</span>
+    </div>
+  );
+};
+
+const getMonthName = (month: string) => {
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const idx = parseInt(month, 10) - 1;
+  return months[idx] || month;
+};
+
+const getAccountTypeLabel = (accountType: AccountType) => {
+  if (accountType === "professional") return "Professional Stylist";
+  if (accountType === "student") return "Cosmetology Student";
+  if (accountType === "salon") return "Salon / Business";
+  return "";
+};
+
+const getBusinessOperationLabel = (businessOperation: BusinessOperationType) => {
+  if (businessOperation === "commission") return "Commission-based (work at a salon)";
+  if (businessOperation === "independent") return "Independent (booth rent / freelance)";
+  return "";
+};
+
+const getSalonSizeLabel = (salonSize: string) => {
+  if (salonSize === "1") return "Just me (solo)";
+  if (salonSize === "2-5") return "2-5 stylists";
+  if (salonSize === "6-10") return "6-10 stylists";
+  if (salonSize === "11+") return "11+ stylists";
+  return salonSize;
+};
+
+const getSalonStructureLabel = (salonStructure: string) => {
+  if (salonStructure === "owner") return "I own the salon";
+  if (salonStructure === "manager") return "I manage the salon";
+  if (salonStructure === "booth") return "I rent a booth/chair";
+  return salonStructure;
+};
+
+const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
+  if (!phoneNumber) return "";
+  const code = countryCodes.find((c) => c.iso === phoneCountryCode)?.code || "";
+  return `${code} ${phoneNumber}`;
+};
+
+export const SummaryForm = () => {
+  const { watch, currentStep } = useForm();
+
+  // Watch all form values at once
+  const formData = watch() as AllRegistrationFormData;
+  const {
+    accountType,
+    firstName,
+    lastName,
+    preferredName,
+    email,
+    phoneNumber,
+    phoneCountryCode,
+    licenseNumber,
+    provinceCode,
+    businessName,
+    businessAddress,
+    suiteNumber,
+    city,
+    zipCode,
+    countryCode,
+    schoolName,
+    schoolState,
+    businessOperationType,
+    salonSize,
+    salonStructure,
+    taxExempt,
+    birthdayMonth,
+    birthdayDay,
+    socialMediaHandle,
+    subscribeOrderUpdates,
+    acceptsMarketing,
+    licenseProofFiles = [],
+    enrollmentProofFiles = [],
+    taxExemptFile = [],
+  } = formData;
+
+  // Type guard for UploadFileItem
+  const isUploadFileItem = (file: UploadFileItem | string): file is UploadFileItem => {
+    return file && typeof file === "object" && file.file instanceof File;
   };
+
+  const uploadedFiles = [
+    ...licenseProofFiles.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "License Document",
+    })),
+    ...enrollmentProofFiles.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "Enrollment Document",
+    })),
+    ...taxExemptFile.filter(isUploadFileItem).map((item) => ({
+      file: item.file,
+      label: "Tax Exemption Document",
+    })),
+  ];
 
   return (
     <div className="space-y-[25px]">
@@ -158,7 +163,7 @@ export const SummaryForm = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status="complete" />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {currentStep}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -178,7 +183,7 @@ export const SummaryForm = ({
         {/* Account Type */}
         <div className="animate-stagger-2">
           <SummarySection title="Account Type" stepNum={1}>
-            <SummaryRow label="Type" value={getAccountTypeLabel()} />
+            <SummaryRow label="Type" value={getAccountTypeLabel(accountType)} />
           </SummarySection>
         </div>
 
@@ -191,7 +196,7 @@ export const SummaryForm = ({
             <SummaryRow label="Name" value={`${firstName} ${lastName}`} />
             {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
             <SummaryRow label="Email" value={email} />
-            <SummaryRow label="Phone" value={formatPhoneDisplay()} />
+            <SummaryRow label="Phone" value={formatPhoneDisplay(phoneCountryCode, phoneNumber)} />
           </SummarySection>
         </div>
 
@@ -199,7 +204,7 @@ export const SummaryForm = ({
         {accountType === "professional" && (
           <div className="animate-stagger-4">
             <SummarySection title="Business Operation" stepNum={2}>
-              <SummaryRow label="Type" value={getBusinessOperationLabel()} />
+              <SummaryRow label="Type" value={getBusinessOperationLabel(businessOperationType)} />
             </SummarySection>
           </div>
         )}
@@ -222,11 +227,11 @@ export const SummaryForm = ({
               stepNum={accountType === "professional" ? 4 : 4}
             >
               <SummaryRow label="License Number" value={licenseNumber} />
-              {state && <SummaryRow label="State" value={state} />}
+              {provinceCode && <SummaryRow label="State" value={provinceCode} />}
               {accountType === "salon" && (
                 <>
-                  <SummaryRow label="Salon Size" value={getSalonSizeLabel()} />
-                  <SummaryRow label="Structure" value={getSalonStructureLabel()} />
+                  <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />
+                  <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />
                 </>
               )}
             </SummarySection>
@@ -245,8 +250,11 @@ export const SummaryForm = ({
                 label="Address"
                 value={suiteNumber ? `${businessAddress}, ${suiteNumber}` : businessAddress}
               />
-              <SummaryRow label="City" value={`${city}, ${state} ${zipCode}`} />
-              <SummaryRow label="Country" value={country} />
+              <SummaryRow
+                label="City, State Postal"
+                value={`${city}, ${provinceCode} ${zipCode}`}
+              />
+              <SummaryRow label="Country" value={countryCode} />
             </SummarySection>
           </div>
         )}
@@ -260,9 +268,9 @@ export const SummaryForm = ({
             <SummaryRow
               label="Status"
               value={
-                hasTaxExemption === true
+                taxExempt === true
                   ? "Tax exempt"
-                  : hasTaxExemption === false
+                  : taxExempt === false
                     ? "Not tax exempt"
                     : "Not specified"
               }
@@ -286,7 +294,7 @@ export const SummaryForm = ({
               <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
             )}
             <SummaryRow label="Order Updates" value={subscribeOrderUpdates ? "Yes" : "No"} />
-            <SummaryRow label="Promotions" value={subscribePromotions ? "Yes" : "No"} />
+            <SummaryRow label="Promotions" value={acceptsMarketing ? "Yes" : "No"} />
           </SummarySection>
         </div>
 

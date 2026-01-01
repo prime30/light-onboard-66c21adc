@@ -1,66 +1,38 @@
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
-import { FileSummary } from "@/components/registration/FileSummary";
+import { TextInput } from "@/components/TextInput";
+import { SelectInput } from "@/components/SelectInput";
+import { dirtyFieldOptions, useForm } from "../context";
 
-export interface PreferencesStepProps {
-  accountType: string | null;
-  birthdayMonth: string;
-  birthdayDay: string;
-  socialMediaHandle: string;
-  onBirthdayMonthChange: (value: string) => void;
-  onBirthdayDayChange: (value: string) => void;
-  onSocialMediaHandleChange: (value: string) => void;
-  subscribeOrderUpdates: boolean;
-  subscribeMarketing: boolean;
-  subscribePromotions: boolean;
-  onSubscribeOrderUpdatesChange: (value: boolean) => void;
-  onSubscribeMarketingChange: (value: boolean) => void;
-  onSubscribePromotionsChange: (value: boolean) => void;
-  showValidationErrors?: boolean;
-  validationStatus: "complete" | "in-progress" | "error";
-  uploadedFiles?: {
-    file: File;
-    label: string;
-  }[];
-}
+export const PreferencesStep = () => {
+  const {
+    register,
+    control,
+    watch,
+    errors,
+    currentStep,
+    getStepValidationStatus,
+    getStepNumber,
+    setValue,
+  } = useForm();
 
-export const PreferencesStep = ({
-  accountType,
-  birthdayMonth,
-  birthdayDay,
-  socialMediaHandle,
-  onBirthdayMonthChange,
-  onBirthdayDayChange,
-  onSocialMediaHandleChange,
-  subscribeOrderUpdates,
-  subscribeMarketing,
-  subscribePromotions,
-  onSubscribeOrderUpdatesChange,
-  onSubscribeMarketingChange,
-  onSubscribePromotionsChange,
-  showValidationErrors = false,
-  validationStatus,
-  uploadedFiles = [],
-}: PreferencesStepProps) => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
+  // Watch form values
+  const watchedValues = watch(["subscribeOrderUpdates", "acceptsMarketing"]);
+
+  const [subscribeOrderUpdates, acceptsMarketing] = watchedValues;
+
+  const validationStatus = getStepValidationStatus(currentStep);
+
   // SMS notice visibility with exit animation
-  const hasPreferenceSelected = subscribeOrderUpdates || subscribePromotions;
+  const hasPreferenceSelected = subscribeOrderUpdates || acceptsMarketing;
   const [showSmsNotice, setShowSmsNotice] = useState(hasPreferenceSelected);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -77,10 +49,32 @@ export const PreferencesStep = ({
       }, 200); // Match animation duration
       return () => clearTimeout(timer);
     }
-  }, [hasPreferenceSelected]);
+  }, [hasPreferenceSelected, showSmsNotice]);
 
-  // Step number varies by account type: professional=8, salon=7, student=6
-  const stepNumber = accountType === "professional" ? 8 : accountType === "student" ? 6 : 7;
+  // Create month options
+  const monthOptions = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+
+  // Create day options
+  const dayOptions = Array.from({ length: 31 }, (_, i) => {
+    const day = i + 1;
+    return {
+      value: day.toString().padStart(2, "0"),
+      label: day.toString(),
+    };
+  });
 
   return (
     <div className="space-y-[25px]">
@@ -88,7 +82,7 @@ export const PreferencesStep = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -99,41 +93,28 @@ export const PreferencesStep = ({
       <div className="space-y-5">
         {/* Birthday (Optional) */}
         <div className="space-y-2.5 animate-stagger-2 group">
-          <Label className="text-sm font-medium label-float">
-            Birthday <span className="text-muted-foreground font-normal">(optional)</span>
-          </Label>
           <div className="grid grid-cols-2 gap-2.5">
-            <Select value={birthdayMonth} onValueChange={onBirthdayMonthChange}>
-              <SelectTrigger className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border rounded-form">
-                <SelectItem value="01">January</SelectItem>
-                <SelectItem value="02">February</SelectItem>
-                <SelectItem value="03">March</SelectItem>
-                <SelectItem value="04">April</SelectItem>
-                <SelectItem value="05">May</SelectItem>
-                <SelectItem value="06">June</SelectItem>
-                <SelectItem value="07">July</SelectItem>
-                <SelectItem value="08">August</SelectItem>
-                <SelectItem value="09">September</SelectItem>
-                <SelectItem value="10">October</SelectItem>
-                <SelectItem value="11">November</SelectItem>
-                <SelectItem value="12">December</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={birthdayDay} onValueChange={onBirthdayDayChange}>
-              <SelectTrigger className="h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300">
-                <SelectValue placeholder="Day" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border rounded-form max-h-[200px]">
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <SelectItem key={day} value={day.toString().padStart(2, "0")}>
-                    {day}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectInput
+              name="birthdayMonth"
+              control={control}
+              error={errors.birthdayMonth}
+              options={monthOptions}
+              label={
+                <>
+                  Birthday <span className="text-muted-foreground font-normal">(optional)</span>
+                </>
+              }
+              placeholder="Month"
+            />
+            <SelectInput
+              name="birthdayDay"
+              control={control}
+              error={errors.birthdayDay}
+              options={dayOptions}
+              label=" " // Space to align with month label
+              placeholder="Day"
+              className="mt-6"
+            />
           </div>
           <p className="text-xs text-muted-foreground">
             We'll send you a special treat on your birthday!
@@ -141,50 +122,49 @@ export const PreferencesStep = ({
         </div>
 
         {/* Social Media Handle (Optional) */}
-        <div className="space-y-2.5 animate-stagger-6 group">
-          <Label htmlFor="socialMediaHandle" className="text-sm font-medium label-float">
-            Social media handle{" "}
-            <span className="text-muted-foreground font-normal">(optional)</span>
-          </Label>
-          <div className="relative input-glow input-ripple rounded-form">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">
-              @
-            </span>
-            <Input
-              id="socialMediaHandle"
-              type="text"
-              placeholder="yourusername"
-              value={socialMediaHandle}
-              onChange={(e) => onSocialMediaHandleChange(e.target.value.replace(/^@/, ""))}
-              className="h-input pl-9 rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-[inset_0_0_20px_rgba(0,0,0,0.03)]"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
+        <div className="animate-stagger-6">
+          <TextInput
+            name="socialMediaHandle"
+            type="text"
+            register={register}
+            error={errors.socialMediaHandle}
+            placeholder="yourusername"
+            label={
+              <>
+                Social media handle{" "}
+                <span className="text-muted-foreground font-normal">(optional)</span>
+              </>
+            }
+            prefixIcon={
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">
+                @
+              </span>
+            }
+            className="[&_input]:pl-9"
+          />
+          <p className="text-xs text-muted-foreground mt-2.5">
             Instagram, TikTok, or your primary platform
           </p>
         </div>
 
-        {/* Uploaded Files Summary */}
-        {uploadedFiles.length > 0 && (
-          <div className="animate-stagger-7">
-            <FileSummary files={uploadedFiles} title="Your Uploaded Documents" />
-          </div>
-        )}
+        {/* Note: Uploaded files display would be handled by parent component if needed */}
 
         {/* Subscription Preferences */}
         <div
           className={cn(
             "space-y-[15px] p-5 rounded-form bg-muted border border-border/50",
-            uploadedFiles.length > 0 ? "animate-stagger-8" : "animate-stagger-7"
+            "animate-stagger-7"
           )}
         >
           <p className="text-sm font-medium text-foreground">Communication Preferences</p>
           <div className="space-y-[15px]">
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
-                checked={subscribeOrderUpdates}
-                onCheckedChange={onSubscribeOrderUpdatesChange}
-                className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                checked={subscribeOrderUpdates || false}
+                onCheckedChange={(checked) => {
+                  setValue("subscribeOrderUpdates", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
                 <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
@@ -200,9 +180,11 @@ export const PreferencesStep = ({
             </label>
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
-                checked={subscribePromotions}
-                onCheckedChange={onSubscribePromotionsChange}
-                className="mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                checked={acceptsMarketing || false}
+                onCheckedChange={(checked) => {
+                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
                 <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
@@ -227,7 +209,7 @@ export const PreferencesStep = ({
               isExiting
                 ? "opacity-0 translate-y-2"
                 : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
-              uploadedFiles.length > 0 ? "animate-stagger-7" : "animate-stagger-6"
+              "animate-stagger-6"
             )}
           >
             <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />

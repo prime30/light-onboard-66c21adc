@@ -13,11 +13,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
-import { useUploadFile } from "@/hooks/use-upload-file";
+import { useUploadFile } from "@/contexts";
+import { UploadFileItem } from "@/lib/validations/file-schema";
 
 interface MultiFileUploadProps {
-  files: File[];
-  onFilesChange: (files: File[]) => void;
+  files: UploadFileItem[];
+  onFilesChange: (files: UploadFileItem[]) => void;
   accept?: string;
   placeholder?: string;
   error?: boolean;
@@ -36,7 +37,7 @@ const formatFileSizeLimit = (bytes: number) => {
 };
 
 const isImageFile = (file: File) => {
-  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+  return file.type?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(file?.name || "");
 };
 
 const formatAcceptedTypes = (accept: string) => {
@@ -54,7 +55,7 @@ const formatFileSize = (bytes: number) => {
 
 // File item component with preview and drag handle
 const FileItem = ({
-  file,
+  item,
   index,
   onRemove,
   onPreview,
@@ -64,7 +65,7 @@ const FileItem = ({
   isDragging,
   isDragOver,
 }: {
-  file: File;
+  item: UploadFileItem;
   index: number;
   onRemove: () => void;
   onPreview: () => void;
@@ -77,12 +78,12 @@ const FileItem = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isImageFile(file)) {
-      const url = URL.createObjectURL(file);
+    if (isImageFile(item.file)) {
+      const url = URL.createObjectURL(item.file);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     }
-  }, [file]);
+  }, [item.file]);
 
   return (
     <div
@@ -119,7 +120,7 @@ const FileItem = ({
         </button>
       ) : (
         <div className="w-10 h-10 rounded-md bg-foreground/10 flex items-center justify-center flex-shrink-0">
-          {file.type === "application/pdf" ? (
+          {item.file.type === "application/pdf" ? (
             <FileText className="w-4 h-4 text-foreground" />
           ) : (
             <FileCheck className="w-4 h-4 text-foreground" />
@@ -127,8 +128,8 @@ const FileItem = ({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-        <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+        <p className="text-sm font-medium text-foreground truncate">{item.file.name}</p>
+        <p className="text-xs text-muted-foreground">{formatFileSize(item.file.size)}</p>
       </div>
       <button
         type="button"
@@ -144,7 +145,7 @@ const FileItem = ({
 export const MultiFileUpload = ({
   files,
   onFilesChange,
-  accept = ".pdf,.jpg,.jpeg,.png",
+  accept = ".pdf,.jpg,.jpeg,.png,.webp",
   placeholder = "No files chosen",
   error = false,
   errorMessage,
@@ -154,17 +155,36 @@ export const MultiFileUpload = ({
 }: MultiFileUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingFileIds, setPendingFileIds] = useState<string[]>([]);
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [lightboxFile, setLightboxFile] = useState<File | null>(null);
+  const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
   const { addFiles, queue } = useUploadFile();
 
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Derive pending files from queue using IDs
+  const pendingFiles = queue.filter((item) => pendingFileIds.includes(item.id));
+
+  // Derive upload state from pending files
+  const isProcessing = pendingFiles.some(
+    (file) => file.status === "uploading" || file.status === "pending"
+  );
+  const totalPendingFiles = pendingFiles.length;
+  const progress =
+    totalPendingFiles > 0
+      ? Math.round(pendingFiles.reduce((acc, file) => acc + file.progress, 0) / totalPendingFiles)
+      : 0;
+
+  const closeLightbox = useCallback(() => {
+    if (lightboxUrl) {
+      URL.revokeObjectURL(lightboxUrl);
+    }
+    setLightboxUrl(null);
+    setLightboxFile(null);
+  }, [lightboxUrl]);
 
   // Close lightbox on escape key
   useEffect(() => {
@@ -183,41 +203,25 @@ export const MultiFileUpload = ({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [lightboxUrl]);
+  }, [closeLightbox, lightboxUrl]);
 
-  // Process pending files with progress animation
+  // Handle completed uploads
   useEffect(() => {
-    if (pendingFiles.length === 0) return;
+    if (pendingFileIds.length === 0) return;
 
-    setIsProcessing(true);
-    setProgress(0);
+    const allCompleted = pendingFiles.every(
+      (file) => file.status === "completed" || file.status === "error"
+    );
+    const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
-    const totalSize = pendingFiles.reduce((acc, f) => acc + f.size, 0);
-    const fileSizeKB = totalSize / 1024;
-    const baseTime = 300;
-    const sizeMultiplier = Math.min(fileSizeKB / 500, 1);
-    const totalTime = baseTime + sizeMultiplier * 700;
-    const steps = 20;
-    const stepTime = totalTime / steps;
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      currentStep++;
-      const linearProgress = currentStep / steps;
-      const easedProgress = 1 - Math.pow(1 - linearProgress, 3);
-      setProgress(Math.round(easedProgress * 100));
-
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        setIsProcessing(false);
-        setProgress(100);
-        onFilesChange([...files, ...pendingFiles]);
-        setPendingFiles([]);
-      }
-    }, stepTime);
-
-    return () => clearInterval(interval);
-  }, [pendingFiles]);
+    if (allCompleted && completedItems.length > 0) {
+      console.log(completedItems);
+      // Add completed files to the component's files state
+      onFilesChange([...files, ...completedItems]);
+      // Clear pending file IDs
+      setPendingFileIds([]);
+    }
+  }, [pendingFiles, pendingFileIds.length, files, onFilesChange]);
 
   const validateFileType = useCallback(
     (file: File): boolean => {
@@ -230,57 +234,63 @@ export const MultiFileUpload = ({
     [accept]
   );
 
-  const processFiles = async (newFiles: File[]) => {
-    // Compress images if enabled
-    let filesToProcess = newFiles;
-    if (enableCompression) {
-      filesToProcess = await compressImages(newFiles);
-    }
-
-    const validFiles: File[] = [];
-    const invalidTypeFiles: string[] = [];
-    const oversizedFiles: string[] = [];
-
-    for (const file of filesToProcess) {
-      if (!validateFileType(file)) {
-        invalidTypeFiles.push(file.name);
-      } else if (file.size > maxFileSize) {
-        oversizedFiles.push(file.name);
-      } else {
-        validFiles.push(file);
+  const processFiles = useCallback(
+    async (newFiles: File[]) => {
+      // Compress images if enabled
+      let filesToProcess = newFiles;
+      if (enableCompression) {
+        filesToProcess = await compressImages(newFiles);
       }
-    }
 
-    // Build error message
-    const errors: string[] = [];
-    if (invalidTypeFiles.length > 0) {
-      const acceptedFormats = formatAcceptedTypes(accept);
-      errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
-    }
-    if (oversizedFiles.length > 0) {
-      errors.push(
-        `Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`
-      );
-    }
+      const validFiles: File[] = [];
+      const invalidTypeFiles: string[] = [];
+      const oversizedFiles: string[] = [];
 
-    // Check max files limit
-    const availableSlots = maxFiles - files.length;
-    if (validFiles.length > availableSlots) {
-      errors.push(
-        `Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`
-      );
-      validFiles.splice(availableSlots);
-    }
+      for (const file of filesToProcess) {
+        if (!validateFileType(file)) {
+          invalidTypeFiles.push(file.name);
+        } else if (file.size > maxFileSize) {
+          oversizedFiles.push(file.name);
+        } else {
+          validFiles.push(file);
+        }
+      }
 
-    if (errors.length > 0) {
-      setFileTypeError(errors.join(" • "));
-    }
+      // Build error message
+      const errors: string[] = [];
+      if (invalidTypeFiles.length > 0) {
+        const acceptedFormats = formatAcceptedTypes(accept);
+        errors.push(`Invalid type: ${invalidTypeFiles.join(", ")}. Accepted: ${acceptedFormats}`);
+      }
+      if (oversizedFiles.length > 0) {
+        errors.push(
+          `Too large (max ${formatFileSizeLimit(maxFileSize)}): ${oversizedFiles.join(", ")}`
+        );
+      }
 
-    if (validFiles.length > 0) {
-      setPendingFiles(validFiles);
-      addFiles(validFiles);
-    }
-  };
+      // Check max files limit
+      const availableSlots = maxFiles - files.length;
+      if (validFiles.length > availableSlots) {
+        errors.push(
+          `Maximum ${maxFiles} files allowed. ${validFiles.length - availableSlots} file(s) skipped.`
+        );
+        validFiles.splice(availableSlots);
+      }
+
+      if (errors.length > 0) {
+        setFileTypeError(errors.join(" • "));
+      }
+
+      if (validFiles.length > 0) {
+        const newItems = addFiles(validFiles);
+        setPendingFileIds(newItems.map((item) => item.id));
+        console.log(newItems);
+      }
+    },
+    [accept, addFiles, enableCompression, files.length, maxFileSize, maxFiles, validateFileType]
+  );
+
+  console.log(queue);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -315,32 +325,24 @@ export const MultiFileUpload = ({
         processFiles(droppedFiles);
       }
     },
-    [files.length, maxFiles, validateFileType]
+    [processFiles]
   );
 
   const handleRemoveFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    onFilesChange(newFiles);
+    const newItems = files.filter((_, i) => i !== index);
+    onFilesChange(newItems);
   };
 
   const clearFileTypeError = () => {
     setFileTypeError(null);
   };
 
-  const openLightbox = (file: File) => {
-    if (isImageFile(file)) {
-      const url = URL.createObjectURL(file);
+  const openLightbox = (item: UploadFileItem) => {
+    if (isImageFile(item.file)) {
+      const url = URL.createObjectURL(item.file);
       setLightboxUrl(url);
-      setLightboxFile(file);
+      setLightboxFile(item);
     }
-  };
-
-  const closeLightbox = () => {
-    if (lightboxUrl) {
-      URL.revokeObjectURL(lightboxUrl);
-    }
-    setLightboxUrl(null);
-    setLightboxFile(null);
   };
 
   const hasError = error || !!fileTypeError;
@@ -414,7 +416,7 @@ export const MultiFileUpload = ({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Processing {pendingFiles.length} file{pendingFiles.length > 1 ? "s" : ""}...
+                Processing {totalPendingFiles} file{totalPendingFiles > 1 ? "s" : ""}...
               </p>
             </div>
           ) : (
@@ -482,13 +484,13 @@ export const MultiFileUpload = ({
               )}
             </div>
             <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-              {files.map((file, index) => (
+              {files.map((item, index) => (
                 <FileItem
-                  key={`${file.name}-${file.lastModified}-${index}`}
-                  file={file}
+                  key={`${item.file.name}-${item.file.lastModified}-${index}`}
+                  item={item}
                   index={index}
                   onRemove={() => handleRemoveFile(index)}
-                  onPreview={() => openLightbox(file)}
+                  onPreview={() => openLightbox(item)}
                   onDragStart={(e, idx) => {
                     e.dataTransfer.effectAllowed = "move";
                     setDraggedIndex(idx);
@@ -506,10 +508,10 @@ export const MultiFileUpload = ({
                       dragOverIndex !== null &&
                       draggedIndex !== dragOverIndex
                     ) {
-                      const newFiles = [...files];
-                      const [draggedFile] = newFiles.splice(draggedIndex, 1);
-                      newFiles.splice(dragOverIndex, 0, draggedFile);
-                      onFilesChange(newFiles);
+                      const newItems = [...files];
+                      const [draggedItem] = newItems.splice(draggedIndex, 1);
+                      newItems.splice(dragOverIndex, 0, draggedItem);
+                      onFilesChange(newItems);
                     }
                     setDraggedIndex(null);
                     setDragOverIndex(null);
@@ -549,14 +551,18 @@ export const MultiFileUpload = ({
           >
             <img
               src={lightboxUrl}
-              alt={lightboxFile?.name || "Preview"}
+              alt={lightboxFile?.file.name || "Preview"}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
 
             {lightboxFile && (
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent rounded-b-lg">
-                <p className="text-sm font-medium text-foreground truncate">{lightboxFile.name}</p>
-                <p className="text-xs text-muted-foreground">{formatFileSize(lightboxFile.size)}</p>
+                <p className="text-sm font-medium text-foreground truncate">
+                  {lightboxFile.file.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(lightboxFile.file.size)}
+                </p>
               </div>
             )}
           </div>

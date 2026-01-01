@@ -1,4 +1,35 @@
 import { z } from "zod";
+import { countryCodes } from "../../data/country-codes.ts";
+import { formatPhoneNumber } from "./form-utils.ts";
+import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
+
+function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
+  if (!value) return undefined;
+
+  const converted: string[] = value.map((item: UploadFileItem | string) => {
+    if (typeof item === "string") return item;
+    return item.url;
+  });
+
+  return converted;
+}
+
+function fileUploadSchema(optional: boolean) {
+  let fileArraySchema = z.array(uploadFileItemSchema);
+  let stringArraySchema = z.array(z.string());
+
+  if (!optional) {
+    fileArraySchema = fileArraySchema.min(1, "At least one file is required");
+    stringArraySchema = stringArraySchema.min(1, "At least one file is required");
+  }
+
+  const filesSchema = z.union([fileArraySchema, stringArraySchema]);
+
+  if (optional) {
+    return filesSchema.optional().nullable().overwrite(convertFileUploadToUrl);
+  }
+  return filesSchema.overwrite(convertFileUploadToUrl);
+}
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;
@@ -10,32 +41,34 @@ const isValidPhoneNumber = (phone: string): boolean => {
 // Account Type Schema
 export const accountTypeSchema = z.object({
   accountType: z.enum(["professional", "salon", "student"], {
-    required_error: "Please select an account type",
+    error: "Please select an account type",
   }),
 });
+
+export type AccountType = z.infer<typeof accountTypeSchema>["accountType"];
 
 // Business Operation Schema (for professionals)
-export const businessOperationSchema = z.object({
+const businessOperationValidators = {
   businessOperationType: z.enum(["commission", "independent"], {
-    required_error: "Please select how you operate your business",
+    error: "Please select how you operate your business",
   }),
-});
+};
+export const businessOperationSchema = z.object(businessOperationValidators);
 
 // School Info Schema (for students)
-export const schoolInfoSchema = z.object({
+const schoolInfoValidators = {
   schoolName: z
     .string()
     .trim()
     .min(1, "School/Apprenticeship name is required")
     .max(200, "Name must be less than 200 characters"),
   schoolState: z.string().min(1, "State/Province is required"),
-  enrollmentProofFiles: z
-    .array(z.instanceof(File))
-    .min(1, "Please upload at least one proof of enrollment"),
-});
+  enrollmentProofFiles: fileUploadSchema(false),
+};
+export const schoolInfoSchema = z.object(schoolInfoValidators);
 
 // Contact Basics Schema
-export const contactBasicsSchema = z.object({
+const contactBasicsValidators = {
   firstName: z
     .string()
     .trim()
@@ -52,20 +85,31 @@ export const contactBasicsSchema = z.object({
     .max(100, "Preferred name must be less than 100 characters")
     .optional(),
   email: z
-    .string()
-    .trim()
     .email("Please enter a valid email address")
+    .trim()
     .max(255, "Email must be less than 255 characters"),
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
-    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number"),
-  phoneCountryCode: z.string().min(1, "Country code is required"),
-});
+    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number")
+    .transform((val) => formatPhoneNumber(val)),
+  phoneCountryCode: z
+    .string()
+    .min(1, "Country code is required")
+    .refine(
+      (value) => countryCodes.some((country) => country.iso === value || country.code === value),
+      "Invalid country selected"
+    )
+    .overwrite((value) => {
+      const phoneCountryCode = countryCodes.find((c) => c.iso === value)?.code || value;
+      return phoneCountryCode;
+    }),
+};
+export const contactBasicsSchema = z.object(contactBasicsValidators);
 
 // Business Location Schema
-export const businessLocationSchema = z.object({
+const businessLocationValidators = {
   businessName: z
     .string()
     .trim()
@@ -77,61 +121,74 @@ export const businessLocationSchema = z.object({
     .min(1, "Address is required")
     .max(500, "Address must be less than 500 characters"),
   suiteNumber: z.string().trim().max(50, "Suite number must be less than 50 characters").optional(),
-  country: z.string().min(1, "Country is required"),
+  countryCode: z.string().min(1, "Country is required"),
   city: z
     .string()
     .trim()
     .min(1, "City is required")
     .max(100, "City must be less than 100 characters"),
-  state: z.string().min(1, "State/Province is required"),
+  provinceCode: z.string().min(1, "State/Province is required"),
   zipCode: z
     .string()
     .trim()
     .min(1, "Zip/Postal code is required")
     .max(20, "Zip code must be less than 20 characters"),
-});
+};
+export const businessLocationSchema = z.object(businessLocationValidators);
 
 // License Schema (for professionals)
-export const licenseSchema = z.object({
+const licenseValidators = {
   licenseNumber: z
     .string()
     .trim()
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
-  licenseFile: z.instanceof(File).nullable().optional(),
-  licenseProofFiles: z.array(z.instanceof(File)).optional(),
-});
+  licenseProofFiles: fileUploadSchema(true),
+};
+export const licenseSchema = z.object(licenseValidators);
 
 // License Schema for salons (includes additional fields)
-export const salonLicenseSchema = z.object({
-  licenseNumber: z
-    .string()
-    .trim()
-    .min(1, "License number is required")
-    .max(100, "License number must be less than 100 characters"),
+const salonValidators = {
   salonSize: z.string().min(1, "Salon size is required"),
   salonStructure: z.string().min(1, "Salon structure is required"),
-  licenseFile: z.instanceof(File).nullable().optional(),
-  licenseProofFiles: z.array(z.instanceof(File)).optional(),
-});
+};
+export const salonSchema = z.object(salonValidators);
 
 // Tax Exemption Schema
-export const taxExemptionSchema = z.object({
-  hasTaxExemption: z.boolean({
-    required_error: "Please select an option",
+const taxExemptionValidators = {
+  taxExempt: z.boolean({
+    error: "Please select an option",
   }),
-  taxExemptFile: z.instanceof(File).nullable().optional(),
-});
+  taxExemptFile: fileUploadSchema(true),
+};
+export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
+  (data) => {
+    if (!data.taxExempt) {
+      return true;
+    }
+
+    // If tax exempt is true, tax exempt file is required
+    if (!data.taxExemptFile || !Array.isArray(data.taxExemptFile)) return false;
+
+    // Files are always arrays now, check if array has items
+    return data.taxExemptFile.length > 0;
+  },
+  {
+    message: "Tax exemption document is required when claiming tax exemption",
+    path: ["taxExemptFile"],
+  }
+);
 
 // Wholesale Terms Schema
-export const wholesaleTermsSchema = z.object({
-  agreedToWholesaleTerms: z.literal(true, {
-    errorMap: () => ({ message: "Please agree to the wholesale terms to continue" }),
+const wholesaleValidators = {
+  wholesaleAgreed: z.literal(true, {
+    error: "Please agree to the wholesale terms to continue",
   }),
-});
+};
+export const wholesaleTermsSchema = z.object(wholesaleValidators);
 
 // Preferences Schema
-export const preferencesSchema = z.object({
+const preferencesValidators = {
   birthdayMonth: z.string().optional(),
   birthdayDay: z.string().optional(),
   socialMediaHandle: z
@@ -139,110 +196,76 @@ export const preferencesSchema = z.object({
     .trim()
     .max(100, "Handle must be less than 100 characters")
     .optional(),
-  subscribeOrderUpdates: z.boolean().default(true),
-  subscribeMarketing: z.boolean().default(false),
-  subscribePromotions: z.boolean().default(true),
-});
+  subscribeOrderUpdates: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? true),
 
-// Password Schema for signup
-export const passwordSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(128, "Password must be less than 128 characters")
-      .refine((val) => /[A-Z]/.test(val), "Password must contain at least one uppercase letter")
-      .refine((val) => /[0-9]/.test(val), "Password must contain at least one number"),
-    confirmPassword: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.confirmPassword && data.password !== data.confirmPassword) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Passwords do not match",
-      path: ["confirmPassword"],
-    }
-  );
+  acceptsMarketing: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? true),
+};
+export const preferencesSchema = z.object(preferencesValidators);
 
-// Sign-in Schema
-export const signInSchema = z.object({
-  email: z.string().trim().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+const baseValidators = {
+  ...contactBasicsValidators,
+  ...taxExemptionValidators,
+  ...wholesaleValidators,
+  ...preferencesValidators,
+};
 
-// Forgot Password Schema
-export const forgotPasswordSchema = z.object({
-  email: z.string().trim().email("Please enter a valid email address"),
-});
+export const registrationSchema = z.discriminatedUnion("accountType", [
+  z.object({ accountType: z.literal("professional") }).extend({
+    ...baseValidators,
+    ...businessOperationValidators,
+    ...businessLocationValidators,
+    ...licenseValidators,
+  }),
+  z.object({ accountType: z.literal("salon") }).extend({
+    ...baseValidators,
+    ...businessLocationValidators,
+    ...salonValidators,
+    ...licenseValidators,
+  }),
+  z.object({ accountType: z.literal("student") }).extend({
+    ...baseValidators,
+    ...schoolInfoValidators,
+  }),
+]);
 
-// Complete signup form schema (all fields combined)
-export const completeSignupSchema = z.object({
-  // Account type
-  accountType: z.enum(["professional", "salon", "student"]),
+// Type exports for each account type
+export type RegistrationFormData = z.infer<typeof registrationSchema>;
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
 
-  // Business operation (professional only)
-  businessOperationType: z.enum(["commission", "independent"]).nullable().optional(),
+// Generic type to extract specific account type data (supports single or multiple types)
+export type RegistrationFormDataByType<T extends AccountType | AccountType[]> =
+  T extends AccountType[]
+    ? Extract<RegistrationFormData, { accountType: T[number] }>
+    : Extract<RegistrationFormData, { accountType: T }>;
 
-  // Contact basics
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  preferredName: z.string().trim().max(100).optional(),
-  email: z.string().trim().email().max(255),
-  phoneNumber: z.string().min(1),
-  phoneCountryCode: z.string().min(1),
+export type ProfessionalRegistrationData = Omit<
+  RegistrationFormDataByType<"professional">,
+  "accountType"
+>;
+export type SalonRegistrationData = Omit<RegistrationFormDataByType<"salon">, "accountType">;
+export type StudentRegistrationData = RegistrationFormDataByType<"student">;
 
-  // Business location (professional and salon)
-  businessName: z.string().optional(),
-  businessAddress: z.string().optional(),
-  suiteNumber: z.string().optional(),
-  country: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
+export type AllRegistrationFormData = { accountType: AccountType } & Omit<
+  RegistrationFormDataByType<"professional">,
+  "accountType"
+> &
+  Omit<RegistrationFormDataByType<"salon">, "accountType"> &
+  Omit<RegistrationFormDataByType<"student">, "accountType">;
 
-  // School info (student only)
-  schoolName: z.string().optional(),
-  schoolState: z.string().optional(),
-
-  // License (professional and salon)
-  licenseNumber: z.string().optional(),
-  salonSize: z.string().optional(),
-  salonStructure: z.string().optional(),
-
-  // Tax exemption
-  hasTaxExemption: z.boolean().nullable(),
-
-  // Wholesale terms
-  agreedToWholesaleTerms: z.boolean(),
-
-  // Preferences
-  birthdayMonth: z.string().optional(),
-  birthdayDay: z.string().optional(),
-  socialMediaHandle: z.string().optional(),
-  subscribeOrderUpdates: z.boolean(),
-  subscribeMarketing: z.boolean(),
-  subscribePromotions: z.boolean(),
-
-  // Password
-  password: z.string().min(8),
-});
-
-// Type exports
 export type AccountTypeFormData = z.infer<typeof accountTypeSchema>;
 export type BusinessOperationFormData = z.infer<typeof businessOperationSchema>;
 export type SchoolInfoFormData = z.infer<typeof schoolInfoSchema>;
 export type ContactBasicsFormData = z.infer<typeof contactBasicsSchema>;
 export type BusinessLocationFormData = z.infer<typeof businessLocationSchema>;
 export type LicenseFormData = z.infer<typeof licenseSchema>;
-export type SalonLicenseFormData = z.infer<typeof salonLicenseSchema>;
+export type SalonLicenseFormData = z.infer<typeof salonSchema>;
 export type TaxExemptionFormData = z.infer<typeof taxExemptionSchema>;
 export type WholesaleTermsFormData = z.infer<typeof wholesaleTermsSchema>;
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;
-export type PasswordFormData = z.infer<typeof passwordSchema>;
-export type SignInFormData = z.infer<typeof signInSchema>;
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-export type CompleteSignupFormData = z.infer<typeof completeSignupSchema>;

@@ -1,60 +1,94 @@
-import { useRef } from "react";
+import { useRef, memo, useMemo, useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Check, Flag } from "lucide-react";
-import type { Step } from "@/types/auth";
+import { Check, Flag, AlertCircle } from "lucide-react";
+import { useStepContext } from "./context/StepContext";
+import { useFormData } from "./context";
 
-interface StepIndicatorBarProps {
-  mode: "signup" | "signin";
-  currentStep: Step;
-  displayTotalSteps: number;
-  completedSteps: Set<number>;
-  getCurrentStepNumber: () => number;
-  onGoToStep: (stepNum: number) => void;
-}
+export const StepIndicatorBar = memo(function StepIndicatorBar() {
+  const { watch } = useFormData();
+  // Get all step data from context
+  const {
+    currentStep,
+    totalSteps: displayTotalSteps,
+    completedSteps,
+    steps,
+    mode,
+    goToStep,
+    goToNextStep,
+    goToPrevStep,
+  } = useStepContext();
 
-export function StepIndicatorBar({
-  mode,
-  currentStep,
-  displayTotalSteps,
-  completedSteps,
-  getCurrentStepNumber,
-  onGoToStep,
-}: StepIndicatorBarProps) {
-  // Swipe refs
+  const [inDelay, setInDelay] = useState(true);
+  const accountType = watch("accountType");
+
+  useEffect(() => {
+    if (currentStep === "account-type") {
+      setInDelay(true);
+      return;
+    }
+
+    if (inDelay) {
+      setInDelay(false);
+    }
+  }, [accountType, currentStep, inDelay]);
+
+  // Memoize the current step number to prevent recalculation on every render
+  const getCurrentStepNumber = useMemo(() => {
+    const index = steps.indexOf(currentStep);
+    return index === -1 ? 0 : index;
+  }, [currentStep, steps]);
+
+  // Memoize the translation calculation to prevent unnecessary re-renders
+  const translateX = useMemo(() => {
+    return ((displayTotalSteps + 1) / 2 - getCurrentStepNumber - 1) * 40;
+  }, [displayTotalSteps, getCurrentStepNumber]);
+
+  // Memoize step validation states to prevent re-renders when other steps change
+  const currentStepValidationStates = useMemo(() => {
+    console.log(steps);
+    const relevantSteps = steps.slice(1, -1); // Skip onboarding and summary
+    console.log(relevantSteps);
+    return relevantSteps.map((step) => ({
+      step,
+      status: completedSteps[step] || "in-progress",
+    }));
+  }, [steps, completedSteps]);
+
+  // Swipe refs - must be called before early return
   const stepSwipeStartX = useRef<number | null>(null);
   const stepSwipeEndX = useRef<number | null>(null);
 
-  const handleStepSwipeStart = (e: React.TouchEvent) => {
+  const handleStepSwipeStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
     stepSwipeStartX.current = e.touches[0].clientX;
     stepSwipeEndX.current = null;
-  };
+  }, []);
 
-  const handleStepSwipeMove = (e: React.TouchEvent) => {
+  const handleStepSwipeMove = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
     stepSwipeEndX.current = e.touches[0].clientX;
-  };
+  }, []);
 
-  const handleStepSwipeEnd = () => {
+  const handleStepSwipeEnd = useCallback(() => {
     if (stepSwipeStartX.current === null || stepSwipeEndX.current === null) return;
 
     const diff = stepSwipeStartX.current - stepSwipeEndX.current;
     const threshold = 30;
-    const currentStepNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
 
     // Swipe left → next step
-    if (diff > threshold && currentStepNum < displayTotalSteps) {
-      onGoToStep(currentStepNum + 1);
+    if (diff > threshold) {
+      goToNextStep();
     }
     // Swipe right → previous step
-    else if (diff < -threshold && currentStepNum >= 1) {
-      onGoToStep(currentStepNum - 1);
+    else if (diff < -threshold) {
+      goToPrevStep();
     }
 
     stepSwipeStartX.current = null;
     stepSwipeEndX.current = null;
-  };
+  }, [goToNextStep, goToPrevStep]);
 
+  // Only show for signup mode
   if (mode !== "signup") return null;
 
   return (
@@ -76,14 +110,17 @@ export function StepIndicatorBar({
       >
         {/* Sliding track that moves based on current step */}
         <div
-          className="flex items-center transition-transform duration-500 ease-out"
+          className={cn(
+            "flex items-center",
+            !inDelay && "transition-transform duration-500 ease-out"
+          )}
           style={{
-            transform: `translateX(${((displayTotalSteps + 2) / 2 - (currentStep === "onboarding" ? 0 : currentStep === "success" ? displayTotalSteps + 1 : getCurrentStepNumber()) - 0.5) * 44}px)`,
+            transform: `translateX(${translateX}px)`,
           }}
         >
           {/* Intro/Onboarding step with icon */}
           <button
-            onClick={() => currentStep !== "onboarding" && onGoToStep(0)}
+            onClick={() => currentStep !== "onboarding" && goToStep("onboarding")}
             aria-label="Go to introduction step"
             className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
             style={{
@@ -131,14 +168,18 @@ export function StepIndicatorBar({
           </div>
 
           {/* Regular numbered steps */}
-          {Array.from({ length: displayTotalSteps }, (_, i) => {
+          {currentStepValidationStates.map(({ step, status }, i) => {
             const stepNum = i + 1;
-            const currentStepNum = currentStep === "onboarding" ? 0 : getCurrentStepNumber();
-            const distance = Math.abs(stepNum - currentStepNum);
-            const isActive = stepNum === currentStepNum;
-            const isPassed = currentStepNum > stepNum;
-            const isCompleted = completedSteps.has(stepNum);
-            const isPassedButIncomplete = isPassed && !isCompleted;
+            const stepIndex = i + 1; // actual index in steps array (skip onboarding at 0)
+            const currentStepNum = getCurrentStepNumber;
+            const distance = Math.abs(stepIndex - currentStepNum);
+            const isActive = stepIndex === currentStepNum;
+            const isPassed = currentStepNum > stepIndex;
+
+            // Get the step validation status from memoized data
+            const validationStatus = status;
+            const isCompleted = validationStatus === "complete";
+            const hasError = validationStatus === "error";
 
             // Calculate opacity based on distance from center
             const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
@@ -150,15 +191,17 @@ export function StepIndicatorBar({
               if (isActive) return "bg-foreground text-background";
               if (isCompleted)
                 return "bg-[hsl(142_71%_75%)] dark:bg-[hsl(142_71%_30%)] text-[hsl(142_71%_25%)] dark:text-[hsl(142_71%_75%)]";
-              if (isPassedButIncomplete)
+              if (hasError)
                 return "bg-[hsl(0_84%_80%)] dark:bg-[hsl(0_60%_30%)] text-[hsl(0_84%_35%)] dark:text-[hsl(0_84%_75%)]";
+              if (validationStatus === "in-progress")
+                return "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300";
               return "bg-border/60 text-muted-foreground";
             };
 
             return (
-              <div key={i} className="flex items-center">
+              <div key={step} className="flex items-center">
                 <button
-                  onClick={() => onGoToStep(stepNum)}
+                  onClick={() => goToStep(step)}
                   aria-label={`Go to step ${stepNum}`}
                   className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
                   style={{
@@ -189,6 +232,8 @@ export function StepIndicatorBar({
                     >
                       {isCompleted && !isActive ? (
                         <Check className="w-[10px] h-[10px]" strokeWidth={3} />
+                      ) : hasError && !isActive ? (
+                        <AlertCircle className="w-[10px] h-[10px]" strokeWidth={3} />
                       ) : (
                         <span>{stepNum}</span>
                       )}
@@ -210,14 +255,9 @@ export function StepIndicatorBar({
 
           {/* Success step with flag icon */}
           {(() => {
-            const successStepNum = displayTotalSteps + 1;
-            const currentStepNum =
-              currentStep === "onboarding"
-                ? 0
-                : currentStep === "success"
-                  ? successStepNum
-                  : getCurrentStepNumber();
-            const distance = Math.abs(successStepNum - currentStepNum);
+            const successStepIndex = steps.length; // one past the last actual step
+            const currentStepNum = getCurrentStepNumber;
+            const distance = Math.abs(successStepIndex - currentStepNum);
             const isActive = currentStep === "success";
             const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
             const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
@@ -267,4 +307,4 @@ export function StepIndicatorBar({
       </div>
     </div>
   );
-}
+});

@@ -5,23 +5,15 @@
  * Uses useReducer for predictable state updates and easier debugging.
  */
 
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useReducer, useCallback } from "react";
 import type {
   Step,
   AccountType,
-  BusinessOperationType,
   TransitionDirection,
   ModeTransitionDirection,
-  RegistrationFormData,
   RegistrationUIState,
 } from "@/types/auth";
+import { RegistrationFormData } from "@/lib/validations/auth-schemas";
 
 // ============================================================================
 // Initial State
@@ -39,9 +31,9 @@ const initialFormData: RegistrationFormData = {
   businessName: "",
   businessAddress: "",
   suiteNumber: "",
-  country: "United States",
+  countryCode: "United States",
   city: "",
-  state: "",
+  provinceCode: "",
   zipCode: "",
   schoolName: "",
   schoolState: "",
@@ -51,17 +43,15 @@ const initialFormData: RegistrationFormData = {
   salonStructure: "",
   licenseFile: null,
   licenseProofFiles: [],
-  hasTaxExemption: null,
-  taxExemptFile: null,
+  taxExempt: null,
+  taxExemptFile: [],
   wholesaleAgreed: false,
   birthdayMonth: "",
   birthdayDay: "",
   socialMediaHandle: "",
   referralSource: "",
   subscribeOrderUpdates: true,
-  subscribeMarketing: true,
-  subscribePromotions: true,
-  password: "",
+  acceptsMarketing: true,
 };
 
 const initialUIState: RegistrationUIState = {

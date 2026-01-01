@@ -2,48 +2,34 @@ import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Info, Check, ArrowUpRight, Calendar } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
-import { FileUpload } from "@/components/registration/FileUpload";
 import { cn } from "@/lib/utils";
+import { useForm } from "../context";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
+import { MultiFileUpload } from "../MultiFileUpload";
+import { UploadFileItem } from "@/contexts";
 
-interface TaxExemptionStepProps {
-  accountType: string | null;
-  hasTaxExemption: boolean | null;
-  taxExemptFile: File | null;
-  onTaxExemptionChange: (value: boolean | null) => void;
-  onTaxExemptFileChange: (file: File | null) => void;
-  onAutoAdvance?: () => void;
-  showValidationErrors?: boolean;
-  validationStatus: "complete" | "in-progress" | "error";
-}
+export const TaxExemptionStep = () => {
+  const { watch, setValue, currentStep, getStepValidationStatus, getStepNumber, errors } =
+    useForm();
 
-export const TaxExemptionStep = ({
-  accountType,
-  hasTaxExemption,
-  taxExemptFile,
-  onTaxExemptionChange,
-  onTaxExemptFileChange,
-  onAutoAdvance,
-  showValidationErrors = false,
-  validationStatus,
-}: TaxExemptionStepProps) => {
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
-  const selectionError = showValidationErrors && hasTaxExemption === null;
-  const fileError = showValidationErrors && hasTaxExemption === true && taxExemptFile === null;
-  // Step number varies by account type: professional=6, salon=5, student=4
-  const stepNumber = accountType === "professional" ? 6 : accountType === "student" ? 4 : 5;
   const fileUploadRef = useRef<HTMLDivElement>(null);
 
-  const TOAST_DURATION = 5000; // 5 seconds
+  // Watch form values
+  const watchedValues = watch(["taxExempt", "taxExemptFile"]);
+  const [taxExempt, taxExemptFile] = watchedValues;
+
+  const validationStatus = getStepValidationStatus(currentStep);
+  const selectionError = taxExempt === null;
 
   const handleYesClick = () => {
-    if (hasTaxExemption === true) {
-      onTaxExemptionChange(null);
-      onTaxExemptFileChange(null);
+    if (taxExempt === true) {
+      setValue("taxExempt", null);
+      setValue("taxExemptFile", []);
       return;
     }
-    onTaxExemptionChange(true);
+    setValue("taxExempt", true);
     setShowToast(false);
     // Scroll to file upload after a brief delay for animation
     setTimeout(() => {
@@ -52,13 +38,13 @@ export const TaxExemptionStep = ({
   };
 
   const handleNoClick = () => {
-    if (hasTaxExemption === false) {
-      onTaxExemptionChange(null);
+    if (taxExempt === false) {
+      setValue("taxExempt", null);
       setShowToast(false);
       return;
     }
-    onTaxExemptionChange(false);
-    onTaxExemptFileChange(null);
+    setValue("taxExempt", false);
+    setValue("taxExemptFile", []);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
   };
@@ -69,7 +55,7 @@ export const TaxExemptionStep = ({
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {stepNumber}
+            Step {getStepNumber(currentStep)}
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
@@ -91,7 +77,7 @@ export const TaxExemptionStep = ({
             onClick={handleYesClick}
             className={cn(
               "p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 hover:-translate-y-0.5 active:scale-[0.99]",
-              hasTaxExemption === true
+              taxExempt === true
                 ? "border-foreground bg-foreground/8"
                 : selectionError
                   ? "border-destructive/50 bg-destructive/5"
@@ -102,16 +88,14 @@ export const TaxExemptionStep = ({
               data-field="tax-exemption-yes"
               className={cn(
                 "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-                hasTaxExemption === true
+                taxExempt === true
                   ? "border-foreground bg-foreground"
                   : selectionError
                     ? "border-destructive/50"
                     : "border-muted-foreground/50"
               )}
             >
-              {hasTaxExemption === true && (
-                <Check className="w-4 h-4 text-background" strokeWidth={3} />
-              )}
+              {taxExempt === true && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span
               className={cn(
@@ -126,7 +110,7 @@ export const TaxExemptionStep = ({
             onClick={handleNoClick}
             className={cn(
               "p-[25px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-5 hover:-translate-y-0.5 active:scale-[0.99]",
-              hasTaxExemption === false
+              taxExempt === false
                 ? "border-foreground bg-foreground/8"
                 : selectionError
                   ? "border-destructive/50 bg-destructive/5"
@@ -137,16 +121,14 @@ export const TaxExemptionStep = ({
               data-field="tax-exemption-no"
               className={cn(
                 "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
-                hasTaxExemption === false
+                taxExempt === false
                   ? "border-foreground bg-foreground"
                   : selectionError
                     ? "border-destructive/50"
                     : "border-muted-foreground/50"
               )}
             >
-              {hasTaxExemption === false && (
-                <Check className="w-4 h-4 text-background" strokeWidth={3} />
-              )}
+              {taxExempt === false && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
             </div>
             <span
               className={cn(
@@ -167,7 +149,7 @@ export const TaxExemptionStep = ({
       <div
         className={cn(
           "grid transition-all duration-400",
-          showToast && hasTaxExemption === false
+          showToast && taxExempt === false
             ? "grid-rows-[1fr] opacity-100"
             : "grid-rows-[0fr] opacity-0"
         )}
@@ -251,24 +233,27 @@ export const TaxExemptionStep = ({
         ref={fileUploadRef}
         className={cn(
           "grid transition-all duration-400",
-          hasTaxExemption === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )}
         style={{
           transitionTimingFunction:
-            hasTaxExemption === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+            taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
         }}
       >
         <div className="overflow-hidden">
-          <div
-            className={cn(hasTaxExemption === true && "animate-haptic-pop")}
-            data-field="tax-document"
-          >
-            <FileUpload
-              file={taxExemptFile}
-              onFileChange={onTaxExemptFileChange}
+          <div className={cn(taxExempt === true && "animate-haptic-pop")} data-field="tax-document">
+            <MultiFileUpload
+              files={
+                Array.isArray(taxExemptFile) &&
+                taxExemptFile.every((item) => typeof item === "object")
+                  ? (taxExemptFile as UploadFileItem[])
+                  : []
+              }
+              onFilesChange={(files: UploadFileItem[]) => setValue("taxExemptFile", files)}
               placeholder="Upload your state tax-exempt license"
-              error={fileError}
+              error={!!errors.taxExemptFile}
               errorMessage="Please upload your tax exemption document"
+              maxFiles={1}
             />
           </div>
         </div>

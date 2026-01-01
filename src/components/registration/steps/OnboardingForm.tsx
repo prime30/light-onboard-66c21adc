@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { User, FileCheck, Mail, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
-import { useFontLoaded, TextSkeleton } from "@/hooks/use-font-loaded";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
 
 // Stylist avatars
@@ -15,6 +14,7 @@ import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
 import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
+import { TextSkeleton } from "../TextSkeleton";
 
 const stylistAvatars = [
   stylistPink1,
@@ -386,25 +386,10 @@ interface OnboardingFormProps {
 }
 
 export const OnboardingForm = ({
-  onContinue,
   onSignIn,
-  onStepClick,
   fontsLoaded = true,
   isRestoring = false,
 }: OnboardingFormProps) => {
-  const [hasScrolled, setHasScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setHasScrolled(true);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="space-y-3 lg:space-y-8 relative">
       {/* Restoring progress indicator */}
