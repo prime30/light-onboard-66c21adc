@@ -19,7 +19,44 @@ import { RegistrationFormData } from "@/lib/validations/auth-schemas";
 // Initial State
 // ============================================================================
 
-const initialFormData: RegistrationFormData = {
+// Type for the internal form state that allows partial/null values during editing
+// This is separate from the validated RegistrationFormData which is a discriminated union
+type InternalFormData = {
+  accountType: "professional" | "salon" | "student" | null;
+  businessOperationType: "commission" | "independent" | null;
+  firstName: string;
+  lastName: string;
+  preferredName?: string;
+  email: string;
+  phoneNumber?: string;
+  phoneCountryCode: string;
+  businessName: string;
+  businessAddress: string;
+  suiteNumber?: string;
+  countryCode: string;
+  city: string;
+  provinceCode: string;
+  zipCode: string;
+  schoolName: string;
+  schoolState: string;
+  enrollmentProofFiles: string[];
+  licenseNumber: string;
+  salonSize?: string;
+  salonStructure?: string;
+  licenseFile?: File | null;
+  licenseProofFiles?: string[];
+  taxExempt: boolean | null;
+  taxExemptFile?: string[];
+  wholesaleAgreed: boolean;
+  birthdayMonth?: string;
+  birthdayDay?: string;
+  socialMediaHandle?: string;
+  referralSource?: string;
+  subscribeOrderUpdates: boolean;
+  acceptsMarketing: boolean;
+};
+
+const initialFormData: InternalFormData = {
   accountType: null,
   businessOperationType: null,
   firstName: "",
@@ -85,7 +122,7 @@ const initialUIState: RegistrationUIState = {
 };
 
 interface RegistrationState {
-  formData: RegistrationFormData;
+  formData: InternalFormData;
   ui: RegistrationUIState;
 }
 
@@ -102,10 +139,10 @@ type RegistrationAction =
   // Form data actions
   | {
       type: "SET_FORM_FIELD";
-      field: keyof RegistrationFormData;
-      value: RegistrationFormData[keyof RegistrationFormData];
+      field: keyof InternalFormData;
+      value: InternalFormData[keyof InternalFormData];
     }
-  | { type: "SET_FORM_DATA"; data: Partial<RegistrationFormData> }
+  | { type: "SET_FORM_DATA"; data: Partial<InternalFormData> }
   | { type: "RESET_FORM" }
 
   // Navigation actions
@@ -369,15 +406,15 @@ interface RegistrationContextValue {
   dispatch: React.Dispatch<RegistrationAction>;
 
   // Convenience accessors
-  formData: RegistrationFormData;
+  formData: InternalFormData;
   ui: RegistrationUIState;
 
   // Form field helpers
-  setFormField: <K extends keyof RegistrationFormData>(
+  setFormField: <K extends keyof InternalFormData>(
     field: K,
-    value: RegistrationFormData[K]
+    value: InternalFormData[K]
   ) => void;
-  setFormData: (data: Partial<RegistrationFormData>) => void;
+  setFormData: (data: Partial<InternalFormData>) => void;
   resetForm: () => void;
 
   // Navigation helpers
@@ -409,17 +446,17 @@ export function RegistrationProvider({ children }: RegistrationProviderProps) {
 
   // Form field helpers
   const setFormField = useCallback(
-    <K extends keyof RegistrationFormData>(field: K, value: RegistrationFormData[K]) => {
+    <K extends keyof InternalFormData>(field: K, value: InternalFormData[K]) => {
       dispatch({
         type: "SET_FORM_FIELD",
         field,
-        value: value as RegistrationFormData[keyof RegistrationFormData],
+        value: value as InternalFormData[keyof InternalFormData],
       });
     },
     []
   );
 
-  const setFormData = useCallback((data: Partial<RegistrationFormData>) => {
+  const setFormData = useCallback((data: Partial<InternalFormData>) => {
     dispatch({ type: "SET_FORM_DATA", data });
   }, []);
 

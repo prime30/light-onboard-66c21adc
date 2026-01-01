@@ -16,12 +16,16 @@ export const LicenseStep = () => {
     control,
     watch,
     setValue,
-    errors,
+    errors: rawErrors,
     getValidationStatus,
     currentStep,
     getStepValidationStatus,
     getStepNumber,
   } = useForm();
+
+  // Cast errors to any to handle discriminated union field access
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errors = rawErrors as any;
 
   // Watch form values
   const watchedValues = watch(["accountType", "licenseNumber", "licenseProofFiles"]);
@@ -145,7 +149,7 @@ export const LicenseStep = () => {
             >
               <Label className="text-sm font-medium">{label}</Label>
               <MultiFileUpload
-                files={licenseProofFiles || []}
+                files={(licenseProofFiles || []) as { id: string; file: File; status: "completed" | "error" | "pending" | "uploading"; progress: number; error?: string; url?: string; }[]}
                 onFilesChange={(files) => setValue("licenseProofFiles", files)}
                 placeholder="Upload photos of your license"
                 maxFiles={3}
