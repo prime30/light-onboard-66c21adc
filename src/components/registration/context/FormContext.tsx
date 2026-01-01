@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode, useEffect } from "react";
 import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
+import { useUploadFile } from "@/contexts";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -55,6 +56,9 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
+  const { setEmail } = useUploadFile();
+
+  const email = watch("email");
 
   const submitForm = handleSubmit(
     async (values) => {
@@ -81,13 +85,18 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const email = watch("email");
     const accountType = watch("accountType");
     if (isSubmitSuccessful) {
       reset({ email, accountType } as Partial<AllRegistrationFormData>);
       setCurrentStep("success");
     }
-  }, [isSubmitSuccessful, reset, setCurrentStep, watch]);
+  }, [email, isSubmitSuccessful, reset, setCurrentStep, watch]);
+
+  // Sync email to upload context. File are stored based on the email,
+  // we need to ensure the email is provided before uploading files.
+  useEffect(() => {
+    setEmail(email || "");
+  }, [email, setEmail]);
 
   const value: AuthFormContextType = {
     submitForm,

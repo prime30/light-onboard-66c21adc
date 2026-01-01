@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import {
+  AllRegistrationFormData,
   RegistrationFormData,
   registrationSchema,
   ValidFieldNames,
@@ -42,7 +43,7 @@ export type FormDataContextType = {
   formState: ReturnType<typeof useForm<RegistrationFormData>>["formState"];
   subscribe: ReturnType<typeof useForm<RegistrationFormData>>["subscribe"];
   getValidationStatus: (fields: ValidFieldNames | ValidFieldNames[]) => ValidationStatus;
-  errors: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["errors"];
+  errors: ReturnType<typeof useForm<AllRegistrationFormData>>["formState"]["errors"];
   dirtyFields: ReturnType<typeof useForm<RegistrationFormData>>["formState"]["dirtyFields"];
   isFormValid: boolean;
   fullErrors: ReturnType<typeof z.treeifyError<RegistrationFormData>>;

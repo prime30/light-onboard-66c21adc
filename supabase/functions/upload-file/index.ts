@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -9,11 +8,24 @@ const corsHeaders = {
 
 const BUCKET_NAME = "registration-documents";
 
+/**
+ * Creates a user folder path by hashing the email
+ */
+async function createUserFolderPath(email: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(email);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashHex.substring(0, 16); // Use first 16 chars of hash
+}
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_URL") ?? "";
-const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ?? "";
+const supabaseKey =
+  Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,47 +34,16 @@ serve(async (req) => {
   try {
     console.log("Upload file function called");
 
-    // Get authorization header
-    // const authHeader = req.headers.get("Authorization");
-    // if (!authHeader) {
-    //   console.log("No authorization header provided");
-    //   return new Response(JSON.stringify({ error: "No authorization header" }), {
-    //     status: 401,
-    //     headers: { ...corsHeaders, "Content-Type": "application/json" },
-    //   });
-    // }
-
     // Create Supabase client with user's auth token
-    console.log("supabaseUrl", supabaseUrl, "supabaseKey", supabaseKey)
+    console.log("supabaseUrl", supabaseUrl, "supabaseKey", supabaseKey);
     const sbAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     console.log(sbAdmin);
 
-    // return new Response(
-    //   JSON.stringify({
-    //     success: true,
-    //   }),
-    //   { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    // );
-
-    // Get the authenticated user
-    // const {
-    //   data: { user },
-    //   error: userError,
-    // } = await supabase.auth.getUser();
-    // if (userError || !user) {
-    //   console.log("User authentication failed:", userError?.message);
-    //   return new Response(JSON.stringify({ error: "Unauthorized" }), {
-    //     status: 401,
-    //     headers: { ...corsHeaders, "Content-Type": "application/json" },
-    //   });
-    // }
-
-    // console.log("User authenticated:", user.id);
-
     // Parse form data
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const email = formData.get("email") as string;
 
     if (!file) {
       console.log("No file provided in request");
@@ -72,11 +53,20 @@ serve(async (req) => {
       });
     }
 
+    if (!email) {
+      console.log("No user email provided in request");
+      return new Response(JSON.stringify({ error: "User email is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     console.log("File received:", file.name, "Size:", file.size, "Type:", file.type);
 
-    // Create a unique file path using user ID and timestamp
+    // Create a unique file path using hashed user folder and timestamp
+    const userFolder = await createUserFolderPath(email);
     const fileExt = file.name.split(".").pop();
-    const fileName = `test-uploads/${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+    const fileName = `user-uploads/${userFolder}/${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
 
     // Upload to storage
     const { data: uploadData, error: uploadError } = await sbAdmin.storage

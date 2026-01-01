@@ -149,7 +149,16 @@ export const LicenseStep = () => {
             >
               <Label className="text-sm font-medium">{label}</Label>
               <MultiFileUpload
-                files={(licenseProofFiles || []) as { id: string; file: File; status: "completed" | "error" | "pending" | "uploading"; progress: number; error?: string; url?: string; }[]}
+                files={
+                  (licenseProofFiles || []) as {
+                    id: string;
+                    file: File;
+                    status: "completed" | "error" | "pending" | "uploading";
+                    progress: number;
+                    error?: string;
+                    url?: string;
+                  }[]
+                }
                 onFilesChange={(files) => setValue("licenseProofFiles", files)}
                 placeholder="Upload photos of your license"
                 maxFiles={3}

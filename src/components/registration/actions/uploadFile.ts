@@ -1,10 +1,12 @@
 export async function uploadFile(
   file: File,
+  email: string,
   onProgress?: (progress: number) => void
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("email", email);
 
     const xhr = new XMLHttpRequest();
 

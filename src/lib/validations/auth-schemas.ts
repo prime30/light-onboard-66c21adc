@@ -30,6 +30,7 @@ function fileUploadSchema(optional: boolean) {
   }
   return filesSchema.overwrite(convertFileUploadToUrl);
 }
+export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
 // Phone number validation (10 digits, various formats)
 const phoneRegex = /^[\d\s\-().]+$/;

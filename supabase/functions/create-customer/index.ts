@@ -62,7 +62,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     preferredName: z.string().optional(),
-    email: z.string().email(),
+    email: z.email(),
     phoneNumber: z.string().optional(),
     phoneCountryCode: z.string(),
     businessName: z.string().min(1),
@@ -88,7 +88,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     preferredName: z.string().optional(),
-    email: z.string().email(),
+    email: z.email(),
     phoneNumber: z.string().optional(),
     phoneCountryCode: z.string(),
     businessName: z.string().min(1),
@@ -119,7 +119,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     preferredName: z.string().optional(),
-    email: z.string().email(),
+    email: z.email(),
     phoneNumber: z.string().optional(),
     phoneCountryCode: z.string(),
     taxExempt: z.boolean(),
@@ -263,10 +263,12 @@ Deno.serve(async (req: Request) => {
   const taxExemptFiles = Array.isArray(customer.tax_exempt_file)
     ? customer.tax_exempt_file || []
     : [customer.tax_exempt_file];
-  const parseTaxExemptFiles = taxExemptFiles.filter(Boolean).map((item: string | { url?: string }) => {
-    if (typeof item === "string") return item;
-    return item?.url;
-  }) as string[];
+  const parseTaxExemptFiles = taxExemptFiles
+    .filter(Boolean)
+    .map((item: string | { url?: string }) => {
+      if (typeof item === "string") return item;
+      return item?.url;
+    }) as string[];
 
   // Create base customer input with common fields
   const customerCreateInput: CustomerCreateInput = {

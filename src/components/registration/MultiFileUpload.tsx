@@ -30,6 +30,44 @@ interface MultiFileUploadProps {
 
 const MAX_FILE_SIZE_DEFAULT = 10 * 1024 * 1024; // 10MB
 
+// Custom hook to manage drop zone animations
+const useDropZoneAnimations = (canAddMore: boolean, isProcessing: boolean) => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [debouncedShouldShowDropZone, setDebouncedShouldShowDropZone] = useState(true);
+
+  const shouldShowDropZone = canAddMore || isProcessing;
+
+  // Debounce shouldShowDropZone to prevent flickering during upload status updates
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedShouldShowDropZone(shouldShowDropZone);
+    }, 200); // Longer debounce delay to account for upload state changes
+
+    return () => clearTimeout(timeoutId);
+  }, [shouldShowDropZone]);
+
+  // Handle smooth transitions when max files is reached or becomes available
+  useEffect(() => {
+    if (!debouncedShouldShowDropZone && !isTransitioning) {
+      // Start collapse transition
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    } else if (debouncedShouldShowDropZone && isTransitioning) {
+      // Expand transition
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    }
+  }, [debouncedShouldShowDropZone, isTransitioning]);
+
+  return {
+    debouncedShouldShowDropZone,
+    isTransitioning,
+  };
+};
+
 const formatFileSizeLimit = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -159,7 +197,8 @@ export const MultiFileUpload = ({
   const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
-  const { addFiles, queue } = useUploadFile();
+
+  const { addFiles, queue, isUploading } = useUploadFile();
 
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -169,9 +208,9 @@ export const MultiFileUpload = ({
   const pendingFiles = queue.filter((item) => pendingFileIds.includes(item.id));
 
   // Derive upload state from pending files
-  const isProcessing = pendingFiles.some(
-    (file) => file.status === "uploading" || file.status === "pending"
-  );
+  const isProcessing =
+    isUploading &&
+    pendingFiles.some((file) => file.status === "uploading" || file.status === "pending");
   const totalPendingFiles = pendingFiles.length;
   const progress =
     totalPendingFiles > 0
@@ -205,6 +244,30 @@ export const MultiFileUpload = ({
     };
   }, [closeLightbox, lightboxUrl]);
 
+  // Function to update files array by merging with new files
+  const updateFiles = useCallback(
+    (newFiles: UploadFileItem[]) => {
+      const updatedFiles = [...files];
+
+      newFiles.forEach((newFile) => {
+        const existingIndex = updatedFiles.findIndex(
+          (existingFile) => existingFile.id === newFile.id
+        );
+
+        if (existingIndex !== -1) {
+          // Update existing file
+          updatedFiles[existingIndex] = newFile;
+        } else {
+          // Add new file to the end
+          updatedFiles.push(newFile);
+        }
+      });
+
+      onFilesChange(updatedFiles);
+    },
+    [files, onFilesChange]
+  );
+
   // Handle completed uploads
   useEffect(() => {
     if (pendingFileIds.length === 0) return;
@@ -215,13 +278,10 @@ export const MultiFileUpload = ({
     const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
     if (allCompleted && completedItems.length > 0) {
-      console.log(completedItems);
-      // Add completed files to the component's files state
-      onFilesChange([...files, ...completedItems]);
-      // Clear pending file IDs
+      updateFiles(completedItems);
       setPendingFileIds([]);
     }
-  }, [pendingFiles, pendingFileIds.length, files, onFilesChange]);
+  }, [pendingFiles, pendingFileIds.length, updateFiles]);
 
   const validateFileType = useCallback(
     (file: File): boolean => {
@@ -283,14 +343,22 @@ export const MultiFileUpload = ({
 
       if (validFiles.length > 0) {
         const newItems = addFiles(validFiles);
+        updateFiles(newItems);
         setPendingFileIds(newItems.map((item) => item.id));
         console.log(newItems);
       }
     },
-    [accept, addFiles, enableCompression, files.length, maxFileSize, maxFiles, validateFileType]
+    [
+      accept,
+      addFiles,
+      enableCompression,
+      files.length,
+      maxFileSize,
+      maxFiles,
+      updateFiles,
+      validateFileType,
+    ]
   );
-
-  console.log(queue);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -348,6 +416,9 @@ export const MultiFileUpload = ({
   const hasError = error || !!fileTypeError;
   const canAddMore = files.length < maxFiles;
 
+  // Use custom hook for animation states
+  const { debouncedShouldShowDropZone } = useDropZoneAnimations(canAddMore, isProcessing);
+
   return (
     <>
       <div className="space-y-3">
@@ -368,19 +439,24 @@ export const MultiFileUpload = ({
 
         {/* Drop zone */}
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+          onDragOver={!isProcessing ? handleDragOver : undefined}
+          onDragLeave={!isProcessing ? handleDragLeave : undefined}
+          onDrop={!isProcessing ? handleDrop : undefined}
           className={cn(
-            "relative flex flex-col items-center justify-center gap-3 p-6 rounded-lg border-2 border-dashed transition-all duration-300 overflow-hidden",
-            isDragOver
+            "relative flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed overflow-hidden",
+            "transition-all duration-300 ease-in-out",
+            !debouncedShouldShowDropZone && "max-h-0 p-0 opacity-0 border-transparent",
+            debouncedShouldShowDropZone && "max-h-96 p-6 opacity-100",
+            isDragOver && debouncedShouldShowDropZone
               ? "border-foreground bg-foreground/5 scale-[1.01]"
-              : hasError
+              : hasError && debouncedShouldShowDropZone
                 ? "border-destructive/50 bg-destructive/5"
-                : isProcessing
+                : isProcessing && debouncedShouldShowDropZone
                   ? "border-foreground/50 bg-foreground/5"
-                  : "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50",
-            !canAddMore && "opacity-50 pointer-events-none"
+                  : debouncedShouldShowDropZone
+                    ? "border-border/50 bg-muted/30 hover:border-foreground/30 hover:bg-muted/50"
+                    : "",
+            (isProcessing || !debouncedShouldShowDropZone) && "pointer-events-none"
           )}
         >
           {/* Progress bar background */}
@@ -465,7 +541,7 @@ export const MultiFileUpload = ({
 
         {/* File list */}
         {files.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 transition-all duration-300 ease-in-out">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Uploaded Files ({files.length}){" "}
@@ -483,42 +559,43 @@ export const MultiFileUpload = ({
                 </button>
               )}
             </div>
-            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+            <div className="space-y-2">
               {files.map((item, index) => (
-                <FileItem
-                  key={`${item.file.name}-${item.file.lastModified}-${index}`}
-                  item={item}
-                  index={index}
-                  onRemove={() => handleRemoveFile(index)}
-                  onPreview={() => openLightbox(item)}
-                  onDragStart={(e, idx) => {
-                    e.dataTransfer.effectAllowed = "move";
-                    setDraggedIndex(idx);
-                  }}
-                  onDragOver={(e, idx) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                    if (draggedIndex !== null && draggedIndex !== idx) {
-                      setDragOverIndex(idx);
-                    }
-                  }}
-                  onDragEnd={() => {
-                    if (
-                      draggedIndex !== null &&
-                      dragOverIndex !== null &&
-                      draggedIndex !== dragOverIndex
-                    ) {
-                      const newItems = [...files];
-                      const [draggedItem] = newItems.splice(draggedIndex, 1);
-                      newItems.splice(dragOverIndex, 0, draggedItem);
-                      onFilesChange(newItems);
-                    }
-                    setDraggedIndex(null);
-                    setDragOverIndex(null);
-                  }}
-                  isDragging={draggedIndex === index}
-                  isDragOver={dragOverIndex === index}
-                />
+                <div key={`${item.file.name}-${item.file.lastModified}-${index}`}>
+                  <FileItem
+                    item={item}
+                    index={index}
+                    onRemove={() => handleRemoveFile(index)}
+                    onPreview={() => openLightbox(item)}
+                    onDragStart={(e, idx) => {
+                      e.dataTransfer.effectAllowed = "move";
+                      setDraggedIndex(idx);
+                    }}
+                    onDragOver={(e, idx) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (draggedIndex !== null && draggedIndex !== idx) {
+                        setDragOverIndex(idx);
+                      }
+                    }}
+                    onDragEnd={() => {
+                      if (
+                        draggedIndex !== null &&
+                        dragOverIndex !== null &&
+                        draggedIndex !== dragOverIndex
+                      ) {
+                        const newItems = [...files];
+                        const [draggedItem] = newItems.splice(draggedIndex, 1);
+                        newItems.splice(dragOverIndex, 0, draggedItem);
+                        onFilesChange(newItems);
+                      }
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    isDragging={draggedIndex === index}
+                    isDragOver={dragOverIndex === index}
+                  />
+                </div>
               ))}
             </div>
           </div>

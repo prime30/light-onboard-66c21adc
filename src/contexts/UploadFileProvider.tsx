@@ -9,6 +9,7 @@ export interface UploadFileContextType {
   addFiles: (files: File[]) => UploadFileItem[];
   clearQueue: () => void;
   retryFile: (id: string) => void;
+  setEmail: (email: string) => void;
 }
 
 const UploadFileContext = createContext<UploadFileContextType | undefined>(undefined);
@@ -26,6 +27,7 @@ interface UploadFileProviderProps {
 }
 
 export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children }) => {
+  const [email, setEmail] = useState("");
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadingRef = useRef(false);
@@ -59,6 +61,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
 
     const pendingFiles = queue.filter((item) => item.status === "pending");
     if (pendingFiles.length === 0) return;
+    if (!email) return;
 
     isUploadingRef.current = true;
     setIsUploading(true);
@@ -69,7 +72,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
         updateFileStatus(item.id, "uploading");
 
         try {
-          const url = await uploadFile(item.file, (progress) => {
+          const url = await uploadFile(item.file, email, (progress) => {
             updateFileProgress(item.id, progress);
           });
 
@@ -85,16 +88,17 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
       isUploadingRef.current = false;
       setIsUploading(false);
     }
-  }, [queue, updateFileProgress, updateFileStatus]);
+  }, [email, queue, updateFileProgress, updateFileStatus]);
 
   useEffect(() => {
     if (isUploadingRef.current) return;
     if (queue.length === 0) return;
+    if (!email) return;
 
     // Auto-start upload
     console.log("process");
     processQueue();
-  }, [queue.length, processQueue]);
+  }, [queue.length, processQueue, email]);
 
   const addFiles = useCallback((files: File[]) => {
     const newItems: UploadFileItem[] = files.map((file) => ({
@@ -140,6 +144,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
     addFiles,
     clearQueue,
     retryFile,
+    setEmail,
   };
 
   return <UploadFileContext.Provider value={value}>{children}</UploadFileContext.Provider>;
