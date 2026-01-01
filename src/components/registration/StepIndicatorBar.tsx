@@ -89,7 +89,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   }, [goToNextStep, goToPrevStep]);
 
   // Only show for signup mode
-  if (mode !== "signup") return null;
+  if (mode !== "signup" || currentStep === "success") return null;
 
   return (
     <div
