@@ -61,7 +61,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     async (values) => {
       console.log("submit values:", values);
 
-      const url = `${import.meta.env.VITE_BACKEND_URL}/create-customer`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-customer`;
       const result = await fetch(url, {
         method: "POST",
         headers: {
