@@ -1,4 +1,4 @@
-import { createClient, type FileObject } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,9 +105,9 @@ Deno.serve(async (req) => {
 
     console.log(
       "Files in folder:",
-      fileList?.map((f: FileObject) => f.name)
+      fileList?.map((f: { name: string }) => f.name)
     );
-    const fileExists = fileList?.some((f: FileObject) => f.name === fileName);
+    const fileExists = fileList?.some((f: { name: string }) => f.name === fileName);
 
     if (!fileExists) {
       console.log("File not found in folder");
