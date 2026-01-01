@@ -1,12 +1,146 @@
 import z from "zod";
-import { FunctionResponse } from "../../lib/types.ts";
-import { corsHeaders } from "../../lib/corsHeaders.ts";
-import { sendError } from "../../lib/sendError.ts";
-import { validateRequestMethod } from "../../lib/validateRequestMethod.ts";
-import { parseRequestBody } from "../../lib/parseRequestBody.ts";
-import { registrationSchema } from "../../../src/lib/validations/auth-schemas.ts";
-import { objectKeysToSnake } from "../../lib/caseConverter.ts";
-import { formatPhoneNumber } from "../../lib/phoneUtils.ts";
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+};
+
+// Send error response
+function sendError(statusCode: number, errors: string[], message?: string) {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      statusCode,
+      message: message || "Error",
+      errorMessage: errors,
+    }),
+    {
+      status: statusCode,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
+
+// Convert camelCase to snake_case
+function camelToSnake(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+// Convert object keys from camelCase to snake_case
+function objectKeysToSnake<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const snakeKey = camelToSnake(key);
+      const value = obj[key];
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        result[snakeKey] = objectKeysToSnake(value as Record<string, unknown>);
+      } else {
+        result[snakeKey] = value;
+      }
+    }
+  }
+  return result;
+}
+
+// Format phone number with country code
+function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string | undefined {
+  if (!phoneNumber) return undefined;
+  const cleanPhone = phoneNumber.replace(/\D/g, "");
+  if (!cleanPhone) return undefined;
+  const code = countryCode?.startsWith("+") ? countryCode : `+${countryCode || "1"}`;
+  return `${code}${cleanPhone}`;
+}
+
+// Inline the registration schema for edge function
+const registrationSchema = z.discriminatedUnion("accountType", [
+  z.object({
+    accountType: z.literal("professional"),
+    businessOperationType: z.enum(["commission", "independent"]),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    preferredName: z.string().optional(),
+    email: z.string().email(),
+    phoneNumber: z.string().optional(),
+    phoneCountryCode: z.string(),
+    businessName: z.string().min(1),
+    businessAddress: z.string().min(1),
+    suiteNumber: z.string().optional(),
+    countryCode: z.string().min(1),
+    city: z.string().min(1),
+    provinceCode: z.string().min(1),
+    zipCode: z.string().min(1),
+    licenseNumber: z.string().min(1),
+    licenseProofFiles: z.array(z.string()).optional(),
+    taxExempt: z.boolean(),
+    taxExemptFile: z.array(z.string()).optional(),
+    wholesaleAgreed: z.literal(true),
+    birthdayMonth: z.string().optional(),
+    birthdayDay: z.string().optional(),
+    socialMediaHandle: z.string().optional(),
+    subscribeOrderUpdates: z.boolean().optional(),
+    acceptsMarketing: z.boolean().optional(),
+  }),
+  z.object({
+    accountType: z.literal("salon"),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    preferredName: z.string().optional(),
+    email: z.string().email(),
+    phoneNumber: z.string().optional(),
+    phoneCountryCode: z.string(),
+    businessName: z.string().min(1),
+    businessAddress: z.string().min(1),
+    suiteNumber: z.string().optional(),
+    countryCode: z.string().min(1),
+    city: z.string().min(1),
+    provinceCode: z.string().min(1),
+    zipCode: z.string().min(1),
+    salonSize: z.string().min(1),
+    salonStructure: z.string().min(1),
+    licenseNumber: z.string().min(1),
+    licenseProofFiles: z.array(z.string()).optional(),
+    taxExempt: z.boolean(),
+    taxExemptFile: z.array(z.string()).optional(),
+    wholesaleAgreed: z.literal(true),
+    birthdayMonth: z.string().optional(),
+    birthdayDay: z.string().optional(),
+    socialMediaHandle: z.string().optional(),
+    subscribeOrderUpdates: z.boolean().optional(),
+    acceptsMarketing: z.boolean().optional(),
+  }),
+  z.object({
+    accountType: z.literal("student"),
+    schoolName: z.string().min(1),
+    schoolState: z.string().min(1),
+    enrollmentProofFiles: z.array(z.string()).min(1),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    preferredName: z.string().optional(),
+    email: z.string().email(),
+    phoneNumber: z.string().optional(),
+    phoneCountryCode: z.string(),
+    taxExempt: z.boolean(),
+    taxExemptFile: z.array(z.string()).optional(),
+    wholesaleAgreed: z.literal(true),
+    birthdayMonth: z.string().optional(),
+    birthdayDay: z.string().optional(),
+    socialMediaHandle: z.string().optional(),
+    subscribeOrderUpdates: z.boolean().optional(),
+    acceptsMarketing: z.boolean().optional(),
+  }),
+]);
+
+// Interface for function response
+type FunctionResponse<T> = {
+  success: boolean;
+  statusCode: number;
+  message?: string;
+  data?: T;
+  errorMessage?: string[];
+};
 
 // Interface for the incoming request payload
 interface CustomerCreateRequest {
@@ -53,7 +187,7 @@ type CustomerCreateInput = {
   social_media_handle?: string;
 };
 
-const defaultCusomterCreateInput: Partial<CustomerCreateInput> = {
+const defaultCustomerCreateInput: Partial<CustomerCreateInput> = {
   accepts_marketing: false,
   subscribe_order_updates: false,
   tax_exempt: false,
@@ -79,10 +213,14 @@ interface CustomerFieldsResponse {
 Deno.serve(async (req: Request) => {
   console.log("Customer create function called");
 
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   // Validate request method
-  const methodResponse = validateRequestMethod(req, ["POST"]);
-  if (methodResponse) {
-    return methodResponse;
+  if (req.method !== "POST") {
+    return sendError(405, ["Method not allowed"]);
   }
 
   // Get environment variables for Customer Fields API
@@ -102,36 +240,37 @@ Deno.serve(async (req: Request) => {
   }
 
   // Parse the request body
-  const bodyParseResponse = await parseRequestBody<CustomerCreateRequest>(req);
-  if (!bodyParseResponse.success) {
-    return sendError(bodyParseResponse.statusCode || 400, bodyParseResponse.errors);
+  let requestBody: CustomerCreateRequest;
+  try {
+    requestBody = await req.json();
+  } catch {
+    return sendError(400, ["Invalid JSON in request body"]);
   }
-
-  const requestBody = bodyParseResponse.data;
 
   // Validate the request body against the schema
   const parseResult = registrationSchema.safeParse(requestBody.data);
   if (!parseResult.success) {
-    const validationErrors = z.treeifyError(parseResult.error);
+    const validationErrors = parseResult.error.issues.map((e: { message: string }) => e.message);
     console.log("Request body validation failed:", validationErrors);
-    return sendError(400, validationErrors.errors, "Invalid request data");
+    return sendError(400, validationErrors);
   }
 
   console.log("Processing customer sync for:", requestBody.data.email);
-  const customer = objectKeysToSnake(parseResult.data);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const customer = objectKeysToSnake(parseResult.data) as any;
 
   // Handle tax exempt files (common to all account types)
   const taxExemptFiles = Array.isArray(customer.tax_exempt_file)
     ? customer.tax_exempt_file || []
     : [customer.tax_exempt_file];
-  const parseTaxExemptFiles = taxExemptFiles.filter(Boolean).map((item) => {
+  const parseTaxExemptFiles = taxExemptFiles.filter(Boolean).map((item: string | { url?: string }) => {
     if (typeof item === "string") return item;
     return item?.url;
   }) as string[];
 
   // Create base customer input with common fields
   const customerCreateInput: CustomerCreateInput = {
-    ...defaultCusomterCreateInput,
+    ...defaultCustomerCreateInput,
     account_type: customer.account_type,
     first_name: customer.first_name,
     last_name: customer.last_name,
@@ -150,10 +289,8 @@ Deno.serve(async (req: Request) => {
 
   // Handle account-type specific fields with type narrowing
   if (customer.account_type === "professional") {
-    // TypeScript now knows this is a professional account
     customerCreateInput.business_operation_type = customer.business_operation_type;
 
-    // Handle business location fields for professionals
     customerCreateInput.default_address = {
       company: customer.business_name,
       address1: customer.business_address,
@@ -165,14 +302,12 @@ Deno.serve(async (req: Request) => {
       phone: formatPhoneNumber(customer.phone_country_code, customer.phone_number),
     };
 
-    // Handle license fields for professionals
     customerCreateInput.license_number = customer.license_number;
 
-    // Handle license proof files for professionals
     const licenseFiles = Array.isArray(customer.license_proof_files)
       ? customer.license_proof_files || []
       : [customer.license_proof_files];
-    const files = licenseFiles.filter(Boolean).map((item) => {
+    const files = licenseFiles.filter(Boolean).map((item: string | { url?: string }) => {
       if (typeof item === "string") return item;
       return item?.url;
     });
@@ -180,7 +315,6 @@ Deno.serve(async (req: Request) => {
     customerCreateInput.proof_file_2 = files?.[1];
     customerCreateInput.proof_file_3 = files?.[2];
   } else if (customer.account_type === "salon") {
-    // Handle business location fields for salons
     customerCreateInput.default_address = {
       company: customer.business_name,
       address1: customer.business_address,
@@ -192,16 +326,14 @@ Deno.serve(async (req: Request) => {
       phone: formatPhoneNumber(customer.phone_country_code, customer.phone_number),
     };
 
-    // Handle salon-specific fields
     customerCreateInput.salon_size = customer.salon_size;
     customerCreateInput.salon_structure = customer.salon_structure;
     customerCreateInput.license_number = customer.license_number;
 
-    // Handle license proof files for salons
     const licenseFiles = Array.isArray(customer.license_proof_files)
       ? customer.license_proof_files || []
       : [customer.license_proof_files];
-    const files = licenseFiles.filter(Boolean).map((item) => {
+    const files = licenseFiles.filter(Boolean).map((item: string | { url?: string }) => {
       if (typeof item === "string") return item;
       return item?.url;
     });
@@ -209,15 +341,13 @@ Deno.serve(async (req: Request) => {
     customerCreateInput.proof_file_2 = files?.[1];
     customerCreateInput.proof_file_3 = files?.[2];
   } else if (customer.account_type === "student") {
-    // Handle student-specific fields
     customerCreateInput.school_name = customer.school_name;
     customerCreateInput.school_state = customer.school_state;
 
-    // Handle enrollment proof files for students
     const enrollmentFiles = Array.isArray(customer.enrollment_proof_files)
       ? customer.enrollment_proof_files || []
       : [customer.enrollment_proof_files];
-    const files = enrollmentFiles.filter(Boolean).map((item) => {
+    const files = enrollmentFiles.filter(Boolean).map((item: string | { url?: string }) => {
       if (typeof item === "string") return item;
       return item?.url;
     });
@@ -240,7 +370,6 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    // Make the API request to Customer Fields
     console.log("Sending request to Customer Fields API...");
     const apiResponse = await fetch(customerFieldsApiUrl, {
       method: "POST",
@@ -250,7 +379,6 @@ Deno.serve(async (req: Request) => {
 
     const responseText = await apiResponse.text();
 
-    // Check if the API request was successful
     if (!apiResponse.ok) {
       console.error("Customer Fields API request failed:", apiResponse.status, responseText);
       return sendError(apiResponse.status, [
@@ -258,19 +386,16 @@ Deno.serve(async (req: Request) => {
       ]);
     }
 
-    // Try to parse the response
     let customerFieldsData: CustomerFieldsResponse;
     try {
       customerFieldsData = JSON.parse(responseText);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_parseError) {
+    } catch {
       console.error("Failed to parse Customer Fields API response:", responseText);
       return sendError(502, ["Invalid response from Customer Fields API"]);
     }
 
     console.log("Customer Fields API request successful:", customerFieldsData.customer.id);
 
-    // Return success response
     const response: FunctionResponse<CustomerFieldsResponse> = {
       success: true,
       data: customerFieldsData,
