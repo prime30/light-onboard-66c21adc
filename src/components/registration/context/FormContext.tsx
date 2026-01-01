@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect } from "react";
 import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
+import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -55,8 +56,6 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
 
-  const email = watch("email");
-
   const submitForm = handleSubmit(
     async (values) => {
       console.log("submit values:", values);
@@ -82,11 +81,13 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    const email = watch("email");
+    const accountType = watch("accountType");
     if (isSubmitSuccessful) {
-      reset({ email });
+      reset({ email, accountType } as Partial<AllRegistrationFormData>);
       setCurrentStep("success");
     }
-  }, [isSubmitSuccessful, setCurrentStep, email, reset]);
+  }, [isSubmitSuccessful, reset, setCurrentStep, watch]);
 
   const value: AuthFormContextType = {
     submitForm,
