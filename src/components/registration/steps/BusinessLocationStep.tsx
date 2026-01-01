@@ -53,12 +53,16 @@ export const BusinessLocationStep = () => {
     control,
     watch,
     setValue,
-    errors,
+    errors: rawErrors,
     getValidationStatus,
     currentStep,
     getStepValidationStatus,
     getStepNumber,
   } = useForm();
+
+  // Cast errors to any to handle discriminated union field access
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errors = rawErrors as any;
 
   // Watch form values
   const watchedValues = watch(["accountType", "businessAddress", "countryCode", "provinceCode"]);

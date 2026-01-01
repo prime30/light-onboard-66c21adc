@@ -37,13 +37,17 @@ export const SchoolInfoStep = () => {
     control,
     watch,
     setValue,
-    errors,
+    errors: rawErrors,
     getValidationStatus,
     currentStep,
     getStepValidationStatus,
     getStepNumber,
     showValidationErrors,
   } = useForm();
+
+  // Cast errors to any to handle discriminated union field access
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errors = rawErrors as any;
 
   const validationStatus = getStepValidationStatus(currentStep);
 
@@ -122,7 +126,7 @@ export const SchoolInfoStep = () => {
           </p>
           <div data-field="enrollment-proof">
             <MultiFileUpload
-              files={enrollmentProofFiles || []}
+              files={(enrollmentProofFiles || []) as { id: string; file: File; status: "completed" | "error" | "pending" | "uploading"; progress: number; error?: string; url?: string; }[]}
               onFilesChange={handleEnrollmentProofFilesChange}
               placeholder="Upload your documents"
               maxFiles={5}
