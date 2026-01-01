@@ -1,5 +1,11 @@
 console.log("Hello World function up and running!");
-import { hello, corsHeaders } from "../../lib/index.ts";
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+};
 
 Deno.serve((req) => {
   const { method, url } = req;
@@ -18,7 +24,7 @@ Deno.serve((req) => {
 
     // Create response data
     const responseData = {
-      message: `Hello, ${hello}!`,
+      message: `Hello, ${name}!`,
       timestamp: new Date().toISOString(),
       method: method,
       path: urlObj.pathname,
