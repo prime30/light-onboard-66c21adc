@@ -466,18 +466,26 @@ const Auth = () => {
         {/* Right Panel - Form */}
         <div className="flex-1 flex flex-col bg-background lg:rounded-r-[20px] overflow-y-auto overflow-x-hidden">
           {/* Header - fixed height to keep toggle position consistent */}
-          <header className="relative flex items-center justify-between px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
+          <header className="relative grid grid-cols-2 sm:grid-cols-3 items-center px-3 py-2.5 sm:p-5 lg:p-[25px] pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(1.5625rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))] min-h-[60px] sm:min-h-[70px] lg:min-h-[80px]">
             {/* Left side - Auth Toggle + Step Indicator */}
-            <div className="flex items-center flex-1 sm:flex-none justify-between sm:justify-start gap-[10px] min-h-[50px]">
+            <div className="relative flex items-center justify-start gap-[10px] min-h-[50px] z-20">
               <AuthToggle mode={mode} handleModeChange={setMode} />
+            </div>
+            <div className="relative flex justify-end sm:justify-center overflow-hidden z-10">
               <StepIndicatorBar />
+              {/* Left gradient fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10"></div>
+              {/* Right gradient fade */}
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10"></div>
             </div>
 
-            <CloseButton
-              isSavingProgress={isSavingProgress}
-              saveProgressText={saveProgressText}
-              handleCloseModal={handleCloseModal}
-            />
+            <div className="relative hidden sm:flex justify-end z-20">
+              <CloseButton
+                isSavingProgress={isSavingProgress}
+                saveProgressText={saveProgressText}
+                handleCloseModal={handleCloseModal}
+              />
+            </div>
           </header>
 
           {/* Subtle gradient below header on mobile */}

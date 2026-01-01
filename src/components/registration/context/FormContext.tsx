@@ -60,25 +60,21 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   const submitForm = handleSubmit(
     async (values) => {
       console.log("submit values:", values);
-      // const result = await fetch("http://127.0.0.1:54321/functions/v1/create-customer", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     action: "CREATE_CUSTOMER",
-      //     data: values,
-      //   }),
-      // });
 
-      // const resultData = await result.json();
-      // if (resultData.success) {
-      //   // Clear stored form on success
+      const url = `${import.meta.env.VITE_BACKEND_URL}/create-customer`;
+      const result = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "CREATE_CUSTOMER",
+          data: values,
+        }),
+      });
 
-      //   stepContext.setCurrentStep("success");
-      // }
-
-      // return resultData;
+      const resultData = await result.json();
+      return resultData;
     },
     (errors) => {
       console.log("errors: ", errors);

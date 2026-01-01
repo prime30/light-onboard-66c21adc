@@ -1,9 +1,11 @@
-import { useRef, memo, useMemo, useCallback } from "react";
+import { useRef, memo, useMemo, useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Check, Flag, AlertCircle } from "lucide-react";
 import { useStepContext } from "./context/StepContext";
+import { useFormData } from "./context";
 
 export const StepIndicatorBar = memo(function StepIndicatorBar() {
+  const { watch } = useFormData();
   // Get all step data from context
   const {
     currentStep,
@@ -16,6 +18,20 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     goToPrevStep,
   } = useStepContext();
 
+  const [inDelay, setInDelay] = useState(true);
+  const accountType = watch("accountType");
+
+  useEffect(() => {
+    if (currentStep === "account-type") {
+      setInDelay(true);
+      return;
+    }
+
+    if (inDelay) {
+      setInDelay(false);
+    }
+  }, [accountType, currentStep, inDelay]);
+
   // Memoize the current step number to prevent recalculation on every render
   const getCurrentStepNumber = useMemo(() => {
     const index = steps.indexOf(currentStep);
@@ -24,12 +40,14 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
   // Memoize the translation calculation to prevent unnecessary re-renders
   const translateX = useMemo(() => {
-    return ((displayTotalSteps + 2) / 2 - getCurrentStepNumber - 0.5) * 44;
+    return ((displayTotalSteps + 1) / 2 - getCurrentStepNumber - 1) * 40;
   }, [displayTotalSteps, getCurrentStepNumber]);
 
   // Memoize step validation states to prevent re-renders when other steps change
   const currentStepValidationStates = useMemo(() => {
+    console.log(steps);
     const relevantSteps = steps.slice(1, -1); // Skip onboarding and summary
+    console.log(relevantSteps);
     return relevantSteps.map((step) => ({
       step,
       status: completedSteps[step] || "in-progress",
@@ -92,7 +110,10 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
       >
         {/* Sliding track that moves based on current step */}
         <div
-          className="flex items-center transition-transform duration-500 ease-out"
+          className={cn(
+            "flex items-center",
+            !inDelay && "transition-transform duration-500 ease-out"
+          )}
           style={{
             transform: `translateX(${translateX}px)`,
           }}

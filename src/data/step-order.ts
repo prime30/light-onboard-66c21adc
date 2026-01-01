@@ -26,7 +26,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "tax-exemption",
     "wholesale-terms",
     "preferences",
-    "summary",
   ],
   salon: [
     "account-type",
@@ -36,7 +35,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "tax-exemption",
     "wholesale-terms",
     "preferences",
-    "summary",
   ],
   student: [
     "account-type",
@@ -45,7 +43,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "tax-exemption",
     "wholesale-terms",
     "preferences",
-    "summary",
   ],
 };
 

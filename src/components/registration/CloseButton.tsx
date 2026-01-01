@@ -13,7 +13,7 @@ export function CloseButton({
   handleCloseModal,
 }: CloseButtonProps) {
   return (
-    <div className="hidden sm:flex items-center flex-shrink-0 relative">
+    <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
       {/* Saving text - positioned absolutely to the left so button doesn't move */}
       <span
         className={cn(
