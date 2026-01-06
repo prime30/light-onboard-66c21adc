@@ -7,10 +7,5 @@ export { StepProvider, useStepContext } from "./StepContext";
 
 // Types
 export type { AuthFormContextType } from "./FormContext";
-export type {
-  FormDataContextType,
-  ValidationStatus,
-  FormFieldProps,
-  FormControlFieldProps,
-} from "./FormDataContext";
+export type { FormDataContextType, ValidationStatus } from "./FormDataContext";
 export type { StepContextType } from "./StepContext";

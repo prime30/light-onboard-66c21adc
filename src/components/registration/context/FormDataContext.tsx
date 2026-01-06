@@ -7,25 +7,12 @@ import {
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
+import { Control, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
-
-export type FormFieldProps = {
-  type: string;
-  placeholder?: string;
-  name: ValidFieldNames;
-  register: UseFormRegister<RegistrationFormData>;
-  error: FieldError | undefined;
-  valueAsNumber?: boolean;
-};
-
-export type FormControlFieldProps = Omit<FormFieldProps, "register"> & {
-  control: Control<RegistrationFormData>;
-};
 
 export type FormDataContextType = {
   register: UseFormRegister<RegistrationFormData>;

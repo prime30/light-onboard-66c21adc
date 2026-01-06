@@ -1,19 +1,20 @@
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { FormFieldProps } from "./registration/context";
-import { ReactNode } from "react";
 import { CheckMarkIcon } from "./CheckMarkIcon";
+import { FieldValues } from "react-hook-form";
+import { FormFieldProps } from "@/types/form";
 
-type TextInputProps = React.ComponentProps<"input"> &
-  FormFieldProps & {
-    isValid?: boolean;
-    label?: ReactNode;
-    prefixIcon?: ReactNode;
-    className?: string;
-  };
+type TextInputProps<TFieldValues extends FieldValues = FieldValues> =
+  React.ComponentProps<"input"> &
+    FormFieldProps<TFieldValues> & {
+      isValid?: boolean;
+      label?: React.ReactNode;
+      prefixIcon?: React.ReactNode;
+      className?: string;
+    };
 
-export function TextInput({
+export function TextInput<TFieldValues extends FieldValues = FieldValues>({
   type,
   placeholder,
   name,
@@ -25,7 +26,7 @@ export function TextInput({
   isValid = false,
   className = "",
   ...inputProps
-}: TextInputProps) {
+}: TextInputProps<TFieldValues>) {
   return (
     <div className={cn("space-y-2.5 group", className)}>
       {label && (

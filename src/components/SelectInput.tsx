@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
-import { FormControlFieldProps } from "./registration/context";
 import { ReactNode } from "react";
 import { CheckMarkIcon } from "./CheckMarkIcon";
 import { Controller } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { FormControlFieldProps } from "@/types/form";
 
 export type SelectOption = {
   value: string;
