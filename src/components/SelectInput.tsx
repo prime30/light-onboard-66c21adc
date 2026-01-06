@@ -5,6 +5,7 @@ import { CheckMarkIcon } from "./CheckMarkIcon";
 import { Controller } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { FormControlFieldProps } from "@/types/form";
+import { FieldValues } from "react-hook-form";
 
 export type SelectOption = {
   value: string;
@@ -13,7 +14,10 @@ export type SelectOption = {
   triggerContent?: ReactNode;
 };
 
-type SelectInputProps = Omit<FormControlFieldProps, "type"> & {
+type SelectInputProps<TFieldValues extends FieldValues = FieldValues> = Omit<
+  FormControlFieldProps<TFieldValues>,
+  "type"
+> & {
   options: SelectOption[];
   isValid?: boolean;
   label?: ReactNode;
@@ -22,7 +26,7 @@ type SelectInputProps = Omit<FormControlFieldProps, "type"> & {
   disabled?: boolean;
 };
 
-export function SelectInput({
+export function SelectInput<TFieldValues extends FieldValues = FieldValues>({
   name,
   control,
   error,
@@ -32,7 +36,7 @@ export function SelectInput({
   isValid = false,
   className = "",
   disabled = false,
-}: SelectInputProps) {
+}: SelectInputProps<TFieldValues>) {
   return (
     <div className={cn("space-y-2.5 group", className)}>
       {label && (
