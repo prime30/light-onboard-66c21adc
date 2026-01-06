@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Star, Quote, ArrowUpRight, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Star, Quote, ArrowUpRight } from "lucide-react";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";

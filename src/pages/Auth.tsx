@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useIframeComm } from "@/hooks/use-iframe-comm";
+import { useNavigate, useLocation } from "react-router";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalSwipe } from "@/hooks/use-modal-swipe";

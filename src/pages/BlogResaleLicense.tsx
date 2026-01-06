@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import blogImage from "@/assets/blog-resale-license.jpg";
 
