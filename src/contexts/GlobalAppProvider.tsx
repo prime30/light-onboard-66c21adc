@@ -20,7 +20,7 @@ interface GlobalAppProviderProps {
   children: React.ReactNode;
 }
 
-export const GlobalAppProvider: React.FC<GlobalAppProviderProps> = ({ children }) => {
+export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   const fontsLoaded = useFontLoaded();
   const iframeComm = useIframeComm();
 

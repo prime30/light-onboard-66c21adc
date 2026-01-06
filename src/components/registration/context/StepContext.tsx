@@ -10,8 +10,8 @@ import {
 import { fieldsForStep, getStepOrder, stepValidations } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
 import { Step } from "@/types/auth";
-import { ValidFieldNames } from "@/lib/validations/auth-schemas";
-import { defaultValues, useFormData, ValidationStatus } from "./FormDataContext";
+import { defaultValues, ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
@@ -56,9 +56,9 @@ export function StepProvider({ children }: StepProviderProps) {
 
   // TODO: Remove after development
   useEffect(() => {
-    setTimeout(() => {
-      reset(defaultValues);
-    }, 1000);
+    // setTimeout(() => {
+    //   reset(defaultValues);
+    // }, 1000);
     // setCurrentStep("school-info");
   }, []);
 

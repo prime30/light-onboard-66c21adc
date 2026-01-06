@@ -240,6 +240,13 @@ export type RegistrationFormData = z.infer<typeof registrationSchema>;
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
 
+export const defaultValues: Partial<RegistrationFormData> = {
+  phoneCountryCode: "us",
+  countryCode: "US",
+  subscribeOrderUpdates: true,
+  acceptsMarketing: true,
+};
+
 // Generic type to extract specific account type data (supports single or multiple types)
 export type RegistrationFormDataByType<T extends AccountType | AccountType[]> =
   T extends AccountType[]

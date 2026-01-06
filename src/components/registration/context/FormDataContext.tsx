@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import {
   AllRegistrationFormData,
+  defaultValues,
   RegistrationFormData,
   registrationSchema,
   ValidFieldNames,
@@ -24,13 +25,6 @@ export type FormFieldProps = {
 
 export type FormControlFieldProps = Omit<FormFieldProps, "register"> & {
   control: Control<RegistrationFormData>;
-};
-
-export const defaultValues: Partial<RegistrationFormData> = {
-  phoneCountryCode: "us",
-  countryCode: "US",
-  subscribeOrderUpdates: true,
-  acceptsMarketing: true,
 };
 
 export type FormDataContextType = {
