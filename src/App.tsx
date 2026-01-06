@@ -2,15 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  type RouteConfig,
-  BrowserRouter,
-  Routes,
-  Route,
-  createBrowserRouter,
-  RouterProvider,
-  Outlet,
-} from "react-router";
+import { createBrowserRouter, Outlet, RouteObject } from "react-router";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import Reviews from "./pages/Reviews";
@@ -20,7 +12,6 @@ import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
 import { LoginPage } from "./pages/LoginPage";
-import { Component } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -38,7 +29,7 @@ const App = () => (
   </GlobalAppProvider>
 );
 
-const children: RouteConfig[] = [
+const children: RouteObject[] = [
   {
     index: true,
     Component: Index,
