@@ -33,7 +33,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { watch, setValue, isFormValid, isSubmitting } = useFormData();
+  const { isFormValid, isSubmitting } = useFormData();
   const { isUploading, overallProgress } = useUploadFile();
   const { fontsLoaded, isInIframe, closeIframe } = useGlobalApp();
   const [referralSource, setReferralSource] = useState<string>("");
@@ -315,11 +315,11 @@ const Auth = () => {
 
     // Swipe left on onboarding → go to sign-in
     if (diff > threshold && mode === "signup" && currentStep === "onboarding") {
-      setMode("signin");
+      navigate("/login");
     }
     // Swipe right on sign-in → go to sign-up (onboarding)
     else if (diff < -threshold && mode === "signin") {
-      setMode("signup");
+      navigate("/auth");
     }
 
     mainSwipeStartX.current = null;
@@ -509,55 +509,34 @@ const Auth = () => {
                     : "animate-step-enter-left"
           )}
         >
-          {mode === "signin" ? (
-            <SignInForm
-              email={watch("email")}
-              password={""}
-              onEmailChange={(email) => setValue("email", email)}
-              onPasswordChange={() => {}}
-              onSignUp={() => {
-                setModeTransitionDirection("left");
-                setMode("signup");
-                setCurrentStep("onboarding");
+          {currentStep === "onboarding" && (
+            <OnboardingForm
+              onContinue={goToNextStep}
+              onSignIn={() => {
+                setModeTransitionDirection("right");
+                navigate("/login");
               }}
-              showForgotPassword={false}
-              onForgotPasswordToggle={() => false}
-              onForgotPasswordSubmit={handleForgotPasswordSubmit}
-              isSendingReset={false}
+              onStepClick={() => {
+                setShimmerKey((k) => k + 1);
+              }}
               fontsLoaded={fontsLoaded}
             />
-          ) : (
-            <>
-              {currentStep === "onboarding" && (
-                <OnboardingForm
-                  onContinue={goToNextStep}
-                  onSignIn={() => {
-                    setModeTransitionDirection("right");
-                    setMode("signin");
-                  }}
-                  onStepClick={() => {
-                    setShimmerKey((k) => k + 1);
-                  }}
-                  fontsLoaded={fontsLoaded}
-                />
-              )}
-              {currentStep === "account-type" && <AccountTypeForm />}
-              {currentStep === "license" && <LicenseStep />}
-              {currentStep === "business-operation" && <BusinessOperationStep />}
-              {currentStep === "business-location" && <BusinessLocationStep />}
-              {currentStep === "school-info" && <SchoolInfoStep />}
-              {currentStep === "contact-basics" && <ContactBasicsStep />}
-              {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
-              {currentStep === "tax-exemption" && <TaxExemptionStep />}
-              {currentStep === "preferences" && <PreferencesStep />}
-              {currentStep === "summary" && <SummaryForm />}
-              {currentStep === "success" && (
-                <SuccessForm
-                  referralSource={referralSource}
-                  onReferralSourceChange={setReferralSource}
-                />
-              )}
-            </>
+          )}
+          {currentStep === "account-type" && <AccountTypeForm />}
+          {currentStep === "license" && <LicenseStep />}
+          {currentStep === "business-operation" && <BusinessOperationStep />}
+          {currentStep === "business-location" && <BusinessLocationStep />}
+          {currentStep === "school-info" && <SchoolInfoStep />}
+          {currentStep === "contact-basics" && <ContactBasicsStep />}
+          {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+          {currentStep === "tax-exemption" && <TaxExemptionStep />}
+          {currentStep === "preferences" && <PreferencesStep />}
+          {currentStep === "summary" && <SummaryForm />}
+          {currentStep === "success" && (
+            <SuccessForm
+              referralSource={referralSource}
+              onReferralSourceChange={setReferralSource}
+            />
           )}
         </div>
       </main>

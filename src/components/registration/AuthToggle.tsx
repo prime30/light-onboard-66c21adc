@@ -1,12 +1,27 @@
 import { cn } from "@/lib/utils";
 import { AuthMode } from "@/types/auth";
+import { useCallback } from "react";
+import { useNavigate } from "react-router";
+import { useModeContext } from "./context/ModeContext";
 
-type AuthToggleProps = {
-  mode: AuthMode;
-  handleModeChange: (mode: AuthMode) => void;
-};
+export function AuthToggle() {
+  const navigate = useNavigate();
+  const { mode } = useModeContext();
 
-export function AuthToggle({ mode, handleModeChange }: AuthToggleProps) {
+  const toggleMode = useCallback(
+    (mode: AuthMode) => {
+      switch (mode) {
+        case "signup":
+          navigate("/auth");
+          break;
+        case "signin":
+          navigate("login");
+          break;
+      }
+    },
+    [navigate]
+  );
+
   return (
     <div className="inline-flex bg-muted backdrop-blur-sm rounded-full p-[5px] border border-border/50 relative flex-shrink-0">
       {/* Sliding pill indicator */}
@@ -18,7 +33,7 @@ export function AuthToggle({ mode, handleModeChange }: AuthToggleProps) {
         }}
       />
       <button
-        onClick={() => handleModeChange("signup")}
+        onClick={() => toggleMode("signup")}
         className={cn(
           "relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300",
           mode === "signup" ? "text-background" : "text-muted-foreground hover:text-foreground"
@@ -27,7 +42,7 @@ export function AuthToggle({ mode, handleModeChange }: AuthToggleProps) {
         Apply
       </button>
       <button
-        onClick={() => handleModeChange("signin")}
+        onClick={() => toggleMode("signin")}
         className={cn(
           "relative z-10 px-[15px] sm:px-[20px] py-2 sm:py-[10px] rounded-full text-sm font-medium transition-colors duration-300",
           mode === "signin" ? "text-background" : "text-muted-foreground hover:text-foreground"
