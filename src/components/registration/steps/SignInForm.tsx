@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -10,35 +10,66 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 import { TextSkeleton } from "../TextSkeleton";
 import { useGlobalApp } from "@/contexts";
 import { TextInput } from "@/components/TextInput";
-import type { UseFormRegister } from "react-hook-form";
-import type { RegistrationFormData } from "@/lib/validations/auth-schemas";
+import { useForm, UseFormRegister } from "react-hook-form";
+import { LoginFormData, loginSchema } from "@/lib/validations/auth-schemas";
+import { dirtyFieldOptions } from "../context";
+import { zodResolver } from "@hookform/resolvers/zod";
+import z from "zod";
+
+type UseSignInFormReturn = {
+  register: UseFormRegister<z.Infer<typeof loginSchema>>;
+  watch: ReturnType<typeof useForm<z.Infer<typeof loginSchema>>>["watch"];
+  setValue: ReturnType<typeof useForm<z.Infer<typeof loginSchema>>>["setValue"];
+  errors: ReturnType<typeof useForm<LoginFormData>>["formState"]["errors"];
+};
+
+function useSignInForm(): UseSignInFormReturn {
+  const { register, watch, setValue, formState } = useForm<z.Infer<typeof loginSchema>>({
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+      formType: "login",
+    },
+    resolver: zodResolver(loginSchema),
+  });
+  const { errors } = formState;
+
+  return {
+    register,
+    watch,
+    setValue,
+    errors,
+  };
+}
 
 export const SignInForm = () => {
   const { fontsLoaded } = useGlobalApp();
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { register, watch, setValue, errors } = useSignInForm();
   const [isSendingReset, setIsSendingReset] = useState(false);
 
-  // Placeholders for now
-  const email = "placeholder@gmail.com";
-  const password = "password123";
+  useEffect(() => {
+    register("formType", { value: "login" });
+  }, [register]);
+
+  const showForgotPassword = watch("formType") === "forgot_password";
 
   // Placeholders for now
-  const onEmailChange = () => {};
-  const onPasswordChange = () => {};
   const onSignUp = () => {};
   const onForgotPasswordSubmit = async () => {};
 
-  // Mock register function for TextInput
-  const mockRegister = (() => ({
-    name: "",
-    onChange: async () => {},
-    onBlur: async () => {},
-    ref: () => {},
-  })) as UseFormRegister<RegistrationFormData>;
+  const onEmailChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      // Handle email change
+      setValue("email", e.target.value, dirtyFieldOptions);
+    },
+    [setValue]
+  );
+
+  console.log(errors);
 
   if (showForgotPassword) {
     return (
@@ -70,10 +101,9 @@ export const SignInForm = () => {
             name="email"
             type="email"
             placeholder="you@example.com"
-            register={mockRegister}
-            error={undefined}
-            value={email}
-            onChange={() => onEmailChange()}
+            onChange={onEmailChange}
+            value={watch("email")}
+            error={errors.email}
             label={
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
                 Email address
@@ -111,7 +141,7 @@ export const SignInForm = () => {
         </div>
 
         <button
-          onClick={() => setShowForgotPassword(false)}
+          onClick={() => setValue("formType", "login")}
           className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
@@ -148,10 +178,9 @@ export const SignInForm = () => {
           name="email"
           type="email"
           placeholder="you@example.com"
-          register={mockRegister}
-          error={undefined}
-          value={email}
-          onChange={() => onEmailChange()}
+          error={errors.email}
+          onChange={onEmailChange}
+          value={watch("email")}
           label={
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
               Email address
@@ -166,13 +195,11 @@ export const SignInForm = () => {
         />
 
         <TextInput
-          name="email"
+          name="password"
           type="password"
           placeholder="••••••••"
-          register={mockRegister}
-          error={undefined}
-          value={password}
-          onChange={() => onPasswordChange()}
+          register={register}
+          error={errors.password}
           label={
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 text-left block">
               Password
@@ -199,7 +226,7 @@ export const SignInForm = () => {
           </label>
 
           <button
-            onClick={() => setShowForgotPassword(true)}
+            onClick={() => setValue("formType", "forgot_password")}
             className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
           >
             <span className="relative">

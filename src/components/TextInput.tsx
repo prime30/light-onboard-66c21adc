@@ -19,6 +19,7 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
   placeholder,
   name,
   register,
+  onChange,
   error,
   valueAsNumber,
   label = null,
@@ -28,7 +29,7 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
   ...inputProps
 }: TextInputProps<TFieldValues>) {
   return (
-    <div className={cn("space-y-2.5 group", className)}>
+    <div className={cn("space-y-2.5 group text-left", className)}>
       {label && (
         <Label
           htmlFor={name}
@@ -43,7 +44,8 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           id={name}
           type={type}
           placeholder={placeholder}
-          {...register(name, { valueAsNumber })}
+          onChange={onChange}
+          {...(register ? register(name, { valueAsNumber }) : {})}
           className={cn(
             "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
             prefixIcon && "pl-14",
