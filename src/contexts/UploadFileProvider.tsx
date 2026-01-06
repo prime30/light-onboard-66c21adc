@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
-import { uploadFile } from "@/components/registration/actions/uploadFile";
+import { uploadFile } from "@/services/file";
 import { UploadFileItem } from "@/lib/validations/file-schema";
 
 export interface UploadFileContextType {

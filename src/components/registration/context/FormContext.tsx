@@ -24,8 +24,6 @@ export type AuthFormContextType = {
   isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
 
   // Step-related (from StepContext)
-  mode: ReturnType<typeof useStepContext>["mode"];
-  setMode: ReturnType<typeof useStepContext>["setMode"];
   totalSteps: ReturnType<typeof useStepContext>["totalSteps"];
   currentStep: ReturnType<typeof useStepContext>["currentStep"];
   setCurrentStep: ReturnType<typeof useStepContext>["setCurrentStep"];
@@ -33,14 +31,8 @@ export type AuthFormContextType = {
   goToPrevStep: ReturnType<typeof useStepContext>["goToPrevStep"];
   goToStep: ReturnType<typeof useStepContext>["goToStep"];
   showValidationErrors: ReturnType<typeof useStepContext>["showValidationErrors"];
-  isTransitioning: ReturnType<typeof useStepContext>["isTransitioning"];
-  setIsTransitioning: ReturnType<typeof useStepContext>["setIsTransitioning"];
-  transitionDirection: ReturnType<typeof useStepContext>["transitionDirection"];
-  setTransitionDirection: ReturnType<typeof useStepContext>["setTransitionDirection"];
-  mainScrollRef: ReturnType<typeof useStepContext>["mainScrollRef"];
 
   // Computed values (now in StepContext)
-  formProgress: number;
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
   incompleteSteps: ReturnType<typeof useStepContext>["incompleteSteps"];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
@@ -52,7 +44,7 @@ export type AuthFormContextType = {
 // Create the context
 const FormContext = createContext<AuthFormContextType | null>(null);
 
-// Internal component that combines both contexts
+// Internal component that combines all contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
@@ -111,7 +103,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 
-// Main provider component that wraps both contexts
+// Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {
   return (
     <FormDataProvider>

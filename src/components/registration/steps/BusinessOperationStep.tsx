@@ -3,21 +3,16 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { cn } from "@/lib/utils";
 import { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { dirtyFieldOptions, useForm } from "../context";
+import { useModeContext } from "../context/ModeContext";
 import { Step } from "@/types/auth";
 
 const STEP: Step = "business-operation";
 const fieldName: ValidFieldNames = "businessOperationType";
 
 export const BusinessOperationStep = () => {
-  const {
-    getStepValidationStatus,
-    setTransitionDirection,
-    setIsTransitioning,
-    setCurrentStep,
-    setValue,
-    watch,
-    getStepNumber,
-  } = useForm();
+  const { getStepValidationStatus, setCurrentStep, setValue, watch, getStepNumber } = useForm();
+
+  const { setTransitionDirection, setIsTransitioning } = useModeContext();
 
   const validationStatus = getStepValidationStatus(STEP);
   const businessOperationType = watch(fieldName);

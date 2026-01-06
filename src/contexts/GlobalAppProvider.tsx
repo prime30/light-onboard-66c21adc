@@ -1,9 +1,10 @@
 import React, { createContext, useContext } from "react";
 import { useFontLoaded } from "@/hooks/use-font-loaded";
+import { useIframeComm, UseIframeCommReturn } from "@/hooks/use-iframe-comm";
 
-interface GlobalAppContextType {
+type GlobalAppContextType = {
   fontsLoaded: boolean;
-}
+} & UseIframeCommReturn;
 
 const GlobalAppContext = createContext<GlobalAppContextType | undefined>(undefined);
 
@@ -21,9 +22,11 @@ interface GlobalAppProviderProps {
 
 export const GlobalAppProvider: React.FC<GlobalAppProviderProps> = ({ children }) => {
   const fontsLoaded = useFontLoaded();
+  const iframeComm = useIframeComm();
 
   const value: GlobalAppContextType = {
     fontsLoaded,
+    ...iframeComm,
   };
 
   return <GlobalAppContext.Provider value={value}>{children}</GlobalAppContext.Provider>;

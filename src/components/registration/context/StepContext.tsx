@@ -2,22 +2,21 @@ import {
   createContext,
   useContext,
   ReactNode,
-  MutableRefObject,
   useMemo,
-  useRef,
   useState,
   useEffect,
   useCallback,
 } from "react";
 import { fieldsForStep, getStepOrder, stepValidations } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
-import { AuthMode, Step } from "@/types/auth";
+import { Step } from "@/types/auth";
 import { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { defaultValues, useFormData, ValidationStatus } from "./FormDataContext";
+import { useModeContext } from "./ModeContext";
+import { useOutletContext } from "react-router";
+import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
 
 export type StepContextType = {
-  mode: AuthMode;
-  setMode: React.Dispatch<React.SetStateAction<AuthMode>>;
   totalSteps: number;
   currentStep: Step;
   setCurrentStep: React.Dispatch<React.SetStateAction<Step>>;
@@ -25,12 +24,6 @@ export type StepContextType = {
   goToPrevStep: () => void;
   goToStep: (step: Step) => void;
   showValidationErrors: boolean;
-  isTransitioning: boolean;
-  setIsTransitioning: React.Dispatch<React.SetStateAction<boolean>>;
-  transitionDirection: "forward" | "backward";
-  setTransitionDirection: React.Dispatch<React.SetStateAction<"forward" | "backward">>;
-  mainScrollRef: MutableRefObject<HTMLElement | null>;
-  formProgress: number;
   completedSteps: Record<Step, ValidationStatus>;
   incompleteSteps: Step[];
   getStepValidationStatus: (step: Step) => ValidationStatus;
@@ -42,29 +35,31 @@ export type StepContextType = {
 // Create the context
 const StepContext = createContext<StepContextType | null>(null);
 
+type StepProviderProps = {
+  children: ReactNode;
+};
+
 // Provider component
-export function StepProvider({ children }: { children: ReactNode }) {
+export function StepProvider({ children }: StepProviderProps) {
+  const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
   const { watch, errors, subscribe, reset } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
+  const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
 
-  const [mode, setMode] = useState<AuthMode>("signup");
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(new Set() as Set<Step>);
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
     {} as Record<Step, ValidationStatus>
   );
-  const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const mainScrollRef = useRef<HTMLElement | null>(null);
 
   // TODO: Remove after development
   useEffect(() => {
-    // setTimeout(() => {
-    //   reset(defaultValues);
-    // }, 1000);
-    // setCurrentStep("business-location");
+    setTimeout(() => {
+      reset(defaultValues);
+    }, 1000);
+    // setCurrentStep("school-info");
   }, []);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
@@ -229,13 +224,15 @@ export function StepProvider({ children }: { children: ReactNode }) {
     return progress;
   }, [steps, completedSteps, dirtySteps]);
 
+  useEffect(() => {
+    setFormProgress(formProgress);
+  }, [formProgress, setFormProgress]);
+
   const incompleteSteps = useMemo(() => {
     return steps.filter((step) => completedSteps[step] !== "complete");
   }, [steps, completedSteps]);
 
   const value: StepContextType = {
-    mode,
-    setMode,
     totalSteps,
     currentStep,
     setCurrentStep,
@@ -243,12 +240,6 @@ export function StepProvider({ children }: { children: ReactNode }) {
     goToPrevStep,
     goToStep,
     showValidationErrors,
-    isTransitioning,
-    setIsTransitioning,
-    transitionDirection,
-    setTransitionDirection,
-    mainScrollRef,
-    formProgress,
     completedSteps,
     incompleteSteps,
     getStepValidationStatus,
