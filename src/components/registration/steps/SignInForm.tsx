@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
   ArrowUpRight,
   Mail,
   Lock,
@@ -9,129 +8,43 @@ import {
   Headphones,
   Users,
   Loader2,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+
 import { TextSkeleton } from "../TextSkeleton";
+import { useGlobalApp } from "@/contexts";
+import { TextInput } from "@/components/TextInput";
+import type { UseFormRegister } from "react-hook-form";
+import type { RegistrationFormData } from "@/lib/validations/auth-schemas";
 
-// Email validation - requires @ symbol
-const isValidEmail = (email: string): boolean => {
-  return email.trim() !== "" && email.includes("@");
-};
+export const SignInForm = () => {
+  const { fontsLoaded } = useGlobalApp();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
-// Password Input with Toggle
-const PasswordInputField = ({
-  id,
-  label,
-  value,
-  onChange,
-  placeholder,
-  variant = "signin",
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  variant?: "signin" | "signup";
-}) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const isSignin = variant === "signin";
-  return (
-    <div className="space-y-2.5">
-      <Label
-        htmlFor={id}
-        className={cn(
-          "font-medium label-float transition-all duration-300 text-left block",
-          isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm"
-        )}
-      >
-        {label}
-      </Label>
-      <div
-        className={cn(
-          "relative group rounded-form input-ripple",
-          isSignin ? "input-ultra" : "input-glow"
-        )}
-      >
-        <div
-          className={cn(
-            "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-md flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
-            isSignin
-              ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80"
-              : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground"
-          )}
-        >
-          <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-        </div>
-        <Input
-          id={id}
-          type={showPassword ? "text" : "password"}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            "pr-[50px] rounded-form transition-all duration-500 focus:shadow-input-focus",
-            isSignin
-              ? "h-input-prominent pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40"
-              : "h-button pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background"
-          )}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press"
-          aria-label={showPassword ? "Hide password" : "Show password"}
-        >
-          {showPassword ? (
-            <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
-          ) : (
-            <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
-          )}
-        </button>
-      </div>
-    </div>
-  );
-};
+  // Placeholders for now
+  const email = "placeholder@gmail.com";
+  const password = "password123";
 
-interface SignInFormProps {
-  email: string;
-  password: string;
-  onEmailChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onSignUp: () => void;
-  showForgotPassword: boolean;
-  onForgotPasswordToggle: () => void;
-  onForgotPasswordSubmit: () => void;
-  isSendingReset: boolean;
-  fontsLoaded?: boolean;
-}
+  // Placeholders for now
+  const onEmailChange = () => {};
+  const onPasswordChange = () => {};
+  const onSignUp = () => {};
+  const onForgotPasswordSubmit = async () => {};
 
-export const SignInForm = ({
-  email,
-  password,
-  onEmailChange,
-  onPasswordChange,
-  onSignUp,
-  showForgotPassword,
-  onForgotPasswordToggle,
-  onForgotPasswordSubmit,
-  isSendingReset,
-  fontsLoaded = true,
-}: SignInFormProps) => {
-  const [emailTouched, setEmailTouched] = useState(false);
-  const emailIsValid = isValidEmail(email);
-  const showEmailError = emailTouched && email.trim() !== "" && !emailIsValid;
+  // Mock register function for TextInput
+  const mockRegister = (() => ({
+    name: "",
+    onChange: async () => {},
+    onBlur: async () => {},
+    ref: () => {},
+  })) as UseFormRegister<RegistrationFormData>;
 
   if (showForgotPassword) {
     return (
       <div
         key="forgot-password"
-        className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right"
+        className="px-4 space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right"
       >
         <div className="space-y-[6px]">
           <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
@@ -153,43 +66,37 @@ export const SignInForm = ({
         </div>
 
         <div className="space-y-[clamp(12px,2.5vh,20px)]">
-          <div className="space-y-2.5">
-            <Label
-              htmlFor="reset-email"
-              className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block"
-            >
-              Email address
-            </Label>
-            <div
-              className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? "ring-2 ring-destructive/50" : ""}`}
-            >
-              <div
-                className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? "from-destructive/20 to-destructive/10" : "from-muted to-muted/50"} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}
-              >
-                <Mail
-                  className={`w-[15px] h-[15px] ${showEmailError ? "text-destructive" : "text-muted-foreground"} group-focus-within:text-background transition-all duration-300 icon-haptic`}
-                />
+          <TextInput
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            register={mockRegister}
+            error={undefined}
+            value={email}
+            onChange={() => onEmailChange()}
+            label={
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+                Email address
+              </span>
+            }
+            prefixIcon={
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
               </div>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? "border-destructive/50" : "border-border/30"} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-input-focus`}
-              />
-            </div>
-            {showEmailError && (
-              <p className="text-xs text-destructive text-left animate-slide-in-right">
-                Please enter a valid email address
-              </p>
-            )}
-          </div>
+            }
+            className="[&>div.input-glow]:input-ultra"
+          />
 
           <Button
-            onClick={onForgotPasswordSubmit}
-            disabled={!emailIsValid || isSendingReset}
+            onClick={async () => {
+              setIsSendingReset(true);
+              try {
+                await onForgotPasswordSubmit();
+              } finally {
+                setIsSendingReset(false);
+              }
+            }}
+            disabled={isSendingReset}
             className="w-full h-button rounded-form bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
           >
             {isSendingReset ? (
@@ -204,7 +111,7 @@ export const SignInForm = ({
         </div>
 
         <button
-          onClick={onForgotPasswordToggle}
+          onClick={() => setShowForgotPassword(false)}
           className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
@@ -217,7 +124,7 @@ export const SignInForm = ({
   return (
     <div
       key="sign-in"
-      className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left"
+      className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-2 animate-step-enter-left text-center space-y-[clamp(15px,4vh,30px)]"
     >
       <div className="space-y-[6px]">
         <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
@@ -236,47 +143,47 @@ export const SignInForm = ({
         </p>
       </div>
 
-      <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
-        <div className="space-y-2.5">
-          <Label
-            htmlFor="login-email"
-            className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block"
-          >
-            Email address
-          </Label>
-          <div
-            className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? "ring-2 ring-destructive/50" : ""}`}
-          >
-            <div
-              className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? "from-destructive/20 to-destructive/10" : "from-muted to-muted/50"} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}
-            >
-              <Mail
-                className={`w-[15px] h-[15px] ${showEmailError ? "text-destructive" : "text-muted-foreground"} group-focus-within:text-background transition-all duration-300 icon-haptic`}
-              />
+      <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3 w-full">
+        <TextInput
+          name="email"
+          type="email"
+          placeholder="you@example.com"
+          register={mockRegister}
+          error={undefined}
+          value={email}
+          onChange={() => onEmailChange()}
+          label={
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+              Email address
+            </span>
+          }
+          prefixIcon={
+            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+              <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
             </div>
-            <Input
-              id="login-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => onEmailChange(e.target.value)}
-              onBlur={() => setEmailTouched(true)}
-              className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? "border-destructive/50" : "border-border/30"} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-input-focus`}
-            />
-          </div>
-          {showEmailError && (
-            <p className="text-xs text-destructive text-left animate-slide-in-right">
-              Please enter a valid email address
-            </p>
-          )}
-        </div>
+          }
+          className="[&>div.input-glow]:input-ultra"
+        />
 
-        <PasswordInputField
-          id="login-password"
-          label="Password"
-          value={password}
-          onChange={onPasswordChange}
+        <TextInput
+          name="email"
+          type="password"
           placeholder="••••••••"
+          register={mockRegister}
+          error={undefined}
+          value={password}
+          onChange={() => onPasswordChange()}
+          label={
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 text-left block">
+              Password
+            </span>
+          }
+          prefixIcon={
+            <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+              <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+            </div>
+          }
+          className="[&>div.input-glow]:input-ultra"
         />
 
         <div className="flex items-center justify-between">
@@ -292,7 +199,7 @@ export const SignInForm = ({
           </label>
 
           <button
-            onClick={onForgotPasswordToggle}
+            onClick={() => setShowForgotPassword(true)}
             className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
           >
             <span className="relative">

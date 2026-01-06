@@ -41,7 +41,7 @@ const Auth = () => {
   // Form state from centralized hook (includes sessionStorage persistence)
   const { currentStep, setCurrentStep, goToNextStep, incompleteSteps } = useStepContext();
 
-  const { mode, setMode, mainScrollRef, transitionDirection, isTransitioning } = useModeContext();
+  const { mode, mainScrollRef, transitionDirection, isTransitioning } = useModeContext();
 
   // UI-only state (not persisted)
   const [modeTransitionDirection, setModeTransitionDirection] = useState<"left" | "right">("right");
@@ -406,10 +406,7 @@ const Auth = () => {
 
       <main
         ref={mainScrollRef}
-        className={cn(
-          "flex-1 flex flex-col items-center px-5 sm:px-5 md:px-[25px] lg:px-[30px] pb-10 lg:pb-5 overflow-y-auto scrollbar-hide",
-          mode === "signup" ? "pt-0" : "pt-2"
-        )}
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-0"
         onTouchStart={
           mode === "signin" || currentStep === "onboarding" ? handleMainSwipeStart : undefined
         }
