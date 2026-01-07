@@ -5,9 +5,11 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
+import { useModeContext } from "./context/ModeContext";
 
 export function CloseButton() {
   const navigate = useNavigate();
+  const { mode } = useModeContext();
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
@@ -33,7 +35,7 @@ export function CloseButton() {
       return;
     }
 
-    if (hasProgress && !isSavingProgress) {
+    if (hasProgress && !isSavingProgress && mode === "signup") {
       // Show saving animation
       setIsSavingProgress(true);
       setSaveProgressText("saving");
@@ -53,7 +55,7 @@ export function CloseButton() {
     } else if (!isSavingProgress) {
       close();
     }
-  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn]);
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode]);
 
   if (!isInIframe) return null;
 

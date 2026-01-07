@@ -1,4 +1,3 @@
-import { T } from "node_modules/react-router/dist/development/router-5fbeEIMQ.d.mts";
 import { useEffect, useCallback, useRef } from "react";
 
 // Predefined message types for consistency
@@ -14,8 +13,8 @@ export const IframeMessageTypes = {
 
   // Parent to Child
   CUSTOMER_DATA: "CUSTOMER_DATA",
-  LOGIN_STARTED: "LOGIN_STARTED",
-  LOGIN_ERROR: "LOGIN_ERROR",
+  LOGIN_STATUS: "LOGIN_STATUS",
+  FORGOT_PASSWORD_STATUS: "FORGOT_PASSWORD_STATUS",
   GET_STATUS: "GET_STATUS",
   PING: "PING",
 

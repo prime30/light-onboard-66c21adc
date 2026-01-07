@@ -19,12 +19,38 @@ export function useCloseIframe() {
   return { closeIframe, isInIframe };
 }
 
-export function useCustomerLogin() {
-  const { subscribeToType, isInIframe } = useGlobalApp();
+type LoginData = {
+  email: string;
+  password: string;
+};
+
+type ForgotPasswordData = {
+  email: string;
+};
+
+export type FormUpdateData =
+  | {
+      status: "success" | "submitting";
+    }
+  | {
+      status: "error";
+      message: string;
+    };
+
+type UseCustomerLoginProps = {
+  loginUpdate?: (message: FormUpdateData) => void;
+  forgotPasswordUpdate?: (message: FormUpdateData) => void;
+};
+
+export function useCustomerLogin({
+  loginUpdate,
+  forgotPasswordUpdate,
+}: UseCustomerLoginProps = {}) {
+  const { subscribeToType, isInIframe, sendMessage } = useGlobalApp();
   const [customer, setCustomer] = useAtom(customerAtom);
   const navigate = useNavigate();
 
-  const handler: MessageHandler<Customer> = useCallback(
+  const customerHandler: MessageHandler<Customer> = useCallback(
     (message) => {
       if (message.type !== IframeMessageTypes.CUSTOMER_DATA) {
         return;
@@ -42,10 +68,61 @@ export function useCustomerLogin() {
     [navigate, setCustomer]
   );
 
+  const loginUpdateHandler: MessageHandler<FormUpdateData> = useCallback(
+    (message) => {
+      if (message.type !== IframeMessageTypes.LOGIN_STATUS) {
+        return;
+      }
+      if (loginUpdate) {
+        loginUpdate(message.data as FormUpdateData);
+      }
+    },
+    [loginUpdate]
+  );
+
+  const forgotPasswordHandler: MessageHandler<FormUpdateData> = useCallback(
+    (message) => {
+      if (message.type !== IframeMessageTypes.FORGOT_PASSWORD_STATUS) {
+        return;
+      }
+      if (forgotPasswordUpdate) {
+        forgotPasswordUpdate(message.data as FormUpdateData);
+      }
+    },
+    [forgotPasswordUpdate]
+  );
+
   useEffect(() => {
     if (!isInIframe) return;
-    return subscribeToType(IframeMessageTypes.CUSTOMER_DATA, handler);
-  }, [isInIframe, subscribeToType, handler]);
 
-  return { customer };
+    const customerSub = subscribeToType(IframeMessageTypes.CUSTOMER_DATA, customerHandler);
+    const loginSub = subscribeToType(IframeMessageTypes.LOGIN_STATUS, loginUpdateHandler);
+    const forgotPasswordSub = subscribeToType(
+      IframeMessageTypes.FORGOT_PASSWORD_STATUS,
+      forgotPasswordHandler
+    );
+
+    return () => {
+      // Unsubscribe on cleanup
+      customerSub();
+      loginSub();
+      forgotPasswordSub();
+    };
+  }, [isInIframe, subscribeToType, customerHandler, loginUpdateHandler, forgotPasswordHandler]);
+
+  const login = useCallback(
+    (customer: LoginData) => {
+      sendMessage(IframeMessageTypes.USER_LOGIN, customer);
+    },
+    [sendMessage]
+  );
+
+  const forgotPassword = useCallback(
+    ({ email }: ForgotPasswordData) => {
+      sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
+    },
+    [sendMessage]
+  );
+
+  return { customer, login, forgotPassword };
 }
