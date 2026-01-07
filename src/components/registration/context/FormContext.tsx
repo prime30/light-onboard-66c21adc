@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode, useEffect } from "react";
 import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
-import { useUploadFile } from "@/contexts";
+import { useGlobalApp } from "@/contexts";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -48,7 +48,7 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
-  const { setEmail } = useUploadFile();
+  const { setEmail } = useGlobalApp();
 
   const email = watch("email");
 
@@ -84,8 +84,8 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     }
   }, [email, isSubmitSuccessful, reset, setCurrentStep, watch]);
 
-  // Sync email to upload context. File are stored based on the email,
-  // we need to ensure the email is provided before uploading files.
+  // Sync email to global app context. Email is used for uploading files,
+  // and shares the email between forms.
   useEffect(() => {
     setEmail(email || "");
   }, [email, setEmail]);
@@ -105,8 +105,9 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 
 // Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {
+  const { email } = useGlobalApp();
   return (
-    <FormDataProvider>
+    <FormDataProvider initialValues={{ email: email || "" }}>
       <StepProvider>
         <FormContextProvider>{children}</FormContextProvider>
       </StepProvider>

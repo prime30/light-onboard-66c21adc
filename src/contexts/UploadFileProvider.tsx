@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { uploadFile } from "@/services/file";
 import { UploadFileItem } from "@/lib/validations/file-schema";
+import { useGlobalApp } from "./GlobalAppProvider";
 
 export interface UploadFileContextType {
   queue: UploadFileItem[];
@@ -9,7 +10,6 @@ export interface UploadFileContextType {
   addFiles: (files: File[]) => UploadFileItem[];
   clearQueue: () => void;
   retryFile: (id: string) => void;
-  setEmail: (email: string) => void;
 }
 
 const UploadFileContext = createContext<UploadFileContextType | undefined>(undefined);
@@ -27,7 +27,7 @@ interface UploadFileProviderProps {
 }
 
 export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children }) => {
-  const [email, setEmail] = useState("");
+  const { email } = useGlobalApp();
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadingRef = useRef(false);
@@ -144,7 +144,6 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
     addFiles,
     clearQueue,
     retryFile,
-    setEmail,
   };
 
   return <UploadFileContext.Provider value={value}>{children}</UploadFileContext.Provider>;

@@ -72,7 +72,7 @@ export function FormDataProvider({
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
-    defaultValues: initialValues,
+    defaultValues,
   });
 
   const { errors, dirtyFields, isSubmitted, isSubmitSuccessful, isSubmitting } = formState;
@@ -111,10 +111,15 @@ export function FormDataProvider({
     };
   }, [fields]);
 
-  // On mount, populate form with stored values
+  // On mount, populate form with stored values and initial values
   useEffect(() => {
     if (storedForm) {
       Object.entries(storedForm).forEach(([key, value]) => {
+        setValue(key as ValidFieldNames, value, dirtyFieldOptions);
+      });
+    }
+    if (initialValues) {
+      Object.entries(initialValues).forEach(([key, value]) => {
         setValue(key as ValidFieldNames, value, dirtyFieldOptions);
       });
     }
@@ -162,8 +167,6 @@ export function FormDataProvider({
     },
     [hookFormReset, setStoredFormValues]
   );
-
-  console.log(storedForm);
 
   const value: FormDataContextType = {
     register,

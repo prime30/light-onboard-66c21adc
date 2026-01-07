@@ -1,9 +1,12 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useFontLoaded } from "@/hooks/use-font-loaded";
 import { useIframeComm, UseIframeCommReturn } from "@/hooks/use-iframe-comm";
+import { allowedMessageOrigins } from "@/data/allowed-origins";
 
 type GlobalAppContextType = {
   fontsLoaded: boolean;
+  email: string;
+  setEmail: (email: string) => void;
 } & UseIframeCommReturn;
 
 const GlobalAppContext = createContext<GlobalAppContextType | undefined>(undefined);
@@ -21,12 +24,17 @@ interface GlobalAppProviderProps {
 }
 
 export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
+  const [email, setEmail] = useState("");
   const fontsLoaded = useFontLoaded();
-  const iframeComm = useIframeComm();
+  const iframeComm = useIframeComm({
+    allowedOrigins: allowedMessageOrigins,
+  });
 
   const value: GlobalAppContextType = {
     fontsLoaded,
     ...iframeComm,
+    email,
+    setEmail,
   };
 
   return <GlobalAppContext.Provider value={value}>{children}</GlobalAppContext.Provider>;
