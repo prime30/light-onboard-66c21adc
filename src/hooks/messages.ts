@@ -3,6 +3,7 @@ import { IframeMessageTypes, MessageHandler } from "./use-iframe-comm";
 import { useAtom } from "jotai";
 import { Customer, customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
+import { useNavigate } from "react-router";
 
 export function useCloseIframe() {
   const { sendMessage, isInIframe } = useGlobalApp();
@@ -20,8 +21,8 @@ export function useCloseIframe() {
 
 export function useCustomerLogin() {
   const { subscribeToType, isInIframe } = useGlobalApp();
-  const { closeIframe } = useCloseIframe();
   const [customer, setCustomer] = useAtom(customerAtom);
+  const navigate = useNavigate();
 
   const handler: MessageHandler<Customer> = useCallback(
     (message) => {
@@ -30,16 +31,15 @@ export function useCustomerLogin() {
       }
 
       const customer = message.data as Customer;
-
-      // Redirect to accounts page if logged in
-      if (customer.isLoggedIn) {
-        closeIframe();
-      }
-
-      console.log("Customer Data Recieved:", message);
       setCustomer(message.data as Customer);
+
+      // Redirect to already logged in page if logged in
+      if (customer.isLoggedIn) {
+        navigate("/already-logged-in");
+        return;
+      }
     },
-    [setCustomer]
+    [navigate, setCustomer]
   );
 
   useEffect(() => {

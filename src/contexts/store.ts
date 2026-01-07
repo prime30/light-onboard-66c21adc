@@ -4,4 +4,6 @@ export type Customer = {
   isLoggedIn: boolean;
 };
 
-export const customerAtom = atom<Customer>();
+export const customerAtom = atom<Customer>({
+  isLoggedIn: false,
+});

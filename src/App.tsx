@@ -12,6 +12,7 @@ import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
 import { LoginPage } from "./pages/LoginPage";
+import AlreadyLoggedInPage from "./pages/AlreadyLoggedInPage";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,10 @@ const children: RouteObject[] = [
       {
         path: "login",
         Component: LoginPage,
+      },
+      {
+        path: "already-logged-in",
+        Component: AlreadyLoggedInPage,
       },
     ],
   },

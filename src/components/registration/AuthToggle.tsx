@@ -3,10 +3,12 @@ import { AuthMode } from "@/types/auth";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useModeContext } from "./context/ModeContext";
+import { useCustomerLogin } from "@/hooks/messages";
 
 export function AuthToggle() {
   const navigate = useNavigate();
   const { mode } = useModeContext();
+  const { customer } = useCustomerLogin();
 
   const toggleMode = useCallback(
     (mode: AuthMode) => {
@@ -21,6 +23,8 @@ export function AuthToggle() {
     },
     [navigate]
   );
+
+  if (customer.isLoggedIn) return null;
 
   return (
     <div className="inline-flex bg-muted backdrop-blur-sm rounded-full p-[5px] border border-border/50 relative flex-shrink-0">

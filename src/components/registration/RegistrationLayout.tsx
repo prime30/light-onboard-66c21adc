@@ -2,7 +2,6 @@ import { Outlet } from "react-router";
 import { LeftPanel } from "./LeftPanel";
 import { ModeProvider } from "./context/ModeContext";
 import { ReactNode, useState } from "react";
-import { useGlobalApp } from "@/contexts";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 import { useCustomerLogin } from "@/hooks/messages";
@@ -19,8 +18,6 @@ type RightPanelProps = {
 };
 
 function RightPanel({ outletContext }: RightPanelProps) {
-  const { isInIframe } = useGlobalApp();
-
   return (
     <div className="flex-1 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header - fixed height to keep toggle position consistent */}
