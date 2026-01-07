@@ -1,86 +1,142 @@
+import { T } from "node_modules/react-router/dist/development/router-5fbeEIMQ.d.mts";
 import { useEffect, useCallback, useRef } from "react";
 
-type MessageData = {
-  message?: string;
-} & Record<string, unknown>;
+// Predefined message types for consistency
+export const IframeMessageTypes = {
+  // Child to Parent
+  CLOSE_IFRAME: "CLOSE_IFRAME",
+  REQUEST_DATA: "REQUEST_DATA",
+  IFRAME_READY: "IFRAME_READY",
+  STATUS_RESPONSE: "STATUS_RESPONSE",
+  USER_LOGIN: "USER_LOGIN",
+  USER_FORGOT_PASSWORD: "USER_FORGOT_PASSWORD",
+  PONG: "PONG",
 
-export interface IframeMessage {
-  type: string;
-  data?: MessageData;
+  // Parent to Child
+  CUSTOMER_DATA: "CUSTOMER_DATA",
+  LOGIN_STARTED: "LOGIN_STARTED",
+  LOGIN_ERROR: "LOGIN_ERROR",
+  GET_STATUS: "GET_STATUS",
+  PING: "PING",
+
+  // Custom events
+  CUSTOM_EVENT: "CUSTOM_EVENT",
+  ERROR: "ERROR",
+  SUCCESS: "SUCCESS",
+} as const;
+
+export type IframeMessageType = (typeof IframeMessageTypes)[keyof typeof IframeMessageTypes];
+
+type MessageType = (typeof IframeMessageTypes)[keyof typeof IframeMessageTypes];
+
+export type MessageHandler<TData = Record<string, unknown>> = (
+  message: IframeMessage<TData>,
+  event: MessageEvent
+) => void;
+
+type MessageData<TData = Record<string, unknown>> = {
+  message?: string;
+} & TData;
+
+export interface IframeMessage<TData = Record<string, unknown>> {
+  type: IframeMessageType;
+  data?: MessageData<TData>;
   timestamp?: string;
+}
+
+type Subscription =
+  | { id: number; type: string; listener: MessageHandler }
+  | { id: number; predicate: (message: IframeMessage) => boolean; listener: MessageHandler };
+
+function createMessageBus() {
+  let nextId = 1;
+  const subs = new Map<number, Subscription>();
+
+  function subscribeToType(type: string, listener: MessageHandler) {
+    const id = nextId++;
+    subs.set(id, { id, type, listener });
+    return () => subs.delete(id);
+  }
+
+  function subscribe(predicate: (message: IframeMessage) => boolean, listener: MessageHandler) {
+    const id = nextId++;
+    subs.set(id, { id, predicate, listener });
+    return () => subs.delete(id);
+  }
+
+  function publish(message: IframeMessage, event: MessageEvent) {
+    // fan-out, but only to matching subs
+    for (const sub of subs.values()) {
+      if ("type" in sub) {
+        if (sub.type === message.type) sub.listener(message, event);
+      } else {
+        if (sub.predicate(message)) sub.listener(message, event);
+      }
+    }
+  }
+
+  return { subscribeToType, subscribe, publish };
 }
 
 export interface UseIframeCommOptions {
   targetOrigin?: string;
   allowedOrigins?: string[];
-  onMessage?: (message: IframeMessage, event: MessageEvent) => void;
-  debug?: boolean;
 }
 
 export interface UseIframeCommReturn {
   sendMessage: (type: string, data?: MessageData) => void;
-  closeIframe: () => void;
   requestData: (dataType: string) => void;
-  notifyReady: () => void;
   isInIframe: boolean;
+  subscribeToType: (
+    type: string,
+    listener: (message: IframeMessage, event: MessageEvent) => void
+  ) => () => void;
+  subscribe: (
+    predicate: (message: IframeMessage) => boolean,
+    listener: (message: IframeMessage, event: MessageEvent) => void
+  ) => () => void;
 }
 
 const defaultOptions: UseIframeCommOptions = {
   targetOrigin: "*",
   allowedOrigins: [],
-  debug: false,
 };
 
 export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeCommReturn => {
-  const { targetOrigin, allowedOrigins, onMessage, debug } = { ...defaultOptions, ...options };
+  const { targetOrigin, allowedOrigins } = { ...defaultOptions, ...options };
   const messageHandlerRef = useRef<((event: MessageEvent) => void) | null>(null);
+
+  const busRef = useRef<ReturnType<typeof createMessageBus> | null>(null);
+  if (!busRef.current) {
+    busRef.current = createMessageBus();
+  }
 
   // Check if we're running inside an iframe
   const isInIframe = window.self !== window.top;
 
-  // Debug logging function
-  const log = useCallback(
-    (message: string, data?: IframeMessage) => {
-      if (debug) {
-        console.log(`[useIframeComm] ${message}`, data || "");
-      }
-    },
-    [debug]
-  );
-
-  // Generic message sender
   const sendMessage = useCallback(
-    (type: string, data?: MessageData) => {
-      if (!isInIframe) {
-        log("Not in iframe, cannot send message to parent");
-        return;
-      }
-
+    (type: MessageType, data?: MessageData) => {
       const message: IframeMessage = {
         type,
         data,
         timestamp: new Date().toISOString(),
       };
 
+      if (!isInIframe) {
+        console.log("Not in iframe, cannot send message to parent", message);
+        return;
+      }
+
       try {
         window.parent.postMessage(message, targetOrigin);
-        log(`Sent message to parent: ${type}`, message);
+        console.log(`Sent message to parent: ${type}`, message);
       } catch (error) {
         console.error("[useIframeComm] Error sending message to parent:", error);
       }
     },
-    [isInIframe, targetOrigin, log]
+    [isInIframe, targetOrigin]
   );
 
-  // Specific function to request iframe closure
-  const closeIframe = useCallback(() => {
-    sendMessage("CLOSE_IFRAME", {
-      reason: "User requested closure",
-      url: window.location.href,
-    });
-  }, [sendMessage]);
-
-  // Request data from parent
   const requestData = useCallback(
     (dataType: string) => {
       sendMessage("REQUEST_DATA", {
@@ -91,29 +147,16 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
     [sendMessage]
   );
 
-  // Notify parent that iframe is ready
-  const notifyReady = useCallback(() => {
-    sendMessage("IFRAME_READY", {
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      dimensions: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-    });
-  }, [sendMessage]);
-
-  // Handle incoming messages from parent
   useEffect(() => {
     if (!isInIframe) {
-      log("Not in iframe, skipping message listener setup");
+      console.log("Not in iframe, skipping message listener setup");
       return;
     }
 
     const handleMessage = (event: MessageEvent) => {
       // Validate origin if allowedOrigins is specified
       if (allowedOrigins.length > 0 && !allowedOrigins.includes(event.origin)) {
-        log(`Rejected message from unauthorized origin: ${event.origin}`);
+        console.log(`Rejected message from unauthorized origin: ${event.origin}`);
         return;
       }
 
@@ -121,11 +164,11 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
         const message = event.data as IframeMessage;
 
         if (!message.type) {
-          log("Received message without type, ignoring", message);
+          console.log("Received message without type, ignoring", message);
           return;
         }
 
-        log(`Received message from parent: ${message.type}`, message);
+        console.log(`Received message from parent: ${message.type}`, message);
 
         // Handle built-in message types
         switch (message.type) {
@@ -141,15 +184,9 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
             });
             break;
 
-          case "PARENT_DATA":
-            log("Received data from parent", message);
-            break;
-
           default:
             // Let custom handler deal with other message types
-            if (onMessage) {
-              onMessage(message, event);
-            }
+            busRef.current?.publish(message, event);
             break;
         }
       } catch (error) {
@@ -161,57 +198,42 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
     messageHandlerRef.current = handleMessage;
     window.addEventListener("message", handleMessage);
 
-    log("Message listener registered");
+    console.log("Message listener registered");
 
     // Cleanup
     return () => {
       if (messageHandlerRef.current) {
         window.removeEventListener("message", messageHandlerRef.current);
         messageHandlerRef.current = null;
-        log("Message listener removed");
+        console.log("Message listener removed");
       }
     };
-  }, [isInIframe, allowedOrigins, onMessage, sendMessage, log]);
+  }, [isInIframe, allowedOrigins, sendMessage]);
 
   // Auto-notify ready on mount if in iframe
   useEffect(() => {
     if (isInIframe) {
       // Small delay to ensure parent is ready to receive messages
       const timer = setTimeout(() => {
-        notifyReady();
+        sendMessage("IFRAME_READY", {
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          dimensions: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+          },
+        });
       }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [isInIframe, notifyReady]);
+  }, [isInIframe, sendMessage]);
 
   return {
     sendMessage,
-    closeIframe,
     requestData,
-    notifyReady,
     isInIframe,
+    subscribeToType: busRef.current.subscribeToType,
+    subscribe: busRef.current.subscribe,
   };
 };
-
-// Predefined message types for consistency
-export const IframeMessageTypes = {
-  // Child to Parent
-  CLOSE_IFRAME: "CLOSE_IFRAME",
-  REQUEST_DATA: "REQUEST_DATA",
-  IFRAME_READY: "IFRAME_READY",
-  STATUS_RESPONSE: "STATUS_RESPONSE",
-  PONG: "PONG",
-
-  // Parent to Child
-  PARENT_DATA: "PARENT_DATA",
-  GET_STATUS: "GET_STATUS",
-  PING: "PING",
-
-  // Custom events
-  CUSTOM_EVENT: "CUSTOM_EVENT",
-  ERROR: "ERROR",
-  SUCCESS: "SUCCESS",
-} as const;
-
-export type IframeMessageType = (typeof IframeMessageTypes)[keyof typeof IframeMessageTypes];

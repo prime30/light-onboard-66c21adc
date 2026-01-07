@@ -20,8 +20,6 @@ import { SuccessForm } from "@/components/registration/steps/SuccessForm";
 import type { Step } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { TextSkeleton } from "@/components/registration/TextSkeleton";
-import { AuthToggle } from "@/components/registration/AuthToggle";
-import { CloseButton } from "@/components/registration/CloseButton";
 import { useGlobalApp, useUploadFile } from "@/contexts";
 import { useStepContext, useFormData } from "@/components/registration/context";
 import { useModeContext } from "@/components/registration/context/ModeContext";
@@ -35,7 +33,7 @@ const Auth = () => {
 
   const { isFormValid, isSubmitting } = useFormData();
   const { isUploading, overallProgress } = useUploadFile();
-  const { fontsLoaded, isInIframe, closeIframe } = useGlobalApp();
+  const { fontsLoaded } = useGlobalApp();
   const [referralSource, setReferralSource] = useState<string>("");
 
   // Form state from centralized hook (includes sessionStorage persistence)
@@ -266,27 +264,8 @@ const Auth = () => {
   const mainSwipeStartX = useRef<number | null>(null);
   const mainSwipeEndX = useRef<number | null>(null);
 
-  // Modal swipe handling - using a ref to hold the close function since it's defined later
-  const handleCloseModalRef = useRef<() => void>(() => {});
-
-  const {
-    modalRef,
-    modalDragOffset,
-    isClosing,
-    isBouncingBack,
-    setIsClosing,
-    handleModalTouchStart,
-    handleModalTouchMove,
-    handleModalTouchEnd,
-    handleBackdropTouchStart,
-  } = useModalSwipe({
-    onClose: () => handleCloseModalRef.current(),
-  });
-
   // UI-only local state (not persisted)
   const [shimmerKey, setShimmerKey] = useState(0);
-  const [isSavingProgress, setIsSavingProgress] = useState(false);
-  const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
 
   // Scrolling and parallax effect hook
   useSafariViewportFix();
@@ -325,72 +304,6 @@ const Auth = () => {
     mainSwipeStartX.current = null;
     mainSwipeEndX.current = null;
   };
-
-  const handleCloseModal = useCallback(() => {
-    const close = () => {
-      if (isInIframe) {
-        closeIframe();
-      } else {
-        navigate("/");
-      }
-    };
-    // Check if there's form progress to save (only in signup mode with an account type selected)
-    // TODO: Check for progress.
-    const hasProgress = true;
-
-    if (hasProgress && !isSavingProgress) {
-      // Show saving animation
-      setIsSavingProgress(true);
-      setSaveProgressText("saving");
-
-      // After 1.2s, show "saved"
-      setTimeout(() => {
-        setSaveProgressText("saved");
-
-        // After another 0.6s, close the modal
-        setTimeout(() => {
-          setIsSavingProgress(false);
-          setIsClosing(true);
-          setTimeout(() => {
-            close();
-          }, 300);
-        }, 600);
-      }, 1200);
-    } else if (!isSavingProgress) {
-      // No progress or signin mode, close immediately
-      setIsClosing(true);
-      setTimeout(() => {
-        close();
-      }, 300);
-    }
-  }, [navigate, isSavingProgress, setIsClosing, isInIframe, closeIframe]);
-
-  // Update the ref so the modal swipe hook can call handleCloseModal
-  handleCloseModalRef.current = handleCloseModal;
-
-  const handleForgotPasswordSubmit = useCallback(async () => {
-    console.log("Forgot password submit triggered");
-    // if (!email.trim()) {
-    //   toast.error("Please enter your email address");
-    //   return;
-    // }
-    // setIsSendingReset(true);
-    // try {
-    //   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    //     redirectTo: `${window.location.origin}/reset-password`,
-    //   });
-    //   if (error) {
-    //     toast.error(error.message);
-    //   } else {
-    //     toast.success("Check your email for a reset link!");
-    //     setShowForgotPassword(false);
-    //   }
-    // } catch (error: any) {
-    //   toast.error(error.message || "Failed to send reset email");
-    // } finally {
-    //   setIsSendingReset(false);
-    // }
-  }, []);
 
   return (
     <>

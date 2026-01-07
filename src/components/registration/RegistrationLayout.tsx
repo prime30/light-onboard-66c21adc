@@ -5,6 +5,7 @@ import { ReactNode, useState } from "react";
 import { useGlobalApp } from "@/contexts";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
+import { useCustomerLogin } from "@/hooks/messages";
 
 export type RegistrationLayoutOutletContext = {
   formProgress: number;
@@ -36,15 +37,9 @@ function RightPanel({ outletContext }: RightPanelProps) {
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10"></div>
         </div>
 
-        {/*<div className="relative hidden sm:flex justify-end z-20">
-          {isInIframe && (
-            <CloseButton
-              isSavingProgress={isSavingProgress}
-              saveProgressText={saveProgressText}
-              handleCloseModal={handleCloseModal}
-            />
-          )}
-        </div>*/}
+        <div className="relative hidden sm:flex justify-end z-20">
+          <CloseButton />
+        </div>
       </header>
       <Outlet context={outletContext} />
     </div>
@@ -54,6 +49,7 @@ function RightPanel({ outletContext }: RightPanelProps) {
 export function RegistrationLayout() {
   const [formProgress, setFormProgress] = useState(0);
   const [middleComponent, setMiddleComponent] = useState<ReactNode>(null);
+  useCustomerLogin();
 
   const outletContext: RegistrationLayoutOutletContext = {
     formProgress,
