@@ -3,6 +3,7 @@ import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { useGlobalApp } from "@/contexts";
+import { IncompleteStepInfo } from "@/types/auth";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -10,6 +11,7 @@ export type AuthFormContextType = {
   control: ReturnType<typeof useFormData>["control"];
   watch: ReturnType<typeof useFormData>["watch"];
   reset: ReturnType<typeof useFormData>["reset"];
+  setFocus: ReturnType<typeof useFormData>["setFocus"];
   submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useFormData>["setValue"];
   formState: ReturnType<typeof useFormData>["formState"];
@@ -34,7 +36,7 @@ export type AuthFormContextType = {
 
   // Computed values (now in StepContext)
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
-  incompleteSteps: ReturnType<typeof useStepContext>["incompleteSteps"];
+  incompleteSteps: IncompleteStepInfo[];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
   getStepNumber: ReturnType<typeof useStepContext>["getStepNumber"];
   getStepForField: ReturnType<typeof useStepContext>["getStepForField"];
@@ -46,7 +48,7 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Internal component that combines all contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
-  const { isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
+  const { isSubmitSuccessful, watch, reset, setFocus, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
@@ -71,6 +73,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     isSubmitSuccessful,
     watch,
     reset,
+    setFocus,
     setCurrentStep,
     ...formDataContext,
     ...stepContext,

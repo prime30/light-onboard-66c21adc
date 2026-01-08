@@ -7,10 +7,15 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { fieldsForStep, getStepOrder, stepValidations } from "@/data/step-order";
+import {
+  fieldsForStep,
+  getStepOrder,
+  stepValidations,
+  STEP_DISPLAY_NAMES,
+} from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
-import { Step } from "@/types/auth";
-import { defaultValues, ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { Step, IncompleteStepInfo } from "@/types/auth";
+import { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
@@ -25,7 +30,7 @@ export type StepContextType = {
   goToStep: (step: Step) => void;
   showValidationErrors: boolean;
   completedSteps: Record<Step, ValidationStatus>;
-  incompleteSteps: Step[];
+  incompleteSteps: IncompleteStepInfo[];
   getStepValidationStatus: (step: Step) => ValidationStatus;
   getStepNumber: (step: Step) => number;
   getStepForField: (fieldName: ValidFieldNames) => Step | null;
@@ -42,7 +47,7 @@ type StepProviderProps = {
 // Provider component
 export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
-  const { watch, errors, subscribe, reset } = useFormData();
+  const { watch, errors, subscribe, setValue, fullErrors } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
@@ -59,8 +64,9 @@ export function StepProvider({ children }: StepProviderProps) {
     // setTimeout(() => {
     //   reset(defaultValues);
     // }, 1000);
+    setValue("email", "");
     setCurrentStep("summary");
-  }, []);
+  }, [setValue]);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
@@ -229,8 +235,52 @@ export function StepProvider({ children }: StepProviderProps) {
   }, [formProgress, setFormProgress]);
 
   const incompleteSteps = useMemo(() => {
-    return steps.filter((step) => completedSteps[step] !== "complete");
-  }, [steps, completedSteps]);
+    return steps
+      .filter((step) => completedSteps[step] !== "complete")
+      .map((step): IncompleteStepInfo => {
+        const stepFields = fieldsForStep[step] || [];
+        const missingFields: string[] = [];
+
+        // Get fields that have errors for this step from react-hook-form errors
+        stepFields.forEach((fieldName) => {
+          if (errors[fieldName]) {
+            missingFields.push(fieldName);
+          }
+        });
+
+        // If no specific field errors but step is not complete,
+        // check fullErrors for validation issues or empty required fields
+        if (missingFields.length === 0 && stepFields.length > 0) {
+          const currentData = watch();
+
+          // Check for fields mentioned in fullErrors
+          if (fullErrors.properties) {
+            stepFields.forEach((fieldName) => {
+              if (fullErrors.properties[fieldName]) {
+                missingFields.push(fieldName);
+              }
+            });
+          }
+
+          // If still no errors found, check for empty values
+          if (missingFields.length === 0) {
+            stepFields.forEach((fieldName) => {
+              const value = currentData[fieldName];
+              if (value === undefined || value === null || value === "") {
+                missingFields.push(fieldName);
+              }
+            });
+          }
+        }
+
+        return {
+          step,
+          name: STEP_DISPLAY_NAMES[step] || step,
+          stepNumber: getStepNumber(step),
+          missingFields,
+        };
+      });
+  }, [steps, completedSteps, errors, fullErrors, watch, getStepNumber]);
 
   const value: StepContextType = {
     totalSteps,

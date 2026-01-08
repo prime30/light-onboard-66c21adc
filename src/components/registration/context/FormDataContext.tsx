@@ -21,6 +21,7 @@ export type FormDataContextType = {
   watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
   setError: ReturnType<typeof useForm<RegistrationFormData>>["setError"];
+  setFocus: ReturnType<typeof useForm<RegistrationFormData>>["setFocus"];
   submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useForm<RegistrationFormData>>["setValue"];
   formState: ReturnType<typeof useForm<RegistrationFormData>>["formState"];
@@ -77,6 +78,7 @@ export function FormDataProvider({
     subscribe,
     control,
     setError,
+    setFocus,
     clearErrors,
   } = useForm<RegistrationFormData>({
     mode: "onChange",
@@ -236,6 +238,7 @@ export function FormDataProvider({
     watch,
     reset,
     setError,
+    setFocus,
     submitForm,
     setValue,
     formState,

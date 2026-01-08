@@ -4,13 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
+import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { useForm } from "./context";
-
-interface IncompleteStep {
-  step: Step;
-  name: string;
-  missingFields: string[];
-}
 
 interface AuthFooterProps {
   mode: AuthMode;
@@ -21,7 +16,6 @@ interface AuthFooterProps {
   uploadProgress?: number;
   footerTransitionsEnabled: boolean;
   footerEnterReady: boolean;
-  incompleteSteps: IncompleteStep[];
   shimmerKey?: number;
 }
 
@@ -32,7 +26,6 @@ export function AuthFooter({
   uploadProgress = 0,
   footerTransitionsEnabled,
   footerEnterReady,
-  incompleteSteps,
   shimmerKey = 0,
 }: AuthFooterProps) {
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
@@ -45,7 +38,12 @@ export function AuthFooter({
     goToPrevStep,
     goToStep,
     submitForm,
+    fullErrors,
+    setFocus,
+    incompleteSteps,
   } = useForm();
+
+  console.log(incompleteSteps, fullErrors);
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
@@ -184,7 +182,7 @@ export function AuthFooter({
             {showTooltip && (
               <PopoverContent
                 side="top"
-                className="bg-foreground text-background border-none px-4 py-3 rounded-xl max-w-[320px] w-auto z-50"
+                className="bg-foreground text-background border-none p-3 rounded-xl max-w-[320px] w-auto z-50"
                 onMouseEnter={() => {
                   if (submitPopoverCloseTimer.current) {
                     window.clearTimeout(submitPopoverCloseTimer.current);
@@ -204,35 +202,47 @@ export function AuthFooter({
                 onPointerDownOutside={() => setSubmitTooltipOpen(false)}
               >
                 <div className="space-y-2.5">
-                  <p className="text-xs font-medium text-background/70">
-                    Complete these steps first:
+                  <p className="text-xs font-medium text-background/70 text-center">
+                    Complete these steps first
                   </p>
                   <div className="space-y-2">
-                    {incompleteSteps.map(({ step, name, missingFields }) => (
+                    {incompleteSteps.map(({ step, name, stepNumber, missingFields }) => (
                       <button
                         key={step}
                         onClick={() => {
                           setSubmitTooltipOpen(false);
                           goToStep(step);
+
+                          // Focus the first missing field after navigation
+                          if (missingFields.length > 0) {
+                            // Add a small delay to ensure the step transition completes
+                            setTimeout(() => {
+                              setFocus(missingFields[0] as ValidFieldNames);
+                            }, 200);
+                          }
                         }}
-                        className="flex flex-col gap-1 w-full hover:bg-background/10 rounded-lg px-2 py-2 -mx-2 transition-colors cursor-pointer group/step"
+                        className="w-full p-3 hover:bg-background/10 focus:bg-background/10 rounded-lg transition-colors cursor-pointer group/step focus:outline-none focus-visible:ring-2 focus-visible:ring-background/30"
                       >
-                        <div className="flex items-center gap-2 w-full">
-                          <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                            <span className="text-[10px] font-semibold">{step}</span>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2 w-full">
+                            <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 group-focus/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <span className="text-[10px] font-semibold">{stepNumber}</span>
+                            </div>
+                            <span className="text-sm font-medium whitespace-nowrap">{name}</span>
+                            <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 group-focus/step:opacity-100 transition-opacity" />
                           </div>
-                          <span className="text-sm font-medium whitespace-nowrap">{name}</span>
-                          <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 transition-opacity" />
-                        </div>
-                        <div className="pl-7 flex flex-wrap gap-1">
-                          {missingFields.map((field) => (
-                            <span
-                              key={field}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium"
-                            >
-                              {field}
-                            </span>
-                          ))}
+                          {missingFields.length > 0 && (
+                            <div className="pl-7 flex flex-wrap gap-1">
+                              {missingFields.map((field) => (
+                                <span
+                                  key={field}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium"
+                                >
+                                  {field}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </button>
                     ))}
