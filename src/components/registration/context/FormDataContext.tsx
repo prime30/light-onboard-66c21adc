@@ -7,10 +7,11 @@ import {
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Control, useForm, UseFormRegister } from "react-hook-form";
+import { Control, FormState, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
+import { useApiClient } from "@/hooks/use-api-client";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -19,7 +20,8 @@ export type FormDataContextType = {
   control: Control<RegistrationFormData>;
   watch: ReturnType<typeof useForm<RegistrationFormData>>["watch"];
   reset: ReturnType<typeof useForm<RegistrationFormData>>["reset"];
-  handleSubmit: ReturnType<typeof useForm<RegistrationFormData>>["handleSubmit"];
+  setError: ReturnType<typeof useForm<RegistrationFormData>>["setError"];
+  submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useForm<RegistrationFormData>>["setValue"];
   formState: ReturnType<typeof useForm<RegistrationFormData>>["formState"];
   subscribe: ReturnType<typeof useForm<RegistrationFormData>>["subscribe"];
@@ -31,6 +33,10 @@ export type FormDataContextType = {
   isSubmitted: boolean;
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
+};
+
+type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
+  values: Partial<RegistrationFormData>;
 };
 
 export const dirtyFieldOptions = {
@@ -59,6 +65,7 @@ export function FormDataProvider({
   initialValues = defaultValues,
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
+  const { apiCall } = useApiClient();
 
   const {
     register,
@@ -69,6 +76,8 @@ export function FormDataProvider({
     formState,
     subscribe,
     control,
+    setError,
+    clearErrors,
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
@@ -76,6 +85,46 @@ export function FormDataProvider({
   });
 
   const { errors, dirtyFields, isSubmitted, isSubmitSuccessful, isSubmitting } = formState;
+
+  const submitForm = handleSubmit(
+    async (values) => {
+      console.log("submit values:", values);
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-customer`;
+      const result = await apiCall(
+        url,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "CREATE_CUSTOMER",
+            data: values,
+          }),
+        },
+        "Account created successfully!"
+      );
+
+      if (result.success === false) {
+        console.log("set error");
+        setError("root.form", {
+          type: "server",
+          message: result.error,
+        });
+        throw new Error(result.error);
+      }
+
+      return result.data;
+    },
+    (errors) => {
+      console.log("errors: ", errors);
+      setError("root.form", {
+        type: "validation",
+        message: "Please fix the field errors and try again.",
+      });
+    }
+  );
 
   const getValidationStatus = useCallback(
     (fields: ValidFieldNames | ValidFieldNames[]): ValidationStatus => {
@@ -127,7 +176,7 @@ export function FormDataProvider({
   }, []);
 
   const setStoredFormValues = useCallback(
-    ({ values }: { values: Partial<RegistrationFormData> }) => {
+    ({ values }: FormStateWithValues) => {
       type ValueType = (typeof values)[keyof typeof values];
       const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
         if (
@@ -148,16 +197,29 @@ export function FormDataProvider({
     [setStoredForm]
   );
 
+  const clearFormErrors = useCallback(
+    ({ errors }: FormStateWithValues) => {
+      // Clear form errors when any field changes
+      if (errors?.root?.form && !isSubmitting) {
+        clearErrors("root.form");
+      }
+    },
+    [clearErrors, isSubmitting]
+  );
+
   useEffect(() => {
     const callback = subscribe({
       formState: {
         values: true,
       },
-      callback: setStoredFormValues,
+      callback: (formState) => {
+        setStoredFormValues(formState);
+        clearFormErrors(formState);
+      },
     });
 
     return () => callback();
-  }, [subscribe, setStoredForm, setStoredFormValues]);
+  }, [subscribe, setStoredForm, setStoredFormValues, clearFormErrors]);
 
   const reset = useCallback(
     (values: Partial<RegistrationFormData> = {}) => {
@@ -173,7 +235,8 @@ export function FormDataProvider({
     control,
     watch,
     reset,
-    handleSubmit,
+    setError,
+    submitForm,
     setValue,
     formState,
     subscribe,

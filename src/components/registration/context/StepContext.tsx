@@ -59,7 +59,7 @@ export function StepProvider({ children }: StepProviderProps) {
     // setTimeout(() => {
     //   reset(defaultValues);
     // }, 1000);
-    // setCurrentStep("school-info");
+    setCurrentStep("summary");
   }, []);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {

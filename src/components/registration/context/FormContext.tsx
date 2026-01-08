@@ -46,36 +46,13 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Internal component that combines all contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
-  const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
+  const { isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
   const email = watch("email");
 
-  const submitForm = handleSubmit(
-    async (values) => {
-      console.log("submit values:", values);
-
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-customer`;
-      const result = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "CREATE_CUSTOMER",
-          data: values,
-        }),
-      });
-
-      const resultData = await result.json();
-      return resultData;
-    },
-    (errors) => {
-      console.log("errors: ", errors);
-    }
-  );
-
+  // Reset form and move to success step on successful submission
   useEffect(() => {
     const accountType = watch("accountType");
     if (isSubmitSuccessful) {
@@ -91,11 +68,10 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   }, [email, setEmail]);
 
   const value: AuthFormContextType = {
-    submitForm,
-    setCurrentStep,
     isSubmitSuccessful,
     watch,
     reset,
+    setCurrentStep,
     ...formDataContext,
     ...stepContext,
   };
@@ -106,8 +82,15 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 // Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {
   const { email } = useGlobalApp();
+
+  const initialValues: Partial<AllRegistrationFormData> = {};
+
+  if (email) {
+    initialValues.email = email;
+  }
+
   return (
-    <FormDataProvider initialValues={{ email: email || "" }}>
+    <FormDataProvider initialValues={initialValues}>
       <StepProvider>
         <FormContextProvider>{children}</FormContextProvider>
       </StepProvider>

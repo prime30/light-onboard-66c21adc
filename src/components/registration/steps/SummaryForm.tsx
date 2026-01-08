@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, AlertCircle } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
@@ -6,6 +6,7 @@ import { countryCodes } from "@/data/country-codes";
 import { AccountType, BusinessOperationType } from "@/types/auth";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { UploadFileItem } from "@/lib/validations/file-schema";
+import { useEffect, useRef } from "react";
 
 const SummarySection = ({
   title,
@@ -101,7 +102,8 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 };
 
 export const SummaryForm = () => {
-  const { watch, currentStep } = useForm();
+  const { watch, currentStep, errors } = useForm();
+  const errorRef = useRef<HTMLDivElement>(null);
 
   // Watch all form values at once
   const formData = watch() as AllRegistrationFormData;
@@ -157,6 +159,16 @@ export const SummaryForm = () => {
     })),
   ];
 
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (errors.root?.form && errorRef.current) {
+      errorRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [errors.root?.form]);
+
   return (
     <div className="space-y-[25px]">
       <div className="space-y-2.5 text-center animate-stagger-1">
@@ -178,6 +190,24 @@ export const SummaryForm = () => {
           Your information is secure and never shared with third parties.
         </p>
       </div>
+
+      {/* Error Display */}
+      {errors.root?.form && (
+        <div
+          ref={errorRef}
+          className="flex items-start gap-3 p-4 rounded-form bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 animate-stagger-2"
+        >
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-red-800 dark:text-red-200">
+              Unable to Create Account
+            </p>
+            <p className="text-sm text-red-700 dark:text-red-300 whitespace-pre-line">
+              {errors.root.form.message}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         {/* Account Type */}
