@@ -1,17 +1,64 @@
+import { useCloseIframe } from "@/hooks/messages";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router";
+import { useAtom } from "jotai";
+import { customerAtom } from "@/contexts/store";
+import { useModeContext } from "./context/ModeContext";
 
-type CloseButtonProps = {
-  isSavingProgress: boolean;
-  saveProgressText: "saving" | "saved";
-  handleCloseModal: () => void;
-};
+export function CloseButton() {
+  const navigate = useNavigate();
+  const { mode } = useModeContext();
 
-export function CloseButton({
-  isSavingProgress,
-  saveProgressText,
-  handleCloseModal,
-}: CloseButtonProps) {
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
+  const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
+  const { closeIframe, isInIframe } = useCloseIframe();
+  const [customer] = useAtom(customerAtom);
+
+  const handleCloseModal = useCallback(() => {
+    const close = () => {
+      if (isInIframe) {
+        closeIframe();
+      } else {
+        navigate("/");
+      }
+    };
+
+    // Check if there's form progress to save (only in signup mode with an account type selected)
+    // TODO: Check for progress.
+    const hasProgress = true;
+
+    // If user is already logged in, close immediately without saving animation
+    if (customer?.isLoggedIn) {
+      close();
+      return;
+    }
+
+    if (hasProgress && !isSavingProgress && mode === "signup") {
+      // Show saving animation
+      setIsSavingProgress(true);
+      setSaveProgressText("saving");
+
+      // After 1.2s, show "saved"
+      setTimeout(() => {
+        setSaveProgressText("saved");
+
+        // After another 0.6s, close the modal
+        setTimeout(() => {
+          setIsSavingProgress(false);
+          setTimeout(() => {
+            close();
+          }, 300);
+        }, 600);
+      }, 1200);
+    } else if (!isSavingProgress) {
+      close();
+    }
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode]);
+
+  if (!isInIframe) return null;
+
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
       {/* Saving text - positioned absolutely to the left so button doesn't move */}

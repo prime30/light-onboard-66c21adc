@@ -2,7 +2,9 @@ import { useRef, memo, useMemo, useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Check, Flag, AlertCircle } from "lucide-react";
 import { useStepContext } from "./context/StepContext";
+import { useModeContext } from "./context/ModeContext";
 import { useFormData } from "./context";
+import { createPortal } from "react-dom";
 
 export const StepIndicatorBar = memo(function StepIndicatorBar() {
   const { watch } = useFormData();
@@ -12,11 +14,12 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     totalSteps: displayTotalSteps,
     completedSteps,
     steps,
-    mode,
     goToStep,
     goToNextStep,
     goToPrevStep,
   } = useStepContext();
+
+  const { mode } = useModeContext();
 
   const [inDelay, setInDelay] = useState(true);
   const accountType = watch("accountType");
@@ -89,9 +92,13 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   }, [goToNextStep, goToPrevStep]);
 
   // Only show for signup mode
-  if (mode !== "signup" || currentStep === "success") return null;
+  if (mode !== "signup") return null;
 
-  return (
+  const root = document.getElementById("step-indicator-root");
+
+  if (!root) return null;
+
+  return createPortal(
     <div
       className="flex items-center justify-center h-[50px] flex-1 touch-pan-y"
       onTouchStart={handleStepSwipeStart}
@@ -305,6 +312,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
           })()}
         </div>
       </div>
-    </div>
+    </div>,
+    root
   );
 });

@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useStepContext } from "../context";
 
-export const CircularProgress = () => {
-  const { formProgress } = useStepContext();
+type CircularProgressProps = {
+  formProgress: number;
+};
+
+export const CircularProgress = ({ formProgress }: CircularProgressProps) => {
   const [showGlow, setShowGlow] = useState(false);
   const prevProgressRef = useRef(formProgress);
   const size = 40;

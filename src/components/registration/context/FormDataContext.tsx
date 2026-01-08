@@ -1,37 +1,18 @@
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import {
   AllRegistrationFormData,
+  defaultValues,
   RegistrationFormData,
   registrationSchema,
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Control, FieldError, useForm, UseFormRegister } from "react-hook-form";
+import { Control, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
-
-export type FormFieldProps = {
-  type: string;
-  placeholder?: string;
-  name: ValidFieldNames;
-  register: UseFormRegister<RegistrationFormData>;
-  error: FieldError | undefined;
-  valueAsNumber?: boolean;
-};
-
-export type FormControlFieldProps = Omit<FormFieldProps, "register"> & {
-  control: Control<RegistrationFormData>;
-};
-
-export const defaultValues: Partial<RegistrationFormData> = {
-  phoneCountryCode: "us",
-  countryCode: "US",
-  subscribeOrderUpdates: true,
-  acceptsMarketing: true,
-};
 
 export type FormDataContextType = {
   register: UseFormRegister<RegistrationFormData>;
@@ -91,7 +72,7 @@ export function FormDataProvider({
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
-    defaultValues: initialValues,
+    defaultValues,
   });
 
   const { errors, dirtyFields, isSubmitted, isSubmitSuccessful, isSubmitting } = formState;
@@ -130,10 +111,15 @@ export function FormDataProvider({
     };
   }, [fields]);
 
-  // On mount, populate form with stored values
+  // On mount, populate form with stored values and initial values
   useEffect(() => {
     if (storedForm) {
       Object.entries(storedForm).forEach(([key, value]) => {
+        setValue(key as ValidFieldNames, value, dirtyFieldOptions);
+      });
+    }
+    if (initialValues) {
+      Object.entries(initialValues).forEach(([key, value]) => {
         setValue(key as ValidFieldNames, value, dirtyFieldOptions);
       });
     }
@@ -181,8 +167,6 @@ export function FormDataProvider({
     },
     [hookFormReset, setStoredFormValues]
   );
-
-  console.log(storedForm);
 
   const value: FormDataContextType = {
     register,

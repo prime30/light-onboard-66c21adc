@@ -9,33 +9,22 @@ export function useFontLoaded() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    // Ensure skeletons are actually visible even on fast loads / Safari quirks
-    const MIN_SKELETON_MS = 800;
     const MAX_WAIT_MS = 2000;
-
-    let minElapsed = false;
     let finished = false;
 
-    const maybeFinish = () => {
-      if (finished || !minElapsed) return;
+    const finish = () => {
+      if (finished) return;
       finished = true;
       setFontsLoaded(true);
     };
 
-    const minTimer = window.setTimeout(() => {
-      minElapsed = true;
-      maybeFinish();
-    }, MIN_SKELETON_MS);
-
     const maxTimer = window.setTimeout(() => {
-      minElapsed = true;
-      maybeFinish();
+      finish();
     }, MAX_WAIT_MS);
 
-    // If no Font Loading API, rely on the min/max timers.
+    // If no Font Loading API, rely on the max timer.
     if (typeof document === "undefined" || !document.fonts) {
       return () => {
-        clearTimeout(minTimer);
         clearTimeout(maxTimer);
       };
     }
@@ -44,15 +33,14 @@ export function useFontLoaded() {
     document.fonts.ready
       .then(() => {
         clearTimeout(maxTimer);
-        maybeFinish();
+        finish();
       })
       .catch(() => {
         clearTimeout(maxTimer);
-        maybeFinish();
+        finish();
       });
 
     return () => {
-      clearTimeout(minTimer);
       clearTimeout(maxTimer);
     };
   }, []);

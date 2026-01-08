@@ -240,6 +240,13 @@ export type RegistrationFormData = z.infer<typeof registrationSchema>;
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
 
+export const defaultValues: Partial<RegistrationFormData> = {
+  phoneCountryCode: "us",
+  countryCode: "US",
+  subscribeOrderUpdates: true,
+  acceptsMarketing: true,
+};
+
 // Generic type to extract specific account type data (supports single or multiple types)
 export type RegistrationFormDataByType<T extends AccountType | AccountType[]> =
   T extends AccountType[]
@@ -270,3 +277,27 @@ export type SalonLicenseFormData = z.infer<typeof salonSchema>;
 export type TaxExemptionFormData = z.infer<typeof taxExemptionSchema>;
 export type WholesaleTermsFormData = z.infer<typeof wholesaleTermsSchema>;
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;
+
+type LoginFormType = "login" | "forgot_password";
+
+export const loginSchema = z.discriminatedUnion("formType", [
+  z.object({
+    formType: z.literal("login"),
+    email: z.email("Please enter a valid email address").trim(),
+    password: z.string().min(1, "Password is required"),
+  }),
+  z.object({
+    formType: z.literal("forgot_password"),
+    email: z.email("Please enter a valid email address").trim(),
+  }),
+]);
+type BaseLoginFormData<T extends LoginFormType> = Extract<
+  z.infer<typeof loginSchema>,
+  { formType: T }
+>;
+
+export type LoginFormData = { formType: LoginFormType } & Omit<
+  BaseLoginFormData<"login">,
+  "formType"
+> &
+  Omit<BaseLoginFormData<"forgot_password">, "formType">;

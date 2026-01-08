@@ -5,16 +5,21 @@
  * to enable centralized state management for the registration flow.
  */
 
-import { RegistrationProvider } from "@/components/registration/context/RegistrationContext";
+import { useModeContext } from "@/components/registration/context/ModeContext";
 import Auth from "./Auth";
 import { FormProvider } from "@/components/registration/context/FormContext";
+import { useEffect } from "react";
 
 const AuthPage = () => {
+  const { setMode } = useModeContext();
+
+  useEffect(() => {
+    setMode("signup");
+  }, [setMode]);
+
   return (
     <FormProvider>
-      <RegistrationProvider>
-        <Auth />
-      </RegistrationProvider>
+      <Auth />
     </FormProvider>
   );
 };

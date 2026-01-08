@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
   ArrowUpRight,
   Mail,
   Lock,
@@ -9,129 +8,214 @@ import {
   Headphones,
   Users,
   Loader2,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { TextSkeleton } from "../TextSkeleton";
+import { useGlobalApp } from "@/contexts";
+import { TextInput } from "@/components/TextInput";
+import { useForm, UseFormRegister } from "react-hook-form";
+import { LoginFormData, loginSchema } from "@/lib/validations/auth-schemas";
+import { dirtyFieldOptions } from "../context";
+import { zodResolver } from "@hookform/resolvers/zod";
+import z from "zod";
+import { useNavigate } from "react-router";
+import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 
-// Email validation - requires @ symbol
-const isValidEmail = (email: string): boolean => {
-  return email.trim() !== "" && email.includes("@");
+type UseSignInFormReturn = {
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  register: UseFormRegister<z.Infer<typeof loginSchema>>;
+  watch: ReturnType<typeof useForm<z.Infer<typeof loginSchema>>>["watch"];
+  setValue: ReturnType<typeof useForm<z.Infer<typeof loginSchema>>>["setValue"];
+  errors: ReturnType<typeof useForm<LoginFormData>>["formState"]["errors"];
+  isSubmitting: boolean;
+  isPasswordReset: boolean;
+  isLoginSuccessful: boolean;
 };
 
-// Password Input with Toggle
-const PasswordInputField = ({
-  id,
-  label,
-  value,
-  onChange,
-  placeholder,
-  variant = "signin",
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  variant?: "signin" | "signup";
-}) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const isSignin = variant === "signin";
-  return (
-    <div className="space-y-2.5">
-      <Label
-        htmlFor={id}
-        className={cn(
-          "font-medium label-float transition-all duration-300 text-left block",
-          isSignin ? "text-xs text-muted-foreground uppercase tracking-[0.1em]" : "text-sm"
-        )}
-      >
-        {label}
-      </Label>
-      <div
-        className={cn(
-          "relative group rounded-form input-ripple",
-          isSignin ? "input-ultra" : "input-glow"
-        )}
-      >
-        <div
-          className={cn(
-            "absolute left-[15px] top-1/2 -translate-y-1/2 rounded-md flex items-center justify-center transition-all duration-500 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
-            isSignin
-              ? "w-[35px] h-[35px] bg-gradient-to-br from-muted to-muted/50 group-focus-within:from-foreground group-focus-within:to-foreground/80"
-              : "w-[30px] h-[30px] rounded-form-sm bg-muted group-focus-within:bg-foreground"
-          )}
-        >
-          <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
-        </div>
-        <Input
-          id={id}
-          type={showPassword ? "text" : "password"}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            "pr-[50px] rounded-form transition-all duration-500 focus:shadow-input-focus",
-            isSignin
-              ? "h-input-prominent pl-[60px] bg-muted border-border/30 focus:border-foreground/20 focus:bg-background placeholder:text-muted-foreground/40"
-              : "h-button pl-[55px] bg-muted border-border/50 focus:border-foreground/30 focus:bg-background"
-          )}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-300 focus:outline-none haptic-press"
-          aria-label={showPassword ? "Hide password" : "Show password"}
-        >
-          {showPassword ? (
-            <EyeOff className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
-          ) : (
-            <Eye className="w-[16px] h-[16px] transition-transform duration-200 hover:scale-110" />
-          )}
-        </button>
-      </div>
-    </div>
+type SignInFormProps = {
+  initialEmail?: string;
+};
+
+function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
+  const { initialEmail } = props;
+  const { setEmail } = useGlobalApp();
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
+
+  const { register, watch, setValue, formState, handleSubmit, setError, clearErrors, subscribe } =
+    useForm<z.Infer<typeof loginSchema>>({
+      mode: "onChange",
+      defaultValues: {
+        email: "",
+        password: "",
+        formType: "login",
+      },
+      resolver: zodResolver(loginSchema),
+    });
+  const { errors } = formState;
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const loginUpdate: (message: FormUpdateData) => void = useCallback(
+    (message) => {
+      if (message.status === "submitting") {
+        setIsSubmitting(true);
+      } else {
+        setIsSubmitting(false);
+      }
+
+      if (message.status === "error") {
+        setError("root.form", {
+          type: "server",
+          message: message.message || "An unknown error occurred.",
+        });
+      }
+
+      if (message.status === "success") {
+        setIsLoginSuccessful(true);
+      }
+    },
+    [setError]
   );
-};
 
-interface SignInFormProps {
-  email: string;
-  password: string;
-  onEmailChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onSignUp: () => void;
-  showForgotPassword: boolean;
-  onForgotPasswordToggle: () => void;
-  onForgotPasswordSubmit: () => void;
-  isSendingReset: boolean;
-  fontsLoaded?: boolean;
+  const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
+    (message) => {
+      if (message.status === "submitting") {
+        setIsSubmitting(true);
+      } else {
+        setIsSubmitting(false);
+      }
+
+      if (message.status === "error") {
+        setError("root.form", {
+          type: "server",
+          message: message.message || "An unknown error occurred.",
+        });
+      }
+
+      if (message.status === "success") {
+        setValue("formType", "login");
+        setIsPasswordReset(true);
+      }
+    },
+    [setError, setValue]
+  );
+
+  const { login, forgotPassword } = useCustomerLogin({
+    loginUpdate,
+    forgotPasswordUpdate,
+  });
+
+  const email = watch("email");
+
+  // Clear form errors when any field changes
+  useEffect(() => {
+    const unsubscribe = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ errors }) => {
+        if (errors?.root?.form) {
+          clearErrors("root.form");
+          setIsSubmitting(false);
+        }
+      },
+    });
+
+    return unsubscribe;
+  }, [subscribe, clearErrors]);
+
+  useEffect(() => {
+    if (initialEmail) {
+      setValue("email", initialEmail, dirtyFieldOptions);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync email to global app context. Email is used for uploading files,
+  // and shares the email between forms.
+  useEffect(() => {
+    setEmail(email || "");
+  }, [email, setEmail]);
+
+  const onSubmit = handleSubmit(
+    async (data: z.infer<typeof loginSchema>) => {
+      if (data.formType === "login") {
+        login({
+          email: data.email,
+          password: data.password,
+        });
+      }
+      if (data.formType === "forgot_password") {
+        forgotPassword({
+          email: data.email,
+        });
+      }
+    },
+    (errors) => {
+      console.log("invalid form", errors);
+      setError("root.form", {
+        type: "validation",
+        message: "Please fix the errors above and try again.",
+      });
+    }
+  );
+
+  return {
+    register,
+    watch,
+    setValue,
+    errors,
+    onSubmit,
+    isSubmitting,
+    isPasswordReset,
+    isLoginSuccessful,
+  };
 }
 
-export const SignInForm = ({
-  email,
-  password,
-  onEmailChange,
-  onPasswordChange,
-  onSignUp,
-  showForgotPassword,
-  onForgotPasswordToggle,
-  onForgotPasswordSubmit,
-  isSendingReset,
-  fontsLoaded = true,
-}: SignInFormProps) => {
-  const [emailTouched, setEmailTouched] = useState(false);
-  const emailIsValid = isValidEmail(email);
-  const showEmailError = emailTouched && email.trim() !== "" && !emailIsValid;
+export const SignInForm = () => {
+  const navigate = useNavigate();
+  const { fontsLoaded, email } = useGlobalApp();
+  const {
+    register,
+    watch,
+    setValue,
+    errors,
+    onSubmit,
+    isSubmitting,
+    isPasswordReset,
+    isLoginSuccessful,
+  } = useSignInForm({
+    initialEmail: email,
+  });
+
+  useEffect(() => {
+    register("formType", { value: "login" });
+  }, [register]);
+
+  const showForgotPassword = watch("formType") === "forgot_password";
+  const onEmailChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      // Handle email change
+      setValue("email", e.target.value, { ...dirtyFieldOptions, shouldValidate: false });
+    },
+    [setValue]
+  );
+
+  const onEmailBlur: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      // Handle email blur
+      setValue("email", e.target.value, dirtyFieldOptions);
+    },
+    [setValue]
+  );
 
   if (showForgotPassword) {
     return (
-      <div
+      <form
         key="forgot-password"
-        className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-right"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-2 animate-step-enter-right text-center space-y-[clamp(15px,4vh,30px)]"
+        onSubmit={onSubmit}
       >
         <div className="space-y-[6px]">
           <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
@@ -152,47 +236,40 @@ export const SignInForm = ({
           </p>
         </div>
 
-        <div className="space-y-[clamp(12px,2.5vh,20px)]">
-          <div className="space-y-2.5">
-            <Label
-              htmlFor="reset-email"
-              className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block"
-            >
-              Email address
-            </Label>
-            <div
-              className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? "ring-2 ring-destructive/50" : ""}`}
-            >
-              <div
-                className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? "from-destructive/20 to-destructive/10" : "from-muted to-muted/50"} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}
-              >
-                <Mail
-                  className={`w-[15px] h-[15px] ${showEmailError ? "text-destructive" : "text-muted-foreground"} group-focus-within:text-background transition-all duration-300 icon-haptic`}
-                />
+        <div className="space-y-[clamp(12px,2.5vh,20px)] w-full">
+          <TextInput
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            onChange={onEmailChange}
+            onBlur={onEmailBlur}
+            value={watch("email")}
+            error={errors.email}
+            label={
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+                Email address
+              </span>
+            }
+            prefixIcon={
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
               </div>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? "border-destructive/50" : "border-border/30"} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-input-focus`}
-              />
+            }
+            className="[&>div.input-glow]:input-ultra"
+          />
+
+          {errors?.root?.form?.message && (
+            <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
+              {errors.root.form.message}
             </div>
-            {showEmailError && (
-              <p className="text-xs text-destructive text-left animate-slide-in-right">
-                Please enter a valid email address
-              </p>
-            )}
-          </div>
+          )}
 
           <Button
-            onClick={onForgotPasswordSubmit}
-            disabled={!emailIsValid || isSendingReset}
-            className="w-full h-button rounded-form bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base"
           >
-            {isSendingReset ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Sending...
@@ -204,107 +281,160 @@ export const SignInForm = ({
         </div>
 
         <button
-          onClick={onForgotPasswordToggle}
+          onClick={() => setValue("formType", "login")}
           className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
           Back to login
         </button>
-      </div>
+      </form>
     );
   }
 
   return (
-    <div
-      key="sign-in"
-      className="space-y-[clamp(15px,4vh,30px)] text-center animate-step-enter-left"
-    >
-      <div className="space-y-[6px]">
-        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">Welcome back</span>
-          ) : (
-            <TextSkeleton width="65%" height="1.1em" className="mx-auto" />
-          )}
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">Login to access your pro account</span>
-          ) : (
-            <TextSkeleton width="75%" height="1em" className="mx-auto" />
-          )}
-        </p>
-      </div>
+    <div>
+      <form
+        key="sign-in"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(15px,4vh,30px)]"
+        onSubmit={onSubmit}
+      >
+        <div className="space-y-[6px]">
+          <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
+            {fontsLoaded ? (
+              <span className="animate-fade-in-text">Welcome back</span>
+            ) : (
+              <TextSkeleton width="65%" height="1.1em" className="mx-auto" />
+            )}
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            {fontsLoaded ? (
+              <span className="animate-fade-in-text">Login to access your pro account</span>
+            ) : (
+              <TextSkeleton width="75%" height="1em" className="mx-auto" />
+            )}
+          </p>
+        </div>
 
-      <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3">
-        <div className="space-y-2.5">
-          <Label
-            htmlFor="login-email"
-            className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block"
-          >
-            Email address
-          </Label>
-          <div
-            className={`relative group input-ultra input-ripple rounded-form ${showEmailError ? "ring-2 ring-destructive/50" : ""}`}
-          >
-            <div
-              className={`absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br ${showEmailError ? "from-destructive/20 to-destructive/10" : "from-muted to-muted/50"} flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10`}
-            >
-              <Mail
-                className={`w-[15px] h-[15px] ${showEmailError ? "text-destructive" : "text-muted-foreground"} group-focus-within:text-background transition-all duration-300 icon-haptic`}
-              />
-            </div>
-            <Input
-              id="login-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => onEmailChange(e.target.value)}
-              onBlur={() => setEmailTouched(true)}
-              className={`h-input-prominent pl-[60px] rounded-form bg-muted ${showEmailError ? "border-destructive/50" : "border-border/30"} focus:border-foreground/20 focus:bg-background transition-all duration-500 placeholder:text-muted-foreground/40 focus:shadow-input-focus`}
-            />
+        {isPasswordReset && (
+          <div className="text-green-600 text-sm text-left py-2 px-3 rounded-form bg-green-50 border border-green-200 w-full">
+            Password reset email sent! Check your email for a link to reset your password.
           </div>
-          {showEmailError && (
-            <p className="text-xs text-destructive text-left animate-slide-in-right">
-              Please enter a valid email address
-            </p>
+        )}
+
+        <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3 w-full">
+          <TextInput
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.email}
+            onChange={onEmailChange}
+            onBlur={onEmailBlur}
+            value={watch("email")}
+            label={
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
+                Email address
+              </span>
+            }
+            prefixIcon={
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              </div>
+            }
+            className="[&>div.input-glow]:input-ultra"
+          />
+
+          <TextInput
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            register={register}
+            error={errors.password}
+            label={
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 text-left block">
+                Password
+              </span>
+            }
+            prefixIcon={
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
+                <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              </div>
+            }
+            className="[&>div.input-glow]:input-ultra"
+          />
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2.5 cursor-pointer group">
+              <div className="relative w-[18px] h-[18px]">
+                <input type="checkbox" className="peer sr-only" />
+                <div className="w-full h-full rounded-sm border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
+                <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+              </div>
+              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+                Remember me
+              </span>
+            </label>
+
+            <button
+              onClick={() => setValue("formType", "forgot_password")}
+              className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
+            >
+              <span className="relative">
+                Forgot password?
+                <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+              </span>
+              <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+            </button>
+          </div>
+        </div>
+
+        {errors?.root?.form?.message && (
+          <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
+            {errors.root.form.message}
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || isLoginSuccessful}
+          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base py-3"
+        >
+          {isLoginSuccessful ? (
+            <>
+              <Check className="w-4 h-4 mr-2" />
+              Logged In!
+            </>
+          ) : isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            </>
+          ) : (
+            "Log In"
           )}
+        </Button>
+
+        {/* Divider */}
+        <div className="w-full flex items-center gap-4 my-6">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <span className="text-xs text-muted-foreground/50 uppercase tracking-wider">or</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
 
-        <PasswordInputField
-          id="login-password"
-          label="Password"
-          value={password}
-          onChange={onPasswordChange}
-          placeholder="••••••••"
-        />
-
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2.5 cursor-pointer group">
-            <div className="relative w-[18px] h-[18px]">
-              <input type="checkbox" className="peer sr-only" />
-              <div className="w-full h-full rounded-sm border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
-              <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
-            </div>
-            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-              Remember me
-            </span>
-          </label>
-
-          <button
-            onClick={onForgotPasswordToggle}
-            className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
+        <div className="text-center">
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 font-medium">
+            Don't have an account?
+          </p>
+          <Button
+            onClick={() => navigate("/auth")}
+            variant="outline"
+            className="px-8 w-full h-button rounded-full bg-transparent border-2 border-foreground/20 text-foreground hover:bg-foreground/5 hover:border-foreground/30 font-medium text-base group"
           >
-            <span className="relative">
-              Forgot password?
-              <span className="absolute left-0 bottom-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
-            </span>
-            <ArrowUpRight className="w-[15px] h-[15px] opacity-0 -translate-x-1 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
-          </button>
+            Apply for Access
+            <ArrowUpRight className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Button>
         </div>
-      </div>
+      </form>
 
-      <div className="flex items-center justify-center gap-2 sm:gap-3 pt-[clamp(6px,1.5vh,12px)] animate-stagger-4">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 mt-auto pt-16 pb-4 animate-stagger-4">
         <a
           href="#"
           onClick={() => navigator.vibrate?.(10)}
@@ -328,16 +458,6 @@ export const SignInForm = ({
           <ArrowUpRight className="w-3 h-3 text-foreground/40 group-hover:text-foreground/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
         </a>
       </div>
-
-      <p className="text-xs text-muted-foreground text-center pt-1">
-        Don't have an account?{" "}
-        <button
-          onClick={onSignUp}
-          className="text-foreground underline underline-offset-2 hover:no-underline"
-        >
-          Apply
-        </button>
-      </p>
     </div>
   );
 };

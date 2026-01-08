@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Info, Check, ArrowUpRight, Calendar } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";

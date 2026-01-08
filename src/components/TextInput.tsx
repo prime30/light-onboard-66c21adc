@@ -1,23 +1,25 @@
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { FormFieldProps } from "./registration/context";
-import { ReactNode } from "react";
 import { CheckMarkIcon } from "./CheckMarkIcon";
+import { FieldValues } from "react-hook-form";
+import { FormFieldProps } from "@/types/form";
 
-type TextInputProps = React.ComponentProps<"input"> &
-  FormFieldProps & {
-    isValid?: boolean;
-    label?: ReactNode;
-    prefixIcon?: ReactNode;
-    className?: string;
-  };
+type TextInputProps<TFieldValues extends FieldValues = FieldValues> =
+  React.ComponentProps<"input"> &
+    FormFieldProps<TFieldValues> & {
+      isValid?: boolean;
+      label?: React.ReactNode;
+      prefixIcon?: React.ReactNode;
+      className?: string;
+    };
 
-export function TextInput({
+export function TextInput<TFieldValues extends FieldValues = FieldValues>({
   type,
   placeholder,
   name,
   register,
+  onChange,
   error,
   valueAsNumber,
   label = null,
@@ -25,9 +27,9 @@ export function TextInput({
   isValid = false,
   className = "",
   ...inputProps
-}: TextInputProps) {
+}: TextInputProps<TFieldValues>) {
   return (
-    <div className={cn("space-y-2.5 group", className)}>
+    <div className={cn("space-y-2.5 group text-left", className)}>
       {label && (
         <Label
           htmlFor={name}
@@ -42,7 +44,8 @@ export function TextInput({
           id={name}
           type={type}
           placeholder={placeholder}
-          {...register(name, { valueAsNumber })}
+          onChange={onChange}
+          {...(register ? register(name, { valueAsNumber }) : {})}
           className={cn(
             "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
             prefixIcon && "pl-14",

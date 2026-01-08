@@ -17,6 +17,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
 import { dirtyFieldOptions, useForm } from "../context";
+import { useModeContext } from "../context/ModeContext";
 
 type AccountTypeConfirmationOverlayProps = {
   showAccountTypeConfirm: boolean;
@@ -93,11 +94,11 @@ export const AccountTypeForm = () => {
     getValidationStatus,
     dirtyFields,
     reset,
-    setTransitionDirection,
-    setIsTransitioning,
     setCurrentStep,
     getStepNumber,
   } = useForm();
+
+  const { setTransitionDirection, setIsTransitioning } = useModeContext();
 
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);

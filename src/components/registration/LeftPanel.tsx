@@ -12,7 +12,7 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
-import { AuthMode } from "@/types/auth";
+import { useModeContext } from "./context/ModeContext";
 
 export function SignInSlide() {
   const { fontsLoaded } = useGlobalApp();
@@ -137,12 +137,15 @@ export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesP
   );
 }
 
-type LeftPanelProps = {
-  mode: AuthMode;
+export type LeftPanelProps = {
+  formProgress: number;
 };
 
-export function LeftPanel({ mode }: LeftPanelProps) {
+export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { mode } = useModeContext();
+
+  console.log("mode", mode);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -211,7 +214,7 @@ export function LeftPanel({ mode }: LeftPanelProps) {
       {/* Circular Progress Indicator - Fixed - Only show on sign-up */}
       {mode === "signup" && (
         <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
-          <CircularProgress />
+          <CircularProgress formProgress={formProgress} />
         </div>
       )}
 
