@@ -38,8 +38,8 @@ export const AlreadyLoggedInPage = () => {
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-md mx-auto">
           {fontsLoaded ? (
             <span className="animate-fade-in-text">
-              You're already signed in to your account. You can close this window and continue using
-              the app.
+              You're already signed in to your account. You can close this window and start
+              shopping.
             </span>
           ) : (
             <TextSkeleton width="85%" height="1em" className="mx-auto" />
