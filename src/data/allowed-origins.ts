@@ -1,4 +1,5 @@
 const allowedMessageOrigins = [
+  "https://apply.dropdeadextensions.com",
   "https://dropdeadextensions.com",
   "https://dropdeadextensions.myshopify.com",
   "https://drop-dead-2428.myshopify.com",
