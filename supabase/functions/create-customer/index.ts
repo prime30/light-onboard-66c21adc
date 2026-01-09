@@ -7,14 +7,27 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
 };
 
+// Define action interface
+interface ErrorAction {
+  type: string;
+  label: string;
+  url?: string;
+}
+
 // Send error response
-function sendError(statusCode: number, errors: string[], message?: string) {
+function sendError(
+  statusCode: number,
+  errors: string[],
+  message?: string,
+  actions?: ErrorAction[]
+) {
   return new Response(
     JSON.stringify({
       success: false,
       statusCode,
       message: message || "Error",
       errorMessage: errors,
+      actions: actions || [],
     }),
     {
       status: statusCode,
@@ -210,6 +223,52 @@ interface CustomerFieldsResponse {
   };
 }
 
+// Interface for the Customer Fields Search API response
+interface CustomerSearchResponse {
+  customers: {
+    id: string;
+    shopify_id?: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    created_at: string;
+    updated_at: string;
+  }[];
+}
+
+// Function to search for existing customer by email
+async function searchCustomerByEmail(
+  email: string,
+  apiKey: string
+): Promise<CustomerSearchResponse | null> {
+  const searchUrl = `https://app.customerfields.com/api/v2/customers/search.json?page=1&limit=1&sort_by=updated_at&sort_order=desc&email=${encodeURIComponent(email)}`;
+
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    Authorization: `Bearer ${apiKey}`,
+  };
+
+  try {
+    console.log("Searching for existing customer with email:", email);
+    const response = await fetch(searchUrl, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      console.error("Customer search API request failed:", response.status);
+      return null;
+    }
+
+    const searchData: CustomerSearchResponse = await response.json();
+    return searchData;
+  } catch (error) {
+    console.error("Error searching for customer:", error);
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   console.log("Customer create function called");
 
@@ -256,6 +315,24 @@ Deno.serve(async (req: Request) => {
   }
 
   console.log("Processing customer sync for:", requestBody.data.email);
+
+  // First, check if customer already exists
+  const existingCustomerSearch = await searchCustomerByEmail(
+    requestBody.data.email,
+    customerFieldsApiKey
+  );
+
+  if (existingCustomerSearch && existingCustomerSearch.customers.length > 0) {
+    console.log("Customer already exists with email:", requestBody.data.email);
+    return sendError(409, ["Customer already exists with this email address"], "Conflict", [
+      {
+        type: "LOGIN",
+        label: "Go to Login",
+        url: "/login",
+      },
+    ]);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customer = objectKeysToSnake(parseResult.data) as any;
 

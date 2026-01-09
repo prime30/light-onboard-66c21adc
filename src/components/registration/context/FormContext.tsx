@@ -3,6 +3,7 @@ import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { useGlobalApp } from "@/contexts";
+import { IncompleteStepInfo } from "@/types/auth";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -10,6 +11,7 @@ export type AuthFormContextType = {
   control: ReturnType<typeof useFormData>["control"];
   watch: ReturnType<typeof useFormData>["watch"];
   reset: ReturnType<typeof useFormData>["reset"];
+  setFocus: ReturnType<typeof useFormData>["setFocus"];
   submitForm: (e?: React.BaseSyntheticEvent) => Promise<void>;
   setValue: ReturnType<typeof useFormData>["setValue"];
   formState: ReturnType<typeof useFormData>["formState"];
@@ -22,6 +24,7 @@ export type AuthFormContextType = {
   isSubmitted: ReturnType<typeof useFormData>["isSubmitted"];
   isSubmitSuccessful: ReturnType<typeof useFormData>["isSubmitSuccessful"];
   isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
+  errorActions: ReturnType<typeof useFormData>["errorActions"];
 
   // Step-related (from StepContext)
   totalSteps: ReturnType<typeof useStepContext>["totalSteps"];
@@ -34,7 +37,7 @@ export type AuthFormContextType = {
 
   // Computed values (now in StepContext)
   completedSteps: ReturnType<typeof useStepContext>["completedSteps"];
-  incompleteSteps: ReturnType<typeof useStepContext>["incompleteSteps"];
+  incompleteSteps: IncompleteStepInfo[];
   getStepValidationStatus: ReturnType<typeof useStepContext>["getStepValidationStatus"];
   getStepNumber: ReturnType<typeof useStepContext>["getStepNumber"];
   getStepForField: ReturnType<typeof useStepContext>["getStepForField"];
@@ -46,36 +49,14 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Internal component that combines all contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
-  const { handleSubmit, isSubmitSuccessful, watch, reset, ...formDataContext } = useFormData();
+  const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
+    useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
   const email = watch("email");
 
-  const submitForm = handleSubmit(
-    async (values) => {
-      console.log("submit values:", values);
-
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-customer`;
-      const result = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "CREATE_CUSTOMER",
-          data: values,
-        }),
-      });
-
-      const resultData = await result.json();
-      return resultData;
-    },
-    (errors) => {
-      console.log("errors: ", errors);
-    }
-  );
-
+  // Reset form and move to success step on successful submission
   useEffect(() => {
     const accountType = watch("accountType");
     if (isSubmitSuccessful) {
@@ -91,11 +72,12 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   }, [email, setEmail]);
 
   const value: AuthFormContextType = {
-    submitForm,
-    setCurrentStep,
     isSubmitSuccessful,
     watch,
     reset,
+    setFocus,
+    setCurrentStep,
+    errorActions,
     ...formDataContext,
     ...stepContext,
   };
@@ -106,8 +88,15 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 // Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {
   const { email } = useGlobalApp();
+
+  const initialValues: Partial<AllRegistrationFormData> = {};
+
+  if (email) {
+    initialValues.email = email;
+  }
+
   return (
-    <FormDataProvider initialValues={{ email: email || "" }}>
+    <FormDataProvider initialValues={initialValues}>
       <StepProvider>
         <FormContextProvider>{children}</FormContextProvider>
       </StepProvider>

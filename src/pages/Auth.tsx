@@ -1,8 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useModalSwipe } from "@/hooks/use-modal-swipe";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { ContactBasicsStep } from "@/components/registration/steps/ContactBasicsStep";
 import { PreferencesStep } from "@/components/registration/steps/PreferencesStep";
@@ -14,7 +13,6 @@ import { TaxExemptionStep } from "@/components/registration/steps/TaxExemptionSt
 import { BusinessOperationStep } from "@/components/registration/steps/BusinessOperationStep";
 import { OnboardingForm } from "@/components/registration/steps/OnboardingForm";
 import { AccountTypeForm } from "@/components/registration/steps/AccountTypeForm";
-import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { SummaryForm } from "@/components/registration/steps/SummaryForm";
 import { SuccessForm } from "@/components/registration/steps/SuccessForm";
 import type { Step } from "@/types/auth";
@@ -37,7 +35,7 @@ const Auth = () => {
   const [referralSource, setReferralSource] = useState<string>("");
 
   // Form state from centralized hook (includes sessionStorage persistence)
-  const { currentStep, setCurrentStep, goToNextStep, incompleteSteps } = useStepContext();
+  const { currentStep, setCurrentStep, goToNextStep } = useStepContext();
 
   const { mode, mainScrollRef, transitionDirection, isTransitioning } = useModeContext();
 
@@ -474,13 +472,6 @@ const Auth = () => {
           uploadProgress={overallProgress}
           footerTransitionsEnabled={footerTransitionsEnabled}
           footerEnterReady={footerEnterReady}
-          incompleteSteps={incompleteSteps.map((item) => {
-            return {
-              step: item,
-              name: item,
-              missingFields: [],
-            };
-          })}
           shimmerKey={shimmerKey}
         />
       )}

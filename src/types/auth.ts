@@ -166,3 +166,13 @@ export interface FeatureData {
   label: string;
   desc: string;
 }
+
+/**
+ * Incomplete step information with validation details
+ */
+export interface IncompleteStepInfo {
+  step: Step;
+  name: string;
+  stepNumber: number;
+  missingFields: string[];
+}

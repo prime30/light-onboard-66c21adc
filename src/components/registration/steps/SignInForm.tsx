@@ -214,7 +214,7 @@ export const SignInForm = () => {
     return (
       <form
         key="forgot-password"
-        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-2 animate-step-enter-right text-center space-y-[clamp(15px,4vh,30px)]"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-2 animate-step-enter-right text-center space-y-[clamp(15px,4vh,30px)] max-w-[38rem] mx-auto w-full"
         onSubmit={onSubmit}
       >
         <div className="space-y-[6px]">
@@ -292,7 +292,7 @@ export const SignInForm = () => {
   }
 
   return (
-    <div>
+    <div className="max-w-[38rem] mx-auto w-full">
       <form
         key="sign-in"
         className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(15px,4vh,30px)]"
