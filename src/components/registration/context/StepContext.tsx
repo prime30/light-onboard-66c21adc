@@ -64,8 +64,8 @@ export function StepProvider({ children }: StepProviderProps) {
     // setTimeout(() => {
     //   reset(defaultValues);
     // }, 1000);
-    setValue("email", "");
-    setCurrentStep("summary");
+    // setValue("email", "");
+    // setCurrentStep("summary");
   }, [setValue]);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {

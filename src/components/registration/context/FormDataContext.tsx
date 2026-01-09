@@ -1,4 +1,12 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import {
   AllRegistrationFormData,
   defaultValues,
@@ -34,6 +42,7 @@ export type FormDataContextType = {
   isSubmitted: boolean;
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
+  errorActions: Array<{ type: string; label: string; url?: string }>;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -67,6 +76,9 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
   const { apiCall } = useApiClient();
+  const [errorActions, setErrorActions] = useState<
+    Array<{ type: string; label: string; url?: string }>
+  >([]);
 
   const {
     register,
@@ -110,6 +122,7 @@ export function FormDataProvider({
 
       if (result.success === false) {
         console.log("set error");
+        setErrorActions(result.actions || []);
         setError("root.form", {
           type: "server",
           message: result.error,
@@ -204,6 +217,7 @@ export function FormDataProvider({
       // Clear form errors when any field changes
       if (errors?.root?.form && !isSubmitting) {
         clearErrors("root.form");
+        setErrorActions([]);
       }
     },
     [clearErrors, isSubmitting]
@@ -251,6 +265,7 @@ export function FormDataProvider({
     isSubmitted,
     isSubmitSuccessful,
     isSubmitting,
+    errorActions,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

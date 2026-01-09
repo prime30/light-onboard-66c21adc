@@ -1,6 +1,15 @@
 import { ReactNode } from "react";
 
 /**
+ * Interface for error actions from backend
+ */
+interface ErrorAction {
+  type: string;
+  label: string;
+  url?: string;
+}
+
+/**
  * Interface matching the error response format from the Supabase edge functions
  */
 interface EdgeFunctionErrorResponse {
@@ -8,66 +17,104 @@ interface EdgeFunctionErrorResponse {
   statusCode: number;
   message?: string;
   errorMessage?: string[];
+  actions?: ErrorAction[];
 }
 
 /**
- * Parse error responses from edge functions and return user-friendly messages
- * @param response - The Response object from fetch
- * @returns Promise<string | ReactNode> - A user-friendly error message
+ * Enhanced error response with actions from backend
  */
-export async function parseErrorResponse(response: Response): Promise<string | ReactNode> {
+export interface ParsedErrorResponse {
+  message: string | ReactNode;
+  actions: ErrorAction[];
+  statusCode: number;
+}
+
+/**
+ * Parse error responses from edge functions and return user-friendly messages with action types
+ * @param response - The Response object from fetch
+ * @returns Promise<ParsedErrorResponse> - Enhanced error response with action type
+ */
+export async function parseErrorResponse(response: Response): Promise<ParsedErrorResponse> {
   try {
     // Try to parse as JSON first
     const text = await response.text();
 
     if (!text) {
-      return getGenericErrorMessage(response.status);
+      return {
+        message: getGenericErrorMessage(response.status),
+        actions: [],
+        statusCode: response.status,
+      };
     }
 
     try {
       const errorData: EdgeFunctionErrorResponse = JSON.parse(text);
 
       // If it's a structured error response from our edge function
-      if (errorData && typeof errorData === 'object') {
+      if (errorData && typeof errorData === "object") {
         return formatStructuredError(errorData, response.status);
       }
     } catch {
       // If JSON parsing fails, treat as plain text
-      return formatPlainTextError(text, response.status);
+      return {
+        message: formatPlainTextError(text, response.status),
+        actions: [],
+        statusCode: response.status,
+      };
     }
 
     // Fallback to generic message
-    return getGenericErrorMessage(response.status);
+    return {
+      message: getGenericErrorMessage(response.status),
+      actions: [],
+      statusCode: response.status,
+    };
   } catch {
     // If all else fails, return a generic error
-    return getGenericErrorMessage(response.status);
+    return {
+      message: getGenericErrorMessage(response.status),
+      actions: [],
+      statusCode: response.status,
+    };
   }
 }
 
 /**
- * Format a structured error response from the edge function
+ * Format a structured error response from the edge function with action detection
  */
-function formatStructuredError(errorData: EdgeFunctionErrorResponse, statusCode: number): string {
+function formatStructuredError(
+  errorData: EdgeFunctionErrorResponse,
+  statusCode: number
+): ParsedErrorResponse {
+  let message: string;
+
   // If we have specific error messages, format them nicely
-  if (errorData.errorMessage && Array.isArray(errorData.errorMessage) && errorData.errorMessage.length > 0) {
+  if (
+    errorData.errorMessage &&
+    Array.isArray(errorData.errorMessage) &&
+    errorData.errorMessage.length > 0
+  ) {
     // Filter out any empty or invalid messages
-    const validMessages = errorData.errorMessage.filter(msg => msg && typeof msg === 'string');
+    const validMessages = errorData.errorMessage.filter((msg) => msg && typeof msg === "string");
 
     if (validMessages.length === 1) {
-      return validMessages[0];
+      message = validMessages[0];
     } else if (validMessages.length > 1) {
       // For multiple errors, create a formatted list
-      return validMessages.map((msg, index) => `${index + 1}. ${msg}`).join('\n');
+      message = validMessages.map((msg, index) => `${index + 1}. ${msg}`).join("\n");
+    } else {
+      message = errorData.message || getGenericErrorMessage(statusCode);
     }
+  } else {
+    // Fall back to the general message if available
+    message = errorData.message || getGenericErrorMessage(statusCode);
   }
 
-  // Fall back to the general message if available
-  if (errorData.message) {
-    return errorData.message;
-  }
-
-  // Last resort: use status code
-  return getGenericErrorMessage(statusCode);
+  return {
+    message,
+    actions: errorData.actions || [],
+    statusCode,
+  };
 }
 
 /**
@@ -87,12 +134,12 @@ function formatPlainTextError(text: string, statusCode: number): string {
   }
 
   // Try to extract meaningful error from common error formats
-  if (cleanText.includes('error') || cleanText.includes('Error')) {
+  if (cleanText.includes("error") || cleanText.includes("Error")) {
     return cleanText;
   }
 
   // For short, meaningful text responses
-  if (cleanText.length < 200 && !cleanText.includes('<html')) {
+  if (cleanText.length < 200 && !cleanText.includes("<html")) {
     return cleanText;
   }
 
@@ -145,32 +192,43 @@ function getGenericErrorMessage(statusCode: number): string {
  * Convenience function for handling fetch responses with error parsing
  * @param response - The Response object from fetch
  * @param successMessage - Optional success message for successful responses
- * @returns Promise with parsed result
+ * @returns Promise with parsed result including action type
  */
-export async function handleApiResponse<T = any>(
+export async function handleApiResponse<T = unknown>(
   response: Response,
   successMessage?: string
-): Promise<{ success: true; data: T; message?: string } | { success: false; error: string }> {
+): Promise<
+  | { success: true; data: T; message?: string }
+  | {
+      success: false;
+      error: string;
+      actions: ErrorAction[];
+      statusCode: number;
+    }
+> {
   if (response.ok) {
     try {
       const data = await response.json();
       return {
         success: true,
         data,
-        message: successMessage
+        message: successMessage,
       };
     } catch {
       return {
         success: true,
         data: null as T,
-        message: successMessage || "Operation completed successfully"
+        message: successMessage || "Operation completed successfully",
       };
     }
   } else {
-    const errorMessage = await parseErrorResponse(response);
+    const errorResponse = await parseErrorResponse(response);
     return {
       success: false,
-      error: typeof errorMessage === 'string' ? errorMessage : 'An error occurred'
+      error:
+        typeof errorResponse.message === "string" ? errorResponse.message : "An error occurred",
+      actions: errorResponse.actions,
+      statusCode: errorResponse.statusCode,
     };
   }
 }
@@ -178,12 +236,12 @@ export async function handleApiResponse<T = any>(
 /**
  * Type guard to check if an error response is from our edge function
  */
-export function isEdgeFunctionError(obj: any): obj is EdgeFunctionErrorResponse {
+export function isEdgeFunctionError(obj: unknown): obj is EdgeFunctionErrorResponse {
   return (
     obj &&
-    typeof obj === 'object' &&
-    'success' in obj &&
-    'statusCode' in obj &&
+    typeof obj === "object" &&
+    "success" in obj &&
+    "statusCode" in obj &&
     obj.success === false
   );
 }

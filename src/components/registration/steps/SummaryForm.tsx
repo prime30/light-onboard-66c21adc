@@ -7,6 +7,8 @@ import { AccountType, BusinessOperationType } from "@/types/auth";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { UploadFileItem } from "@/lib/validations/file-schema";
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
 
 const SummarySection = ({
   title,
@@ -102,7 +104,8 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 };
 
 export const SummaryForm = () => {
-  const { watch, currentStep, errors } = useForm();
+  const { watch, currentStep, errors, errorActions } = useForm();
+  const navigate = useNavigate();
   const errorRef = useRef<HTMLDivElement>(null);
 
   // Watch all form values at once
@@ -198,13 +201,33 @@ export const SummaryForm = () => {
           className="flex items-start gap-3 p-4 rounded-form bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 animate-stagger-2"
         >
           <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-red-800 dark:text-red-200">
-              Unable to Create Account
-            </p>
-            <p className="text-sm text-red-700 dark:text-red-300 whitespace-pre-line">
-              {errors.root.form.message}
-            </p>
+          <div className="space-y-3 flex-1">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                Unable to Submit Application
+              </p>
+              <p className="text-sm text-red-700 dark:text-red-300 whitespace-pre-line">
+                {errors.root.form.message}
+              </p>
+            </div>
+            {errorActions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {errorActions.map((action, index) => (
+                  <Button
+                    key={index}
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      if (action.url) {
+                        navigate(action.url);
+                      }
+                    }}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

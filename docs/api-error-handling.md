@@ -18,24 +18,43 @@ These utilities automatically parse structured JSON error responses, plain text 
 Your Supabase Edge Functions should return errors in this JSON structure:
 
 ```typescript
+interface ErrorAction {
+  type: string;              // Action type (e.g., "LOGIN", "RETRY", "CONTACT_SUPPORT")
+  label: string;             // Display text for action button
+  url?: string;              // Optional URL for navigation actions
+}
+
 interface EdgeFunctionErrorResponse {
   success: boolean;          // Always false for errors
   statusCode: number;        // HTTP status code (400, 500, etc.)
   message?: string;          // General error message
   errorMessage?: string[];   // Array of specific error messages
+  actions?: ErrorAction[];   // Array of actions user can take
 }
 ```
 
 ### Example Backend Implementation
 
 ```typescript
-function sendError(statusCode: number, errors: string[], message?: string) {
+interface ErrorAction {
+  type: string;
+  label: string;
+  url?: string;
+}
+
+function sendError(
+  statusCode: number, 
+  errors: string[], 
+  message?: string,
+  actions?: ErrorAction[]
+) {
   return new Response(
     JSON.stringify({
       success: false,
       statusCode,
       message: message || "Error",
       errorMessage: errors,
+      actions: actions || [],
     }),
     {
       status: statusCode,
@@ -47,6 +66,15 @@ function sendError(statusCode: number, errors: string[], message?: string) {
 // Usage examples:
 sendError(400, ["Email is required", "Password must be at least 8 characters"]);
 sendError(500, ["Database connection failed"], "Internal Server Error");
+
+// Customer already exists with login action:
+sendError(409, ["Customer already exists with this email address"], "Conflict", [
+  {
+    type: "LOGIN",
+    label: "Go to Login",
+    url: "/login"
+  }
+]);
 ```
 
 ### Success Response Format
@@ -67,14 +95,16 @@ interface SuccessResponse<T> {
 ### Option 1: React Hook (Recommended)
 
 ```typescript
-import { useApiError } from '@/hooks/useApiError';
+import { useApiClient } from '@/hooks/use-api-client';
 
 function CustomerForm() {
-  const { apiCall } = useApiError();
+  const { apiCall } = useApiClient();
   const [error, setError] = useState<string | null>(null);
+  const [errorActions, setErrorActions] = useState<Array<{type: string; label: string; url?: string}>>([]);
   
   const handleSubmit = async (formData: CustomerData) => {
     setError(null);
+    setErrorActions([]);
     
     const result = await apiCall('/api/create-customer', {
       method: 'POST',
@@ -87,10 +117,31 @@ function CustomerForm() {
       console.log('Success:', result.message);
       console.log('Data:', result.data);
     } else {
-      // Display parsed error message
+      // Display parsed error message and actions
       setError(result.error);
+      setErrorActions(result.actions || []);
     }
   };
+  
+  return (
+    <div>
+      {/* Error display */}
+      {error && (
+        <div className="error">
+          <p>{error}</p>
+          {errorActions.map((action, index) => (
+            <button 
+              key={index}
+              onClick={() => action.url && navigate(action.url)}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {/* Form content */}
+    </div>
+  );
 }
 ```
 
@@ -103,14 +154,18 @@ import { parseErrorResponse, handleApiResponse } from '@/lib/error-parser';
 const response = await fetch('/api/endpoint', options);
 
 if (!response.ok) {
-  const errorMessage = await parseErrorResponse(response);
-  throw new Error(typeof errorMessage === 'string' ? errorMessage : 'An error occurred');
+  const errorResponse = await parseErrorResponse(response);
+  console.error('Error:', errorResponse.message);
+  console.error('Available actions:', errorResponse.actions);
+  throw new Error(typeof errorResponse.message === 'string' ? errorResponse.message : 'An error occurred');
 }
 
 // Or use the response handler
 const result = await handleApiResponse(response, 'Operation successful');
 if (!result.success) {
   console.error('Error:', result.error);
+  console.error('Available actions:', result.actions);
+  console.error('Status code:', result.statusCode);
 }
 ```
 
@@ -118,16 +173,17 @@ if (!result.success) {
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
-import { useApiError } from '@/hooks/useApiError';
+import { useApiClient } from '@/hooks/use-api-client';
 
 function useCustomerData(customerId: string) {
-  const { apiCall } = useApiError();
+  const { apiCall } = useApiClient();
   
   return useQuery({
     queryKey: ['customer', customerId],
     queryFn: async () => {
       const result = await apiCall(`/api/customers/${customerId}`);
       if (!result.success) {
+        // You can access result.actions here if needed for error handling
         throw new Error(result.error);
       }
       return result.data;
@@ -138,7 +194,7 @@ function useCustomerData(customerId: string) {
 
 ## Error Message Behavior
 
-### Structured JSON Errors
+### Structured JSON Errors with Actions
 
 When your backend returns the proper JSON structure:
 
@@ -148,15 +204,25 @@ When your backend returns the proper JSON structure:
   1. Email is required
   2. Password must be at least 8 characters
   ```
+- **Actions**: Returns array of action objects that the UI can render as buttons
+
+### Backend-Controlled Actions
+
+The backend can specify what actions users should take:
+
+- **Login Action**: `{ type: "LOGIN", label: "Go to Login", url: "/login" }`
+- **Retry Action**: `{ type: "RETRY", label: "Try Again" }`
+- **Support Action**: `{ type: "CONTACT_SUPPORT", label: "Contact Support", url: "/support" }`
+- **Custom Actions**: Any action type with appropriate label and optional URL
 
 ### Fallback Handling
 
 The parser gracefully handles various scenarios:
 
-1. **Plain text responses** - Returns the text if meaningful
-2. **Empty responses** - Uses status code-based generic message
-3. **HTML error pages** - Uses status code-based generic message
-4. **Network failures** - Returns "Network error occurred"
+1. **Plain text responses** - Returns the text if meaningful, empty actions array
+2. **Empty responses** - Uses status code-based generic message, empty actions array
+3. **HTML error pages** - Uses status code-based generic message, empty actions array
+4. **Network failures** - Returns "Network error occurred", empty actions array
 
 ### Status Code Defaults
 
@@ -175,11 +241,11 @@ The parser gracefully handles various scenarios:
 
 ### `parseErrorResponse(response: Response)`
 
-Parses an error response and returns a user-friendly message.
+Parses an error response and returns a user-friendly message with actions.
 
 - **Parameters**: `response` - The fetch Response object
-- **Returns**: `Promise<string | ReactNode>` - User-friendly error message
-- **Usage**: For manual error parsing
+- **Returns**: `Promise<ParsedErrorResponse>` - Object containing message, actions array, and status code
+- **Usage**: For manual error parsing with action support
 
 ### `handleApiResponse<T>(response: Response, successMessage?: string)`
 
@@ -188,17 +254,17 @@ Handles both success and error responses automatically.
 - **Parameters**: 
   - `response` - The fetch Response object
   - `successMessage` - Optional success message
-- **Returns**: Promise with `{ success: boolean; data?: T; error?: string; message?: string }`
-- **Usage**: For complete response handling
+- **Returns**: Promise with `{ success: boolean; data?: T; error?: string; message?: string; actions?: ErrorAction[]; statusCode?: number }`
+- **Usage**: For complete response handling with action support
 
-### `useApiError()` Hook
+### `useApiClient()` Hook
 
 React hook that provides error handling utilities.
 
 **Returns**:
-- `parseError(response)` - Parse error response
+- `parseError(response)` - Parse error response to string
 - `handleResponse(response, successMessage?)` - Handle complete response
-- `apiCall(input, init?, successMessage?)` - Complete fetch wrapper
+- `apiCall(input, init?, successMessage?)` - Complete fetch wrapper with actions support
 
 ## Best Practices
 
@@ -208,29 +274,37 @@ React hook that provides error handling utilities.
 2. **Provide specific error messages** - Use the `errorMessage` array for validation errors
 3. **Use appropriate status codes** - 400 for validation, 500 for server errors, etc.
 4. **Include CORS headers** - Ensure frontend can read the error responses
+5. **Specify helpful actions** - Include `actions` array with clear labels and appropriate URLs
+6. **Make actions contextual** - Only include actions that make sense for the specific error
 
 ### Frontend Best Practices
 
-1. **Use the React hook for consistency** - `useApiError()` provides the cleanest API
+1. **Use the React hook for consistency** - `useApiClient()` provides the cleanest API
 2. **Display errors prominently** - Show parsed error messages to users immediately
-3. **Handle loading states** - Show loading indicators during API calls
-4. **Log detailed errors** - Console.log the full response for debugging
+3. **Render action buttons** - Display all actions provided by the backend as clickable buttons
+4. **Handle loading states** - Show loading indicators during API calls
+5. **Log detailed errors** - Console.log the full response for debugging
+6. **Clear actions on form changes** - Reset error actions when user modifies the form
 
 ### Example Complete Implementation
 
 ```typescript
 import { useState } from 'react';
-import { useApiError } from '@/hooks/useApiError';
+import { useNavigate } from 'react-router-dom';
+import { useApiClient } from '@/hooks/use-api-client';
 
 function RegistrationForm() {
-  const { apiCall } = useApiError();
+  const { apiCall } = useApiClient();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorActions, setErrorActions] = useState<Array<{type: string; label: string; url?: string}>>([]);
   const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError(null);
+    setErrorActions([]);
     setSuccess(null);
 
     try {
@@ -245,6 +319,7 @@ function RegistrationForm() {
         // Handle successful registration
       } else {
         setError(result.error);
+        setErrorActions(result.actions || []);
       }
     } finally {
       setLoading(false);
@@ -255,7 +330,21 @@ function RegistrationForm() {
     <form onSubmit={handleSubmit}>
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-          {error}
+          <p>{error}</p>
+          {errorActions.length > 0 && (
+            <div className="mt-3 flex gap-2">
+              {errorActions.map((action, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => action.url && navigate(action.url)}
+                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {success && (

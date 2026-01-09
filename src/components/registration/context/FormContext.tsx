@@ -24,6 +24,7 @@ export type AuthFormContextType = {
   isSubmitted: ReturnType<typeof useFormData>["isSubmitted"];
   isSubmitSuccessful: ReturnType<typeof useFormData>["isSubmitSuccessful"];
   isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
+  errorActions: ReturnType<typeof useFormData>["errorActions"];
 
   // Step-related (from StepContext)
   totalSteps: ReturnType<typeof useStepContext>["totalSteps"];
@@ -48,7 +49,8 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 
 // Internal component that combines all contexts
 function FormContextProvider({ children }: { children: ReactNode }) {
-  const { isSubmitSuccessful, watch, reset, setFocus, ...formDataContext } = useFormData();
+  const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
+    useFormData();
   const { setCurrentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
@@ -75,6 +77,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     reset,
     setFocus,
     setCurrentStep,
+    errorActions,
     ...formDataContext,
     ...stepContext,
   };
