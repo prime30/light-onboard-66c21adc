@@ -320,7 +320,7 @@ const Auth = () => {
 
       <main
         ref={mainScrollRef}
-        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-0"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-0"
         onTouchStart={
           mode === "signin" || currentStep === "onboarding" ? handleMainSwipeStart : undefined
         }
