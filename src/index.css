@@ -308,7 +308,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Aeonik Pro", system-ui, sans-serif;
+    font-family: "Die Grotesk B", system-ui, sans-serif;
   }
 
   h1,
@@ -317,7 +317,7 @@
   h4,
   h5,
   h6 {
-    font-family: "Aeonik Pro", system-ui, sans-serif;
+    font-family: "Die Grotesk B", system-ui, sans-serif;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
