@@ -49,7 +49,7 @@ export function useAddressAutocomplete(
   // Refs
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch predictions with debounce
   const fetchPredictions = useCallback(
