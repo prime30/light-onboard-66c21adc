@@ -7,15 +7,16 @@ import { createBrowserRouter, Outlet, RouteObject } from "react-router";
 import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
+import { AuthBootFallback, GenericBootFallback } from "./components/registration/AuthBootFallback";
+import AuthPage from "./pages/AuthPage";
+import { LoginPage } from "./pages/LoginPage";
+import AlreadyLoggedInPage from "./pages/AlreadyLoggedInPage";
 
 // Lazy-load route components to reduce initial bundle
 const Index = lazy(() => import("./pages/Index"));
-const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const BlogResaleLicense = lazy(() => import("./pages/BlogResaleLicense"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
-const AlreadyLoggedInPage = lazy(() => import("./pages/AlreadyLoggedInPage"));
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <Suspense>
+          <Suspense fallback={<GenericBootFallback />}>
             <Outlet />
           </Suspense>
         </TooltipProvider>
@@ -45,15 +46,27 @@ const children: RouteObject[] = [
     children: [
       {
         path: "auth",
-        Component: AuthPage,
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <AuthPage />
+          </Suspense>
+        ),
       },
       {
         path: "login",
-        Component: LoginPage,
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <LoginPage />
+          </Suspense>
+        ),
       },
       {
         path: "already-logged-in",
-        Component: AlreadyLoggedInPage,
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <AlreadyLoggedInPage />
+          </Suspense>
+        ),
       },
     ],
   },
