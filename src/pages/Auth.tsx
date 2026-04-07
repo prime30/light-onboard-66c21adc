@@ -1,20 +1,24 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AuthFooter } from "@/components/registration/AuthFooter";
-import { ContactBasicsStep } from "@/components/registration/steps/ContactBasicsStep";
-import { PreferencesStep } from "@/components/registration/steps/PreferencesStep";
-import { BusinessLocationStep } from "@/components/registration/steps/BusinessLocationStep";
-import { SchoolInfoStep } from "@/components/registration/steps/SchoolInfoStep";
-import { LicenseStep } from "@/components/registration/steps/LicenseStep";
-import { WholesaleTermsStep } from "@/components/registration/steps/WholesaleTermsStep";
-import { TaxExemptionStep } from "@/components/registration/steps/TaxExemptionStep";
-import { BusinessOperationStep } from "@/components/registration/steps/BusinessOperationStep";
 import { OnboardingForm } from "@/components/registration/steps/OnboardingForm";
-import { AccountTypeForm } from "@/components/registration/steps/AccountTypeForm";
-import { SummaryForm } from "@/components/registration/steps/SummaryForm";
-import { SuccessForm } from "@/components/registration/steps/SuccessForm";
+import { FormSkeleton } from "@/components/registration/FormSkeleton";
+import type { Step } from "@/types/auth";
+
+// Lazy-load steps not visible on first paint
+const AccountTypeForm = lazy(() => import("@/components/registration/steps/AccountTypeForm").then(m => ({ default: m.AccountTypeForm })));
+const ContactBasicsStep = lazy(() => import("@/components/registration/steps/ContactBasicsStep").then(m => ({ default: m.ContactBasicsStep })));
+const PreferencesStep = lazy(() => import("@/components/registration/steps/PreferencesStep").then(m => ({ default: m.PreferencesStep })));
+const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
+const SchoolInfoStep = lazy(() => import("@/components/registration/steps/SchoolInfoStep").then(m => ({ default: m.SchoolInfoStep })));
+const LicenseStep = lazy(() => import("@/components/registration/steps/LicenseStep").then(m => ({ default: m.LicenseStep })));
+const WholesaleTermsStep = lazy(() => import("@/components/registration/steps/WholesaleTermsStep").then(m => ({ default: m.WholesaleTermsStep })));
+const TaxExemptionStep = lazy(() => import("@/components/registration/steps/TaxExemptionStep").then(m => ({ default: m.TaxExemptionStep })));
+const BusinessOperationStep = lazy(() => import("@/components/registration/steps/BusinessOperationStep").then(m => ({ default: m.BusinessOperationStep })));
+const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryForm").then(m => ({ default: m.SummaryForm })));
+const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
 import type { Step } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
