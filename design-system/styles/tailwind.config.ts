@@ -19,9 +19,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Aeonik Pro", "system-ui", "sans-serif"],
-        display: ["Aeonik Pro", "system-ui", "sans-serif"],
-        aeonik: ["Aeonik Pro", "system-ui", "sans-serif"],
+        sans: ["Die Grotesk B", "system-ui", "sans-serif"],
+        display: ["Die Grotesk B", "system-ui", "sans-serif"],
+        grotesk: ["Die Grotesk B", "system-ui", "sans-serif"],
         termina: ["Termina", "Bebas Neue", "system-ui", "sans-serif"],
       },
       colors: {
