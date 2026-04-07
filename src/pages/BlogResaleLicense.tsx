@@ -82,7 +82,7 @@ const BlogResaleLicense = () => {
           <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
             {/* Section 1 */}
             <section>
-              <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+              <h2 className="font-grotesk text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
                 <FileText className="w-5 h-5 text-primary shrink-0 mt-1" />
                 <span>What is a Resale License?</span>
               </h2>
@@ -96,7 +96,7 @@ const BlogResaleLicense = () => {
 
             {/* Section 2 */}
             <section>
-              <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+              <h2 className="font-grotesk text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-status-green shrink-0 mt-1" />
                 <span>Benefits of Having a Resale License</span>
               </h2>
@@ -134,7 +134,7 @@ const BlogResaleLicense = () => {
 
             {/* Section 3 */}
             <section>
-              <h2 className="font-aeonik text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
+              <h2 className="font-grotesk text-xl font-semibold tracking-tight mb-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-1" />
                 <span>How to Get Your Resale License</span>
               </h2>
