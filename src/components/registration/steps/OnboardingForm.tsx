@@ -14,7 +14,7 @@ import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
 import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
 import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
-import { TextSkeleton } from "../TextSkeleton";
+import { FadeText } from "../FadeText";
 
 const stylistAvatars = [
   stylistPink1,
@@ -420,23 +420,19 @@ export const OnboardingForm = ({
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
       <div className="hidden lg:block text-center space-y-3 animate-stagger-1">
-        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">Let's get started</span>
-          ) : (
-            <TextSkeleton width="75%" height="1.1em" className="mx-auto" />
-          )}
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">
-              Unlock wholesale pricing on the industries best{" "}
-              <span className="whitespace-nowrap">hair and tools.</span>
-            </span>
-          ) : (
-            <TextSkeleton width="85%" height="1em" className="mx-auto" />
-          )}
-        </p>
+        <FadeText
+          as="h1"
+          className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+        >
+          Let's get started
+        </FadeText>
+        <FadeText
+          as="p"
+          className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto"
+        >
+          Unlock wholesale pricing on the industries best{" "}
+          <span className="whitespace-nowrap">hair and tools.</span>
+        </FadeText>
       </div>
 
       {/* Trust badges - Marquee with center highlight effect */}

@@ -10,7 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TextSkeleton } from "../TextSkeleton";
+import { FadeText } from "../FadeText";
 import { useGlobalApp } from "@/contexts";
 import { TextInput } from "@/components/TextInput";
 import { useForm, UseFormRegister } from "react-hook-form";
@@ -175,7 +175,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
 export const SignInForm = () => {
   const navigate = useNavigate();
-  const { fontsLoaded, email } = useGlobalApp();
+  const { email } = useGlobalApp();
   const {
     register,
     watch,
@@ -218,22 +218,18 @@ export const SignInForm = () => {
         onSubmit={onSubmit}
       >
         <div className="space-y-[6px]">
-          <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-            {fontsLoaded ? (
-              <span className="animate-fade-in-text">Reset password</span>
-            ) : (
-              <TextSkeleton width="70%" height="1.1em" className="mx-auto" />
-            )}
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            {fontsLoaded ? (
-              <span className="animate-fade-in-text">
-                Enter your email and we'll send you a reset link
-              </span>
-            ) : (
-              <TextSkeleton width="85%" height="1em" className="mx-auto" />
-            )}
-          </p>
+          <FadeText
+            as="h1"
+            className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+          >
+            Reset password
+          </FadeText>
+          <FadeText
+            as="p"
+            className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed"
+          >
+            Enter your email and we'll send you a reset link
+          </FadeText>
         </div>
 
         <div className="space-y-[clamp(12px,2.5vh,20px)] w-full">
@@ -299,20 +295,18 @@ export const SignInForm = () => {
         onSubmit={onSubmit}
       >
         <div className="space-y-[6px]">
-          <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-            {fontsLoaded ? (
-              <span className="animate-fade-in-text">Welcome back</span>
-            ) : (
-              <TextSkeleton width="65%" height="1.1em" className="mx-auto" />
-            )}
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            {fontsLoaded ? (
-              <span className="animate-fade-in-text">Login to access your pro account</span>
-            ) : (
-              <TextSkeleton width="75%" height="1em" className="mx-auto" />
-            )}
-          </p>
+          <FadeText
+            as="h1"
+            className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+          >
+            Welcome back
+          </FadeText>
+          <FadeText
+            as="p"
+            className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed"
+          >
+            Login to access your pro account
+          </FadeText>
         </div>
 
         {isPasswordReset && (
