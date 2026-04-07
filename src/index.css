@@ -71,76 +71,44 @@
   font-display: swap;
 }
 
-/* Aeonik Pro Font Family */
+/* Die Grotesk B Font Family */
 @font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-light.otf") format("opentype");
+  font-family: "Die Grotesk B";
+  src: url("/fonts/die-grotesk-b-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-regular.otf") format("opentype");
+  font-family: "Die Grotesk B";
+  src: url("/fonts/die-grotesk-b-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-medium.otf") format("opentype");
+  font-family: "Die Grotesk B";
+  src: url("/fonts/die-grotesk-b-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-semibold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-bold.otf") format("opentype");
+  font-family: "Die Grotesk B";
+  src: url("/fonts/die-grotesk-b-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-black.otf") format("opentype");
+  font-family: "Die Grotesk B";
+  src: url("/fonts/die-grotesk-b-black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-regular-italic.otf") format("opentype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-medium-italic.otf") format("opentype");
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url("/fonts/aeonik-pro-semibold-italic.otf") format("opentype");
-  font-weight: 600;
-  font-style: italic;
   font-display: swap;
 }
 
