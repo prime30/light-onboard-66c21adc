@@ -10,7 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TextSkeleton } from "../TextSkeleton";
+import { FadeText } from "../FadeText";
 import { useGlobalApp } from "@/contexts";
 import { TextInput } from "@/components/TextInput";
 import { useForm, UseFormRegister } from "react-hook-form";

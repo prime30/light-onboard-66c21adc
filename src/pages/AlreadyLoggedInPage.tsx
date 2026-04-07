@@ -1,6 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TextSkeleton } from "@/components/registration/TextSkeleton";
+import { FadeText } from "@/components/registration/FadeText";
 import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useModeContext } from "@/components/registration/context/ModeContext";
@@ -28,23 +28,19 @@ export const AlreadyLoggedInPage = () => {
 
       {/* Main Message */}
       <div className="space-y-[6px]">
-        <h1 className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">Already logged in</span>
-          ) : (
-            <TextSkeleton width="70%" height="1.1em" className="mx-auto" />
-          )}
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-md mx-auto">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">
-              You're already signed in to your account. You can close this window and start
-              shopping.
-            </span>
-          ) : (
-            <TextSkeleton width="85%" height="1em" className="mx-auto" />
-          )}
-        </p>
+        <FadeText
+          as="h1"
+          className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+        >
+          Already logged in
+        </FadeText>
+        <FadeText
+          as="p"
+          className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-md mx-auto"
+        >
+          You're already signed in to your account. You can close this window and start
+          shopping.
+        </FadeText>
       </div>
 
       {/* Close Button */}
