@@ -19,7 +19,6 @@ const TaxExemptionStep = lazy(() => import("@/components/registration/steps/TaxE
 const BusinessOperationStep = lazy(() => import("@/components/registration/steps/BusinessOperationStep").then(m => ({ default: m.BusinessOperationStep })));
 const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryForm").then(m => ({ default: m.SummaryForm })));
 const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
-import type { Step } from "@/types/auth";
 import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
 import { useGlobalApp, useUploadFile } from "@/contexts";
