@@ -428,21 +428,25 @@ const Auth = () => {
               fontsLoaded={fontsLoaded}
             />
           )}
-          {currentStep === "account-type" && <AccountTypeForm />}
-          {currentStep === "license" && <LicenseStep />}
-          {currentStep === "business-operation" && <BusinessOperationStep />}
-          {currentStep === "business-location" && <BusinessLocationStep />}
-          {currentStep === "school-info" && <SchoolInfoStep />}
-          {currentStep === "contact-basics" && <ContactBasicsStep />}
-          {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
-          {currentStep === "tax-exemption" && <TaxExemptionStep />}
-          {currentStep === "preferences" && <PreferencesStep />}
-          {currentStep === "summary" && <SummaryForm />}
-          {currentStep === "success" && (
-            <SuccessForm
-              referralSource={referralSource}
-              onReferralSourceChange={setReferralSource}
-            />
+          {currentStep !== "onboarding" && (
+            <Suspense fallback={<FormSkeleton variant={currentStep as any} />}>
+              {currentStep === "account-type" && <AccountTypeForm />}
+              {currentStep === "license" && <LicenseStep />}
+              {currentStep === "business-operation" && <BusinessOperationStep />}
+              {currentStep === "business-location" && <BusinessLocationStep />}
+              {currentStep === "school-info" && <SchoolInfoStep />}
+              {currentStep === "contact-basics" && <ContactBasicsStep />}
+              {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+              {currentStep === "tax-exemption" && <TaxExemptionStep />}
+              {currentStep === "preferences" && <PreferencesStep />}
+              {currentStep === "summary" && <SummaryForm />}
+              {currentStep === "success" && (
+                <SuccessForm
+                  referralSource={referralSource}
+                  onReferralSourceChange={setReferralSource}
+                />
+              )}
+            </Suspense>
           )}
         </div>
       </main>
