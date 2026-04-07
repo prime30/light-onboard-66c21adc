@@ -5,8 +5,6 @@ import { ReactNode, useState } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 import { useCustomerLogin } from "@/hooks/messages";
-import { useGlobalApp } from "@/contexts";
-import { AuthBootFallback } from "./AuthBootFallback";
 
 export type RegistrationLayoutOutletContext = {
   formProgress: number;
@@ -48,7 +46,6 @@ function RightPanel({ outletContext }: RightPanelProps) {
 export function RegistrationLayout() {
   const [formProgress, setFormProgress] = useState(0);
   const [middleComponent, setMiddleComponent] = useState<ReactNode>(null);
-  const { fontsLoaded } = useGlobalApp();
   useCustomerLogin();
 
   const outletContext: RegistrationLayoutOutletContext = {
@@ -60,15 +57,7 @@ export function RegistrationLayout() {
 
   return (
     <ModeProvider>
-      {!fontsLoaded && (
-        <div className="absolute inset-0 z-50">
-          <AuthBootFallback />
-        </div>
-      )}
-      <div
-        className="h-screen bg-background flex flex-col lg:flex-row overflow-hidden"
-        style={{ opacity: fontsLoaded ? 1 : 0 }}
-      >
+      <div className="h-screen bg-background flex flex-col lg:flex-row overflow-hidden">
         <LeftPanel formProgress={formProgress} />
         <RightPanel outletContext={outletContext} />
       </div>
