@@ -219,7 +219,7 @@ export const AccountTypeForm = () => {
   ];
 
   return (
-    <div className="space-y-5 sm:space-y-[30px]">
+    <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
       <AccountTypeConfirmationOverlay
         showAccountTypeConfirm={showAccountTypeConfirm}
         setShowAccountTypeConfirm={setShowAccountTypeConfirm}
@@ -228,7 +228,7 @@ export const AccountTypeForm = () => {
         executeAccountTypeSelect={executeAccountTypeSelect}
         accountType={accountType}
       />
-      <div className="space-y-[10px] text-center animate-stagger-1">
+      <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">

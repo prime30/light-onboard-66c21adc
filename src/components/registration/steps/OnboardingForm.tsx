@@ -391,7 +391,7 @@ export const OnboardingForm = ({
   isRestoring = false,
 }: OnboardingFormProps) => {
   return (
-    <div className="space-y-3 lg:space-y-8 relative">
+    <div className="space-y-3 lg:space-y-[clamp(15px,2.5vh,32px)] relative">
       {/* Restoring progress indicator */}
       {isRestoring && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
@@ -419,7 +419,7 @@ export const OnboardingForm = ({
       )}
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
-      <div className="hidden lg:block text-center space-y-3 animate-stagger-1">
+      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1">
         <FadeText
           as="h1"
           className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
@@ -476,7 +476,7 @@ export const OnboardingForm = ({
       </div>
 
       {/* Benefits highlight with animated counters */}
-      <div className="flex justify-center gap-6 pt-4 text-center animate-stagger-3">
+      <div className="flex justify-center gap-6 pt-[clamp(5px,1vh,16px)] text-center animate-stagger-3">
         <div>
           <div className="text-2xl font-semibold text-foreground">
             <AnimatedNumber value={50} suffix="%" delay={200} />
