@@ -5,8 +5,6 @@ import { ReactNode, useState } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 import { useCustomerLogin } from "@/hooks/messages";
-import { useGlobalApp } from "@/contexts";
-import { AuthBootFallback } from "./AuthBootFallback";
 
 export type RegistrationLayoutOutletContext = {
   formProgress: number;
