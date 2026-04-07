@@ -1,5 +1,5 @@
 import { useModeContext } from "@/components/registration/context/ModeContext";
-import { SignInForm } from "@/components/registration/steps";
+import { SignInForm } from "@/components/registration/steps/SignInForm";
 import { useEffect } from "react";
 
 export function LoginPage() {
