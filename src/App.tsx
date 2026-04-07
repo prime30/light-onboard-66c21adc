@@ -9,8 +9,10 @@ import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
 import { AuthBootFallback, GenericBootFallback } from "./components/registration/AuthBootFallback";
 import AuthPage from "./pages/AuthPage";
-import { LoginPage } from "./pages/LoginPage";
-import AlreadyLoggedInPage from "./pages/AlreadyLoggedInPage";
+
+// Lazy-load non-initial routes
+const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const AlreadyLoggedInPage = lazy(() => import("./pages/AlreadyLoggedInPage"));
 
 // Lazy-load route components to reduce initial bundle
 const Index = lazy(() => import("./pages/Index"));
