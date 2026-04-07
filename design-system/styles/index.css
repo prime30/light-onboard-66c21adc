@@ -9,10 +9,10 @@
 /* Termina Font Family — only medium (500) is used */
 @font-face {
   font-family: "Termina";
-  src: url("/fonts/termina-medium.otf") format("opentype");
+  src: url("/fonts/termina-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 /* Die Grotesk B Font Family */
