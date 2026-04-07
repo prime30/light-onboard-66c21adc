@@ -63,7 +63,7 @@ export const SuccessForm = ({ referralSource, onReferralSourceChange }: SuccessF
   ];
 
   return (
-    <div className="space-y-[25px] animate-fade-in text-center">
+    <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
       {/* Success Icon */}
       <div className="relative h-[130px] mb-5">
         <div className="absolute inset-0 flex items-center justify-center">
