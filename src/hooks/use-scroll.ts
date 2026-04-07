@@ -13,7 +13,7 @@ export function useScroll({ mainScrollRef }: UseScrollProps) {
   const [footerGradientOpacity, setFooterGradientOpacity] = useState(1);
 
   // Scroll hint reappear delay
-  const scrollHintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const el = mainScrollRef.current;
