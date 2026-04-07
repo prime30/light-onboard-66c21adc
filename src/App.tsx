@@ -48,11 +48,7 @@ const children: RouteObject[] = [
     children: [
       {
         path: "auth",
-        element: (
-          <Suspense fallback={<AuthBootFallback />}>
-            <AuthPage />
-          </Suspense>
-        ),
+        element: <AuthPage />,
       },
       {
         path: "login",
