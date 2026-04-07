@@ -175,7 +175,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
 export const SignInForm = () => {
   const navigate = useNavigate();
-  const { fontsLoaded, email } = useGlobalApp();
+  const { email } = useGlobalApp();
   const {
     register,
     watch,
