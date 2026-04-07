@@ -1,5 +1,5 @@
 import { BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
-import { TextSkeleton } from "./TextSkeleton";
+import { FadeText } from "./FadeText";
 import {
   CircularProgress,
   MagneticFeatureBox,
@@ -7,7 +7,6 @@ import {
   TestimonialCarousel,
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useGlobalApp } from "@/contexts";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
@@ -15,50 +14,44 @@ import salonHero from "@/assets/salon-hero.jpg";
 import { useModeContext } from "./context/ModeContext";
 
 export function SignInSlide() {
-  const { fontsLoaded } = useGlobalApp();
-
   return (
     <div className="flex flex-col gap-0 pb-0">
       <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
         <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
-        <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-          {fontsLoaded ? (
-            "Exclusively professional"
-          ) : (
-            <TextSkeleton width="120px" height="0.9em" variant="light" />
-          )}
-        </span>
+        <FadeText variant="light" className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
+          Exclusively professional
+        </FadeText>
       </div>
 
       <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
-        <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">Great to</span>
-          ) : (
-            <TextSkeleton width="50%" height="1em" variant="light" />
-          )}
-        </h2>
-        <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]">
-          {fontsLoaded ? (
-            <span className="animate-fade-in-text">See You Again</span>
-          ) : (
-            <TextSkeleton width="80%" height="1em" variant="light" />
-          )}
-        </h1>
+        <FadeText
+          as="h2"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]"
+        >
+          Great to
+        </FadeText>
+        <FadeText
+          as="h1"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]"
+        >
+          See You Again
+        </FadeText>
       </div>
 
-      <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap">
-        {fontsLoaded ? (
-          <span className="animate-fade-in-text">Your pro account is waiting for you</span>
-        ) : (
-          <TextSkeleton width="70%" height="0.9em" variant="light" />
-        )}
-      </p>
+      <FadeText
+        as="p"
+        variant="light"
+        className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap"
+      >
+        Your pro account is waiting for you
+      </FadeText>
       {/* Testimonial Carousel */}
       <div className="hidden xl:block">
         <TestimonialCarousel />
       </div>
-    </div> /* Sign-up content - Carousel slides */
+    </div>
   );
 }
 
@@ -67,8 +60,6 @@ type RegisterCarouselSlidesProps = {
 };
 
 export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesProps) {
-  const { fontsLoaded } = useGlobalApp();
-
   const slide = slides[currentSlide];
 
   return (
@@ -84,54 +75,42 @@ export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesP
           className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit opacity-0 animate-fade-in pl-[5px] md:pl-[10px]"
         >
           <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
-          <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-            {fontsLoaded ? (
-              slide.eyebrow
-            ) : (
-              <TextSkeleton width="100px" height="0.9em" variant="light" />
-            )}
-          </span>
+          <FadeText variant="light" className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
+            {slide.eyebrow}
+          </FadeText>
         </div>
 
         {/* Large Typography */}
         <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
-          <h2
+          <FadeText
+            as="h2"
+            variant="light"
             className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1] opacity-0 animate-fade-in"
-            style={{
-              animationDelay: "200ms",
-              animationFillMode: "forwards",
-            }}
           >
-            {fontsLoaded ? slide.title : <TextSkeleton width="60%" height="1em" variant="light" />}
-          </h2>
-          <h1
+            <span style={{ animationDelay: "200ms", animationFillMode: "forwards" }}>
+              {slide.title}
+            </span>
+          </FadeText>
+          <FadeText
+            as="h1"
+            variant="light"
             className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1] opacity-0 animate-fade-in"
-            style={{
-              animationDelay: "300ms",
-              animationFillMode: "forwards",
-            }}
           >
-            {fontsLoaded ? (
-              slide.highlight
-            ) : (
-              <TextSkeleton width="75%" height="1em" variant="light" />
-            )}
-          </h1>
+            <span style={{ animationDelay: "300ms", animationFillMode: "forwards" }}>
+              {slide.highlight}
+            </span>
+          </FadeText>
         </div>
 
-        <p
+        <FadeText
+          as="p"
+          variant="light"
           className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0 opacity-0 animate-fade-in"
-          style={{
-            animationDelay: "400ms",
-            animationFillMode: "forwards",
-          }}
         >
-          {fontsLoaded ? (
-            slide.description
-          ) : (
-            <TextSkeleton width="85%" height="0.9em" variant="light" />
-          )}
-        </p>
+          <span style={{ animationDelay: "400ms", animationFillMode: "forwards" }}>
+            {slide.description}
+          </span>
+        </FadeText>
       </div>
     </div>
   );
@@ -144,8 +123,6 @@ export type LeftPanelProps = {
 export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { mode } = useModeContext();
-
-  console.log("mode", mode);
 
   const goToNextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -188,7 +165,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             mode === "signup" ? "xl:pb-[180px]" : "xl:pb-[80px]"
           )}
         >
-          {mode === "signin" /* Sign-in content - Static, welcoming for returning users */ ? (
+          {mode === "signin" ? (
             <SignInSlide />
           ) : (
             <RegisterCarouselSlides currentSlide={currentSlide} />
