@@ -291,7 +291,7 @@ export const SignInForm = () => {
     <div className="max-w-[38rem] mx-auto w-full">
       <form
         key="sign-in"
-        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(15px,4vh,30px)]"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(10px,2.5vh,30px)]"
         onSubmit={onSubmit}
       >
         <div className="space-y-[6px]">
@@ -407,7 +407,7 @@ export const SignInForm = () => {
         </Button>
 
         {/* Divider */}
-        <div className="w-full flex items-center gap-4 my-6">
+        <div className="w-full flex items-center gap-4 my-[clamp(8px,1.5vh,24px)]">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           <span className="text-xs text-muted-foreground/50 uppercase tracking-wider">or</span>
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -428,7 +428,7 @@ export const SignInForm = () => {
         </div>
       </form>
 
-      <div className="flex items-center justify-center gap-2 sm:gap-3 mt-auto pt-16 pb-4 animate-stagger-4">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 mt-auto pt-[clamp(16px,3vh,64px)] pb-4 animate-stagger-4">
         <a
           href="#"
           onClick={() => navigator.vibrate?.(10)}

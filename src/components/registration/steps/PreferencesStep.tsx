@@ -77,8 +77,8 @@ export const PreferencesStep = () => {
   });
 
   return (
-    <div className="space-y-[25px]">
-      <div className="space-y-2.5 text-center animate-stagger-1">
+    <div className="space-y-[clamp(12px,2vh,25px)]">
+      <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <StepValidationIcon status={validationStatus} />
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
