@@ -9,7 +9,7 @@ export function useFontLoaded() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    const MAX_WAIT_MS = 2000;
+    const MAX_WAIT_MS = 1000;
     let finished = false;
 
     const finish = () => {
