@@ -29,9 +29,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <Suspense fallback={<GenericBootFallback />}>
-            <Outlet />
-          </Suspense>
+          <Outlet />
         </TooltipProvider>
       </UploadFileProvider>
     </QueryClientProvider>
@@ -41,7 +39,11 @@ const App = () => (
 const children: RouteObject[] = [
   {
     index: true,
-    Component: Index,
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <Index />
+      </Suspense>
+    ),
   },
   {
     Component: RegistrationLayout,
@@ -70,15 +72,27 @@ const children: RouteObject[] = [
   },
   {
     path: "reviews",
-    Component: Reviews,
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <Reviews />
+      </Suspense>
+    ),
   },
   {
     path: "blog/resale-license",
-    Component: BlogResaleLicense,
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <BlogResaleLicense />
+      </Suspense>
+    ),
   },
   {
     path: "*",
-    Component: NotFound,
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <NotFound />
+      </Suspense>
+    ),
   },
 ];
 
