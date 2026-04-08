@@ -391,7 +391,7 @@ export const OnboardingForm = ({
   isRestoring = false,
 }: OnboardingFormProps) => {
   return (
-    <div className="space-y-3 lg:space-y-[clamp(15px,2.5vh,32px)] relative">
+    <div className="space-y-3 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
       {/* Restoring progress indicator */}
       {isRestoring && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
@@ -419,7 +419,7 @@ export const OnboardingForm = ({
       )}
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
-      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1">
+      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1 lg:pb-0">
         <FadeText
           as="h1"
           className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
@@ -439,7 +439,7 @@ export const OnboardingForm = ({
       <MarqueeBadges />
 
       {/* Steps preview */}
-      <div className="grid gap-5 lg:gap-[clamp(16px,2.5vh,28px)]">
+      <div className="grid gap-5 lg:gap-[clamp(12px,2vh,24px)]">
         {[
           {
             label: "Tell us who you are",
@@ -470,7 +470,7 @@ export const OnboardingForm = ({
       </div>
 
       {/* Benefits highlight with animated counters */}
-      <div className="flex justify-center gap-6 pt-[clamp(5px,1vh,16px)] text-center animate-stagger-3">
+      <div className="flex justify-center gap-6 text-center animate-stagger-3">
         <div>
           <div className="text-2xl font-semibold text-foreground">
             <AnimatedNumber value={50} suffix="%" delay={200} />
@@ -500,7 +500,7 @@ export const OnboardingForm = ({
         <RotatingStylistAvatarsLight />
       </div>
 
-      <p className="text-xs text-muted-foreground text-center pt-2">
+      <p className="text-xs text-muted-foreground text-center">
         Already have an account?{" "}
         <button
           onClick={onSignIn}
