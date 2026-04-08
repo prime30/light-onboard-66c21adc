@@ -439,37 +439,31 @@ export const OnboardingForm = ({
       <MarqueeBadges />
 
       {/* Steps preview */}
-      <div className="grid gap-3">
+      <div className="grid gap-5 lg:gap-[clamp(16px,2.5vh,28px)]">
         {[
           {
-            icon: User,
             label: "Tell us who you are",
           },
           {
-            icon: FileCheck,
             label: "Provide your license number",
           },
           {
-            icon: Mail,
             label: "Follow post-approval instructions to finalize account",
           },
         ].map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-4 p-4 rounded-xl bg-muted border border-border/50 text-left opacity-0 animate-step-card-enter"
+            className="flex items-center gap-4 text-left opacity-0 animate-step-card-enter"
             style={{
               animationDelay: `${400 + i * 150}ms`,
               animationFillMode: "forwards",
             }}
           >
-            <div className="relative w-12 h-12 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
-              <item.icon className="w-5 h-5 text-foreground/70" />
-              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                <span className="text-[9px] font-semibold text-background">{i + 1}</span>
-              </div>
-            </div>
+            <span className="font-termina font-medium text-3xl lg:text-4xl text-foreground/20 tabular-nums leading-none flex-shrink-0 w-10 text-center">
+              {i + 1}
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground/80">{item.label}</p>
+              <p className="text-sm sm:text-base font-medium text-foreground/70">{item.label}</p>
             </div>
           </div>
         ))}
