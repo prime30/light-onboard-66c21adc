@@ -400,6 +400,7 @@ const Auth = () => {
           key={`${mode}-${currentStep}`}
           className={cn(
             "w-full max-w-[38rem]",
+            currentStep === "onboarding" && "lg:flex-1 lg:flex lg:flex-col lg:min-h-0",
             currentStep === "success"
               ? "animate-fade-in"
               : mode === "signin"
