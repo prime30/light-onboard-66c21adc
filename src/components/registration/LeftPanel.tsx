@@ -266,7 +266,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             {slides.map((_, i) => (
               <button
                 key={i}
-                onClick={() => changeSlide(i)}
+                onClick={() => changeSlide(i, i > currentSlide ? "left" : "right")}
                 className={cn(
                   "h-[5px] rounded-full transition-all duration-300",
                   i === currentSlide ? "w-10 bg-background" : "w-[5px] bg-background/20"
