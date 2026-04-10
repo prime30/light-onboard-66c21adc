@@ -7,7 +7,7 @@ import {
   TestimonialCarousel,
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
