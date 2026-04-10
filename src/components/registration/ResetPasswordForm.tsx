@@ -59,12 +59,13 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
       setFormState("success");
       sendMessage("PASSWORD_RESET_SUCCESS", { customerId });
     } else {
-      const { error: errorMsg, statusCode } = result;
+      const failResult = result as { error: string; statusCode: number };
+      const errorMsg = failResult.error || "";
       if (errorMsg.includes("expired")) {
         setFormState("expired");
       } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
         setFormState("invalid");
-      } else if (statusCode === 429) {
+      } else if (failResult.statusCode === 429) {
         setFormState("rate-limited");
       } else {
         setServerError(errorMsg);
