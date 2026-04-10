@@ -7,7 +7,7 @@ import {
   TestimonialCarousel,
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
@@ -126,55 +126,89 @@ export type LeftPanelProps = {
 
 export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [prevSlide, setPrevSlide] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
   const { mode } = useModeContext();
 
+  const changeSlide = useCallback((next: number) => {
+    setIsTransitioning(true);
+    setPrevSlide(currentSlide);
+    setCurrentSlide(next);
+    clearTimeout(transitionTimer.current);
+    transitionTimer.current = setTimeout(() => {
+      setPrevSlide(null);
+      setIsTransitioning(false);
+    }, 600);
+  }, [currentSlide]);
+
+  useEffect(() => () => clearTimeout(transitionTimer.current), []);
+
   const goToNextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  }, []);
+    changeSlide((currentSlide + 1) % slides.length);
+  }, [currentSlide, changeSlide]);
   const goToPrevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  }, []);
+    changeSlide((currentSlide - 1 + slides.length) % slides.length);
+  }, [currentSlide, changeSlide]);
+
+  const renderSlideLayer = (slideIndex: number, isCurrent: boolean) => (
+    <div
+      key={`slide-${slideIndex}`}
+      className="absolute inset-0"
+      style={{
+        opacity: isCurrent ? 1 : 0,
+        transition: "opacity 0.6s ease-in-out",
+        zIndex: isCurrent ? 2 : 1,
+      }}
+    >
+      <img
+        src={slideImages[slideIndex] || salonHero}
+        alt="Professional salon"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+      <div
+        className="absolute inset-0 opacity-[0.1]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+    </div>
+  );
 
   return (
     <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
-      {/* Sliding Background + Content Container */}
-      <div
-        key={mode === "signin" ? "signin-panel" : currentSlide}
-        className="absolute inset-0"
-        style={{
-          animation: "slideIn 0.5s ease-out forwards",
-        }}
-      >
-        {/* Hero image background */}
-        <img
-          src={mode === "signin" ? salonHero : slideImages[currentSlide] || salonHero}
-          alt="Professional salon"
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
-
-        {/* Noise texture */}
-        <div
-          className="absolute inset-0 opacity-[0.1]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* Content - Different for sign-in vs sign-up */}
-        <div
-          className={cn(
-            "absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px]",
-            mode === "signup" ? "xl:pb-[180px]" : "xl:pb-[80px]"
-          )}
-        >
-          {mode === "signin" ? (
-            <SignInSlide />
-          ) : (
-            <RegisterCarouselSlides currentSlide={currentSlide} />
-          )}
+      {/* Background layers — crossfade */}
+      {mode === "signin" ? (
+        <div className="absolute inset-0">
+          <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+          <div
+            className="absolute inset-0 opacity-[0.1]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            }}
+          />
         </div>
+      ) : (
+        <>
+          {prevSlide !== null && renderSlideLayer(prevSlide, false)}
+          {renderSlideLayer(currentSlide, true)}
+        </>
+      )}
+
+      {/* Content overlay */}
+      <div
+        className={cn(
+          "absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px] z-[3]",
+          mode === "signup" ? "xl:pb-[180px]" : "xl:pb-[80px]"
+        )}
+      >
+        {mode === "signin" ? (
+          <SignInSlide />
+        ) : (
+          <RegisterCarouselSlides currentSlide={currentSlide} />
+        )}
       </div>
 
       {/* Feature Pills - Fixed (do not re-animate on carousel) */}
@@ -212,7 +246,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             {slides.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setCurrentSlide(i)}
+                onClick={() => changeSlide(i)}
                 className={cn(
                   "h-[5px] rounded-full transition-all duration-300",
                   i === currentSlide ? "w-10 bg-background" : "w-[5px] bg-background/20"
