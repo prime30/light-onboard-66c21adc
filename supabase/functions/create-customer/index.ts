@@ -198,6 +198,7 @@ type CustomerCreateInput = {
   accepts_marketing?: boolean;
   subscribe_order_updates?: boolean;
   social_media_handle?: string;
+  referral_source?: string;
 };
 
 const defaultCustomerCreateInput: Partial<CustomerCreateInput> = {
@@ -420,6 +421,10 @@ Deno.serve(async (req: Request) => {
     customerCreateInput.proof_file_2 = files?.[1];
     customerCreateInput.proof_file_3 = files?.[2];
   } else if (customer.account_type === "student") {
+    customerCreateInput.default_address = {
+      phone: formatPhoneNumber(customer.phone_country_code, customer.phone_number),
+    };
+
     customerCreateInput.school_name = customer.school_name;
     customerCreateInput.school_state = customer.school_state;
 

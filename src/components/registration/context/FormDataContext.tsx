@@ -43,6 +43,7 @@ export type FormDataContextType = {
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
+  createdHeliumId: string | null;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -79,6 +80,7 @@ export function FormDataProvider({
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
   >([]);
+  const [createdHeliumId, setCreatedHeliumId] = useState<string | null>(null);
 
   const {
     register,
@@ -128,6 +130,10 @@ export function FormDataProvider({
           message: result.error,
         });
         throw new Error(result.error);
+      }
+
+      if (result.data?.customer?.id) {
+        setCreatedHeliumId(result.data.customer.id);
       }
 
       return result.data;
@@ -266,6 +272,7 @@ export function FormDataProvider({
     isSubmitSuccessful,
     isSubmitting,
     errorActions,
+    createdHeliumId,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;
