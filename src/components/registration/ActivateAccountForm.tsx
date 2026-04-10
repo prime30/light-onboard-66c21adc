@@ -58,7 +58,7 @@ export function ActivateAccountForm({ token, customerId }: ActivateAccountFormPr
     if (result.success) {
       setFormState("success");
       sendMessage("ACCOUNT_ACTIVATED", { customerId });
-    } else {
+    } else if (!result.success) {
       const errorMsg = result.error || "";
       if (errorMsg.includes("already been activated") || errorMsg.includes("already active")) {
         setFormState("already-active");

@@ -58,7 +58,7 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     if (result.success) {
       setFormState("success");
       sendMessage("PASSWORD_RESET_SUCCESS", { customerId });
-    } else {
+    } else if (!result.success) {
       const errorMsg = result.error || "";
       if (errorMsg.includes("expired")) {
         setFormState("expired");
