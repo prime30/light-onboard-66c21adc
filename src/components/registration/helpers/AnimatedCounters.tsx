@@ -112,20 +112,18 @@ export const OdometerCounter = ({
   return (
     <span
       className={cn(
-        "text-xs tabular-nums transition-all duration-300",
+        "text-xs tabular-nums transition-all duration-300 inline-flex items-baseline",
         textColor,
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
     >
       {formattedPrefix}
       <span
-        className="inline-block overflow-hidden"
+        className="inline-block overflow-hidden text-center"
         style={{
-          height: "1em",
-          width: "0.6em",
-          verticalAlign: "text-bottom",
-          position: "relative",
-          top: "0.02em",
+          height: "1.1em",
+          width: "0.65em",
+          verticalAlign: "baseline",
         }}
       >
         <span
@@ -136,25 +134,23 @@ export const OdometerCounter = ({
           }
           style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
             {isTensRolling ? prevTens : tens}
           </span>
-          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
             {tens}
           </span>
         </span>
       </span>
       <span
         className={cn(
-          "inline-block overflow-hidden transition-all duration-300",
+          "inline-block overflow-hidden text-center transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
         style={{
-          height: "1em",
-          width: "0.6em",
-          verticalAlign: "text-bottom",
-          position: "relative",
-          top: "0.02em",
+          height: "1.1em",
+          width: "0.65em",
+          verticalAlign: "baseline",
         }}
       >
         <span
@@ -163,10 +159,10 @@ export const OdometerCounter = ({
           }
           style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
             {isRolling ? prevOnes : ones}
           </span>
-          <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
             {ones}
           </span>
         </span>
