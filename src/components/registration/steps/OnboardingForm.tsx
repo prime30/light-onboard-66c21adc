@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Link } from "react-router";
 import { User, FileCheck, Mail, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
@@ -386,6 +387,7 @@ interface OnboardingFormProps {
 }
 
 export const OnboardingForm = ({
+  onContinue,
   onSignIn,
   fontsLoaded = true,
   isRestoring = false,
