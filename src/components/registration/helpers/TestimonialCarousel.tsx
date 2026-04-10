@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const INTERVAL_MS = 5000;
@@ -44,7 +44,6 @@ export const TestimonialCarousel = () => {
   const [dragOffset, setDragOffset] = useState(0);
   // Incrementing this key restarts the CSS progress animation on the active dot
   const [timerKey, setTimerKey] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const advance = useCallback((dir: 1 | -1 = 1) => {
     setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
@@ -73,12 +72,18 @@ export const TestimonialCarousel = () => {
   };
 
   const handleDragEnd = () => {
-    if (!isDragging) return;
-    const threshold = 50;
-    if (dragOffset > threshold) advance(-1);
-    else if (dragOffset < -threshold) advance(1);
-    setIsDragging(false);
-    setDragOffset(0);
+    if (isDragging) {
+      const threshold = 50;
+      if (dragOffset > threshold) advance(-1);
+      else if (dragOffset < -threshold) advance(1);
+      setIsDragging(false);
+      setDragOffset(0);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    handleDragEnd();
+    setIsPaused(false);
   };
 
   const testimonial = testimonials[currentIndex];
@@ -86,14 +91,12 @@ export const TestimonialCarousel = () => {
   return (
     <div className="space-y-4">
       <div
-        ref={containerRef}
         className="cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onMouseDown={(e) => handleDragStart(e.clientX)}
         onMouseMove={(e) => handleDragMove(e.clientX)}
         onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
         onMouseEnter={() => setIsPaused(true)}
-        onMouseOut={() => setIsPaused(false)}
+        onMouseLeave={handleMouseLeave}
         onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
         onTouchEnd={handleDragEnd}
