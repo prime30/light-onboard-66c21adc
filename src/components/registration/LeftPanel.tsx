@@ -127,58 +127,67 @@ export type LeftPanelProps = {
 export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [prevSlide, setPrevSlide] = useState<number | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
   const { mode } = useModeContext();
 
-  const changeSlide = useCallback((next: number) => {
-    setIsTransitioning(true);
+  const changeSlide = useCallback((next: number, direction: "left" | "right" = "left") => {
+    if (next === currentSlide) return;
+    setSlideDirection(direction);
     setPrevSlide(currentSlide);
     setCurrentSlide(next);
     clearTimeout(transitionTimer.current);
     transitionTimer.current = setTimeout(() => {
       setPrevSlide(null);
-      setIsTransitioning(false);
-    }, 600);
+    }, 650);
   }, [currentSlide]);
 
   useEffect(() => () => clearTimeout(transitionTimer.current), []);
 
   const goToNextSlide = useCallback(() => {
-    changeSlide((currentSlide + 1) % slides.length);
+    changeSlide((currentSlide + 1) % slides.length, "left");
   }, [currentSlide, changeSlide]);
   const goToPrevSlide = useCallback(() => {
-    changeSlide((currentSlide - 1 + slides.length) % slides.length);
+    changeSlide((currentSlide - 1 + slides.length) % slides.length, "right");
   }, [currentSlide, changeSlide]);
 
-  const renderSlideLayer = (slideIndex: number, isCurrent: boolean) => (
-    <div
-      key={`slide-${slideIndex}`}
-      className="absolute inset-0"
-      style={{
-        opacity: isCurrent ? 1 : 0,
-        transition: "opacity 0.6s ease-in-out",
-        zIndex: isCurrent ? 2 : 1,
-      }}
-    >
-      <img
-        src={slideImages[slideIndex] || salonHero}
-        alt="Professional salon"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+  const renderSlideLayer = (slideIndex: number, isCurrent: boolean) => {
+    const translateFrom = slideDirection === "left" ? "100%" : "-100%";
+
+    return (
       <div
-        className="absolute inset-0 opacity-[0.1]"
+        key={`slide-${slideIndex}-${isCurrent ? "current" : "prev"}`}
+        className="absolute inset-[10px] rounded-[15px] overflow-hidden"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          transform: isCurrent ? "translateX(0)" : undefined,
+          animation: isCurrent ? `carousel-slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards` : undefined,
+          zIndex: isCurrent ? 2 : 1,
+          ["--slide-from" as string]: translateFrom,
         }}
-      />
-    </div>
-  );
+      >
+        <img
+          src={slideImages[slideIndex] || salonHero}
+          alt="Professional salon"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ margin: "-10px", width: "calc(100% + 20px)", height: "calc(100% + 20px)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+        <div
+          className="absolute inset-0 opacity-[0.1]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
+    );
+  };
+
+  // Static base layer (always visible behind sliding panels)
+  const baseSlideIndex = prevSlide !== null ? prevSlide : currentSlide;
 
   return (
     <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
-      {/* Background layers — crossfade */}
+      {/* Background layers */}
       {mode === "signin" ? (
         <div className="absolute inset-0">
           <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
@@ -192,8 +201,19 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         </div>
       ) : (
         <>
-          {prevSlide !== null && renderSlideLayer(prevSlide, false)}
-          {renderSlideLayer(currentSlide, true)}
+          {/* Static base — the outgoing slide, full bleed */}
+          <div className="absolute inset-0">
+            <img src={slideImages[baseSlideIndex] || salonHero} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+            <div
+              className="absolute inset-0 opacity-[0.1]"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              }}
+            />
+          </div>
+          {/* Incoming slide — slides over with rounded edges */}
+          {prevSlide !== null && renderSlideLayer(currentSlide, true)}
         </>
       )}
 
