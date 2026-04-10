@@ -63,9 +63,8 @@ type RegisterCarouselSlidesProps = {
   currentSlide: number;
 };
 
-export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesProps & { isInitial?: boolean }) {
+export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesProps) {
   const slide = slides[currentSlide];
-  const skipEntrance = currentSlide === 0;
 
   return (
     <div className="flex flex-col gap-0 pb-[20px]">
