@@ -72,14 +72,7 @@ export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesP
       <div key={currentSlide}>
         {/* Eyebrow */}
         <div
-          style={skipEntrance ? undefined : {
-            animationDelay: "100ms",
-            animationFillMode: "forwards",
-          }}
-          className={cn(
-            "inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]",
-            !skipEntrance && "opacity-0 animate-fade-in"
-          )}
+          className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]"
         >
           <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
           <FadeText variant="light" className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
@@ -92,40 +85,25 @@ export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesP
           <FadeText
             as="h2"
             variant="light"
-            className={cn(
-              "font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]",
-              !skipEntrance && "opacity-0 animate-fade-in"
-            )}
+            className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]"
           >
-            <span style={skipEntrance ? undefined : { animationDelay: "200ms", animationFillMode: "forwards" }}>
-              {slide.title}
-            </span>
+            {slide.title}
           </FadeText>
           <FadeText
             as="h1"
             variant="light"
-            className={cn(
-              "font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]",
-              !skipEntrance && "opacity-0 animate-fade-in"
-            )}
+            className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]"
           >
-            <span style={skipEntrance ? undefined : { animationDelay: "300ms", animationFillMode: "forwards" }}>
-              {slide.highlight}
-            </span>
+            {slide.highlight}
           </FadeText>
         </div>
 
         <FadeText
           as="p"
           variant="light"
-          className={cn(
-            "text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0",
-            !skipEntrance && "opacity-0 animate-fade-in"
-          )}
+          className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0"
         >
-          <span style={skipEntrance ? undefined : { animationDelay: "400ms", animationFillMode: "forwards" }}>
-            {slide.description}
-          </span>
+          {slide.description}
         </FadeText>
       </div>
     </div>
