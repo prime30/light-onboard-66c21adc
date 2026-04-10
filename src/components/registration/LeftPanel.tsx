@@ -147,9 +147,9 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       >
         {/* Hero image background */}
         <img
-          src={salonHero}
-          alt="Professional salon interior"
-          className="absolute inset-0 w-full h-full object-cover"
+          src={mode === "signin" ? salonHero : slideImages[currentSlide] || salonHero}
+          alt="Professional salon"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
