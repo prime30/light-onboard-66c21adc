@@ -153,6 +153,7 @@ export const BusinessLocationStep = () => {
             label="Business or salon name*"
             isValid={getValidationStatus("businessName") === "complete"}
             prefixIcon={<BusinessNamePrefixIcon error={!!errors.businessName} />}
+            autoComplete="organization"
           />
         </div>
 
@@ -213,6 +214,7 @@ export const BusinessLocationStep = () => {
             error={errors.suiteNumber}
             placeholder="Suite, Unit, Apt #"
             label="Suite/Unit # (optional)"
+            autoComplete="address-line2"
           />
         </div>
 
@@ -239,6 +241,7 @@ export const BusinessLocationStep = () => {
             placeholder="City"
             label="City*"
             isValid={getValidationStatus("city") === "complete"}
+            autoComplete="address-level2"
           />
 
           {/* State/Province - Custom implementation for state icon */}
@@ -286,6 +289,7 @@ export const BusinessLocationStep = () => {
             placeholder={selectedCountry?.postalCodeLabel || "Zip/Postal code"}
             label={`${selectedCountry?.postalCodeLabel || "Zip/Postal code"}*`}
             isValid={getValidationStatus("zipCode") === "complete"}
+            autoComplete="postal-code"
           />
         </div>
       </div>

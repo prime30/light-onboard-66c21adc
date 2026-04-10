@@ -113,6 +113,7 @@ export const ContactBasicsStep = () => {
             error={errors.firstName}
             placeholder="Legal first name"
             label="Legal First Name*"
+            autoComplete="given-name"
           />
           <TextInput
             name={"lastName"}
@@ -121,6 +122,7 @@ export const ContactBasicsStep = () => {
             error={errors.lastName}
             placeholder="Legal last name"
             label="Legal Last Name*"
+            autoComplete="family-name"
           />
         </div>
 
@@ -132,6 +134,7 @@ export const ContactBasicsStep = () => {
             register={register}
             error={errors.preferredName}
             placeholder="Preferred name"
+            autoComplete="nickname"
             label={
               <>
                 Preferred name{" "}
@@ -152,6 +155,7 @@ export const ContactBasicsStep = () => {
             error={errors.email}
             placeholder="your@email"
             label="Email*"
+            autoComplete="email"
             isValid={getValidationStatus("email") === "complete"}
             prefixIcon={<EmailPrefixIcon emailError={!!errors.email} />}
           />
@@ -187,6 +191,7 @@ export const ContactBasicsStep = () => {
                 register={register}
                 error={errors.phoneNumber}
                 placeholder="(555) 123-4567"
+                autoComplete="tel-national"
                 isValid={getValidationStatus("phoneNumber") === "complete"}
                 prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
                 onBlur={(event) => {

@@ -241,6 +241,7 @@ export const SignInForm = () => {
             onBlur={onEmailBlur}
             value={watch("email")}
             error={errors.email}
+            autoComplete="username"
             label={
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
                 Email address
@@ -324,6 +325,7 @@ export const SignInForm = () => {
             onChange={onEmailChange}
             onBlur={onEmailBlur}
             value={watch("email")}
+            autoComplete="username"
             label={
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.1em] label-float transition-all duration-300 group-focus-within:text-foreground text-left block">
                 Email address
@@ -341,6 +343,7 @@ export const SignInForm = () => {
             name="password"
             type="password"
             placeholder="••••••••"
+            autoComplete="current-password"
             register={register}
             error={errors.password}
             label={
