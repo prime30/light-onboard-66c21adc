@@ -25,7 +25,7 @@ function DarkBlock({ width, height, radius = "999px", opacity = 1 }: BlockProps)
         borderRadius: radius,
         opacity,
         background:
-          "linear-gradient(90deg, hsla(28, 18%, 84%, 0.55) 0%, hsla(28, 18%, 92%, 0.92) 50%, hsla(28, 18%, 84%, 0.55) 100%)",
+          "linear-gradient(90deg, hsl(var(--muted) / 0.72) 0%, hsl(var(--background) / 0.96) 50%, hsl(var(--muted) / 0.72) 100%)",
         backgroundSize: "200% 100%",
         animation: "auth-boot-shimmer 1.25s linear infinite",
       }}
@@ -117,7 +117,7 @@ export function GenericBootFallback() {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        background: "hsl(36 33% 96%)",
+        background: "hsl(var(--background))",
         padding: "24px",
       }}
     >
