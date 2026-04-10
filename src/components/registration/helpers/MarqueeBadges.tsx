@@ -25,15 +25,15 @@ const BadgeItem = ({ badge, badgeKey, intensity }: BadgeItemProps) => {
   return (
     <div
       data-badge={badgeKey}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-green-500/10 border-green-500/30"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-status-green/10 border-status-green/30"
       style={{
         filter: `grayscale(${grayscaleAmount})`,
         opacity: 0.5 + intensity * 0.5,
         transition: "filter 0.2s ease-out, opacity 0.2s ease-out",
       }}
     >
-      <Icon className="w-3 h-3 flex-shrink-0 text-green-600" />
-      <span className="text-[11px] whitespace-nowrap text-green-700 font-medium">
+      <Icon className="w-3 h-3 flex-shrink-0 text-status-green" />
+      <span className="text-[11px] whitespace-nowrap text-status-green font-medium">
         {badge.label}
       </span>
     </div>

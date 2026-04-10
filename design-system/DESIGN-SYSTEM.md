@@ -21,56 +21,46 @@ Complete reference for the design system tokens, components, and utilities.
 
 ### Font Families
 
-| Token          | Font       | Usage              |
-| -------------- | ---------- | ------------------ |
-| `font-sans`    | Aeonik Pro | Default body text  |
-| `font-aeonik`  | Aeonik Pro | Body, UI elements  |
-| `font-termina` | Termina    | Headlines, display |
-| `font-display` | Aeonik Pro | Alternate display  |
+| Token          | Font          | Usage                        |
+| -------------- | ------------- | ---------------------------- |
+| `font-sans`    | Die Grotesk B | Default body text            |
+| `font-grotesk` | Die Grotesk B | Body, UI elements (explicit) |
+| `font-termina` | Termina       | Headlines, display           |
+| `font-display` | Die Grotesk B | Alternate display            |
 
 ### Termina Weights
 
-| Weight | Class             | File                   |
-| ------ | ----------------- | ---------------------- |
-| 100    | `font-thin`       | termina-thin.otf       |
-| 200    | `font-extralight` | termina-extralight.otf |
-| 300    | `font-light`      | termina-light.otf      |
-| 400    | `font-normal`     | termina-regular.otf    |
-| 500    | `font-medium`     | termina-medium.otf     |
-| 600    | `font-semibold`   | termina-demi.otf       |
-| 700    | `font-bold`       | termina-bold.otf       |
-| 800    | `font-extrabold`  | termina-heavy.otf      |
-| 900    | `font-black`      | termina-black.otf      |
+Only medium (500) is loaded. Use `font-medium` with `font-termina`.
 
-### Aeonik Pro Weights
+| Weight | Class         | File                    |
+| ------ | ------------- | ----------------------- |
+| 500    | `font-medium` | termina-medium.woff2    |
 
-| Weight     | Class                  | File                           |
-| ---------- | ---------------------- | ------------------------------ |
-| 300        | `font-light`           | aeonik-pro-light.otf           |
-| 400        | `font-normal`          | aeonik-pro-regular.otf         |
-| 400 italic | `font-normal italic`   | aeonik-pro-regular-italic.otf  |
-| 500        | `font-medium`          | aeonik-pro-medium.otf          |
-| 500 italic | `font-medium italic`   | aeonik-pro-medium-italic.otf   |
-| 600        | `font-semibold`        | aeonik-pro-semibold.otf        |
-| 600 italic | `font-semibold italic` | aeonik-pro-semibold-italic.otf |
-| 700        | `font-bold`            | aeonik-pro-bold.otf            |
-| 900        | `font-black`           | aeonik-pro-black.otf           |
+### Die Grotesk B Weights
+
+| Weight | Class         | File                            |
+| ------ | ------------- | ------------------------------- |
+| 300    | `font-light`  | die-grotesk-b-light.woff2       |
+| 400    | `font-normal` | die-grotesk-b-regular.woff2     |
+| 500    | `font-medium` | die-grotesk-b-medium.woff2      |
+| 700    | `font-bold`   | die-grotesk-b-bold.woff2        |
+| 900    | `font-black`  | die-grotesk-b-black.woff2       |
 
 ### Usage
 
 ```tsx
-// Headlines
-<h1 className="font-termina text-4xl font-bold tracking-tight">
+// Headlines (Termina display)
+<h1 className="font-termina font-medium uppercase text-4xl tracking-tight">
   Display Headline
 </h1>
 
-// Body
-<p className="font-aeonik text-base leading-relaxed">
+// Body (Die Grotesk B — applied globally, no class needed)
+<p className="text-base leading-relaxed">
   Body text content...
 </p>
 
-// UI labels
-<span className="font-aeonik text-sm font-medium uppercase tracking-wide">
+// UI labels (explicit grotesk)
+<span className="font-grotesk text-sm font-medium uppercase tracking-wide">
   Label
 </span>
 ```

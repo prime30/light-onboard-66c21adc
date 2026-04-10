@@ -15,13 +15,13 @@ function BusinessNamePrefixIcon({ error }: { error: boolean }) {
   return (
     <div
       className={cn(
-        "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+        "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground/10",
         error ? "bg-destructive/10" : "bg-muted"
       )}
     >
       <Building2
         className={cn(
-          "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+          "w-[15px] h-[15px] group-focus-within:text-foreground transition-all duration-300 icon-haptic",
           error ? "text-destructive" : "text-muted-foreground"
         )}
       />
@@ -33,13 +33,13 @@ function AddressPrefixIcon({ error }: { error: boolean }) {
   return (
     <div
       className={cn(
-        "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground group-focus-within:shadow-lg group-focus-within:shadow-foreground/10",
+        "absolute left-[15px] top-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-form-sm flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground/10",
         error ? "bg-destructive/10" : "bg-muted"
       )}
     >
       <MapPin
         className={cn(
-          "w-[15px] h-[15px] group-focus-within:text-background transition-all duration-300 icon-haptic",
+          "w-[15px] h-[15px] group-focus-within:text-foreground transition-all duration-300 icon-haptic",
           error ? "text-destructive" : "text-muted-foreground"
         )}
       />

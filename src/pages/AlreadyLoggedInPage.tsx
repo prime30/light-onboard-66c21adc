@@ -22,8 +22,8 @@ export const AlreadyLoggedInPage = () => {
   return (
     <div className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pt-[clamp(60px,12vh,120px)] pb-10 lg:pb-5 text-center space-y-[clamp(20px,5vh,40px)] min-h-screen">
       {/* Success Icon */}
-      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center mb-4">
-        <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" />
+      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-status-green/20 to-status-green/30 flex items-center justify-center mb-4">
+        <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-status-green" />
       </div>
 
       {/* Main Message */}

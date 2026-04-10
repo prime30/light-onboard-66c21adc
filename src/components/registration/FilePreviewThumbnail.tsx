@@ -58,7 +58,7 @@ export function FilePreviewThumbnail({
           </div>
         </>
       ) : isPdf ? (
-        <FileText className={cn("text-red-500", iconSizes[size])} />
+        <FileText className={cn("text-destructive", iconSizes[size])} />
       ) : (
         <FileCheck className={cn("text-muted-foreground", iconSizes[size])} />
       )}

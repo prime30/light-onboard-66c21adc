@@ -201,7 +201,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
               if (hasError)
                 return "bg-[hsl(0_84%_80%)] dark:bg-[hsl(0_60%_30%)] text-[hsl(0_84%_35%)] dark:text-[hsl(0_84%_75%)]";
               if (validationStatus === "in-progress")
-                return "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300";
+                return "bg-muted-foreground/25 text-muted-foreground";
               return "bg-border/60 text-muted-foreground";
             };
 

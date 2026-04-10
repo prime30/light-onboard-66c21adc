@@ -59,7 +59,7 @@ export function SelectInput<TFieldValues extends FieldValues = FieldValues>({
             >
               <SelectTrigger
                 className={cn(
-                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
+                  "h-input rounded-form bg-muted border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300",
                   error && "border-destructive/50 bg-destructive/5"
                 )}
               >

@@ -47,7 +47,7 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           onChange={onChange}
           {...(register ? register(name, { valueAsNumber }) : {})}
           className={cn(
-            "h-input rounded-form bg-muted border-border/50 focus:border-foreground/30 focus:bg-background transition-all duration-300 focus:shadow-input-focus",
+            "h-input rounded-form bg-muted border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300",
             prefixIcon && "pl-14",
             error && "border-destructive/50 bg-destructive/5"
           )}

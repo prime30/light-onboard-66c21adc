@@ -247,8 +247,8 @@ export const SignInForm = () => {
               </span>
             }
             prefixIcon={
-              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-foreground transition-all duration-300 icon-haptic" />
               </div>
             }
             className="[&>div.input-glow]:input-ultra"
@@ -310,7 +310,7 @@ export const SignInForm = () => {
         </div>
 
         {isPasswordReset && (
-          <div className="text-green-600 text-sm text-left py-2 px-3 rounded-form bg-green-50 border border-green-200 w-full">
+          <div className="text-status-green text-sm text-left py-2 px-3 rounded-form bg-status-green/10 border border-status-green/30 w-full">
             Password reset email sent! Check your email for a link to reset your password.
           </div>
         )}
@@ -330,8 +330,8 @@ export const SignInForm = () => {
               </span>
             }
             prefixIcon={
-              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground/10">
+                <Mail className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-foreground transition-all duration-300 icon-haptic" />
               </div>
             }
             className="[&>div.input-glow]:input-ultra"
@@ -349,8 +349,8 @@ export const SignInForm = () => {
               </span>
             }
             prefixIcon={
-              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center transition-all duration-500 group-focus-within:from-foreground group-focus-within:to-foreground/80 group-focus-within:shadow-lg group-focus-within:shadow-foreground/10">
-                <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-background transition-all duration-300 icon-haptic" />
+              <div className="absolute left-[15px] top-1/2 -translate-y-1/2 w-[35px] h-[35px] rounded-md bg-muted flex items-center justify-center transition-all duration-300 group-focus-within:bg-foreground/10">
+                <Lock className="w-[15px] h-[15px] text-muted-foreground group-focus-within:text-foreground transition-all duration-300 icon-haptic" />
               </div>
             }
             className="[&>div.input-glow]:input-ultra"

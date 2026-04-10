@@ -236,7 +236,7 @@ export function AuthFooter({
                               {missingFields.map((field) => (
                                 <span
                                   key={field}
-                                  className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-medium"
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
                                 >
                                   {field}
                                 </span>
