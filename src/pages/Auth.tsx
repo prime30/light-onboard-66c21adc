@@ -345,6 +345,8 @@ const Auth = () => {
               <img
                 src={salonHero}
                 alt="Professional salon"
+                width={608}
+                height={730}
                 className="absolute inset-0 w-full h-[120%] object-cover rounded-[20px] sm:rounded-[24px] transition-transform duration-100 ease-out"
                 style={{ transform: `translateY(-${Math.min(parallaxOffset, 30)}px)` }}
               />
