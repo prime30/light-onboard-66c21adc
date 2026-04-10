@@ -241,6 +241,7 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ValidFieldNames = KeysOfUnion<RegistrationFormData>;
 
 export const defaultValues: Partial<RegistrationFormData> = {
+  accountType: "professional",
   phoneCountryCode: "us",
   countryCode: "US",
   subscribeOrderUpdates: true,
