@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   FileCheck,
   Check,
-  ArrowUpRight,
 } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";

@@ -1,19 +1,175 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { Check, ShoppingBag, Heart, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
+import {
+  AddToCartStatusData,
+  createAddToCartRequestId,
+  useIframeCartBridge,
+} from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface SuccessFormProps {}
+type AtcStatus = "idle" | "submitting" | "success" | "error";
+type AtcState = {
+  byRequestId: Record<
+    string,
+    {
+      status: AtcStatus;
+      message?: string;
+      id?: number;
+      quantity?: number;
+      updatedAt: number;
+    }
+  >;
+};
+type AtcAction =
+  | {
+      type: "ATC_STATUS";
+      payload: {
+        requestId: string;
+        status: "submitting" | "success" | "error";
+        message?: string;
+        id?: number;
+        quantity?: number;
+      };
+    }
+  | { type: "ATC_CLEANUP_OLDER_THAN"; payload: { maxAgeMs: number; now: number } };
 
-export const SuccessForm = (_props: SuccessFormProps) => {
+const initialAtcState: AtcState = { byRequestId: {} };
+
+function atcReducer(state: AtcState, action: AtcAction): AtcState {
+  switch (action.type) {
+    case "ATC_STATUS": {
+      const { requestId, status, message, id, quantity } = action.payload;
+      return {
+        ...state,
+        byRequestId: {
+          ...state.byRequestId,
+          [requestId]: {
+            status,
+            message,
+            id,
+            quantity,
+            updatedAt: Date.now(),
+          },
+        },
+      };
+    }
+    case "ATC_CLEANUP_OLDER_THAN": {
+      const next: AtcState["byRequestId"] = {};
+      const cutoff = action.payload.now - action.payload.maxAgeMs;
+      for (const [requestId, value] of Object.entries(state.byRequestId)) {
+        if (value.updatedAt >= cutoff) {
+          next[requestId] = value;
+        }
+      }
+      return { ...state, byRequestId: next };
+    }
+    default:
+      return state;
+  }
+}
+
+export const SuccessForm = () => {
   const countdown = useCountdown(48);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const [atcState, dispatch] = useReducer(atcReducer, initialAtcState);
 
-  const handleAddToCart = () => {
-    setIsAddingToCart(true);
-  };
+  const colorRingVariantId = useMemo(() => {
+    const parsed = Number(import.meta.env.VITE_COLOR_RING_VARIANT_ID ?? "");
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return Math.floor(parsed);
+  }, []);
+
+  const handleAddToCartStatus = useCallback((status: AddToCartStatusData) => {
+    if (!status.requestId) return;
+
+    dispatch({
+      type: "ATC_STATUS",
+      payload: {
+        requestId: status.requestId,
+        status: status.status,
+        message: status.status === "error" ? status.message : undefined,
+        id: status.status === "success" ? status.id : undefined,
+        quantity: status.status === "success" ? status.quantity : undefined,
+      },
+    });
+  }, []);
+
+  const { isInIframe, requestAddToCart } = useIframeCartBridge(handleAddToCartStatus);
+
+  useEffect(() => {
+    const cleanupInterval = window.setInterval(() => {
+      dispatch({
+        type: "ATC_CLEANUP_OLDER_THAN",
+        payload: { maxAgeMs: 5 * 60 * 1000, now: Date.now() },
+      });
+    }, 60_000);
+
+    return () => window.clearInterval(cleanupInterval);
+  }, []);
+
+  const activeStatus = activeRequestId ? atcState.byRequestId[activeRequestId] : undefined;
+  const isAddingToCart = activeStatus?.status === "submitting";
+
+  const handleAddToCart = useCallback(() => {
+    const requestId = createAddToCartRequestId("ring-offer");
+    setActiveRequestId(requestId);
+
+    if (!isInIframe) {
+      dispatch({
+        type: "ATC_STATUS",
+        payload: {
+          requestId,
+          status: "error",
+          message: "Add to cart is only available in the embedded store modal.",
+        },
+      });
+      return;
+    }
+
+    if (!colorRingVariantId) {
+      dispatch({
+        type: "ATC_STATUS",
+        payload: {
+          requestId,
+          status: "error",
+          message: "Color Ring variant ID is not configured.",
+        },
+      });
+      return;
+    }
+
+    dispatch({
+      type: "ATC_STATUS",
+      payload: {
+        requestId,
+        status: "submitting",
+      },
+    });
+
+    try {
+      requestAddToCart(colorRingVariantId, 1, requestId);
+    } catch (error) {
+      dispatch({
+        type: "ATC_STATUS",
+        payload: {
+          requestId,
+          status: "error",
+          message: error instanceof Error ? error.message : "Unable to add item.",
+        },
+      });
+    }
+  }, [colorRingVariantId, isInIframe, requestAddToCart]);
+
+  const statusMessage =
+    activeStatus?.status === "success"
+      ? "Added to cart."
+      : activeStatus?.status === "error"
+        ? activeStatus.message
+        : activeStatus?.status === "submitting"
+          ? "Adding..."
+          : null;
   const formatNumber = (num: number) => num.toString().padStart(2, "0");
 
   return (
@@ -132,7 +288,7 @@ export const SuccessForm = (_props: SuccessFormProps) => {
             size="sm"
             onClick={handleAddToCart}
             disabled={isAddingToCart}
-            className="w-full mt-4 h-9 rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
+            className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
           >
             {isAddingToCart ? (
               <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" />
@@ -143,6 +299,17 @@ export const SuccessForm = (_props: SuccessFormProps) => {
               </>
             )}
           </Button>
+          {statusMessage && (
+            <p
+              className={
+                activeStatus?.status === "error"
+                  ? "mt-2 text-xs text-destructive"
+                  : "mt-2 text-xs text-emerald-600"
+              }
+            >
+              {statusMessage}
+            </p>
+          )}
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef } from "react";
 export const IframeMessageTypes = {
   // Child to Parent
   CLOSE_IFRAME: "CLOSE_IFRAME",
+  ADD_TO_CART: "ADD_TO_CART",
   REQUEST_DATA: "REQUEST_DATA",
   IFRAME_READY: "IFRAME_READY",
   STATUS_RESPONSE: "STATUS_RESPONSE",
@@ -16,6 +17,7 @@ export const IframeMessageTypes = {
 
   // Parent to Child
   CUSTOMER_DATA: "CUSTOMER_DATA",
+  ADD_TO_CART_STATUS: "ADD_TO_CART_STATUS",
   LOGIN_STATUS: "LOGIN_STATUS",
   FORGOT_PASSWORD_STATUS: "FORGOT_PASSWORD_STATUS",
   GET_STATUS: "GET_STATUS",
