@@ -110,7 +110,7 @@ export const SuccessForm = () => {
     });
   }, []);
 
-  const { isInIframe, requestAddToCart } = useIframeCartBridge(handleAddToCartStatus);
+  const { isInIframe, requestAddToCart, requestRedirectToCheckout } = useIframeCartBridge(handleAddToCartStatus);
 
   useEffect(() => {
     const cleanupInterval = window.setInterval(() => {
@@ -122,6 +122,15 @@ export const SuccessForm = () => {
 
     return () => window.clearInterval(cleanupInterval);
   }, []);
+
+  // After ATC success, redirect parent to checkout with discount pre-applied
+  useEffect(() => {
+    if (activeStatus?.status !== "success") return;
+    const timer = setTimeout(() => {
+      requestRedirectToCheckout(discountCode ?? undefined);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [activeStatus?.status, discountCode, requestRedirectToCheckout]);
 
   const activeStatus = activeRequestId ? atcState.byRequestId[activeRequestId] : undefined;
   const isAddingToCart = activeStatus?.status === "submitting";

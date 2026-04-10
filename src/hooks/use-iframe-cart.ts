@@ -8,6 +8,10 @@ export type AddToCartRequestData = {
   requestId?: string;
 };
 
+export type RedirectToCheckoutData = {
+  discountCode?: string;
+};
+
 type AddToCartStatusBase = {
   requestId?: string;
 };
@@ -84,6 +88,15 @@ export function useIframeCartBridge(onStatus?: (status: AddToCartStatusData) => 
     [sendMessage]
   );
 
+  const requestRedirectToCheckout = useCallback(
+    (discountCode?: string) => {
+      sendMessage(IframeMessageTypes.REDIRECT_TO_CHECKOUT, {
+        discountCode,
+      } satisfies RedirectToCheckoutData);
+    },
+    [sendMessage]
+  );
+
   useEffect(() => {
     if (!onStatus) return;
 
@@ -99,5 +112,6 @@ export function useIframeCartBridge(onStatus?: (status: AddToCartStatusData) => 
   return {
     isInIframe,
     requestAddToCart,
+    requestRedirectToCheckout,
   };
 }
