@@ -7,7 +7,7 @@ import {
   TestimonialCarousel,
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
@@ -63,39 +63,12 @@ type RegisterCarouselSlidesProps = {
   currentSlide: number;
 };
 
-export function RegisterCarouselSlides({ currentSlide, prevSlide }: RegisterCarouselSlidesProps & { prevSlide?: number | null }) {
+export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesProps) {
   const slide = slides[currentSlide];
-  const outgoingSlide = prevSlide != null ? slides[prevSlide] : null;
 
   return (
     <div className="flex flex-col gap-0 pb-[20px]">
-      <div className="relative">
-        {/* Outgoing text — fades out during transition */}
-        {outgoingSlide && (
-          <div
-            className="absolute inset-0"
-            style={{
-              animation: "carousel-text-out 0.35s ease-in forwards",
-            }}
-          >
-            <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
-              <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
-              <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">{outgoingSlide.eyebrow}</span>
-            </div>
-            <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
-              <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]">{outgoingSlide.title}</h2>
-              <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]">{outgoingSlide.highlight}</h1>
-            </div>
-            <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0">{outgoingSlide.description}</p>
-          </div>
-        )}
-
-        {/* Current text — fades in (delayed so outgoing fades first) */}
-        <div
-          style={outgoingSlide ? {
-            animation: "carousel-text-in 0.4s ease-out 0.2s both",
-          } : undefined}
-        >
+      <div className="animate-fade-in">
         {/* Eyebrow */}
         <div
           className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]"
@@ -132,7 +105,6 @@ export function RegisterCarouselSlides({ currentSlide, prevSlide }: RegisterCaro
           {slide.description}
         </FadeText>
       </div>
-      </div>
     </div>
   );
 }
@@ -143,106 +115,19 @@ export type LeftPanelProps = {
 
 export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [prevSlide, setPrevSlide] = useState<number | null>(null);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
-  const [carouselReady, setCarouselReady] = useState(false);
-  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
   const { mode } = useModeContext();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const preload = async () => {
-      await Promise.all(
-        slideImages.map((src) => {
-          const image = new Image();
-          image.src = src;
-
-          return new Promise<void>((resolve) => {
-            const done = () => {
-              if (typeof image.decode === "function") {
-                image.decode().catch(() => undefined).finally(() => resolve());
-              } else {
-                resolve();
-              }
-            };
-
-            if (image.complete) {
-              done();
-              return;
-            }
-
-            image.onload = done;
-            image.onerror = () => resolve();
-          });
-        })
-      );
-
-      if (!cancelled) {
-        setCarouselReady(true);
-      }
-    };
-
-    preload();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const changeSlide = useCallback((next: number, direction: "left" | "right" = "left") => {
-    if (next === currentSlide || !carouselReady) return;
-    setSlideDirection(direction);
-    setPrevSlide(currentSlide);
+  const changeSlide = useCallback((next: number) => {
+    if (next === currentSlide) return;
     setCurrentSlide(next);
-    clearTimeout(transitionTimer.current);
-    transitionTimer.current = setTimeout(() => {
-      setPrevSlide(null);
-    }, 650);
-  }, [carouselReady, currentSlide]);
-
-  useEffect(() => () => clearTimeout(transitionTimer.current), []);
+  }, [currentSlide]);
 
   const goToNextSlide = useCallback(() => {
-    changeSlide((currentSlide + 1) % slides.length, "left");
+    changeSlide((currentSlide + 1) % slides.length);
   }, [currentSlide, changeSlide]);
   const goToPrevSlide = useCallback(() => {
-    changeSlide((currentSlide - 1 + slides.length) % slides.length, "right");
+    changeSlide((currentSlide - 1 + slides.length) % slides.length);
   }, [currentSlide, changeSlide]);
-
-  const renderSlideLayer = (slideIndex: number, isCurrent: boolean) => {
-    const translateFrom = slideDirection === "left" ? "100%" : "-100%";
-
-    return (
-      <div
-        key={`slide-${slideIndex}-${isCurrent ? "current" : "prev"}`}
-        className="absolute inset-[10px] rounded-[15px] overflow-hidden"
-        style={{
-          transform: isCurrent ? "translateX(0)" : undefined,
-          animation: isCurrent ? `carousel-slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards` : undefined,
-          zIndex: isCurrent ? 2 : 1,
-          ["--slide-from" as string]: translateFrom,
-        }}
-      >
-        <img
-          src={slideImages[slideIndex] || salonHero}
-          alt="Professional salon"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ margin: "-10px", width: "calc(100% + 20px)", height: "calc(100% + 20px)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
-        <div
-          className="absolute inset-0 opacity-[0.1]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
-    );
-  };
-
-  // Static base layer (always visible behind sliding panels)
-  const baseSlideIndex = prevSlide !== null ? prevSlide : currentSlide;
 
   return (
     <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
@@ -250,31 +135,34 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       {mode === "signin" ? (
         <div className="absolute inset-0">
           <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
-          <div
-            className="absolute inset-0 opacity-[0.1]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            }}
-          />
         </div>
       ) : (
-        <>
-          {/* Static base — the outgoing slide, full bleed */}
-          <div className="absolute inset-0">
-            <img src={slideImages[baseSlideIndex] || salonHero} alt="" className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
-            <div
-              className="absolute inset-0 opacity-[0.1]"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-              }}
+        <div className="absolute inset-0">
+          {slideImages.map((imageSrc, index) => (
+            <img
+              key={imageSrc}
+              src={imageSrc}
+              alt=""
+              aria-hidden="true"
+              loading="eager"
+              decoding="async"
+              className={cn(
+                "absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out will-change-[opacity]",
+                index === currentSlide ? "opacity-100" : "opacity-0"
+              )}
             />
-          </div>
-          {/* Incoming slide — slides over with rounded edges */}
-          {prevSlide !== null && renderSlideLayer(currentSlide, true)}
-        </>
+          ))}
+        </div>
       )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+      <div
+        className="absolute inset-0 pointer-events-none opacity-60"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 18% 22%, hsl(var(--background) / 0.08), transparent 26%), radial-gradient(circle at 82% 14%, hsl(var(--background) / 0.06), transparent 22%), linear-gradient(180deg, hsl(var(--foreground) / 0.05), transparent 38%)",
+        }}
+      />
 
       {/* Content overlay */}
       <div
@@ -286,7 +174,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         {mode === "signin" ? (
           <SignInSlide />
         ) : (
-          <RegisterCarouselSlides currentSlide={currentSlide} prevSlide={prevSlide} />
+          <RegisterCarouselSlides currentSlide={currentSlide} />
         )}
       </div>
 
@@ -325,8 +213,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             {slides.map((_, i) => (
               <button
                 key={i}
-                onClick={() => changeSlide(i, i > currentSlide ? "left" : "right")}
-                disabled={!carouselReady}
+                onClick={() => changeSlide(i)}
                 className={cn(
                   "h-[5px] rounded-full transition-all duration-300",
                   i === currentSlide ? "w-10 bg-background" : "w-[5px] bg-background/20"
@@ -346,7 +233,6 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
           <div className="hidden lg:flex gap-2.5">
             <button
               onClick={goToPrevSlide}
-              disabled={!carouselReady}
               className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all"
               aria-label="Previous slide"
             >
@@ -354,7 +240,6 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             </button>
             <button
               onClick={goToNextSlide}
-              disabled={!carouselReady}
               className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all"
               aria-label="Next slide"
             >
