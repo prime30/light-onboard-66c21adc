@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
+
+const INTERVAL_MS = 5000;
 
 const testimonials = [
   {
@@ -37,17 +39,28 @@ const testimonials = [
 export const TestimonialCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
+  // Incrementing this key restarts the CSS progress animation on the active dot
+  const [timerKey, setTimerKey] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const advance = useCallback((dir: 1 | -1 = 1) => {
+    setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
+    setTimerKey((k) => k + 1);
+  }, []);
+
+  const goTo = useCallback((i: number) => {
+    setCurrentIndex(i);
+    setTimerKey((k) => k + 1);
+  }, []);
+
   useEffect(() => {
-    if (isDragging) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isDragging]);
+    if (isDragging || isPaused) return;
+    const id = setInterval(() => advance(), INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [isDragging, isPaused, advance]);
 
   const handleDragStart = (clientX: number) => {
     setIsDragging(true);
@@ -62,11 +75,8 @@ export const TestimonialCarousel = () => {
   const handleDragEnd = () => {
     if (!isDragging) return;
     const threshold = 50;
-    if (dragOffset > threshold) {
-      setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-    } else if (dragOffset < -threshold) {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }
+    if (dragOffset > threshold) advance(-1);
+    else if (dragOffset < -threshold) advance(1);
     setIsDragging(false);
     setDragOffset(0);
   };
@@ -82,6 +92,8 @@ export const TestimonialCarousel = () => {
         onMouseMove={(e) => handleDragMove(e.clientX)}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseOut={() => setIsPaused(false)}
         onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
         onTouchEnd={handleDragEnd}
@@ -117,15 +129,27 @@ export const TestimonialCarousel = () => {
         {testimonials.map((_, i) => (
           <button
             key={i}
-            onClick={() => setCurrentIndex(i)}
+            onClick={() => goTo(i)}
             aria-label={`Go to testimonial ${i + 1}`}
+            style={{ touchAction: "manipulation" }}
             className={cn(
-              "h-1 rounded-full transition-all duration-300",
-              i === currentIndex
-                ? "w-6 bg-background/60"
-                : "w-1 bg-background/20 hover:bg-background/30"
+              "relative h-1 rounded-full overflow-hidden transition-[width] duration-300",
+              i === currentIndex ? "w-6 bg-background/20" : "w-1 bg-background/20 hover:bg-background/30"
             )}
-          />
+          >
+            {i === currentIndex && !isPaused && (
+              <span
+                key={timerKey}
+                className="absolute inset-y-0 left-0 rounded-full bg-background/60"
+                style={{
+                  animation: `carousel-progress ${INTERVAL_MS}ms linear forwards`,
+                }}
+              />
+            )}
+            {i === currentIndex && isPaused && (
+              <span className="absolute inset-y-0 left-0 w-full rounded-full bg-background/60" />
+            )}
+          </button>
         ))}
       </div>
     </div>

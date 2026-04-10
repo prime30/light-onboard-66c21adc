@@ -1449,3 +1449,8 @@ div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) sv
   border-color: hsl(var(--destructive) / 0.5) !important;
 }
 
+@keyframes carousel-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
