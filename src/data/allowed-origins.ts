@@ -3,6 +3,8 @@ const allowedMessageOrigins = [
   "https://dropdeadextensions.com",
   "https://dropdeadextensions.myshopify.com",
   "https://drop-dead-2428.myshopify.com",
+  "https://shop.app",
+  "https://www.shop.app",
 ];
 
 if (import.meta.env.DEV) {

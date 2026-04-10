@@ -57,8 +57,6 @@ export function CloseButton() {
     }
   }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode]);
 
-  if (!isInIframe) return null;
-
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
       {/* Saving text - positioned absolutely to the left so button doesn't move */}
@@ -78,7 +76,7 @@ export function CloseButton() {
       <button
         onClick={handleCloseModal}
         disabled={isSavingProgress}
-        className="relative p-2.5 rounded-full bg-muted hover:bg-muted/80 transition-colors group disabled:cursor-default"
+        className="relative flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-muted transition-colors hover:bg-muted/80 group disabled:cursor-default"
         aria-label="Close"
       >
         {/* Animated saving circle */}

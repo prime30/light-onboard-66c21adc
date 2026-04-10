@@ -157,27 +157,51 @@
       </div>
     </div>
     <script>
-      // Send IFRAME_READY immediately so the Shopify parent clears its
-      // timeout while the boot skeleton is visible. React will take over
-      // once the full bundle loads.
+      // Send IFRAME_READY repeatedly while boot skeleton is visible so
+      // parents with late listener attachment do not miss readiness.
       (function () {
-        try {
-          if (window.self !== window.top && window.parent) {
+        if (!(window.self !== window.top && window.parent)) return;
+
+        var attempts = 0;
+        var maxAttempts = 20; // ~5 seconds total at 250ms cadence
+        var intervalMs = 250;
+
+        function notifyReady(phase) {
+          try {
             window.parent.postMessage(
               {
                 type: 'IFRAME_READY',
                 data: {
                   url: window.location.href,
-                  phase: 'skeleton',
+                  phase: phase,
+                  attempt: attempts,
                 },
                 timestamp: new Date().toISOString(),
               },
               '*'
             );
+          } catch (e) {
+            // cross-origin access blocked — safe to ignore
           }
-        } catch (e) {
-          // cross-origin access blocked — safe to ignore
         }
+
+        notifyReady('skeleton-initial');
+
+        var timer = window.setInterval(function () {
+          attempts += 1;
+          notifyReady('skeleton-heartbeat');
+          if (attempts >= maxAttempts) {
+            window.clearInterval(timer);
+          }
+        }, intervalMs);
+
+        window.addEventListener(
+          'load',
+          function () {
+            notifyReady('skeleton-window-load');
+          },
+          { once: true }
+        );
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
