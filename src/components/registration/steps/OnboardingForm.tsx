@@ -500,16 +500,32 @@ export const OnboardingForm = ({
         <RotatingStylistAvatarsLight />
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
-        Already have an account?{" "}
-        <button
-          onClick={onSignIn}
-          className="inline-flex items-center gap-1 text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-all duration-200 group"
-        >
-          Login
-          <ArrowUpRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </button>
-      </p>
+      {/* Exclusively for professionals banner */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 bg-muted/60 rounded-[var(--radius-form)] px-5 py-4 sm:px-6 sm:py-5">
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <p className="text-sm font-semibold text-foreground">Exclusively for professionals.</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+            Login to shop instantly, or apply for a pro account in about 24 hours.
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <Button
+            onClick={onSignIn}
+            size="pill"
+            className="bg-foreground text-background hover:bg-foreground/90 px-5 text-xs font-medium"
+          >
+            Login to Shop
+          </Button>
+          <Button
+            onClick={onContinue}
+            variant="outline"
+            size="pill"
+            className="border-border hover:bg-muted/60 px-5 text-xs font-medium"
+          >
+            Apply
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
