@@ -13,6 +13,8 @@ import AuthPage from "./pages/AuthPage";
 // Lazy-load non-initial routes
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
 const AlreadyLoggedInPage = lazy(() => import("./pages/AlreadyLoggedInPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ActivateAccountPage = lazy(() => import("./pages/ActivateAccountPage"));
 
 // Lazy-load route components to reduce initial bundle
 const Index = lazy(() => import("./pages/Index"));
@@ -65,6 +67,22 @@ const children: RouteObject[] = [
         element: (
           <Suspense fallback={<AuthBootFallback />}>
             <AlreadyLoggedInPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "reset-password",
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <ResetPasswordPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "activate-account",
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <ActivateAccountPage />
           </Suspense>
         ),
       },
