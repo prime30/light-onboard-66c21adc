@@ -8,6 +8,7 @@ import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
 import { AuthBootFallback, GenericBootFallback } from "./components/registration/AuthBootFallback";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import AuthPage from "./pages/AuthPage";
 
 // Lazy-load non-initial routes
@@ -31,7 +32,9 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <Outlet />
+          <AppErrorBoundary>
+            <Outlet />
+          </AppErrorBoundary>
         </TooltipProvider>
       </UploadFileProvider>
     </QueryClientProvider>

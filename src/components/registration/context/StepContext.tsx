@@ -47,26 +47,17 @@ type StepProviderProps = {
 // Provider component
 export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
-  const { watch, errors, subscribe, setValue, fullErrors } = useFormData();
+  const { watch, errors, subscribe, fullErrors } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
-  const [dirtySteps, setDirtySteps] = useState<Set<Step>>(new Set() as Set<Step>);
+  const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
     {} as Record<Step, ValidationStatus>
   );
-
-  // TODO: Remove after development
-  useEffect(() => {
-    // setTimeout(() => {
-    //   reset(defaultValues);
-    // }, 1000);
-    // setValue("email", "");
-    // setCurrentStep("summary");
-  }, [setValue]);
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     const newSteps = getStepOrder(accountType).slice();
@@ -76,16 +67,23 @@ export function StepProvider({ children }: StepProviderProps) {
     const totalSteps = newSteps.length;
     const currentStepNumber = newSteps.indexOf(currentStep);
 
-    setDirtySteps((prev) => {
-      return prev.add(currentStep);
-    });
-
     return {
       steps: newSteps,
       totalSteps,
       currentStepNumber,
     };
   }, [accountType, currentStep]);
+
+  useEffect(() => {
+    if (!steps.includes(currentStep)) return;
+
+    setDirtySteps((prev) => {
+      if (prev.has(currentStep)) return prev;
+      const next = new Set(prev);
+      next.add(currentStep);
+      return next;
+    });
+  }, [currentStep, steps]);
 
   const getStepValidationStatus = useCallback(
     (step: Step): ValidationStatus => {

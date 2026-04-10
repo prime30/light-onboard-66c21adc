@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { FileCheck, FileText, ZoomIn, X, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface UploadedFile {
   file: File;
@@ -112,23 +111,23 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
     return files.find((item) => isImageFile(item.file))?.file || null;
   }, [files]);
 
-  if (files.length === 0) return null;
-
-  const openLightbox = (file: File) => {
+  const openLightbox = useCallback((file: File) => {
     if (isImageFile(file)) {
       const url = URL.createObjectURL(file);
       setLightboxUrl(url);
       setLightboxFile(file);
     }
-  };
+  }, []);
 
-  const closeLightbox = () => {
-    if (lightboxUrl) {
-      URL.revokeObjectURL(lightboxUrl);
-    }
-    setLightboxUrl(null);
+  const closeLightbox = useCallback(() => {
+    setLightboxUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
     setLightboxFile(null);
-  };
+  }, []);
 
   // Close on escape
   useEffect(() => {
@@ -147,7 +146,9 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [lightboxUrl]);
+  }, [lightboxUrl, closeLightbox]);
+
+  if (files.length === 0) return null;
 
   return (
     <>
@@ -198,7 +199,7 @@ export const FileSummary = ({ files, title = "Uploaded Documents" }: FileSummary
           <button
             type="button"
             onClick={closeLightbox}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
+            className="absolute top-4 right-4 z-10 flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-foreground/10 transition-colors hover:bg-foreground/20"
           >
             <X className="w-6 h-6 text-foreground" />
           </button>

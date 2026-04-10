@@ -30,6 +30,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
   const { email } = useGlobalApp();
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const queueRef = useRef<UploadFileItem[]>([]);
   const isUploadingRef = useRef(false);
 
   const overallProgress =
@@ -56,18 +57,25 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
     []
   );
 
+  useEffect(() => {
+    queueRef.current = queue;
+  }, [queue]);
+
   const processQueue = useCallback(async () => {
     if (isUploadingRef.current) return;
-
-    const pendingFiles = queue.filter((item) => item.status === "pending");
-    if (pendingFiles.length === 0) return;
     if (!email) return;
+
+    const hasPendingFiles = queueRef.current.some((item) => item.status === "pending");
+    if (!hasPendingFiles) return;
 
     isUploadingRef.current = true;
     setIsUploading(true);
 
     try {
-      for (const item of pendingFiles) {
+      while (true) {
+        const item = queueRef.current.find((candidate) => candidate.status === "pending");
+        if (!item) break;
+
         // Update status to uploading
         updateFileStatus(item.id, "uploading");
 
@@ -88,17 +96,16 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
       isUploadingRef.current = false;
       setIsUploading(false);
     }
-  }, [email, queue, updateFileProgress, updateFileStatus]);
+  }, [email, updateFileProgress, updateFileStatus]);
 
   useEffect(() => {
     if (isUploadingRef.current) return;
-    if (queue.length === 0) return;
     if (!email) return;
+    if (!queue.some((item) => item.status === "pending")) return;
 
     // Auto-start upload
-    console.log("process");
-    processQueue();
-  }, [queue.length, processQueue, email]);
+    void processQueue();
+  }, [queue, processQueue, email]);
 
   const addFiles = useCallback((files: File[]) => {
     const newItems: UploadFileItem[] = files.map((file) => ({
@@ -108,12 +115,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
       progress: 0,
     }));
 
-    setQueue((prevQueue) => {
-      for (const newItem of newItems) {
-        prevQueue.push(newItem);
-      }
-      return prevQueue.slice();
-    });
+    setQueue((prevQueue) => [...prevQueue, ...newItems]);
     return newItems;
   }, []);
 
@@ -130,11 +132,8 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
             : item
         )
       );
-
-      // Auto-start upload after retry
-      processQueue();
     },
-    [processQueue]
+    []
   );
 
   const value: UploadFileContextType = {

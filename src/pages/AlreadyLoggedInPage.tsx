@@ -1,13 +1,11 @@
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "@/components/registration/FadeText";
-import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { useEffect } from "react";
 
 export const AlreadyLoggedInPage = () => {
-  const { fontsLoaded } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { setMode } = useModeContext();
 

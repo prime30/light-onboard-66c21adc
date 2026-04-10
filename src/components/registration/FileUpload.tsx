@@ -154,17 +154,20 @@ export const FileUpload = ({
     [accept, maxFileSize]
   );
 
-  const processFile = async (selectedFile: File) => {
-    // Compress image if enabled
-    let fileToProcess = selectedFile;
-    if (enableCompression && selectedFile.type.startsWith("image/")) {
-      fileToProcess = await compressImage(selectedFile);
-    }
+  const processFile = useCallback(
+    async (selectedFile: File) => {
+      // Compress image if enabled
+      let fileToProcess = selectedFile;
+      if (enableCompression && selectedFile.type.startsWith("image/")) {
+        fileToProcess = await compressImage(selectedFile);
+      }
 
-    if (validateFile(fileToProcess)) {
-      setPendingFile(fileToProcess);
-    }
-  };
+      if (validateFile(fileToProcess)) {
+        setPendingFile(fileToProcess);
+      }
+    },
+    [enableCompression, validateFile]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
@@ -200,7 +203,7 @@ export const FileUpload = ({
         processFile(droppedFile);
       }
     },
-    [validateFile]
+    [processFile]
   );
 
   const handleRemoveFile = () => {
@@ -225,7 +228,6 @@ export const FileUpload = ({
   };
 
   const hasError = error || !!fileTypeError;
-  const displayErrorMessage = fileTypeError || errorMessage;
 
   return (
     <>
@@ -366,7 +368,7 @@ export const FileUpload = ({
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  "h-[40px] w-full sm:w-auto px-5 rounded-md border-border/50 hover:bg-muted/50 flex-shrink-0",
+                  "h-11 min-h-11 w-full sm:w-auto px-5 rounded-md border-border/50 hover:bg-muted/50 flex-shrink-0 touch-manipulation",
                   hasError && "border-destructive/50"
                 )}
               >
@@ -394,7 +396,7 @@ export const FileUpload = ({
           <button
             type="button"
             onClick={() => setShowLightbox(false)}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-foreground/10 hover:bg-foreground/20 transition-colors"
+            className="absolute top-4 right-4 z-10 flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-foreground/10 transition-colors hover:bg-foreground/20"
           >
             <X className="w-6 h-6 text-foreground" />
           </button>

@@ -183,6 +183,7 @@ const stylistAvatars = [
   stylistMagenta1,
   stylistElectric1,
 ];
+const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
 
 export const RotatingStylistAvatars = () => {
   const [visibleIndices, setVisibleIndices] = useState([0, 1, 2]);
@@ -196,7 +197,6 @@ export const RotatingStylistAvatars = () => {
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3);
-  const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
 
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;

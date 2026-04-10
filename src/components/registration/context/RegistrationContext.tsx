@@ -13,7 +13,6 @@ import type {
   ModeTransitionDirection,
   RegistrationUIState,
 } from "@/types/auth";
-import { RegistrationFormData } from "@/lib/validations/auth-schemas";
 
 // ============================================================================
 // Initial State

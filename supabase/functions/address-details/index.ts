@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { placeId, sessionToken } = await req.json();
+    const { placeId } = await req.json();
 
     if (!placeId) {
       throw new Error("Place ID is required");

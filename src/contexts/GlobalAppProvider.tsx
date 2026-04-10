@@ -27,6 +27,7 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   const [email, setEmail] = useState("");
   const fontsLoaded = useFontLoaded();
   const iframeComm = useIframeComm({
+    targetOrigin: import.meta.env.VITE_IFRAME_PARENT_ORIGIN,
     allowedOrigins: allowedMessageOrigins,
   });
 

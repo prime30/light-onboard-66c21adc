@@ -21,12 +21,40 @@ const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryFo
 const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
 import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
-import { useGlobalApp, useUploadFile } from "@/contexts";
+import { useUploadFile } from "@/contexts";
 import { useStepContext, useFormData } from "@/components/registration/context";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { useScroll } from "@/hooks/use-scroll";
 import { useSafariViewportFix } from "@/hooks/use-safari-viewport-fix";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
+
+type FormSkeletonVariant =
+  | "default"
+  | "account-type"
+  | "license"
+  | "location"
+  | "terms"
+  | "contact"
+  | "business-operation";
+
+function getSkeletonVariant(step: Step): FormSkeletonVariant {
+  switch (step) {
+    case "account-type":
+      return "account-type";
+    case "license":
+      return "license";
+    case "business-location":
+      return "location";
+    case "wholesale-terms":
+      return "terms";
+    case "contact-basics":
+      return "contact";
+    case "business-operation":
+      return "business-operation";
+    default:
+      return "default";
+  }
+}
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -34,7 +62,6 @@ const Auth = () => {
 
   const { isFormValid, isSubmitting } = useFormData();
   const { isUploading, overallProgress } = useUploadFile();
-  const { fontsLoaded } = useGlobalApp();
   const [referralSource, setReferralSource] = useState<string>("");
 
   // Form state from centralized hook (includes sessionStorage persistence)
@@ -266,7 +293,7 @@ const Auth = () => {
   const mainSwipeEndX = useRef<number | null>(null);
 
   // UI-only local state (not persisted)
-  const [shimmerKey, setShimmerKey] = useState(0);
+  const [shimmerKey] = useState(0);
 
   // Scrolling and parallax effect hook
   useSafariViewportFix();
@@ -420,19 +447,14 @@ const Auth = () => {
         >
           {currentStep === "onboarding" && (
             <OnboardingForm
-              onContinue={goToNextStep}
               onSignIn={() => {
                 setModeTransitionDirection("right");
                 navigate("/login");
               }}
-              onStepClick={() => {
-                setShimmerKey((k) => k + 1);
-              }}
-              fontsLoaded={fontsLoaded}
             />
           )}
           {currentStep !== "onboarding" && (
-            <Suspense fallback={<FormSkeleton variant={currentStep as any} />}>
+            <Suspense fallback={<FormSkeleton variant={getSkeletonVariant(currentStep)} />}>
               {currentStep === "account-type" && <AccountTypeForm />}
               {currentStep === "license" && <LicenseStep />}
               {currentStep === "business-operation" && <BusinessOperationStep />}

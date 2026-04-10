@@ -51,11 +51,10 @@ Deno.serve(async (req) => {
     return sendError(405, ["Method not allowed"]);
   }
 
-  const SHOPIFY_ADMIN_ACCESS_TOKEN = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   const SHOPIFY_STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN");
 
-  if (!SHOPIFY_ADMIN_ACCESS_TOKEN || !SHOPIFY_STORE_DOMAIN) {
-    console.error("Missing Shopify secrets");
+  if (!SHOPIFY_STORE_DOMAIN) {
+    console.error("Missing Shopify store domain");
     return sendError(500, ["Server configuration error"]);
   }
 
@@ -72,7 +71,7 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { customerId, token, password } = parsed.data;
+  const { token, password } = parsed.data;
 
   try {
     // Use Shopify's account activation endpoint

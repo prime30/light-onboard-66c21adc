@@ -7,6 +7,15 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "registration-documents";
+const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_FILE_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
 /**
  * Creates a user folder path by hashing the email
@@ -21,8 +30,6 @@ async function createUserFolderPath(email: string): Promise<string> {
 }
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_URL") ?? "";
-const supabaseKey =
-  Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 Deno.serve(async (req) => {
@@ -32,13 +39,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log("Upload file function called");
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // Create Supabase client with user's auth token
-    console.log("supabaseUrl", supabaseUrl, "supabaseKey", supabaseKey);
+    // Create Supabase client with service role for controlled storage writes
     const sbAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
-
-    console.log(sbAdmin);
 
     // Parse form data
     const formData = await req.formData();
@@ -54,19 +63,37 @@ Deno.serve(async (req) => {
     }
 
     if (!email) {
-      console.log("No user email provided in request");
       return new Response(JSON.stringify({ error: "User email is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("File received:", file.name, "Size:", file.size, "Type:", file.type);
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      return new Response(
+        JSON.stringify({
+          error: `File too large. Maximum size is ${Math.floor(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024))}MB.`,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!ALLOWED_FILE_TYPES.has(file.type.toLowerCase())) {
+      return new Response(JSON.stringify({ error: "Unsupported file type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Create a unique file path using hashed user folder and timestamp
-    const userFolder = await createUserFolderPath(email);
-    const fileExt = file.name.split(".").pop();
-    const fileName = `user-uploads/${userFolder}/${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+    const normalizedEmail = email.trim().toLowerCase();
+    const userFolder = await createUserFolderPath(normalizedEmail);
+    const rawFileExt = file.name.split(".").pop() || "bin";
+    const safeFileExt = rawFileExt.replace(/[^a-z0-9]/gi, "").toLowerCase() || "bin";
+    const fileName = `user-uploads/${userFolder}/${Date.now()}-${crypto.randomUUID()}.${safeFileExt}`;
 
     // Upload to storage
     const { data: uploadData, error: uploadError } = await sbAdmin.storage
@@ -83,8 +110,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    console.log("File uploaded successfully:", uploadData.path);
 
     // Generate URL that points to our get-image function
     const imageUrl = `${supabaseUrl}/functions/v1/get-image?path=${encodeURIComponent(fileName)}`;

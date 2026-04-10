@@ -51,11 +51,10 @@ Deno.serve(async (req) => {
     return sendError(405, ["Method not allowed"]);
   }
 
-  const SHOPIFY_ADMIN_ACCESS_TOKEN = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   const SHOPIFY_STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN");
 
-  if (!SHOPIFY_ADMIN_ACCESS_TOKEN || !SHOPIFY_STORE_DOMAIN) {
-    console.error("Missing Shopify secrets");
+  if (!SHOPIFY_STORE_DOMAIN) {
+    console.error("Missing Shopify store domain");
     return sendError(500, ["Server configuration error"]);
   }
 
@@ -75,8 +74,8 @@ Deno.serve(async (req) => {
   const { customerId, token, password } = parsed.data;
 
   try {
-    // Use Shopify Admin REST API to reset the customer password
-    const shopifyUrl = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-01/customers/${customerId}.json`;
+    // customerId is validated for compatibility with link payloads, but reset uses token endpoint
+    void customerId;
 
     // First, verify the account by attempting the reset via the Storefront-style endpoint
     // Shopify doesn't have a direct Admin API for token-based password reset,

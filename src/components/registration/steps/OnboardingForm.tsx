@@ -1,7 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Link } from "react-router";
-import { User, FileCheck, Mail, ArrowUpRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
@@ -27,6 +25,7 @@ const stylistAvatars = [
   stylistMagenta1,
   stylistElectric1,
 ];
+const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
 
 // Calculate dynamic starting number based on months elapsed
 const getOdometerBaseNumber = () => {
@@ -297,7 +296,6 @@ const RotatingStylistAvatarsLight = () => {
   const visibleIndicesRef = useRef(visibleIndices);
   visibleIndicesRef.current = visibleIndices;
   const nextAvatarRef = useRef(3);
-  const reactionEmojis = ["💇", "✨", "💕", "🔥", "⭐", "💖", "👏", "🙌", "💯", "🤩", "😍"];
 
   const handleOdometerIncrement = useCallback(() => {
     const prev = visibleIndicesRef.current;
@@ -379,17 +377,12 @@ const RotatingStylistAvatarsLight = () => {
 };
 
 interface OnboardingFormProps {
-  onContinue: () => void;
   onSignIn: () => void;
-  onStepClick?: () => void;
-  fontsLoaded?: boolean;
   isRestoring?: boolean;
 }
 
 export const OnboardingForm = ({
-  onContinue,
   onSignIn,
-  fontsLoaded = true,
   isRestoring = false,
 }: OnboardingFormProps) => {
   return (

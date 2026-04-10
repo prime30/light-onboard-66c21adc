@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.get-image]
 verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
+
+[functions.activate-account]
+verify_jwt = false

@@ -99,14 +99,68 @@ export interface UseIframeCommReturn {
   ) => () => void;
 }
 
+function getReferrerOrigin(): string | null {
+  if (!document.referrer) return null;
+
+  try {
+    return new URL(document.referrer).origin;
+  } catch {
+    return null;
+  }
+}
+
+function matchesOriginPattern(origin: string, pattern: string): boolean {
+  if (pattern === origin || pattern === "*") return true;
+
+  const wildcardPattern = pattern.match(/^(https?:\/\/)\*\.(.+)$/i);
+  if (!wildcardPattern) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    const wildcardHost = wildcardPattern[2]?.toLowerCase();
+    const wildcardProtocol = wildcardPattern[1]?.toLowerCase();
+
+    if (!wildcardHost || !wildcardProtocol) return false;
+    if (originUrl.protocol.toLowerCase() !== wildcardProtocol.replace("://", ":")) return false;
+
+    const originHost = originUrl.hostname.toLowerCase();
+    return originHost === wildcardHost || originHost.endsWith(`.${wildcardHost}`);
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedOrigin(origin: string, allowedOrigins: string[]): boolean {
+  if (allowedOrigins.length === 0) return true;
+  return allowedOrigins.some((allowedOrigin) => matchesOriginPattern(origin, allowedOrigin));
+}
+
+function resolveTargetOrigin(
+  targetOrigin: string | undefined,
+  allowedOrigins: string[]
+): string | null {
+  if (targetOrigin && targetOrigin !== "*") {
+    return targetOrigin;
+  }
+
+  const referrerOrigin = getReferrerOrigin();
+  if (referrerOrigin && isAllowedOrigin(referrerOrigin, allowedOrigins)) {
+    return referrerOrigin;
+  }
+
+  return allowedOrigins[0] ?? null;
+}
+
 const defaultOptions: UseIframeCommOptions = {
-  targetOrigin: "*",
   allowedOrigins: [],
 };
 
 export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeCommReturn => {
   const { targetOrigin, allowedOrigins } = { ...defaultOptions, ...options };
   const messageHandlerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const resolvedTargetOriginRef = useRef<string | null>(
+    resolveTargetOrigin(targetOrigin, allowedOrigins)
+  );
 
   const busRef = useRef<ReturnType<typeof createMessageBus> | null>(null);
   if (!busRef.current) {
@@ -129,14 +183,24 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
         return;
       }
 
+      const outboundTargetOrigin =
+        targetOrigin === "*"
+          ? "*"
+          : resolvedTargetOriginRef.current ?? resolveTargetOrigin(targetOrigin, allowedOrigins);
+
+      if (!outboundTargetOrigin) {
+        console.warn("[useIframeComm] Unable to resolve parent origin, skipping postMessage", type);
+        return;
+      }
+
       try {
-        window.parent.postMessage(message, targetOrigin);
+        window.parent.postMessage(message, outboundTargetOrigin);
         console.log(`Sent message to parent: ${type}`, message);
       } catch (error) {
         console.error("[useIframeComm] Error sending message to parent:", error);
       }
     },
-    [isInIframe, targetOrigin]
+    [allowedOrigins, isInIframe, targetOrigin]
   );
 
   const requestData = useCallback(
@@ -150,6 +214,10 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
   );
 
   useEffect(() => {
+    resolvedTargetOriginRef.current = resolveTargetOrigin(targetOrigin, allowedOrigins);
+  }, [targetOrigin, allowedOrigins]);
+
+  useEffect(() => {
     if (!isInIframe) {
       console.log("Not in iframe, skipping message listener setup");
       return;
@@ -157,9 +225,13 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
 
     const handleMessage = (event: MessageEvent) => {
       // Validate origin if allowedOrigins is specified
-      if (allowedOrigins.length > 0 && !allowedOrigins.includes(event.origin)) {
+      if (!isAllowedOrigin(event.origin, allowedOrigins)) {
         console.log(`Rejected message from unauthorized origin: ${event.origin}`);
         return;
+      }
+
+      if (targetOrigin !== "*") {
+        resolvedTargetOriginRef.current = event.origin;
       }
 
       try {
@@ -210,7 +282,7 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
         console.log("Message listener removed");
       }
     };
-  }, [isInIframe, allowedOrigins, sendMessage]);
+  }, [isInIframe, allowedOrigins, sendMessage, targetOrigin]);
 
   // Auto-notify ready on mount if in iframe
   useEffect(() => {
