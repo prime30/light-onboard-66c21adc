@@ -1,0 +1,3 @@
+#!/bin/sh
+# Auto-push to origin after every commit so Lovable stays in sync
+git push origin HEAD 2>&1 | tail -3
