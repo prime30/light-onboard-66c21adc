@@ -419,7 +419,7 @@ export const OnboardingForm = ({
       )}
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
-      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1 lg:pb-0">
+      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1 lg:pb-0 lg:pt-[clamp(8px,2.5vh,32px)]">
         <FadeText
           as="h1"
           className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
