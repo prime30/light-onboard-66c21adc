@@ -8,16 +8,16 @@ export const slides = [
     description: "Cosmetology license, proof of student status, or equivalent required to shop.",
   },
   {
-    eyebrow: "Quality",
-    title: "Premium",
-    highlight: "products",
-    description: "Curated professional-grade extensions & supplies",
+    eyebrow: "Pro-grade supply",
+    title: "The extensions",
+    highlight: "your clients deserve",
+    description: "Curated professional-grade hair, tools, and color at wholesale pricing.",
   },
   {
-    eyebrow: "Community",
-    title: "Grow",
-    highlight: "together",
-    description: "Connect, learn, and scale with fellow pros",
+    eyebrow: "Built for pros",
+    title: "Your network,",
+    highlight: "your edge",
+    description: "Join thousands of licensed stylists scaling their business with us.",
   },
 ];
 
