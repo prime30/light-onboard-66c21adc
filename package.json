@@ -20,7 +20,8 @@
     "supabase:reset": "supabase db reset",
     "supabase:gen-types": "supabase gen types typescript --local > src/types/supabase.ts",
     "supabase:migrate": "supabase db push",
-    "supabase:seed": "supabase db seed"
+    "supabase:seed": "supabase db seed",
+    "postinstall": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
