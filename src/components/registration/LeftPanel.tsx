@@ -145,11 +145,53 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [prevSlide, setPrevSlide] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
+  const [carouselReady, setCarouselReady] = useState(false);
   const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
   const { mode } = useModeContext();
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const preload = async () => {
+      await Promise.all(
+        slideImages.map((src) => {
+          const image = new Image();
+          image.src = src;
+
+          return new Promise<void>((resolve) => {
+            const done = () => {
+              if (typeof image.decode === "function") {
+                image.decode().catch(() => undefined).finally(() => resolve());
+              } else {
+                resolve();
+              }
+            };
+
+            if (image.complete) {
+              done();
+              return;
+            }
+
+            image.onload = done;
+            image.onerror = () => resolve();
+          });
+        })
+      );
+
+      if (!cancelled) {
+        setCarouselReady(true);
+      }
+    };
+
+    preload();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const changeSlide = useCallback((next: number, direction: "left" | "right" = "left") => {
-    if (next === currentSlide) return;
+    if (next === currentSlide || !carouselReady) return;
     setSlideDirection(direction);
     setPrevSlide(currentSlide);
     setCurrentSlide(next);
@@ -157,7 +199,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
     transitionTimer.current = setTimeout(() => {
       setPrevSlide(null);
     }, 650);
-  }, [currentSlide]);
+  }, [carouselReady, currentSlide]);
 
   useEffect(() => () => clearTimeout(transitionTimer.current), []);
 
@@ -284,6 +326,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
               <button
                 key={i}
                 onClick={() => changeSlide(i, i > currentSlide ? "left" : "right")}
+                disabled={!carouselReady}
                 className={cn(
                   "h-[5px] rounded-full transition-all duration-300",
                   i === currentSlide ? "w-10 bg-background" : "w-[5px] bg-background/20"
@@ -303,6 +346,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
           <div className="hidden lg:flex gap-2.5">
             <button
               onClick={goToPrevSlide}
+              disabled={!carouselReady}
               className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all"
               aria-label="Previous slide"
             >
@@ -310,6 +354,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
             </button>
             <button
               onClick={goToNextSlide}
+              disabled={!carouselReady}
               className="p-2.5 rounded-full bg-background/5 border border-background/10 hover:bg-background/10 transition-all"
               aria-label="Next slide"
             >
