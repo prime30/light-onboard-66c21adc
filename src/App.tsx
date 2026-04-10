@@ -31,6 +31,10 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <div
+            aria-hidden="true"
+            className="fixed top-4 right-4 z-[100] h-4 w-4 rounded-full bg-red-500 shadow-[0_0_0_3px_rgba(255,255,255,0.85)] pointer-events-none"
+          />
           <Outlet />
         </TooltipProvider>
       </UploadFileProvider>
