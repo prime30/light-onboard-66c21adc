@@ -58,21 +58,20 @@ export function ActivateAccountForm({ token, customerId }: ActivateAccountFormPr
     if (result.success) {
       setFormState("success");
       sendMessage("ACCOUNT_ACTIVATED", { customerId });
-      return;
-    }
-
-    const errorMsg = result.error || "";
-    if (errorMsg.includes("already been activated") || errorMsg.includes("already active")) {
-      setFormState("already-active");
-    } else if (errorMsg.includes("expired")) {
-      setFormState("expired");
-    } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
-      setFormState("invalid");
-    } else if (result.statusCode === 429) {
-      setFormState("rate-limited");
     } else {
-      setServerError(errorMsg);
-      setFormState("error");
+      const { error: errorMsg, statusCode } = result;
+      if (errorMsg.includes("already been activated") || errorMsg.includes("already active")) {
+        setFormState("already-active");
+      } else if (errorMsg.includes("expired")) {
+        setFormState("expired");
+      } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        setFormState("invalid");
+      } else if (statusCode === 429) {
+        setFormState("rate-limited");
+      } else {
+        setServerError(errorMsg);
+        setFormState("error");
+      }
     }
   });
 

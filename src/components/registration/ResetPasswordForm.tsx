@@ -58,19 +58,18 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     if (result.success) {
       setFormState("success");
       sendMessage("PASSWORD_RESET_SUCCESS", { customerId });
-      return;
-    }
-    
-    const errorMsg = result.error || "";
-    if (errorMsg.includes("expired")) {
-      setFormState("expired");
-    } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
-      setFormState("invalid");
-    } else if (result.statusCode === 429) {
-      setFormState("rate-limited");
     } else {
-      setServerError(errorMsg);
-      setFormState("error");
+      const { error: errorMsg, statusCode } = result;
+      if (errorMsg.includes("expired")) {
+        setFormState("expired");
+      } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        setFormState("invalid");
+      } else if (statusCode === 429) {
+        setFormState("rate-limited");
+      } else {
+        setServerError(errorMsg);
+        setFormState("error");
+      }
     }
   });
 
