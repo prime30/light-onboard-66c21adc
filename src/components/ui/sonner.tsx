@@ -15,14 +15,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast font-grotesk group-[.toaster]:bg-background/70 group-[.toaster]:dark:bg-foreground/10 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-foreground group-[.toaster]:border-background/30 group-[.toaster]:dark:border-foreground/10 group-[.toaster]:shadow-toast group-[.toaster]:rounded-lg group-[.toaster]:px-4 group-[.toaster]:py-3",
+            "group toast font-grotesk group-[.toaster]:bg-background/95 group-[.toaster]:dark:bg-background/95 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-foreground group-[.toaster]:border-border/50 group-[.toaster]:shadow-toast group-[.toaster]:rounded-lg group-[.toaster]:px-4 group-[.toaster]:py-3",
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
           error:
-            "group-[.toaster]:bg-destructive/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-destructive group-[.toaster]:border-destructive/30",
+            "group-[.toaster]:bg-[hsl(var(--status-red)/0.12)] group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-[hsl(var(--status-red))] group-[.toaster]:border-[hsl(var(--status-red)/0.3)] group-[.toaster]:shadow-toast",
           success:
-            "group-[.toaster]:bg-emerald-500/20 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-emerald-700 group-[.toaster]:dark:text-emerald-300 group-[.toaster]:border-emerald-500/30",
+            "group-[.toaster]:bg-[hsl(var(--status-green)/0.12)] group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-[hsl(var(--status-green))] group-[.toaster]:border-[hsl(var(--status-green)/0.3)] group-[.toaster]:shadow-toast",
         },
       }}
       {...props}
