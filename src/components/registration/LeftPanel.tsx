@@ -11,7 +11,11 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
+import slideProducts from "@/assets/slide-products.jpg";
+import slideCommunity from "@/assets/slide-community.jpg";
 import { useModeContext } from "./context/ModeContext";
+
+const slideImages = [salonHero, slideProducts, slideCommunity];
 
 export function SignInSlide() {
   return (
