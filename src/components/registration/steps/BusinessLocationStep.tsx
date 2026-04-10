@@ -167,7 +167,7 @@ export const BusinessLocationStep = () => {
           >
             Address*
           </Label>
-          <div className="relative z-20">
+          <div className="relative">
             <div
               className={cn(
                 "relative group input-glow input-ripple rounded-form",

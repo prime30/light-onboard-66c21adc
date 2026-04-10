@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { MapPin } from "lucide-react";
 import { addressService, type AddressPrediction, type AddressDetails } from "@/services/address";
 import { cn } from "@/lib/utils";
@@ -157,18 +158,35 @@ export function useAddressAutocomplete(
     };
   }, []);
 
-  // Reusable AddressDropdown component
+  // Track input position for portal-anchored dropdown
+  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    if (!showPredictions || !inputRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, [showPredictions, predictions]);
+
+  // Reusable AddressDropdown component — rendered into a portal so it
+  // escapes any stacking context created by the form's animated siblings.
   const AddressDropdown = useCallback(
     ({ className }: AddressDropdownProps) => {
       if (!showPredictions || predictions.length === 0) {
         return null;
       }
 
-      return (
+      return createPortal(
         <div
           ref={dropdownRef}
+          style={dropdownStyle}
           className={cn(
-            "absolute z-50 w-full mt-1 bg-background border border-border rounded-form shadow-lg overflow-hidden animate-fade-in",
+            "bg-background border border-border rounded-form shadow-lg overflow-hidden animate-fade-in",
             className
           )}
         >
@@ -186,10 +204,11 @@ export function useAddressAutocomplete(
               <span className="text-foreground">{prediction.description}</span>
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       );
     },
-    [showPredictions, predictions, selectPrediction]
+    [showPredictions, predictions, selectPrediction, dropdownStyle]
   );
 
   return {
