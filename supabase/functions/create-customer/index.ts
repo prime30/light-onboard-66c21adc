@@ -93,6 +93,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
+    referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
   }),
@@ -121,6 +122,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
+    referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
   }),
@@ -141,6 +143,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
+    referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
   }),
@@ -365,6 +368,7 @@ Deno.serve(async (req: Request) => {
     accepts_marketing: customer.accepts_marketing,
     subscribe_order_updates: customer.subscribe_order_updates,
     social_media_handle: customer.social_media_handle,
+    referral_source: customer.referral_source,
   };
 
   // Handle account-type specific fields with type narrowing

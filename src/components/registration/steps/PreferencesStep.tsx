@@ -147,7 +147,46 @@ export const PreferencesStep = () => {
           </p>
         </div>
 
-        {/* Note: Uploaded files display would be handled by parent component if needed */}
+        {/* How did you hear about us? */}
+        <div className="space-y-2.5 animate-stagger-6">
+          <p className="text-sm font-medium text-foreground">
+            How did you hear about us?{" "}
+            <span className="text-muted-foreground font-normal">(optional)</span>
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: "instagram", label: "Instagram" },
+              { value: "tiktok", label: "TikTok" },
+              { value: "facebook", label: "Facebook" },
+              { value: "google", label: "Google Search" },
+              { value: "friend", label: "Friend or Colleague" },
+              { value: "salon", label: "My Salon" },
+              { value: "event", label: "Industry Event" },
+              { value: "other", label: "Other" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                style={{ touchAction: "manipulation" }}
+                onClick={() =>
+                  setValue(
+                    "referralSource",
+                    watch("referralSource") === option.value ? undefined : option.value,
+                    dirtyFieldOptions
+                  )
+                }
+                className={cn(
+                  "p-3 rounded-xl border text-left text-sm transition-all duration-200",
+                  watch("referralSource") === option.value
+                    ? "border-foreground bg-foreground/5 font-medium"
+                    : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Subscription Preferences */}
         <div

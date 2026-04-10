@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -60,30 +60,8 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { isFormValid, isSubmitting, createdHeliumId } = useFormData();
+  const { isFormValid, isSubmitting } = useFormData();
   const { isUploading, overallProgress } = useUploadFile();
-  const [referralSource, setReferralSource] = useState<string>("");
-
-  const handleReferralSourceChange = useCallback(
-    async (value: string) => {
-      setReferralSource(value);
-      if (!createdHeliumId) return;
-      try {
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-customer`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "UPDATE_CUSTOMER",
-            helium_id: createdHeliumId,
-            data: { referral_source: value },
-          }),
-        });
-      } catch (err) {
-        console.error("Failed to save referral source:", err);
-      }
-    },
-    [createdHeliumId]
-  );
 
   // Form state from centralized hook (includes sessionStorage persistence)
   const { currentStep, setCurrentStep, goToNextStep } = useStepContext();
@@ -487,10 +465,7 @@ const Auth = () => {
               {currentStep === "preferences" && <PreferencesStep />}
               {currentStep === "summary" && <SummaryForm />}
               {currentStep === "success" && (
-                <SuccessForm
-                  referralSource={referralSource}
-                  onReferralSourceChange={handleReferralSourceChange}
-                />
+                <SuccessForm />
               )}
             </Suspense>
           )}

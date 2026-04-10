@@ -197,11 +197,11 @@ const preferencesValidators = {
     .trim()
     .max(100, "Handle must be less than 100 characters")
     .optional(),
+  referralSource: z.string().optional(),
   subscribeOrderUpdates: z
     .boolean()
     .optional()
     .transform((val) => val ?? true),
-
   acceptsMarketing: z
     .boolean()
     .optional()

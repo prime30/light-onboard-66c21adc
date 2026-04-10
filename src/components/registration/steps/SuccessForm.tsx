@@ -1,66 +1,20 @@
 import { useState } from "react";
 import { Check, ShoppingBag, Heart, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { useCountdown } from "@/hooks/use-countdown";
 import colorRingProduct from "@/assets/color-ring-product.png";
 
-interface SuccessFormProps {
-  referralSource: string;
-  onReferralSourceChange: (value: string) => void;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface SuccessFormProps {}
 
-export const SuccessForm = ({ referralSource, onReferralSourceChange }: SuccessFormProps) => {
+export const SuccessForm = (_props: SuccessFormProps) => {
   const countdown = useCountdown(48);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showOtherInput, setShowOtherInput] = useState(false);
-  const [otherText, setOtherText] = useState("");
-
-  const handleReferralSelect = (value: string) => {
-    if (value === "other") {
-      setShowOtherInput(true);
-      return;
-    }
-    setShowOtherInput(false);
-    setOtherText("");
-    if (value !== referralSource) {
-      onReferralSourceChange(value);
-      toast.success("Thanks! Your response has been saved", {
-        duration: 2000,
-      });
-    }
-  };
-
-  const handleOtherTextChange = (text: string) => {
-    setOtherText(text);
-    if (text.trim()) {
-      onReferralSourceChange(`other: ${text.trim()}`);
-    }
-  };
-
-  const handleOtherBlur = () => {
-    if (otherText.trim()) {
-      toast.success("Thanks! Your response has been saved", {
-        duration: 2000,
-      });
-    }
-  };
 
   const handleAddToCart = () => {
     setIsAddingToCart(true);
   };
   const formatNumber = (num: number) => num.toString().padStart(2, "0");
-
-  const referralOptions = [
-    { value: "instagram", label: "Instagram" },
-    { value: "tiktok", label: "TikTok" },
-    { value: "facebook", label: "Facebook" },
-    { value: "google", label: "Google Search" },
-    { value: "friend", label: "Friend or Colleague" },
-    { value: "salon", label: "My Salon" },
-    { value: "event", label: "Industry Event" },
-  ];
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
@@ -192,54 +146,6 @@ export const SuccessForm = ({ referralSource, onReferralSourceChange }: SuccessF
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-border/50" />
-
-      {/* How did you hear about us */}
-      <div className="space-y-3 text-left">
-        <h2 className="text-lg font-semibold text-foreground">How did you hear about us?</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {referralOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleReferralSelect(option.value)}
-              className={cn(
-                "p-3 rounded-xl border text-left text-sm transition-all duration-200",
-                referralSource === option.value
-                  ? "border-foreground bg-foreground/5 font-medium"
-                  : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-          {/* Other option - shows input when selected */}
-          {showOtherInput ? (
-            <input
-              type="text"
-              value={otherText}
-              onChange={(e) => handleOtherTextChange(e.target.value)}
-              onBlur={handleOtherBlur}
-              placeholder="Please specify..."
-              autoFocus
-              maxLength={100}
-              className="p-3 rounded-xl border border-foreground bg-foreground/5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
-            />
-          ) : (
-            <button
-              onClick={() => handleReferralSelect("other")}
-              className={cn(
-                "p-3 rounded-xl border text-left text-sm transition-all duration-200",
-                referralSource.startsWith("other:")
-                  ? "border-foreground bg-foreground/5 font-medium"
-                  : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
-              )}
-            >
-              Other
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
