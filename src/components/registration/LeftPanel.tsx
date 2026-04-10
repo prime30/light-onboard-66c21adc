@@ -244,7 +244,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         {mode === "signin" ? (
           <SignInSlide />
         ) : (
-          <RegisterCarouselSlides currentSlide={currentSlide} />
+          <RegisterCarouselSlides currentSlide={currentSlide} prevSlide={prevSlide} />
         )}
       </div>
 
