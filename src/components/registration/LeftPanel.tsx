@@ -7,7 +7,7 @@ import {
   TestimonialCarousel,
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
@@ -113,8 +113,11 @@ export type LeftPanelProps = {
   formProgress: number;
 };
 
+const SLIDE_INTERVAL_MS = 5000;
+
 export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const { mode } = useModeContext();
 
   const changeSlide = useCallback((next: number) => {
@@ -123,14 +126,24 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   }, [currentSlide]);
 
   const goToNextSlide = useCallback(() => {
-    changeSlide((currentSlide + 1) % slides.length);
-  }, [currentSlide, changeSlide]);
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, []);
   const goToPrevSlide = useCallback(() => {
-    changeSlide((currentSlide - 1 + slides.length) % slides.length);
-  }, [currentSlide, changeSlide]);
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "signup" || isPaused) return;
+    const id = setInterval(goToNextSlide, SLIDE_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [mode, isPaused, goToNextSlide]);
 
   return (
-    <div className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0">
+    <div
+      className="relative hidden lg:flex flex-col w-full lg:w-1/2 h-[200px] sm:h-[250px] lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       {/* Background layers */}
       {mode === "signin" ? (
         <div className="absolute inset-0">
