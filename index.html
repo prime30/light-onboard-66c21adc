@@ -16,6 +16,9 @@
     <link rel="preload" href="/fonts/die-grotesk-b-medium.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high" />
     <link rel="preload" href="/fonts/termina-medium.woff2" as="font" type="font/woff2" crossorigin />
 
+    <!-- Preload hero image to prevent left-panel FOUC -->
+    <link rel="preload" href="/src/assets/salon-hero.jpg" as="image" type="image/jpeg" fetchpriority="high" />
+
     <!-- Bebas Neue fallback for Termina — loaded async to avoid render-blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
