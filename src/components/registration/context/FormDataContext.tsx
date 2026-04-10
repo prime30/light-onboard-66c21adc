@@ -43,6 +43,8 @@ export type FormDataContextType = {
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
+  discountCode: string | null;
+  discountExpiry: string | null;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -79,6 +81,8 @@ export function FormDataProvider({
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
   >([]);
+  const [discountCode, setDiscountCode] = useState<string | null>(null);
+  const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
 
   const {
     register,
@@ -129,6 +133,29 @@ export function FormDataProvider({
         });
         throw new Error(result.error);
       }
+
+      // Fire-and-forget: generate discount code after successful registration.
+      // Failures here do not block the success screen.
+      (async () => {
+        try {
+          const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
+          const discountResponse = await fetch(discountUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          if (discountResponse.ok) {
+            const discountResult = await discountResponse.json();
+            if (discountResult.success && discountResult.code) {
+              setDiscountCode(discountResult.code);
+              setDiscountExpiry(discountResult.endsAt ?? null);
+            }
+          } else {
+            console.warn("generate-discount non-OK response:", discountResponse.status);
+          }
+        } catch (err) {
+          console.warn("generate-discount error (non-blocking):", err);
+        }
+      })();
 
       return result.data;
     },
@@ -266,6 +293,8 @@ export function FormDataProvider({
     isSubmitSuccessful,
     isSubmitting,
     errorActions,
+    discountCode,
+    discountExpiry,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

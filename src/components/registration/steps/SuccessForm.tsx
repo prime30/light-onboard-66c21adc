@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
-import { Check, ShoppingBag, Heart, Sparkles, Clock } from "lucide-react";
+import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -8,6 +8,7 @@ import {
   useIframeCartBridge,
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
+import { useFormData } from "@/components/registration/context";
 
 type AtcStatus = "idle" | "submitting" | "success" | "error";
 type AtcState = {
@@ -71,7 +72,12 @@ function atcReducer(state: AtcState, action: AtcAction): AtcState {
 }
 
 export const SuccessForm = () => {
-  const countdown = useCountdown(48);
+  const { discountCode, discountExpiry } = useFormData();
+
+  // Use real server expiry if available, otherwise count down 48h from mount
+  const countdown = useCountdown(discountExpiry ?? 48);
+
+  const [copied, setCopied] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [atcState, dispatch] = useReducer(atcReducer, initialAtcState);
 
@@ -80,6 +86,14 @@ export const SuccessForm = () => {
     if (!Number.isFinite(parsed) || parsed <= 0) return null;
     return Math.floor(parsed);
   }, []);
+
+  const handleCopyCode = useCallback(() => {
+    if (!discountCode) return;
+    navigator.clipboard.writeText(discountCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [discountCode]);
 
   const handleAddToCartStatus = useCallback((status: AddToCartStatusData) => {
     if (!status.requestId) return;
@@ -111,6 +125,7 @@ export const SuccessForm = () => {
 
   const activeStatus = activeRequestId ? atcState.byRequestId[activeRequestId] : undefined;
   const isAddingToCart = activeStatus?.status === "submitting";
+  const atcSuccess = activeStatus?.status === "success";
 
   const handleAddToCart = useCallback(() => {
     const requestId = createAddToCartRequestId("ring-offer");
@@ -164,7 +179,7 @@ export const SuccessForm = () => {
 
   const statusMessage =
     activeStatus?.status === "success"
-      ? "Added to cart."
+      ? "Added to cart! Apply your code at checkout."
       : activeStatus?.status === "error"
         ? activeStatus.message
         : activeStatus?.status === "submitting"
@@ -188,25 +203,19 @@ export const SuccessForm = () => {
         {/* Floating decorations */}
         <div
           className="absolute top-2.5 left-1/4 w-[30px] h-[30px] rounded-[10px] bg-muted border border-border flex items-center justify-center animate-fade-in"
-          style={{
-            animationDelay: "0.2s",
-          }}
+          style={{ animationDelay: "0.2s" }}
         >
           <ShoppingBag className="w-[15px] h-[15px] text-muted-foreground" />
         </div>
         <div
           className="absolute top-5 right-1/4 w-[25px] h-[25px] rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in"
-          style={{
-            animationDelay: "0.4s",
-          }}
+          style={{ animationDelay: "0.4s" }}
         >
           <Heart className="w-[15px] h-[15px] text-muted-foreground" />
         </div>
         <div
           className="absolute bottom-2.5 right-1/3 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center animate-fade-in"
-          style={{
-            animationDelay: "0.6s",
-          }}
+          style={{ animationDelay: "0.6s" }}
         >
           <Sparkles className="w-2.5 h-2.5 text-muted-foreground" />
         </div>
@@ -283,15 +292,57 @@ export const SuccessForm = () => {
               </p>
             </div>
           </div>
+
+          {/* Discount Code */}
+          {discountCode ? (
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              style={{ touchAction: "manipulation" }}
+              className="w-full mt-4 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors group"
+              aria-label="Copy discount code"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                <span className="text-sm font-mono font-semibold text-accent-red tracking-wider truncate">
+                  {discountCode}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                {copied ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-status-green" />
+                    <span className="text-status-green">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </div>
+            </button>
+          ) : (
+            <div className="w-full mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border/50 bg-muted/50">
+              <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="h-3 w-32 bg-muted-foreground/20 rounded animate-pulse" />
+            </div>
+          )}
+
           <Button
             variant="outline"
             size="sm"
             onClick={handleAddToCart}
-            disabled={isAddingToCart}
-            className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
+            disabled={isAddingToCart || atcSuccess}
+            className="w-full mt-3 h-11 min-h-11 touch-manipulation rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
           >
             {isAddingToCart ? (
               <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" />
+            ) : atcSuccess ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Added to Cart
+              </>
             ) : (
               <>
                 <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
@@ -304,7 +355,7 @@ export const SuccessForm = () => {
               className={
                 activeStatus?.status === "error"
                   ? "mt-2 text-xs text-destructive"
-                  : "mt-2 text-xs text-emerald-600"
+                  : "mt-2 text-xs text-status-green"
               }
             >
               {statusMessage}
@@ -312,7 +363,6 @@ export const SuccessForm = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };
