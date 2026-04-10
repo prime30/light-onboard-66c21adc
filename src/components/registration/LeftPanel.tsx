@@ -63,13 +63,39 @@ type RegisterCarouselSlidesProps = {
   currentSlide: number;
 };
 
-export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesProps) {
+export function RegisterCarouselSlides({ currentSlide, prevSlide }: RegisterCarouselSlidesProps & { prevSlide?: number | null }) {
   const slide = slides[currentSlide];
+  const outgoingSlide = prevSlide != null ? slides[prevSlide] : null;
 
   return (
     <div className="flex flex-col gap-0 pb-[20px]">
-      {/* Carousel content - keyed for animations */}
-      <div key={currentSlide}>
+      <div className="relative">
+        {/* Outgoing text — fades out during transition */}
+        {outgoingSlide && (
+          <div
+            className="absolute inset-0"
+            style={{
+              animation: "carousel-text-out 0.35s ease-in forwards",
+            }}
+          >
+            <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
+              <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+              <span className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">{outgoingSlide.eyebrow}</span>
+            </div>
+            <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
+              <h2 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]">{outgoingSlide.title}</h2>
+              <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]">{outgoingSlide.highlight}</h1>
+            </div>
+            <p className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap mb-0">{outgoingSlide.description}</p>
+          </div>
+        )}
+
+        {/* Current text — fades in (delayed so outgoing fades first) */}
+        <div
+          style={outgoingSlide ? {
+            animation: "carousel-text-in 0.4s ease-out 0.2s both",
+          } : undefined}
+        >
         {/* Eyebrow */}
         <div
           className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]"
@@ -105,6 +131,7 @@ export function RegisterCarouselSlides({ currentSlide }: RegisterCarouselSlidesP
         >
           {slide.description}
         </FadeText>
+      </div>
       </div>
     </div>
   );
@@ -217,7 +244,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         {mode === "signin" ? (
           <SignInSlide />
         ) : (
-          <RegisterCarouselSlides currentSlide={currentSlide} />
+          <RegisterCarouselSlides currentSlide={currentSlide} prevSlide={prevSlide} />
         )}
       </div>
 
