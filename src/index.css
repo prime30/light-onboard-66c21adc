@@ -1440,20 +1440,3 @@ div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) sv
   border-color: hsl(var(--destructive) / 0.5) !important;
 }
 
-/* Carousel slide-over animation */
-@keyframes carousel-text-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(8px); }
-}
-@keyframes carousel-text-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes carousel-slide-in {
-  from {
-    transform: translateX(var(--slide-from, 100%));
-  }
-  to {
-    transform: translateX(0);
-  }
-}
