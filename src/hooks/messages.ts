@@ -6,15 +6,28 @@ import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
 
 export function useCloseIframe() {
-  const { sendMessage, isInIframe } = useGlobalApp();
+  const { isInIframe } = useGlobalApp();
 
-  // Specific function to request iframe closure
+  // Fire CLOSE_IFRAME directly with wildcard origin to guarantee delivery
+  // to the parent theme listener regardless of origin resolution state.
   const closeIframe = useCallback(() => {
-    sendMessage(IframeMessageTypes.CLOSE_IFRAME, {
-      reason: "User requested closure",
-      url: window.location.href,
-    });
-  }, [sendMessage]);
+    try {
+      window.parent.postMessage(
+        {
+          type: IframeMessageTypes.CLOSE_IFRAME,
+          data: {
+            reason: "User requested closure",
+            url: window.location.href,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        "*"
+      );
+      console.log("[useCloseIframe] Posted CLOSE_IFRAME to parent with '*' origin");
+    } catch (error) {
+      console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
+    }
+  }, []);
 
   return { closeIframe, isInIframe };
 }
