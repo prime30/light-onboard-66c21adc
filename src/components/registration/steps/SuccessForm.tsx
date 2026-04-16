@@ -123,6 +123,10 @@ export const SuccessForm = () => {
     return () => window.clearInterval(cleanupInterval);
   }, []);
 
+  const activeStatus = activeRequestId ? atcState.byRequestId[activeRequestId] : undefined;
+  const isAddingToCart = activeStatus?.status === "submitting";
+  const atcSuccess = activeStatus?.status === "success";
+
   // After ATC success, redirect parent to checkout with discount pre-applied
   useEffect(() => {
     if (activeStatus?.status !== "success") return;
@@ -131,10 +135,6 @@ export const SuccessForm = () => {
     }, 1000);
     return () => clearTimeout(timer);
   }, [activeStatus?.status, discountCode, requestRedirectToCheckout]);
-
-  const activeStatus = activeRequestId ? atcState.byRequestId[activeRequestId] : undefined;
-  const isAddingToCart = activeStatus?.status === "submitting";
-  const atcSuccess = activeStatus?.status === "success";
 
   const handleAddToCart = useCallback(() => {
     const requestId = createAddToCartRequestId("ring-offer");
