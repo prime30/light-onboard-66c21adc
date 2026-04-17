@@ -54,6 +54,15 @@ function reviewToTestimonial(r: Review): Testimonial {
 }
 
 export const TestimonialCarousel = () => {
+  const { data: liveReviews } = useReviews(8);
+
+  const testimonials = useMemo<Testimonial[]>(() => {
+    if (liveReviews && liveReviews.length > 0) {
+      return liveReviews.map(reviewToTestimonial);
+    }
+    return fallbackTestimonials;
+  }, [liveReviews]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -62,10 +71,19 @@ export const TestimonialCarousel = () => {
   // Incrementing this key restarts the CSS progress animation on the active dot
   const [timerKey, setTimerKey] = useState(0);
 
-  const advance = useCallback((dir: 1 | -1 = 1) => {
-    setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
+  // Reset to first slide when the source changes (live reviews loading in)
+  useEffect(() => {
+    setCurrentIndex(0);
     setTimerKey((k) => k + 1);
-  }, []);
+  }, [testimonials.length]);
+
+  const advance = useCallback(
+    (dir: 1 | -1 = 1) => {
+      setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
+      setTimerKey((k) => k + 1);
+    },
+    [testimonials.length]
+  );
 
   const goTo = useCallback((i: number) => {
     setCurrentIndex(i);
