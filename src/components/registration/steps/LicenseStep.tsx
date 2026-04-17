@@ -143,6 +143,13 @@ export const LicenseStep = () => {
                 (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
               )}
             >
+              {!isSalon && (
+                <div className="flex justify-center">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+                    Optional
+                  </span>
+                </div>
+              )}
               <Label className="text-sm font-medium">{label}</Label>
               <MultiFileUpload
                 files={
