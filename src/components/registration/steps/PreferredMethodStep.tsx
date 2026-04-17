@@ -17,22 +17,33 @@ const fieldName: ValidFieldNames = "preferredMethods";
 
 const METHOD_DETAILS: Record<
   PreferredMethod,
-  { description: string; image: string; tagline: string }
+  { description: string; image: string; tagline: string; displayName: React.ReactNode }
 > = {
   SuperWeft: {
-    tagline: "Hand-tied",
+    tagline: "New Genius Weft",
     description: "Seamless wefts for a natural, lightweight finish.",
     image: superWeftImg,
+    displayName: (
+      <>
+        SUPERWEFT<sup className="text-[0.5em] ml-0.5 align-super">®</sup>
+      </>
+    ),
   },
   "Keratin Tips": {
     tagline: "Pre-bonded",
     description: "Individual strands for fusion installs with maximum versatility.",
     image: keratinTipsImg,
+    displayName: <>KERATIN TIPS</>,
   },
   SecreTapes: {
     tagline: "Tape-in",
     description: "Fast, low-profile applications that lay flat against the scalp.",
     image: secreTapesImg,
+    displayName: (
+      <>
+        SECRETAPES<sup className="text-[0.5em] ml-0.5 align-super">®</sup>
+      </>
+    ),
   },
 };
 
@@ -116,8 +127,8 @@ export const PreferredMethodStep = () => {
                     {details.tagline}
                   </span>
                 </div>
-                <div className="font-termina font-medium text-base sm:text-lg text-foreground leading-tight">
-                  {method}
+                <div className="font-termina font-medium text-base sm:text-lg text-foreground leading-tight uppercase tracking-[-0.006em]">
+                  {details.displayName}
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground/80 leading-snug mt-1 line-clamp-2">
                   {details.description}
