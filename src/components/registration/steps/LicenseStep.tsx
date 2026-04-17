@@ -32,13 +32,9 @@ export const LicenseStep = () => {
   const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
 
   const isSalon = accountType === "salon";
-  const label = isSalon ? (
-    "Upload your salon license*"
-  ) : (
-    <>
-      Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
-    </>
-  );
+  const label = isSalon
+    ? "Upload your salon license*"
+    : "For quicker account verification process upload your license";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Create options for selects
