@@ -32,13 +32,9 @@ export const LicenseStep = () => {
   const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
 
   const isSalon = accountType === "salon";
-  const label = isSalon ? (
-    "Upload your salon license*"
-  ) : (
-    <>
-      Upload license photo <span className="text-muted-foreground font-normal">(optional)</span>
-    </>
-  );
+  const label = isSalon
+    ? "Upload your salon license*"
+    : "For quicker account verification process upload your license";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Create options for selects
@@ -147,6 +143,13 @@ export const LicenseStep = () => {
                 (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
               )}
             >
+              {!isSalon && (
+                <div className="flex justify-center">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+                    Optional
+                  </span>
+                </div>
+              )}
               <Label className="text-sm font-medium">{label}</Label>
               <MultiFileUpload
                 files={
