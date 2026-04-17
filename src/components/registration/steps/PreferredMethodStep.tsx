@@ -11,13 +11,20 @@ import { Step } from "@/types/auth";
 import superWeftImg from "@/assets/method-superweft.jpg";
 import keratinTipsImg from "@/assets/method-keratin-tips.jpg";
 import secreTapesImg from "@/assets/method-secretapes.jpg";
+import volumeWeftImg from "@/assets/method-volume-weft.jpg";
 
 const STEP: Step = "preferred-method";
 const fieldName: ValidFieldNames = "preferredMethods";
 
 const METHOD_DETAILS: Record<
   PreferredMethod,
-  { description: string; image: string; tagline: string; displayName: React.ReactNode }
+  {
+    description: string;
+    image: string;
+    tagline: string;
+    displayName: React.ReactNode;
+    comingSoon?: boolean;
+  }
 > = {
   SuperWeft: {
     tagline: "New Genius Weft",
@@ -44,6 +51,13 @@ const METHOD_DETAILS: Record<
         SECRETAPES<sup className="text-[0.5em] ml-0.5 align-super">®</sup>
       </>
     ),
+  },
+  "Volume Weft": {
+    tagline: "Hand-tied",
+    description: "Ultra-thick wefts for maximum density and fullness.",
+    image: volumeWeftImg,
+    displayName: <>VOLUME WEFT</>,
+    comingSoon: true,
   },
 };
 
