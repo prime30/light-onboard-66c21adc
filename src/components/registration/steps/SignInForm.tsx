@@ -148,9 +148,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     setEmail(email || "");
   }, [email, setEmail]);
 
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    try {
+      return !!localStorage.getItem("dde_remembered_email");
+    } catch {
+      return false;
+    }
+  });
+
   const onSubmit = handleSubmit(
     async (data: z.infer<typeof loginSchema>) => {
       if (data.formType === "login") {
+        // Persist or clear remembered email based on checkbox
+        try {
+          if (rememberMe && data.email) {
+            localStorage.setItem("dde_remembered_email", data.email);
+          } else {
+            localStorage.removeItem("dde_remembered_email");
+          }
+        } catch {
+          // Ignore storage errors (private mode / partitioned iframe)
+        }
         login({
           email: data.email,
           password: data.password,
