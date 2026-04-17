@@ -112,7 +112,9 @@ export const PreferredMethodStep = () => {
                 "hover:-translate-y-0.5 active:scale-[0.99]",
                 isSelected
                   ? "border-foreground bg-foreground/[0.012] shadow-sm"
-                  : "border-border/60 bg-background hover:border-foreground/30"
+                  : details.comingSoon
+                    ? "border-border/60 bg-muted/40 hover:border-foreground/30"
+                    : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
               {/* Image */}
