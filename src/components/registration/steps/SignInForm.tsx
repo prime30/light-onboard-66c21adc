@@ -128,6 +128,16 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   useEffect(() => {
     if (initialEmail) {
       setValue("email", initialEmail, dirtyFieldOptions);
+      return;
+    }
+    // Prefill from a previously remembered email
+    try {
+      const remembered = localStorage.getItem("dde_remembered_email");
+      if (remembered) {
+        setValue("email", remembered, dirtyFieldOptions);
+      }
+    } catch {
+      // localStorage may be unavailable (e.g. iframe partitioning) — silently ignore
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
