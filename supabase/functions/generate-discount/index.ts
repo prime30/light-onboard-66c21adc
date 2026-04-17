@@ -1,7 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SHOPIFY_STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN") ?? "drop-dead-2428.myshopify.com";
-const SHOPIFY_ADMIN_API_TOKEN = Deno.env.get("SHOPIFY_ADMIN_API_TOKEN") ?? "";
+const SHOPIFY_ADMIN_API_TOKEN =
+  Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN") ?? Deno.env.get("SHOPIFY_ADMIN_API_TOKEN") ?? "";
 const COLOR_RING_PRODUCT_GID = "gid://shopify/Product/9089694302525";
 const SHOPIFY_API_VERSION = "2025-04";
 const DISCOUNT_PERCENTAGE = 0.30;
