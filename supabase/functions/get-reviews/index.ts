@@ -109,12 +109,11 @@ Deno.serve(async (req: Request) => {
 
     if (!res.ok) {
       console.error("Klaviyo Reviews API error", res.status, body);
+      // Degrade gracefully: return empty list so client falls back to static
+      // testimonials instead of surfacing a 500 to the UI.
       return new Response(
-        JSON.stringify({
-          error: `Klaviyo Reviews API error [${res.status}]`,
-          details: body,
-        }),
-        { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ reviews: [], count: 0, fallback: true, upstreamStatus: res.status }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
