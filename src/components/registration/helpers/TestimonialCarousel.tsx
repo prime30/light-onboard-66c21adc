@@ -1,20 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useReviews, type Review } from "@/hooks/use-reviews";
 
 const INTERVAL_MS = 5000;
 
-const testimonials = [
+type Testimonial = {
+  quote: string;
+  name: string;
+  role: string;
+  avatar: string;
+};
+
+const fallbackTestimonials: Testimonial[] = [
   {
     quote:
       "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
-    name: "Sarah Mitchell",
+    name: "Sarah M.",
     role: "Hair stylist, 8 years",
     avatar:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
   },
   {
     quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
-    name: "Marcus Chen",
+    name: "Marcus C.",
     role: "Salon owner",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
@@ -22,19 +30,28 @@ const testimonials = [
   {
     quote:
       "The community here is incredible. It's like having thousands of mentors at your fingertips.",
-    name: "Jessica Torres",
+    name: "Jessica T.",
     role: "Extension specialist",
     avatar:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
   },
   {
     quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
-    name: "Amanda Brooks",
+    name: "Amanda B.",
     role: "Color expert",
     avatar:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
   },
 ];
+
+function reviewToTestimonial(r: Review): Testimonial {
+  return {
+    quote: r.content,
+    name: r.authorName,
+    role: r.productName ? `Verified · ${r.productName}` : "Verified stylist",
+    avatar: r.avatar,
+  };
+}
 
 export const TestimonialCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
