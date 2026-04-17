@@ -87,10 +87,11 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const limit = Math.min(Number(url.searchParams.get("limit") ?? "20"), 100);
 
-    // Server-side filter: rating >= 5. Klaviyo supports basic filter syntax.
+    // Server-side filter: rating == 5. Klaviyo's filter grammar uses equals(),
+    // greater-or-equal() on `rating` is not supported and returns 500.
     // Sort newest first.
     const params = new URLSearchParams();
-    params.set("filter", "greater-or-equal(rating,5)");
+    params.set("filter", "equals(rating,5)");
     params.set("sort", "-created");
     params.set("page[size]", String(Math.min(limit, 100)));
 
