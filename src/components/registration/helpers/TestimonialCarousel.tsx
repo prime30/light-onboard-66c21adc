@@ -1,20 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useReviews, type Review } from "@/hooks/use-reviews";
 
 const INTERVAL_MS = 5000;
 
-const testimonials = [
+type Testimonial = {
+  quote: string;
+  name: string;
+  role: string;
+  avatar: string;
+};
+
+const fallbackTestimonials: Testimonial[] = [
   {
     quote:
       "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
-    name: "Sarah Mitchell",
+    name: "Sarah M.",
     role: "Hair stylist, 8 years",
     avatar:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
   },
   {
     quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
-    name: "Marcus Chen",
+    name: "Marcus C.",
     role: "Salon owner",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
@@ -22,21 +30,39 @@ const testimonials = [
   {
     quote:
       "The community here is incredible. It's like having thousands of mentors at your fingertips.",
-    name: "Jessica Torres",
+    name: "Jessica T.",
     role: "Extension specialist",
     avatar:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
   },
   {
     quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
-    name: "Amanda Brooks",
+    name: "Amanda B.",
     role: "Color expert",
     avatar:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
   },
 ];
 
+function reviewToTestimonial(r: Review): Testimonial {
+  return {
+    quote: r.content,
+    name: r.authorName,
+    role: r.productName ? `Verified · ${r.productName}` : "Verified stylist",
+    avatar: r.avatar,
+  };
+}
+
 export const TestimonialCarousel = () => {
+  const { data: liveReviews } = useReviews(8);
+
+  const testimonials = useMemo<Testimonial[]>(() => {
+    if (liveReviews && liveReviews.length > 0) {
+      return liveReviews.map(reviewToTestimonial);
+    }
+    return fallbackTestimonials;
+  }, [liveReviews]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -45,10 +71,19 @@ export const TestimonialCarousel = () => {
   // Incrementing this key restarts the CSS progress animation on the active dot
   const [timerKey, setTimerKey] = useState(0);
 
-  const advance = useCallback((dir: 1 | -1 = 1) => {
-    setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
+  // Reset to first slide when the source changes (live reviews loading in)
+  useEffect(() => {
+    setCurrentIndex(0);
     setTimerKey((k) => k + 1);
-  }, []);
+  }, [testimonials.length]);
+
+  const advance = useCallback(
+    (dir: 1 | -1 = 1) => {
+      setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
+      setTimerKey((k) => k + 1);
+    },
+    [testimonials.length]
+  );
 
   const goTo = useCallback((i: number) => {
     setCurrentIndex(i);
@@ -86,7 +121,9 @@ export const TestimonialCarousel = () => {
     setIsPaused(false);
   };
 
-  const testimonial = testimonials[currentIndex];
+  const testimonial = testimonials[currentIndex] ?? testimonials[0];
+
+  if (!testimonial) return null;
 
   return (
     <div className="space-y-4">
