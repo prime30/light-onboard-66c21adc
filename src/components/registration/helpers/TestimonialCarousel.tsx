@@ -121,7 +121,9 @@ export const TestimonialCarousel = () => {
     setIsPaused(false);
   };
 
-  const testimonial = testimonials[currentIndex];
+  const testimonial = testimonials[currentIndex] ?? testimonials[0];
+
+  if (!testimonial) return null;
 
   return (
     <div className="space-y-4">
