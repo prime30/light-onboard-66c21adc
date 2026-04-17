@@ -198,6 +198,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     isSubmitting,
     isPasswordReset,
     isLoginSuccessful,
+    rememberMe,
+    setRememberMe,
   };
 }
 
@@ -213,6 +215,8 @@ export const SignInForm = () => {
     isSubmitting,
     isPasswordReset,
     isLoginSuccessful,
+    rememberMe,
+    setRememberMe,
   } = useSignInForm({
     initialEmail: email,
   });
