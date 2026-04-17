@@ -137,6 +137,7 @@ export const SummaryForm = () => {
     socialMediaHandle,
     subscribeOrderUpdates,
     acceptsMarketing,
+    preferredMethods,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
     taxExemptFile = [],
