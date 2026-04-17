@@ -68,7 +68,12 @@ function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string |
 }
 
 // Inline the registration schema for edge function
-const PREFERRED_METHOD_OPTIONS = ["SuperWeft", "Keratin Tips", "SecreTapes"] as const;
+const PREFERRED_METHOD_OPTIONS = [
+  "SuperWeft",
+  "Keratin Tips",
+  "SecreTapes",
+  "Volume Weft",
+] as const;
 const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
 
 const registrationSchema = z.discriminatedUnion("accountType", [
