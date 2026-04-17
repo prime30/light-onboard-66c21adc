@@ -68,6 +68,9 @@ function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string |
 }
 
 // Inline the registration schema for edge function
+const PREFERRED_METHOD_OPTIONS = ["SuperWeft", "Keratin Tips", "SecreTapes"] as const;
+const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
+
 const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({
     accountType: z.literal("professional"),
@@ -90,6 +93,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -119,6 +123,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -140,6 +145,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
