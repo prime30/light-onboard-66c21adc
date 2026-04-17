@@ -53,7 +53,7 @@ const METHOD_DETAILS: Record<
     ),
   },
   "Volume Weft": {
-    tagline: "Hand-tied",
+    tagline: "",
     description: "Ultra-thick wefts for maximum density and fullness.",
     image: volumeWeftImg,
     displayName: <>VOLUME WEFT</>,
