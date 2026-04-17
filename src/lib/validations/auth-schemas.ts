@@ -188,6 +188,18 @@ const wholesaleValidators = {
 };
 export const wholesaleTermsSchema = z.object(wholesaleValidators);
 
+// Preferred Method Schema
+export const PREFERRED_METHOD_OPTIONS = ["SuperWeft", "Keratin Tips", "SecreTapes"] as const;
+export type PreferredMethod = (typeof PREFERRED_METHOD_OPTIONS)[number];
+
+const preferredMethodValidators = {
+  preferredMethods: z
+    .array(z.enum(PREFERRED_METHOD_OPTIONS))
+    .min(1, "Please select at least one preferred method"),
+};
+export const preferredMethodSchema = z.object(preferredMethodValidators);
+export type PreferredMethodFormData = z.infer<typeof preferredMethodSchema>;
+
 // Preferences Schema
 const preferencesValidators = {
   birthdayMonth: z.string().optional(),
@@ -213,6 +225,7 @@ const baseValidators = {
   ...contactBasicsValidators,
   ...taxExemptionValidators,
   ...wholesaleValidators,
+  ...preferredMethodValidators,
   ...preferencesValidators,
 };
 

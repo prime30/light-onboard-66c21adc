@@ -137,6 +137,7 @@ export const SummaryForm = () => {
     socialMediaHandle,
     subscribeOrderUpdates,
     acceptsMarketing,
+    preferredMethods,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
     taxExemptFile = [],
@@ -331,11 +332,23 @@ export const SummaryForm = () => {
           </SummarySection>
         </div>
 
+        {/* Preferred Method */}
+        {preferredMethods && preferredMethods.length > 0 && (
+          <div className="animate-stagger-8">
+            <SummarySection
+              title="Preferred Method"
+              stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}
+            >
+              <SummaryRow label="Selected" value={preferredMethods.join(", ")} />
+            </SummarySection>
+          </div>
+        )}
+
         {/* Preferences */}
         <div className="animate-stagger-8">
           <SummarySection
             title="Preferences & Details"
-            stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}
+            stepNum={accountType === "professional" ? 9 : accountType === "student" ? 7 : 8}
           >
             {birthdayMonth && birthdayDay && (
               <SummaryRow

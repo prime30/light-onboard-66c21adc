@@ -6,6 +6,7 @@ import {
   contactBasicsSchema,
   licenseSchema,
   preferencesSchema,
+  preferredMethodSchema,
   schoolInfoSchema,
   taxExemptionSchema,
   wholesaleTermsSchema,
@@ -27,6 +28,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "school-info": "School Information",
   "wholesale-terms": "Wholesale Terms",
   "tax-exemption": "Tax Exemption",
+  "preferred-method": "Preferred Method",
   preferences: "Preferences",
   summary: "Review & Submit",
   success: "Success",
@@ -44,6 +46,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "license",
     "tax-exemption",
     "wholesale-terms",
+    "preferred-method",
     "preferences",
   ],
   salon: [
@@ -53,6 +56,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "license",
     "tax-exemption",
     "wholesale-terms",
+    "preferred-method",
     "preferences",
   ],
   student: [
@@ -61,6 +65,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "contact-basics",
     "tax-exemption",
     "wholesale-terms",
+    "preferred-method",
     "preferences",
   ],
 };
@@ -84,6 +89,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "school-info": schoolInfoSchema,
   "wholesale-terms": wholesaleTermsSchema,
   "tax-exemption": taxExemptionSchema,
+  "preferred-method": preferredMethodSchema,
   preferences: preferencesSchema,
   summary: null,
   success: null,
@@ -180,6 +186,13 @@ export const STEPS: Record<Step, StepInfo> = {
     displayName: STEP_DISPLAY_NAMES.preferences,
     fields: fieldsForStep["preferences"],
     schema: stepValidations["preferences"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  "preferred-method": {
+    name: "preferred-method",
+    displayName: STEP_DISPLAY_NAMES["preferred-method"],
+    fields: fieldsForStep["preferred-method"],
+    schema: stepValidations["preferred-method"],
     accountTypes: ["professional", "salon", "student"],
   },
   summary: {

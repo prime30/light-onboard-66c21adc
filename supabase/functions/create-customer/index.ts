@@ -68,6 +68,9 @@ function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string |
 }
 
 // Inline the registration schema for edge function
+const PREFERRED_METHOD_OPTIONS = ["SuperWeft", "Keratin Tips", "SecreTapes"] as const;
+const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
+
 const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({
     accountType: z.literal("professional"),
@@ -90,6 +93,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -119,6 +123,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -140,6 +145,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
+    preferredMethods: preferredMethodsSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -483,6 +489,72 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log("Customer Fields API request successful:", customerFieldsData.customer.id);
+
+    // Tag Shopify customer with "Preferred method: X" for each selected method.
+    // This is fire-and-forget — failures here must not block account creation.
+    const shopifyCustomerId = customerFieldsData.customer.shopify_id;
+    const preferredMethods = (parseResult.data as { preferredMethods?: string[] }).preferredMethods;
+    if (shopifyCustomerId && preferredMethods && preferredMethods.length > 0) {
+      const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+      const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      if (shopifyDomain && shopifyAdminToken) {
+        const newTags = preferredMethods.map((m) => `Preferred method: ${m}`);
+        try {
+          // Fetch existing tags to merge
+          const getRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          let existingTags: string[] = [];
+          if (getRes.ok) {
+            const existing = await getRes.json();
+            const tagStr: string = existing?.customer?.tags ?? "";
+            existingTags = tagStr
+              .split(",")
+              .map((t: string) => t.trim())
+              .filter(Boolean);
+          } else {
+            console.warn("Could not fetch existing Shopify tags:", getRes.status);
+          }
+
+          const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
+
+          const tagRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+            {
+              method: "PUT",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                customer: {
+                  id: shopifyCustomerId,
+                  tags: mergedTags.join(", "),
+                },
+              }),
+            }
+          );
+
+          if (!tagRes.ok) {
+            const errText = await tagRes.text();
+            console.warn("Failed to tag Shopify customer:", tagRes.status, errText);
+          } else {
+            console.log("Tagged Shopify customer with preferred methods:", newTags);
+          }
+        } catch (tagErr) {
+          console.warn("Error tagging Shopify customer (non-blocking):", tagErr);
+        }
+      } else {
+        console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping tagging");
+      }
+    }
 
     const response: FunctionResponse<CustomerFieldsResponse> = {
       success: true,

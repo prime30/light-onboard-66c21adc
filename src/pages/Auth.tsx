@@ -11,6 +11,7 @@ import type { Step } from "@/types/auth";
 const AccountTypeForm = lazy(() => import("@/components/registration/steps/AccountTypeForm").then(m => ({ default: m.AccountTypeForm })));
 const ContactBasicsStep = lazy(() => import("@/components/registration/steps/ContactBasicsStep").then(m => ({ default: m.ContactBasicsStep })));
 const PreferencesStep = lazy(() => import("@/components/registration/steps/PreferencesStep").then(m => ({ default: m.PreferencesStep })));
+const PreferredMethodStep = lazy(() => import("@/components/registration/steps/PreferredMethodStep").then(m => ({ default: m.PreferredMethodStep })));
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
 const SchoolInfoStep = lazy(() => import("@/components/registration/steps/SchoolInfoStep").then(m => ({ default: m.SchoolInfoStep })));
 const LicenseStep = lazy(() => import("@/components/registration/steps/LicenseStep").then(m => ({ default: m.LicenseStep })));
@@ -470,6 +471,7 @@ const Auth = () => {
               {currentStep === "contact-basics" && <ContactBasicsStep />}
               {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
               {currentStep === "tax-exemption" && <TaxExemptionStep />}
+              {currentStep === "preferred-method" && <PreferredMethodStep />}
               {currentStep === "preferences" && <PreferencesStep />}
               {currentStep === "summary" && <SummaryForm />}
               {currentStep === "success" && (
