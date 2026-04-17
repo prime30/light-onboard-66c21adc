@@ -138,12 +138,14 @@ export const PreferredMethodStep = () => {
 
               {/* Text */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
-                    {details.tagline}
-                  </span>
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap min-h-[14px]">
+                  {details.tagline && (
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
+                      {details.tagline}
+                    </span>
+                  )}
                   {details.comingSoon && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-foreground/[0.04] border border-border/60 text-[9px] font-medium text-foreground/70 uppercase tracking-[0.12em]">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-foreground/10 border border-foreground/20 text-[9px] font-semibold text-foreground uppercase tracking-[0.12em]">
                       Coming soon
                     </span>
                   )}
