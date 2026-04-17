@@ -166,8 +166,8 @@ export const OdometerCounter = ({
             {ones}
           </span>
         </span>
-      </span>{" "}
-      pros
+      </span>
+      <span>&nbsp;pros</span>
     </span>
   );
 };
