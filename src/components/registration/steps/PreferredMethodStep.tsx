@@ -11,13 +11,20 @@ import { Step } from "@/types/auth";
 import superWeftImg from "@/assets/method-superweft.jpg";
 import keratinTipsImg from "@/assets/method-keratin-tips.jpg";
 import secreTapesImg from "@/assets/method-secretapes.jpg";
+import volumeWeftImg from "@/assets/method-volume-weft.jpg";
 
 const STEP: Step = "preferred-method";
 const fieldName: ValidFieldNames = "preferredMethods";
 
 const METHOD_DETAILS: Record<
   PreferredMethod,
-  { description: string; image: string; tagline: string; displayName: React.ReactNode }
+  {
+    description: string;
+    image: string;
+    tagline: string;
+    displayName: React.ReactNode;
+    comingSoon?: boolean;
+  }
 > = {
   SuperWeft: {
     tagline: "New Genius Weft",
@@ -44,6 +51,13 @@ const METHOD_DETAILS: Record<
         SECRETAPES<sup className="text-[0.5em] ml-0.5 align-super">®</sup>
       </>
     ),
+  },
+  "Volume Weft": {
+    tagline: "Hand-tied",
+    description: "Ultra-thick wefts for maximum density and fullness.",
+    image: volumeWeftImg,
+    displayName: <>VOLUME WEFT</>,
+    comingSoon: true,
   },
 };
 
@@ -122,10 +136,15 @@ export const PreferredMethodStep = () => {
 
               {/* Text */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
                     {details.tagline}
                   </span>
+                  {details.comingSoon && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-foreground/[0.04] border border-border/60 text-[9px] font-medium text-foreground/70 uppercase tracking-[0.12em]">
+                      Coming soon
+                    </span>
+                  )}
                 </div>
                 <div className="font-termina font-medium text-base sm:text-lg text-foreground leading-tight uppercase tracking-[-0.006em]">
                   {details.displayName}

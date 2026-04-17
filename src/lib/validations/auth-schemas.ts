@@ -189,7 +189,12 @@ const wholesaleValidators = {
 export const wholesaleTermsSchema = z.object(wholesaleValidators);
 
 // Preferred Method Schema
-export const PREFERRED_METHOD_OPTIONS = ["SuperWeft", "Keratin Tips", "SecreTapes"] as const;
+export const PREFERRED_METHOD_OPTIONS = [
+  "SuperWeft",
+  "Keratin Tips",
+  "SecreTapes",
+  "Volume Weft",
+] as const;
 export type PreferredMethod = (typeof PREFERRED_METHOD_OPTIONS)[number];
 
 const preferredMethodValidators = {
