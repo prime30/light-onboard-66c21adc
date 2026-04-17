@@ -30,6 +30,8 @@ type UseSignInFormReturn = {
   isSubmitting: boolean;
   isPasswordReset: boolean;
   isLoginSuccessful: boolean;
+  rememberMe: boolean;
+  setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type SignInFormProps = {
