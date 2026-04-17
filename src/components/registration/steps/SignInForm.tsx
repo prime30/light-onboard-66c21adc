@@ -30,6 +30,8 @@ type UseSignInFormReturn = {
   isSubmitting: boolean;
   isPasswordReset: boolean;
   isLoginSuccessful: boolean;
+  rememberMe: boolean;
+  setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type SignInFormProps = {
@@ -128,6 +130,16 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   useEffect(() => {
     if (initialEmail) {
       setValue("email", initialEmail, dirtyFieldOptions);
+      return;
+    }
+    // Prefill from a previously remembered email
+    try {
+      const remembered = localStorage.getItem("dde_remembered_email");
+      if (remembered) {
+        setValue("email", remembered, dirtyFieldOptions);
+      }
+    } catch {
+      // localStorage may be unavailable (e.g. iframe partitioning) — silently ignore
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -138,9 +150,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     setEmail(email || "");
   }, [email, setEmail]);
 
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    try {
+      return !!localStorage.getItem("dde_remembered_email");
+    } catch {
+      return false;
+    }
+  });
+
   const onSubmit = handleSubmit(
     async (data: z.infer<typeof loginSchema>) => {
       if (data.formType === "login") {
+        // Persist or clear remembered email based on checkbox
+        try {
+          if (rememberMe && data.email) {
+            localStorage.setItem("dde_remembered_email", data.email);
+          } else {
+            localStorage.removeItem("dde_remembered_email");
+          }
+        } catch {
+          // Ignore storage errors (private mode / partitioned iframe)
+        }
         login({
           email: data.email,
           password: data.password,
@@ -170,6 +200,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     isSubmitting,
     isPasswordReset,
     isLoginSuccessful,
+    rememberMe,
+    setRememberMe,
   };
 }
 
@@ -185,6 +217,8 @@ export const SignInForm = () => {
     isSubmitting,
     isPasswordReset,
     isLoginSuccessful,
+    rememberMe,
+    setRememberMe,
   } = useSignInForm({
     initialEmail: email,
   });
@@ -362,7 +396,12 @@ export const SignInForm = () => {
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2.5 cursor-pointer group">
               <div className="relative w-[18px] h-[18px]">
-                <input type="checkbox" className="peer sr-only" />
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 <div className="w-full h-full rounded-sm border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
                 <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
               </div>
