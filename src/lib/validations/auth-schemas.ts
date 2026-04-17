@@ -225,6 +225,7 @@ const baseValidators = {
   ...contactBasicsValidators,
   ...taxExemptionValidators,
   ...wholesaleValidators,
+  ...preferredMethodValidators,
   ...preferencesValidators,
 };
 
