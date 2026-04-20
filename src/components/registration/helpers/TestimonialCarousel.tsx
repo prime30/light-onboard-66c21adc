@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useReviews, type Review } from "@/hooks/use-reviews";
+import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
+import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
+import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
+import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
 
 const INTERVAL_MS = 5000;
 
@@ -17,30 +21,26 @@ const fallbackTestimonials: Testimonial[] = [
       "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
     name: "Sarah M.",
     role: "Hair stylist, 8 years",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+    avatar: stylistOmbre1,
   },
   {
     quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
-    name: "Marcus C.",
+    name: "Jamie C.",
     role: "Salon owner",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+    avatar: stylistLavender1,
   },
   {
     quote:
       "The community here is incredible. It's like having thousands of mentors at your fingertips.",
     name: "Jessica T.",
     role: "Extension specialist",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
+    avatar: stylistTeal1,
   },
   {
     quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
     name: "Amanda B.",
     role: "Color expert",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
+    avatar: stylistPink1,
   },
 ];
 
