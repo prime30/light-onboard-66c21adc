@@ -18,28 +18,30 @@ type Testimonial = {
 const fallbackTestimonials: Testimonial[] = [
   {
     quote:
-      "Finally, a wholesale platform that actually understands what stylists need. The pricing is unbeatable.",
+      "Honestly wasn't sure at first but the wefts hold up way better than what I was paying double for. Clients keep asking who does my install lol.",
     name: "Sarah M.",
-    role: "Hair stylist, 8 years",
+    role: "Stylist · 8 yrs behind the chair",
     avatar: stylistOmbre1,
   },
   {
-    quote: "Switching to Drop Dead saved my salon 50% on supplies. The quality is top-notch.",
+    quote:
+      "Cut our supply spend almost in half this quarter. Only thing I'd change is I wish I switched sooner.",
     name: "Jamie C.",
-    role: "Salon owner",
+    role: "Salon owner, Phoenix",
     avatar: stylistLavender1,
   },
   {
     quote:
-      "The community here is incredible. It's like having thousands of mentors at your fingertips.",
-    name: "Jessica T.",
+      "The tape-ins are my go-to now. Reusable, no slipping, and reorders show up before I run out.",
+    name: "Jess T.",
     role: "Extension specialist",
     avatar: stylistTeal1,
   },
   {
-    quote: "2-day delivery means I never run out of product mid-appointment. Game changer!",
+    quote:
+      "Ordered Tuesday, installed Thursday. That's it. That's the review.",
     name: "Amanda B.",
-    role: "Color expert",
+    role: "Independent colorist",
     avatar: stylistPink1,
   },
 ];
