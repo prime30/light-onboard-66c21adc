@@ -32,7 +32,7 @@ const fallbackTestimonials: Testimonial[] = [
   },
   {
     quote:
-      "The tape-ins are my go-to now. Reusable, no slipping, and reorders show up before I run out.",
+      "Been doing K-tips around the hairline and SuperWefts through the back as a hybrid install. Blends seamless and the retention is unreal.",
     name: "Jess T.",
     role: "Extension specialist",
     avatar: stylistTeal1,
