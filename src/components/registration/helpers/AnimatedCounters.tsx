@@ -112,7 +112,7 @@ export const OdometerCounter = ({
   return (
     <span
       className={cn(
-        "text-xs tabular-nums transition-all duration-300 inline-flex items-baseline",
+        "text-xs tabular-nums transition-all duration-300 inline-flex items-baseline leading-none",
         textColor,
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
@@ -121,9 +121,14 @@ export const OdometerCounter = ({
       <span
         className="inline-block overflow-hidden text-center"
         style={{
-          height: "1.1em",
-          width: "0.65em",
+          height: "1em",
+          lineHeight: 1,
+          width: "0.62em",
           verticalAlign: "baseline",
+          // Nudge the reel so its digit sits on the surrounding text baseline.
+          // Without this, the inline-block's baseline (its bottom edge) causes the
+          // digit to float above the baseline — most visible on mobile.
+          transform: "translateY(0.12em)",
         }}
       >
         <span
@@ -134,10 +139,10 @@ export const OdometerCounter = ({
           }
           style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
             {isTensRolling ? prevTens : tens}
           </span>
-          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
             {tens}
           </span>
         </span>
@@ -148,9 +153,11 @@ export const OdometerCounter = ({
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
         style={{
-          height: "1.1em",
-          width: "0.65em",
+          height: "1em",
+          lineHeight: 1,
+          width: "0.62em",
           verticalAlign: "baseline",
+          transform: "translateY(0.12em)",
         }}
       >
         <span
@@ -159,10 +166,10 @@ export const OdometerCounter = ({
           }
           style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
             {isRolling ? prevOnes : ones}
           </span>
-          <span className="block text-center" style={{ height: "1.1em", lineHeight: "1.1em" }}>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
             {ones}
           </span>
         </span>
