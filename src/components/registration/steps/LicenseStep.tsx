@@ -99,16 +99,43 @@ export const LicenseStep = () => {
 
       <div className="space-y-5">
         {/* License Number */}
-        <div className="animate-stagger-3">
+        <div className="animate-stagger-3 space-y-2">
           <TextInput
             name="licenseNumber"
             type="text"
             register={register}
             error={errors.licenseNumber}
-            placeholder={isSalon ? "Salon License #" : "Enter your license number"}
+            placeholder={
+              isSalon
+                ? "Salon License #"
+                : showFormatHint
+                  ? `e.g., ${licensePattern.example}`
+                  : "Enter your license number"
+            }
             label={isSalon ? "Salon License #*" : "License number*"}
             isValid={getValidationStatus("licenseNumber") === "complete"}
           />
+
+          {/* State-aware format hint (Phase 1 license format validation) */}
+          {showFormatHint && !errors.licenseNumber && (
+            <p
+              className={cn(
+                "text-xs leading-relaxed transition-colors duration-200",
+                showFormatMatched ? "text-success" : "text-muted-foreground/70"
+              )}
+            >
+              {showFormatMatched
+                ? `✓ Format looks right for ${provinceCode}`
+                : `${provinceCode} format: ${licensePattern.hint}`}
+            </p>
+          )}
+
+          {/* Prompt to pick a state first so we can show format guidance */}
+          {!hasStateContext && !isSalon && (
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              Tip: select your state on the previous step to see the expected license format.
+            </p>
+          )}
         </div>
 
         {/* Salon-specific fields */}
