@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   VITE_SUPABASE_URL: string;
   VITE_BACKEND_URL: string;
   VITE_IFRAME_PARENT_ORIGIN?: string;
+  VITE_SHOPIFY_PARENT_ORIGINS?: string;
   VITE_COLOR_RING_VARIANT_ID?: string;
   HELIUM_PRIVATE_ACCESS_TOKEN: string;
   HELIUM_PRIVATE_FORM_ID: string;
