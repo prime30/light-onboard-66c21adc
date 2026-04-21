@@ -472,7 +472,9 @@ export const SignInForm = () => {
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 mt-auto pt-[clamp(16px,3vh,64px)] pb-4 animate-stagger-4">
         <a
-          href="#"
+          href="https://dropdeadextensions.com/pages/contact"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => navigator.vibrate?.(10)}
           className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-transparent border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-300 cursor-pointer active:scale-95"
         >
@@ -483,7 +485,9 @@ export const SignInForm = () => {
           <ArrowUpRight className="w-3 h-3 text-foreground/40 group-hover:text-foreground/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
         </a>
         <a
-          href="#"
+          href="https://syndicate.dropdeadextensions.com/"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => navigator.vibrate?.(10)}
           className="group flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-transparent border border-foreground/10 hover:border-foreground/20 hover:bg-foreground/5 transition-all duration-300 cursor-pointer active:scale-95"
         >
