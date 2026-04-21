@@ -109,51 +109,21 @@ export const OdometerCounter = ({
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const prefixRef = useRef<HTMLSpanElement>(null);
-  const tensRef2 = useRef<HTMLSpanElement>(null);
-  const suffixRef = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const log = () => {
-      const p = prefixRef.current?.getBoundingClientRect();
-      const d = tensRef2.current?.getBoundingClientRect();
-      const s = suffixRef.current?.getBoundingClientRect();
-      if (!p || !d || !s || p.height === 0) return;
-      // eslint-disable-next-line no-console
-      console.log("[counter-debug]", {
-        prefix: { top: p.top.toFixed(2), bottom: p.bottom.toFixed(2), h: p.height.toFixed(2) },
-        digit: { top: d.top.toFixed(2), bottom: d.bottom.toFixed(2), h: d.height.toFixed(2) },
-        suffix: { top: s.top.toFixed(2), bottom: s.bottom.toFixed(2), h: s.height.toFixed(2) },
-        deltaTop_digitVsPrefix: (d.top - p.top).toFixed(2),
-        deltaBottom_digitVsPrefix: (d.bottom - p.bottom).toFixed(2),
-      });
-    };
-    const t1 = setTimeout(log, 1000);
-    const t2 = setTimeout(log, 3000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
-
   return (
     <span
       className={cn(
-        "text-xs tabular-nums transition-all duration-300 inline-flex items-baseline leading-none",
+        "text-xs tabular-nums transition-all duration-300 inline-flex items-center leading-none",
         textColor,
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
+      style={{ height: "1em" }}
     >
-      <span ref={prefixRef}>{formattedPrefix}</span>
+      <span className="inline-flex items-center" style={{ height: "1em" }}>
+        {formattedPrefix}
+      </span>
       <span
-        ref={tensRef2}
         className="inline-block overflow-hidden text-center"
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-          verticalAlign: "baseline",
-          transform: "translateY(-0.1em)",
-        }}
+        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
       >
         <span
           className={
@@ -176,13 +146,7 @@ export const OdometerCounter = ({
           "inline-block overflow-hidden text-center transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-          verticalAlign: "baseline",
-          transform: "translateY(-0.1em)",
-        }}
+        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
       >
         <span
           className={
@@ -198,7 +162,9 @@ export const OdometerCounter = ({
           </span>
         </span>
       </span>
-      <span ref={suffixRef}>&nbsp;pros</span>
+      <span className="inline-flex items-center" style={{ height: "1em" }}>
+        &nbsp;pros
+      </span>
     </span>
   );
 };
