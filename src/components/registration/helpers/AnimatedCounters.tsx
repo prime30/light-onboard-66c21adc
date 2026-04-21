@@ -119,25 +119,24 @@ export const OdometerCounter = ({
     >
       {formattedPrefix}
       <span
-        className="inline-block overflow-hidden text-center"
+        className="relative inline-block overflow-hidden text-center align-baseline"
         style={{
           height: "1em",
           lineHeight: 1,
           width: "0.62em",
-          // An inline-block's baseline defaults to its bottom margin edge, which
-          // sits below the surrounding text baseline. Using text-bottom and a
-          // tiny upward nudge lands the digit glyph on the same baseline as the
-          // static "8,86" prefix and "pros" suffix.
-          verticalAlign: "text-bottom",
-          transform: "translateY(-0.08em)",
         }}
       >
+        {/* Invisible baseline anchor: gives the inline-block a real text baseline
+            that the surrounding text can align against. Without this, the reel's
+            baseline falls back to its bottom margin edge, causing misalignment. */}
+        <span aria-hidden className="invisible">0</span>
         <span
-          className={
+          className={cn(
+            "absolute inset-0",
             isTensRolling
-              ? "block transition-transform duration-300 ease-out"
-              : "block transition-none"
-          }
+              ? "transition-transform duration-300 ease-out"
+              : "transition-none"
+          )}
           style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
           <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
@@ -150,21 +149,21 @@ export const OdometerCounter = ({
       </span>
       <span
         className={cn(
-          "inline-block overflow-hidden text-center transition-all duration-300",
+          "relative inline-block overflow-hidden text-center align-baseline transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
         style={{
           height: "1em",
           lineHeight: 1,
           width: "0.62em",
-          verticalAlign: "text-bottom",
-          transform: "translateY(-0.08em)",
         }}
       >
+        <span aria-hidden className="invisible">0</span>
         <span
-          className={
-            isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"
-          }
+          className={cn(
+            "absolute inset-0",
+            isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
+          )}
           style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
           <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
