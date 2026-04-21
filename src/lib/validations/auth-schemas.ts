@@ -2,6 +2,7 @@ import { z } from "zod";
 import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
+import { validateLicenseFormat } from "../../data/cosmetology-license-patterns.ts";
 
 function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
   if (!value) return undefined;
@@ -234,24 +235,51 @@ const baseValidators = {
   ...preferencesValidators,
 };
 
-export const registrationSchema = z.discriminatedUnion("accountType", [
-  z.object({ accountType: z.literal("professional") }).extend({
-    ...baseValidators,
-    ...businessOperationValidators,
-    ...businessLocationValidators,
-    ...licenseValidators,
-  }),
-  z.object({ accountType: z.literal("salon") }).extend({
-    ...baseValidators,
-    ...businessLocationValidators,
-    ...salonValidators,
-    ...licenseValidators,
-  }),
-  z.object({ accountType: z.literal("student") }).extend({
-    ...baseValidators,
-    ...schoolInfoValidators,
-  }),
-]);
+export const registrationSchema = z
+  .discriminatedUnion("accountType", [
+    z.object({ accountType: z.literal("professional") }).extend({
+      ...baseValidators,
+      ...businessOperationValidators,
+      ...businessLocationValidators,
+      ...licenseValidators,
+    }),
+    z.object({ accountType: z.literal("salon") }).extend({
+      ...baseValidators,
+      ...businessLocationValidators,
+      ...salonValidators,
+      ...licenseValidators,
+    }),
+    z.object({ accountType: z.literal("student") }).extend({
+      ...baseValidators,
+      ...schoolInfoValidators,
+    }),
+  ])
+  .superRefine((data, ctx) => {
+    // Phase 1 license format check: only for professional/salon accounts that
+    // have a licenseNumber field and a state/province on the business address.
+    // Students don't carry a license number and are skipped.
+    if (data.accountType !== "professional" && data.accountType !== "salon") return;
+    const { licenseNumber, countryCode, provinceCode } = data as {
+      licenseNumber?: string;
+      countryCode?: string;
+      provinceCode?: string;
+    };
+    if (!licenseNumber || !provinceCode) return;
+
+    const result = validateLicenseFormat(licenseNumber, countryCode, provinceCode);
+
+    // If we only have a fallback (unknown/variable state format), don't block
+    // submission on format alone — let the human reviewer handle it.
+    if (result.isFallback) return;
+
+    if (!result.valid) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["licenseNumber"],
+        message: `License format doesn't match ${provinceCode}. Expected: ${result.hint} (e.g., ${result.example})`,
+      });
+    }
+  });
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
