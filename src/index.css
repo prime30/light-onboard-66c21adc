@@ -4,7 +4,7 @@
   src: url("/fonts/termina-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 105%;
   ascent-override: 90%;
   descent-override: 22%;
@@ -17,7 +17,7 @@
   src: url("/fonts/die-grotesk-b-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 25%;
@@ -29,7 +29,7 @@
   src: url("/fonts/die-grotesk-b-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 25%;
@@ -41,7 +41,7 @@
   src: url("/fonts/die-grotesk-b-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 25%;
@@ -53,7 +53,7 @@
   src: url("/fonts/die-grotesk-b-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 25%;
@@ -65,7 +65,7 @@
   src: url("/fonts/die-grotesk-b-black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 25%;
