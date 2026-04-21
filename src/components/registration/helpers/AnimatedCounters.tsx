@@ -125,6 +125,7 @@ export const OdometerCounter = ({
           lineHeight: 1,
           width: "0.62em",
           verticalAlign: "baseline",
+          transform: "translateY(0.18em)",
         }}
       >
         <span
@@ -153,6 +154,7 @@ export const OdometerCounter = ({
           lineHeight: 1,
           width: "0.62em",
           verticalAlign: "baseline",
+          transform: "translateY(0.18em)",
         }}
       >
         <span
