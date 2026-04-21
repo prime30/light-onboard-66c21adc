@@ -124,11 +124,12 @@ export const OdometerCounter = ({
           height: "1em",
           lineHeight: 1,
           width: "0.62em",
-          verticalAlign: "baseline",
-          // Nudge the reel so its digit sits on the surrounding text baseline.
-          // Without this, the inline-block's baseline (its bottom edge) causes the
-          // digit to float above the baseline — most visible on mobile.
-          transform: "translateY(0.12em)",
+          // An inline-block's baseline defaults to its bottom margin edge, which
+          // sits below the surrounding text baseline. Using text-bottom and a
+          // tiny upward nudge lands the digit glyph on the same baseline as the
+          // static "8,86" prefix and "pros" suffix.
+          verticalAlign: "text-bottom",
+          transform: "translateY(-0.08em)",
         }}
       >
         <span
