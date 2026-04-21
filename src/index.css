@@ -11,10 +11,20 @@
   line-gap-override: 0%;
 }
 
-/* Die Grotesk B Font Family */
+/*
+ * Die Grotesk B Font Family
+ *
+ * Loaded from the Shopify CDN so the fonts are byte-identical to
+ * (and share a cache with) the ones the parent Shopify theme preloads
+ * around the iframe. This eliminates a second network fetch on boot
+ * and prevents the font-swap FOUC inside the embedded app.
+ *
+ * The local /fonts/* copies are intentionally no longer referenced —
+ * Shopify CDN is the single source of truth.
+ */
 @font-face {
   font-family: "Die Grotesk B";
-  src: url("/fonts/die-grotesk-b-light.woff2") format("woff2");
+  src: url("https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-light.woff2?v=1776715238") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: block;
@@ -26,7 +36,7 @@
 
 @font-face {
   font-family: "Die Grotesk B";
-  src: url("/fonts/die-grotesk-b-regular.woff2") format("woff2");
+  src: url("https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-regular.woff2?v=1776715238") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: block;
@@ -38,7 +48,7 @@
 
 @font-face {
   font-family: "Die Grotesk B";
-  src: url("/fonts/die-grotesk-b-medium.woff2") format("woff2");
+  src: url("https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-medium.woff2?v=1776715238") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: block;
@@ -50,7 +60,7 @@
 
 @font-face {
   font-family: "Die Grotesk B";
-  src: url("/fonts/die-grotesk-b-bold.woff2") format("woff2");
+  src: url("https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-bold.woff2?v=1776715238") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: block;
@@ -62,7 +72,7 @@
 
 @font-face {
   font-family: "Die Grotesk B";
-  src: url("/fonts/die-grotesk-b-black.woff2") format("woff2");
+  src: url("https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-black.woff2?v=1776715238") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: block;
