@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, Outlet, RouteObject } from "react-router";
+import { createBrowserRouter, Navigate, Outlet, RouteObject } from "react-router";
 import { GlobalAppProvider } from "./contexts/GlobalAppProvider";
 import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
@@ -41,14 +41,23 @@ const App = () => (
   </GlobalAppProvider>
 );
 
-const children: RouteObject[] = [
-  {
-    index: true,
-    element: (
+// Gate the dev-only landing page behind ?dev=1 so customers embedded in
+// the Shopify iframe never see it. Default "/" sends them straight to /auth.
+const IndexRoute = () => {
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("dev")) {
+    return (
       <Suspense fallback={<GenericBootFallback />}>
         <Index />
       </Suspense>
-    ),
+    );
+  }
+  return <Navigate to="/auth" replace />;
+};
+
+const children: RouteObject[] = [
+  {
+    index: true,
+    element: <IndexRoute />,
   },
   {
     Component: RegistrationLayout,
