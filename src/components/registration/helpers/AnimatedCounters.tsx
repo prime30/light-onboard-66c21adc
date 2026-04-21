@@ -119,58 +119,61 @@ export const OdometerCounter = ({
     >
       {formattedPrefix}
       <span
-        className="relative inline-block overflow-hidden text-center align-baseline"
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-        }}
+        className="relative inline-block text-center align-baseline"
+        style={{ width: "0.62em" }}
       >
-        {/* Invisible baseline anchor: gives the inline-block a real text baseline
-            that the surrounding text can align against. Without this, the reel's
-            baseline falls back to its bottom margin edge, causing misalignment. */}
-        <span aria-hidden className="invisible">0</span>
+        {/* Invisible baseline anchor that establishes a proper text baseline for
+            the inline-block. The reel digits replace this character visually. */}
+        <span aria-hidden>0</span>
         <span
-          className={cn(
-            "absolute inset-0",
-            isTensRolling
-              ? "transition-transform duration-300 ease-out"
-              : "transition-none"
-          )}
-          style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
+          className="absolute inset-0 overflow-hidden"
+          style={{ lineHeight: 1 }}
         >
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {isTensRolling ? prevTens : tens}
-          </span>
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {tens}
+          <span
+            className={cn(
+              "block",
+              isTensRolling
+                ? "transition-transform duration-300 ease-out"
+                : "transition-none"
+            )}
+            style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
+          >
+            <span className="block text-center">
+              {isTensRolling ? prevTens : tens}
+            </span>
+            <span className="block text-center">{tens}</span>
           </span>
         </span>
+        {/* Mask the anchor glyph so only the reel digit is visible. */}
+        <span
+          aria-hidden
+          className="absolute inset-0 bg-inherit"
+          style={{ visibility: "hidden" }}
+        />
       </span>
       <span
         className={cn(
-          "relative inline-block overflow-hidden text-center align-baseline transition-all duration-300",
+          "relative inline-block text-center align-baseline transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-        }}
+        style={{ width: "0.62em" }}
       >
-        <span aria-hidden className="invisible">0</span>
+        <span aria-hidden>0</span>
         <span
-          className={cn(
-            "absolute inset-0",
-            isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
-          )}
-          style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
+          className="absolute inset-0 overflow-hidden"
+          style={{ lineHeight: 1 }}
         >
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {isRolling ? prevOnes : ones}
-          </span>
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {ones}
+          <span
+            className={cn(
+              "block",
+              isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
+            )}
+            style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
+          >
+            <span className="block text-center">
+              {isRolling ? prevOnes : ones}
+            </span>
+            <span className="block text-center">{ones}</span>
           </span>
         </span>
       </span>
