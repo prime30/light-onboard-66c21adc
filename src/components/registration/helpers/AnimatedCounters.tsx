@@ -119,60 +119,53 @@ export const OdometerCounter = ({
     >
       {formattedPrefix}
       <span
-        className="inline-grid text-center align-baseline"
-        style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
+        className="inline-block overflow-hidden text-center"
+        style={{
+          height: "1em",
+          lineHeight: 1,
+          width: "0.62em",
+          verticalAlign: "baseline",
+        }}
       >
-        {/* Anchor: invisible digit that reserves the exact glyph box and sets
-            the inline-block's baseline. Grid-stacked with the reel so both
-            occupy the identical cell → identical vertical positioning. */}
-        <span style={{ gridArea: "cell", visibility: "hidden" }}>0</span>
         <span
-          className="overflow-hidden"
-          style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}
+          className={
+            isTensRolling
+              ? "block transition-transform duration-300 ease-out"
+              : "block transition-none"
+          }
+          style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span
-            className={cn(
-              "block",
-              isTensRolling
-                ? "transition-transform duration-300 ease-out"
-                : "transition-none"
-            )}
-            style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
-          >
-            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-              {isTensRolling ? prevTens : tens}
-            </span>
-            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-              {tens}
-            </span>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {isTensRolling ? prevTens : tens}
+          </span>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {tens}
           </span>
         </span>
       </span>
       <span
         className={cn(
-          "inline-grid text-center align-baseline transition-all duration-300",
+          "inline-block overflow-hidden text-center transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
+        style={{
+          height: "1em",
+          lineHeight: 1,
+          width: "0.62em",
+          verticalAlign: "baseline",
+        }}
       >
-        <span style={{ gridArea: "cell", visibility: "hidden" }}>0</span>
         <span
-          className="overflow-hidden"
-          style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}
+          className={
+            isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"
+          }
+          style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
         >
-          <span
-            className={cn(
-              "block",
-              isRolling ? "transition-transform duration-300 ease-out" : "transition-none"
-            )}
-            style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
-          >
-            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-              {isRolling ? prevOnes : ones}
-            </span>
-            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-              {ones}
-            </span>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {isRolling ? prevOnes : ones}
+          </span>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {ones}
           </span>
         </span>
       </span>
