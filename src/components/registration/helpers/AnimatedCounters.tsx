@@ -119,14 +119,17 @@ export const OdometerCounter = ({
     >
       {formattedPrefix}
       <span
-        className="relative inline-block text-center align-baseline"
-        style={{ width: "0.62em" }}
+        className="inline-grid text-center align-baseline"
+        style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
       >
-        {/* Invisible anchor reserves width + establishes the text baseline.
-            The reel overlay matches this box exactly (inset-0), so its digit
-            renders in the same position as this anchor digit. */}
-        <span style={{ visibility: "hidden" }}>0</span>
-        <span className="absolute inset-0 overflow-hidden">
+        {/* Anchor: invisible digit that reserves the exact glyph box and sets
+            the inline-block's baseline. Grid-stacked with the reel so both
+            occupy the identical cell → identical vertical positioning. */}
+        <span style={{ gridArea: "cell", visibility: "hidden" }}>0</span>
+        <span
+          className="overflow-hidden"
+          style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}
+        >
           <span
             className={cn(
               "block",
@@ -136,22 +139,27 @@ export const OdometerCounter = ({
             )}
             style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
           >
-            <span className="block text-center">
+            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
               {isTensRolling ? prevTens : tens}
             </span>
-            <span className="block text-center">{tens}</span>
+            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+              {tens}
+            </span>
           </span>
         </span>
       </span>
       <span
         className={cn(
-          "relative inline-block text-center align-baseline transition-all duration-300",
+          "inline-grid text-center align-baseline transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{ width: "0.62em" }}
+        style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
       >
-        <span style={{ visibility: "hidden" }}>0</span>
-        <span className="absolute inset-0 overflow-hidden">
+        <span style={{ gridArea: "cell", visibility: "hidden" }}>0</span>
+        <span
+          className="overflow-hidden"
+          style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}
+        >
           <span
             className={cn(
               "block",
@@ -159,10 +167,12 @@ export const OdometerCounter = ({
             )}
             style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
           >
-            <span className="block text-center">
+            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
               {isRolling ? prevOnes : ones}
             </span>
-            <span className="block text-center">{ones}</span>
+            <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+              {ones}
+            </span>
           </span>
         </span>
       </span>
