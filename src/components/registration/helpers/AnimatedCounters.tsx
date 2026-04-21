@@ -109,62 +109,71 @@ export const OdometerCounter = ({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Use CSS grid to layer a hidden anchor digit (which establishes the natural text
+  // baseline) with the visible rolling reel. Because both occupy the exact same grid
+  // cell, the reel inherits the anchor's baseline precisely — no manual nudges,
+  // no flexbox centering quirks, works identically across fonts and devices.
+  const DigitSlot = ({
+    current,
+    previous,
+    rolling,
+    extraClass,
+  }: {
+    current: number;
+    previous: number;
+    rolling: boolean;
+    extraClass?: string;
+  }) => (
+    <span
+      className={cn("inline-grid text-center align-baseline", extraClass)}
+      style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
+    >
+      {/* Invisible anchor — establishes the baseline for this inline box */}
+      <span style={{ gridArea: "cell", visibility: "hidden" }} aria-hidden="true">
+        0
+      </span>
+      {/* Visible rolling reel — clipped, shares the exact same box as the anchor */}
+      <span
+        className="overflow-hidden"
+        style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}
+      >
+        <span
+          className={
+            rolling ? "block transition-transform duration-300 ease-out" : "block transition-none"
+          }
+          style={{ transform: rolling ? "translateY(-50%)" : "translateY(0)" }}
+        >
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {rolling ? previous : current}
+          </span>
+          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
+            {current}
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+
   return (
     <span
       className={cn(
-        "text-xs tabular-nums transition-all duration-300 inline-flex items-center leading-none",
+        "text-xs tabular-nums transition-all duration-300 leading-none whitespace-nowrap",
         textColor,
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
-      style={{ height: "1em" }}
     >
-      <span className="inline-flex items-center" style={{ height: "1em" }}>
-        {formattedPrefix}
-      </span>
-      <span
-        className="inline-block overflow-hidden text-center"
-        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
-      >
-        <span
-          className={
-            isTensRolling
-              ? "block transition-transform duration-300 ease-out"
-              : "block transition-none"
-          }
-          style={{ transform: isTensRolling ? "translateY(-50%)" : "translateY(0)" }}
-        >
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {isTensRolling ? prevTens : tens}
-          </span>
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {tens}
-          </span>
-        </span>
-      </span>
-      <span
-        className={cn(
-          "inline-block overflow-hidden text-center transition-all duration-300",
+      {formattedPrefix}
+      <DigitSlot current={tens} previous={prevTens} rolling={isTensRolling} />
+      <DigitSlot
+        current={ones}
+        previous={prevOnes}
+        rolling={isRolling}
+        extraClass={cn(
+          "transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
-      >
-        <span
-          className={
-            isRolling ? "block transition-transform duration-300 ease-out" : "block transition-none"
-          }
-          style={{ transform: isRolling ? "translateY(-50%)" : "translateY(0)" }}
-        >
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {isRolling ? prevOnes : ones}
-          </span>
-          <span className="block text-center" style={{ height: "1em", lineHeight: 1 }}>
-            {ones}
-          </span>
-        </span>
-      </span>
-      <span className="inline-flex items-center" style={{ height: "1em" }}>
-        &nbsp;pros
-      </span>
+      />
+      &nbsp;pros
     </span>
   );
 };
