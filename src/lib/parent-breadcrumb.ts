@@ -19,7 +19,7 @@ const FALLBACK_ORIGINS = [
 ];
 
 function getParentOrigins(): string[] {
-  const envValue = import.meta.env.VITE_SHOPIFY_PARENT_ORIGINS as string | undefined;
+  const envValue = (import.meta.env as Record<string, string | undefined>)["VITE_SHOPIFY_PARENT_ORIGINS"];
   if (envValue) {
     const parsed = envValue
       .split(",")
