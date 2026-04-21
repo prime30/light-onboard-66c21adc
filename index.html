@@ -17,9 +17,6 @@
     <link rel="preload" href="https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-medium.woff2?v=1776715238" as="font" type="font/woff2" crossorigin fetchpriority="high" />
     <link rel="preload" href="/fonts/termina-medium.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- Preload hero image to prevent left-panel FOUC -->
-    <link rel="preload" href="/src/assets/salon-hero.jpg" as="image" type="image/jpeg" fetchpriority="high" />
-
     <!-- Bebas Neue fallback for Termina — loaded async to avoid render-blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,8 +26,8 @@
       media="print"
       onload="this.media='all'"
     />
-    <link rel="stylesheet" href="/src/index.css" />
 
+    <!-- Inline boot styles — must paint before any network resource so the skeleton appears immediately. index.css is loaded by the React bundle (src/main.tsx) and is intentionally NOT linked here to avoid a render-blocking 404 in production builds (where /src/index.css does not exist). -->
     <style>
       :root { color-scheme: light; }
       html, body { margin: 0; min-height: 100%; background: hsl(0 0% 98%); }
@@ -95,6 +92,32 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Notify the parent (Shopify theme overlay) that the iframe is alive AS EARLY AS POSSIBLE — runs before the body parses so the parent can hide its own loading state and the user sees the inline boot skeleton immediately. -->
+    <script>
+      (function () {
+        if (!(window.self !== window.top && window.parent)) return;
+        var targetOrigin = '*';
+        try { if (document.referrer) targetOrigin = new URL(document.referrer).origin; } catch (e) {}
+        var attempts = 0, maxAttempts = 20;
+        function notify(phase) {
+          try {
+            window.parent.postMessage({
+              type: 'IFRAME_READY',
+              data: { url: window.location.href, phase: phase, attempt: attempts },
+              timestamp: new Date().toISOString(),
+            }, targetOrigin);
+          } catch (e) {}
+        }
+        notify('head-initial');
+        var timer = window.setInterval(function () {
+          attempts += 1;
+          notify('skeleton-heartbeat');
+          if (attempts >= maxAttempts) window.clearInterval(timer);
+        }, 250);
+        window.addEventListener('load', function () { notify('window-load'); }, { once: true });
+      })();
+    </script>
   </head>
 
   <body>
@@ -105,7 +128,7 @@
           <!-- Left dark panel -->
           <div class="boot-dark">
             <div style="position:absolute;top:20px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center" class="boot-dark-top">
-              <img src="/src/assets/logo.svg" alt="" style="height:18px;width:auto;opacity:0.9">
+              <div class="boot-block" style="width:88px;height:18px;border-radius:6px;opacity:0.7"></div>
               <div class="boot-block boot-close-desktop" style="width:56px;height:56px;opacity:0.8"></div>
             </div>
             <div style="position:absolute;left:20px;right:20px;bottom:56px;display:flex;flex-direction:column;gap:14px" class="boot-dark-content">
@@ -157,63 +180,6 @@
         </div>
       </div>
     </div>
-    <script>
-      // Send IFRAME_READY repeatedly while boot skeleton is visible so
-      // parents with late listener attachment do not miss readiness.
-      (function () {
-        if (!(window.self !== window.top && window.parent)) return;
-
-        var attempts = 0;
-        var maxAttempts = 20; // ~5 seconds total at 250ms cadence
-        var intervalMs = 250;
-        var targetOrigin = '*';
-
-        try {
-          if (document.referrer) {
-            targetOrigin = new URL(document.referrer).origin;
-          }
-        } catch (e) {
-          // keep "*" fallback when referrer parsing fails
-        }
-
-        function notifyReady(phase) {
-          try {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_READY',
-                data: {
-                  url: window.location.href,
-                  phase: phase,
-                  attempt: attempts,
-                },
-                timestamp: new Date().toISOString(),
-              },
-              targetOrigin
-            );
-          } catch (e) {
-            // cross-origin access blocked — safe to ignore
-          }
-        }
-
-        notifyReady('skeleton-initial');
-
-        var timer = window.setInterval(function () {
-          attempts += 1;
-          notifyReady('skeleton-heartbeat');
-          if (attempts >= maxAttempts) {
-            window.clearInterval(timer);
-          }
-        }, intervalMs);
-
-        window.addEventListener(
-          'load',
-          function () {
-            notifyReady('skeleton-window-load');
-          },
-          { once: true }
-        );
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
