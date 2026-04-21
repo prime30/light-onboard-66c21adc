@@ -17,9 +17,6 @@
     <link rel="preload" href="https://cdn.shopify.com/s/files/1/0671/5614/8541/files/die-grotesk-b-medium.woff2?v=1776715238" as="font" type="font/woff2" crossorigin fetchpriority="high" />
     <link rel="preload" href="/fonts/termina-medium.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- Preload hero image to prevent left-panel FOUC -->
-    <link rel="preload" href="/src/assets/salon-hero.jpg" as="image" type="image/jpeg" fetchpriority="high" />
-
     <!-- Bebas Neue fallback for Termina — loaded async to avoid render-blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,8 +26,8 @@
       media="print"
       onload="this.media='all'"
     />
-    <link rel="stylesheet" href="/src/index.css" />
 
+    <!-- Inline boot styles — must paint before any network resource so the skeleton appears immediately. index.css is loaded by the React bundle (src/main.tsx) and is intentionally NOT linked here to avoid a render-blocking 404 in production builds (where /src/index.css does not exist). -->
     <style>
       :root { color-scheme: light; }
       html, body { margin: 0; min-height: 100%; background: hsl(0 0% 98%); }
