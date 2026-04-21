@@ -109,6 +109,26 @@ export const OdometerCounter = ({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  const prefixRef = useRef<HTMLSpanElement>(null);
+  const tensRef2 = useRef<HTMLSpanElement>(null);
+  const suffixRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const p = prefixRef.current?.getBoundingClientRect();
+      const d = tensRef2.current?.getBoundingClientRect();
+      const s = suffixRef.current?.getBoundingClientRect();
+      // eslint-disable-next-line no-console
+      console.log("[counter-debug]", {
+        prefix: p && { top: p.top, bottom: p.bottom, height: p.height },
+        digit: d && { top: d.top, bottom: d.bottom, height: d.height },
+        suffix: s && { top: s.top, bottom: s.bottom, height: s.height },
+        deltaTop: p && d && d.top - p.top,
+        deltaBottom: p && d && d.bottom - p.bottom,
+      });
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <span
       className={cn(
@@ -117,8 +137,9 @@ export const OdometerCounter = ({
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
     >
-      {formattedPrefix}
+      <span ref={prefixRef}>{formattedPrefix}</span>
       <span
+        ref={tensRef2}
         className="inline-block overflow-hidden text-center"
         style={{
           height: "1em",
@@ -171,7 +192,7 @@ export const OdometerCounter = ({
           </span>
         </span>
       </span>
-      <span>&nbsp;pros</span>
+      <span ref={suffixRef}>&nbsp;pros</span>
     </span>
   );
 };
