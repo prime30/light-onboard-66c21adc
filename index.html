@@ -180,63 +180,6 @@
         </div>
       </div>
     </div>
-    <script>
-      // Send IFRAME_READY repeatedly while boot skeleton is visible so
-      // parents with late listener attachment do not miss readiness.
-      (function () {
-        if (!(window.self !== window.top && window.parent)) return;
-
-        var attempts = 0;
-        var maxAttempts = 20; // ~5 seconds total at 250ms cadence
-        var intervalMs = 250;
-        var targetOrigin = '*';
-
-        try {
-          if (document.referrer) {
-            targetOrigin = new URL(document.referrer).origin;
-          }
-        } catch (e) {
-          // keep "*" fallback when referrer parsing fails
-        }
-
-        function notifyReady(phase) {
-          try {
-            window.parent.postMessage(
-              {
-                type: 'IFRAME_READY',
-                data: {
-                  url: window.location.href,
-                  phase: phase,
-                  attempt: attempts,
-                },
-                timestamp: new Date().toISOString(),
-              },
-              targetOrigin
-            );
-          } catch (e) {
-            // cross-origin access blocked — safe to ignore
-          }
-        }
-
-        notifyReady('skeleton-initial');
-
-        var timer = window.setInterval(function () {
-          attempts += 1;
-          notifyReady('skeleton-heartbeat');
-          if (attempts >= maxAttempts) {
-            window.clearInterval(timer);
-          }
-        }, intervalMs);
-
-        window.addEventListener(
-          'load',
-          function () {
-            notifyReady('skeleton-window-load');
-          },
-          { once: true }
-        );
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
