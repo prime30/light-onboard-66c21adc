@@ -13,7 +13,7 @@ import { RouterProvider } from "react-router";
  * Safety cap at 1200ms so a slow/failed font load never blocks boot forever.
  * Matches useFontLoaded's MAX_WAIT_MS philosophy.
  */
-const MAX_FONT_WAIT_MS = 1200;
+const MAX_FONT_WAIT_MS = 400;
 
 function mount() {
   createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);
