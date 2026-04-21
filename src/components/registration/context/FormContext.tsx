@@ -4,6 +4,7 @@ import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
+import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -60,6 +61,11 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const accountType = watch("accountType");
     if (isSubmitSuccessful) {
+      // Notify the parent Shopify theme (when embedded) that an application
+      // was submitted, so it can set the dd_applied cookie used to gate the
+      // "Discount unlocked" banner on the Color Ring PDP. Fires before any
+      // step transition so the message is sent prior to potential navigation.
+      emitApplicationSubmitted();
       reset({ email, accountType } as Partial<AllRegistrationFormData>);
       setCurrentStep("success");
     }
