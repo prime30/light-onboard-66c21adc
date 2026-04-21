@@ -122,13 +122,11 @@ export const OdometerCounter = ({
         className="relative inline-block text-center align-baseline"
         style={{ width: "0.62em" }}
       >
-        {/* Invisible baseline anchor that establishes a proper text baseline for
-            the inline-block. The reel digits replace this character visually. */}
-        <span aria-hidden>0</span>
-        <span
-          className="absolute inset-0 overflow-hidden"
-          style={{ lineHeight: 1 }}
-        >
+        {/* Invisible anchor reserves width + establishes the text baseline.
+            The reel overlay matches this box exactly (inset-0), so its digit
+            renders in the same position as this anchor digit. */}
+        <span style={{ visibility: "hidden" }}>0</span>
+        <span className="absolute inset-0 overflow-hidden">
           <span
             className={cn(
               "block",
@@ -144,12 +142,6 @@ export const OdometerCounter = ({
             <span className="block text-center">{tens}</span>
           </span>
         </span>
-        {/* Mask the anchor glyph so only the reel digit is visible. */}
-        <span
-          aria-hidden
-          className="absolute inset-0 bg-inherit"
-          style={{ visibility: "hidden" }}
-        />
       </span>
       <span
         className={cn(
@@ -158,11 +150,8 @@ export const OdometerCounter = ({
         )}
         style={{ width: "0.62em" }}
       >
-        <span aria-hidden>0</span>
-        <span
-          className="absolute inset-0 overflow-hidden"
-          style={{ lineHeight: 1 }}
-        >
+        <span style={{ visibility: "hidden" }}>0</span>
+        <span className="absolute inset-0 overflow-hidden">
           <span
             className={cn(
               "block",
