@@ -113,20 +113,26 @@ export const OdometerCounter = ({
   const tensRef2 = useRef<HTMLSpanElement>(null);
   const suffixRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    const t = setTimeout(() => {
+    const log = () => {
       const p = prefixRef.current?.getBoundingClientRect();
       const d = tensRef2.current?.getBoundingClientRect();
       const s = suffixRef.current?.getBoundingClientRect();
+      if (!p || !d || !s || p.height === 0) return;
       // eslint-disable-next-line no-console
       console.log("[counter-debug]", {
-        prefix: p && { top: p.top, bottom: p.bottom, height: p.height },
-        digit: d && { top: d.top, bottom: d.bottom, height: d.height },
-        suffix: s && { top: s.top, bottom: s.bottom, height: s.height },
-        deltaTop: p && d && d.top - p.top,
-        deltaBottom: p && d && d.bottom - p.bottom,
+        prefix: { top: p.top.toFixed(2), bottom: p.bottom.toFixed(2), h: p.height.toFixed(2) },
+        digit: { top: d.top.toFixed(2), bottom: d.bottom.toFixed(2), h: d.height.toFixed(2) },
+        suffix: { top: s.top.toFixed(2), bottom: s.bottom.toFixed(2), h: s.height.toFixed(2) },
+        deltaTop_digitVsPrefix: (d.top - p.top).toFixed(2),
+        deltaBottom_digitVsPrefix: (d.bottom - p.bottom).toFixed(2),
       });
-    }, 500);
-    return () => clearTimeout(t);
+    };
+    const t1 = setTimeout(log, 1000);
+    const t2 = setTimeout(log, 3000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   return (
