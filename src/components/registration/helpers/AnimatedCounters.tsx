@@ -112,21 +112,18 @@ export const OdometerCounter = ({
   return (
     <span
       className={cn(
-        "text-xs tabular-nums transition-all duration-300 inline-flex items-baseline leading-none",
+        "text-xs tabular-nums transition-all duration-300 inline-flex items-center leading-none",
         textColor,
         isBurst && "!text-[hsl(142,71%,45%)]"
       )}
+      style={{ height: "1em" }}
     >
-      {formattedPrefix}
+      <span className="inline-flex items-center" style={{ height: "1em" }}>
+        {formattedPrefix}
+      </span>
       <span
         className="inline-block overflow-hidden text-center"
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-          verticalAlign: "baseline",
-          transform: "translateY(-0.1em)",
-        }}
+        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
       >
         <span
           className={
@@ -149,13 +146,7 @@ export const OdometerCounter = ({
           "inline-block overflow-hidden text-center transition-all duration-300",
           isBurst && "drop-shadow-[0_0_6px_hsl(142,71%,45%)]"
         )}
-        style={{
-          height: "1em",
-          lineHeight: 1,
-          width: "0.62em",
-          verticalAlign: "baseline",
-          transform: "translateY(-0.1em)",
-        }}
+        style={{ height: "1em", lineHeight: 1, width: "0.62em" }}
       >
         <span
           className={
@@ -171,7 +162,9 @@ export const OdometerCounter = ({
           </span>
         </span>
       </span>
-      <span>&nbsp;pros</span>
+      <span className="inline-flex items-center" style={{ height: "1em" }}>
+        &nbsp;pros
+      </span>
     </span>
   );
 };
