@@ -8,6 +8,7 @@ import {
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
 import { useCallback, useEffect, useState } from "react";
+import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
