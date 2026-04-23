@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
+import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 
 // Stylist avatars
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
@@ -385,6 +386,7 @@ export const OnboardingForm = ({
   onSignIn,
   isRestoring = false,
 }: OnboardingFormProps) => {
+  const { fontsLoaded } = useGlobalApp();
   return (
     <div className="space-y-3 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
       {/* Restoring progress indicator */}
@@ -464,35 +466,46 @@ export const OnboardingForm = ({
         ))}
       </div>
 
-      {/* Benefits highlight with animated counters */}
-      <div className="flex justify-center gap-6 text-center animate-stagger-3">
-        <div>
-          <div className="text-2xl font-semibold text-foreground">
-            <AnimatedNumber value={50} suffix="%" delay={200} />
-          </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Avg. Savings
-          </div>
-        </div>
-        <div className="w-px bg-border" />
-        <div>
-          <div className="text-2xl font-semibold text-foreground">
-            <AnimatedNumber value={24} suffix="hr" delay={400} />
-          </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Approval</div>
-        </div>
-        <div className="w-px bg-border" />
-        <div>
-          <div className="text-2xl font-semibold text-foreground">
-            <AnimatedProductCount delay={600} />
-          </div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</div>
-        </div>
+      {/* Benefits highlight with animated counters — gated on fontsLoaded to prevent FOUC */}
+      <div
+        className="flex justify-center gap-6 text-center animate-stagger-3"
+        style={{ minHeight: "52px" }}
+      >
+        {fontsLoaded && (
+          <>
+            <div>
+              <div className="text-2xl font-semibold text-foreground">
+                <AnimatedNumber value={50} suffix="%" delay={200} />
+              </div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Avg. Savings
+              </div>
+            </div>
+            <div className="w-px bg-border" />
+            <div>
+              <div className="text-2xl font-semibold text-foreground">
+                <AnimatedNumber value={24} suffix="hr" delay={400} />
+              </div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Approval
+              </div>
+            </div>
+            <div className="w-px bg-border" />
+            <div>
+              <div className="text-2xl font-semibold text-foreground">
+                <AnimatedProductCount delay={600} />
+              </div>
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                Products
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Loved by pros - with avatars (mobile/tablet only) */}
-      <div className="lg:hidden pt-3">
-        <RotatingStylistAvatarsLight />
+      {/* Loved by pros - with avatars (mobile/tablet only) — gated on fontsLoaded */}
+      <div className="lg:hidden pt-3" style={{ minHeight: "28px" }}>
+        {fontsLoaded && <RotatingStylistAvatarsLight />}
       </div>
 
       <p className="text-xs text-muted-foreground text-center">

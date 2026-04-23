@@ -8,6 +8,7 @@ import {
 } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
 import { useCallback, useEffect, useState } from "react";
+import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
@@ -119,6 +120,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const { mode } = useModeContext();
+  const { fontsLoaded } = useGlobalApp();
 
   const changeSlide = useCallback((next: number) => {
     if (next === currentSlide) return;
@@ -238,8 +240,10 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
           <div />
         )}
 
-        {/* Trust Badge - visible on all sizes */}
-        <RotatingStylistAvatars />
+        {/* Trust Badge - visible on all sizes — gated on fontsLoaded to prevent FOUC */}
+        <div style={{ minHeight: "28px", display: "flex", alignItems: "center" }}>
+          {fontsLoaded && <RotatingStylistAvatars />}
+        </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
         {mode === "signup" ? (
