@@ -15,6 +15,7 @@ import salonHero from "@/assets/salon-hero.jpg";
 import slideProducts from "@/assets/slide-products.jpg";
 import slideCommunity from "@/assets/slide-community.jpg";
 import { useModeContext } from "./context/ModeContext";
+import { resolveSsoPresentation } from "@/lib/sso-context";
 
 const slideImages = [salonHero, slideProducts, slideCommunity];
 
