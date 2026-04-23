@@ -36,6 +36,8 @@ export interface PartnerPresentation {
   logo: string | null;
   /** Optional accent color (used as CSS custom property --sso-accent). */
   accent: string | null;
+  /** Optional hero background image URL for the dark left panel. */
+  heroImage?: string | null;
 }
 
 /**
@@ -48,12 +50,16 @@ export const PARTNER_PRESENTATION: Record<string, PartnerPresentation> = {
     tagline: "Log in to continue to The Syndicate",
     logo: null,
     accent: null,
+    heroImage:
+      "https://dropdeadextensions.com/cdn/shop/t/164/assets/dd-education-community.png?v=180869472222554785541776977508",
   },
   circle: {
     label: "The Syndicate",
     tagline: "Log in to continue to The Syndicate",
     logo: null,
     accent: null,
+    heroImage:
+      "https://dropdeadextensions.com/cdn/shop/t/164/assets/dd-education-community.png?v=180869472222554785541776977508",
   },
   checkout: {
     label: "Checkout",
@@ -78,6 +84,7 @@ export function resolveSsoPresentation(ctx: SsoContext | null): {
   tagline: string;
   logo: string | null;
   accent: string | null;
+  heroImage: string | null;
 } | null {
   if (!ctx || !ctx.source) return null;
   const cfg = PARTNER_PRESENTATION[ctx.source];
@@ -89,6 +96,7 @@ export function resolveSsoPresentation(ctx: SsoContext | null): {
     tagline,
     logo: cfg?.logo ?? null,
     accent: cfg?.accent ?? null,
+    heroImage: cfg?.heroImage ?? null,
   };
 }
 

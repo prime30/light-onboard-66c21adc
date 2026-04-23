@@ -19,6 +19,26 @@ import { resolveSsoPresentation } from "@/lib/sso-context";
 
 const slideImages = [salonHero, slideProducts, slideCommunity];
 
+function SignInBackground() {
+  const { ssoContext } = useGlobalApp();
+  const ssoPresentation = resolveSsoPresentation(ssoContext);
+  const heroSrc = ssoPresentation?.heroImage || salonHero;
+  const heroAlt = ssoPresentation?.label
+    ? `${ssoPresentation.label} community`
+    : "Professional salon";
+
+  return (
+    <div className="absolute inset-0">
+      <img
+        key={heroSrc}
+        src={heroSrc}
+        alt={heroAlt}
+        className="absolute inset-0 w-full h-full object-cover animate-fade-in"
+      />
+    </div>
+  );
+}
+
 export function SignInSlide() {
   const { ssoContext } = useGlobalApp();
   const ssoPresentation = resolveSsoPresentation(ssoContext);
@@ -159,9 +179,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
     >
       {/* Background layers */}
       {mode === "signin" ? (
-        <div className="absolute inset-0">
-          <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
-        </div>
+        <SignInBackground />
       ) : (
         <div className="absolute inset-0">
           {slideImages.map((imageSrc, index) => (
