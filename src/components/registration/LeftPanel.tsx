@@ -119,6 +119,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const { mode } = useModeContext();
+  const { fontsLoaded } = useGlobalApp();
 
   const changeSlide = useCallback((next: number) => {
     if (next === currentSlide) return;
