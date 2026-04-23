@@ -118,6 +118,19 @@
         window.addEventListener('load', function () { notify('window-load'); }, { once: true });
       })();
     </script>
+
+    <!-- SSO context: set data-sso-source on <html> as early as possible so per-partner CSS hooks apply during the boot skeleton phase. Validated against the same /^[a-z0-9-]{1,32}$/ allowlist used by the React layer. -->
+    <script>
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var source = (params.get('sso') || '').toLowerCase();
+          if (/^[a-z0-9-]{1,32}$/.test(source)) {
+            document.documentElement.setAttribute('data-sso-source', source);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

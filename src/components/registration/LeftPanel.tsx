@@ -15,16 +15,27 @@ import salonHero from "@/assets/salon-hero.jpg";
 import slideProducts from "@/assets/slide-products.jpg";
 import slideCommunity from "@/assets/slide-community.jpg";
 import { useModeContext } from "./context/ModeContext";
+import { resolveSsoPresentation } from "@/lib/sso-context";
 
 const slideImages = [salonHero, slideProducts, slideCommunity];
 
 export function SignInSlide() {
+  const { ssoContext } = useGlobalApp();
+  const ssoPresentation = resolveSsoPresentation(ssoContext);
+
+  const eyebrow = ssoPresentation ? "Continuing to" : "Exclusively professional";
+  const titleTop = ssoPresentation ? "Log in to" : "Great to";
+  const titleBottom = ssoPresentation?.label || "See You Again";
+  const description = ssoPresentation
+    ? `You'll be returned to ${ssoPresentation.label} after sign in`
+    : "Your pro account is waiting for you";
+
   return (
     <div className="flex flex-col gap-0 pb-0">
       <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
         <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
         <FadeText variant="light" className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest">
-          Exclusively professional
+          {eyebrow}
         </FadeText>
       </div>
 
@@ -34,14 +45,14 @@ export function SignInSlide() {
           variant="light"
           className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]"
         >
-          Great to
+          {titleTop}
         </FadeText>
         <FadeText
           as="h1"
           variant="light"
           className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]"
         >
-          See You Again
+          {titleBottom}
         </FadeText>
       </div>
 
@@ -50,7 +61,7 @@ export function SignInSlide() {
         variant="light"
         className="text-xs md:text-sm lg:text-base text-background/50 md:whitespace-nowrap"
       >
-        Your pro account is waiting for you
+        {description}
       </FadeText>
       {/* Testimonial Carousel */}
       <div className="hidden xl:block">
