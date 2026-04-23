@@ -84,6 +84,7 @@ export function resolveSsoPresentation(ctx: SsoContext | null): {
   tagline: string;
   logo: string | null;
   accent: string | null;
+  heroImage: string | null;
 } | null {
   if (!ctx || !ctx.source) return null;
   const cfg = PARTNER_PRESENTATION[ctx.source];
@@ -95,6 +96,7 @@ export function resolveSsoPresentation(ctx: SsoContext | null): {
     tagline,
     logo: cfg?.logo ?? null,
     accent: cfg?.accent ?? null,
+    heroImage: cfg?.heroImage ?? null,
   };
 }
 

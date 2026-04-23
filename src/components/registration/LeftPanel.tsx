@@ -159,9 +159,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
     >
       {/* Background layers */}
       {mode === "signin" ? (
-        <div className="absolute inset-0">
-          <img src={salonHero} alt="Professional salon" className="absolute inset-0 w-full h-full object-cover" />
-        </div>
+        <SignInBackground />
       ) : (
         <div className="absolute inset-0">
           {slideImages.map((imageSrc, index) => (
