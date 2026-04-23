@@ -240,8 +240,10 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
           <div />
         )}
 
-        {/* Trust Badge - visible on all sizes */}
-        <RotatingStylistAvatars />
+        {/* Trust Badge - visible on all sizes — gated on fontsLoaded to prevent FOUC */}
+        <div style={{ minHeight: "28px", display: "flex", alignItems: "center" }}>
+          {fontsLoaded && <RotatingStylistAvatars />}
+        </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
         {mode === "signup" ? (
