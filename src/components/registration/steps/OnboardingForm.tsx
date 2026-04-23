@@ -386,6 +386,7 @@ export const OnboardingForm = ({
   onSignIn,
   isRestoring = false,
 }: OnboardingFormProps) => {
+  const { fontsLoaded } = useGlobalApp();
   return (
     <div className="space-y-3 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
       {/* Restoring progress indicator */}
