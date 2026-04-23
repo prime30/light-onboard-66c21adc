@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
 import { MarqueeBadges } from "@/components/registration/helpers/MarqueeBadges";
+import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 
 // Stylist avatars
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
