@@ -22,6 +22,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const BlogResaleLicense = lazy(() => import("./pages/BlogResaleLicense"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SsoPreviewPage = lazy(() => import("./pages/SsoPreviewPage"));
 
 const queryClient = new QueryClient();
 
@@ -113,6 +114,14 @@ const children: RouteObject[] = [
     element: (
       <Suspense fallback={<GenericBootFallback />}>
         <BlogResaleLicense />
+      </Suspense>
+    ),
+  },
+  {
+    path: "sso-preview",
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <SsoPreviewPage />
       </Suspense>
     ),
   },
