@@ -207,7 +207,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
 export const SignInForm = () => {
   const navigate = useNavigate();
-  const { email } = useGlobalApp();
+  const { email, ssoContext } = useGlobalApp();
+  const ssoPresentation = resolveSsoPresentation(ssoContext);
   const {
     register,
     watch,
@@ -329,18 +330,21 @@ export const SignInForm = () => {
         className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(10px,2.5vh,30px)]"
         onSubmit={onSubmit}
       >
-        <div className="space-y-[6px]">
+        <div className="space-y-[6px]" data-sso-headline-container>
           <FadeText
             as="h1"
             className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+            data-sso-headline
           >
-            Welcome back
+            {ssoPresentation?.tagline ?? "Welcome back"}
           </FadeText>
           <FadeText
             as="p"
             className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed"
           >
-            Login to access your pro account
+            {ssoPresentation
+              ? "Sign in with your pro account to continue"
+              : "Login to access your pro account"}
           </FadeText>
         </div>
 
