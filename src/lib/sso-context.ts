@@ -36,6 +36,8 @@ export interface PartnerPresentation {
   logo: string | null;
   /** Optional accent color (used as CSS custom property --sso-accent). */
   accent: string | null;
+  /** Optional hero background image URL for the dark left panel. */
+  heroImage?: string | null;
 }
 
 /**
@@ -48,12 +50,16 @@ export const PARTNER_PRESENTATION: Record<string, PartnerPresentation> = {
     tagline: "Log in to continue to The Syndicate",
     logo: null,
     accent: null,
+    heroImage:
+      "https://dropdeadextensions.com/cdn/shop/t/164/assets/dd-education-community.png?v=180869472222554785541776977508",
   },
   circle: {
     label: "The Syndicate",
     tagline: "Log in to continue to The Syndicate",
     logo: null,
     accent: null,
+    heroImage:
+      "https://dropdeadextensions.com/cdn/shop/t/164/assets/dd-education-community.png?v=180869472222554785541776977508",
   },
   checkout: {
     label: "Checkout",
