@@ -194,6 +194,8 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [isPaused, setIsPaused] = useState(false);
   const { mode } = useModeContext();
   const { fontsLoaded } = useGlobalApp();
+  const { pathname } = useLocation();
+  const isNotEligible = pathname === "/not-eligible";
 
   const changeSlide = useCallback((next: number) => {
     if (next === currentSlide) return;
@@ -208,10 +210,10 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   }, []);
 
   useEffect(() => {
-    if (mode !== "signup" || isPaused) return;
+    if (mode !== "signup" || isPaused || isNotEligible) return;
     const id = setInterval(goToNextSlide, SLIDE_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [mode, isPaused, goToNextSlide]);
+  }, [mode, isPaused, isNotEligible, goToNextSlide]);
 
   return (
     <div
