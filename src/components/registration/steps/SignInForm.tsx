@@ -182,6 +182,23 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         } catch {
           // Ignore storage errors (private mode / partitioned iframe)
         }
+
+        // Mid-SSO eligibility chokepoint. Runs BEFORE login() so the parent
+        // theme never receives a LOGIN_STATUS=success it could act on for an
+        // ineligible customer. Eliminates the race against the parent's
+        // post-login SSO redirect. Fail-open: any error/degraded result
+        // proceeds with login as normal.
+        if (isMidSso) {
+          setIsSubmitting(true);
+          const result = await checkCustomerGate(data.email);
+          if (!result.eligible && result.found) {
+            setIsSubmitting(false);
+            navigate("/not-eligible", { replace: true });
+            return;
+          }
+          // Eligible (or fail-open) — fall through to login
+        }
+
         login({
           email: data.email,
           password: data.password,
