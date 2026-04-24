@@ -9,6 +9,7 @@ import {
 import { slides, features } from "@/data/auth-constants";
 import { useCallback, useEffect, useState } from "react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
+import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
@@ -91,6 +92,47 @@ export function SignInSlide() {
   );
 }
 
+export function NotEligibleSlide() {
+  return (
+    <div className="flex flex-col gap-0 pb-0">
+      <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
+        <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+        <FadeText
+          variant="light"
+          className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest"
+        >
+          Members only
+        </FadeText>
+      </div>
+
+      <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
+        <FadeText
+          as="h2"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]"
+        >
+          Place your first order
+        </FadeText>
+        <FadeText
+          as="h1"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]"
+        >
+          To Get Access
+        </FadeText>
+      </div>
+
+      <FadeText
+        as="p"
+        variant="light"
+        className="text-xs md:text-sm lg:text-base text-background/50"
+      >
+        The Syndicate unlocks the moment you become a customer
+      </FadeText>
+    </div>
+  );
+}
+
 type RegisterCarouselSlidesProps = {
   currentSlide: number;
 };
@@ -152,6 +194,8 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const [isPaused, setIsPaused] = useState(false);
   const { mode } = useModeContext();
   const { fontsLoaded } = useGlobalApp();
+  const { pathname } = useLocation();
+  const isNotEligible = pathname === "/not-eligible";
 
   const changeSlide = useCallback((next: number) => {
     if (next === currentSlide) return;
@@ -166,10 +210,10 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   }, []);
 
   useEffect(() => {
-    if (mode !== "signup" || isPaused) return;
+    if (mode !== "signup" || isPaused || isNotEligible) return;
     const id = setInterval(goToNextSlide, SLIDE_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [mode, isPaused, goToNextSlide]);
+  }, [mode, isPaused, isNotEligible, goToNextSlide]);
 
   return (
     <div
@@ -178,7 +222,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background layers */}
-      {mode === "signin" ? (
+      {isNotEligible || mode === "signin" ? (
         <SignInBackground />
       ) : (
         <div className="absolute inset-0">
@@ -212,10 +256,12 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       <div
         className={cn(
           "absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px] z-[3]",
-          mode === "signup" ? "xl:pb-[180px]" : "xl:pb-[80px]"
+          mode === "signup" && !isNotEligible ? "xl:pb-[180px]" : "xl:pb-[80px]"
         )}
       >
-        {mode === "signin" ? (
+        {isNotEligible ? (
+          <NotEligibleSlide />
+        ) : mode === "signin" ? (
           <SignInSlide />
         ) : (
           <RegisterCarouselSlides currentSlide={currentSlide} />
@@ -223,7 +269,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       </div>
 
       {/* Feature Pills - Fixed (do not re-animate on carousel) */}
-      {mode === "signup" && (
+      {mode === "signup" && !isNotEligible && (
         <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[90px] lg:bottom-[110px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
           {features.map((feature, i) => (
             <div
@@ -238,7 +284,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       )}
 
       {/* Circular Progress Indicator - Fixed - Only show on sign-up */}
-      {mode === "signup" && (
+      {mode === "signup" && !isNotEligible && (
         <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
           <CircularProgress formProgress={formProgress} />
         </div>
@@ -252,7 +298,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       {/* Fixed Bottom Navigation - Only show slide controls on sign-up */}
       <div className="absolute bottom-5 md:bottom-5 lg:bottom-10 left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 z-10 flex items-center justify-between">
         {/* Slide Indicators - Only on sign-up */}
-        {mode === "signup" ? (
+        {mode === "signup" && !isNotEligible ? (
           <div className="flex gap-2.5">
             {slides.map((_, i) => (
               <button
@@ -275,7 +321,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
-        {mode === "signup" ? (
+        {mode === "signup" && !isNotEligible ? (
           <div className="hidden lg:flex gap-2.5">
             <button
               onClick={goToPrevSlide}
