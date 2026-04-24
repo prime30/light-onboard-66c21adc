@@ -1,14 +1,24 @@
-import { ArrowUpRight, ShoppingBag, Headphones } from "lucide-react";
+import { ShoppingBag, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "@/components/registration/FadeText";
+import { useCloseIframe } from "@/hooks/messages";
 
-const SHOP_URL = "https://dropdeadhair.com/collections/best-sellers";
 const SUPPORT_URL = "https://dropdeadhair.com/pages/contact";
 
 export const NotEligiblePage = () => {
+  const { closeIframe, isInIframe } = useCloseIframe();
+
+  const handleGoToShop = () => {
+    if (isInIframe) {
+      closeIframe();
+    } else {
+      window.location.href = "https://dropdeadhair.com/";
+    }
+  };
+
   return (
-    <div className="max-w-[38rem] mx-auto w-full">
-      <div className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(14px,3vh,30px)]">
+    <div className="flex-1 flex items-center justify-center w-full h-full px-5 md:px-6 lg:px-8 pb-10">
+      <div className="max-w-[38rem] w-full flex flex-col items-center text-center space-y-[clamp(14px,3vh,30px)] animate-step-enter-left">
         <div className="space-y-[10px]">
           <FadeText
             as="h1"
@@ -27,14 +37,11 @@ export const NotEligiblePage = () => {
 
         <div className="w-full space-y-[clamp(10px,2vh,18px)] animate-stagger-3">
           <Button
-            asChild
+            onClick={handleGoToShop}
             className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base group"
           >
-            <a href={SHOP_URL} rel="noopener noreferrer">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Shop bestsellers
-              <ArrowUpRight className="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
+            <ShoppingBag className="w-4 h-4 mr-2" />
+            Go to shop
           </Button>
 
           <a
