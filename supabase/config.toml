@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.generate-discount]
 verify_jwt = false
+
+[functions.customer-gate]
+verify_jwt = false

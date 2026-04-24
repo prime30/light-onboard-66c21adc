@@ -16,6 +16,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m
 const AlreadyLoggedInPage = lazy(() => import("./pages/AlreadyLoggedInPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const ActivateAccountPage = lazy(() => import("./pages/ActivateAccountPage"));
+const NotEligiblePage = lazy(() => import("./pages/NotEligiblePage"));
 
 // Lazy-load route components to reduce initial bundle
 const Index = lazy(() => import("./pages/Index"));
@@ -96,6 +97,14 @@ const children: RouteObject[] = [
         element: (
           <Suspense fallback={<AuthBootFallback />}>
             <ActivateAccountPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "not-eligible",
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <NotEligiblePage />
           </Suspense>
         ),
       },
