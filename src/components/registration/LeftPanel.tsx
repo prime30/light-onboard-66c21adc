@@ -298,7 +298,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       {/* Fixed Bottom Navigation - Only show slide controls on sign-up */}
       <div className="absolute bottom-5 md:bottom-5 lg:bottom-10 left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 z-10 flex items-center justify-between">
         {/* Slide Indicators - Only on sign-up */}
-        {mode === "signup" ? (
+        {mode === "signup" && !isNotEligible ? (
           <div className="flex gap-2.5">
             {slides.map((_, i) => (
               <button
@@ -321,7 +321,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
         </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
-        {mode === "signup" ? (
+        {mode === "signup" && !isNotEligible ? (
           <div className="hidden lg:flex gap-2.5">
             <button
               onClick={goToPrevSlide}
