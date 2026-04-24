@@ -20,7 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { useNavigate } from "react-router";
 import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
-import { resolveSsoPresentation } from "@/lib/sso-context";
+import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
+import { checkCustomerGate } from "@/lib/customer-gate";
 
 type UseSignInFormReturn = {
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
