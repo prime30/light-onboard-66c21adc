@@ -86,23 +86,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
       if (message.status === "success") {
         setIsLoginSuccessful(true);
-
-        // Mid-SSO eligibility chokepoint. Runs AFTER the parent theme has
-        // confirmed Shopify auth — at this point the email in the form is the
-        // authenticated customer. We block the SSO redirect by navigating
-        // away before the parent runs its bounce. Fail-open on any error.
-        if (isMidSso) {
-          const email = watch("email");
-          void (async () => {
-            const result = await checkCustomerGate(email);
-            if (!result.eligible && result.found) {
-              navigate("/not-eligible", { replace: true });
-            }
-          })();
-        }
       }
     },
-    [setError, isMidSso, watch, navigate]
+    [setError]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
