@@ -92,6 +92,47 @@ export function SignInSlide() {
   );
 }
 
+export function NotEligibleSlide() {
+  return (
+    <div className="flex flex-col gap-0 pb-0">
+      <div className="inline-flex items-center gap-[5px] md:gap-2.5 px-2.5 md:px-[15px] py-[5px] rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-[15px] md:mb-5 lg:mb-[25px] w-fit pl-[5px] md:pl-[10px]">
+        <BadgeCheck className="w-2.5 md:w-[15px] h-2.5 md:h-[15px] text-background/80" />
+        <FadeText
+          variant="light"
+          className="text-[10px] md:text-xs font-medium text-background/80 uppercase tracking-widest"
+        >
+          Members only
+        </FadeText>
+      </div>
+
+      <div className="space-y-0 mb-2.5 md:mb-[15px] lg:mb-5">
+        <FadeText
+          as="h2"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background/50 leading-[1]"
+        >
+          Place your first order
+        </FadeText>
+        <FadeText
+          as="h1"
+          variant="light"
+          className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] md:text-[clamp(1.5rem,3.5vw,2.5rem)] lg:text-[clamp(1.75rem,3vw,2.75rem)] xl:text-[clamp(2.5rem,4vw,4rem)] text-background leading-[1]"
+        >
+          To Get Access
+        </FadeText>
+      </div>
+
+      <FadeText
+        as="p"
+        variant="light"
+        className="text-xs md:text-sm lg:text-base text-background/50"
+      >
+        The Syndicate unlocks the moment you become a customer
+      </FadeText>
+    </div>
+  );
+}
+
 type RegisterCarouselSlidesProps = {
   currentSlide: number;
 };
