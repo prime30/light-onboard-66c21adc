@@ -517,7 +517,7 @@ export const SignInForm = () => {
           <ArrowUpRight className="w-3 h-3 text-foreground/40 group-hover:text-foreground/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
         </a>
         <a
-          href="https://syndicate.dropdeadextensions.com/"
+          href="https://dropdeadextensions.com/pages/syndicate"
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => navigator.vibrate?.(10)}
