@@ -269,7 +269,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       </div>
 
       {/* Feature Pills - Fixed (do not re-animate on carousel) */}
-      {mode === "signup" && (
+      {mode === "signup" && !isNotEligible && (
         <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[90px] lg:bottom-[110px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
           {features.map((feature, i) => (
             <div
@@ -284,7 +284,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       )}
 
       {/* Circular Progress Indicator - Fixed - Only show on sign-up */}
-      {mode === "signup" && (
+      {mode === "signup" && !isNotEligible && (
         <div className="absolute top-5 md:top-5 lg:top-10 right-5 md:right-5 lg:right-10 z-10">
           <CircularProgress formProgress={formProgress} />
         </div>
