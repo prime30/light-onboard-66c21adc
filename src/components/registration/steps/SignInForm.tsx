@@ -86,23 +86,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
       if (message.status === "success") {
         setIsLoginSuccessful(true);
-
-        // Mid-SSO eligibility chokepoint. Runs AFTER the parent theme has
-        // confirmed Shopify auth — at this point the email in the form is the
-        // authenticated customer. We block the SSO redirect by navigating
-        // away before the parent runs its bounce. Fail-open on any error.
-        if (isMidSso) {
-          const email = watch("email");
-          void (async () => {
-            const result = await checkCustomerGate(email);
-            if (!result.eligible && result.found) {
-              navigate("/not-eligible", { replace: true });
-            }
-          })();
-        }
       }
     },
-    [setError, isMidSso, watch, navigate]
+    [setError]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
@@ -196,6 +182,23 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         } catch {
           // Ignore storage errors (private mode / partitioned iframe)
         }
+
+        // Mid-SSO eligibility chokepoint. Runs BEFORE login() so the parent
+        // theme never receives a LOGIN_STATUS=success it could act on for an
+        // ineligible customer. Eliminates the race against the parent's
+        // post-login SSO redirect. Fail-open: any error/degraded result
+        // proceeds with login as normal.
+        if (isMidSso) {
+          setIsSubmitting(true);
+          const result = await checkCustomerGate(data.email);
+          if (!result.eligible && result.found) {
+            setIsSubmitting(false);
+            navigate("/not-eligible", { replace: true });
+            return;
+          }
+          // Eligible (or fail-open) — fall through to login
+        }
+
         login({
           email: data.email,
           password: data.password,
