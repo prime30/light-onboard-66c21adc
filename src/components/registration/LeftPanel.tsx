@@ -222,7 +222,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background layers */}
-      {mode === "signin" ? (
+      {isNotEligible || mode === "signin" ? (
         <SignInBackground />
       ) : (
         <div className="absolute inset-0">
@@ -256,10 +256,12 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       <div
         className={cn(
           "absolute inset-0 flex flex-col justify-end p-5 md:p-5 lg:p-10 pb-[70px] lg:pb-[80px] z-[3]",
-          mode === "signup" ? "xl:pb-[180px]" : "xl:pb-[80px]"
+          mode === "signup" && !isNotEligible ? "xl:pb-[180px]" : "xl:pb-[80px]"
         )}
       >
-        {mode === "signin" ? (
+        {isNotEligible ? (
+          <NotEligibleSlide />
+        ) : mode === "signin" ? (
           <SignInSlide />
         ) : (
           <RegisterCarouselSlides currentSlide={currentSlide} />
