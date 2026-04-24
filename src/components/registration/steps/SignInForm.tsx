@@ -42,7 +42,8 @@ type SignInFormProps = {
 
 function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { initialEmail } = props;
-  const { setEmail } = useGlobalApp();
+  const { setEmail, ssoContext } = useGlobalApp();
+  const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
 
@@ -59,6 +60,14 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { errors } = formState;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Mid-SSO chokepoint: only gate logins that originated from a Circle/Syndicate
+  // SSO redirect. Everything else (direct login, account management, etc.) is
+  // unaffected — the gate predicate must be false in those cases.
+  const isMidSso =
+    !!ssoContext &&
+    (ssoContext.source === "syndicate" || ssoContext.source === "circle") &&
+    isSafeReturnUrl(ssoContext.returnUrl);
 
   const loginUpdate: (message: FormUpdateData) => void = useCallback(
     (message) => {
@@ -77,9 +86,23 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
       if (message.status === "success") {
         setIsLoginSuccessful(true);
+
+        // Mid-SSO eligibility chokepoint. Runs AFTER the parent theme has
+        // confirmed Shopify auth — at this point the email in the form is the
+        // authenticated customer. We block the SSO redirect by navigating
+        // away before the parent runs its bounce. Fail-open on any error.
+        if (isMidSso) {
+          const email = watch("email");
+          void (async () => {
+            const result = await checkCustomerGate(email);
+            if (!result.eligible && result.found) {
+              navigate("/not-eligible", { replace: true });
+            }
+          })();
+        }
       }
     },
-    [setError]
+    [setError, isMidSso, watch, navigate]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
