@@ -7,6 +7,9 @@ const COLOR_RING_PRODUCT_GID = "gid://shopify/Product/9089694302525";
 const SHOPIFY_API_VERSION = "2025-04";
 const DISCOUNT_PERCENTAGE = 0.30;
 const DISCOUNT_DURATION_HOURS = 48;
+const METAFIELD_NAMESPACE = "custom";
+const METAFIELD_KEY_CODE = "welcome_offer_code";
+const METAFIELD_KEY_ENDS_AT = "welcome_offer_ends_at";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +53,160 @@ const CREATE_DISCOUNT_MUTATION = `
   }
 `;
 
+const CUSTOMER_LOOKUP_QUERY = `
+  query customerByEmail($query: String!) {
+    customers(first: 1, query: $query) {
+      nodes {
+        id
+        email
+      }
+    }
+  }
+`;
+
+const METAFIELDS_SET_MUTATION = `
+  mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        id
+        namespace
+        key
+      }
+      userErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+type ShopifyResponse<T> = {
+  data?: T;
+  errors?: Array<{ message: string }>;
+  extensions?: {
+    cost?: {
+      requestedQueryCost?: number;
+      actualQueryCost?: number;
+      throttleStatus?: {
+        currentlyAvailable?: number;
+        maximumAvailable?: number;
+        restoreRate?: number;
+      };
+    };
+  };
+};
+
+async function shopifyGraphQL<T>(
+  query: string,
+  variables: Record<string, unknown>,
+  label: string
+): Promise<ShopifyResponse<T>> {
+  const res = await fetch(
+    `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": SHOPIFY_ADMIN_API_TOKEN,
+      },
+      body: JSON.stringify({ query, variables }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Shopify ${label} HTTP ${res.status}: ${text}`);
+  }
+
+  const json = (await res.json()) as ShopifyResponse<T>;
+  if (json.extensions?.cost) {
+    console.log(
+      `[generate-discount] ${label} cost:`,
+      JSON.stringify(json.extensions.cost)
+    );
+  }
+  return json;
+}
+
+/**
+ * Best-effort: write the welcome offer to the customer's metafields so the
+ * storefront announcement bar can render the marquee slide for any logged-in
+ * device. Failures are logged but never block the user-facing response — the
+ * discount code itself is already created and shown on the success screen.
+ */
+async function writeCustomerMetafields(
+  email: string,
+  code: string,
+  endsAtIso: string
+): Promise<void> {
+  if (!email) {
+    console.log("[generate-discount] no email provided, skipping metafield write");
+    return;
+  }
+
+  try {
+    // 1. Look up the customer by email
+    const lookup = await shopifyGraphQL<{
+      customers: { nodes: Array<{ id: string; email: string }> };
+    }>(
+      CUSTOMER_LOOKUP_QUERY,
+      { query: `email:${email}` },
+      "customerByEmail"
+    );
+
+    const customer = lookup.data?.customers?.nodes?.[0];
+    if (!customer?.id) {
+      console.warn(`[generate-discount] no customer found for email ${email}`);
+      return;
+    }
+
+    // 2. Write both metafields in a single call
+    const setRes = await shopifyGraphQL<{
+      metafieldsSet: {
+        metafields: Array<{ id: string }>;
+        userErrors: Array<{ field: string[]; message: string; code: string }>;
+      };
+    }>(
+      METAFIELDS_SET_MUTATION,
+      {
+        metafields: [
+          {
+            ownerId: customer.id,
+            namespace: METAFIELD_NAMESPACE,
+            key: METAFIELD_KEY_CODE,
+            type: "single_line_text_field",
+            value: code,
+          },
+          {
+            ownerId: customer.id,
+            namespace: METAFIELD_NAMESPACE,
+            key: METAFIELD_KEY_ENDS_AT,
+            type: "date_time",
+            value: endsAtIso,
+          },
+        ],
+      },
+      "metafieldsSet"
+    );
+
+    const userErrors = setRes.data?.metafieldsSet?.userErrors ?? [];
+    if (userErrors.length > 0) {
+      console.warn(
+        "[generate-discount] metafieldsSet userErrors:",
+        JSON.stringify(userErrors)
+      );
+    } else {
+      console.log(
+        `[generate-discount] wrote welcome offer metafields for ${customer.id}`
+      );
+    }
+  } catch (err) {
+    // Soft-fail: log but never throw. The discount code is the source of truth.
+    console.error("[generate-discount] writeCustomerMetafields failed:", err);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -67,6 +224,17 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ error: "Shopify Admin API token not configured." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+  }
+
+  // Optional email — used to write customer metafields for cross-device marquee.
+  let email = "";
+  try {
+    const body = await req.json().catch(() => ({}));
+    if (typeof body?.email === "string") {
+      email = body.email.trim().toLowerCase();
+    }
+  } catch {
+    // No body / invalid JSON is fine; email is optional.
   }
 
   try {
@@ -98,35 +266,22 @@ Deno.serve(async (req: Request) => {
       },
     };
 
-    const shopifyResponse = await fetch(
-      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Access-Token": SHOPIFY_ADMIN_API_TOKEN,
-        },
-        body: JSON.stringify({
-          query: CREATE_DISCOUNT_MUTATION,
-          variables,
-        }),
-      }
-    );
+    const createRes = await shopifyGraphQL<{
+      discountCodeBasicCreate: {
+        codeDiscountNode: {
+          id: string;
+          codeDiscount: {
+            codes: { nodes: Array<{ code: string }> };
+            endsAt: string;
+          };
+        } | null;
+        userErrors: Array<{ field: string[]; message: string; code: string }>;
+      };
+    }>(CREATE_DISCOUNT_MUTATION, variables, "discountCodeBasicCreate");
 
-    if (!shopifyResponse.ok) {
-      const text = await shopifyResponse.text();
-      console.error("Shopify API error:", shopifyResponse.status, text);
-      return new Response(
-        JSON.stringify({ error: "Shopify API request failed.", details: text }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const json = await shopifyResponse.json();
-    const result = json?.data?.discountCodeBasicCreate;
-
+    const result = createRes.data?.discountCodeBasicCreate;
     if (!result) {
-      console.error("Unexpected Shopify response:", JSON.stringify(json));
+      console.error("Unexpected Shopify response:", JSON.stringify(createRes));
       return new Response(
         JSON.stringify({ error: "Unexpected response from Shopify." }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -134,9 +289,9 @@ Deno.serve(async (req: Request) => {
     }
 
     if (result.userErrors?.length > 0) {
-      const errorMessages = result.userErrors.map((e: { field: string[]; message: string }) =>
-        `${e.field?.join(".")}: ${e.message}`
-      ).join("; ");
+      const errorMessages = result.userErrors
+        .map((e) => `${e.field?.join(".")}: ${e.message}`)
+        .join("; ");
       console.error("Shopify discount creation errors:", errorMessages);
       return new Response(
         JSON.stringify({ error: "Failed to create discount.", details: errorMessages }),
@@ -147,6 +302,10 @@ Deno.serve(async (req: Request) => {
     const codeDiscount = result.codeDiscountNode?.codeDiscount;
     const confirmedCode = codeDiscount?.codes?.nodes?.[0]?.code ?? code;
     const confirmedEndsAt = codeDiscount?.endsAt ?? endsAt.toISOString();
+
+    // Best-effort metafield write — runs sequentially after the discount exists,
+    // so any failure here cannot affect the user-facing response.
+    await writeCustomerMetafields(email, confirmedCode, confirmedEndsAt);
 
     return new Response(
       JSON.stringify({
