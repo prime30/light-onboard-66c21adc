@@ -509,6 +509,8 @@ const Auth = () => {
           shimmerKey={shimmerKey}
         />
       )}
+
+      <AdminJumpButton />
     </>
   );
 };
