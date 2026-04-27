@@ -57,6 +57,7 @@ const AdminSettingsPage = () => {
         return;
       }
       setAuthed(true);
+      setAdminMode(true);
     } catch (err) {
       console.error(err);
       toast({
