@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.customer-gate]
 verify_jwt = false
+
+[functions.admin-toggle-setting]
+verify_jwt = false
