@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Lock, Settings as SettingsIcon } from "lucide-react";
+import { setAdminMode } from "@/lib/admin-mode";
 
 const AdminSettingsPage = () => {
   const navigate = useNavigate();
