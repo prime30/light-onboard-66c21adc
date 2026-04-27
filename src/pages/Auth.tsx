@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AuthFooter } from "@/components/registration/AuthFooter";
+import { AdminJumpButton } from "@/components/registration/AdminJumpButton";
 import { OnboardingForm } from "@/components/registration/steps/OnboardingForm";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import type { Step } from "@/types/auth";
