@@ -266,7 +266,9 @@ export const SuccessForm = () => {
       <div id="success-offer-section" className="space-y-3">
         {/* Title and Timer */}
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-foreground">Offer while you wait</p>
+          <p className="text-sm font-medium text-foreground">
+            {autoApproved ? "Your welcome offer" : "Offer while you wait"}
+          </p>
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
             <div className="flex items-center gap-1 text-[11px] text-accent-red font-semibold tabular-nums">
