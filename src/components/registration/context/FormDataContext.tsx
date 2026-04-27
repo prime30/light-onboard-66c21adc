@@ -142,12 +142,33 @@ export function FormDataProvider({
           const discountResponse = await fetch(discountUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // Send email so the edge function can write the welcome offer to
+            // the customer's Shopify metafields (powers the cross-device
+            // announcement bar marquee on the storefront).
+            body: JSON.stringify({ email: values.email }),
           });
           if (discountResponse.ok) {
             const discountResult = await discountResponse.json();
             if (discountResult.success && discountResult.code) {
               setDiscountCode(discountResult.code);
               setDiscountExpiry(discountResult.endsAt ?? null);
+
+              // Notify the parent Shopify theme (when embedded as an iframe)
+              // that a fresh welcome offer is available. The theme's
+              // announcement bar listens for this and saves it to localStorage
+              // so the marquee slide appears immediately on subsequent pages.
+              try {
+                window.parent?.postMessage(
+                  {
+                    type: "dd:welcome_offer",
+                    code: discountResult.code,
+                    endsAt: discountResult.endsAt ?? null,
+                  },
+                  "*"
+                );
+              } catch (postErr) {
+                console.warn("welcome_offer postMessage failed:", postErr);
+              }
             }
           } else {
             console.warn("generate-discount non-OK response:", discountResponse.status);
