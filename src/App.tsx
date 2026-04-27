@@ -24,6 +24,7 @@ const Reviews = lazy(() => import("./pages/Reviews"));
 const BlogResaleLicense = lazy(() => import("./pages/BlogResaleLicense"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SsoPreviewPage = lazy(() => import("./pages/SsoPreviewPage"));
+const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,14 @@ const children: RouteObject[] = [
     element: (
       <Suspense fallback={<GenericBootFallback />}>
         <SsoPreviewPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "admin/settings",
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <AdminSettingsPage />
       </Suspense>
     ),
   },
