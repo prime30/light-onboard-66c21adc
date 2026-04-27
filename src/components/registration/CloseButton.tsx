@@ -6,10 +6,12 @@ import { useNavigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "./context/ModeContext";
+import { useStepContext } from "./context/StepContext";
 
 export function CloseButton() {
   const navigate = useNavigate();
   const { mode } = useModeContext();
+  const { currentStep, getStepNumber } = useStepContext();
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
@@ -25,9 +27,11 @@ export function CloseButton() {
       }
     };
 
-    // Check if there's form progress to save (only in signup mode with an account type selected)
-    // TODO: Check for progress.
-    const hasProgress = true;
+    // Only show the saving animation once the user has progressed past step 1
+    // (i.e. they're on step 2 or later within the signup flow). Closing from
+    // the onboarding/account-type screen should dismiss instantly.
+    const stepIndex = getStepNumber(currentStep);
+    const hasProgress = stepIndex >= 1;
 
     // If user is already logged in, close immediately without saving animation
     if (customer?.isLoggedIn) {
@@ -55,7 +59,7 @@ export function CloseButton() {
     } else if (!isSavingProgress) {
       close();
     }
-  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode]);
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
 
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
