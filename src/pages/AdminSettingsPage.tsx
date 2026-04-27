@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Lock, Settings as SettingsIcon } from "lucide-react";
+import { setAdminMode } from "@/lib/admin-mode";
 
 const AdminSettingsPage = () => {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ const AdminSettingsPage = () => {
         return;
       }
       setAuthed(true);
+      setAdminMode(true);
     } catch (err) {
       console.error(err);
       toast({
@@ -214,6 +216,7 @@ const AdminSettingsPage = () => {
           onClick={() => {
             setAuthed(false);
             setPassword("");
+            setAdminMode(false);
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
