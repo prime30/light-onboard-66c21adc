@@ -5,13 +5,19 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
+import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
-import { useStepContext } from "./context/StepContext";
+import { StepContext } from "./context/StepContext";
 
 export function CloseButton() {
   const navigate = useNavigate();
   const { mode } = useModeContext();
-  const { currentStep, getStepNumber } = useStepContext();
+  // StepContext may be unavailable (CloseButton renders in RegistrationLayout,
+  // outside the FormProvider/StepProvider tree). Read it optionally so we can
+  // still render and just skip the saving animation when there's no progress.
+  const stepCtx = useContext(StepContext);
+  const currentStep = stepCtx?.currentStep;
+  const getStepNumber = stepCtx?.getStepNumber;
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
