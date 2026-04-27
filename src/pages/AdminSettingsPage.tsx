@@ -216,6 +216,7 @@ const AdminSettingsPage = () => {
           onClick={() => {
             setAuthed(false);
             setPassword("");
+            setAdminMode(false);
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
