@@ -9,6 +9,7 @@ import {
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import { useFormData } from "@/components/registration/context";
+import { useAutoApproval } from "@/lib/app-settings";
 
 type AtcStatus = "idle" | "submitting" | "success" | "error";
 type AtcState = {
@@ -73,6 +74,7 @@ function atcReducer(state: AtcState, action: AtcAction): AtcState {
 
 export const SuccessForm = () => {
   const { discountCode, discountExpiry } = useFormData();
+  const { enabled: autoApproved } = useAutoApproval();
 
   // Use real server expiry if available, otherwise count down 48h from mount
   const countdown = useCountdown(discountExpiry ?? 48);
@@ -232,11 +234,12 @@ export const SuccessForm = () => {
 
       <div className="space-y-2.5">
         <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
-          You're all set!
+          {autoApproved ? "Welcome to Drop Dead" : "You're all set!"}
         </h1>
         <p className="text-muted-foreground">
-          Your account has been successfully submitted. Our team will review and approve or deny
-          your professional account within 24 hours.
+          {autoApproved
+            ? "You're approved. Your pro account is active and ready to shop wholesale pricing."
+            : "Your account has been successfully submitted. Our team will review and approve or deny your professional account within 24 hours."}
         </p>
       </div>
 
@@ -247,9 +250,13 @@ export const SuccessForm = () => {
             <Sparkles className="w-[25px] h-[25px] text-background" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium text-foreground">Pro Member</p>
+            <p className="text-sm font-medium text-foreground">
+              {autoApproved ? "Pro account active" : "Pro Member"}
+            </p>
             <p className="text-xs text-muted-foreground">
-              Confirmation email will be sent to your inbox
+              {autoApproved
+                ? "A confirmation has been sent to your inbox"
+                : "Confirmation email will be sent to your inbox"}
             </p>
           </div>
         </div>
