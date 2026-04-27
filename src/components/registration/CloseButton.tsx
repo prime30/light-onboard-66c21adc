@@ -5,13 +5,19 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
+import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
-import { useStepContext } from "./context/StepContext";
+import { StepContext } from "./context/StepContext";
 
 export function CloseButton() {
   const navigate = useNavigate();
   const { mode } = useModeContext();
-  const { currentStep, getStepNumber } = useStepContext();
+  // StepContext may be unavailable (CloseButton renders in RegistrationLayout,
+  // outside the FormProvider/StepProvider tree). Read it optionally so we can
+  // still render and just skip the saving animation when there's no progress.
+  const stepCtx = useContext(StepContext);
+  const currentStep = stepCtx?.currentStep;
+  const getStepNumber = stepCtx?.getStepNumber;
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
@@ -27,11 +33,11 @@ export function CloseButton() {
       }
     };
 
-    // Only show the saving animation once the user has progressed past step 1
-    // (i.e. they're on step 2 or later within the signup flow). Closing from
-    // the onboarding/account-type screen should dismiss instantly.
-    const stepIndex = getStepNumber(currentStep);
-    const hasProgress = stepIndex >= 1;
+    // Only show the saving animation once the user has progressed into the
+    // flow (step 2 or later). Closing from onboarding or account-type should
+    // dismiss instantly. If StepContext isn't available, treat as no progress.
+    const stepIndex = currentStep && getStepNumber ? getStepNumber(currentStep) : 0;
+    const hasProgress = stepIndex >= 2;
 
     // If user is already logged in, close immediately without saving animation
     if (customer?.isLoggedIn) {

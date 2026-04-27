@@ -38,7 +38,7 @@ export type StepContextType = {
 };
 
 // Create the context
-const StepContext = createContext<StepContextType | null>(null);
+export const StepContext = createContext<StepContextType | null>(null);
 
 type StepProviderProps = {
   children: ReactNode;
