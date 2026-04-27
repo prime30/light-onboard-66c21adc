@@ -59,7 +59,7 @@ export function CloseButton() {
     } else if (!isSavingProgress) {
       close();
     }
-  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode]);
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
 
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
