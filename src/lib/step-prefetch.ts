@@ -1,6 +1,25 @@
 import type { Step, AccountType } from "@/types/auth";
 import { STEP_ORDER } from "@/data/step-order";
 
+// Asset URLs referenced inside lazy step components. Importing them here
+// (top-level) lets Vite resolve the hashed URL at build time so we can warm
+// the browser image cache before the step mounts — eliminating image FOUC.
+import methodSuperweft from "@/assets/method-superweft.jpg?url";
+import methodKeratinTips from "@/assets/method-keratin-tips.jpg?url";
+import methodSecretapes from "@/assets/method-secretapes.jpg?url";
+import methodVolumeWeft from "@/assets/method-volume-weft.jpg?url";
+import blogResaleLicense from "@/assets/blog-resale-license.jpg?url";
+import colorRingProduct from "@/assets/color-ring-product.png?url";
+
+const STEP_IMAGE_URLS: string[] = [
+  methodSuperweft,
+  methodKeratinTips,
+  methodSecretapes,
+  methodVolumeWeft,
+  blogResaleLicense,
+  colorRingProduct,
+];
+
 /**
  * Dynamic import for each lazy-loaded step.
  * Calling the function triggers the network fetch; the module is cached by
@@ -37,11 +56,24 @@ export function prefetchAllSteps(): void {
   allStepsPrefetched = true;
 
   const run = () => {
+    // Warm JS chunks
     for (const importer of Object.values(STEP_IMPORTS)) {
       try {
         importer?.()?.catch(() => {});
       } catch {
         /* noop */
+      }
+    }
+    // Warm image cache so step images appear instantly on mount (no FOUC)
+    if (typeof window !== "undefined") {
+      for (const url of STEP_IMAGE_URLS) {
+        try {
+          const img = new Image();
+          img.decoding = "async";
+          img.src = url;
+        } catch {
+          /* noop */
+        }
       }
     }
   };
