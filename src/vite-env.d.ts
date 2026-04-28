@@ -14,9 +14,10 @@ interface ImportMetaEnv {
   VITE_IFRAME_PARENT_ORIGIN?: string;
   VITE_SHOPIFY_PARENT_ORIGINS?: string;
   VITE_COLOR_RING_VARIANT_ID?: string;
-  HELIUM_PRIVATE_ACCESS_TOKEN: string;
-  HELIUM_PRIVATE_FORM_ID: string;
-  GOOGLE_PLACES_API_KEY: string;
+  // NOTE: HELIUM_PRIVATE_ACCESS_TOKEN, HELIUM_PRIVATE_FORM_ID, and
+  // GOOGLE_PLACES_API_KEY are server-side only secrets used by Supabase
+  // Edge Functions via Deno.env.get(). They are intentionally NOT
+  // declared here to prevent accidental client-side use.
 }
 
 interface ImportMeta {
