@@ -7,6 +7,42 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
 };
 
+// ------------------------------------------------------------------
+// Spam prevention: disposable email blocklist (inlined for edge fn)
+// ------------------------------------------------------------------
+const DISPOSABLE_EMAIL_DOMAINS = new Set<string>([
+  "mailinator.com", "guerrillamail.com", "guerrillamail.net", "guerrillamail.org",
+  "guerrillamail.biz", "guerrillamail.de", "sharklasers.com", "grr.la",
+  "10minutemail.com", "10minutemail.net", "20minutemail.com", "tempmail.com",
+  "temp-mail.com", "temp-mail.org", "tempmailo.com", "tempmail.net", "tempmail.plus",
+  "tempmailaddress.com", "throwawaymail.com", "throwawaymail.org", "yopmail.com",
+  "yopmail.fr", "yopmail.net", "trashmail.com", "trashmail.net", "trashmail.de",
+  "getnada.com", "nada.email", "dispostable.com", "fakeinbox.com", "fake-mail.net",
+  "maildrop.cc", "mailnesia.com", "mintemail.com", "moakt.com", "spam4.me",
+  "spambox.us", "spamgourmet.com", "mvrht.com", "mytemp.email", "mohmal.com",
+  "emailondeck.com", "fakemail.net", "inboxbear.com", "mailcatch.com",
+  "harakirimail.com", "incognitomail.com", "jetable.org", "mailexpire.com",
+  "discard.email", "discardmail.com", "trashymail.com", "tempinbox.com",
+  "tempemail.net", "tempemail.co", "tempr.email", "wegwerfmail.de",
+  "wegwerfmail.net", "wegwerfmail.org", "yopmail.gq", "yopmail.ml",
+  "temporaryinbox.com", "temporarymailaddress.com", "throwawaymail.com",
+]);
+
+function isDisposableEmail(email: string | undefined | null): boolean {
+  if (!email) return false;
+  const at = email.lastIndexOf("@");
+  if (at === -1) return false;
+  const domain = email.slice(at + 1).trim().toLowerCase();
+  if (!domain) return false;
+  if (DISPOSABLE_EMAIL_DOMAINS.has(domain)) return true;
+  const parts = domain.split(".");
+  for (let i = 1; i < parts.length - 1; i++) {
+    if (DISPOSABLE_EMAIL_DOMAINS.has(parts.slice(i).join("."))) return true;
+  }
+  return false;
+}
+
+
 // Define action interface
 interface ErrorAction {
   type: string;
