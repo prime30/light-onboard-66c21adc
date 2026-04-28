@@ -63,7 +63,9 @@ const FormDataContext = createContext<FormDataContextType | null>(null);
 
 // Storage
 const storage = createJSONStorage(() => sessionStorage);
-const formAtom = atomWithStorage("_registration_form", defaultValues, storage, {
+// Bumped key to "_registration_form_v2" to invalidate any cached sessionStorage
+// from older builds that pre-selected accountType: "professional" by default.
+const formAtom = atomWithStorage("_registration_form_v2", defaultValues, storage, {
   getOnInit: true,
 });
 
