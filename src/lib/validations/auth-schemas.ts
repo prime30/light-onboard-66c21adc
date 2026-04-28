@@ -3,6 +3,10 @@ import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { validateLicenseFormat } from "../../data/cosmetology-license-patterns.ts";
+import { isDisposableEmail } from "./disposable-email-domains.ts";
+
+const DISPOSABLE_EMAIL_MESSAGE =
+  "Please use a permanent email address — disposable inboxes aren't accepted";
 
 function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
   if (!value) return undefined;
@@ -89,7 +93,8 @@ const contactBasicsValidators = {
   email: z
     .email("Please enter a valid email address")
     .trim()
-    .max(255, "Email must be less than 255 characters"),
+    .max(255, "Email must be less than 255 characters")
+    .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
@@ -334,7 +339,10 @@ export const loginSchema = z.discriminatedUnion("formType", [
   }),
   z.object({
     formType: z.literal("forgot_password"),
-    email: z.email("Please enter a valid email address").trim(),
+    email: z
+      .email("Please enter a valid email address")
+      .trim()
+      .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
   }),
 ]);
 type BaseLoginFormData<T extends LoginFormType> = Extract<
