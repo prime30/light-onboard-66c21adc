@@ -4,10 +4,10 @@ import { STEP_ORDER } from "@/data/step-order";
 // Asset URLs referenced inside lazy step components. Importing them here
 // (top-level) lets Vite resolve the hashed URL at build time so we can warm
 // the browser image cache before the step mounts — eliminating image FOUC.
-import methodSuperweft from "@/assets/method-superweft.jpg?url";
-import methodKeratinTips from "@/assets/method-keratin-tips.jpg?url";
-import methodSecretapes from "@/assets/method-secretapes.jpg?url";
-import methodVolumeWeft from "@/assets/method-volume-weft.jpg?url";
+import methodSuperweft from "@/assets/method-superweft.webp?url";
+import methodKeratinTips from "@/assets/method-keratin-tips.webp?url";
+import methodSecretapes from "@/assets/method-secretapes.webp?url";
+import methodVolumeWeft from "@/assets/method-volume-weft.webp?url";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg?url";
 import colorRingProduct from "@/assets/color-ring-product.png?url";
 
@@ -55,6 +55,10 @@ export function prefetchAllSteps(): void {
   if (allStepsPrefetched) return;
   allStepsPrefetched = true;
 
+  // Preferred-method images are visible above the fold on that step and must
+  // not wait for browser idle time; fetch them immediately at high priority.
+  warmStepImages();
+
   const run = () => {
     // Warm JS chunks
     for (const importer of Object.values(STEP_IMPORTS)) {
@@ -64,18 +68,7 @@ export function prefetchAllSteps(): void {
         /* noop */
       }
     }
-    // Warm image cache so step images appear instantly on mount (no FOUC)
-    if (typeof window !== "undefined") {
-      for (const url of STEP_IMAGE_URLS) {
-        try {
-          const img = new Image();
-          img.decoding = "async";
-          img.src = url;
-        } catch {
-          /* noop */
-        }
-      }
-    }
+    warmStepImages();
   };
 
   if (typeof window === "undefined") {
