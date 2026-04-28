@@ -20,6 +20,24 @@ const STEP_IMAGE_URLS: string[] = [
   colorRingProduct,
 ];
 
+const warmedImages = new Set<string>();
+function warmStepImages(): void {
+  if (typeof window === "undefined") return;
+
+  for (const url of STEP_IMAGE_URLS) {
+    if (warmedImages.has(url)) continue;
+    warmedImages.add(url);
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      img.fetchPriority = "high";
+      img.src = url;
+    } catch {
+      /* noop */
+    }
+  }
+}
+
 /**
  * Dynamic import for each lazy-loaded step.
  * Calling the function triggers the network fetch; the module is cached by
