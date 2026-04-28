@@ -29,7 +29,7 @@ import { useModeContext } from "@/components/registration/context/ModeContext";
 import { useScroll } from "@/hooks/use-scroll";
 import { useSafariViewportFix } from "@/hooks/use-safari-viewport-fix";
 import { StepIndicatorBar } from "@/components/registration/StepIndicatorBar";
-import { prefetchNextStep } from "@/lib/step-prefetch";
+import { prefetchNextStep, prefetchAllSteps } from "@/lib/step-prefetch";
 import type { AccountType } from "@/types/auth";
 
 type FormSkeletonVariant =
