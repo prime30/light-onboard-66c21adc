@@ -355,7 +355,7 @@ export const SignInForm = () => {
     <div className="max-w-[38rem] mx-auto w-full">
       <form
         key="sign-in"
-        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-6 md:pt-2 animate-step-enter-left text-center space-y-[clamp(10px,2.5vh,30px)]"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-[clamp(5px,1vh,20px)] overflow-y-auto scrollbar-hide pt-16 md:pt-2 animate-step-enter-left text-center space-y-[clamp(10px,2.5vh,30px)]"
         onSubmit={onSubmit}
       >
         <div className="space-y-[6px]" data-sso-headline-container>
