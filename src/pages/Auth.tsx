@@ -70,7 +70,14 @@ const Auth = () => {
   // Form state from centralized hook (includes sessionStorage persistence)
   const { currentStep, setCurrentStep, goToNextStep } = useStepContext();
 
-  // Prefetch the next step's JS chunk while the user is filling in the current one
+  // Eagerly preload ALL step chunks once on mount (deferred via requestIdleCallback).
+  // This eliminates the Suspense fallback flash between steps — by the time the user
+  // navigates, the chunk is already in the browser cache and React renders it synchronously.
+  useEffect(() => {
+    prefetchAllSteps();
+  }, []);
+
+  // Belt-and-braces: also prefetch the next step reactively (in case idle callback hasn't fired yet)
   const accountType = watch("accountType") as AccountType | undefined;
   useEffect(() => {
     prefetchNextStep(currentStep, accountType);
