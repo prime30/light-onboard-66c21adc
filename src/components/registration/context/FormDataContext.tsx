@@ -20,6 +20,7 @@ import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
 import { useApiClient } from "@/hooks/use-api-client";
+import { readHoneypotValue } from "@/components/registration/HoneypotField";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -119,6 +120,7 @@ export function FormDataProvider({
           body: JSON.stringify({
             action: "CREATE_CUSTOMER",
             data: values,
+            honeypot: readHoneypotValue(),
           }),
         },
         "Account created successfully!"
