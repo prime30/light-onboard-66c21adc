@@ -6,6 +6,7 @@ import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 // Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
 import { useCustomerLogin } from "@/hooks/messages";
+import { HoneypotField } from "./HoneypotField";
 
 export type RegistrationLayoutOutletContext = {
   formProgress: number;
@@ -41,6 +42,7 @@ function RightPanel({ outletContext }: RightPanelProps) {
         </div>
       </header>
       <Outlet context={outletContext} />
+      <HoneypotField />
     </div>
   );
 }
