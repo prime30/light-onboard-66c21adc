@@ -27,6 +27,42 @@ export function prefetchStep(step: Step): void {
 }
 
 /**
+ * Eagerly preload ALL step chunks. Called once when the auth flow mounts,
+ * deferred via requestIdleCallback so it never competes with the first paint.
+ * Once cached, every step transition becomes synchronous (no Suspense flash).
+ */
+let allStepsPrefetched = false;
+export function prefetchAllSteps(): void {
+  if (allStepsPrefetched) return;
+  allStepsPrefetched = true;
+
+  const run = () => {
+    for (const importer of Object.values(STEP_IMPORTS)) {
+      try {
+        importer?.()?.catch(() => {});
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
+  if (typeof window === "undefined") {
+    run();
+    return;
+  }
+
+  const ric = (window as unknown as {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  }).requestIdleCallback;
+
+  if (typeof ric === "function") {
+    ric(run, { timeout: 1500 });
+  } else {
+    window.setTimeout(run, 300);
+  }
+}
+
+/**
  * Prefetch the next step in the flow for the given account type.
  * When accountType is unknown (e.g. onboarding), prefetches all three
  * possible first steps so any selection is instant.
