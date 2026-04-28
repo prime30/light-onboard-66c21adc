@@ -9,18 +9,14 @@ export async function fetchAutoApprovalEnabled(): Promise<boolean> {
   if (inFlight) return inFlight;
 
   inFlight = (async () => {
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select("auto_approval_enabled")
-      .eq("singleton", true)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("get_auto_approval_enabled");
 
     if (error) {
       console.error("Failed to load app_settings:", error);
       cached = false;
       return false;
     }
-    cached = data?.auto_approval_enabled ?? false;
+    cached = (data as boolean | null) ?? false;
     return cached;
   })();
 
