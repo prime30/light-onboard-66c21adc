@@ -350,11 +350,19 @@ Deno.serve(async (req: Request) => {
   }
 
   // Parse the request body
-  let requestBody: CustomerCreateRequest;
+  let requestBody: CustomerCreateRequest & { honeypot?: unknown };
   try {
     requestBody = await req.json();
   } catch {
     return sendError(400, ["Invalid JSON in request body"]);
+  }
+
+  // Spam: honeypot field. Real users never see / fill it. If populated,
+  // silently reject with a generic 400 (don't tip off the bot).
+  const honeypotValue = (requestBody as { honeypot?: unknown }).honeypot;
+  if (typeof honeypotValue === "string" && honeypotValue.trim() !== "") {
+    console.log("Honeypot triggered — rejecting request");
+    return sendError(400, ["Submission blocked"]);
   }
 
   // Validate the request body against the schema
@@ -364,6 +372,16 @@ Deno.serve(async (req: Request) => {
     console.log("Request body validation failed:", validationErrors);
     return sendError(400, validationErrors);
   }
+
+  // Spam: disposable email blocklist. Belt-and-braces server check
+  // (client also enforces this, but never trust the client).
+  if (isDisposableEmail(parseResult.data.email)) {
+    console.log("Disposable email rejected:", parseResult.data.email);
+    return sendError(400, [
+      "Please use a permanent email address — disposable inboxes aren't accepted",
+    ]);
+  }
+
 
   console.log("Processing customer sync for:", requestBody.data.email);
 
