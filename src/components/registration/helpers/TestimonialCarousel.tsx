@@ -2,9 +2,38 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useReviews, type Review } from "@/hooks/use-reviews";
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
+import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
+import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
 import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
 import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
 import stylistLavender1 from "@/assets/avatars/stylist-lavender-1.jpg";
+import stylistMagenta1 from "@/assets/avatars/stylist-magenta-1.jpg";
+import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
+
+// Preload + decode ALL avatar bitmaps the moment this module is imported.
+// Because the carousel is part of the auth hero panel (loaded on first paint),
+// this guarantees every possible avatar is fully decoded in the browser cache
+// before the carousel ever rotates — eliminating the "image loads in" flash.
+const ALL_AVATARS = [
+  stylistPink1,
+  stylistPurple1,
+  stylistBlue1,
+  stylistOmbre1,
+  stylistTeal1,
+  stylistLavender1,
+  stylistMagenta1,
+  stylistElectric1,
+];
+
+if (typeof window !== "undefined") {
+  for (const src of ALL_AVATARS) {
+    const img = new Image();
+    img.decoding = "async";
+    img.fetchPriority = "high";
+    img.src = src;
+    img.decode?.().catch(() => {});
+  }
+}
 
 const INTERVAL_MS = 5000;
 
