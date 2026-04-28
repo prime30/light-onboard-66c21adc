@@ -79,6 +79,19 @@ export const TestimonialCarousel = () => {
     setTimerKey((k) => k + 1);
   }, [testimonials.length]);
 
+  // Warm the browser image cache for ALL avatars as soon as testimonials are
+  // known. Each avatar is small (~10-30KB) and there are at most ~8, so we can
+  // safely fetch them all up front — guaranteeing zero flash on rotation.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    for (const t of testimonials) {
+      if (!t?.avatar) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = t.avatar;
+    }
+  }, [testimonials]);
+
   const advance = useCallback(
     (dir: 1 | -1 = 1) => {
       setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
@@ -156,6 +169,9 @@ export const TestimonialCarousel = () => {
             <img
               src={testimonial.avatar}
               alt={testimonial.name}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="w-10 h-10 rounded-full border-2 border-background/20 object-cover"
             />
             <div>
