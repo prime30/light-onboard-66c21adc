@@ -22,19 +22,14 @@ const AdminSettingsPage = () => {
   // Load current setting on mount
   useEffect(() => {
     let cancelled = false;
-    supabase
-      .from("app_settings")
-      .select("auto_approval_enabled")
-      .eq("singleton", true)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("Failed to load setting:", error);
-        }
-        setAutoApproval(data?.auto_approval_enabled ?? false);
-        setLoadingSetting(false);
-      });
+    supabase.rpc("get_auto_approval_enabled").then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        console.error("Failed to load setting:", error);
+      }
+      setAutoApproval((data as boolean | null) ?? false);
+      setLoadingSetting(false);
+    });
     return () => {
       cancelled = true;
     };
