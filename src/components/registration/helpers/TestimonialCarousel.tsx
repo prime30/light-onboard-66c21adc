@@ -209,6 +209,23 @@ export const TestimonialCarousel = () => {
             </div>
           </div>
         </div>
+
+        {/* Hidden but rendered <img> tags for ALL avatars. Keeping them in the
+            DOM (not display:none) forces the browser to paint+decode each
+            bitmap so rotating to the next slide is instant — zero flash. */}
+        <div aria-hidden className="absolute pointer-events-none w-px h-px overflow-hidden opacity-0">
+          {testimonials.map((t, i) => (
+            <img
+              key={i}
+              src={t.avatar}
+              alt=""
+              width={1}
+              height={1}
+              loading="eager"
+              decoding="async"
+            />
+          ))}
+        </div>
       </div>
 
       {/* Carousel dots */}
