@@ -33,11 +33,17 @@ export function CloseButton() {
       }
     };
 
-    // Only show the saving animation once the user has progressed into the
-    // flow (step 2 or later). Closing from onboarding or account-type should
-    // dismiss instantly. If StepContext isn't available, treat as no progress.
-    const stepIndex = currentStep && getStepNumber ? getStepNumber(currentStep) : 0;
-    const hasProgress = stepIndex >= 2;
+    // Only show the saving animation once the user has progressed past the
+    // entry screens. Onboarding, account-type, and the first step after
+    // account-type should all dismiss instantly — there is nothing
+    // meaningful to "save" yet. If StepContext isn't available (e.g. on
+    // /login or /reset-password), treat as no progress.
+    const ENTRY_STEPS = new Set(["onboarding", "account-type"]);
+    const stepIndex = currentStep && getStepNumber ? getStepNumber(currentStep) : -1;
+    const isEntryStep = !currentStep || ENTRY_STEPS.has(currentStep);
+    // steps array is ["onboarding", "account-type", <flow steps...>, "summary"]
+    // so index >= 3 means the user has filled at least one real flow step.
+    const hasProgress = !isEntryStep && stepIndex >= 3;
 
     // If user is already logged in, close immediately without saving animation
     if (customer?.isLoggedIn) {
