@@ -4,7 +4,7 @@ import { ModeProvider } from "./context/ModeContext";
 import { ReactNode, useState } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
-import { MobileDragHandle } from "./MobileDragHandle";
+// Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
 import { useCustomerLogin } from "@/hooks/messages";
 
 export type RegistrationLayoutOutletContext = {
