@@ -8,10 +8,10 @@ import {
 } from "@/lib/validations/auth-schemas";
 import { dirtyFieldOptions, useForm } from "../context";
 import { Step } from "@/types/auth";
-import superWeftImg from "@/assets/method-superweft.jpg";
-import keratinTipsImg from "@/assets/method-keratin-tips.jpg";
-import secreTapesImg from "@/assets/method-secretapes.jpg";
-import volumeWeftImg from "@/assets/method-volume-weft.jpg";
+import superWeftImg from "@/assets/method-superweft.webp";
+import keratinTipsImg from "@/assets/method-keratin-tips.webp";
+import secreTapesImg from "@/assets/method-secretapes.webp";
+import volumeWeftImg from "@/assets/method-volume-weft.webp";
 
 const STEP: Step = "preferred-method";
 const fieldName: ValidFieldNames = "preferredMethods";
@@ -132,7 +132,8 @@ export const PreferredMethodStep = () => {
                     "group-hover:scale-105",
                     isSelected ? "scale-105" : "scale-100"
                   )}
-                  loading="lazy"
+                  loading="eager"
+                  decoding="async"
                 />
               </div>
 
