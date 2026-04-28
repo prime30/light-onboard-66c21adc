@@ -56,11 +56,24 @@ export function prefetchAllSteps(): void {
   allStepsPrefetched = true;
 
   const run = () => {
+    // Warm JS chunks
     for (const importer of Object.values(STEP_IMPORTS)) {
       try {
         importer?.()?.catch(() => {});
       } catch {
         /* noop */
+      }
+    }
+    // Warm image cache so step images appear instantly on mount (no FOUC)
+    if (typeof window !== "undefined") {
+      for (const url of STEP_IMAGE_URLS) {
+        try {
+          const img = new Image();
+          img.decoding = "async";
+          img.src = url;
+        } catch {
+          /* noop */
+        }
       }
     }
   };
