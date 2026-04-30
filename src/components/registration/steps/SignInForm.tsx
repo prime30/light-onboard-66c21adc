@@ -63,6 +63,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
+  const [loginError, setLoginError] = useState<LoginErrorState>(null);
+  const [forgotPasswordError, setForgotPasswordError] = useState<LoginErrorState>(null);
 
   const { register, watch, setValue, formState, handleSubmit, setError, clearErrors, subscribe } =
     useForm<z.Infer<typeof loginSchema>>({
