@@ -7,6 +7,7 @@ import {
   licenseSchema,
   preferencesSchema,
   preferredMethodSchema,
+  salonLicenseStepSchema,
   schoolInfoSchema,
   taxExemptionSchema,
   wholesaleTermsSchema,
