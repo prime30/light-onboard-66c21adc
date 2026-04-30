@@ -8,6 +8,7 @@ import {
   Headphones,
   Users,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "../FadeText";
@@ -23,6 +24,18 @@ import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 
+export type LoginErrorKind =
+  | "no_account"
+  | "wrong_password"
+  | "unactivated"
+  | "rate_limited"
+  | "generic";
+
+export type LoginErrorState = {
+  kind: LoginErrorKind;
+  message: string;
+} | null;
+
 type UseSignInFormReturn = {
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
   register: UseFormRegister<z.Infer<typeof loginSchema>>;
@@ -34,6 +47,10 @@ type UseSignInFormReturn = {
   isLoginSuccessful: boolean;
   rememberMe: boolean;
   setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
+  loginError: LoginErrorState;
+  forgotPasswordError: LoginErrorState;
+  switchToForgotPassword: () => void;
+  goToApply: () => void;
 };
 
 type SignInFormProps = {
@@ -46,6 +63,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
+  const [loginError, setLoginError] = useState<LoginErrorState>(null);
+  const [forgotPasswordError, setForgotPasswordError] = useState<LoginErrorState>(null);
 
   const { register, watch, setValue, formState, handleSubmit, setError, clearErrors, subscribe } =
     useForm<z.Infer<typeof loginSchema>>({
@@ -69,6 +88,44 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     (ssoContext.source === "syndicate" || ssoContext.source === "circle") &&
     isSafeReturnUrl(ssoContext.returnUrl);
 
+  // Classify a parent-supplied error message into a structured kind.
+  // Shopify's customer login typically returns generic "Unidentified customer"
+  // for both unknown email and wrong password. We pre-flight existence via
+  // the customer-gate edge function, so by the time we get here the account
+  // is known to exist (or the gate was degraded) — treat as wrong password.
+  const classifyLoginError = useCallback((raw: string): LoginErrorState => {
+    const msg = (raw || "").toLowerCase();
+    if (!msg) {
+      return { kind: "generic", message: "Something went wrong. Please try again." };
+    }
+    if (msg.includes("rate") || msg.includes("too many") || msg.includes("429")) {
+      return {
+        kind: "rate_limited",
+        message: "Too many attempts. Please wait a moment before trying again.",
+      };
+    }
+    if (msg.includes("activate") || msg.includes("not activated") || msg.includes("inactive")) {
+      return {
+        kind: "unactivated",
+        message:
+          "Your account hasn't been activated yet. Check your email for the activation link.",
+      };
+    }
+    if (
+      msg.includes("unidentified") ||
+      msg.includes("invalid") ||
+      msg.includes("incorrect") ||
+      msg.includes("password") ||
+      msg.includes("credentials")
+    ) {
+      return {
+        kind: "wrong_password",
+        message: "Incorrect password. Please try again or reset your password.",
+      };
+    }
+    return { kind: "generic", message: raw };
+  }, []);
+
   const loginUpdate: (message: FormUpdateData) => void = useCallback(
     (message) => {
       if (message.status === "submitting") {
@@ -78,17 +135,15 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       }
 
       if (message.status === "error") {
-        setError("root.form", {
-          type: "server",
-          message: message.message || "An unknown error occurred.",
-        });
+        setLoginError(classifyLoginError(message.message));
       }
 
       if (message.status === "success") {
+        setLoginError(null);
         setIsLoginSuccessful(true);
       }
     },
-    [setError]
+    [classifyLoginError]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
@@ -100,18 +155,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       }
 
       if (message.status === "error") {
-        setError("root.form", {
-          type: "server",
-          message: message.message || "An unknown error occurred.",
-        });
+        const raw = (message.message || "").toLowerCase();
+        if (raw.includes("rate") || raw.includes("too many") || raw.includes("429")) {
+          setForgotPasswordError({
+            kind: "rate_limited",
+            message: "Too many requests. Please wait a moment before trying again.",
+          });
+        } else {
+          setForgotPasswordError({
+            kind: "generic",
+            message: message.message || "Couldn't send reset email. Please try again.",
+          });
+        }
       }
 
       if (message.status === "success") {
+        setForgotPasswordError(null);
         setValue("formType", "login");
         setIsPasswordReset(true);
       }
     },
-    [setError, setValue]
+    [setValue]
   );
 
   const { login, forgotPassword } = useCustomerLogin({
@@ -121,7 +185,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   const email = watch("email");
 
-  // Clear form errors when any field changes
+  // Clear server errors when any field changes
   useEffect(() => {
     const unsubscribe = subscribe({
       formState: {
@@ -130,8 +194,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       callback: ({ errors }) => {
         if (errors?.root?.form) {
           clearErrors("root.form");
-          setIsSubmitting(false);
         }
+        setLoginError(null);
+        setForgotPasswordError(null);
       },
     });
 
@@ -171,6 +236,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   const onSubmit = handleSubmit(
     async (data: z.infer<typeof loginSchema>) => {
+      // Reset prior structured errors
+      setLoginError(null);
+      setForgotPasswordError(null);
+
       if (data.formType === "login") {
         // Persist or clear remembered email based on checkbox
         try {
@@ -183,20 +252,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           // Ignore storage errors (private mode / partitioned iframe)
         }
 
-        // Mid-SSO eligibility chokepoint. Runs BEFORE login() so the parent
-        // theme never receives a LOGIN_STATUS=success it could act on for an
-        // ineligible customer. Eliminates the race against the parent's
-        // post-login SSO redirect. Fail-open: any error/degraded result
-        // proceeds with login as normal.
-        if (isMidSso) {
-          setIsSubmitting(true);
-          const result = await checkCustomerGate(data.email);
-          if (!result.eligible && result.found) {
-            setIsSubmitting(false);
-            navigate("/not-eligible", { replace: true });
-            return;
-          }
-          // Eligible (or fail-open) — fall through to login
+        // Pre-flight: check whether the customer exists in Shopify so we can
+        // distinguish "no account" from "wrong password" (Shopify returns the
+        // same generic error for both). Fail-open: a degraded gate proceeds
+        // with the normal login attempt.
+        setIsSubmitting(true);
+        const gate = await checkCustomerGate(data.email);
+
+        if (!gate.found && !gate.degraded) {
+          setIsSubmitting(false);
+          setLoginError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+          return;
+        }
+
+        // Mid-SSO eligibility chokepoint (existing behavior).
+        if (isMidSso && gate.found && !gate.eligible) {
+          setIsSubmitting(false);
+          navigate("/not-eligible", { replace: true });
+          return;
         }
 
         login({
@@ -205,6 +281,19 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         });
       }
       if (data.formType === "forgot_password") {
+        // Pre-flight: avoid sending a "reset email sent" message when the
+        // account doesn't exist. Fail-open if gate is degraded.
+        setIsSubmitting(true);
+        const gate = await checkCustomerGate(data.email);
+        if (!gate.found && !gate.degraded) {
+          setIsSubmitting(false);
+          setForgotPasswordError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+          return;
+        }
+
         forgotPassword({
           email: data.email,
         });
@@ -219,6 +308,16 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     }
   );
 
+  const switchToForgotPassword = useCallback(() => {
+    setLoginError(null);
+    setForgotPasswordError(null);
+    setValue("formType", "forgot_password");
+  }, [setValue]);
+
+  const goToApply = useCallback(() => {
+    navigate("/auth");
+  }, [navigate]);
+
   return {
     register,
     watch,
@@ -230,6 +329,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
+    loginError,
+    forgotPasswordError,
+    switchToForgotPassword,
+    goToApply,
   };
 }
 
@@ -248,6 +351,10 @@ export const SignInForm = () => {
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
+    loginError,
+    forgotPasswordError,
+    switchToForgotPassword,
+    goToApply,
   } = useSignInForm({
     initialEmail: email,
   });
@@ -318,7 +425,25 @@ export const SignInForm = () => {
             className="[&>div.input-glow]:input-ultra"
           />
 
-          {errors?.root?.form?.message && (
+          {forgotPasswordError && (
+            <div className="text-destructive text-sm text-left py-2.5 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p>{forgotPasswordError.message}</p>
+                {forgotPasswordError.kind === "no_account" && (
+                  <button
+                    type="button"
+                    onClick={goToApply}
+                    className="mt-1 inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                  >
+                    Apply for access
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {errors?.root?.form?.message && !forgotPasswordError && (
             <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
               {errors.root.form.message}
             </div>
@@ -443,7 +568,8 @@ export const SignInForm = () => {
             </label>
 
             <button
-              onClick={() => setValue("formType", "forgot_password")}
+              onClick={switchToForgotPassword}
+              type="button"
               className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
             >
               <span className="relative">
@@ -455,7 +581,48 @@ export const SignInForm = () => {
           </div>
         </div>
 
-        {errors?.root?.form?.message && (
+        {loginError && (
+          <div
+            className="text-destructive text-sm text-left py-2.5 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full flex items-start gap-2"
+            role="alert"
+            aria-live="polite"
+          >
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="flex-1 space-y-1">
+              <p>{loginError.message}</p>
+              {loginError.kind === "no_account" && (
+                <button
+                  type="button"
+                  onClick={goToApply}
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Apply for access
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {loginError.kind === "wrong_password" && (
+                <button
+                  type="button"
+                  onClick={switchToForgotPassword}
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Reset your password
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {loginError.kind === "unactivated" && (
+                <a
+                  href="mailto:support@dropdeadextensions.com"
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Contact support
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        {errors?.root?.form?.message && !loginError && (
           <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
             {errors.root.form.message}
           </div>
