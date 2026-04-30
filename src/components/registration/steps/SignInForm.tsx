@@ -438,11 +438,6 @@ export const SignInForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Placeholder so the destructure block below remains syntactically intact.
-  } = useSignInForm({
-    initialEmail: email,
-  });
-
   useEffect(() => {
     register("formType", { value: "login" });
   }, [register]);
@@ -458,10 +453,10 @@ export const SignInForm = () => {
 
   const onEmailBlur: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
-      // Handle email blur
       setValue("email", e.target.value, dirtyFieldOptions);
+      precheckEmailExists(e.target.value);
     },
-    [setValue]
+    [setValue, precheckEmailExists]
   );
 
   if (showForgotPassword) {
