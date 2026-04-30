@@ -8,6 +8,7 @@ import {
   Headphones,
   Users,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "../FadeText";
