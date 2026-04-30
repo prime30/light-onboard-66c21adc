@@ -1,20 +1,19 @@
 /**
  * Honeypot field for bot detection.
  *
- * Renders a hidden text input that real users will never see or fill.
- * Naive bots auto-fill every input on the page, so any non-empty value
- * is a strong spam signal.
+ * Two anti-bot signals:
+ *  1. Hidden text input — naive bots auto-fill every input. Non-empty = spam.
+ *  2. Form-start timestamp — bots typically POST in <1s. Real users take >3s
+ *     to fill out a multi-step registration. Server enforces the threshold.
  *
- * Hidden via:
- *  - inline absolute positioning off-screen
- *  - tabIndex={-1} so keyboard users can't reach it
- *  - autoComplete="off" to discourage password managers
- *  - aria-hidden so screen readers skip it
- *
- * Read the value at submit time via:
- *   document.querySelector<HTMLInputElement>('input[name="company_website"]')?.value
+ * The timestamp is captured once at module load (close enough to "page load"
+ * for the form-fill timing check), and read at submit time.
  */
 export const HONEYPOT_FIELD_NAME = "company_website";
+export const FORM_START_FIELD_NAME = "company_website_start";
+
+// Module-level so it's set once per page load, not per mount.
+const formStartedAt: number = typeof Date !== "undefined" ? Date.now() : 0;
 
 export function HoneypotField() {
   return (
@@ -41,6 +40,12 @@ export function HoneypotField() {
           autoComplete="off"
           defaultValue=""
         />
+        <input
+          id={FORM_START_FIELD_NAME}
+          name={FORM_START_FIELD_NAME}
+          type="hidden"
+          defaultValue={String(formStartedAt)}
+        />
       </label>
     </div>
   );
@@ -52,4 +57,8 @@ export function readHoneypotValue(): string {
     `input[name="${HONEYPOT_FIELD_NAME}"]`
   );
   return el?.value ?? "";
+}
+
+export function readFormStartedAt(): number {
+  return formStartedAt;
 }
