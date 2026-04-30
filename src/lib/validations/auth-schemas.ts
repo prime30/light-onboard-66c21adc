@@ -2,7 +2,6 @@ import { z } from "zod";
 import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
-import { validateLicenseFormat } from "../../data/cosmetology-license-patterns.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
