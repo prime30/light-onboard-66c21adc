@@ -400,6 +400,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     forgotPasswordError,
     switchToForgotPassword,
     goToApply,
+    precheckEmailExists,
+    isPrecheckingEmail,
   };
 }
 
