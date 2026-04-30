@@ -256,10 +256,10 @@ export function AuthFooter({
               >
                 <div className="space-y-2.5">
                   <p className="text-xs font-medium text-background/70 text-center">
-                    Complete these steps first
+                    {isSummaryStep ? "Complete these steps first" : "Finish this step first"}
                   </p>
                   <div className="space-y-2">
-                    {incompleteSteps.map(({ step, name, stepNumber, missingFields }) => (
+                    {popoverSteps.map(({ step, name, stepNumber, missingFields }) => (
                       <button
                         key={step}
                         onClick={() => {
