@@ -136,12 +136,37 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   success: null,
 };
 
+/**
+ * Returns the schema that gates a given step for a given account type.
+ *
+ * Some steps (currently only "license") require different validation per
+ * account type — e.g. salons must also fill salon size + structure AND must
+ * upload a license proof, while individual professionals can skip the upload.
+ * Use this everywhere you would otherwise read `stepValidations[step]`.
+ */
+export function getStepSchema(step: Step, accountType: AccountType): ZodObject | null {
+  if (step === "license" && accountType === "salon") {
+    return salonLicenseStepSchema;
+  }
+  return stepValidations[step];
+}
+
 export const fieldsForStep: Record<Step, ValidFieldNames[]> = Object.fromEntries(
   Object.entries(stepValidations).map(([step, schema]) => [
     step,
     schema ? Object.keys(schema.shape) : [],
   ])
 ) as Record<Step, ValidFieldNames[]>;
+
+// Salons need salonSize + salonStructure + licenseProofFiles surfaced as
+// "missing fields" on the license step. Inject them into the field map for the
+// license step so the popover/shake helpers treat them as required.
+fieldsForStep.license = [
+  ...new Set([
+    ...fieldsForStep.license,
+    ...(Object.keys(salonLicenseStepSchema.shape) as ValidFieldNames[]),
+  ]),
+];
 
 type StepInfo = {
   name: Step;
