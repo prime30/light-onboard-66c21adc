@@ -142,7 +142,7 @@ export const LicenseStep = () => {
         {isSalon && (
           <>
             {/* Salon Size */}
-            <div className="animate-stagger-4">
+            <div className="animate-stagger-4" data-field-wrapper="salonSize">
               <SelectInput
                 name="salonSize"
                 control={control}
