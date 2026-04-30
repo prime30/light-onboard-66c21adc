@@ -43,10 +43,6 @@ const GENERIC_FALLBACK: LicensePattern = {
 };
 
 // US state patterns. Keyed by 2-letter state code.
-// Where patterns cover multiple license classes (e.g., cosmetologist, barber,
-// esthetician) we use a union. Prefixes/digit counts verified against state
-// board public search pages where accessible.
-export const US_LICENSE_PATTERNS: Record<string, LicensePattern> = {
 // NOTE: All US state patterns have been demoted to GENERIC_FALLBACK because
 // previous AI-researched patterns were not verified against official board
 // sources and produced misleading hints (e.g., AZ does not actually use a
