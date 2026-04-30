@@ -568,7 +568,8 @@ export const SignInForm = () => {
             </label>
 
             <button
-              onClick={() => setValue("formType", "forgot_password")}
+              onClick={switchToForgotPassword}
+              type="button"
               className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
             >
               <span className="relative">
