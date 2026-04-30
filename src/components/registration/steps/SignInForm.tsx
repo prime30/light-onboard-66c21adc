@@ -88,6 +88,44 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     (ssoContext.source === "syndicate" || ssoContext.source === "circle") &&
     isSafeReturnUrl(ssoContext.returnUrl);
 
+  // Classify a parent-supplied error message into a structured kind.
+  // Shopify's customer login typically returns generic "Unidentified customer"
+  // for both unknown email and wrong password. We pre-flight existence via
+  // the customer-gate edge function, so by the time we get here the account
+  // is known to exist (or the gate was degraded) — treat as wrong password.
+  const classifyLoginError = useCallback((raw: string): LoginErrorState => {
+    const msg = (raw || "").toLowerCase();
+    if (!msg) {
+      return { kind: "generic", message: "Something went wrong. Please try again." };
+    }
+    if (msg.includes("rate") || msg.includes("too many") || msg.includes("429")) {
+      return {
+        kind: "rate_limited",
+        message: "Too many attempts. Please wait a moment before trying again.",
+      };
+    }
+    if (msg.includes("activate") || msg.includes("not activated") || msg.includes("inactive")) {
+      return {
+        kind: "unactivated",
+        message:
+          "Your account hasn't been activated yet. Check your email for the activation link.",
+      };
+    }
+    if (
+      msg.includes("unidentified") ||
+      msg.includes("invalid") ||
+      msg.includes("incorrect") ||
+      msg.includes("password") ||
+      msg.includes("credentials")
+    ) {
+      return {
+        kind: "wrong_password",
+        message: "Incorrect password. Please try again or reset your password.",
+      };
+    }
+    return { kind: "generic", message: raw };
+  }, []);
+
   const loginUpdate: (message: FormUpdateData) => void = useCallback(
     (message) => {
       if (message.status === "submitting") {
@@ -97,17 +135,15 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       }
 
       if (message.status === "error") {
-        setError("root.form", {
-          type: "server",
-          message: message.message || "An unknown error occurred.",
-        });
+        setLoginError(classifyLoginError(message.message));
       }
 
       if (message.status === "success") {
+        setLoginError(null);
         setIsLoginSuccessful(true);
       }
     },
-    [setError]
+    [classifyLoginError]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
@@ -119,18 +155,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       }
 
       if (message.status === "error") {
-        setError("root.form", {
-          type: "server",
-          message: message.message || "An unknown error occurred.",
-        });
+        const raw = (message.message || "").toLowerCase();
+        if (raw.includes("rate") || raw.includes("too many") || raw.includes("429")) {
+          setForgotPasswordError({
+            kind: "rate_limited",
+            message: "Too many requests. Please wait a moment before trying again.",
+          });
+        } else {
+          setForgotPasswordError({
+            kind: "generic",
+            message: message.message || "Couldn't send reset email. Please try again.",
+          });
+        }
       }
 
       if (message.status === "success") {
+        setForgotPasswordError(null);
         setValue("formType", "login");
         setIsPasswordReset(true);
       }
     },
-    [setError, setValue]
+    [setValue]
   );
 
   const { login, forgotPassword } = useCustomerLogin({
@@ -140,7 +185,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   const email = watch("email");
 
-  // Clear form errors when any field changes
+  // Clear server errors when any field changes
   useEffect(() => {
     const unsubscribe = subscribe({
       formState: {
@@ -149,8 +194,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       callback: ({ errors }) => {
         if (errors?.root?.form) {
           clearErrors("root.form");
-          setIsSubmitting(false);
         }
+        setLoginError(null);
+        setForgotPasswordError(null);
       },
     });
 
