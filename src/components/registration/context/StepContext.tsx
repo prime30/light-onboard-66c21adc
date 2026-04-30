@@ -10,6 +10,7 @@ import {
 import {
   fieldsForStep,
   getStepOrder,
+  getStepSchema,
   stepValidations,
   STEP_DISPLAY_NAMES,
 } from "@/data/step-order";
