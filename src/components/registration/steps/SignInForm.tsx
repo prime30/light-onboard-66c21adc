@@ -425,7 +425,25 @@ export const SignInForm = () => {
             className="[&>div.input-glow]:input-ultra"
           />
 
-          {errors?.root?.form?.message && (
+          {forgotPasswordError && (
+            <div className="text-destructive text-sm text-left py-2.5 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p>{forgotPasswordError.message}</p>
+                {forgotPasswordError.kind === "no_account" && (
+                  <button
+                    type="button"
+                    onClick={goToApply}
+                    className="mt-1 inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                  >
+                    Apply for access
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {errors?.root?.form?.message && !forgotPasswordError && (
             <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
               {errors.root.form.message}
             </div>
