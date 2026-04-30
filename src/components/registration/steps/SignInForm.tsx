@@ -51,6 +51,8 @@ type UseSignInFormReturn = {
   forgotPasswordError: LoginErrorState;
   switchToForgotPassword: () => void;
   goToApply: () => void;
+  precheckEmailExists: (email: string) => void;
+  isPrecheckingEmail: boolean;
 };
 
 type SignInFormProps = {
