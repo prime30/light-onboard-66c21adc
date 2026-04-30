@@ -24,6 +24,18 @@ import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 
+export type LoginErrorKind =
+  | "no_account"
+  | "wrong_password"
+  | "unactivated"
+  | "rate_limited"
+  | "generic";
+
+export type LoginErrorState = {
+  kind: LoginErrorKind;
+  message: string;
+} | null;
+
 type UseSignInFormReturn = {
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
   register: UseFormRegister<z.Infer<typeof loginSchema>>;
@@ -35,6 +47,10 @@ type UseSignInFormReturn = {
   isLoginSuccessful: boolean;
   rememberMe: boolean;
   setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
+  loginError: LoginErrorState;
+  forgotPasswordError: LoginErrorState;
+  switchToForgotPassword: () => void;
+  goToApply: () => void;
 };
 
 type SignInFormProps = {
