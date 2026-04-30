@@ -131,10 +131,52 @@ export function useCustomerLogin({
   );
 
   const forgotPassword = useCallback(
-    ({ email }: ForgotPasswordData) => {
-      sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
+    async ({ email }: ForgotPasswordData) => {
+      // In iframe: delegate to parent Shopify theme (native customer/recover flow).
+      if (isInIframe) {
+        sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
+        return;
+      }
+
+      // Standalone: call our recover-password edge function directly and
+      // emit the same FormUpdateData callback shape so SignInForm reacts
+      // identically in both modes.
+      forgotPasswordUpdate?.({ status: "submitting" });
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recover-password`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ email }),
+          }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json?.success) {
+          forgotPasswordUpdate?.({ status: "success" });
+        } else {
+          forgotPasswordUpdate?.({
+            status: "error",
+            message:
+              json?.error ||
+              json?.message ||
+              (res.status === 429
+                ? "Too many requests. Please wait a moment."
+                : "Couldn't send reset email. Please try again."),
+          });
+        }
+      } catch (_err) {
+        forgotPasswordUpdate?.({
+          status: "error",
+          message: "Couldn't send reset email. Please check your connection and try again.",
+        });
+      }
     },
-    [sendMessage]
+    [isInIframe, sendMessage, forgotPasswordUpdate]
   );
 
   return { customer, login, forgotPassword };
