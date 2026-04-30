@@ -236,6 +236,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   const onSubmit = handleSubmit(
     async (data: z.infer<typeof loginSchema>) => {
+      // Reset prior structured errors
+      setLoginError(null);
+      setForgotPasswordError(null);
+
       if (data.formType === "login") {
         // Persist or clear remembered email based on checkbox
         try {
@@ -248,20 +252,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           // Ignore storage errors (private mode / partitioned iframe)
         }
 
-        // Mid-SSO eligibility chokepoint. Runs BEFORE login() so the parent
-        // theme never receives a LOGIN_STATUS=success it could act on for an
-        // ineligible customer. Eliminates the race against the parent's
-        // post-login SSO redirect. Fail-open: any error/degraded result
-        // proceeds with login as normal.
-        if (isMidSso) {
-          setIsSubmitting(true);
-          const result = await checkCustomerGate(data.email);
-          if (!result.eligible && result.found) {
-            setIsSubmitting(false);
-            navigate("/not-eligible", { replace: true });
-            return;
-          }
-          // Eligible (or fail-open) — fall through to login
+        // Pre-flight: check whether the customer exists in Shopify so we can
+        // distinguish "no account" from "wrong password" (Shopify returns the
+        // same generic error for both). Fail-open: a degraded gate proceeds
+        // with the normal login attempt.
+        setIsSubmitting(true);
+        const gate = await checkCustomerGate(data.email);
+
+        if (!gate.found && !gate.degraded) {
+          setIsSubmitting(false);
+          setLoginError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+          return;
+        }
+
+        // Mid-SSO eligibility chokepoint (existing behavior).
+        if (isMidSso && gate.found && !gate.eligible) {
+          setIsSubmitting(false);
+          navigate("/not-eligible", { replace: true });
+          return;
         }
 
         login({
@@ -270,6 +281,19 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         });
       }
       if (data.formType === "forgot_password") {
+        // Pre-flight: avoid sending a "reset email sent" message when the
+        // account doesn't exist. Fail-open if gate is degraded.
+        setIsSubmitting(true);
+        const gate = await checkCustomerGate(data.email);
+        if (!gate.found && !gate.degraded) {
+          setIsSubmitting(false);
+          setForgotPasswordError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+          return;
+        }
+
         forgotPassword({
           email: data.email,
         });
@@ -284,6 +308,16 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     }
   );
 
+  const switchToForgotPassword = useCallback(() => {
+    setLoginError(null);
+    setForgotPasswordError(null);
+    setValue("formType", "forgot_password");
+  }, [setValue]);
+
+  const goToApply = useCallback(() => {
+    navigate("/auth");
+  }, [navigate]);
+
   return {
     register,
     watch,
@@ -295,6 +329,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
+    loginError,
+    forgotPasswordError,
+    switchToForgotPassword,
+    goToApply,
   };
 }
 
