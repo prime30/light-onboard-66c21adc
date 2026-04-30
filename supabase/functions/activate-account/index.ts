@@ -39,7 +39,7 @@ function sendSuccess<T>(data: T, message?: string) {
 const bodySchema = z.object({
   customerId: z.string().min(1, "Customer ID is required"),
   token: z.string().min(1, "Token is required"),
-  password: z.string().min(5, "Password must be at least 5 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 Deno.serve(async (req) => {

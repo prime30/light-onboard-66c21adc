@@ -350,7 +350,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Parse the request body
-  let requestBody: CustomerCreateRequest & { honeypot?: unknown };
+  let requestBody: CustomerCreateRequest & { honeypot?: unknown; formStartedAt?: unknown };
   try {
     requestBody = await req.json();
   } catch {
@@ -362,6 +362,18 @@ Deno.serve(async (req: Request) => {
   const honeypotValue = (requestBody as { honeypot?: unknown }).honeypot;
   if (typeof honeypotValue === "string" && honeypotValue.trim() !== "") {
     console.log("Honeypot triggered — rejecting request");
+    return sendError(400, ["Submission blocked"]);
+  }
+
+  // Spam: min-time-on-form check. A real user takes well over 3s to complete
+  // a multi-step registration; bots typically POST in <1s. Reject anything
+  // suspiciously fast, missing, malformed, or in the future.
+  const MIN_FORM_FILL_MS = 3000;
+  const formStartedAtRaw = (requestBody as { formStartedAt?: unknown }).formStartedAt;
+  const formStartedAt = typeof formStartedAtRaw === "number" ? formStartedAtRaw : NaN;
+  const elapsed = Date.now() - formStartedAt;
+  if (!Number.isFinite(formStartedAt) || elapsed < MIN_FORM_FILL_MS || elapsed < 0) {
+    console.log("Form-fill timing check failed — rejecting request", { elapsed, formStartedAt });
     return sendError(400, ["Submission blocked"]);
   }
 
