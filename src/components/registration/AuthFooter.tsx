@@ -63,7 +63,10 @@ export function AuthFooter({
     ? !isFormValid && popoverSteps.length > 0
     : !isStepValid && popoverSteps.length > 0;
 
-  const showTooltip = continueBlocked;
+  // Popover (with the list of incomplete steps/fields) is intentionally only
+  // shown on the final summary step. Other steps still get the click-to-shake
+  // + red flash on the missing fields, but no popover.
+  const showTooltip = isSummaryStep && continueBlocked;
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
