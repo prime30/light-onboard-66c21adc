@@ -351,6 +351,10 @@ export const SignInForm = () => {
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
+    loginError,
+    forgotPasswordError,
+    switchToForgotPassword,
+    goToApply,
   } = useSignInForm({
     initialEmail: email,
   });
