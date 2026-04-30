@@ -84,32 +84,50 @@ export function AuthFooter({
   // also by [name=...] for radio/checkbox/file inputs.
   const shakeMissingFields = useCallback((fields: string[]) => {
     if (!fields.length) return;
+    const animatedTargets = new Set<HTMLElement>();
+    let firstTarget: HTMLElement | null = null;
+
     fields.forEach((field) => {
-      const nodes = document.querySelectorAll<HTMLElement>(
-        `#${CSS.escape(field)}, [name="${CSS.escape(field)}"]`
+      const escaped = CSS.escape(field);
+      // Try the explicit wrapper marker FIRST so non-input fields (file
+      // uploads, custom selects, radio groups) animate even when there's no
+      // matching input element to focus.
+      const wrappers = document.querySelectorAll<HTMLElement>(
+        `[data-field-wrapper="${escaped}"]`
       );
-      nodes.forEach((node) => {
-        // Walk up to the nearest field wrapper so the shake + red highlight
-        // include the label and surrounding affordances.
-        const target = (node.closest("[data-field-wrapper]") as HTMLElement) || node;
+      const inputs = document.querySelectorAll<HTMLElement>(
+        `#${escaped}, [name="${escaped}"]`
+      );
+
+      const collected: HTMLElement[] = [];
+      wrappers.forEach((el) => collected.push(el));
+      inputs.forEach((node) => {
+        const wrapper = node.closest("[data-field-wrapper]") as HTMLElement | null;
+        collected.push(wrapper || node);
+      });
+
+      collected.forEach((target) => {
+        if (animatedTargets.has(target)) return;
+        animatedTargets.add(target);
+        if (!firstTarget) firstTarget = target;
+
         target.classList.remove("shake-subtle", "field-flash-error");
         // Force reflow so the animations can replay on repeated clicks.
         void target.offsetWidth;
         target.classList.add("shake-subtle", "field-flash-error");
-        window.setTimeout(() => {
-          target.classList.remove("shake-subtle");
-        }, 600);
-        window.setTimeout(() => {
-          target.classList.remove("field-flash-error");
-        }, 1300);
+        window.setTimeout(() => target.classList.remove("shake-subtle"), 600);
+        window.setTimeout(() => target.classList.remove("field-flash-error"), 1300);
       });
     });
 
-    // Scroll the first missing field into view and focus it.
+    // Scroll the first missing field into view, then try to focus it.
+    if (firstTarget) {
+      (firstTarget as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+    }
     try {
       setFocus(fields[0] as ValidFieldNames);
     } catch {
-      /* field may not be focusable (e.g. checkbox group) — ignore */
+      /* field may not be focusable (e.g. file upload / checkbox group) — ignore */
     }
   }, [setFocus]);
 
