@@ -48,9 +48,22 @@ export function AuthFooter({
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
-  const showTooltip = isSummaryStep && !isFormValid && incompleteSteps.length > 0;
 
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
+
+  // On non-summary steps, only surface the *current* step's missing fields so
+  // the popover guides users to what's blocking the Continue button right here.
+  // On the summary step, list every incomplete step across the whole form.
+  const popoverSteps = useMemo(() => {
+    if (isSummaryStep) return incompleteSteps;
+    return incompleteSteps.filter((s) => s.step === currentStep);
+  }, [incompleteSteps, isSummaryStep, currentStep]);
+
+  const continueBlocked = isSummaryStep
+    ? !isFormValid && popoverSteps.length > 0
+    : !isStepValid && popoverSteps.length > 0;
+
+  const showTooltip = continueBlocked;
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
@@ -63,14 +76,51 @@ export function AuthFooter({
 
   const isProcessing = isSubmitting || isUploading;
 
+  // Briefly highlight + shake the missing fields so users see exactly what's
+  // blocking submission. We target inputs by id (TextInput sets id={name}) and
+  // also by [name=...] for radio/checkbox/file inputs.
+  const shakeMissingFields = useCallback((fields: string[]) => {
+    if (!fields.length) return;
+    fields.forEach((field) => {
+      const nodes = document.querySelectorAll<HTMLElement>(
+        `#${CSS.escape(field)}, [name="${CSS.escape(field)}"]`
+      );
+      nodes.forEach((node) => {
+        // Walk up to the nearest field wrapper so the shake includes the label.
+        const target = (node.closest("[data-field-wrapper]") as HTMLElement) || node;
+        target.classList.remove("shake-subtle");
+        // Force reflow so the animation can replay on repeated clicks.
+        void target.offsetWidth;
+        target.classList.add("shake-subtle");
+        window.setTimeout(() => target.classList.remove("shake-subtle"), 600);
+      });
+    });
+
+    // Scroll the first missing field into view and focus it.
+    try {
+      setFocus(fields[0] as ValidFieldNames);
+    } catch {
+      /* field may not be focusable (e.g. checkbox group) — ignore */
+    }
+  }, [setFocus]);
+
   const handleContinue = useCallback(() => {
+    if (continueBlocked) {
+      // Disabled-but-clickable path: surface the popover and shake fields.
+      const missing = popoverSteps.flatMap((s) => s.missingFields);
+      setSubmitTooltipOpen(true);
+      shakeMissingFields(missing);
+      return;
+    }
+
     if (isSummaryStep) {
       submitForm();
       return;
     }
 
     goToNextStep();
-  }, [goToNextStep, isSummaryStep, submitForm]);
+  }, [continueBlocked, popoverSteps, shakeMissingFields, goToNextStep, isSummaryStep, submitForm]);
+
 
   return (
     <footer
