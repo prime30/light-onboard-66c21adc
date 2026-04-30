@@ -189,13 +189,15 @@ export function AuthFooter({
                   key={`shimmer-${shimmerKey}`}
                   size="pill-lg"
                   onClick={handleContinue}
-                  disabled={
-                    isSummaryStep ? !isFormValid || isProcessing : !isStepValid || isProcessing
-                  }
+                  // Stay clickable when blocked so the click can shake the
+                  // missing fields and surface the popover. Only truly disable
+                  // while a network/upload is in flight.
+                  disabled={isProcessing}
+                  aria-disabled={continueBlocked || isProcessing}
                   className={cn(
                     "btn-premium w-full bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
                     shimmerKey > 0 && "shimmer-trigger",
-                    showTooltip && "pointer-events-none"
+                    continueBlocked && "opacity-40 hover:opacity-50"
                   )}
                 >
                   {/* Upload progress bar overlay */}
