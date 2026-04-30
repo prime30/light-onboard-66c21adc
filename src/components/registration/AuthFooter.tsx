@@ -239,7 +239,7 @@ export function AuthFooter({
                                   key={field}
                                   className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
                                 >
-                                  {field}
+                                  {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
                                 </span>
                               ))}
                             </div>
