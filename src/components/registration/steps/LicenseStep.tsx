@@ -99,7 +99,7 @@ export const LicenseStep = () => {
 
       <div className="space-y-5">
         {/* License Number */}
-        <div className="animate-stagger-3 space-y-2">
+        <div className="animate-stagger-3 space-y-2" data-field-wrapper="licenseNumber">
           <TextInput
             name="licenseNumber"
             type="text"
@@ -142,7 +142,7 @@ export const LicenseStep = () => {
         {isSalon && (
           <>
             {/* Salon Size */}
-            <div className="animate-stagger-4">
+            <div className="animate-stagger-4" data-field-wrapper="salonSize">
               <SelectInput
                 name="salonSize"
                 control={control}
@@ -155,7 +155,7 @@ export const LicenseStep = () => {
             </div>
 
             {/* Salon Structure */}
-            <div className="animate-stagger-5">
+            <div className="animate-stagger-5" data-field-wrapper="salonStructure">
               <SelectInput
                 name="salonStructure"
                 control={control}
@@ -169,17 +169,20 @@ export const LicenseStep = () => {
           </>
         )}
 
-        {/* Professional-specific file upload (optional) - shows after 3+ characters in license number */}
+        {/* License proof upload.
+            - Required for salon: always visible.
+            - Optional for professionals: reveals after 3+ chars in license # for nicer pacing. */}
         <div
+          data-field-wrapper="licenseProofFiles"
           className={cn(
             "grid transition-all duration-400 animate-stagger-4",
-            (licenseNumber?.trim()?.length || 0) >= 3
+            isSalon || (licenseNumber?.trim()?.length || 0) >= 3
               ? "grid-rows-[1fr] opacity-100"
               : "grid-rows-[0fr] opacity-0"
           )}
           style={{
             transitionTimingFunction:
-              (licenseNumber?.trim()?.length || 0) >= 3
+              isSalon || (licenseNumber?.trim()?.length || 0) >= 3
                 ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
                 : "ease-out",
           }}
@@ -188,7 +191,7 @@ export const LicenseStep = () => {
             <div
               className={cn(
                 "space-y-2.5",
-                (licenseNumber?.trim()?.length || 0) >= 3 && "animate-haptic-pop"
+                (isSalon || (licenseNumber?.trim()?.length || 0) >= 3) && "animate-haptic-pop"
               )}
             >
               {!isSalon && (
