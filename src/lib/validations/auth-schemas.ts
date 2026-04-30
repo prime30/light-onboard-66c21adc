@@ -2,7 +2,6 @@ import { z } from "zod";
 import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
-import { validateLicenseFormat } from "../../data/cosmetology-license-patterns.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
@@ -258,33 +257,10 @@ export const registrationSchema = z
       ...baseValidators,
       ...schoolInfoValidators,
     }),
-  ])
-  .superRefine((data, ctx) => {
-    // Phase 1 license format check: only for professional/salon accounts that
-    // have a licenseNumber field and a state/province on the business address.
-    // Students don't carry a license number and are skipped.
-    if (data.accountType !== "professional" && data.accountType !== "salon") return;
-    const { licenseNumber, countryCode, provinceCode } = data as {
-      licenseNumber?: string;
-      countryCode?: string;
-      provinceCode?: string;
-    };
-    if (!licenseNumber || !provinceCode) return;
-
-    const result = validateLicenseFormat(licenseNumber, countryCode, provinceCode);
-
-    // If we only have a fallback (unknown/variable state format), don't block
-    // submission on format alone — let the human reviewer handle it.
-    if (result.isFallback) return;
-
-    if (!result.valid) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["licenseNumber"],
-        message: `License format doesn't match ${provinceCode}. Expected: ${result.hint} (e.g., ${result.example})`,
-      });
-    }
-  });
+  ]);
+// Note: license format is shown as a helper hint in the UI only.
+// We intentionally do NOT block submission when the format doesn't match —
+// the field just needs to be filled (enforced by licenseValidators).
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
