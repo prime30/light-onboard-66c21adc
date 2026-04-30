@@ -13,6 +13,7 @@ function sendError(statusCode: number, errors: string[], message?: string) {
       statusCode,
       message: message || "Error",
       errorMessage: errors,
+      error: errors[0],
     }),
     {
       status: statusCode,
@@ -42,6 +43,18 @@ const bodySchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+const STOREFRONT_API_VERSION = "2024-10";
+
+const RESET_BY_URL_MUTATION = `
+  mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
+    customerResetByUrl(resetUrl: $resetUrl, password: $password) {
+      customer { id }
+      customerAccessToken { accessToken expiresAt }
+      customerUserErrors { code field message }
+    }
+  }
+`;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -52,9 +65,13 @@ Deno.serve(async (req) => {
   }
 
   const SHOPIFY_STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+  const STOREFRONT_TOKEN = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
 
-  if (!SHOPIFY_STORE_DOMAIN) {
-    console.error("Missing Shopify store domain");
+  if (!SHOPIFY_STORE_DOMAIN || !STOREFRONT_TOKEN) {
+    console.error("Missing Shopify config", {
+      hasDomain: !!SHOPIFY_STORE_DOMAIN,
+      hasToken: !!STOREFRONT_TOKEN,
+    });
     return sendError(500, ["Server configuration error"]);
   }
 
@@ -73,62 +90,88 @@ Deno.serve(async (req) => {
 
   const { customerId, token, password } = parsed.data;
 
+  // Reconstruct the Shopify reset URL. Storefront API requires the same URL
+  // shape Shopify emits in its password-reset email:
+  //   https://{store}/account/reset/{customerId}/{token}
+  // customerId may already be a numeric ID or a full GID; Storefront expects
+  // the numeric ID portion in the URL.
+  const numericId = customerId.includes("/") ? customerId.split("/").pop() : customerId;
+  const resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
+
   try {
-    // customerId is validated for compatibility with link payloads, but reset uses token endpoint
-    void customerId;
+    const response = await fetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({
+          query: RESET_BY_URL_MUTATION,
+          variables: { resetUrl, password },
+        }),
+      }
+    );
 
-    // First, verify the account by attempting the reset via the Storefront-style endpoint
-    // Shopify doesn't have a direct Admin API for token-based password reset,
-    // so we use the account activation/reset URL approach
-    const resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset`;
-
-    const resetResponse = await fetch(resetUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        "customer[reset_password_token]": token,
-        "customer[password]": password,
-        "customer[password_confirmation]": password,
-      }).toString(),
-      redirect: "manual",
-    });
-
-    // Shopify returns a 302 redirect on success
-    if (resetResponse.status === 302 || resetResponse.status === 200) {
-      return sendSuccess({ reset: true }, "Password has been reset successfully");
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Storefront API HTTP error:", response.status, text.substring(0, 500));
+      if (response.status === 429) {
+        return sendError(429, ["Too many attempts. Please wait a moment."], "Rate limited");
+      }
+      return sendError(502, ["Unable to reach the store. Please try again."], "Upstream error");
     }
 
-    // Try to extract error from response
-    const responseText = await resetResponse.text();
+    const json = await response.json();
 
-    if (responseText.includes("is invalid") || responseText.includes("invalid")) {
+    if (json.errors?.length) {
+      console.error("Storefront GraphQL errors:", JSON.stringify(json.errors));
+      return sendError(400, ["Unable to reset password. The link may be expired or invalid."], "Reset failed");
+    }
+
+    const result = json.data?.customerResetByUrl;
+    const userErrors = result?.customerUserErrors ?? [];
+
+    if (userErrors.length > 0) {
+      const first = userErrors[0];
+      const code: string = first.code || "";
+      const msg: string = (first.message || "").toLowerCase();
+
+      // Map Shopify error codes to friendly states the client recognises.
+      if (code === "TOKEN_INVALID" || msg.includes("invalid")) {
+        return sendError(400, [
+          "This reset link is invalid or has already been used. Please request a new password reset.",
+        ], "Invalid reset link");
+      }
+      if (msg.includes("expired") || code === "EXPIRED") {
+        return sendError(400, [
+          "This reset link has expired. Please request a new password reset email.",
+        ], "Link expired");
+      }
+      if (code === "PASSWORD_STARTS_OR_ENDS_WITH_WHITESPACE") {
+        return sendError(400, ["Password cannot start or end with whitespace."], "Invalid password");
+      }
+      if (code === "TOO_SHORT" || msg.includes("too short")) {
+        return sendError(400, ["Password must be at least 8 characters."], "Invalid password");
+      }
+      // Fallback — surface Shopify's message but keep it short.
+      return sendError(400, [first.message || "Unable to reset password."], "Reset failed");
+    }
+
+    if (!result?.customer?.id) {
+      console.error("Storefront returned no customer:", JSON.stringify(result));
       return sendError(400, [
-        "This reset link is invalid or has already been used. Please request a new password reset.",
-      ], "Invalid reset link");
+        "Unable to reset password. The link may be expired or invalid.",
+      ], "Reset failed");
     }
 
-    if (responseText.includes("expired")) {
-      return sendError(400, [
-        "This reset link has expired. Please request a new password reset email.",
-      ], "Link expired");
-    }
-
-    console.error("Shopify reset response:", resetResponse.status, responseText.substring(0, 500));
-    return sendError(400, [
-      "Unable to reset password. The link may be expired or invalid.",
-    ], "Reset failed");
-
+    return sendSuccess({ reset: true }, "Password has been reset successfully");
   } catch (error) {
     console.error("Reset password error:", error);
-
     if (error instanceof TypeError && error.message.includes("fetch")) {
-      return sendError(503, [
-        "Unable to connect to the store. Please try again in a moment.",
-      ], "Connection error");
+      return sendError(503, ["Unable to connect to the store. Please try again in a moment."], "Connection error");
     }
-
     return sendError(500, ["An unexpected error occurred. Please try again."]);
   }
 });
