@@ -153,12 +153,22 @@ const licenseValidators = {
 };
 export const licenseSchema = z.object(licenseValidators);
 
-// License Schema for salons (includes additional fields)
+// License Schema for salons (includes additional fields).
+// Salons MUST upload a license proof (vs. optional for individual professionals)
+// AND must provide salon size + structure on the same step.
 const salonValidators = {
   salonSize: z.string().min(1, "Salon size is required"),
   salonStructure: z.string().min(1, "Salon structure is required"),
 };
 export const salonSchema = z.object(salonValidators);
+
+// Combined schema used to gate the "license" step for salon accounts.
+// `licenseProofFiles` is overridden to be required (non-optional) here.
+export const salonLicenseStepSchema = z.object({
+  licenseNumber: licenseValidators.licenseNumber,
+  licenseProofFiles: fileUploadSchema(false),
+  ...salonValidators,
+});
 
 // Tax Exemption Schema
 const taxExemptionValidators = {
@@ -252,6 +262,8 @@ export const registrationSchema = z
       ...businessLocationValidators,
       ...salonValidators,
       ...licenseValidators,
+      // Salons must upload license proof (override the optional spread above).
+      licenseProofFiles: fileUploadSchema(false),
     }),
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
