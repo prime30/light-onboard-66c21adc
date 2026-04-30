@@ -258,11 +258,10 @@ export const registrationSchema = z
       ...baseValidators,
       ...schoolInfoValidators,
     }),
-  ])
-  );
-  // Note: license format is shown as a helper hint in the UI only.
-  // We intentionally do NOT block submission when the format doesn't match —
-  // the field just needs to be filled (enforced by licenseValidators).
+  ]);
+// Note: license format is shown as a helper hint in the UI only.
+// We intentionally do NOT block submission when the format doesn't match —
+// the field just needs to be filled (enforced by licenseValidators).
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
