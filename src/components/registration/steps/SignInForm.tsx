@@ -580,7 +580,48 @@ export const SignInForm = () => {
           </div>
         </div>
 
-        {errors?.root?.form?.message && (
+        {loginError && (
+          <div
+            className="text-destructive text-sm text-left py-2.5 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full flex items-start gap-2"
+            role="alert"
+            aria-live="polite"
+          >
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="flex-1 space-y-1">
+              <p>{loginError.message}</p>
+              {loginError.kind === "no_account" && (
+                <button
+                  type="button"
+                  onClick={goToApply}
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Apply for access
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {loginError.kind === "wrong_password" && (
+                <button
+                  type="button"
+                  onClick={switchToForgotPassword}
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Reset your password
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {loginError.kind === "unactivated" && (
+                <a
+                  href="mailto:support@dropdeadextensions.com"
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Contact support
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        {errors?.root?.form?.message && !loginError && (
           <div className="text-destructive text-sm text-left py-2 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full">
             {errors.root.form.message}
           </div>
