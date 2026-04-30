@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 
 interface AuthFooterProps {
@@ -238,7 +239,7 @@ export function AuthFooter({
                                   key={field}
                                   className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
                                 >
-                                  {field}
+                                  {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
                                 </span>
                               ))}
                             </div>

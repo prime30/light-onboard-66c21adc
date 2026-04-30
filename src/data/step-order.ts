@@ -17,6 +17,46 @@ import { ZodObject } from "zod";
 /**
  * Human-readable display names for steps
  */
+/**
+ * Human-readable display names for individual form fields.
+ * Used in the "missing fields" popover on the submit step so users
+ * see "Email" instead of raw schema keys like "email".
+ */
+export const FIELD_DISPLAY_NAMES: Partial<Record<ValidFieldNames, string>> = {
+  accountType: "Account type",
+  businessOperationType: "Business operation type",
+  schoolName: "School / apprenticeship name",
+  schoolState: "School state / province",
+  enrollmentProofFiles: "Enrollment proof",
+  firstName: "First name",
+  lastName: "Last name",
+  preferredName: "Preferred name",
+  email: "Email",
+  phoneNumber: "Phone number",
+  phoneCountryCode: "Phone country code",
+  businessName: "Business / salon name",
+  businessAddress: "Street address",
+  suiteNumber: "Suite number",
+  countryCode: "Country",
+  city: "City",
+  provinceCode: "State / province",
+  zipCode: "Zip / postal code",
+  licenseNumber: "License number",
+  licenseProofFiles: "License document",
+  salonSize: "Salon size",
+  salonStructure: "Salon structure",
+  taxExempt: "Tax exemption choice",
+  taxExemptFile: "Tax exemption document",
+  wholesaleAgreed: "Wholesale terms agreement",
+  preferredMethods: "Preferred methods",
+  birthdayMonth: "Birthday month",
+  birthdayDay: "Birthday day",
+  socialMediaHandle: "Social media handle",
+  referralSource: "How you heard about us",
+  subscribeOrderUpdates: "Order update preference",
+  acceptsMarketing: "Marketing preference",
+};
+
 export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   onboarding: "Getting Started",
   reviews: "Reviews",
