@@ -86,13 +86,19 @@ export function AuthFooter({
         `#${CSS.escape(field)}, [name="${CSS.escape(field)}"]`
       );
       nodes.forEach((node) => {
-        // Walk up to the nearest field wrapper so the shake includes the label.
+        // Walk up to the nearest field wrapper so the shake + red highlight
+        // include the label and surrounding affordances.
         const target = (node.closest("[data-field-wrapper]") as HTMLElement) || node;
-        target.classList.remove("shake-subtle");
-        // Force reflow so the animation can replay on repeated clicks.
+        target.classList.remove("shake-subtle", "field-flash-error");
+        // Force reflow so the animations can replay on repeated clicks.
         void target.offsetWidth;
-        target.classList.add("shake-subtle");
-        window.setTimeout(() => target.classList.remove("shake-subtle"), 600);
+        target.classList.add("shake-subtle", "field-flash-error");
+        window.setTimeout(() => {
+          target.classList.remove("shake-subtle");
+        }, 600);
+        window.setTimeout(() => {
+          target.classList.remove("field-flash-error");
+        }, 1300);
       });
     });
 
