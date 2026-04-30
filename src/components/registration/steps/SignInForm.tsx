@@ -424,6 +424,21 @@ export const SignInForm = () => {
     forgotPasswordError,
     switchToForgotPassword,
     goToApply,
+    precheckEmailExists,
+  } = useSignInForm({
+    initialEmail: email,
+  });
+
+  // Run a one-shot precheck once on mount when an initial email is present
+  // (e.g. remembered email or hand-off from another form).
+  useEffect(() => {
+    if (email) {
+      precheckEmailExists(email);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Placeholder so the destructure block below remains syntactically intact.
   } = useSignInForm({
     initialEmail: email,
   });
