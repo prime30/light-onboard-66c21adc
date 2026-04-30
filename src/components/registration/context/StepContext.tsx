@@ -170,7 +170,7 @@ export function StepProvider({ children }: StepProviderProps) {
   }, [steps, getStepValidationStatus, subscribe]);
 
   const goToNextStep = () => {
-    const schema = stepValidations[currentStep];
+    const schema = getStepSchema(currentStep, accountType);
     if (schema) {
       // Perform validation using the corresponding Zod schema
       const result = schema.safeParse(watch());
