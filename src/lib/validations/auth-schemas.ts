@@ -262,6 +262,8 @@ export const registrationSchema = z
       ...businessLocationValidators,
       ...salonValidators,
       ...licenseValidators,
+      // Salons must upload license proof (override the optional spread above).
+      licenseProofFiles: fileUploadSchema(false),
     }),
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
