@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 
 interface AuthFooterProps {
