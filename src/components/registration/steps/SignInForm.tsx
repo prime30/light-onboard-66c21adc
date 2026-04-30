@@ -1,4 +1,4 @@
-import { ChangeEventHandler, useCallback, useEffect, useState } from "react";
+import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -51,6 +51,8 @@ type UseSignInFormReturn = {
   forgotPasswordError: LoginErrorState;
   switchToForgotPassword: () => void;
   goToApply: () => void;
+  precheckEmailExists: (email: string) => void;
+  isPrecheckingEmail: boolean;
 };
 
 type SignInFormProps = {
@@ -318,6 +320,71 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     navigate("/auth");
   }, [navigate]);
 
+  // Lightweight email pre-check on blur. Surfaces a "no account found" error
+  // before the user submits, so they don't waste a round trip typing a wrong
+  // password or filling in fields for an email that isn't registered. Cached
+  // per-email and guarded against stale responses by a request token.
+  const [isPrecheckingEmail, setIsPrecheckingEmail] = useState(false);
+  const precheckCacheRef = useRef<Map<string, boolean>>(new Map());
+  const precheckTokenRef = useRef(0);
+
+  const precheckEmailExists = useCallback(
+    (rawEmail: string) => {
+      const normalized = (rawEmail || "").trim().toLowerCase();
+      // Skip empty / obviously invalid emails — let zod handle that path.
+      if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+        return;
+      }
+
+      // Cached: synchronously apply, no network call.
+      const cached = precheckCacheRef.current.get(normalized);
+      if (cached !== undefined) {
+        if (cached === false) {
+          setLoginError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+          setForgotPasswordError({
+            kind: "no_account",
+            message: "We couldn't find an account with this email.",
+          });
+        }
+        return;
+      }
+
+      const token = ++precheckTokenRef.current;
+      setIsPrecheckingEmail(true);
+      checkCustomerGate(normalized)
+        .then((gate) => {
+          // Stale response — a newer precheck has started or email changed.
+          if (token !== precheckTokenRef.current) return;
+          // Don't cache degraded results so we'll retry next time.
+          if (!gate.degraded) {
+            precheckCacheRef.current.set(normalized, gate.found);
+          }
+          if (!gate.found && !gate.degraded) {
+            setLoginError({
+              kind: "no_account",
+              message: "We couldn't find an account with this email.",
+            });
+            setForgotPasswordError({
+              kind: "no_account",
+              message: "We couldn't find an account with this email.",
+            });
+          }
+        })
+        .catch(() => {
+          // Fail-open: do nothing on errors, the submit path will retry.
+        })
+        .finally(() => {
+          if (token === precheckTokenRef.current) {
+            setIsPrecheckingEmail(false);
+          }
+        });
+    },
+    []
+  );
+
   return {
     register,
     watch,
@@ -333,6 +400,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     forgotPasswordError,
     switchToForgotPassword,
     goToApply,
+    precheckEmailExists,
+    isPrecheckingEmail,
   };
 }
 
@@ -355,9 +424,19 @@ export const SignInForm = () => {
     forgotPasswordError,
     switchToForgotPassword,
     goToApply,
+    precheckEmailExists,
   } = useSignInForm({
     initialEmail: email,
   });
+
+  // Run a one-shot precheck once on mount when an initial email is present
+  // (e.g. remembered email or hand-off from another form).
+  useEffect(() => {
+    if (email) {
+      precheckEmailExists(email);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     register("formType", { value: "login" });
@@ -374,10 +453,10 @@ export const SignInForm = () => {
 
   const onEmailBlur: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
-      // Handle email blur
       setValue("email", e.target.value, dirtyFieldOptions);
+      precheckEmailExists(e.target.value);
     },
-    [setValue]
+    [setValue, precheckEmailExists]
   );
 
   if (showForgotPassword) {
