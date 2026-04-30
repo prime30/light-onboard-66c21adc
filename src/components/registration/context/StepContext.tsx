@@ -88,7 +88,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
   const getStepValidationStatus = useCallback(
     (step: Step): ValidationStatus => {
-      const schema = stepValidations[step];
+      const schema = getStepSchema(step, accountType);
 
       if (!schema) {
         return "complete";
@@ -115,7 +115,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
       return "in-progress";
     },
-    [errors, watch]
+    [errors, watch, accountType]
   );
 
   const getStepNumber = useCallback(
