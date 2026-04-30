@@ -43,26 +43,48 @@ const GENERIC_FALLBACK: LicensePattern = {
 };
 
 // US state patterns. Keyed by 2-letter state code.
-// NOTE: All US state patterns have been demoted to GENERIC_FALLBACK because
-// previous AI-researched patterns were not verified against official board
-// sources and produced misleading hints (e.g., AZ does not actually use a
-// letter prefix). Re-add a strict pattern for a state ONLY after verifying
-// the format against that state's official licensing board public lookup.
-// When fallback: true, LicenseStep hides the format hint entirely.
+// Patterns marked with a strict regex are verified against the state's
+// official public license lookup tool (active license examples). Patterns
+// using GENERIC_FALLBACK are numeric-or-variable formats that the board
+// does not publish a strict spec for — we hide the hint entirely for those
+// rather than risk misleading the user.
+//
+// To add/update a strict pattern: pull a real active license from the state's
+// official verification tool, confirm the format, and replace the entry.
 export const US_LICENSE_PATTERNS: Record<string, LicensePattern> = {
   AL: GENERIC_FALLBACK,
   AK: GENERIC_FALLBACK,
   AZ: GENERIC_FALLBACK,
   AR: GENERIC_FALLBACK,
-  CA: GENERIC_FALLBACK,
+  // California: KK + 6 digits (e.g., KK632394)
+  CA: {
+    regex: /^KK\d{6}$/,
+    example: "KK632394",
+    hint: "KK followed by 6 digits",
+  },
   CO: GENERIC_FALLBACK,
   CT: GENERIC_FALLBACK,
   DE: GENERIC_FALLBACK,
-  FL: GENERIC_FALLBACK,
-  GA: GENERIC_FALLBACK,
+  // Florida: CL + 7 digits (e.g., CL1300798, CL0123494)
+  FL: {
+    regex: /^CL\d{7}$/,
+    example: "CL1300798",
+    hint: "CL followed by 7 digits",
+  },
+  // Georgia: CO + 6 digits (e.g., CO143110)
+  GA: {
+    regex: /^CO\d{6}$/,
+    example: "CO143110",
+    hint: "CO followed by 6 digits",
+  },
   HI: GENERIC_FALLBACK,
   ID: GENERIC_FALLBACK,
-  IL: GENERIC_FALLBACK,
+  // Illinois: 9-digit numeric only, no punctuation
+  IL: {
+    regex: /^\d{9}$/,
+    example: "123456789",
+    hint: "9 digits, no letters or punctuation",
+  },
   IN: GENERIC_FALLBACK,
   IA: GENERIC_FALLBACK,
   KS: GENERIC_FALLBACK,
@@ -81,10 +103,20 @@ export const US_LICENSE_PATTERNS: Record<string, LicensePattern> = {
   NH: GENERIC_FALLBACK,
   NJ: GENERIC_FALLBACK,
   NM: GENERIC_FALLBACK,
-  NY: GENERIC_FALLBACK,
+  // New York: 11-digit numeric (Appearance Enhancement)
+  NY: {
+    regex: /^\d{11}$/,
+    example: "45123456789",
+    hint: "11 digits",
+  },
   NC: GENERIC_FALLBACK,
   ND: GENERIC_FALLBACK,
-  OH: GENERIC_FALLBACK,
+  // Ohio: COS. + 8 digits (with period; e.g., COS.99999999)
+  OH: {
+    regex: /^COS\.\d{8}$/,
+    example: "COS.99999999",
+    hint: "COS. (with period) followed by 8 digits",
+  },
   OK: GENERIC_FALLBACK,
   OR: GENERIC_FALLBACK,
   PA: GENERIC_FALLBACK,
@@ -92,7 +124,12 @@ export const US_LICENSE_PATTERNS: Record<string, LicensePattern> = {
   SC: GENERIC_FALLBACK,
   SD: GENERIC_FALLBACK,
   TN: GENERIC_FALLBACK,
-  TX: GENERIC_FALLBACK,
+  // Texas: numeric only, no prefix (e.g., 1215902)
+  TX: {
+    regex: /^\d{6,9}$/,
+    example: "1215902",
+    hint: "Digits only, no letters or prefix",
+  },
   UT: GENERIC_FALLBACK,
   VT: GENERIC_FALLBACK,
   VA: GENERIC_FALLBACK,
