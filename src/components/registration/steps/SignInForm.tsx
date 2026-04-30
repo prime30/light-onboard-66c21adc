@@ -187,18 +187,29 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   const email = watch("email");
 
-  // Clear server errors when any field changes
+  // Clear server errors when fields change. The "no_account" error is tied to
+  // the email value specifically, so we only clear it when the email actually
+  // changes (not when the user edits the password). Other server errors clear
+  // on any edit.
+  const lastClearedEmailRef = useRef<string>("");
   useEffect(() => {
     const unsubscribe = subscribe({
       formState: {
         values: true,
       },
-      callback: ({ errors }) => {
+      callback: ({ values, errors }) => {
         if (errors?.root?.form) {
           clearErrors("root.form");
         }
-        setLoginError(null);
-        setForgotPasswordError(null);
+
+        const nextEmail = (values?.email || "").trim().toLowerCase();
+        if (nextEmail !== lastClearedEmailRef.current) {
+          lastClearedEmailRef.current = nextEmail;
+          // Clear "no account" guidance the moment the email value changes,
+          // before the user submits or re-blurs.
+          setLoginError((prev) => (prev?.kind === "no_account" ? null : prev));
+          setForgotPasswordError((prev) => (prev?.kind === "no_account" ? null : prev));
+        }
       },
     });
 
