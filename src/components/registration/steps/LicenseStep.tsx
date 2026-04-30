@@ -99,7 +99,7 @@ export const LicenseStep = () => {
 
       <div className="space-y-5">
         {/* License Number */}
-        <div className="animate-stagger-3 space-y-2">
+        <div className="animate-stagger-3 space-y-2" data-field-wrapper="licenseNumber">
           <TextInput
             name="licenseNumber"
             type="text"
