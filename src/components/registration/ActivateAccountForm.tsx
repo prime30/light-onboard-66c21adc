@@ -202,13 +202,6 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     }
   }, [isInIframe, closeIframe]);
 
-  // Sends the user to the sign-in screen. Activation links are admin-issued
-  // (not self-service), so this falls back to support contact rather than a
-  // forgot-password flow.
-  const handleContactSupport = useCallback(() => {
-    window.location.href = "mailto:support@dropdeadextensions.com";
-  }, []);
-
 
   // Signing-in state (auto-login in progress after activation)
   if (formState === "signing-in") {
