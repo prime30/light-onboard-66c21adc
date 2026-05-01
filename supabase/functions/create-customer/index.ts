@@ -605,7 +605,6 @@ Deno.serve(async (req: Request) => {
       professional: "Professional",
       salon: "Salon",
       student: "Student",
-      licensed_stylist: "Licensed Stylist",
     };
     const accountTypeTags: string[] = [];
     if (customer.account_type) {
