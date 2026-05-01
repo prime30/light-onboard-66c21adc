@@ -114,6 +114,30 @@ const contactBasicsValidators = {
 };
 export const contactBasicsSchema = z.object(contactBasicsValidators);
 
+// Create-Password Schema (dedicated step right after Contact Basics).
+// Password lets us auto-log the user into Shopify on submit success
+// (via the Storefront API customer-login flow), instead of relying on the
+// Shopify activation-email round-trip.
+const createPasswordValidators = {
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be less than 72 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+};
+// Plain ZodObject used for step-level gating (consumed by step-order
+// stepValidations, fieldsForStep, etc.). Cross-field equality is enforced by
+// `registrationSchema.superRefine` so we can keep this as a ZodObject.
+export const createPasswordStepSchema = z.object(createPasswordValidators);
+export const createPasswordSchema = createPasswordStepSchema.refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  }
+);
+export type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
+
 // Business Location Schema
 const businessLocationValidators = {
   businessName: z
@@ -243,6 +267,7 @@ export const preferencesSchema = z.object(preferencesValidators);
 
 const baseValidators = {
   ...contactBasicsValidators,
+  ...createPasswordValidators,
   ...taxExemptionValidators,
   ...wholesaleValidators,
   ...preferredMethodValidators,
@@ -269,7 +294,19 @@ export const registrationSchema = z
       ...baseValidators,
       ...schoolInfoValidators,
     }),
-  ]);
+  ])
+  .superRefine((data, ctx) => {
+    // Cross-field check for the dedicated create-password step.
+    // discriminatedUnion can't .refine, so we enforce confirmPassword here.
+    const d = data as { password?: string; confirmPassword?: string };
+    if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
+  });
 // Note: license format is shown as a helper hint in the UI only.
 // We intentionally do NOT block submission when the format doesn't match —
 // the field just needs to be filled (enforced by licenseValidators).

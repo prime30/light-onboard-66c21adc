@@ -16,6 +16,7 @@ export type Step =
   | "reviews"
   | "account-type"
   | "contact-basics"
+  | "create-password"
   | "license"
   | "business-operation"
   | "business-location"

@@ -11,6 +11,7 @@ import type { Step } from "@/types/auth";
 // Lazy-load steps not visible on first paint
 const AccountTypeForm = lazy(() => import("@/components/registration/steps/AccountTypeForm").then(m => ({ default: m.AccountTypeForm })));
 const ContactBasicsStep = lazy(() => import("@/components/registration/steps/ContactBasicsStep").then(m => ({ default: m.ContactBasicsStep })));
+const CreatePasswordStep = lazy(() => import("@/components/registration/steps/CreatePasswordStep").then(m => ({ default: m.CreatePasswordStep })));
 const PreferencesStep = lazy(() => import("@/components/registration/steps/PreferencesStep").then(m => ({ default: m.PreferencesStep })));
 const PreferredMethodStep = lazy(() => import("@/components/registration/steps/PreferredMethodStep").then(m => ({ default: m.PreferredMethodStep })));
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
@@ -477,6 +478,7 @@ const Auth = () => {
               {currentStep === "business-location" && <BusinessLocationStep />}
               {currentStep === "school-info" && <SchoolInfoStep />}
               {currentStep === "contact-basics" && <ContactBasicsStep />}
+              {currentStep === "create-password" && <CreatePasswordStep />}
               {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
               {currentStep === "tax-exemption" && <TaxExemptionStep />}
               {currentStep === "preferred-method" && <PreferredMethodStep />}

@@ -21,6 +21,9 @@ import { useAtom } from "jotai/react";
 import z from "zod";
 import { useApiClient } from "@/hooks/use-api-client";
 import { readHoneypotValue, readFormStartedAt } from "@/components/registration/HoneypotField";
+import { customerAtom } from "@/contexts/store";
+import { saveStoredSession } from "@/lib/standalone-session";
+import { useGlobalApp } from "@/contexts";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -81,6 +84,8 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
   const { apiCall } = useApiClient();
+  const { isInIframe, sendMessage } = useGlobalApp();
+  const [, setCustomer] = useAtom(customerAtom);
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
   >([]);
@@ -137,6 +142,55 @@ export function FormDataProvider({
           message: result.error,
         });
         throw new Error(result.error);
+      }
+
+      // Auto-login: hand the parent Shopify theme the credentials so the
+      // user lands logged-in on the storefront. In iframe mode the theme
+      // owns the storefront session, so we postMessage USER_LOGIN. In
+      // standalone mode we exchange directly via Storefront API. Failures
+      // here do NOT block the success screen.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const password = (values as any).password as string | undefined;
+      if (password && values.email) {
+        if (isInIframe) {
+          try {
+            sendMessage("USER_LOGIN", { email: values.email, password });
+          } catch (err) {
+            console.warn("USER_LOGIN postMessage failed (non-blocking):", err);
+          }
+        } else {
+          (async () => {
+            try {
+              const loginResult = await apiCall<{
+                accessToken: string;
+                expiresAt: string;
+              }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: values.email, password }),
+              });
+              if (loginResult.success && loginResult.data?.accessToken) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const fname = ((values as any).firstName as string | undefined) ?? null;
+                saveStoredSession({
+                  accessToken: loginResult.data.accessToken,
+                  expiresAt: loginResult.data.expiresAt,
+                  email: values.email,
+                  firstName: fname,
+                });
+                setCustomer({
+                  isLoggedIn: true,
+                  accessToken: loginResult.data.accessToken,
+                  expiresAt: loginResult.data.expiresAt,
+                  email: values.email,
+                  firstName: fname,
+                });
+              }
+            } catch (err) {
+              console.warn("customer-login failed (non-blocking):", err);
+            }
+          })();
+        }
       }
 
       // Fire-and-forget: generate discount code after successful registration.
@@ -247,6 +301,12 @@ export function FormDataProvider({
     ({ values }: FormStateWithValues) => {
       type ValueType = (typeof values)[keyof typeof values];
       const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
+        // SECURITY: never persist password / confirmPassword to sessionStorage.
+        // We collect them on the create-password step but only keep them in
+        // react-hook-form memory until submit, then they're cleared.
+        if (key === "password" || key === "confirmPassword") {
+          return acc;
+        }
         if (
           (Array.isArray(value) && value.length === 0) ||
           (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
