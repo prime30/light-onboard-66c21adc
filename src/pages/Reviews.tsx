@@ -112,14 +112,12 @@ const Reviews = () => {
             <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground">
               "{featured.content}"
             </p>
-            <div className="flex items-center gap-3">
-              <ReviewAvatar review={featured} className="w-10 h-10" />
+            <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-sm">{featured.authorName}</h3>
-                <p className="text-muted-foreground text-xs">
-                  {featured.productName ? `Verified · ${featured.productName}` : "Verified stylist"}
-                </p>
+                <p className="text-muted-foreground text-xs">Verified stylist</p>
               </div>
+              <ProductChip review={featured} />
             </div>
           </div>
         )}
