@@ -4,14 +4,34 @@ import { useAtom } from "jotai";
 import { Customer, customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
+import { takePendingLogin } from "@/lib/pending-login";
 
 export function useCloseIframe() {
   const { isInIframe } = useGlobalApp();
 
   // Fire CLOSE_IFRAME directly with wildcard origin to guarantee delivery
   // to the parent theme listener regardless of origin resolution state.
+  // If a deferred USER_LOGIN is queued (set by FormDataContext after a
+  // successful registration), flush it FIRST so the parent theme can log
+  // the user in on the storefront as the modal is dismissed.
   const closeIframe = useCallback(() => {
     try {
+      const pending = takePendingLogin();
+      if (pending) {
+        try {
+          window.parent.postMessage(
+            {
+              type: IframeMessageTypes.USER_LOGIN,
+              data: pending,
+              timestamp: new Date().toISOString(),
+            },
+            "*"
+          );
+        } catch (err) {
+          console.warn("[useCloseIframe] Failed to flush pending USER_LOGIN:", err);
+        }
+      }
+
       window.parent.postMessage(
         {
           type: IframeMessageTypes.CLOSE_IFRAME,
