@@ -139,7 +139,7 @@ export function useCustomerLogin({
         return;
       }
     },
-    [navigate, setCustomer]
+    [navigate, setCustomer, isInIframe]
   );
 
   const loginUpdateHandler: MessageHandler<FormUpdateData> = useCallback(
