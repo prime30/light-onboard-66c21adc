@@ -48,7 +48,7 @@ const STOREFRONT_API_VERSION = "2024-10";
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
-      customer { id }
+      customer { id email firstName }
       customerAccessToken { accessToken expiresAt }
       customerUserErrors { code field message }
     }
