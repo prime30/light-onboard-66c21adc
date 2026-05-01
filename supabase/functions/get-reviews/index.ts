@@ -139,6 +139,24 @@ Deno.serve(async (req: Request) => {
 
     // Diagnostic: ?probe=1 returns the raw status of /accounts and /reviews
     // so we can tell whether the key is invalid vs missing the Reviews scope.
+    if (url.searchParams.get("probe") === "raw") {
+      const r = await fetch(
+        `${KLAVIYO_BASE}?page[size]=5&sort=-created`,
+        {
+          headers: {
+            Authorization: `Klaviyo-API-Key ${apiKey}`,
+            accept: "application/vnd.api+json",
+            revision: KLAVIYO_API_REVISION,
+          },
+        }
+      );
+      const text = await r.text();
+      return new Response(text, {
+        status: r.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (url.searchParams.get("probe") === "1") {
       const probe = async (path: string) => {
         const r = await fetch(`https://a.klaviyo.com/api/${path}`, {
