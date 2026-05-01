@@ -17,10 +17,12 @@ const LeftPanel = lazy(() =>
 );
 
 function LeftPanelFallback() {
+  // Mirror the real LeftPanel's outer dimensions exactly so the form on the
+  // right doesn't reflow when the chunk arrives. Hidden on mobile (lg only).
   return (
     <div
       aria-hidden
-      className="hidden lg:block lg:w-[clamp(380px,32vw,520px)] bg-muted shrink-0"
+      className="relative hidden lg:flex flex-col w-full lg:w-1/2 lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0"
     />
   );
 }
