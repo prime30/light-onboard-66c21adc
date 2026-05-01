@@ -11,6 +11,7 @@ import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
+import { setPendingLogin } from "@/lib/pending-login";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
@@ -137,6 +138,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
           email: customerEmail,
           password: data.password,
         });
+        // Queue same creds for re-flush on closeIframe() — safety net
+        // covering races where the parent dropped/ignored the first message.
+        setPendingLogin({ email: customerEmail, password: data.password });
         setAutoLoginStatus("succeeded");
         setFormState("success");
       } else {
