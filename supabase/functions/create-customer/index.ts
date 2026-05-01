@@ -141,9 +141,8 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    password: z.string().min(8).optional(),
   }),
-  z.object({
-    accountType: z.literal("salon"),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     preferredName: z.string().nullish(),
