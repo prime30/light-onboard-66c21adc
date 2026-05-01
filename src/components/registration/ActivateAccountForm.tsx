@@ -88,22 +88,89 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
-    const result = await apiCall(
+    const result = await apiCall<{
+      activated: boolean;
+      email: string | null;
+      firstName: string | null;
+    }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-account`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          activationUrl
-            ? { activationUrl, password: data.password }
+          safeActivationUrl
+            ? { activationUrl: safeActivationUrl, password: data.password }
             : { customerId, token, password: data.password }
         ),
       }
     );
 
     if (result.success) {
-      setFormState("success");
-      sendMessage("ACCOUNT_ACTIVATED", { customerId });
+      const customerEmail = result.data?.email ?? null;
+      const customerFirstName = result.data?.firstName ?? null;
+      setActivatedEmail(customerEmail);
+      sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
+
+      // No email back from Admin lookup → can't auto-sign-in. Drop straight
+      // to the success screen with manual-login copy.
+      if (!customerEmail) {
+        setAutoLoginStatus("failed");
+        setFormState("success");
+        return;
+      }
+
+      setAutoLoginStatus("idle");
+      setFormState("signing-in");
+
+      if (isInIframe) {
+        // Iframe: parent theme owns the storefront session. Post USER_LOGIN
+        // and wait up to 3s for CUSTOMER_DATA to confirm.
+        iframeWatchActive.current = true;
+        sendMessage("USER_LOGIN", {
+          email: customerEmail,
+          password: data.password,
+        });
+        iframeTimeoutRef.current = setTimeout(() => {
+          if (!iframeWatchActive.current) return;
+          iframeWatchActive.current = false;
+          setAutoLoginStatus("failed");
+          setFormState("success");
+        }, 3000);
+      } else {
+        // Standalone: exchange credentials for a Storefront access token.
+        const loginResult = await apiCall<{
+          accessToken: string;
+          expiresAt: string;
+        }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: customerEmail,
+            password: data.password,
+          }),
+        });
+
+        if (loginResult.success && loginResult.data?.accessToken) {
+          saveStoredSession({
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: customerFirstName,
+          });
+          setCustomer({
+            isLoggedIn: true,
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: customerFirstName,
+          });
+          setAutoLoginStatus("succeeded");
+        } else {
+          const failed = loginResult as { statusCode?: number };
+          setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
+        }
+        setFormState("success");
+      }
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
@@ -134,6 +201,14 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       window.location.href = "/";
     }
   }, [isInIframe, closeIframe]);
+
+  // Sends the user to the sign-in screen. Activation links are admin-issued
+  // (not self-service), so this falls back to support contact rather than a
+  // forgot-password flow.
+  const handleContactSupport = useCallback(() => {
+    window.location.href = "mailto:support@dropdeadextensions.com";
+  }, []);
+
 
   // Success state
   if (formState === "success") {
