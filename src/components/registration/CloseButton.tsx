@@ -117,7 +117,7 @@ export function CloseButton() {
         </span>
       </span>
       <button
-        onClick={handleCloseModal}
+        onClick={requestClose}
         disabled={isSavingProgress}
         className="relative flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-muted transition-colors hover:bg-muted/80 group disabled:cursor-default"
         aria-label="Close"
