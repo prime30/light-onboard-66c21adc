@@ -113,7 +113,7 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     authorEmail: a.email ?? null,
     productName: a.product?.name ?? null,
     productUrl: a.product?.url ?? null,
-    productImage: a.product?.image_url ?? null,
+    productImage: cleanShopifyImage(a.product?.image_url),
     images,
     createdAt: a.created ?? null,
     verified: !!a.verified,
