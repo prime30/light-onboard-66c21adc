@@ -474,7 +474,7 @@ const Auth = () => {
             />
           )}
           {currentStep !== "onboarding" && (
-            <Suspense fallback={<FormSkeleton variant={getSkeletonVariant(currentStep)} />}>
+            <Suspense fallback={null}>
               {currentStep === "account-type" && <AccountTypeForm />}
               {currentStep === "license" && <LicenseStep />}
               {currentStep === "business-operation" && <BusinessOperationStep />}
