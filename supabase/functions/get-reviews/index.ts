@@ -73,6 +73,8 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     verified: !!a.verified,
   };
 }
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
