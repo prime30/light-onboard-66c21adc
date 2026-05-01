@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight, UserCheck } from "lucide-react";
@@ -55,29 +55,6 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const [serverError, setServerError] = useState<string>("");
   const [activatedEmail, setActivatedEmail] = useState<string | null>(null);
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
-  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const iframeWatchActive = useRef(false);
-
-  // Iframe auto-login watcher: parent flips customerAtom.isLoggedIn after the
-  // theme processes USER_LOGIN; if it doesn't happen in 3s, fall through to
-  // the success screen with an inline note.
-  useEffect(() => {
-    if (!iframeWatchActive.current) return;
-    if (formState !== "signing-in") return;
-    if (customer.isLoggedIn) {
-      iframeWatchActive.current = false;
-      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
-      setAutoLoginStatus("succeeded");
-      setFormState("success");
-    }
-  }, [customer.isLoggedIn, formState]);
-
-  useEffect(() => {
-    return () => {
-      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
-    };
-  }, []);
-
   const {
     register,
     handleSubmit,
