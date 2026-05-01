@@ -48,9 +48,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
   // Memoize step validation states to prevent re-renders when other steps change
   const currentStepValidationStates = useMemo(() => {
-    console.log(steps);
-    const relevantSteps = steps.slice(1, -1); // Skip onboarding and summary
-    console.log(relevantSteps);
+    const relevantSteps = steps.slice(1); // Skip onboarding only; flag is rendered separately
     return relevantSteps.map((step) => ({
       step,
       status: completedSteps[step] || "in-progress",
