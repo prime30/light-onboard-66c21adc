@@ -561,15 +561,51 @@ Deno.serve(async (req: Request) => {
 
     console.log("Customer Fields API request successful:", customerFieldsData.customer.id);
 
-    // Tag Shopify customer with "Preferred method: X" for each selected method.
-    // This is fire-and-forget — failures here must not block account creation.
+    // Tag Shopify customer with "Preferred method: X" for each selected method,
+    // plus any admin-configured extra tags from app_settings. Fire-and-forget —
+    // failures here must not block account creation.
     const shopifyCustomerId = customerFieldsData.customer.shopify_id;
     const preferredMethods = (parseResult.data as { preferredMethods?: string[] }).preferredMethods;
-    if (shopifyCustomerId && preferredMethods && preferredMethods.length > 0) {
+
+    // Load admin-configured extra tags (best-effort).
+    let extraAdminTags: string[] = [];
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supabaseUrl && serviceRoleKey) {
+        const tagsRes = await fetch(
+          `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=extra_customer_tags`,
+          {
+            headers: {
+              apikey: serviceRoleKey,
+              Authorization: `Bearer ${serviceRoleKey}`,
+            },
+          }
+        );
+        if (tagsRes.ok) {
+          const rows = (await tagsRes.json()) as Array<{ extra_customer_tags?: string[] }>;
+          const arr = rows?.[0]?.extra_customer_tags;
+          if (Array.isArray(arr)) {
+            extraAdminTags = arr
+              .filter((t): t is string => typeof t === "string")
+              .map((t) => t.trim().replace(/,/g, " "))
+              .filter(Boolean);
+          }
+        } else {
+          console.warn("Could not fetch admin extra tags:", tagsRes.status);
+        }
+      }
+    } catch (e) {
+      console.warn("Error loading admin extra tags (non-blocking):", e);
+    }
+
+    const preferredMethodTags = (preferredMethods ?? []).map((m) => `Preferred method: ${m}`);
+    const newTags = [...preferredMethodTags, ...extraAdminTags];
+
+    if (shopifyCustomerId && newTags.length > 0) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
       const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (shopifyDomain && shopifyAdminToken) {
-        const newTags = preferredMethods.map((m) => `Preferred method: ${m}`);
         try {
           // Fetch existing tags to merge
           const getRes = await fetch(
@@ -617,7 +653,7 @@ Deno.serve(async (req: Request) => {
             const errText = await tagRes.text();
             console.warn("Failed to tag Shopify customer:", tagRes.status, errText);
           } else {
-            console.log("Tagged Shopify customer with preferred methods:", newTags);
+            console.log("Tagged Shopify customer with:", newTags);
           }
         } catch (tagErr) {
           console.warn("Error tagging Shopify customer (non-blocking):", tagErr);

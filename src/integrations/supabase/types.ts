@@ -17,6 +17,7 @@ export type Database = {
       app_settings: {
         Row: {
           auto_approval_enabled: boolean
+          extra_customer_tags: string[]
           id: string
           singleton: boolean
           updated_at: string
@@ -24,6 +25,7 @@ export type Database = {
         }
         Insert: {
           auto_approval_enabled?: boolean
+          extra_customer_tags?: string[]
           id?: string
           singleton?: boolean
           updated_at?: string
@@ -31,6 +33,7 @@ export type Database = {
         }
         Update: {
           auto_approval_enabled?: boolean
+          extra_customer_tags?: string[]
           id?: string
           singleton?: boolean
           updated_at?: string
@@ -158,6 +161,7 @@ export type Database = {
     }
     Functions: {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
+      get_extra_customer_tags: { Args: never; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
