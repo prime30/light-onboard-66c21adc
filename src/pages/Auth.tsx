@@ -21,6 +21,7 @@ const WholesaleTermsStep = lazy(() => import("@/components/registration/steps/Wh
 const TaxExemptionStep = lazy(() => import("@/components/registration/steps/TaxExemptionStep").then(m => ({ default: m.TaxExemptionStep })));
 const BusinessOperationStep = lazy(() => import("@/components/registration/steps/BusinessOperationStep").then(m => ({ default: m.BusinessOperationStep })));
 const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryForm").then(m => ({ default: m.SummaryForm })));
+const AssessingStep = lazy(() => import("@/components/registration/steps/AssessingStep").then(m => ({ default: m.AssessingStep })));
 const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
 import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
@@ -484,6 +485,7 @@ const Auth = () => {
               {currentStep === "preferred-method" && <PreferredMethodStep />}
               {currentStep === "preferences" && <PreferencesStep />}
               {currentStep === "summary" && <SummaryForm />}
+              {currentStep === "assessing" && <AssessingStep />}
               {currentStep === "success" && (
                 <SuccessForm />
               )}
