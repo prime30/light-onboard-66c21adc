@@ -144,6 +144,55 @@ export function FormDataProvider({
         throw new Error(result.error);
       }
 
+      // Auto-login: hand the parent Shopify theme the credentials so the
+      // user lands logged-in on the storefront. In iframe mode the theme
+      // owns the storefront session, so we postMessage USER_LOGIN. In
+      // standalone mode we exchange directly via Storefront API. Failures
+      // here do NOT block the success screen.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const password = (values as any).password as string | undefined;
+      if (password && values.email) {
+        if (isInIframe) {
+          try {
+            sendMessage("USER_LOGIN", { email: values.email, password });
+          } catch (err) {
+            console.warn("USER_LOGIN postMessage failed (non-blocking):", err);
+          }
+        } else {
+          (async () => {
+            try {
+              const loginResult = await apiCall<{
+                accessToken: string;
+                expiresAt: string;
+              }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: values.email, password }),
+              });
+              if (loginResult.success && loginResult.data?.accessToken) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const fname = ((values as any).firstName as string | undefined) ?? null;
+                saveStoredSession({
+                  accessToken: loginResult.data.accessToken,
+                  expiresAt: loginResult.data.expiresAt,
+                  email: values.email,
+                  firstName: fname,
+                });
+                setCustomer({
+                  isLoggedIn: true,
+                  accessToken: loginResult.data.accessToken,
+                  expiresAt: loginResult.data.expiresAt,
+                  email: values.email,
+                  firstName: fname,
+                });
+              }
+            } catch (err) {
+              console.warn("customer-login failed (non-blocking):", err);
+            }
+          })();
+        }
+      }
+
       // Fire-and-forget: generate discount code after successful registration.
       // Failures here do not block the success screen.
       (async () => {
