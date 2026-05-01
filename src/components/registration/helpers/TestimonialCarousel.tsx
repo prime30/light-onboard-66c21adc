@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
 import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
 import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
@@ -34,8 +33,6 @@ if (typeof window !== "undefined") {
   }
 }
 
-const INTERVAL_MS = 5000;
-
 type Testimonial = {
   quote: string;
   name: string;
@@ -43,114 +40,24 @@ type Testimonial = {
   avatar: string;
 };
 
-const fallbackTestimonials: Testimonial[] = [
-  {
-    quote:
-      "Honestly wasn't sure at first but the wefts hold up way better than what I was paying double for. Clients keep asking who does my install lol.",
-    name: "Sarah M.",
-    role: "Stylist · 8 yrs behind the chair",
-    avatar: stylistOmbre1,
-  },
-  {
-    quote:
-      "Cut our supply spend almost in half this quarter. Only thing I'd change is I wish I switched sooner.",
-    name: "Jamie C.",
-    role: "Salon owner, Phoenix",
-    avatar: stylistLavender1,
-  },
-  {
-    quote:
-      "Been doing K-tips around the hairline and SuperWefts through the back as a hybrid install. Blends seamless and the retention is unreal.",
-    name: "Jess T.",
-    role: "Extension specialist",
-    avatar: stylistTeal1,
-  },
-  {
-    quote:
-      "Ordered Tuesday, installed Thursday. That's it. That's the review.",
-    name: "Amanda B.",
-    role: "Independent colorist",
-    avatar: stylistPink1,
-  },
-];
+const testimonial: Testimonial = {
+  quote:
+    "Not only was everything super easy to find but I got the cutest interactive message when I placed my order which just made everything even more exciting :) The hair came SO FAST and I work in Boston, MA. The packaging is just as high quality as the hair inside, the entire experience from buying the hair online to opening the extensions felt luxurious & it didn't cost an unreasonable amount of money! I have to say I am so happy with my whole experience and will only be purchasing Drop Dead Extensions from here on out! Thank you Kristi!",
+  name: "Lex C.",
+  role: "Verified stylist",
+  avatar: stylistPink1,
+};
 
 export const TestimonialCarousel = () => {
-  const testimonials = fallbackTestimonials;
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  // Incrementing this key restarts the CSS progress animation on the active dot
-  const [timerKey, setTimerKey] = useState(0);
-
-  // Reset to first slide when the source changes (live reviews loading in)
-  useEffect(() => {
-    setCurrentIndex(0);
-    setTimerKey((k) => k + 1);
-  }, [testimonials.length]);
-
   // Warm the browser image cache for ALL avatars as soon as testimonials are
   // known. Each avatar is small (~10-30KB) and there are at most ~8, so we can
   // safely fetch them all up front — guaranteeing zero flash on rotation.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    for (const t of testimonials) {
-      if (!t?.avatar) continue;
-      const img = new Image();
-      img.decoding = "async";
-      img.src = t.avatar;
-    }
+    const img = new Image();
+    img.decoding = "async";
+    img.src = testimonial.avatar;
   }, [testimonials]);
-
-  const advance = useCallback(
-    (dir: 1 | -1 = 1) => {
-      setCurrentIndex((prev) => (prev + dir + testimonials.length) % testimonials.length);
-      setTimerKey((k) => k + 1);
-    },
-    [testimonials.length]
-  );
-
-  const goTo = useCallback((i: number) => {
-    setCurrentIndex(i);
-    setTimerKey((k) => k + 1);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging || isPaused) return;
-    const id = setInterval(() => advance(), INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [isDragging, isPaused, advance]);
-
-  const handleDragStart = (clientX: number) => {
-    setIsDragging(true);
-    setDragStartX(clientX);
-  };
-
-  const handleDragMove = (clientX: number) => {
-    if (!isDragging) return;
-    setDragOffset(clientX - dragStartX);
-  };
-
-  const handleDragEnd = () => {
-    if (isDragging) {
-      const threshold = 50;
-      if (dragOffset > threshold) advance(-1);
-      else if (dragOffset < -threshold) advance(1);
-      setIsDragging(false);
-      setDragOffset(0);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    handleDragEnd();
-    setIsPaused(false);
-  };
-
-  const testimonial = testimonials[currentIndex] ?? testimonials[0];
-
-  if (!testimonial) return null;
 
   return (
     <div className="space-y-4">
