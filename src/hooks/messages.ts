@@ -5,18 +5,32 @@ import { Customer, customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
 import { saveStoredSession } from "@/lib/standalone-session";
+import { takePendingLogin } from "@/lib/pending-login";
 
 export function useCloseIframe() {
   const { isInIframe } = useGlobalApp();
 
   // Fire CLOSE_IFRAME directly with wildcard origin to guarantee delivery
   // to the parent theme listener regardless of origin resolution state.
-  // USER_LOGIN is sent immediately on registration success (see
-  // FormDataContext.submitForm) so the parent theme can reload in the
-  // background while our success screen stays mounted. By the time the
-  // user clicks "Done" and we close, the storefront is already logged in.
+  // Before closing, flush any pending USER_LOGIN credentials queued by a
+  // success flow (registration, reset, activate). This is the safety net
+  // for cases where the immediate USER_LOGIN posted at success time was
+  // dropped or arrived before the parent handler was ready — the parent
+  // gets one last chance to log the user in before the iframe tears down.
   const closeIframe = useCallback(() => {
     try {
+      const pending = takePendingLogin();
+      if (pending) {
+        window.parent.postMessage(
+          {
+            type: IframeMessageTypes.USER_LOGIN,
+            data: pending,
+            timestamp: new Date().toISOString(),
+          },
+          "*"
+        );
+        console.log("[useCloseIframe] Flushed pending USER_LOGIN before close");
+      }
       window.parent.postMessage(
         {
           type: IframeMessageTypes.CLOSE_IFRAME,
