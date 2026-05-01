@@ -29,6 +29,10 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     !token || !customerId ? "missing-params" : "form"
   );
   const [serverError, setServerError] = useState<string>("");
+  const [resetCustomer, setResetCustomer] = useState<{
+    firstName: string | null;
+    email: string | null;
+  }>({ firstName: null, email: null });
 
   const {
     register,
