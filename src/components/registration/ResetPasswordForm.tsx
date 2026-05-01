@@ -149,24 +149,22 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
       }
 
       setAutoLoginStatus("idle");
-      setFormState("signing-in");
 
       if (isInIframe) {
-        // Iframe: parent Shopify theme owns the storefront session. Post
-        // USER_LOGIN, then wait for CUSTOMER_DATA (which flips
-        // customerAtom.isLoggedIn). If no confirmation in 3s, fall through
-        // to success with a "couldn't auto-sign-in" inline note.
-        iframeWatchActive.current = true;
+        // Iframe: parent Shopify theme owns the storefront session. Fire
+        // USER_LOGIN immediately and jump straight to the success screen —
+        // mirroring the registration flow (FormDataContext.submitForm).
+        // The parent reloads in the background while our success scrim
+        // stays on top; CLOSE_IFRAME (on "Close" click) reveals an
+        // already-logged-in storefront with no flash. We don't race a
+        // CUSTOMER_DATA watchdog because the parent ack arrives via a
+        // full reload, not via postback after a reset.
         sendMessage("USER_LOGIN", {
           email: customerEmail,
           password: data.password,
         });
-        iframeTimeoutRef.current = setTimeout(() => {
-          if (!iframeWatchActive.current) return;
-          iframeWatchActive.current = false;
-          setAutoLoginStatus("failed");
-          setFormState("success");
-        }, 3000);
+        setAutoLoginStatus("succeeded");
+        setFormState("success");
       } else {
         // Standalone: prefer the access token returned directly by
         // customerResetByUrl (already a fresh, valid Storefront token).
