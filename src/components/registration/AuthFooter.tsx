@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
@@ -30,7 +29,7 @@ export function AuthFooter({
   shimmerKey = 0,
 }: AuthFooterProps) {
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
-  const submitPopoverCloseTimer = useRef<number | null>(null);
+  const submitPopoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     getStepValidationStatus,
     currentStep,
@@ -43,8 +42,6 @@ export function AuthFooter({
     setFocus,
     incompleteSteps,
   } = useForm();
-
-  console.log(incompleteSteps, fullErrors);
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
@@ -67,6 +64,26 @@ export function AuthFooter({
   // shown on the final summary step. Other steps still get the click-to-shake
   // + red flash on the missing fields, but no popover.
   const showTooltip = isSummaryStep && continueBlocked;
+
+  const openSubmitTooltip = useCallback(() => {
+    if (submitPopoverCloseTimer.current) {
+      clearTimeout(submitPopoverCloseTimer.current);
+      submitPopoverCloseTimer.current = null;
+    }
+    if (showTooltip) {
+      setSubmitTooltipOpen(true);
+    }
+  }, [showTooltip]);
+
+  const closeSubmitTooltip = useCallback(() => {
+    if (submitPopoverCloseTimer.current) {
+      clearTimeout(submitPopoverCloseTimer.current);
+    }
+    submitPopoverCloseTimer.current = setTimeout(() => {
+      setSubmitTooltipOpen(false);
+      submitPopoverCloseTimer.current = null;
+    }, 220);
+  }, []);
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
