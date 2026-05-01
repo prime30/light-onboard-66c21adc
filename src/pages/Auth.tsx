@@ -100,7 +100,9 @@ const Auth = () => {
 
   // "Preload" footer layout for a frame before running entrance animation (prevents button width reflow during enter)
   const [footerEnterReady, setFooterEnterReady] = useState(false);
-  const footerVisible = mode === "signin" || (mode === "signup" && currentStep !== "success");
+  const footerVisible =
+    mode === "signin" ||
+    (mode === "signup" && currentStep !== "success" && currentStep !== "assessing");
   useEffect(() => {
     if (!footerVisible) {
       setFooterEnterReady(false);
