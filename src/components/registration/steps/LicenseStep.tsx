@@ -99,7 +99,7 @@ export const LicenseStep = () => {
 
       <div className="space-y-5">
         {/* License Number */}
-        <div className="animate-stagger-3 space-y-2" data-field-wrapper="licenseNumber">
+        <div className="animate-stagger-3 space-y-2">
           <TextInput
             name="licenseNumber"
             type="text"
@@ -142,7 +142,7 @@ export const LicenseStep = () => {
         {isSalon && (
           <>
             {/* Salon Size */}
-            <div className="animate-stagger-4" data-field-wrapper="salonSize">
+            <div className="animate-stagger-4">
               <SelectInput
                 name="salonSize"
                 control={control}
@@ -155,7 +155,7 @@ export const LicenseStep = () => {
             </div>
 
             {/* Salon Structure */}
-            <div className="animate-stagger-5" data-field-wrapper="salonStructure">
+            <div className="animate-stagger-5">
               <SelectInput
                 name="salonStructure"
                 control={control}
