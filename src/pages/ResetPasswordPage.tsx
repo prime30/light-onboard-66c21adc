@@ -14,6 +14,7 @@ export function ResetPasswordPage() {
   const token = searchParams.get("token");
   const customerId = searchParams.get("customer_id");
   const resetUrl = searchParams.get("reset_url");
+  const emailHint = searchParams.get("email") || searchParams.get("customer_email");
 
   useEffect(() => {
     setMode("signin");
@@ -26,7 +27,14 @@ export function ResetPasswordPage() {
     }
   }, [customer.isLoggedIn, navigate]);
 
-  return <ResetPasswordForm token={token} customerId={customerId} resetUrl={resetUrl} />;
+  return (
+    <ResetPasswordForm
+      token={token}
+      customerId={customerId}
+      resetUrl={resetUrl}
+      emailHint={emailHint}
+    />
+  );
 }
 
 export default ResetPasswordPage;

@@ -77,6 +77,69 @@ function parseShopifyCustomerId(value: string | null | undefined): string | null
   return null;
 }
 
+async function lookupCustomerViaAdmin(
+  shopDomain: string,
+  adminToken: string,
+  customerId: string | null,
+  storefrontCustomerId: string | null
+): Promise<{ email: string | null; firstName: string | null }> {
+  const ids = Array.from(new Set([
+    parseShopifyCustomerId(customerId),
+    parseShopifyCustomerId(storefrontCustomerId),
+  ].filter(Boolean))) as string[];
+
+  for (const numericId of ids) {
+    const adminRes = await fetch(
+      `https://${shopDomain}/admin/api/2024-10/customers/${numericId}.json`,
+      {
+        headers: {
+          "X-Shopify-Access-Token": adminToken,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (adminRes.ok) {
+      const j = await adminRes.json();
+      return {
+        email: j?.customer?.email || null,
+        firstName: j?.customer?.first_name || null,
+      };
+    }
+    console.warn("Admin REST customer lookup failed:", adminRes.status, numericId);
+  }
+
+  const gid = storefrontCustomerId?.startsWith("gid://")
+    ? storefrontCustomerId
+    : ids[0]
+      ? `gid://shopify/Customer/${ids[0]}`
+      : null;
+
+  if (!gid) return { email: null, firstName: null };
+
+  const gqlRes = await fetch(`https://${shopDomain}/admin/api/2024-10/graphql.json`, {
+    method: "POST",
+    headers: {
+      "X-Shopify-Access-Token": adminToken,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `query CustomerEmail($id: ID!) { customer(id: $id) { email firstName } }`,
+      variables: { id: gid },
+    }),
+  });
+
+  if (!gqlRes.ok) {
+    console.warn("Admin GraphQL customer lookup failed:", gqlRes.status);
+    return { email: null, firstName: null };
+  }
+
+  const gql = await gqlRes.json();
+  return {
+    email: gql?.data?.customer?.email || null,
+    firstName: gql?.data?.customer?.firstName || null,
+  };
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
@@ -215,40 +278,22 @@ Deno.serve(async (req) => {
     if (!email) {
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken) {
-        const numericId = parseShopifyCustomerId(result.customer.id) ?? resetCustomerId;
-        if (numericId) {
-          try {
-            const adminRes = await fetch(
-              `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${numericId}.json`,
-              {
-                headers: {
-                  "X-Shopify-Access-Token": adminToken,
-                  "Content-Type": "application/json",
-                },
-              }
+        try {
+          const adminCustomer = await lookupCustomerViaAdmin(
+            SHOPIFY_STORE_DOMAIN,
+            adminToken,
+            resetCustomerId,
+            result.customer.id || null
+          );
+          if (adminCustomer.email) {
+            console.warn(
+              "[reset-password] Email recovered via Admin API fallback (Storefront returned null)"
             );
-            if (adminRes.ok) {
-              const j = await adminRes.json();
-              const adminEmail = j?.customer?.email || null;
-              const adminFirst = j?.customer?.first_name || null;
-              if (!email && adminEmail) {
-                // Visibility for the legacy-account quirk: Storefront returned
-                // null email after a successful customerResetByUrl, and we
-                // recovered it from Admin API. Useful for spotting frequency
-                // of this fallback in edge function logs.
-                console.warn(
-                  "[reset-password] Email recovered via Admin API fallback (Storefront returned null) for customer",
-                  numericId
-                );
-              }
-              email = email || adminEmail;
-              firstName = firstName || adminFirst;
-            } else {
-              console.warn("Admin customer lookup failed:", adminRes.status);
-            }
-          } catch (e) {
-            console.warn("Admin customer lookup threw:", e);
           }
+          email = email || adminCustomer.email;
+          firstName = firstName || adminCustomer.firstName;
+        } catch (e) {
+          console.warn("Admin customer lookup threw:", e);
         }
       } else {
         console.warn(
