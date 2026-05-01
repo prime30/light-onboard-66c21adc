@@ -1,19 +1,34 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight, UserCheck } from "lucide-react";
+import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "./FadeText";
 import { TextInput } from "@/components/TextInput";
 import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
+import { customerAtom } from "@/contexts/store";
+import { saveStoredSession } from "@/lib/standalone-session";
 import {
   activateAccountSchema,
   ActivateAccountFormData,
 } from "@/lib/validations/password-schemas";
+import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 
-type FormState = "form" | "success" | "already-active" | "expired" | "invalid" | "missing-params" | "error" | "rate-limited";
+type FormState =
+  | "form"
+  | "signing-in"
+  | "success"
+  | "already-active"
+  | "expired"
+  | "invalid"
+  | "missing-params"
+  | "error"
+  | "rate-limited";
+
+type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
 
 interface ActivateAccountFormProps {
   token: string | null;
@@ -25,12 +40,41 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
+  const [customer, setCustomer] = useAtom(customerAtom);
 
-  const hasParams = !!activationUrl || (!!token && !!customerId);
+  // Reject activation URLs that don't point to a trusted Shopify host —
+  // mirrors the reset flow's URL-origin guard.
+  const activationUrlIsTrusted = !activationUrl || isTrustedShopifyUrl(activationUrl);
+  const safeActivationUrl = activationUrlIsTrusted ? activationUrl : null;
+  const hasParams = !!safeActivationUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    hasParams ? "form" : "missing-params"
+    !activationUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
+  const [activatedEmail, setActivatedEmail] = useState<string | null>(null);
+  const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeWatchActive = useRef(false);
+
+  // Iframe auto-login watcher: parent flips customerAtom.isLoggedIn after the
+  // theme processes USER_LOGIN; if it doesn't happen in 3s, fall through to
+  // the success screen with an inline note.
+  useEffect(() => {
+    if (!iframeWatchActive.current) return;
+    if (formState !== "signing-in") return;
+    if (customer.isLoggedIn) {
+      iframeWatchActive.current = false;
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+      setAutoLoginStatus("succeeded");
+      setFormState("success");
+    }
+  }, [customer.isLoggedIn, formState]);
+
+  useEffect(() => {
+    return () => {
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+    };
+  }, []);
 
   const {
     register,
@@ -44,22 +88,89 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
-    const result = await apiCall(
+    const result = await apiCall<{
+      activated: boolean;
+      email: string | null;
+      firstName: string | null;
+    }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-account`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          activationUrl
-            ? { activationUrl, password: data.password }
+          safeActivationUrl
+            ? { activationUrl: safeActivationUrl, password: data.password }
             : { customerId, token, password: data.password }
         ),
       }
     );
 
     if (result.success) {
-      setFormState("success");
-      sendMessage("ACCOUNT_ACTIVATED", { customerId });
+      const customerEmail = result.data?.email ?? null;
+      const customerFirstName = result.data?.firstName ?? null;
+      setActivatedEmail(customerEmail);
+      sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
+
+      // No email back from Admin lookup → can't auto-sign-in. Drop straight
+      // to the success screen with manual-login copy.
+      if (!customerEmail) {
+        setAutoLoginStatus("failed");
+        setFormState("success");
+        return;
+      }
+
+      setAutoLoginStatus("idle");
+      setFormState("signing-in");
+
+      if (isInIframe) {
+        // Iframe: parent theme owns the storefront session. Post USER_LOGIN
+        // and wait up to 3s for CUSTOMER_DATA to confirm.
+        iframeWatchActive.current = true;
+        sendMessage("USER_LOGIN", {
+          email: customerEmail,
+          password: data.password,
+        });
+        iframeTimeoutRef.current = setTimeout(() => {
+          if (!iframeWatchActive.current) return;
+          iframeWatchActive.current = false;
+          setAutoLoginStatus("failed");
+          setFormState("success");
+        }, 3000);
+      } else {
+        // Standalone: exchange credentials for a Storefront access token.
+        const loginResult = await apiCall<{
+          accessToken: string;
+          expiresAt: string;
+        }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: customerEmail,
+            password: data.password,
+          }),
+        });
+
+        if (loginResult.success && loginResult.data?.accessToken) {
+          saveStoredSession({
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: customerFirstName,
+          });
+          setCustomer({
+            isLoggedIn: true,
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: customerFirstName,
+          });
+          setAutoLoginStatus("succeeded");
+        } else {
+          const failed = loginResult as { statusCode?: number };
+          setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
+        }
+        setFormState("success");
+      }
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
@@ -91,8 +202,49 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     }
   }, [isInIframe, closeIframe]);
 
+
+  // Signing-in state (auto-login in progress after activation)
+  if (formState === "signing-in") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-foreground/70 animate-spin" />
+        </div>
+        <div className="space-y-2">
+          <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
+            Signing you in
+          </FadeText>
+          <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            Account activated. Logging you in with your new password…
+          </FadeText>
+        </div>
+      </div>
+    );
+  }
+
   // Success state
   if (formState === "success") {
+    const autoLoginNote =
+      autoLoginStatus === "rate_limited"
+        ? "Too many sign-in attempts — please log in manually in a moment."
+        : autoLoginStatus === "failed"
+          ? "Couldn't sign you in automatically — please log in with your new password."
+          : null;
+
+    const ctaLabel = isInIframe
+      ? "Close"
+      : autoLoginStatus === "succeeded"
+        ? "Continue to store"
+        : "Go to login";
+
+    const handleSuccessCta = () => {
+      if (isInIframe) {
+        closeIframe();
+        return;
+      }
+      window.location.href = autoLoginStatus === "succeeded" ? "/" : "/login";
+    };
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
         <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center">
@@ -103,14 +255,24 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             Account Activated
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your account is ready! You can now log in with your new password.
+            Your account is ready.
+            {autoLoginStatus === "succeeded" ? (
+              <> You're signed in{activatedEmail ? <> as <span className="text-foreground/80">{activatedEmail}</span></> : null}.</>
+            ) : (
+              <> You can now log in{activatedEmail ? <> with <span className="text-foreground/80">{activatedEmail}</span></> : <> with your new password</>}.</>
+            )}
           </FadeText>
+          {autoLoginNote && (
+            <FadeText as="p" className="text-xs text-muted-foreground/60 leading-relaxed pt-1">
+              {autoLoginNote}
+            </FadeText>
+          )}
         </div>
         <Button
-          onClick={handleClose}
+          onClick={handleSuccessCta}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
         >
-          {isInIframe ? "Close" : "Go to Store"}
+          {ctaLabel}
         </Button>
       </div>
     );

@@ -88,10 +88,24 @@ Deno.serve(async (req) => {
   //   https://{store}/account/activate/{customerId}/{token}
   // We POST to that exact path (Shopify accepts form-encoded credentials).
   let activateUrl: string;
+  let derivedCustomerId: string | null = null;
   if (providedUrl) {
     activateUrl = providedUrl;
+    // Extract numeric id from the activation URL path so we can look the
+    // customer up via Admin API after a successful activation.
+    try {
+      const u = new URL(providedUrl);
+      const parts = u.pathname.split("/").filter(Boolean);
+      const activateIdx = parts.indexOf("activate");
+      if (activateIdx >= 0 && parts[activateIdx + 1]) {
+        derivedCustomerId = parts[activateIdx + 1];
+      }
+    } catch {
+      // Ignored — falls back to no email lookup.
+    }
   } else {
-    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    const numericId = customerId!.includes("/") ? customerId!.split("/").pop()! : customerId!;
+    derivedCustomerId = numericId;
     activateUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/activate/${numericId}/${token}`;
   }
 
@@ -110,7 +124,37 @@ Deno.serve(async (req) => {
 
     // Shopify returns a 302 redirect on success
     if (activateResponse.status === 302 || activateResponse.status === 200) {
-      return sendSuccess({ activated: true }, "Account has been activated successfully");
+      // Best-effort email lookup so the SPA can auto-sign-in afterwards.
+      // Failure here is non-fatal — activation already succeeded.
+      let email: string | null = null;
+      let firstName: string | null = null;
+      const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      if (adminToken && derivedCustomerId) {
+        try {
+          const adminRes = await fetch(
+            `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${derivedCustomerId}.json`,
+            {
+              headers: {
+                "X-Shopify-Access-Token": adminToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (adminRes.ok) {
+            const j = await adminRes.json();
+            email = j?.customer?.email ?? null;
+            firstName = j?.customer?.first_name ?? null;
+          } else {
+            console.warn("Admin customer lookup failed:", adminRes.status);
+          }
+        } catch (e) {
+          console.warn("Admin customer lookup threw:", e);
+        }
+      }
+      return sendSuccess(
+        { activated: true, email, firstName },
+        "Account has been activated successfully"
+      );
     }
 
     const responseText = await activateResponse.text();

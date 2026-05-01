@@ -15,6 +15,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
+import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 
 type FormState =
   | "form"
@@ -40,12 +41,18 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
   const { apiCall } = useApiClient();
   const [customer, setCustomer] = useAtom(customerAtom);
 
-  // Valid if either the full reset URL is present, or both legacy params.
-  const hasParams = !!resetUrl || (!!token && !!customerId);
+  // Valid if either a trusted full reset URL is present, or both legacy params.
+  // Reject reset_url values that don't point at one of our known Shopify hosts —
+  // prevents the iframe from POSTing the user's new password to an attacker-
+  // controlled origin if the link was tampered with.
+  const resetUrlIsTrusted = !resetUrl || isTrustedShopifyUrl(resetUrl);
+  const safeResetUrl = resetUrlIsTrusted ? resetUrl : null;
+  const hasParams = !!safeResetUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    hasParams ? "form" : "missing-params"
+    !resetUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
+  
   const [resetCustomer, setResetCustomer] = useState<{
     firstName: string | null;
     email: string | null;
@@ -100,8 +107,8 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          resetUrl
-            ? { resetUrl, password: data.password }
+          safeResetUrl
+            ? { resetUrl: safeResetUrl, password: data.password }
             : { customerId, token, password: data.password }
         ),
       }
@@ -212,6 +219,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     }
   }, [isInIframe, closeIframe]);
 
+  // Sends the user back to the sign-in screen where the "Forgot password?"
+  // flow lives. Works identically inside the iframe and standalone — the
+  // /login route is the canonical entry point for requesting a fresh link.
+  const handleRequestNewLink = useCallback(() => {
+    window.location.assign("/login?forgot=1");
+  }, []);
+
+
   // Signing-in state (auto-login in progress after reset)
   if (formState === "signing-in") {
     return (
@@ -308,16 +323,24 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
             This password reset link has expired. Please request a new one from the login page.
           </FadeText>
         </div>
-        <Button
-          onClick={handleClose}
-          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
-        >
-          {isInIframe ? "Close" : "Go to Login"}
-        </Button>
+        <div className="w-full space-y-2">
+          <Button
+            onClick={handleRequestNewLink}
+            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+          >
+            Request a new link
+          </Button>
+          <Button
+            onClick={handleClose}
+            variant="ghost"
+            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
+          >
+            {isInIframe ? "Close" : "Back to store"}
+          </Button>
+        </div>
       </div>
     );
   }
-
   // Invalid / already used state
   if (formState === "invalid") {
     return (
@@ -330,15 +353,24 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
             Invalid Link
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            This reset link is invalid or has already been used. Please request a new password reset from the login page.
+            This reset link is invalid or has already been used. Please request a new password reset.
           </FadeText>
         </div>
-        <Button
-          onClick={handleClose}
-          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
-        >
-          {isInIframe ? "Close" : "Go to Login"}
-        </Button>
+        <div className="w-full space-y-2">
+          <Button
+            onClick={handleRequestNewLink}
+            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+          >
+            Request a new link
+          </Button>
+          <Button
+            onClick={handleClose}
+            variant="ghost"
+            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
+          >
+            {isInIframe ? "Close" : "Back to store"}
+          </Button>
+        </div>
       </div>
     );
   }
