@@ -13,6 +13,7 @@ export function ActivateAccountPage() {
 
   const token = searchParams.get("token");
   const customerId = searchParams.get("customer_id");
+  const activationUrl = searchParams.get("activation_url");
 
   useEffect(() => {
     setMode("signin");
@@ -25,7 +26,7 @@ export function ActivateAccountPage() {
     }
   }, [customer.isLoggedIn, navigate]);
 
-  return <ActivateAccountForm token={token} customerId={customerId} />;
+  return <ActivateAccountForm token={token} customerId={customerId} activationUrl={activationUrl} />;
 }
 
 export default ActivateAccountPage;
