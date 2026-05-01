@@ -36,6 +36,7 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
+  const [, setCustomer] = useAtom(customerAtom);
 
   const [formState, setFormState] = useState<FormState>(
     !token || !customerId ? "missing-params" : "form"
@@ -45,6 +46,15 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     firstName: string | null;
     email: string | null;
   }>({ firstName: null, email: null });
+  const successRedirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successRedirectTimer.current) {
+        clearTimeout(successRedirectTimer.current);
+      }
+    };
+  }, []);
 
   const {
     register,
