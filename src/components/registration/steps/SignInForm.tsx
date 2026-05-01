@@ -53,6 +53,7 @@ type UseSignInFormReturn = {
   goToApply: () => void;
   precheckEmailExists: (email: string) => void;
   isPrecheckingEmail: boolean;
+  hasAttemptedSubmit: boolean;
 };
 
 type SignInFormProps = {
@@ -67,6 +68,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorState>(null);
   const [forgotPasswordError, setForgotPasswordError] = useState<LoginErrorState>(null);
+  // Tracks whether the user has actually clicked Log In since the last edit.
+  // Drives the destructive button state — we only want to show "Login failed"
+  // styling after a real submission attempt, not from background prechecks.
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   const { register, watch, setValue, formState, handleSubmit, setError, clearErrors, subscribe } =
     useForm<z.Infer<typeof loginSchema>>({
@@ -229,6 +234,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           clearErrors("root.form");
         }
 
+        // Any field edit clears the post-submit failed state so the button
+        // reverts to its neutral look.
+        setHasAttemptedSubmit(false);
+
         const nextEmail = (values?.email || "").trim().toLowerCase();
         if (nextEmail !== lastClearedEmailRef.current) {
           lastClearedEmailRef.current = nextEmail;
@@ -279,6 +288,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       // Reset prior structured errors
       setLoginError(null);
       setForgotPasswordError(null);
+      setHasAttemptedSubmit(true);
 
       if (data.formType === "login") {
         // Persist or clear remembered email based on checkbox
@@ -440,6 +450,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     goToApply,
     precheckEmailExists,
     isPrecheckingEmail,
+    hasAttemptedSubmit,
   };
 }
 
@@ -463,6 +474,7 @@ export const SignInForm = () => {
     switchToForgotPassword,
     goToApply,
     precheckEmailExists,
+    hasAttemptedSubmit,
   } = useSignInForm({
     initialEmail: email,
   });
@@ -751,7 +763,7 @@ export const SignInForm = () => {
           className={`w-full h-button rounded-full font-medium text-base py-3 transition-colors ${
             isLoginSuccessful
               ? "bg-success text-success-foreground hover:bg-success/90 disabled:opacity-100"
-              : loginError
+              : hasAttemptedSubmit && loginError
                 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 : "bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
           }`}
@@ -765,7 +777,7 @@ export const SignInForm = () => {
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             </>
-          ) : loginError ? (
+          ) : hasAttemptedSubmit && loginError ? (
             <>
               <AlertCircle className="w-4 h-4 mr-2" />
               Login failed
