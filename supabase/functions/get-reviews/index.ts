@@ -141,7 +141,7 @@ Deno.serve(async (req: Request) => {
     // so we can tell whether the key is invalid vs missing the Reviews scope.
     if (url.searchParams.get("probe") === "raw") {
       const r = await fetch(
-        `${KLAVIYO_BASE}?page[size]=5&sort=-created`,
+        `${KLAVIYO_BASE}?page[size]=5&sort=-created&include=item`,
         {
           headers: {
             Authorization: `Klaviyo-API-Key ${apiKey}`,
