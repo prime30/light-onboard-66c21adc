@@ -83,6 +83,26 @@ export const SuccessForm = () => {
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [atcState, dispatch] = useReducer(atcReducer, initialAtcState);
 
+  // Mark that the user is on the welcome-offer/success screen so that any
+  // late-arriving CUSTOMER_DATA (isLoggedIn=true) from the parent — which
+  // happens a few seconds after auto-approval activates the Shopify customer
+  // — does NOT navigate the user away to the "already logged in" page. They
+  // should be free to stay on this screen as long as they want.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("dde_on_success_screen", "1");
+    } catch {
+      // ignore storage failures
+    }
+    return () => {
+      try {
+        sessionStorage.removeItem("dde_on_success_screen");
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
   const colorRingVariantId = useMemo(() => {
     const parsed = Number(import.meta.env.VITE_COLOR_RING_VARIANT_ID ?? "");
     if (!Number.isFinite(parsed) || parsed <= 0) return null;
