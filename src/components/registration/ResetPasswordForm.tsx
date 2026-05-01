@@ -1,19 +1,31 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
+import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "./FadeText";
 import { TextInput } from "@/components/TextInput";
 import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
+import { customerAtom } from "@/contexts/store";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
 
-type FormState = "form" | "success" | "expired" | "invalid" | "missing-params" | "error" | "rate-limited";
+const STOREFRONT_TOKEN_KEY = "shopify_customer_access_token";
+
+type FormState =
+  | "form"
+  | "signing-in"
+  | "success"
+  | "expired"
+  | "invalid"
+  | "missing-params"
+  | "error"
+  | "rate-limited";
 
 interface ResetPasswordFormProps {
   token: string | null;
