@@ -114,6 +114,25 @@ const contactBasicsValidators = {
 };
 export const contactBasicsSchema = z.object(contactBasicsValidators);
 
+// Create-Password Schema (dedicated step right after Contact Basics).
+// Password lets us auto-log the user into Shopify on submit success
+// (via the Storefront API customer-login flow), instead of relying on the
+// Shopify activation-email round-trip.
+const createPasswordValidators = {
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be less than 72 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+};
+export const createPasswordSchema = z
+  .object(createPasswordValidators)
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+export type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
+
 // Business Location Schema
 const businessLocationValidators = {
   businessName: z
