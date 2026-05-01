@@ -194,6 +194,19 @@ const Reviews = () => {
                     <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
                   )}
                   <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
+                  {review.images.length > 1 && (
+                    <div className="mt-3 flex gap-2 flex-wrap">
+                      {review.images.slice(1, 5).map((src, i) => (
+                        <img
+                          key={i}
+                          src={src}
+                          alt=""
+                          loading="lazy"
+                          className="w-16 h-16 rounded-lg object-cover bg-muted"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
