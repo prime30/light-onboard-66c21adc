@@ -81,19 +81,27 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { token, password } = parsed.data;
+  const { activationUrl: providedUrl, customerId, token, password } = parsed.data;
+
+  // Determine the activation endpoint. Shopify's invite email exposes
+  // `customer.account_activation_url`, shaped:
+  //   https://{store}/account/activate/{customerId}/{token}
+  // We POST to that exact path (Shopify accepts form-encoded credentials).
+  let activateUrl: string;
+  if (providedUrl) {
+    activateUrl = providedUrl;
+  } else {
+    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    activateUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/activate/${numericId}/${token}`;
+  }
 
   try {
-    // Use Shopify's account activation endpoint
-    const activateUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/activate`;
-
     const activateResponse = await fetch(activateUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        "customer[activation_token]": token,
         "customer[password]": password,
         "customer[password_confirmation]": password,
       }).toString(),
