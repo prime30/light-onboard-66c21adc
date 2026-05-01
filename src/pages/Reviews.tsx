@@ -167,11 +167,7 @@ const Reviews = () => {
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="flex items-start gap-4">
-                <img
-                  src={review.avatar}
-                  alt={review.authorName}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                <ReviewAvatar review={review} className="w-10 h-10 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
