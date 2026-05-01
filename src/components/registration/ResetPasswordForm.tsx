@@ -32,11 +32,13 @@ interface ResetPasswordFormProps {
   customerId: string | null;
 }
 
+type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
+
 export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps) {
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [, setCustomer] = useAtom(customerAtom);
+  const [customer, setCustomer] = useAtom(customerAtom);
 
   const [formState, setFormState] = useState<FormState>(
     !token || !customerId ? "missing-params" : "form"
@@ -46,12 +48,28 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     firstName: string | null;
     email: string | null;
   }>({ firstName: null, email: null });
-  const successRedirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeWatchActive = useRef(false);
+
+  // Iframe auto-login: when we're waiting for the parent theme to confirm
+  // sign-in via CUSTOMER_DATA (which flips customerAtom.isLoggedIn), react
+  // to that flip; otherwise fail open after 3s.
+  useEffect(() => {
+    if (!iframeWatchActive.current) return;
+    if (formState !== "signing-in") return;
+    if (customer.isLoggedIn) {
+      iframeWatchActive.current = false;
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+      setAutoLoginStatus("succeeded");
+      setFormState("success");
+    }
+  }, [customer.isLoggedIn, formState]);
 
   useEffect(() => {
     return () => {
-      if (successRedirectTimer.current) {
-        clearTimeout(successRedirectTimer.current);
+      if (iframeTimeoutRef.current) {
+        clearTimeout(iframeTimeoutRef.current);
       }
     };
   }, []);
@@ -98,23 +116,36 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
         email: customerEmail,
       });
 
-      // Auto-login: use the password the user just set.
+      // Defensive: skip auto-login entirely if Shopify omitted the email
+      // (shouldn't happen with the current selection set, but the field
+      // is nullable in the schema). Show success straight away.
+      if (!customerEmail) {
+        setAutoLoginStatus("failed");
+        setFormState("success");
+        return;
+      }
+
+      setAutoLoginStatus("idle");
       setFormState("signing-in");
 
       if (isInIframe) {
-        // Iframe: parent Shopify theme handles the storefront session via
-        // the existing USER_LOGIN postMessage flow. We optimistically flip
-        // to success after a short window; CUSTOMER_DATA from the parent
-        // will mark the user logged-in.
+        // Iframe: parent Shopify theme owns the storefront session. Post
+        // USER_LOGIN, then wait for CUSTOMER_DATA (which flips
+        // customerAtom.isLoggedIn). If no confirmation in 3s, fall through
+        // to success with a "couldn't auto-sign-in" inline note.
+        iframeWatchActive.current = true;
         sendMessage("USER_LOGIN", {
-          email: customerEmail ?? "",
+          email: customerEmail,
           password: data.password,
         });
-        successRedirectTimer.current = setTimeout(() => {
+        iframeTimeoutRef.current = setTimeout(() => {
+          if (!iframeWatchActive.current) return;
+          iframeWatchActive.current = false;
+          setAutoLoginStatus("failed");
           setFormState("success");
-        }, 1200);
+        }, 3000);
       } else {
-        // Standalone: get a Storefront access token and persist it.
+        // Standalone: exchange credentials for a Storefront access token.
         const loginResult = await apiCall<{
           accessToken: string;
           expiresAt: string;
@@ -137,12 +168,16 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
               })
             );
           } catch {
-            // localStorage unavailable — fall through; success screen still works
+            // localStorage unavailable — session-only login is still useful.
           }
           setCustomer({ isLoggedIn: true });
+          setAutoLoginStatus("succeeded");
+        } else {
+          const failed = loginResult as { statusCode?: number };
+          setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
         }
-        // Whether or not auto-login succeeded, show success — the password
-        // is reset and the user can manually log in if needed.
+        // Always reach the success screen — password IS reset; the inline
+        // note explains the auto-login outcome if it didn't take.
         setFormState("success");
       }
     } else {
@@ -195,6 +230,31 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
 
   // Success state
   if (formState === "success") {
+    const autoLoginNote =
+      autoLoginStatus === "rate_limited"
+        ? "Too many sign-in attempts — please log in manually in a moment."
+        : autoLoginStatus === "failed"
+          ? "Couldn't sign you in automatically — please log in with your new password."
+          : null;
+
+    const ctaLabel = isInIframe
+      ? "Close"
+      : autoLoginStatus === "succeeded"
+        ? "Continue to store"
+        : "Go to login";
+
+    const handleSuccessCta = () => {
+      if (isInIframe) {
+        closeIframe();
+        return;
+      }
+      if (autoLoginStatus === "succeeded") {
+        window.location.href = "/";
+      } else {
+        window.location.href = "/login";
+      }
+    };
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
         <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center">
@@ -207,19 +267,24 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
               : "Password reset"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your password has been changed successfully. You can now log in
-            {resetCustomer.email ? (
-              <> with <span className="text-foreground/80">{resetCustomer.email}</span>.</>
+            Your password has been changed successfully.
+            {autoLoginStatus === "succeeded" ? (
+              <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
             ) : (
-              <> with your new password.</>
+              <> You can now log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : <> with your new password</>}.</>
             )}
           </FadeText>
+          {autoLoginNote && (
+            <FadeText as="p" className="text-xs text-muted-foreground/60 leading-relaxed pt-1">
+              {autoLoginNote}
+            </FadeText>
+          )}
         </div>
         <Button
-          onClick={handleClose}
+          onClick={handleSuccessCta}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
         >
-          {isInIframe ? "Close" : "Go to Store"}
+          {ctaLabel}
         </Button>
       </div>
     );
