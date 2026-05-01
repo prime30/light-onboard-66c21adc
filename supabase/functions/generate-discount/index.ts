@@ -235,15 +235,25 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // Optional email — used to write customer metafields for cross-device marquee.
+  // Optional email + shopifyCustomerId — used to write customer metafields
+  // for cross-device marquee. shopifyCustomerId (numeric) is preferred since
+  // it skips the email-based customer lookup (which can race against
+  // Shopify's search index for brand-new customers).
   let email = "";
+  let shopifyCustomerId: number | null = null;
   try {
     const body = await req.json().catch(() => ({}));
     if (typeof body?.email === "string") {
       email = body.email.trim().toLowerCase();
     }
+    if (typeof body?.shopifyCustomerId === "number" && Number.isFinite(body.shopifyCustomerId)) {
+      shopifyCustomerId = body.shopifyCustomerId;
+    } else if (typeof body?.shopifyCustomerId === "string") {
+      const parsed = Number(body.shopifyCustomerId);
+      if (Number.isFinite(parsed)) shopifyCustomerId = parsed;
+    }
   } catch {
-    // No body / invalid JSON is fine; email is optional.
+    // No body / invalid JSON is fine; both fields are optional.
   }
 
   try {
