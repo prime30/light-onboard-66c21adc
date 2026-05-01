@@ -36,11 +36,21 @@ function sendSuccess<T>(data: T, message?: string) {
   );
 }
 
-const bodySchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-  token: z.string().min(1, "Token is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+// Accept either:
+//   - activationUrl: full Shopify activation URL (preferred — matches
+//     `customer.account_activation_url` in the invite email Liquid)
+//   - customerId + token: legacy shape, reconstructed below
+const bodySchema = z
+  .object({
+    activationUrl: z.string().url().optional(),
+    customerId: z.string().min(1).optional(),
+    token: z.string().min(1).optional(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+  })
+  .refine(
+    (v) => !!v.activationUrl || (!!v.customerId && !!v.token),
+    { message: "activationUrl or (customerId and token) is required" }
+  );
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -71,19 +81,27 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { token, password } = parsed.data;
+  const { activationUrl: providedUrl, customerId, token, password } = parsed.data;
+
+  // Determine the activation endpoint. Shopify's invite email exposes
+  // `customer.account_activation_url`, shaped:
+  //   https://{store}/account/activate/{customerId}/{token}
+  // We POST to that exact path (Shopify accepts form-encoded credentials).
+  let activateUrl: string;
+  if (providedUrl) {
+    activateUrl = providedUrl;
+  } else {
+    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    activateUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/activate/${numericId}/${token}`;
+  }
 
   try {
-    // Use Shopify's account activation endpoint
-    const activateUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/activate`;
-
     const activateResponse = await fetch(activateUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        "customer[activation_token]": token,
         "customer[password]": password,
         "customer[password_confirmation]": password,
       }).toString(),

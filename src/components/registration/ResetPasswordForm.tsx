@@ -29,18 +29,21 @@ type FormState =
 interface ResetPasswordFormProps {
   token: string | null;
   customerId: string | null;
+  resetUrl?: string | null;
 }
 
 type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
 
-export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPasswordFormProps) {
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
   const [customer, setCustomer] = useAtom(customerAtom);
 
+  // Valid if either the full reset URL is present, or both legacy params.
+  const hasParams = !!resetUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    !token || !customerId ? "missing-params" : "form"
+    hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
   const [resetCustomer, setResetCustomer] = useState<{
@@ -96,11 +99,11 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          token,
-          password: data.password,
-        }),
+        body: JSON.stringify(
+          resetUrl
+            ? { resetUrl, password: data.password }
+            : { customerId, token, password: data.password }
+        ),
       }
     );
 

@@ -37,11 +37,20 @@ function sendSuccess<T>(data: T, message?: string) {
   );
 }
 
-const bodySchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-  token: z.string().min(1, "Token is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+// Accept either:
+//   - resetUrl: full Shopify reset URL (preferred — matches `customer.reset_password_url`)
+//   - customerId + token: legacy shape, reconstructed below
+const bodySchema = z
+  .object({
+    resetUrl: z.string().url().optional(),
+    customerId: z.string().min(1).optional(),
+    token: z.string().min(1).optional(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+  })
+  .refine(
+    (v) => !!v.resetUrl || (!!v.customerId && !!v.token),
+    { message: "resetUrl or (customerId and token) is required" }
+  );
 
 const STOREFRONT_API_VERSION = "2024-10";
 
@@ -88,15 +97,17 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { customerId, token, password } = parsed.data;
+  const { resetUrl: providedResetUrl, customerId, token, password } = parsed.data;
 
-  // Reconstruct the Shopify reset URL. Storefront API requires the same URL
-  // shape Shopify emits in its password-reset email:
-  //   https://{store}/account/reset/{customerId}/{token}
-  // customerId may already be a numeric ID or a full GID; Storefront expects
-  // the numeric ID portion in the URL.
-  const numericId = customerId.includes("/") ? customerId.split("/").pop() : customerId;
-  const resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
+  // Prefer the URL Shopify gave us verbatim (via `customer.reset_password_url`
+  // in the email Liquid). Fall back to reconstructing for legacy callers.
+  let resetUrl: string;
+  if (providedResetUrl) {
+    resetUrl = providedResetUrl;
+  } else {
+    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
+  }
 
   try {
     const response = await fetch(
