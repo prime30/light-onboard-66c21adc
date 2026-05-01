@@ -177,11 +177,54 @@ Deno.serve(async (req) => {
       ], "Reset failed");
     }
 
+    let email: string | null = result.customer.email ?? null;
+    let firstName: string | null = result.customer.firstName ?? null;
+
+    // Storefront API quirk: customerResetByUrl can return a customer with
+    // email/firstName as null for legacy accounts and certain access scopes.
+    // Without an email the SPA can't auto-sign-in (it bails before sending
+    // USER_LOGIN to the parent storefront and the user has to log in again
+    // manually). Best-effort Admin API lookup mirrors what activate-account
+    // already does — fail-open, the reset itself already succeeded.
+    if (!email) {
+      const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      if (adminToken) {
+        const gid: string = result.customer.id || "";
+        const numericId = gid.includes("/") ? gid.split("/").pop() : gid;
+        if (numericId) {
+          try {
+            const adminRes = await fetch(
+              `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${numericId}.json`,
+              {
+                headers: {
+                  "X-Shopify-Access-Token": adminToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            if (adminRes.ok) {
+              const j = await adminRes.json();
+              email = email || j?.customer?.email || null;
+              firstName = firstName || j?.customer?.first_name || null;
+            } else {
+              console.warn("Admin customer lookup failed:", adminRes.status);
+            }
+          } catch (e) {
+            console.warn("Admin customer lookup threw:", e);
+          }
+        }
+      } else {
+        console.warn(
+          "Admin access token unset — cannot recover customer email; auto-sign-in will be skipped on the client."
+        );
+      }
+    }
+
     return sendSuccess(
       {
         reset: true,
-        email: result.customer.email ?? null,
-        firstName: result.customer.firstName ?? null,
+        email,
+        firstName,
         accessToken: result.customerAccessToken?.accessToken ?? null,
         expiresAt: result.customerAccessToken?.expiresAt ?? null,
       },
