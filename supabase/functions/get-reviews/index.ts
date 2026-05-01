@@ -90,10 +90,12 @@ Deno.serve(async (req: Request) => {
     // Server-side filter: rating == 5. Klaviyo's filter grammar uses equals(),
     // greater-or-equal() on `rating` is not supported and returns 500.
     // Sort newest first.
+    // NOTE: Klaviyo's Reviews API returns a generic 500 when given certain
+    // filter combinations (e.g. equals(rating,5)). We sort newest-first and
+    // filter rating/published/content client-side in normalize() instead.
     const params = new URLSearchParams();
-    params.set("filter", "equals(rating,5)");
     params.set("sort", "-created");
-    params.set("page[size]", String(Math.min(limit, 100)));
+    params.set("page[size]", String(Math.min(Math.max(limit * 4, 20), 100)));
 
     const klaviyoUrl = `${KLAVIYO_BASE}?${params.toString()}`;
 
