@@ -8,6 +8,17 @@ import { customerAtom } from "@/contexts/store";
 import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
 import { StepContext } from "./context/StepContext";
+import { useAutoApproval } from "@/lib/app-settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function CloseButton() {
   const navigate = useNavigate();
@@ -21,8 +32,16 @@ export function CloseButton() {
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { closeIframe, isInIframe } = useCloseIframe();
   const [customer] = useAtom(customerAtom);
+  const { enabled: autoApprove } = useAutoApproval();
+
+  // On the late create-password step (auto-approval flow), the user has
+  // already "approved" their application. Closing here would discard a
+  // ready-to-shop account, so we soft-confirm before letting them out.
+  const needsCloseConfirm =
+    autoApprove && currentStep === "create-password" && !customer?.isLoggedIn;
 
   const handleCloseModal = useCallback(() => {
     const close = () => {
