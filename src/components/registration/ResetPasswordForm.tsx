@@ -52,7 +52,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     !resetUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
-  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  
   const [resetCustomer, setResetCustomer] = useState<{
     firstName: string | null;
     email: string | null;
