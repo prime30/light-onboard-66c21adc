@@ -21,6 +21,10 @@ import { useAtom } from "jotai/react";
 import z from "zod";
 import { useApiClient } from "@/hooks/use-api-client";
 import { readHoneypotValue, readFormStartedAt } from "@/components/registration/HoneypotField";
+import { useAtom as useJotaiAtom } from "jotai/react";
+import { customerAtom } from "@/contexts/store";
+import { saveStoredSession } from "@/lib/standalone-session";
+import { useGlobalApp } from "@/contexts";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
