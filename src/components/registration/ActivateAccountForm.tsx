@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight, UserCheck } from "lucide-react";
@@ -42,7 +42,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [customer, setCustomer] = useAtom(customerAtom);
+  const [, setCustomer] = useAtom(customerAtom);
 
   // Reject activation URLs that don't point to a trusted Shopify host —
   // mirrors the reset flow's URL-origin guard.

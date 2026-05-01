@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
@@ -40,7 +40,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [customer, setCustomer] = useAtom(customerAtom);
+  const [, setCustomer] = useAtom(customerAtom);
 
   // Valid if either a trusted full reset URL is present, or both legacy params.
   // Reject reset_url values that don't point at one of our known Shopify hosts —
