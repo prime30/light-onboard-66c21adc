@@ -15,6 +15,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
+import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 
 type FormState =
   | "form"
@@ -40,12 +41,18 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
   const { apiCall } = useApiClient();
   const [customer, setCustomer] = useAtom(customerAtom);
 
-  // Valid if either the full reset URL is present, or both legacy params.
-  const hasParams = !!resetUrl || (!!token && !!customerId);
+  // Valid if either a trusted full reset URL is present, or both legacy params.
+  // Reject reset_url values that don't point at one of our known Shopify hosts —
+  // prevents the iframe from POSTing the user's new password to an attacker-
+  // controlled origin if the link was tampered with.
+  const resetUrlIsTrusted = !resetUrl || isTrustedShopifyUrl(resetUrl);
+  const safeResetUrl = resetUrlIsTrusted ? resetUrl : null;
+  const hasParams = !!safeResetUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    hasParams ? "form" : "missing-params"
+    !resetUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [resetCustomer, setResetCustomer] = useState<{
     firstName: string | null;
     email: string | null;
