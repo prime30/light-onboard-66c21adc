@@ -612,39 +612,53 @@ Deno.serve(async (req: Request) => {
       accountTypeTags.push(`Account type: ${label}`);
     }
 
+    const taxExemptFlag = customer.tax_exempt === true;
+    if (taxExemptFlag) {
+      accountTypeTags.push("Tax exempt");
+    }
+
     const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
 
-    if (shopifyCustomerId && newTags.length > 0) {
+    const needsShopifyUpdate = !!shopifyCustomerId && (newTags.length > 0 || taxExemptFlag);
+
+    if (needsShopifyUpdate) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
       const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (shopifyDomain && shopifyAdminToken) {
         try {
           // Fetch existing tags to merge
-          const getRes = await fetch(
-            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
-            {
-              method: "GET",
-              headers: {
-                "X-Shopify-Access-Token": shopifyAdminToken,
-                "Content-Type": "application/json",
-              },
-            }
-          );
           let existingTags: string[] = [];
-          if (getRes.ok) {
-            const existing = await getRes.json();
-            const tagStr: string = existing?.customer?.tags ?? "";
-            existingTags = tagStr
-              .split(",")
-              .map((t: string) => t.trim())
-              .filter(Boolean);
-          } else {
-            console.warn("Could not fetch existing Shopify tags:", getRes.status);
+          if (newTags.length > 0) {
+            const getRes = await fetch(
+              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+              {
+                method: "GET",
+                headers: {
+                  "X-Shopify-Access-Token": shopifyAdminToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            if (getRes.ok) {
+              const existing = await getRes.json();
+              const tagStr: string = existing?.customer?.tags ?? "";
+              existingTags = tagStr
+                .split(",")
+                .map((t: string) => t.trim())
+                .filter(Boolean);
+            } else {
+              console.warn("Could not fetch existing Shopify tags:", getRes.status);
+            }
           }
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
-          const tagRes = await fetch(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const customerUpdate: Record<string, any> = { id: shopifyCustomerId };
+          if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
+          if (taxExemptFlag) customerUpdate.tax_exempt = true;
+
+          const updRes = await fetch(
             `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
             {
               method: "PUT",
@@ -652,26 +666,24 @@ Deno.serve(async (req: Request) => {
                 "X-Shopify-Access-Token": shopifyAdminToken,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                customer: {
-                  id: shopifyCustomerId,
-                  tags: mergedTags.join(", "),
-                },
-              }),
+              body: JSON.stringify({ customer: customerUpdate }),
             }
           );
 
-          if (!tagRes.ok) {
-            const errText = await tagRes.text();
-            console.warn("Failed to tag Shopify customer:", tagRes.status, errText);
+          if (!updRes.ok) {
+            const errText = await updRes.text();
+            console.warn("Failed to update Shopify customer:", updRes.status, errText);
           } else {
-            console.log("Tagged Shopify customer with:", newTags);
+            console.log("Updated Shopify customer:", {
+              tags: newTags,
+              taxExempt: taxExemptFlag,
+            });
           }
-        } catch (tagErr) {
-          console.warn("Error tagging Shopify customer (non-blocking):", tagErr);
+        } catch (updErr) {
+          console.warn("Error updating Shopify customer (non-blocking):", updErr);
         }
       } else {
-        console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping tagging");
+        console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
     }
 
