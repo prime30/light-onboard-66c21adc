@@ -144,6 +144,17 @@ Deno.serve(async (req) => {
             const j = await adminRes.json();
             email = j?.customer?.email ?? null;
             firstName = j?.customer?.first_name ?? null;
+            // Visibility: activate-account has no Storefront token to lean on
+            // (Shopify's activation endpoint returns a 302 with no body), so
+            // the Admin API is the sole source for email/firstName here.
+            // Logged at warn so frequency of this fallback is filterable in
+            // edge function logs alongside reset-password's same-named warn.
+            if (email) {
+              console.warn(
+                "[activate-account] Email recovered via Admin API (sole source after activation 302) for customer",
+                derivedCustomerId
+              );
+            }
           } else {
             console.warn("Admin customer lookup failed:", adminRes.status);
           }
