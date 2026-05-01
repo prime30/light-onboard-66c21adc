@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
+import { useLocation, useNavigate } from "react-router";
 import { customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
 import {
@@ -9,6 +10,10 @@ import {
   StoredSession,
 } from "@/lib/standalone-session";
 
+// Routes where we should bounce a standalone-logged-in customer to the
+// "already logged in" screen, mirroring the iframe behavior in messages.ts.
+const REDIRECT_FROM_ROUTES = new Set(["/auth", "/login", "/reset-password", "/activate-account"]);
+
 /**
  * Hydrates `customerAtom` from localStorage on boot (standalone mode only)
  * and exposes helpers to update / clear that session. Iframe mode is owned
@@ -17,6 +22,8 @@ import {
 export function useStandaloneSession() {
   const { isInIframe } = useGlobalApp();
   const [customer, setCustomer] = useAtom(customerAtom);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Boot hydration: read once, write to atom.
   useEffect(() => {
