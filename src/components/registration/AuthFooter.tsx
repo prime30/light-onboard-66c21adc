@@ -6,6 +6,7 @@ import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
+import { useAutoApproval } from "@/lib/app-settings";
 
 interface AuthFooterProps {
   mode: AuthMode;
