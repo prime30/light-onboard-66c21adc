@@ -43,15 +43,6 @@ export function CloseButton() {
   const needsCloseConfirm =
     autoApprove && currentStep === "create-password" && !customer?.isLoggedIn;
 
-  const requestClose = useCallback(() => {
-    if (needsCloseConfirm) {
-      setConfirmOpen(true);
-      return;
-    }
-    handleCloseModal();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsCloseConfirm]);
-
   const handleCloseModal = useCallback(() => {
     const close = () => {
       if (isInIframe) {
@@ -100,6 +91,14 @@ export function CloseButton() {
       close();
     }
   }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
+
+  const requestClose = useCallback(() => {
+    if (needsCloseConfirm) {
+      setConfirmOpen(true);
+      return;
+    }
+    handleCloseModal();
+  }, [needsCloseConfirm, handleCloseModal]);
 
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
