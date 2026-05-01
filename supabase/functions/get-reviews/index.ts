@@ -20,6 +20,9 @@ type NormalizedReview = {
   authorName: string;
   authorEmail: string | null;
   productName: string | null;
+  productUrl: string | null;
+  productImage: string | null;
+  images: string[];
   createdAt: string | null;
   verified: boolean;
 };
@@ -31,12 +34,17 @@ type KlaviyoReviewAttrs = {
   content?: string | null;
   author?: string | null;
   email?: string | null;
-  product?: { name?: string | null } | null;
+  product?: {
+    name?: string | null;
+    url?: string | null;
+    image_url?: string | null;
+  } | null;
   created?: string | null;
   verified?: boolean | null;
   status?: KlaviyoStatus;
   public?: boolean | null;
   review_type?: string | null;
+  images?: string[] | null;
 };
 
 type KlaviyoReview = {
@@ -48,6 +56,17 @@ type KlaviyoListResponse = {
   data?: KlaviyoReview[];
   links?: { next?: string | null };
 };
+
+// Klaviyo stores customer-uploaded review photos as relative paths like
+// "UWtf4y/<uuid>.jpeg?updated_at=...". Their public widget serves them from
+// this CDN host. Absolute URLs are passed through unchanged.
+const KLAVIYO_REVIEW_IMAGE_CDN = "https://reviews-images.klaviyo.com/";
+
+function resolveImage(raw: string): string {
+  if (!raw) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return KLAVIYO_REVIEW_IMAGE_CDN + raw.replace(/^\/+/, "");
+}
 
 function normalize(r: KlaviyoReview): NormalizedReview | null {
   const a = r.attributes ?? {};
@@ -61,6 +80,12 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     typeof a.status === "string" ? a.status : a.status?.value ?? null;
   if (statusValue && statusValue.toLowerCase() !== "published") return null;
 
+  const images = Array.isArray(a.images)
+    ? a.images
+        .filter((s): s is string => typeof s === "string" && s.length > 0)
+        .map(resolveImage)
+    : [];
+
   return {
     id: r.id,
     rating: a.rating ?? 5,
@@ -69,6 +94,9 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     authorName: a.author ?? "Verified stylist",
     authorEmail: a.email ?? null,
     productName: a.product?.name ?? null,
+    productUrl: a.product?.url ?? null,
+    productImage: a.product?.image_url ?? null,
+    images,
     createdAt: a.created ?? null,
     verified: !!a.verified,
   };
