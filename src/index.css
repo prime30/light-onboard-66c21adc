@@ -483,30 +483,16 @@
     animation: shakeSubtle 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
   }
 
-  /* Red flash highlight for missing/invalid fields. Pairs with .shake-subtle
-     when the user clicks a blocked Continue button. Animates a red ring +
-     background tint that fades back to neutral so the field is unmistakable. */
-  .field-flash-error {
-    animation: fieldFlashError 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 15px;
-  }
-  @keyframes fieldFlashError {
-    0% {
-      box-shadow: 0 0 0 0 hsl(var(--destructive) / 0);
-      background-color: hsl(var(--destructive) / 0);
-    }
-    15% {
-      box-shadow: 0 0 0 4px hsl(var(--destructive) / 0.35);
-      background-color: hsl(var(--destructive) / 0.12);
-    }
-    100% {
-      box-shadow: 0 0 0 0 hsl(var(--destructive) / 0);
-      background-color: hsl(var(--destructive) / 0);
-    }
-  }
-  .field-flash-error :is(input, select, textarea, [role="radio"], [role="checkbox"], button) {
+  /* Red border highlight for missing/invalid fields. The actual flash
+     (box-shadow + background tint) is driven via Web Animations API in
+     AuthFooter so we don't override the wrapper's CSS `animation` shorthand
+     (which would clobber `.animate-stagger-N` and cause fields to snap back
+     to their declared `opacity: 0` ground state). */
+  .field-flash-border :is(input, select, textarea, [role="radio"], [role="checkbox"], button) {
     border-color: hsl(var(--destructive)) !important;
+    transition: border-color 0.2s ease-out;
   }
+
 
   /* Floating label effect */
   .floating-label {
