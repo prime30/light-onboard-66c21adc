@@ -4,46 +4,40 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useReviews, type Review } from "@/hooks/use-reviews";
 
-/** Pick the most "real" image we have for a review. */
-function reviewImage(r: Review): string | null {
-  return r.images[0] ?? r.productImage ?? null;
-}
+/** Small 2-col product chip: image + product name. Shown under review text. */
+const ProductChip = ({ review }: { review: Review }) => {
+  const src = review.productImage ?? review.images[0] ?? null;
+  const name = review.productName;
+  if (!src && !name) return null;
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
-}
-
-/** Avatar slot — customer photo > product image > initials placeholder. */
-const ReviewAvatar = ({
-  review,
-  className,
-}: {
-  review: Review;
-  className?: string;
-}) => {
-  const src = reviewImage(review);
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={review.productName ?? review.authorName}
-        loading="lazy"
-        className={cn("rounded-full object-cover bg-muted", className)}
-      />
-    );
-  }
-  return (
-    <div
-      className={cn(
-        "rounded-full bg-muted text-foreground/70 flex items-center justify-center text-xs font-medium uppercase",
-        className
+  const content = (
+    <div className="inline-flex items-center gap-2.5 rounded-[10px] border border-border bg-muted/40 pl-1.5 pr-3 py-1.5 transition-colors hover:bg-muted/70">
+      {src ? (
+        <img
+          src={src}
+          alt={name ?? ""}
+          loading="lazy"
+          className="w-9 h-9 rounded-[7px] object-cover bg-muted shrink-0"
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-[7px] bg-muted shrink-0" aria-hidden />
       )}
-      aria-hidden="true"
-    >
-      {initials(review.authorName)}
+      {name && (
+        <span className="text-xs font-medium text-foreground/80 leading-tight max-w-[180px] truncate">
+          {name}
+        </span>
+      )}
     </div>
   );
+
+  if (review.productUrl) {
+    return (
+      <a href={review.productUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+        {content}
+      </a>
+    );
+  }
+  return content;
 };
 
 
@@ -118,14 +112,12 @@ const Reviews = () => {
             <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground">
               "{featured.content}"
             </p>
-            <div className="flex items-center gap-3">
-              <ReviewAvatar review={featured} className="w-10 h-10" />
+            <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-sm">{featured.authorName}</h3>
-                <p className="text-muted-foreground text-xs">
-                  {featured.productName ? `Verified · ${featured.productName}` : "Verified stylist"}
-                </p>
+                <p className="text-muted-foreground text-xs">Verified stylist</p>
               </div>
+              <ProductChip review={featured} />
             </div>
           </div>
         )}
@@ -166,49 +158,45 @@ const Reviews = () => {
               className="group border border-border rounded-xl p-5 transition-all duration-200 hover:border-foreground/20 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex items-start gap-4">
-                <ReviewAvatar review={review} className="w-10 h-10 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div>
-                      <h3 className="font-semibold text-sm">{review.authorName}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {review.productName
-                          ? `Verified · ${review.productName}`
-                          : "Verified stylist"}
-                      </p>
-                    </div>
-                    <div className="flex gap-0.5 shrink-0">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-3 w-3",
-                            i < review.rating ? "fill-foreground text-foreground" : "text-muted"
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  {review.title && (
-                    <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
-                  )}
-                  <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
-                  {review.images.length > 1 && (
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      {review.images.slice(1, 5).map((src, i) => (
-                        <img
-                          key={i}
-                          src={src}
-                          alt=""
-                          loading="lazy"
-                          className="w-16 h-16 rounded-lg object-cover bg-muted"
-                        />
-                      ))}
-                    </div>
-                  )}
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <div>
+                  <h3 className="font-semibold text-sm">{review.authorName}</h3>
+                  <p className="text-xs text-muted-foreground">Verified stylist</p>
+                </div>
+                <div className="flex gap-0.5 shrink-0">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "h-3 w-3",
+                        i < review.rating ? "fill-foreground text-foreground" : "text-muted"
+                      )}
+                    />
+                  ))}
                 </div>
               </div>
+              {review.title && (
+                <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
+              )}
+              <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
+              {review.images.length > 0 && (
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  {review.images.slice(0, 4).map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      className="w-16 h-16 rounded-lg object-cover bg-muted"
+                    />
+                  ))}
+                </div>
+              )}
+              {(review.productImage || review.productName) && (
+                <div className="mt-4">
+                  <ProductChip review={review} />
+                </div>
+              )}
             </div>
           ))}
         </div>
