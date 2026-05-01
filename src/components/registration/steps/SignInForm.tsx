@@ -53,6 +53,7 @@ type UseSignInFormReturn = {
   goToApply: () => void;
   precheckEmailExists: (email: string) => void;
   isPrecheckingEmail: boolean;
+  hasAttemptedSubmit: boolean;
 };
 
 type SignInFormProps = {
@@ -449,6 +450,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     goToApply,
     precheckEmailExists,
     isPrecheckingEmail,
+    hasAttemptedSubmit,
   };
 }
 
@@ -472,6 +474,7 @@ export const SignInForm = () => {
     switchToForgotPassword,
     goToApply,
     precheckEmailExists,
+    hasAttemptedSubmit,
   } = useSignInForm({
     initialEmail: email,
   });
