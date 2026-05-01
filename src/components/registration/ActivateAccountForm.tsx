@@ -224,18 +224,22 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           ? "Couldn't sign you in automatically — please log in with your new password."
           : null;
 
-    const ctaLabel = isInIframe
-      ? "Close"
-      : autoLoginStatus === "succeeded"
-        ? "Continue to store"
-        : "Go to login";
+    const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"
+      ? "Go to login"
+      : isInIframe
+        ? "Close"
+        : "Continue to store";
 
     const handleSuccessCta = () => {
+      if (autoLoginStatus === "failed" || autoLoginStatus === "rate_limited") {
+        window.location.href = "/login";
+        return;
+      }
       if (isInIframe) {
         closeIframe();
         return;
       }
-      window.location.href = autoLoginStatus === "succeeded" ? "/" : "/login";
+      window.location.href = "/";
     };
 
     return (
