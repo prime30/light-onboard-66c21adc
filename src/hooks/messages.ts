@@ -4,6 +4,7 @@ import { useAtom } from "jotai";
 import { Customer, customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
+import { saveStoredSession } from "@/lib/standalone-session";
 
 export function useCloseIframe() {
   const { isInIframe } = useGlobalApp();
