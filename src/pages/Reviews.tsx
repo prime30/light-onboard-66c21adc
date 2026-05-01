@@ -3,6 +3,19 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useReviews, type Review } from "@/hooks/use-reviews";
+import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
+import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
+import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
+import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
+import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
+
+const SOCIAL_PROOF_AVATARS = [
+  stylistOmbre1,
+  stylistPink1,
+  stylistTeal1,
+  stylistPurple1,
+  stylistBlue1,
+];
 
 /** Small 2-col product chip: image + product name. Shown under review text. */
 const ProductChip = ({ review }: { review: Review }) => {
@@ -122,33 +135,21 @@ const Reviews = () => {
           </div>
         )}
 
-        {/* Product images from real reviews */}
-        {(() => {
-          const productImages = Array.from(
-            new Set(
-              (reviews ?? [])
-                .map((r) => r.productImage)
-                .filter((src): src is string => !!src)
-            )
-          ).slice(0, 5);
-          if (productImages.length === 0) return null;
-          return (
-            <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-              <div className="flex -space-x-2">
-                {productImages.map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    className="w-8 h-8 rounded-full border-2 border-background object-cover bg-muted"
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
-            </div>
-          );
-        })()}
+        {/* Social proof — fake stylist avatars */}
+        <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
+          <div className="flex -space-x-2">
+            {SOCIAL_PROOF_AVATARS.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                loading="lazy"
+                className="w-8 h-8 rounded-full border-2 border-background object-cover bg-muted"
+              />
+            ))}
+          </div>
+          <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
+        </div>
 
         {/* Review grid */}
         <div className="space-y-4">
