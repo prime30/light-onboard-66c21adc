@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { useReviews, type Review } from "@/hooks/use-reviews";
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
 import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
 import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
