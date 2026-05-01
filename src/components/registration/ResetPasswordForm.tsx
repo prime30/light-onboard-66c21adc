@@ -107,8 +107,8 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          resetUrl
-            ? { resetUrl, password: data.password }
+          safeResetUrl
+            ? { resetUrl: safeResetUrl, password: data.password }
             : { customerId, token, password: data.password }
         ),
       }
