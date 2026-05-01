@@ -24,7 +24,7 @@ import { readHoneypotValue, readFormStartedAt } from "@/components/registration/
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
 import { useGlobalApp } from "@/contexts";
-import { setPendingLogin } from "@/lib/pending-login";
+import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -146,18 +146,21 @@ export function FormDataProvider({
       }
 
       // Auto-login: hand the parent Shopify theme the credentials so the
-      // user lands logged-in on the storefront. In iframe mode we DEFER the
-      // USER_LOGIN postMessage until the iframe is actually closed (see
-      // useCloseIframe → flushes pending login before posting CLOSE_IFRAME).
-      // Sending it earlier would log the user in on the storefront while
-      // they're still on the success screen, which can change cart/auth
-      // state underfoot. In standalone mode we exchange directly via the
-      // Storefront API. Failures here do NOT block the success screen.
+      // user lands logged-in on the storefront. In iframe mode we fire
+      // USER_LOGIN IMMEDIATELY on success — the parent theme reloads in
+      // the background while our success screen + scrim stay mounted on
+      // top. When the user clicks "Done", CLOSE_IFRAME reveals an
+      // already-logged-in storefront with no flash. CLOSE_IFRAME stays
+      // deferred to the button click. In standalone mode we exchange
+      // directly via the Storefront API. Failures do NOT block success.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const password = (values as any).password as string | undefined;
       if (password && values.email) {
         if (isInIframe) {
-          setPendingLogin({ email: values.email, password });
+          sendMessage(IframeMessageTypes.USER_LOGIN, {
+            email: values.email,
+            password,
+          });
         } else {
           (async () => {
             try {
