@@ -16,6 +16,7 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
+import { withBasename } from "@/lib/router-basename";
 
 type FormState =
   | "form"
