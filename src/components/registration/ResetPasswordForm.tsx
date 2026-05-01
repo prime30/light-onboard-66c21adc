@@ -174,6 +174,25 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     }
   }, [isInIframe, closeIframe]);
 
+  // Signing-in state (auto-login in progress after reset)
+  if (formState === "signing-in") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-foreground/70 animate-spin" />
+        </div>
+        <div className="space-y-2">
+          <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
+            Signing you in
+          </FadeText>
+          <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            Password reset successfully. Logging you in with your new password…
+          </FadeText>
+        </div>
+      </div>
+    );
+  }
+
   // Success state
   if (formState === "success") {
     return (
