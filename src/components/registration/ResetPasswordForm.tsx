@@ -29,6 +29,10 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     !token || !customerId ? "missing-params" : "form"
   );
   const [serverError, setServerError] = useState<string>("");
+  const [resetCustomer, setResetCustomer] = useState<{
+    firstName: string | null;
+    email: string | null;
+  }>({ firstName: null, email: null });
 
   const {
     register,
@@ -42,7 +46,13 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
-    const result = await apiCall(
+    const result = await apiCall<{
+      reset: boolean;
+      email: string | null;
+      firstName: string | null;
+      accessToken: string | null;
+      expiresAt: string | null;
+    }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
       {
         method: "POST",
@@ -56,8 +66,15 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     );
 
     if (result.success) {
+      setResetCustomer({
+        firstName: result.data?.firstName ?? null,
+        email: result.data?.email ?? null,
+      });
       setFormState("success");
-      sendMessage("PASSWORD_RESET_SUCCESS", { customerId });
+      sendMessage("PASSWORD_RESET_SUCCESS", {
+        customerId,
+        email: result.data?.email ?? null,
+      });
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
@@ -96,10 +113,17 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Password Reset
+            {resetCustomer.firstName
+              ? `You're all set, ${resetCustomer.firstName}`
+              : "Password reset"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your password has been changed successfully. You can now log in with your new password.
+            Your password has been changed successfully. You can now log in
+            {resetCustomer.email ? (
+              <> with <span className="text-foreground/80">{resetCustomer.email}</span>.</>
+            ) : (
+              <> with your new password.</>
+            )}
           </FadeText>
         </div>
         <Button

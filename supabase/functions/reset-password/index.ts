@@ -48,7 +48,7 @@ const STOREFRONT_API_VERSION = "2024-10";
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
-      customer { id }
+      customer { id email firstName }
       customerAccessToken { accessToken expiresAt }
       customerUserErrors { code field message }
     }
@@ -166,7 +166,16 @@ Deno.serve(async (req) => {
       ], "Reset failed");
     }
 
-    return sendSuccess({ reset: true }, "Password has been reset successfully");
+    return sendSuccess(
+      {
+        reset: true,
+        email: result.customer.email ?? null,
+        firstName: result.customer.firstName ?? null,
+        accessToken: result.customerAccessToken?.accessToken ?? null,
+        expiresAt: result.customerAccessToken?.expiresAt ?? null,
+      },
+      "Password has been reset successfully"
+    );
   } catch (error) {
     console.error("Reset password error:", error);
     if (error instanceof TypeError && error.message.includes("fetch")) {
