@@ -49,3 +49,17 @@ export function getRouterBasename(): string {
   if (prefixSegments.length === 0) return "";
   return "/" + prefixSegments.join("/");
 }
+
+/**
+ * Prefixes an in-app absolute path with the current basename. Use this for
+ * full-page navigations via `window.location.href` (React Router's navigate
+ * already respects the basename). Pass-through for paths that already
+ * include the basename or for external URLs.
+ */
+export function withBasename(path: string): string {
+  if (!path.startsWith("/")) return path;
+  const base = getRouterBasename();
+  if (!base) return path;
+  if (path === base || path.startsWith(base + "/")) return path;
+  return base + path;
+}
