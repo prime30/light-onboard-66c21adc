@@ -167,7 +167,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           setLoginError({
             kind: "generic",
             message:
-              "Login failed. Please contact support at support@dropdeadextensions.com.",
+              "Login failed. Please contact support at hello@dropdeadextensions.com.",
           });
         }, 3000);
       }
