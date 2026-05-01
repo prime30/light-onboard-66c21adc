@@ -395,6 +395,7 @@ Deno.serve(async (req: Request) => {
     return sendError(400, [
       "Please use a permanent email address — disposable inboxes aren't accepted",
     ]);
+  }
 
   console.log("Processing customer sync for:", requestBody.data.email);
 
