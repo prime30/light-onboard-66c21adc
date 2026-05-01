@@ -180,14 +180,17 @@ const Reviews = () => {
                 <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
               )}
               <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
-              {review.images.length > 0 && (
+              {review.images.filter(Boolean).length > 0 && (
                 <div className="mt-3 flex gap-2 flex-wrap">
-                  {review.images.slice(0, 4).map((src, i) => (
+                  {review.images.filter(Boolean).slice(0, 4).map((src, i) => (
                     <img
                       key={i}
                       src={src}
                       alt=""
                       loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
                       className="w-16 h-16 rounded-lg object-cover bg-muted"
                     />
                   ))}
