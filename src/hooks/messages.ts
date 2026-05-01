@@ -91,19 +91,48 @@ export function useCustomerLogin({
       const customer = message.data as Customer;
       setCustomer(message.data as Customer);
 
-      // Redirect to already logged in page if logged in — UNLESS the user is
-      // currently on the registration success/welcome-offer screen. After a
-      // fresh registration (esp. auto-approval), the parent posts CUSTOMER_DATA
-      // a few seconds later once Shopify activation lands; we don't want that
-      // to yank the user off the welcome offer screen.
+      // Redirect to already logged in page if logged in — UNLESS:
+      //  1. The user is on the registration success/welcome-offer screen
+      //     (CUSTOMER_DATA may land late after auto-approval activation; we
+      //     don't want to yank them off that screen), OR
+      //  2. The user just signed in via the login form — in that case the
+      //     SignInForm is already showing its own button success state, so
+      //     we skip the success page entirely and close the iframe so the
+      //     parent storefront reloads in its logged-in state.
       if (customer.isLoggedIn) {
         let onSuccessScreen = false;
+        let justSignedIn = false;
         try {
           onSuccessScreen = sessionStorage.getItem("dde_on_success_screen") === "1";
+          justSignedIn = sessionStorage.getItem("dde_just_signed_in") === "1";
         } catch {
           // ignore storage failures
         }
         if (onSuccessScreen) {
+          return;
+        }
+        if (justSignedIn && isInIframe) {
+          try {
+            sessionStorage.removeItem("dde_just_signed_in");
+          } catch {
+            // ignore
+          }
+          // Brief delay so the user sees the button's success checkmark
+          // before the iframe tears down.
+          setTimeout(() => {
+            try {
+              window.parent.postMessage(
+                {
+                  type: IframeMessageTypes.CLOSE_IFRAME,
+                  data: { reason: "Login success", url: window.location.href },
+                  timestamp: new Date().toISOString(),
+                },
+                "*"
+              );
+            } catch (err) {
+              console.error("[customerHandler] Failed to post CLOSE_IFRAME:", err);
+            }
+          }, 900);
           return;
         }
         navigate("/already-logged-in");
