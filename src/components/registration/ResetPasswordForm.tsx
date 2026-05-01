@@ -323,18 +323,24 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
             This password reset link has expired. Please request a new one from the login page.
           </FadeText>
         </div>
-        <Button
-          onClick={handleClose}
-          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
-        >
-          {isInIframe ? "Close" : "Go to Login"}
-        </Button>
+        <div className="w-full space-y-2">
+          <Button
+            onClick={handleRequestNewLink}
+            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+          >
+            Request a new link
+          </Button>
+          <Button
+            onClick={handleClose}
+            variant="ghost"
+            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
+          >
+            {isInIframe ? "Close" : "Back to store"}
+          </Button>
+        </div>
       </div>
     );
   }
-
-  // Invalid / already used state
-  if (formState === "invalid") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
         <div className="w-16 h-16 rounded-full bg-destructive/15 flex items-center justify-center">
