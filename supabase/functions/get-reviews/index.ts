@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const KLAVIYO_API_REVISION = "2024-10-15";
+const KLAVIYO_API_REVISION = "2025-04-15";
 const KLAVIYO_BASE = "https://a.klaviyo.com/api/reviews";
 
 type NormalizedReview = {
@@ -87,13 +87,39 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const limit = Math.min(Number(url.searchParams.get("limit") ?? "20"), 100);
 
+    // Diagnostic: ?probe=1 returns the raw status of /accounts and /reviews
+    // so we can tell whether the key is invalid vs missing the Reviews scope.
+    if (url.searchParams.get("probe") === "1") {
+      const probe = async (path: string) => {
+        const r = await fetch(`https://a.klaviyo.com/api/${path}`, {
+          headers: {
+            Authorization: `Klaviyo-API-Key ${apiKey}`,
+            accept: "application/vnd.api+json",
+            revision: KLAVIYO_API_REVISION,
+          },
+        });
+        const text = await r.text();
+        return { status: r.status, body: text.slice(0, 600) };
+      };
+      const [accounts, reviews] = await Promise.all([
+        probe("accounts/"),
+        probe("reviews/?page[size]=1"),
+      ]);
+      return new Response(
+        JSON.stringify({ revision: KLAVIYO_API_REVISION, accounts, reviews }, null, 2),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Server-side filter: rating == 5. Klaviyo's filter grammar uses equals(),
     // greater-or-equal() on `rating` is not supported and returns 500.
     // Sort newest first.
+    // NOTE: Klaviyo's Reviews API returns a generic 500 when given certain
+    // filter combinations (e.g. equals(rating,5)). We sort newest-first and
+    // filter rating/published/content client-side in normalize() instead.
     const params = new URLSearchParams();
-    params.set("filter", "equals(rating,5)");
     params.set("sort", "-created");
-    params.set("page[size]", String(Math.min(limit, 100)));
+    params.set("page[size]", String(Math.min(Math.max(limit * 4, 20), 100)));
 
     const klaviyoUrl = `${KLAVIYO_BASE}?${params.toString()}`;
 
