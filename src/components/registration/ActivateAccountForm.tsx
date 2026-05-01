@@ -49,11 +49,11 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          token,
-          password: data.password,
-        }),
+        body: JSON.stringify(
+          activationUrl
+            ? { activationUrl, password: data.password }
+            : { customerId, token, password: data.password }
+        ),
       }
     );
 
