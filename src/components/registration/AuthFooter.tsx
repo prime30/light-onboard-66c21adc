@@ -189,7 +189,7 @@ export function AuthFooter({
           </div>
 
           {/* Main action button with popover for incomplete steps */}
-          <Popover open={submitTooltipOpen} onOpenChange={setSubmitTooltipOpen}>
+          <Popover open={submitTooltipOpen && showTooltip} onOpenChange={setSubmitTooltipOpen}>
             <PopoverTrigger asChild>
               <span
                 className="flex-1 block"
@@ -198,7 +198,7 @@ export function AuthFooter({
                     window.clearTimeout(submitPopoverCloseTimer.current);
                     submitPopoverCloseTimer.current = null;
                   }
-                  if (showTooltip) {
+                  if (continueBlocked) {
                     setSubmitTooltipOpen(true);
                   }
                 }}
@@ -259,77 +259,76 @@ export function AuthFooter({
               </span>
             </PopoverTrigger>
 
-            {showTooltip && (
-              <PopoverContent
-                side="top"
-                className="bg-foreground text-background border-none p-3 rounded-xl max-w-[320px] w-auto z-50"
-                onMouseEnter={() => {
-                  if (submitPopoverCloseTimer.current) {
-                    window.clearTimeout(submitPopoverCloseTimer.current);
-                    submitPopoverCloseTimer.current = null;
-                  }
-                  setSubmitTooltipOpen(true);
-                }}
-                onMouseLeave={() => {
-                  if (submitPopoverCloseTimer.current) {
-                    window.clearTimeout(submitPopoverCloseTimer.current);
-                  }
-                  submitPopoverCloseTimer.current = window.setTimeout(() => {
-                    setSubmitTooltipOpen(false);
-                    submitPopoverCloseTimer.current = null;
-                  }, 220);
-                }}
-                onPointerDownOutside={() => setSubmitTooltipOpen(false)}
-              >
-                <div className="space-y-2.5">
-                  <p className="text-xs font-medium text-background/70 text-center">
-                    {isSummaryStep ? "Complete these steps first" : "Finish this step first"}
-                  </p>
-                  <div className="space-y-2">
-                    {popoverSteps.map(({ step, name, stepNumber, missingFields }) => (
-                      <button
-                        key={step}
-                        onClick={() => {
-                          setSubmitTooltipOpen(false);
-                          goToStep(step);
+            <PopoverContent
+              side="top"
+              sideOffset={8}
+              className="bg-foreground text-background border-none p-3 rounded-xl max-w-[320px] w-auto z-[100]"
+              onMouseEnter={() => {
+                if (submitPopoverCloseTimer.current) {
+                  window.clearTimeout(submitPopoverCloseTimer.current);
+                  submitPopoverCloseTimer.current = null;
+                }
+                setSubmitTooltipOpen(true);
+              }}
+              onMouseLeave={() => {
+                if (submitPopoverCloseTimer.current) {
+                  window.clearTimeout(submitPopoverCloseTimer.current);
+                }
+                submitPopoverCloseTimer.current = window.setTimeout(() => {
+                  setSubmitTooltipOpen(false);
+                  submitPopoverCloseTimer.current = null;
+                }, 220);
+              }}
+              onPointerDownOutside={() => setSubmitTooltipOpen(false)}
+            >
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium text-background/70 text-center">
+                  {isSummaryStep ? "Complete these steps first" : "Finish this step first"}
+                </p>
+                <div className="space-y-2">
+                  {popoverSteps.map(({ step, name, stepNumber, missingFields }) => (
+                    <button
+                      key={step}
+                      onClick={() => {
+                        setSubmitTooltipOpen(false);
+                        goToStep(step);
 
-                          // Focus the first missing field after navigation
-                          if (missingFields.length > 0) {
-                            // Add a small delay to ensure the step transition completes
-                            setTimeout(() => {
-                              setFocus(missingFields[0] as ValidFieldNames);
-                            }, 200);
-                          }
-                        }}
-                        className="w-full p-3 hover:bg-background/10 focus:bg-background/10 rounded-lg transition-colors cursor-pointer group/step focus:outline-none focus-visible:ring-2 focus-visible:ring-background/30"
-                      >
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center gap-2 w-full">
-                            <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 group-focus/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                              <span className="text-[10px] font-semibold">{stepNumber}</span>
-                            </div>
-                            <span className="text-sm font-medium whitespace-nowrap">{name}</span>
-                            <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 group-focus/step:opacity-100 transition-opacity" />
+                        // Focus the first missing field after navigation
+                        if (missingFields.length > 0) {
+                          // Add a small delay to ensure the step transition completes
+                          setTimeout(() => {
+                            setFocus(missingFields[0] as ValidFieldNames);
+                          }, 200);
+                        }
+                      }}
+                      className="w-full p-3 hover:bg-background/10 focus:bg-background/10 rounded-lg transition-colors cursor-pointer group/step focus:outline-none focus-visible:ring-2 focus-visible:ring-background/30"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 w-full">
+                          <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 group-focus/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
+                            <span className="text-[10px] font-semibold">{stepNumber}</span>
                           </div>
-                          {missingFields.length > 0 && (
-                            <div className="pl-7 flex flex-wrap gap-1">
-                              {missingFields.map((field) => (
-                                <span
-                                  key={field}
-                                  className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
-                                >
-                                  {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          <span className="text-sm font-medium whitespace-nowrap">{name}</span>
+                          <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 group-focus/step:opacity-100 transition-opacity" />
                         </div>
-                      </button>
-                    ))}
-                  </div>
+                        {missingFields.length > 0 && (
+                          <div className="pl-7 flex flex-wrap gap-1">
+                            {missingFields.map((field) => (
+                              <span
+                                key={field}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
+                              >
+                                {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </PopoverContent>
-            )}
+              </div>
+            </PopoverContent>
           </Popover>
         </div>
       </div>
