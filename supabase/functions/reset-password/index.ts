@@ -54,6 +54,29 @@ const bodySchema = z
 
 const STOREFRONT_API_VERSION = "2024-10";
 
+function parseShopifyCustomerId(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const raw = value.trim();
+  const pathMatch = raw.match(/\/account\/(?:reset|activate)\/(\d+)\//i);
+  if (pathMatch?.[1]) return pathMatch[1];
+
+  const gidMatch = raw.match(/(?:^|\/)Customer\/(\d+)(?:$|[?&#])/i);
+  if (gidMatch?.[1]) return gidMatch[1];
+
+  if (/^\d+$/.test(raw)) return raw;
+
+  try {
+    const decoded = atob(raw);
+    const decodedMatch = decoded.match(/(?:^|\/)Customer\/(\d+)(?:$|[?&#])/i);
+    if (decodedMatch?.[1]) return decodedMatch[1];
+  } catch {
+    // Not a base64-encoded Shopify GID.
+  }
+
+  return null;
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
@@ -102,10 +125,13 @@ Deno.serve(async (req) => {
   // Prefer the URL Shopify gave us verbatim (via `customer.reset_password_url`
   // in the email Liquid). Fall back to reconstructing for legacy callers.
   let resetUrl: string;
+  let resetCustomerId: string | null = null;
   if (providedResetUrl) {
     resetUrl = providedResetUrl;
+    resetCustomerId = parseShopifyCustomerId(providedResetUrl);
   } else {
-    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    const numericId = parseShopifyCustomerId(customerId) ?? customerId!;
+    resetCustomerId = numericId;
     resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
   }
 
@@ -189,8 +215,7 @@ Deno.serve(async (req) => {
     if (!email) {
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken) {
-        const gid: string = result.customer.id || "";
-        const numericId = gid.includes("/") ? gid.split("/").pop() : gid;
+        const numericId = parseShopifyCustomerId(result.customer.id) ?? resetCustomerId;
         if (numericId) {
           try {
             const adminRes = await fetch(
