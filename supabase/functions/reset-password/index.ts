@@ -204,8 +204,20 @@ Deno.serve(async (req) => {
             );
             if (adminRes.ok) {
               const j = await adminRes.json();
-              email = email || j?.customer?.email || null;
-              firstName = firstName || j?.customer?.first_name || null;
+              const adminEmail = j?.customer?.email || null;
+              const adminFirst = j?.customer?.first_name || null;
+              if (!email && adminEmail) {
+                // Visibility for the legacy-account quirk: Storefront returned
+                // null email after a successful customerResetByUrl, and we
+                // recovered it from Admin API. Useful for spotting frequency
+                // of this fallback in edge function logs.
+                console.warn(
+                  "[reset-password] Email recovered via Admin API fallback (Storefront returned null) for customer",
+                  numericId
+                );
+              }
+              email = email || adminEmail;
+              firstName = firstName || adminFirst;
             } else {
               console.warn("Admin customer lookup failed:", adminRes.status);
             }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
@@ -21,7 +21,6 @@ import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 
 type FormState =
   | "form"
-  | "signing-in"
   | "success"
   | "expired"
   | "invalid"
@@ -41,7 +40,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [customer, setCustomer] = useAtom(customerAtom);
+  const [, setCustomer] = useAtom(customerAtom);
 
   // Valid if either a trusted full reset URL is present, or both legacy params.
   // Reject reset_url values that don't point at one of our known Shopify hosts —
@@ -60,31 +59,6 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     email: string | null;
   }>({ firstName: null, email: null });
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
-  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const iframeWatchActive = useRef(false);
-
-  // Iframe auto-login: when we're waiting for the parent theme to confirm
-  // sign-in via CUSTOMER_DATA (which flips customerAtom.isLoggedIn), react
-  // to that flip; otherwise fail open after 3s.
-  useEffect(() => {
-    if (!iframeWatchActive.current) return;
-    if (formState !== "signing-in") return;
-    if (customer.isLoggedIn) {
-      iframeWatchActive.current = false;
-      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
-      setAutoLoginStatus("succeeded");
-      setFormState("success");
-    }
-  }, [customer.isLoggedIn, formState]);
-
-  useEffect(() => {
-    return () => {
-      if (iframeTimeoutRef.current) {
-        clearTimeout(iframeTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const {
     register,
     handleSubmit,
@@ -252,25 +226,6 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     window.location.assign(withBasename("/login?forgot=1"));
   }, []);
 
-
-  // Signing-in state (auto-login in progress after reset)
-  if (formState === "signing-in") {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-foreground/70 animate-spin" />
-        </div>
-        <div className="space-y-2">
-          <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Signing you in
-          </FadeText>
-          <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Password reset successfully. Logging you in with your new password…
-          </FadeText>
-        </div>
-      </div>
-    );
-  }
 
   // Success state
   if (formState === "success") {

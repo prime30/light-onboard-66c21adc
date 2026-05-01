@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight, UserCheck } from "lucide-react";
@@ -42,7 +42,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [customer, setCustomer] = useAtom(customerAtom);
+  const [, setCustomer] = useAtom(customerAtom);
 
   // Reject activation URLs that don't point to a trusted Shopify host —
   // mirrors the reset flow's URL-origin guard.
@@ -55,29 +55,6 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const [serverError, setServerError] = useState<string>("");
   const [activatedEmail, setActivatedEmail] = useState<string | null>(null);
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
-  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const iframeWatchActive = useRef(false);
-
-  // Iframe auto-login watcher: parent flips customerAtom.isLoggedIn after the
-  // theme processes USER_LOGIN; if it doesn't happen in 3s, fall through to
-  // the success screen with an inline note.
-  useEffect(() => {
-    if (!iframeWatchActive.current) return;
-    if (formState !== "signing-in") return;
-    if (customer.isLoggedIn) {
-      iframeWatchActive.current = false;
-      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
-      setAutoLoginStatus("succeeded");
-      setFormState("success");
-    }
-  }, [customer.isLoggedIn, formState]);
-
-  useEffect(() => {
-    return () => {
-      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
-    };
-  }, []);
-
   const {
     register,
     handleSubmit,
@@ -130,23 +107,25 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       }
 
       setAutoLoginStatus("idle");
-      setFormState("signing-in");
 
       if (isInIframe) {
-        // Iframe: parent theme owns the storefront session. Post USER_LOGIN
-        // and wait up to 3s for CUSTOMER_DATA to confirm.
-        iframeWatchActive.current = true;
+        // Iframe: parent theme owns the storefront session. Fire USER_LOGIN
+        // and jump straight to the success screen — mirroring registration
+        // (FormDataContext.submitForm) and ResetPasswordForm. The parent
+        // reloads in the background while our success scrim stays on top;
+        // CLOSE_IFRAME on the user's "Close" click reveals an
+        // already-logged-in storefront. We don't watchdog on CUSTOMER_DATA
+        // because the parent ack arrives via a full reload after a couple
+        // of retry attempts (~3-4s worst case), which used to race the
+        // 3s timer and surface a false "couldn't auto-sign-in" note.
         sendMessage("USER_LOGIN", {
           email: customerEmail,
           password: data.password,
         });
-        iframeTimeoutRef.current = setTimeout(() => {
-          if (!iframeWatchActive.current) return;
-          iframeWatchActive.current = false;
-          setAutoLoginStatus("failed");
-          setFormState("success");
-        }, 3000);
+        setAutoLoginStatus("succeeded");
+        setFormState("success");
       } else {
+        setFormState("signing-in");
         // Standalone: exchange credentials for a Storefront access token.
         const loginResult = await apiCall<{
           accessToken: string;
