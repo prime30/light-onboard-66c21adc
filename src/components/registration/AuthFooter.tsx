@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
@@ -30,7 +29,7 @@ export function AuthFooter({
   shimmerKey = 0,
 }: AuthFooterProps) {
   const [submitTooltipOpen, setSubmitTooltipOpen] = useState(false);
-  const submitPopoverCloseTimer = useRef<number | null>(null);
+  const submitPopoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     getStepValidationStatus,
     currentStep,
@@ -39,12 +38,9 @@ export function AuthFooter({
     goToPrevStep,
     goToStep,
     submitForm,
-    fullErrors,
     setFocus,
     incompleteSteps,
   } = useForm();
-
-  console.log(incompleteSteps, fullErrors);
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
@@ -67,6 +63,26 @@ export function AuthFooter({
   // shown on the final summary step. Other steps still get the click-to-shake
   // + red flash on the missing fields, but no popover.
   const showTooltip = isSummaryStep && continueBlocked;
+
+  const openSubmitTooltip = useCallback(() => {
+    if (submitPopoverCloseTimer.current) {
+      clearTimeout(submitPopoverCloseTimer.current);
+      submitPopoverCloseTimer.current = null;
+    }
+    if (showTooltip) {
+      setSubmitTooltipOpen(true);
+    }
+  }, [showTooltip]);
+
+  const closeSubmitTooltip = useCallback(() => {
+    if (submitPopoverCloseTimer.current) {
+      clearTimeout(submitPopoverCloseTimer.current);
+    }
+    submitPopoverCloseTimer.current = setTimeout(() => {
+      setSubmitTooltipOpen(false);
+      submitPopoverCloseTimer.current = null;
+    }, 220);
+  }, []);
 
   const getButtonLabel = () => {
     if (isUploading) return null; // Will show upload progress
@@ -152,7 +168,7 @@ export function AuthFooter({
   return (
     <footer
       className={cn(
-        "sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:px-[25px] lg:py-[clamp(15px,2.5vh,30px)] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-full overflow-hidden border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]",
+        "sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:px-[25px] lg:py-[clamp(15px,2.5vh,30px)] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-full border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)]",
         "lg:bottom-0 lg:mx-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:shadow-none",
         footerEnterReady ? "animate-slide-up-fade" : "opacity-0 translate-y-[15px]"
       )}
@@ -188,148 +204,115 @@ export function AuthFooter({
             </Button>
           </div>
 
-          {/* Main action button with popover for incomplete steps */}
-          <Popover open={submitTooltipOpen && showTooltip} onOpenChange={setSubmitTooltipOpen}>
-            <PopoverTrigger asChild>
-              <span
-                className="flex-1 block"
-                onMouseEnter={() => {
-                  if (submitPopoverCloseTimer.current) {
-                    window.clearTimeout(submitPopoverCloseTimer.current);
-                    submitPopoverCloseTimer.current = null;
-                  }
-                  if (continueBlocked) {
-                    setSubmitTooltipOpen(true);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (submitPopoverCloseTimer.current) {
-                    window.clearTimeout(submitPopoverCloseTimer.current);
-                  }
-                  submitPopoverCloseTimer.current = window.setTimeout(() => {
-                    setSubmitTooltipOpen(false);
-                    submitPopoverCloseTimer.current = null;
-                  }, 220);
-                }}
-              >
-                <Button
-                  key={`shimmer-${shimmerKey}`}
-                  size="pill-lg"
-                  onClick={handleContinue}
-                  // Stay clickable when blocked so the click can shake the
-                  // missing fields and surface the popover. Only truly disable
-                  // while a network/upload is in flight.
-                  disabled={isProcessing}
-                  aria-disabled={continueBlocked || isProcessing}
-                  className={cn(
-                    "btn-premium w-full bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
-                    shimmerKey > 0 && "shimmer-trigger",
-                    continueBlocked && "opacity-40 hover:opacity-50"
-                  )}
-                >
-                  {/* Upload progress bar overlay */}
-                  {isUploading && (
-                    <div
-                      className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center justify-center gap-[10px]">
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                        <span>Uploading documents... {uploadProgress}%</span>
-                      </>
-                    ) : isSubmitting ? (
-                      <>
-                        <Loader2 className="w-[18px] h-[18px] animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        {getButtonLabel()}
-                        <ArrowRight
-                          className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1"
-                          aria-hidden="true"
-                        />
-                      </>
-                    )}
-                  </span>
-                </Button>
-              </span>
-            </PopoverTrigger>
-
-            <PopoverContent
-              side="top"
-              sideOffset={8}
-              className="bg-foreground text-background border-none p-3 rounded-xl max-w-[320px] w-auto z-[100]"
-              onMouseEnter={() => {
-                if (submitPopoverCloseTimer.current) {
-                  window.clearTimeout(submitPopoverCloseTimer.current);
-                  submitPopoverCloseTimer.current = null;
-                }
-                setSubmitTooltipOpen(true);
-              }}
-              onMouseLeave={() => {
-                if (submitPopoverCloseTimer.current) {
-                  window.clearTimeout(submitPopoverCloseTimer.current);
-                }
-                submitPopoverCloseTimer.current = window.setTimeout(() => {
-                  setSubmitTooltipOpen(false);
-                  submitPopoverCloseTimer.current = null;
-                }, 220);
-              }}
-              onPointerDownOutside={() => setSubmitTooltipOpen(false)}
+          {/* Main action button with custom hover/click popover for incomplete steps */}
+          <div
+            className="relative flex-1"
+            onMouseEnter={openSubmitTooltip}
+            onMouseLeave={closeSubmitTooltip}
+            onFocus={openSubmitTooltip}
+            onBlur={closeSubmitTooltip}
+          >
+            <Button
+              key={`shimmer-${shimmerKey}`}
+              size="pill-lg"
+              onClick={handleContinue}
+              // Stay clickable when blocked so the click can shake the
+              // missing fields and surface the popover. Only truly disable
+              // while a network/upload is in flight.
+              disabled={isProcessing}
+              aria-disabled={continueBlocked || isProcessing}
+              className={cn(
+                "btn-premium w-full bg-foreground text-background hover:bg-foreground disabled:opacity-40 font-medium text-base tracking-wide group active:scale-[0.98] transition-transform relative overflow-hidden",
+                shimmerKey > 0 && "shimmer-trigger",
+                continueBlocked && "opacity-40 hover:opacity-50"
+              )}
             >
-              <div className="space-y-2.5">
-                <p className="text-xs font-medium text-background/70 text-center">
-                  {isSummaryStep ? "Complete these steps first" : "Finish this step first"}
-                </p>
-                <div className="space-y-2">
-                  {popoverSteps.map(({ step, name, stepNumber, missingFields }) => (
-                    <button
-                      key={step}
-                      onClick={() => {
-                        setSubmitTooltipOpen(false);
-                        goToStep(step);
+              {/* Upload progress bar overlay */}
+              {isUploading && (
+                <div
+                  className="absolute inset-0 bg-primary/20 transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center gap-[10px]">
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                    <span>Uploading documents... {uploadProgress}%</span>
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    {getButtonLabel()}
+                    <ArrowRight
+                      className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
+              </span>
+            </Button>
 
-                        // Focus the first missing field after navigation
-                        if (missingFields.length > 0) {
-                          // Add a small delay to ensure the step transition completes
-                          setTimeout(() => {
-                            setFocus(missingFields[0] as ValidFieldNames);
-                          }, 200);
-                        }
-                      }}
-                      className="w-full p-3 hover:bg-background/10 focus:bg-background/10 rounded-lg transition-colors cursor-pointer group/step focus:outline-none focus-visible:ring-2 focus-visible:ring-background/30"
-                    >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 w-full">
-                          <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 group-focus/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
-                            <span className="text-[10px] font-semibold">{stepNumber}</span>
+            {submitTooltipOpen && showTooltip && (
+              <div
+                role="dialog"
+                aria-label="Incomplete application fields"
+                className="absolute bottom-[calc(100%+10px)] left-1/2 z-[1000] w-[min(320px,calc(100vw-40px))] -translate-x-1/2 rounded-xl border-none bg-foreground p-3 text-background shadow-modal"
+                onMouseEnter={openSubmitTooltip}
+                onMouseLeave={closeSubmitTooltip}
+              >
+                <div className="space-y-2.5">
+                  <p className="text-xs font-medium text-background/70 text-center">
+                    Complete these steps first
+                  </p>
+                  <div className="space-y-2">
+                    {popoverSteps.map(({ step, name, stepNumber, missingFields }) => (
+                      <button
+                        key={step}
+                        onClick={() => {
+                          setSubmitTooltipOpen(false);
+                          goToStep(step);
+
+                          if (missingFields.length > 0) {
+                            setTimeout(() => {
+                              setFocus(missingFields[0] as ValidFieldNames);
+                            }, 200);
+                          }
+                        }}
+                        className="w-full p-3 hover:bg-background/10 focus:bg-background/10 rounded-lg transition-colors cursor-pointer group/step focus:outline-none focus-visible:ring-2 focus-visible:ring-background/30"
+                      >
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2 w-full">
+                            <div className="w-5 h-5 rounded-full bg-background/20 group-hover/step:bg-background/30 group-focus/step:bg-background/30 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <span className="text-[10px] font-semibold">{stepNumber}</span>
+                            </div>
+                            <span className="text-sm font-medium whitespace-nowrap">{name}</span>
+                            <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 group-focus/step:opacity-100 transition-opacity" />
                           </div>
-                          <span className="text-sm font-medium whitespace-nowrap">{name}</span>
-                          <ArrowRight className="w-3 h-3 text-background/50 ml-auto flex-shrink-0 opacity-0 group-hover/step:opacity-100 group-focus/step:opacity-100 transition-opacity" />
+                          {missingFields.length > 0 && (
+                            <div className="pl-7 flex flex-wrap gap-1">
+                              {missingFields.map((field) => (
+                                <span
+                                  key={field}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
+                                >
+                                  {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        {missingFields.length > 0 && (
-                          <div className="pl-7 flex flex-wrap gap-1">
-                            {missingFields.map((field) => (
-                              <span
-                                key={field}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-medium"
-                              >
-                                {FIELD_DISPLAY_NAMES[field as ValidFieldNames] || field}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+            )}
+          </div>
         </div>
       </div>
     </footer>
