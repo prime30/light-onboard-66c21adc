@@ -1,19 +1,31 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
+import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "./FadeText";
 import { TextInput } from "@/components/TextInput";
 import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
+import { customerAtom } from "@/contexts/store";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
 
-type FormState = "form" | "success" | "expired" | "invalid" | "missing-params" | "error" | "rate-limited";
+const STOREFRONT_TOKEN_KEY = "shopify_customer_access_token";
+
+type FormState =
+  | "form"
+  | "signing-in"
+  | "success"
+  | "expired"
+  | "invalid"
+  | "missing-params"
+  | "error"
+  | "rate-limited";
 
 interface ResetPasswordFormProps {
   token: string | null;
@@ -24,6 +36,7 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
+  const [, setCustomer] = useAtom(customerAtom);
 
   const [formState, setFormState] = useState<FormState>(
     !token || !customerId ? "missing-params" : "form"
@@ -33,6 +46,15 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     firstName: string | null;
     email: string | null;
   }>({ firstName: null, email: null });
+  const successRedirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successRedirectTimer.current) {
+        clearTimeout(successRedirectTimer.current);
+      }
+    };
+  }, []);
 
   const {
     register,
@@ -66,15 +88,63 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     );
 
     if (result.success) {
+      const customerEmail = result.data?.email ?? null;
       setResetCustomer({
         firstName: result.data?.firstName ?? null,
-        email: result.data?.email ?? null,
+        email: customerEmail,
       });
-      setFormState("success");
       sendMessage("PASSWORD_RESET_SUCCESS", {
         customerId,
-        email: result.data?.email ?? null,
+        email: customerEmail,
       });
+
+      // Auto-login: use the password the user just set.
+      setFormState("signing-in");
+
+      if (isInIframe) {
+        // Iframe: parent Shopify theme handles the storefront session via
+        // the existing USER_LOGIN postMessage flow. We optimistically flip
+        // to success after a short window; CUSTOMER_DATA from the parent
+        // will mark the user logged-in.
+        sendMessage("USER_LOGIN", {
+          email: customerEmail ?? "",
+          password: data.password,
+        });
+        successRedirectTimer.current = setTimeout(() => {
+          setFormState("success");
+        }, 1200);
+      } else {
+        // Standalone: get a Storefront access token and persist it.
+        const loginResult = await apiCall<{
+          accessToken: string;
+          expiresAt: string;
+        }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: customerEmail,
+            password: data.password,
+          }),
+        });
+
+        if (loginResult.success && loginResult.data?.accessToken) {
+          try {
+            localStorage.setItem(
+              STOREFRONT_TOKEN_KEY,
+              JSON.stringify({
+                accessToken: loginResult.data.accessToken,
+                expiresAt: loginResult.data.expiresAt,
+              })
+            );
+          } catch {
+            // localStorage unavailable — fall through; success screen still works
+          }
+          setCustomer({ isLoggedIn: true });
+        }
+        // Whether or not auto-login succeeded, show success — the password
+        // is reset and the user can manually log in if needed.
+        setFormState("success");
+      }
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
@@ -103,6 +173,25 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
       window.location.href = "/";
     }
   }, [isInIframe, closeIframe]);
+
+  // Signing-in state (auto-login in progress after reset)
+  if (formState === "signing-in") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-foreground/70 animate-spin" />
+        </div>
+        <div className="space-y-2">
+          <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
+            Signing you in
+          </FadeText>
+          <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            Password reset successfully. Logging you in with your new password…
+          </FadeText>
+        </div>
+      </div>
+    );
+  }
 
   // Success state
   if (formState === "success") {
