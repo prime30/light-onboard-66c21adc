@@ -246,7 +246,7 @@ export function AuthFooter({
             <Button
               variant="outline"
               size="pill-lg"
-              onClick={goToPrevStep}
+              onClick={isLatePasswordStep ? () => goToStep("summary") : goToPrevStep}
               aria-label="Go back"
               className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
             >
