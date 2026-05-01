@@ -763,7 +763,7 @@ export const SignInForm = () => {
           className={`w-full h-button rounded-full font-medium text-base py-3 transition-colors ${
             isLoginSuccessful
               ? "bg-success text-success-foreground hover:bg-success/90 disabled:opacity-100"
-              : loginError
+              : hasAttemptedSubmit && loginError
                 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 : "bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
           }`}
@@ -777,7 +777,7 @@ export const SignInForm = () => {
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             </>
-          ) : loginError ? (
+          ) : hasAttemptedSubmit && loginError ? (
             <>
               <AlertCircle className="w-4 h-4 mr-2" />
               Login failed
