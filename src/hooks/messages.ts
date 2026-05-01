@@ -193,6 +193,11 @@ export function useCustomerLogin({
             firstName: null,
           });
           loginUpdate?.({ status: "success" });
+          try {
+            sessionStorage.setItem("dde_just_signed_in", "1");
+          } catch {
+            // ignore
+          }
           navigate("/already-logged-in");
         } else {
           loginUpdate?.({
