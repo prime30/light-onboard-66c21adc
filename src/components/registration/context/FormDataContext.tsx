@@ -84,6 +84,8 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
   const { apiCall } = useApiClient();
+  const { isInIframe, sendMessage } = useGlobalApp();
+  const [, setCustomer] = useAtom(customerAtom);
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
   >([]);
