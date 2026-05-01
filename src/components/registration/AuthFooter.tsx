@@ -70,7 +70,7 @@ export function AuthFooter({
   }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, currentStep]);
 
   const continueBlocked = isSummaryStep
-    ? !isFormValid && popoverSteps.length > 0
+    ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
     : !isStepValid && popoverSteps.length > 0;
 
   // Popover (with the list of incomplete steps/fields) is intentionally only
