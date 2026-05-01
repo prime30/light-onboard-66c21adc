@@ -23,6 +23,7 @@ import { useApiClient } from "@/hooks/use-api-client";
 import { readHoneypotValue, readFormStartedAt } from "@/components/registration/HoneypotField";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
+import { setPendingLogin } from "@/lib/pending-login";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
@@ -161,6 +162,9 @@ export function FormDataProvider({
             email: values.email,
             password,
           });
+          // Queue same creds for re-flush on closeIframe() — safety net
+          // covering races where the parent dropped the first message.
+          setPendingLogin({ email: values.email, password });
         } else {
           (async () => {
             try {
