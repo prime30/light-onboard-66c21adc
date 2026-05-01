@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const KLAVIYO_API_REVISION = "2024-10-15";
+const KLAVIYO_API_REVISION = "2025-04-15";
 const KLAVIYO_BASE = "https://a.klaviyo.com/api/reviews";
 
 type NormalizedReview = {
