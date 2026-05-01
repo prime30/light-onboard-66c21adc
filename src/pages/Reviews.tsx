@@ -119,11 +119,7 @@ const Reviews = () => {
               "{featured.content}"
             </p>
             <div className="flex items-center gap-3">
-              <img
-                src={featured.avatar}
-                alt={featured.authorName}
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <ReviewAvatar review={featured} className="w-10 h-10" />
               <div>
                 <h3 className="font-semibold text-sm">{featured.authorName}</h3>
                 <p className="text-muted-foreground text-xs">
