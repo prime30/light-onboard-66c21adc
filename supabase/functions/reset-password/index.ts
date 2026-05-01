@@ -97,15 +97,17 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { customerId, token, password } = parsed.data;
+  const { resetUrl: providedResetUrl, customerId, token, password } = parsed.data;
 
-  // Reconstruct the Shopify reset URL. Storefront API requires the same URL
-  // shape Shopify emits in its password-reset email:
-  //   https://{store}/account/reset/{customerId}/{token}
-  // customerId may already be a numeric ID or a full GID; Storefront expects
-  // the numeric ID portion in the URL.
-  const numericId = customerId.includes("/") ? customerId.split("/").pop() : customerId;
-  const resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
+  // Prefer the URL Shopify gave us verbatim (via `customer.reset_password_url`
+  // in the email Liquid). Fall back to reconstructing for legacy callers.
+  let resetUrl: string;
+  if (providedResetUrl) {
+    resetUrl = providedResetUrl;
+  } else {
+    const numericId = customerId!.includes("/") ? customerId!.split("/").pop() : customerId!;
+    resetUrl = `https://${SHOPIFY_STORE_DOMAIN}/account/reset/${numericId}/${token}`;
+  }
 
   try {
     const response = await fetch(
