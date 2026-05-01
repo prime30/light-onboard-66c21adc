@@ -39,6 +39,16 @@ export function useStandaloneSession() {
     });
   }, [isInIframe, setCustomer]);
 
+  // Standalone redirect: if the user is signed in and lands on an auth route,
+  // mirror the iframe behavior and bounce them to /already-logged-in.
+  useEffect(() => {
+    if (isInIframe) return;
+    if (!customer.isLoggedIn) return;
+    if (REDIRECT_FROM_ROUTES.has(location.pathname)) {
+      navigate("/already-logged-in", { replace: true });
+    }
+  }, [isInIframe, customer.isLoggedIn, location.pathname, navigate]);
+
   const setSession = useCallback(
     (session: StoredSession) => {
       saveStoredSession(session);
