@@ -129,10 +129,71 @@ export function useCustomerLogin({
   }, [isInIframe, subscribeToType, customerHandler, loginUpdateHandler, forgotPasswordHandler]);
 
   const login = useCallback(
-    (customer: LoginData) => {
-      sendMessage(IframeMessageTypes.USER_LOGIN, customer);
+    async ({ email, password }: LoginData) => {
+      // In iframe: delegate to parent Shopify theme (it owns the storefront
+      // session cookie). The parent posts back LOGIN_STATUS + CUSTOMER_DATA.
+      if (isInIframe) {
+        sendMessage(IframeMessageTypes.USER_LOGIN, { email, password });
+        return;
+      }
+
+      // Standalone: hit our customer-login edge function directly and persist
+      // the Storefront access token in localStorage. We synthesize the same
+      // FormUpdateData callbacks so SignInForm UX is identical in both modes.
+      loginUpdate?.({ status: "submitting" });
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ email, password }),
+          }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json?.success && json?.data?.accessToken) {
+          const { accessToken, expiresAt } = json.data as {
+            accessToken: string;
+            expiresAt: string;
+          };
+          saveStoredSession({
+            accessToken,
+            expiresAt,
+            email,
+          });
+          // Mirror the iframe path: update customer atom, then navigate.
+          setCustomer({
+            isLoggedIn: true,
+            accessToken,
+            expiresAt,
+            email,
+            firstName: null,
+          });
+          loginUpdate?.({ status: "success" });
+          navigate("/already-logged-in");
+        } else {
+          loginUpdate?.({
+            status: "error",
+            message:
+              json?.error ||
+              json?.message ||
+              (res.status === 429
+                ? "Too many attempts. Please wait a moment."
+                : "Incorrect email or password."),
+          });
+        }
+      } catch (_err) {
+        loginUpdate?.({
+          status: "error",
+          message: "Couldn't sign in. Please check your connection and try again.",
+        });
+      }
     },
-    [sendMessage]
+    [isInIframe, sendMessage, loginUpdate, setCustomer, navigate]
   );
 
   const forgotPassword = useCallback(
