@@ -76,6 +76,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "preferred-method": "Preferred Method",
   preferences: "Preferences",
   summary: "Review & Submit",
+  assessing: "Assessing Application",
   success: "Success",
 };
 
@@ -142,6 +143,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "preferred-method": preferredMethodSchema,
   preferences: preferencesSchema,
   summary: null,
+  assessing: null,
   success: null,
 };
 
