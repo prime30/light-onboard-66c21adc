@@ -132,36 +132,45 @@ async function shopifyGraphQL<T>(
 /**
  * Best-effort: write the welcome offer to the customer's metafields so the
  * storefront announcement bar can render the marquee slide for any logged-in
- * device. Failures are logged but never block the user-facing response — the
- * discount code itself is already created and shown on the success screen.
+ * device. Accepts a numeric Shopify customer ID (preferred — no lookup race)
+ * or falls back to an email lookup. Failures are logged but never block the
+ * user-facing response — the discount code itself is already created and
+ * shown on the success screen.
  */
 async function writeCustomerMetafields(
+  shopifyCustomerId: number | null,
   email: string,
   code: string,
   endsAtIso: string
 ): Promise<void> {
-  if (!email) {
-    console.log("[generate-discount] no email provided, skipping metafield write");
-    return;
-  }
-
   try {
-    // 1. Look up the customer by email
-    const lookup = await shopifyGraphQL<{
-      customers: { nodes: Array<{ id: string; email: string }> };
-    }>(
-      CUSTOMER_LOOKUP_QUERY,
-      { query: `email:${email}` },
-      "customerByEmail"
-    );
+    let customerGid: string | null = null;
 
-    const customer = lookup.data?.customers?.nodes?.[0];
-    if (!customer?.id) {
-      console.warn(`[generate-discount] no customer found for email ${email}`);
+    if (shopifyCustomerId && Number.isFinite(shopifyCustomerId)) {
+      // Preferred path: GID built directly from the numeric ID returned by
+      // create-customer. No search index lag, no race.
+      customerGid = `gid://shopify/Customer/${shopifyCustomerId}`;
+    } else if (email) {
+      // Fallback: look up by email. Subject to Shopify search-index lag for
+      // brand-new customers, so prefer the explicit ID path above.
+      const lookup = await shopifyGraphQL<{
+        customers: { nodes: Array<{ id: string; email: string }> };
+      }>(
+        CUSTOMER_LOOKUP_QUERY,
+        { query: `email:${email}` },
+        "customerByEmail"
+      );
+      const customer = lookup.data?.customers?.nodes?.[0];
+      if (!customer?.id) {
+        console.warn(`[generate-discount] no customer found for email ${email}`);
+        return;
+      }
+      customerGid = customer.id;
+    } else {
+      console.log("[generate-discount] no customer id or email provided, skipping metafield write");
       return;
     }
 
-    // 2. Write both metafields in a single call
     const setRes = await shopifyGraphQL<{
       metafieldsSet: {
         metafields: Array<{ id: string }>;
@@ -172,14 +181,14 @@ async function writeCustomerMetafields(
       {
         metafields: [
           {
-            ownerId: customer.id,
+            ownerId: customerGid,
             namespace: METAFIELD_NAMESPACE,
             key: METAFIELD_KEY_CODE,
             type: "single_line_text_field",
             value: code,
           },
           {
-            ownerId: customer.id,
+            ownerId: customerGid,
             namespace: METAFIELD_NAMESPACE,
             key: METAFIELD_KEY_ENDS_AT,
             type: "date_time",
@@ -198,7 +207,7 @@ async function writeCustomerMetafields(
       );
     } else {
       console.log(
-        `[generate-discount] wrote welcome offer metafields for ${customer.id}`
+        `[generate-discount] wrote welcome offer metafields for ${customerGid}`
       );
     }
   } catch (err) {
