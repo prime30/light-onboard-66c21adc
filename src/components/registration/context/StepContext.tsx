@@ -21,6 +21,7 @@ import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
+import { useAutoApproval } from "@/lib/app-settings";
 
 export type StepContextType = {
   totalSteps: number;
