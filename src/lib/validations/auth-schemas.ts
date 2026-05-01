@@ -125,12 +125,17 @@ const createPasswordValidators = {
     .max(72, "Password must be less than 72 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
 };
-export const createPasswordSchema = z
-  .object(createPasswordValidators)
-  .refine((data) => data.password === data.confirmPassword, {
+// Plain ZodObject used for step-level gating (consumed by step-order
+// stepValidations, fieldsForStep, etc.). Cross-field equality is enforced by
+// `registrationSchema.superRefine` so we can keep this as a ZodObject.
+export const createPasswordStepSchema = z.object(createPasswordValidators);
+export const createPasswordSchema = createPasswordStepSchema.refine(
+  (data) => data.password === data.confirmPassword,
+  {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  });
+  }
+);
 export type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
 
 // Business Location Schema

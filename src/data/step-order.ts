@@ -4,7 +4,7 @@ import {
   businessLocationSchema,
   businessOperationSchema,
   contactBasicsSchema,
-  createPasswordSchema,
+  createPasswordStepSchema,
   licenseSchema,
   preferencesSchema,
   preferredMethodSchema,
@@ -131,12 +131,8 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   onboarding: null,
   "account-type": accountTypeSchema,
   "contact-basics": contactBasicsSchema,
-  // createPasswordSchema is wrapped in .refine() so its type is ZodEffects, not
-  // ZodObject. We expose the underlying object schema for step-gating since the
-  // password-match check also runs in the registrationSchema.superRefine.
-  "create-password": createPasswordSchema._def
-    ? (createPasswordSchema as unknown as ZodObject)
-    : null,
+  // Plain ZodObject schema (refinement runs at registrationSchema level).
+  "create-password": createPasswordStepSchema,
   license: licenseSchema,
   "business-operation": businessOperationSchema,
   "business-location": businessLocationSchema,
