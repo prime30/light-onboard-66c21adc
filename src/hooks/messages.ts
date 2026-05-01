@@ -147,6 +147,11 @@ export function useCustomerLogin({
       // In iframe: delegate to parent Shopify theme (it owns the storefront
       // session cookie). The parent posts back LOGIN_STATUS + CUSTOMER_DATA.
       if (isInIframe) {
+        try {
+          sessionStorage.setItem("dde_just_signed_in", "1");
+        } catch {
+          // ignore storage failures
+        }
         sendMessage(IframeMessageTypes.USER_LOGIN, { email, password });
         return;
       }
