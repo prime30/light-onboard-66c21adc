@@ -66,6 +66,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   reviews: "Reviews",
   "account-type": "Account Type",
   "contact-basics": "Contact Information",
+  "create-password": "Create Password",
   license: "Professional License",
   "business-operation": "Business Operations",
   "business-location": "Business Location",
@@ -86,6 +87,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "account-type",
     "business-operation",
     "contact-basics",
+    "create-password",
     "business-location",
     "license",
     "tax-exemption",
@@ -97,6 +99,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "account-type",
     "business-location",
     "contact-basics",
+    "create-password",
     "license",
     "tax-exemption",
     "wholesale-terms",
@@ -107,6 +110,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "account-type",
     "school-info",
     "contact-basics",
+    "create-password",
     "tax-exemption",
     "wholesale-terms",
     "preferred-method",
@@ -127,6 +131,12 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   onboarding: null,
   "account-type": accountTypeSchema,
   "contact-basics": contactBasicsSchema,
+  // createPasswordSchema is wrapped in .refine() so its type is ZodEffects, not
+  // ZodObject. We expose the underlying object schema for step-gating since the
+  // password-match check also runs in the registrationSchema.superRefine.
+  "create-password": createPasswordSchema._def
+    ? (createPasswordSchema as unknown as ZodObject)
+    : null,
   license: licenseSchema,
   "business-operation": businessOperationSchema,
   "business-location": businessLocationSchema,
