@@ -58,12 +58,19 @@ export function AuthFooter({
   // the popover guides users to what's blocking the Continue button right here.
   // On the summary step, list every incomplete step across the whole form.
   const popoverSteps = useMemo(() => {
-    if (isSummaryStep) return incompleteSteps;
+    if (isSummaryStep) {
+      // In auto-approval mode, the password step happens AFTER summary, so it
+      // should not be listed as a blocker on the faux "Submit application".
+      if (isFauxSubmitStep) {
+        return incompleteSteps.filter((s) => s.step !== "create-password");
+      }
+      return incompleteSteps;
+    }
     return incompleteSteps.filter((s) => s.step === currentStep);
-  }, [incompleteSteps, isSummaryStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, currentStep]);
 
   const continueBlocked = isSummaryStep
-    ? !isFormValid && popoverSteps.length > 0
+    ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
     : !isStepValid && popoverSteps.length > 0;
 
   // Popover (with the list of incomplete steps/fields) is intentionally only
