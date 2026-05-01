@@ -113,10 +113,17 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Password Reset
+            {resetCustomer.firstName
+              ? `You're all set, ${resetCustomer.firstName}`
+              : "Password reset"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your password has been changed successfully. You can now log in with your new password.
+            Your password has been changed successfully. You can now log in
+            {resetCustomer.email ? (
+              <> with <span className="text-foreground/80">{resetCustomer.email}</span>.</>
+            ) : (
+              <> with your new password.</>
+            )}
           </FadeText>
         </div>
         <Button
