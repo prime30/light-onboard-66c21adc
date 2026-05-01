@@ -46,7 +46,13 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
-    const result = await apiCall(
+    const result = await apiCall<{
+      reset: boolean;
+      email: string | null;
+      firstName: string | null;
+      accessToken: string | null;
+      expiresAt: string | null;
+    }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
       {
         method: "POST",
