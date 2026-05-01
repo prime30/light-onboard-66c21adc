@@ -158,49 +158,45 @@ const Reviews = () => {
               className="group border border-border rounded-xl p-5 transition-all duration-200 hover:border-foreground/20 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex items-start gap-4">
-                <ReviewAvatar review={review} className="w-10 h-10 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div>
-                      <h3 className="font-semibold text-sm">{review.authorName}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {review.productName
-                          ? `Verified · ${review.productName}`
-                          : "Verified stylist"}
-                      </p>
-                    </div>
-                    <div className="flex gap-0.5 shrink-0">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-3 w-3",
-                            i < review.rating ? "fill-foreground text-foreground" : "text-muted"
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  {review.title && (
-                    <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
-                  )}
-                  <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
-                  {review.images.length > 1 && (
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      {review.images.slice(1, 5).map((src, i) => (
-                        <img
-                          key={i}
-                          src={src}
-                          alt=""
-                          loading="lazy"
-                          className="w-16 h-16 rounded-lg object-cover bg-muted"
-                        />
-                      ))}
-                    </div>
-                  )}
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <div>
+                  <h3 className="font-semibold text-sm">{review.authorName}</h3>
+                  <p className="text-xs text-muted-foreground">Verified stylist</p>
+                </div>
+                <div className="flex gap-0.5 shrink-0">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "h-3 w-3",
+                        i < review.rating ? "fill-foreground text-foreground" : "text-muted"
+                      )}
+                    />
+                  ))}
                 </div>
               </div>
+              {review.title && (
+                <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
+              )}
+              <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
+              {review.images.length > 0 && (
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  {review.images.slice(0, 4).map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      className="w-16 h-16 rounded-lg object-cover bg-muted"
+                    />
+                  ))}
+                </div>
+              )}
+              {(review.productImage || review.productName) && (
+                <div className="mt-4">
+                  <ProductChip review={review} />
+                </div>
+              )}
             </div>
           ))}
         </div>
