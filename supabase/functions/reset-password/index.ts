@@ -37,11 +37,20 @@ function sendSuccess<T>(data: T, message?: string) {
   );
 }
 
-const bodySchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-  token: z.string().min(1, "Token is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+// Accept either:
+//   - resetUrl: full Shopify reset URL (preferred — matches `customer.reset_password_url`)
+//   - customerId + token: legacy shape, reconstructed below
+const bodySchema = z
+  .object({
+    resetUrl: z.string().url().optional(),
+    customerId: z.string().min(1).optional(),
+    token: z.string().min(1).optional(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+  })
+  .refine(
+    (v) => !!v.resetUrl || (!!v.customerId && !!v.token),
+    { message: "resetUrl or (customerId and token) is required" }
+  );
 
 const STOREFRONT_API_VERSION = "2024-10";
 
