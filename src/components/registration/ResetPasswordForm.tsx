@@ -230,6 +230,31 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
 
   // Success state
   if (formState === "success") {
+    const autoLoginNote =
+      autoLoginStatus === "rate_limited"
+        ? "Too many sign-in attempts — please log in manually in a moment."
+        : autoLoginStatus === "failed"
+          ? "Couldn't sign you in automatically — please log in with your new password."
+          : null;
+
+    const ctaLabel = isInIframe
+      ? "Close"
+      : autoLoginStatus === "succeeded"
+        ? "Continue to store"
+        : "Go to login";
+
+    const handleSuccessCta = () => {
+      if (isInIframe) {
+        closeIframe();
+        return;
+      }
+      if (autoLoginStatus === "succeeded") {
+        window.location.href = "/";
+      } else {
+        window.location.href = "/login";
+      }
+    };
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
         <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center">
@@ -242,19 +267,24 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
               : "Password reset"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your password has been changed successfully. You can now log in
-            {resetCustomer.email ? (
-              <> with <span className="text-foreground/80">{resetCustomer.email}</span>.</>
+            Your password has been changed successfully.
+            {autoLoginStatus === "succeeded" ? (
+              <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
             ) : (
-              <> with your new password.</>
+              <> You can now log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : <> with your new password</>}.</>
             )}
           </FadeText>
+          {autoLoginNote && (
+            <FadeText as="p" className="text-xs text-muted-foreground/60 leading-relaxed pt-1">
+              {autoLoginNote}
+            </FadeText>
+          )}
         </div>
         <Button
-          onClick={handleClose}
+          onClick={handleSuccessCta}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
         >
-          {isInIframe ? "Close" : "Go to Store"}
+          {ctaLabel}
         </Button>
       </div>
     );
