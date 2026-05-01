@@ -162,11 +162,16 @@ const children: RouteObject[] = [
   },
 ];
 
-export const router = createBrowserRouter([
-  {
-    Component: App,
-    children,
-  },
-]);
+import { getRouterBasename } from "./lib/router-basename";
+
+export const router = createBrowserRouter(
+  [
+    {
+      Component: App,
+      children,
+    },
+  ],
+  { basename: getRouterBasename() }
+);
 
 export default App;
