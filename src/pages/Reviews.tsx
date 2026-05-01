@@ -2,12 +2,50 @@ import { ArrowLeft, Star, Quote, ArrowUpRight, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
-import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
-import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
-import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
-import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
-import { useReviews } from "@/hooks/use-reviews";
+import { useReviews, type Review } from "@/hooks/use-reviews";
+
+/** Pick the most "real" image we have for a review. */
+function reviewImage(r: Review): string | null {
+  return r.images[0] ?? r.productImage ?? null;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+}
+
+/** Avatar slot — customer photo > product image > initials placeholder. */
+const ReviewAvatar = ({
+  review,
+  className,
+}: {
+  review: Review;
+  className?: string;
+}) => {
+  const src = reviewImage(review);
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={review.productName ?? review.authorName}
+        loading="lazy"
+        className={cn("rounded-full object-cover bg-muted", className)}
+      />
+    );
+  }
+  return (
+    <div
+      className={cn(
+        "rounded-full bg-muted text-foreground/70 flex items-center justify-center text-xs font-medium uppercase",
+        className
+      )}
+      aria-hidden="true"
+    >
+      {initials(review.authorName)}
+    </div>
+  );
+};
+
 
 const Reviews = () => {
   const navigate = useNavigate();
@@ -81,11 +119,7 @@ const Reviews = () => {
               "{featured.content}"
             </p>
             <div className="flex items-center gap-3">
-              <img
-                src={featured.avatar}
-                alt={featured.authorName}
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <ReviewAvatar review={featured} className="w-10 h-10" />
               <div>
                 <h3 className="font-semibold text-sm">{featured.authorName}</h3>
                 <p className="text-muted-foreground text-xs">
@@ -96,22 +130,33 @@ const Reviews = () => {
           </div>
         )}
 
-        {/* Avatars row */}
-        <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-          <div className="flex -space-x-2">
-            {[stylistPink1, stylistPurple1, stylistBlue1, stylistOmbre1, stylistTeal1].map(
-              (avatar, i) => (
-                <img
-                  key={i}
-                  src={avatar}
-                  alt=""
-                  className="w-8 h-8 rounded-full border-2 border-background object-cover"
-                />
-              )
-            )}
-          </div>
-          <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
-        </div>
+        {/* Product images from real reviews */}
+        {(() => {
+          const productImages = Array.from(
+            new Set(
+              (reviews ?? [])
+                .map((r) => r.productImage)
+                .filter((src): src is string => !!src)
+            )
+          ).slice(0, 5);
+          if (productImages.length === 0) return null;
+          return (
+            <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
+              <div className="flex -space-x-2">
+                {productImages.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    className="w-8 h-8 rounded-full border-2 border-background object-cover bg-muted"
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
+            </div>
+          );
+        })()}
 
         {/* Review grid */}
         <div className="space-y-4">
@@ -122,11 +167,7 @@ const Reviews = () => {
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="flex items-start gap-4">
-                <img
-                  src={review.avatar}
-                  alt={review.authorName}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                <ReviewAvatar review={review} className="w-10 h-10 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
@@ -153,6 +194,19 @@ const Reviews = () => {
                     <p className="text-sm font-medium text-foreground mb-1">{review.title}</p>
                   )}
                   <p className="text-sm text-foreground/80 leading-relaxed">{review.content}</p>
+                  {review.images.length > 1 && (
+                    <div className="mt-3 flex gap-2 flex-wrap">
+                      {review.images.slice(1, 5).map((src, i) => (
+                        <img
+                          key={i}
+                          src={src}
+                          alt=""
+                          loading="lazy"
+                          className="w-16 h-16 rounded-lg object-cover bg-muted"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
