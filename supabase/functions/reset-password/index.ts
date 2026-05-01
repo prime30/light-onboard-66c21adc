@@ -278,40 +278,22 @@ Deno.serve(async (req) => {
     if (!email) {
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken) {
-        const numericId = parseShopifyCustomerId(result.customer.id) ?? resetCustomerId;
-        if (numericId) {
-          try {
-            const adminRes = await fetch(
-              `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${numericId}.json`,
-              {
-                headers: {
-                  "X-Shopify-Access-Token": adminToken,
-                  "Content-Type": "application/json",
-                },
-              }
+        try {
+          const adminCustomer = await lookupCustomerViaAdmin(
+            SHOPIFY_STORE_DOMAIN,
+            adminToken,
+            resetCustomerId,
+            result.customer.id || null
+          );
+          if (adminCustomer.email) {
+            console.warn(
+              "[reset-password] Email recovered via Admin API fallback (Storefront returned null)"
             );
-            if (adminRes.ok) {
-              const j = await adminRes.json();
-              const adminEmail = j?.customer?.email || null;
-              const adminFirst = j?.customer?.first_name || null;
-              if (!email && adminEmail) {
-                // Visibility for the legacy-account quirk: Storefront returned
-                // null email after a successful customerResetByUrl, and we
-                // recovered it from Admin API. Useful for spotting frequency
-                // of this fallback in edge function logs.
-                console.warn(
-                  "[reset-password] Email recovered via Admin API fallback (Storefront returned null) for customer",
-                  numericId
-                );
-              }
-              email = email || adminEmail;
-              firstName = firstName || adminFirst;
-            } else {
-              console.warn("Admin customer lookup failed:", adminRes.status);
-            }
-          } catch (e) {
-            console.warn("Admin customer lookup threw:", e);
           }
+          email = email || adminCustomer.email;
+          firstName = firstName || adminCustomer.firstName;
+        } catch (e) {
+          console.warn("Admin customer lookup threw:", e);
         }
       } else {
         console.warn(
