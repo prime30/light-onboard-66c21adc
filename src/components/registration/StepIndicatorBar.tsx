@@ -35,8 +35,11 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     }
   }, [accountType, currentStep, inDelay]);
 
-  // Memoize the current step number to prevent recalculation on every render
+  // Memoize the current step number to prevent recalculation on every render.
+  // The "success" step isn't in the steps array — it conceptually sits one
+  // past the last real step (where the flag is rendered), so map it there.
   const getCurrentStepNumber = useMemo(() => {
+    if (currentStep === "success") return steps.length;
     const index = steps.indexOf(currentStep);
     return index === -1 ? 0 : index;
   }, [currentStep, steps]);
