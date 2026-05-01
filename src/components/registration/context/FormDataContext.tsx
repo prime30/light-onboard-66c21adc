@@ -201,13 +201,18 @@ export function FormDataProvider({
       (async () => {
         try {
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
+          // Pull the freshly-created Shopify customer ID out of create-customer's
+          // response so generate-discount can write metafields by GID directly,
+          // skipping the racy email-based customer lookup.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const shopifyCustomerId = (result.data as any)?.customer?.shopify_id ?? null;
           const discountResponse = await fetch(discountUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // Send email so the edge function can write the welcome offer to
-            // the customer's Shopify metafields (powers the cross-device
-            // announcement bar marquee on the storefront).
-            body: JSON.stringify({ email: values.email }),
+            // Send email + shopifyCustomerId so the edge function can write
+            // the welcome offer to the customer's Shopify metafields (powers
+            // the cross-device announcement bar marquee on the storefront).
+            body: JSON.stringify({ email: values.email, shopifyCustomerId }),
           });
           if (discountResponse.ok) {
             const discountResult = await discountResponse.json();
