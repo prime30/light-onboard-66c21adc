@@ -127,12 +127,37 @@ export function AuthFooter({
         animatedTargets.add(target);
         if (!firstTarget) firstTarget = target;
 
-        target.classList.remove("shake-subtle", "field-flash-error");
-        // Force reflow so the animations can replay on repeated clicks.
-        void target.offsetWidth;
-        target.classList.add("shake-subtle", "field-flash-error");
-        window.setTimeout(() => target.classList.remove("shake-subtle"), 600);
-        window.setTimeout(() => target.classList.remove("field-flash-error"), 1300);
+        // Use Web Animations API so we can replay shake/flash WITHOUT forcing
+        // a reflow on the wrapper. A reflow would also restart any sibling
+        // CSS animations on the same element (e.g. .animate-stagger-*),
+        // causing the field to fade out then back in before the shake.
+        const el = target as HTMLElement & { _shakeAnims?: Animation[] };
+        if (el._shakeAnims) {
+          el._shakeAnims.forEach((a) => a.cancel());
+        }
+        const shake = el.animate(
+          [
+            { transform: "translateX(0)" },
+            { transform: "translateX(-4px)" },
+            { transform: "translateX(4px)" },
+            { transform: "translateX(-3px)" },
+            { transform: "translateX(3px)" },
+            { transform: "translateX(-2px)" },
+            { transform: "translateX(0)" },
+          ],
+          { duration: 500, easing: "cubic-bezier(0.36, 0.07, 0.19, 0.97)" }
+        );
+        // Keep the red flash via class (it doesn't conflict with opacity),
+        // but still drive its replay via animation cancel rather than reflow.
+        el.classList.remove("field-flash-error");
+        // Reading a non-layout property is enough to flush the class removal
+        // without triggering a full layout reflow that restarts CSS anims.
+        el.getAnimations().forEach((a) => {
+          if ((a as CSSAnimation).animationName === "fieldFlashError") a.cancel();
+        });
+        el.classList.add("field-flash-error");
+        el._shakeAnims = [shake];
+        window.setTimeout(() => el.classList.remove("field-flash-error"), 1300);
       });
     });
 
