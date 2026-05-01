@@ -66,8 +66,15 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     );
 
     if (result.success) {
+      setResetCustomer({
+        firstName: result.data?.firstName ?? null,
+        email: result.data?.email ?? null,
+      });
       setFormState("success");
-      sendMessage("PASSWORD_RESET_SUCCESS", { customerId });
+      sendMessage("PASSWORD_RESET_SUCCESS", {
+        customerId,
+        email: result.data?.email ?? null,
+      });
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
