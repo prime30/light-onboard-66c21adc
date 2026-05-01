@@ -57,7 +57,9 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
 
   // Only show publicly visible / published reviews
   if (a.public === false) return null;
-  if (a.status && a.status.toLowerCase() !== "published") return null;
+  const statusValue =
+    typeof a.status === "string" ? a.status : a.status?.value ?? null;
+  if (statusValue && statusValue.toLowerCase() !== "published") return null;
 
   return {
     id: r.id,
@@ -71,8 +73,6 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     verified: !!a.verified,
   };
 }
-
-Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
