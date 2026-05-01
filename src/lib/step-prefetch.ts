@@ -47,6 +47,7 @@ const STEP_IMPORTS: Partial<Record<Step, () => Promise<unknown>>> = {
   "account-type":       () => import("@/components/registration/steps/AccountTypeForm"),
   "business-operation": () => import("@/components/registration/steps/BusinessOperationStep"),
   "contact-basics":     () => import("@/components/registration/steps/ContactBasicsStep"),
+  "create-password":    () => import("@/components/registration/steps/CreatePasswordStep"),
   "business-location":  () => import("@/components/registration/steps/BusinessLocationStep"),
   "school-info":        () => import("@/components/registration/steps/SchoolInfoStep"),
   "license":            () => import("@/components/registration/steps/LicenseStep"),

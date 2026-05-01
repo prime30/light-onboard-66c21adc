@@ -3,6 +3,7 @@ export { AccountTypeForm } from "./AccountTypeForm";
 export { BusinessLocationStep } from "./BusinessLocationStep";
 export { BusinessOperationStep } from "./BusinessOperationStep";
 export { ContactBasicsStep, CountryFlag } from "./ContactBasicsStep";
+export { CreatePasswordStep } from "./CreatePasswordStep";
 export { LicenseStep } from "./LicenseStep";
 export { OnboardingForm } from "./OnboardingForm";
 export { PreferencesStep } from "./PreferencesStep";
