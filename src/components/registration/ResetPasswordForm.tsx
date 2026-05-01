@@ -32,11 +32,13 @@ interface ResetPasswordFormProps {
   customerId: string | null;
 }
 
+type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
+
 export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps) {
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
-  const [, setCustomer] = useAtom(customerAtom);
+  const [customer, setCustomer] = useAtom(customerAtom);
 
   const [formState, setFormState] = useState<FormState>(
     !token || !customerId ? "missing-params" : "form"
@@ -46,12 +48,28 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     firstName: string | null;
     email: string | null;
   }>({ firstName: null, email: null });
-  const successRedirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeWatchActive = useRef(false);
+
+  // Iframe auto-login: when we're waiting for the parent theme to confirm
+  // sign-in via CUSTOMER_DATA (which flips customerAtom.isLoggedIn), react
+  // to that flip; otherwise fail open after 3s.
+  useEffect(() => {
+    if (!iframeWatchActive.current) return;
+    if (formState !== "signing-in") return;
+    if (customer.isLoggedIn) {
+      iframeWatchActive.current = false;
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+      setAutoLoginStatus("succeeded");
+      setFormState("success");
+    }
+  }, [customer.isLoggedIn, formState]);
 
   useEffect(() => {
     return () => {
-      if (successRedirectTimer.current) {
-        clearTimeout(successRedirectTimer.current);
+      if (iframeTimeoutRef.current) {
+        clearTimeout(iframeTimeoutRef.current);
       }
     };
   }, []);
