@@ -787,6 +787,7 @@ Deno.serve(async (req: Request) => {
     }
 
 
+    const response: FunctionResponse<CustomerFieldsResponse> = {
       success: true,
       data: customerFieldsData,
       statusCode: 200,
