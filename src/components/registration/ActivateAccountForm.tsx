@@ -18,15 +18,17 @@ type FormState = "form" | "success" | "already-active" | "expired" | "invalid" |
 interface ActivateAccountFormProps {
   token: string | null;
   customerId: string | null;
+  activationUrl?: string | null;
 }
 
-export function ActivateAccountForm({ token, customerId }: ActivateAccountFormProps) {
+export function ActivateAccountForm({ token, customerId, activationUrl }: ActivateAccountFormProps) {
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
 
+  const hasParams = !!activationUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    !token || !customerId ? "missing-params" : "form"
+    hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
 
