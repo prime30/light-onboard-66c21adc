@@ -602,9 +602,9 @@ Deno.serve(async (req: Request) => {
     const preferredMethodTags = (preferredMethods ?? []).map((m) => `Preferred method: ${m}`);
 
     const accountTypeLabelMap: Record<string, string> = {
-      professional: "Professional",
-      salon: "Salon",
-      student: "Student",
+      professional: "Licensed stylist",
+      salon: "Salon owner or manager",
+      student: "Cosmetology student or apprentice",
     };
     const accountTypeTags: string[] = [];
     if (customer.account_type) {
