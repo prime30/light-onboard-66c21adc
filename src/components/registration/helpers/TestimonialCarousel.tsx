@@ -74,27 +74,8 @@ const fallbackTestimonials: Testimonial[] = [
   },
 ];
 
-function reviewToTestimonial(r: Review, index: number): Testimonial {
-  // Prefer the customer's own review photo, then the Shopify product image.
-  // Only fall back to a stock avatar when the review has no real imagery.
-  const realImage = r.images[0] ?? r.productImage ?? null;
-  return {
-    quote: r.content,
-    name: r.authorName,
-    role: r.productName ? `Verified · ${r.productName}` : "Verified stylist",
-    avatar: realImage ?? ALL_AVATARS[index % ALL_AVATARS.length],
-  };
-}
-
 export const TestimonialCarousel = () => {
-  const { data: liveReviews } = useReviews(8);
-
-  const testimonials = useMemo<Testimonial[]>(() => {
-    if (liveReviews && liveReviews.length > 0) {
-      return liveReviews.map(reviewToTestimonial);
-    }
-    return fallbackTestimonials;
-  }, [liveReviews]);
+  const testimonials = fallbackTestimonials;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
