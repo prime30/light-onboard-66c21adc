@@ -146,19 +146,18 @@ export function FormDataProvider({
       }
 
       // Auto-login: hand the parent Shopify theme the credentials so the
-      // user lands logged-in on the storefront. In iframe mode the theme
-      // owns the storefront session, so we postMessage USER_LOGIN. In
-      // standalone mode we exchange directly via Storefront API. Failures
-      // here do NOT block the success screen.
+      // user lands logged-in on the storefront. In iframe mode we DEFER the
+      // USER_LOGIN postMessage until the iframe is actually closed (see
+      // useCloseIframe → flushes pending login before posting CLOSE_IFRAME).
+      // Sending it earlier would log the user in on the storefront while
+      // they're still on the success screen, which can change cart/auth
+      // state underfoot. In standalone mode we exchange directly via the
+      // Storefront API. Failures here do NOT block the success screen.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const password = (values as any).password as string | undefined;
       if (password && values.email) {
         if (isInIframe) {
-          try {
-            sendMessage("USER_LOGIN", { email: values.email, password });
-          } catch (err) {
-            console.warn("USER_LOGIN postMessage failed (non-blocking):", err);
-          }
+          setPendingLogin({ email: values.email, password });
         } else {
           (async () => {
             try {
