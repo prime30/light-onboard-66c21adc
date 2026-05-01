@@ -142,10 +142,14 @@ export function AuthFooter({
         animatedTargets.add(target);
         if (!firstTarget) firstTarget = target;
 
-        // Use Web Animations API so we can replay shake/flash WITHOUT forcing
-        // a reflow on the wrapper. A reflow would also restart any sibling
-        // CSS animations on the same element (e.g. .animate-stagger-*),
-        // causing the field to fade out then back in before the shake.
+        // Use Web Animations API for BOTH shake and red-flash so we don't
+        // touch the wrapper's CSS `animation` property. The wrapper often
+        // also carries `.animate-stagger-N` whose declaration sets
+        // `opacity: 0` + a forwards-filling fade-in animation. If we added
+        // a class like `.field-flash-error` (which sets its own `animation`
+        // shorthand), the cascade would REPLACE the stagger animation,
+        // causing the field to snap back to its declared `opacity: 0`
+        // ground state — i.e. the field appears to vanish.
         const el = target as HTMLElement & { _shakeAnims?: Animation[] };
         if (el._shakeAnims) {
           el._shakeAnims.forEach((a) => a.cancel());
@@ -162,17 +166,20 @@ export function AuthFooter({
           ],
           { duration: 500, easing: "cubic-bezier(0.36, 0.07, 0.19, 0.97)" }
         );
-        // Keep the red flash via class (it doesn't conflict with opacity),
-        // but still drive its replay via animation cancel rather than reflow.
-        el.classList.remove("field-flash-error");
-        // Reading a non-layout property is enough to flush the class removal
-        // without triggering a full layout reflow that restarts CSS anims.
-        el.getAnimations().forEach((a) => {
-          if ((a as CSSAnimation).animationName === "fieldFlashError") a.cancel();
-        });
-        el.classList.add("field-flash-error");
-        el._shakeAnims = [shake];
-        window.setTimeout(() => el.classList.remove("field-flash-error"), 1300);
+        const flash = el.animate(
+          [
+            { boxShadow: "0 0 0 0 hsl(var(--destructive) / 0)", backgroundColor: "hsl(var(--destructive) / 0)" },
+            { boxShadow: "0 0 0 4px hsl(var(--destructive) / 0.35)", backgroundColor: "hsl(var(--destructive) / 0.12)", offset: 0.15 },
+            { boxShadow: "0 0 0 0 hsl(var(--destructive) / 0)", backgroundColor: "hsl(var(--destructive) / 0)" },
+          ],
+          { duration: 1200, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
+        );
+        // Border-color hint on inner inputs — applied via a marker class
+        // that ONLY toggles `border-color`, never `animation`.
+        el.classList.add("field-flash-border");
+        el._shakeAnims = [shake, flash];
+        window.setTimeout(() => el.classList.remove("field-flash-border"), 1300);
+
       });
     });
 
