@@ -16,6 +16,7 @@ import {
   ActivateAccountFormData,
 } from "@/lib/validations/password-schemas";
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
+import { withBasename } from "@/lib/router-basename";
 
 type FormState =
   | "form"
@@ -198,7 +199,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     if (isInIframe) {
       closeIframe();
     } else {
-      window.location.href = "/";
+      window.location.href = withBasename("/");
     }
   }, [isInIframe, closeIframe]);
 
