@@ -33,11 +33,12 @@ interface ResetPasswordFormProps {
   token: string | null;
   customerId: string | null;
   resetUrl?: string | null;
+  emailHint?: string | null;
 }
 
 type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
 
-export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: ResetPasswordFormProps) {
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
@@ -98,7 +99,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
       // into "Forgot password?" earlier in this same browser session,
       // captured by SignInForm via setResetEmailHint().
       const customerEmail =
-        result.data?.email ?? getResetEmailHint() ?? null;
+        result.data?.email ?? emailHint ?? getResetEmailHint() ?? null;
       // Hint is single-use — clear regardless of which path resolved it
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
