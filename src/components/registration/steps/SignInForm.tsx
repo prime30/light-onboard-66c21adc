@@ -748,7 +748,13 @@ export const SignInForm = () => {
         <Button
           type="submit"
           disabled={isSubmitting || isLoginSuccessful}
-          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 font-medium text-base py-3"
+          className={`w-full h-button rounded-full font-medium text-base py-3 transition-colors ${
+            isLoginSuccessful
+              ? "bg-success text-success-foreground hover:bg-success/90 disabled:opacity-100"
+              : loginError
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : "bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
+          }`}
         >
           {isLoginSuccessful ? (
             <>
@@ -758,6 +764,11 @@ export const SignInForm = () => {
           ) : isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            </>
+          ) : loginError ? (
+            <>
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Login failed
             </>
           ) : (
             "Log In"
