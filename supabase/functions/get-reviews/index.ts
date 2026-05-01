@@ -24,6 +24,7 @@ type NormalizedReview = {
   verified: boolean;
 };
 
+type KlaviyoStatus = string | { value?: string | null } | null;
 type KlaviyoReviewAttrs = {
   rating?: number;
   title?: string | null;
@@ -33,8 +34,9 @@ type KlaviyoReviewAttrs = {
   product?: { name?: string | null } | null;
   created?: string | null;
   verified?: boolean | null;
-  status?: string | null;
+  status?: KlaviyoStatus;
   public?: boolean | null;
+  review_type?: string | null;
 };
 
 type KlaviyoReview = {
@@ -55,7 +57,9 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
 
   // Only show publicly visible / published reviews
   if (a.public === false) return null;
-  if (a.status && a.status.toLowerCase() !== "published") return null;
+  const statusValue =
+    typeof a.status === "string" ? a.status : a.status?.value ?? null;
+  if (statusValue && statusValue.toLowerCase() !== "published") return null;
 
   return {
     id: r.id,
