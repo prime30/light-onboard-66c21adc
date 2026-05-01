@@ -26,6 +26,7 @@ export type Step =
   | "preferred-method"
   | "preferences"
   | "summary"
+  | "assessing"
   | "success";
 
 /** Account type options */
