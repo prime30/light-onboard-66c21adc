@@ -91,8 +91,21 @@ export function useCustomerLogin({
       const customer = message.data as Customer;
       setCustomer(message.data as Customer);
 
-      // Redirect to already logged in page if logged in
+      // Redirect to already logged in page if logged in — UNLESS the user is
+      // currently on the registration success/welcome-offer screen. After a
+      // fresh registration (esp. auto-approval), the parent posts CUSTOMER_DATA
+      // a few seconds later once Shopify activation lands; we don't want that
+      // to yank the user off the welcome offer screen.
       if (customer.isLoggedIn) {
+        let onSuccessScreen = false;
+        try {
+          onSuccessScreen = sessionStorage.getItem("dde_on_success_screen") === "1";
+        } catch {
+          // ignore storage failures
+        }
+        if (onSuccessScreen) {
+          return;
+        }
         navigate("/already-logged-in");
         return;
       }
