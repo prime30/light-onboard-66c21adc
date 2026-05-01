@@ -10,6 +10,7 @@ import { RegistrationLayout } from "./components/registration/RegistrationLayout
 import { AuthBootFallback, GenericBootFallback } from "./components/registration/AuthBootFallback";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import AuthPage from "./pages/AuthPage";
+import { useStandaloneSession } from "./hooks/use-standalone-session";
 
 // Lazy-load non-initial routes
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
@@ -28,6 +29,13 @@ const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
 
 const queryClient = new QueryClient();
 
+// Hydrates customerAtom from localStorage on boot (standalone mode only).
+// Iframe mode is owned by the parent theme via CUSTOMER_DATA postMessage.
+const StandaloneSessionBoot = () => {
+  useStandaloneSession();
+  return null;
+};
+
 const App = () => (
   <GlobalAppProvider>
     <QueryClientProvider client={queryClient}>
@@ -35,6 +43,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <StandaloneSessionBoot />
           <AppErrorBoundary>
             <Outlet />
           </AppErrorBoundary>
