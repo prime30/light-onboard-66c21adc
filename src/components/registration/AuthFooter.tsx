@@ -189,13 +189,33 @@ export function AuthFooter({
       return;
     }
 
-    if (isSummaryStep) {
+    // Auto-approval flow: summary "Submit application" is a faux submit —
+    // just advance to the assessing animation. The real backend submit
+    // happens when the user sets a password on the next step.
+    if (isFauxSubmitStep) {
+      goToStep("assessing");
+      return;
+    }
+
+    // Final real submit: either the late password step (auto-approval ON)
+    // or the summary step (auto-approval OFF, original flow).
+    if (isLatePasswordStep || isSummaryStep) {
       submitForm();
       return;
     }
 
     goToNextStep();
-  }, [continueBlocked, popoverSteps, shakeMissingFields, goToNextStep, isSummaryStep, submitForm]);
+  }, [
+    continueBlocked,
+    popoverSteps,
+    shakeMissingFields,
+    goToNextStep,
+    isSummaryStep,
+    isFauxSubmitStep,
+    isLatePasswordStep,
+    goToStep,
+    submitForm,
+  ]);
 
 
   return (
