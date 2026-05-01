@@ -1,31 +1,12 @@
 import { Outlet } from "react-router";
 import { ModeProvider } from "./context/ModeContext";
-import { lazy, ReactNode, Suspense, useState } from "react";
+import { ReactNode, useState } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 // Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
-
-// LeftPanel is the marketing/social-proof side: hero image, rotating avatars,
-// odometer counter, testimonial carousel. None of it blocks the user from
-// completing the form, so we lazy-load it so the right-side form paints
-// first. The fallback is just the panel's background tone — no spinner —
-// so there's no visual flicker when the chunk arrives.
-const LeftPanel = lazy(() =>
-  import("./LeftPanel").then((m) => ({ default: m.LeftPanel }))
-);
-
-function LeftPanelFallback() {
-  // Mirror the real LeftPanel's outer dimensions exactly so the form on the
-  // right doesn't reflow when the chunk arrives. Hidden on mobile (lg only).
-  return (
-    <div
-      aria-hidden
-      className="relative hidden lg:flex flex-col w-full lg:w-1/2 lg:h-auto lg:min-h-0 flex-shrink-0 bg-foreground overflow-hidden m-2.5 sm:m-5 mt-0 sm:mt-0 lg:mt-5 rounded-form sm:rounded-[20px] mr-0 sm:mr-0 lg:mr-0"
-    />
-  );
-}
+import { LeftPanel } from "./LeftPanel";
 
 
 export type RegistrationLayoutOutletContext = {
