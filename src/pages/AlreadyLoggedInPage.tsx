@@ -40,15 +40,23 @@ export const AlreadyLoggedInPage = () => {
     navigate("/login", { replace: true });
   };
 
-  const greeting = customer.firstName
-    ? `Signed in as ${customer.firstName}`
-    : customer.email
-      ? `Signed in as ${customer.email}`
-      : "Already logged in";
+  const greeting = justSignedIn
+    ? customer.firstName
+      ? `Welcome back, ${customer.firstName}`
+      : "You're signed in"
+    : customer.firstName
+      ? `Signed in as ${customer.firstName}`
+      : customer.email
+        ? `Signed in as ${customer.email}`
+        : "Already logged in";
 
-  const subcopy = customer.email && customer.firstName
+  const subcopy = justSignedIn
     ? customer.email
-    : "You're already signed in to your account. You can close this window and start shopping.";
+      ? `Signed in as ${customer.email}. You can close this window and start shopping.`
+      : "You're signed in. You can close this window and start shopping."
+    : customer.email && customer.firstName
+      ? customer.email
+      : "You're already signed in to your account. You can close this window and start shopping.";
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pt-[clamp(60px,12vh,120px)] pb-10 lg:pb-5 text-center space-y-[clamp(20px,5vh,40px)] min-h-screen">
