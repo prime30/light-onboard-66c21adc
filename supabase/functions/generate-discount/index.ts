@@ -324,7 +324,7 @@ Deno.serve(async (req: Request) => {
 
     // Best-effort metafield write — runs sequentially after the discount exists,
     // so any failure here cannot affect the user-facing response.
-    await writeCustomerMetafields(email, confirmedCode, confirmedEndsAt);
+    await writeCustomerMetafields(shopifyCustomerId, email, confirmedCode, confirmedEndsAt);
 
     return new Response(
       JSON.stringify({
