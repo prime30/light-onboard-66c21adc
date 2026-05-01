@@ -1,21 +1,45 @@
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "@/components/registration/FadeText";
 import { useCloseIframe } from "@/hooks/messages";
 import { useModeContext } from "@/components/registration/context/ModeContext";
+import { useStandaloneSession } from "@/hooks/use-standalone-session";
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
 export const AlreadyLoggedInPage = () => {
-  const { closeIframe } = useCloseIframe();
+  const { closeIframe, isInIframe } = useCloseIframe();
   const { setMode } = useModeContext();
+  const { customer, signOut } = useStandaloneSession();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setMode("signin");
   }, [setMode]);
 
-  const handleCloseIframe = () => {
-    closeIframe();
+  const handleContinue = () => {
+    if (isInIframe) {
+      closeIframe();
+      return;
+    }
+    // Standalone: send shoppers to the store front.
+    window.location.href = "https://dropdeadextensions.com";
   };
+
+  const handleSignOut = () => {
+    signOut();
+    navigate("/login", { replace: true });
+  };
+
+  const greeting = customer.firstName
+    ? `Signed in as ${customer.firstName}`
+    : customer.email
+      ? `Signed in as ${customer.email}`
+      : "Already logged in";
+
+  const subcopy = customer.email && customer.firstName
+    ? customer.email
+    : "You're already signed in to your account. You can close this window and start shopping.";
 
   return (
     <div className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pt-[clamp(60px,12vh,120px)] pb-10 lg:pb-5 text-center space-y-[clamp(20px,5vh,40px)] min-h-screen">
@@ -30,25 +54,35 @@ export const AlreadyLoggedInPage = () => {
           as="h1"
           className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
         >
-          Already logged in
+          {greeting}
         </FadeText>
         <FadeText
           as="p"
           className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-md mx-auto"
         >
-          You're already signed in to your account. You can close this window and start
-          shopping.
+          {subcopy}
         </FadeText>
       </div>
 
-      {/* Close Button */}
-      <div className="space-y-[clamp(12px,2.5vh,20px)] w-full max-w-sm">
+      {/* Actions */}
+      <div className="space-y-[15px] w-full max-w-sm">
         <Button
-          onClick={handleCloseIframe}
+          onClick={handleContinue}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base py-3"
         >
-          Continue to Store
+          {isInIframe ? "Continue to store" : "Go to store"}
         </Button>
+
+        {!isInIframe && (
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sign out
+          </button>
+        )}
       </div>
     </div>
   );
