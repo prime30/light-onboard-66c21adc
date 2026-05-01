@@ -60,12 +60,30 @@ type KlaviyoListResponse = {
 // Klaviyo stores customer-uploaded review photos as relative paths like
 // "UWtf4y/<uuid>.jpeg?updated_at=...". Their public widget serves them from
 // this CDN host. Absolute URLs are passed through unchanged.
-const KLAVIYO_REVIEW_IMAGE_CDN = "https://reviews-images.klaviyo.com/";
+const KLAVIYO_REVIEW_IMAGE_CDN = "https://reviews.klaviyo.com/";
 
 function resolveImage(raw: string): string {
   if (!raw) return raw;
   if (/^https?:\/\//i.test(raw)) return raw;
   return KLAVIYO_REVIEW_IMAGE_CDN + raw.replace(/^\/+/, "");
+}
+
+// Klaviyo product image_url values often embed a stale Shopify hash suffix
+// like `Filename_<uuid>.jpg` that no longer exists on the current store CDN.
+// Stripping `_<uuid>` before the extension restores the canonical filename.
+function cleanShopifyImage(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (!u.hostname.endsWith("cdn.shopify.com")) return raw;
+    u.pathname = u.pathname.replace(
+      /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.[a-zA-Z0-9]+)$/,
+      "$1"
+    );
+    return u.toString();
+  } catch {
+    return raw;
+  }
 }
 
 function normalize(r: KlaviyoReview): NormalizedReview | null {
@@ -95,7 +113,7 @@ function normalize(r: KlaviyoReview): NormalizedReview | null {
     authorEmail: a.email ?? null,
     productName: a.product?.name ?? null,
     productUrl: a.product?.url ?? null,
-    productImage: a.product?.image_url ?? null,
+    productImage: cleanShopifyImage(a.product?.image_url),
     images,
     createdAt: a.created ?? null,
     verified: !!a.verified,
