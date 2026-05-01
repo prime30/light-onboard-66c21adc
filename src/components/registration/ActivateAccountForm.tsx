@@ -210,8 +210,48 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   }, []);
 
 
+  // Signing-in state (auto-login in progress after activation)
+  if (formState === "signing-in") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-foreground/70 animate-spin" />
+        </div>
+        <div className="space-y-2">
+          <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
+            Signing you in
+          </FadeText>
+          <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
+            Account activated. Logging you in with your new password…
+          </FadeText>
+        </div>
+      </div>
+    );
+  }
+
   // Success state
   if (formState === "success") {
+    const autoLoginNote =
+      autoLoginStatus === "rate_limited"
+        ? "Too many sign-in attempts — please log in manually in a moment."
+        : autoLoginStatus === "failed"
+          ? "Couldn't sign you in automatically — please log in with your new password."
+          : null;
+
+    const ctaLabel = isInIframe
+      ? "Close"
+      : autoLoginStatus === "succeeded"
+        ? "Continue to store"
+        : "Go to login";
+
+    const handleSuccessCta = () => {
+      if (isInIframe) {
+        closeIframe();
+        return;
+      }
+      window.location.href = autoLoginStatus === "succeeded" ? "/" : "/login";
+    };
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
         <div className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center">
@@ -222,14 +262,24 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             Account Activated
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            Your account is ready! You can now log in with your new password.
+            Your account is ready.
+            {autoLoginStatus === "succeeded" ? (
+              <> You're signed in{activatedEmail ? <> as <span className="text-foreground/80">{activatedEmail}</span></> : null}.</>
+            ) : (
+              <> You can now log in{activatedEmail ? <> with <span className="text-foreground/80">{activatedEmail}</span></> : <> with your new password</>}.</>
+            )}
           </FadeText>
+          {autoLoginNote && (
+            <FadeText as="p" className="text-xs text-muted-foreground/60 leading-relaxed pt-1">
+              {autoLoginNote}
+            </FadeText>
+          )}
         </div>
         <Button
-          onClick={handleClose}
+          onClick={handleSuccessCta}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
         >
-          {isInIframe ? "Close" : "Go to Store"}
+          {ctaLabel}
         </Button>
       </div>
     );
