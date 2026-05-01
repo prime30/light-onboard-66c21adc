@@ -42,10 +42,10 @@ type Testimonial = {
 
 const testimonial: Testimonial = {
   quote:
-    "Not only was everything super easy to find but I got the cutest interactive message when I placed my order which just made everything even more exciting :) The hair came SO FAST and I work in Boston, MA. The packaging is just as high quality as the hair inside, the entire experience from buying the hair online to opening the extensions felt luxurious & it didn't cost an unreasonable amount of money! I have to say I am so happy with my whole experience and will only be purchasing Drop Dead Extensions from here on out! Thank you Kristi!",
-  name: "Lex C.",
-  role: "Verified stylist",
-  avatar: stylistPink1,
+    "Been doing K-tips around the hairline and SuperWefts through the back as a hybrid install. Blends seamless and the retention is unreal.",
+  name: "Jess T.",
+  role: "Extension specialist",
+  avatar: stylistTeal1,
 };
 
 export const TestimonialCarousel = () => {
