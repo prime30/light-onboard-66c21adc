@@ -653,7 +653,7 @@ Deno.serve(async (req: Request) => {
             const errText = await tagRes.text();
             console.warn("Failed to tag Shopify customer:", tagRes.status, errText);
           } else {
-            console.log("Tagged Shopify customer with preferred methods:", newTags);
+            console.log("Tagged Shopify customer with:", newTags);
           }
         } catch (tagErr) {
           console.warn("Error tagging Shopify customer (non-blocking):", tagErr);
