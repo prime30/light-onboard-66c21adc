@@ -87,6 +87,30 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const limit = Math.min(Number(url.searchParams.get("limit") ?? "20"), 100);
 
+    // Diagnostic: ?probe=1 returns the raw status of /accounts and /reviews
+    // so we can tell whether the key is invalid vs missing the Reviews scope.
+    if (url.searchParams.get("probe") === "1") {
+      const probe = async (path: string) => {
+        const r = await fetch(`https://a.klaviyo.com/api/${path}`, {
+          headers: {
+            Authorization: `Klaviyo-API-Key ${apiKey}`,
+            accept: "application/vnd.api+json",
+            revision: KLAVIYO_API_REVISION,
+          },
+        });
+        const text = await r.text();
+        return { status: r.status, body: text.slice(0, 600) };
+      };
+      const [accounts, reviews] = await Promise.all([
+        probe("accounts/"),
+        probe("reviews/?page[size]=1"),
+      ]);
+      return new Response(
+        JSON.stringify({ revision: KLAVIYO_API_REVISION, accounts, reviews }, null, 2),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Server-side filter: rating == 5. Klaviyo's filter grammar uses equals(),
     // greater-or-equal() on `rating` is not supported and returns 500.
     // Sort newest first.
