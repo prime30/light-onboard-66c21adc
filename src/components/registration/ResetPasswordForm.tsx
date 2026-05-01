@@ -10,12 +10,11 @@ import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
 import { customerAtom } from "@/contexts/store";
+import { saveStoredSession } from "@/lib/standalone-session";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/password-schemas";
-
-const STOREFRONT_TOKEN_KEY = "shopify_customer_access_token";
 
 type FormState =
   | "form"
@@ -159,18 +158,19 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
         });
 
         if (loginResult.success && loginResult.data?.accessToken) {
-          try {
-            localStorage.setItem(
-              STOREFRONT_TOKEN_KEY,
-              JSON.stringify({
-                accessToken: loginResult.data.accessToken,
-                expiresAt: loginResult.data.expiresAt,
-              })
-            );
-          } catch {
-            // localStorage unavailable — session-only login is still useful.
-          }
-          setCustomer({ isLoggedIn: true });
+          saveStoredSession({
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: resetCustomer.firstName,
+          });
+          setCustomer({
+            isLoggedIn: true,
+            accessToken: loginResult.data.accessToken,
+            expiresAt: loginResult.data.expiresAt,
+            email: customerEmail,
+            firstName: resetCustomer.firstName,
+          });
           setAutoLoginStatus("succeeded");
         } else {
           const failed = loginResult as { statusCode?: number };
