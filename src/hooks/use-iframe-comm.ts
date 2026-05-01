@@ -287,12 +287,26 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
     };
   }, [isInIframe, allowedOrigins, sendMessage, targetOrigin]);
 
-  // Auto-notify ready on mount if in iframe
+  // Auto-notify ready on mount if in iframe.
+  // Use double-requestAnimationFrame so the message fires AFTER the browser
+  // commits the first paint of the React tree. The first rAF queues for the
+  // next frame; the second rAF runs after that frame is painted. This is the
+  // signal the parent theme should use to hide its own overlay — by then the
+  // iframe definitely has visible content (either the React skeleton or
+  // hydrated form), so there is no blank intermediate state.
+  //
+  // Note: index.html ALSO fires IFRAME_READY (phases: head-initial,
+  // skeleton-heartbeat, window-load) for the static boot skeleton handoff.
+  // This React-mount signal carries phase: "react-painted" so the parent can
+  // distinguish boot skeleton vs hydrated app if it wants to.
   useEffect(() => {
-    if (isInIframe) {
-      // Small delay to ensure parent is ready to receive messages
-      const timer = setTimeout(() => {
+    if (!isInIframe) return;
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
         sendMessage("IFRAME_READY", {
+          phase: "react-painted",
           url: window.location.href,
           userAgent: navigator.userAgent,
           dimensions: {
@@ -300,10 +314,12 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
             height: window.innerHeight,
           },
         });
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
+    };
   }, [isInIframe, sendMessage]);
 
   return {
