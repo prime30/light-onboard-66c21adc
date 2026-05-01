@@ -216,7 +216,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     if (isInIframe) {
       closeIframe();
     } else {
-      window.location.href = "/";
+      window.location.href = withBasename("/");
     }
   }, [isInIframe, closeIframe]);
 
@@ -224,7 +224,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
   // flow lives. Works identically inside the iframe and standalone — the
   // /login route is the canonical entry point for requesting a fresh link.
   const handleRequestNewLink = useCallback(() => {
-    window.location.assign("/login?forgot=1");
+    window.location.assign(withBasename("/login?forgot=1"));
   }, []);
 
 
@@ -268,9 +268,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
         return;
       }
       if (autoLoginStatus === "succeeded") {
-        window.location.href = "/";
+        window.location.href = withBasename("/");
       } else {
-        window.location.href = "/login";
+        window.location.href = withBasename("/login");
       }
     };
 
