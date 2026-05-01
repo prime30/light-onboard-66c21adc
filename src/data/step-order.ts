@@ -120,11 +120,22 @@ export const STEP_ORDER: Record<string, Step[]> = {
 };
 
 /**
- * Get the step order for a given account type
+ * Get the step order for a given account type.
+ *
+ * When `autoApprove` is true we move the create-password step OUT of its
+ * normal mid-flow position and the StepProvider will append it after the
+ * faux "assessing" screen — so the user submits an "application" at the
+ * summary, watches a 100% review animation, then sets a password to
+ * actually create the account.
  */
-export function getStepOrder(accountType: AccountType): Step[] {
+export function getStepOrder(
+  accountType: AccountType,
+  autoApprove = false
+): Step[] {
   if (!accountType) return ["account-type"];
-  return STEP_ORDER[accountType] || STEP_ORDER.professional;
+  const order = STEP_ORDER[accountType] || STEP_ORDER.professional;
+  if (!autoApprove) return order;
+  return order.filter((s) => s !== "create-password");
 }
 
 export const stepValidations: Record<Step, ZodObject | null> = {
