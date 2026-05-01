@@ -4,46 +4,40 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useReviews, type Review } from "@/hooks/use-reviews";
 
-/** Pick the most "real" image we have for a review. */
-function reviewImage(r: Review): string | null {
-  return r.images[0] ?? r.productImage ?? null;
-}
+/** Small 2-col product chip: image + product name. Shown under review text. */
+const ProductChip = ({ review }: { review: Review }) => {
+  const src = review.productImage ?? review.images[0] ?? null;
+  const name = review.productName;
+  if (!src && !name) return null;
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
-}
-
-/** Avatar slot — customer photo > product image > initials placeholder. */
-const ReviewAvatar = ({
-  review,
-  className,
-}: {
-  review: Review;
-  className?: string;
-}) => {
-  const src = reviewImage(review);
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={review.productName ?? review.authorName}
-        loading="lazy"
-        className={cn("rounded-full object-cover bg-muted", className)}
-      />
-    );
-  }
-  return (
-    <div
-      className={cn(
-        "rounded-full bg-muted text-foreground/70 flex items-center justify-center text-xs font-medium uppercase",
-        className
+  const content = (
+    <div className="inline-flex items-center gap-2.5 rounded-[10px] border border-border bg-muted/40 pl-1.5 pr-3 py-1.5 transition-colors hover:bg-muted/70">
+      {src ? (
+        <img
+          src={src}
+          alt={name ?? ""}
+          loading="lazy"
+          className="w-9 h-9 rounded-[7px] object-cover bg-muted shrink-0"
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-[7px] bg-muted shrink-0" aria-hidden />
       )}
-      aria-hidden="true"
-    >
-      {initials(review.authorName)}
+      {name && (
+        <span className="text-xs font-medium text-foreground/80 leading-tight max-w-[180px] truncate">
+          {name}
+        </span>
+      )}
     </div>
   );
+
+  if (review.productUrl) {
+    return (
+      <a href={review.productUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+        {content}
+      </a>
+    );
+  }
+  return content;
 };
 
 
