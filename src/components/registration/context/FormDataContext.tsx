@@ -247,6 +247,12 @@ export function FormDataProvider({
     ({ values }: FormStateWithValues) => {
       type ValueType = (typeof values)[keyof typeof values];
       const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
+        // SECURITY: never persist password / confirmPassword to sessionStorage.
+        // We collect them on the create-password step but only keep them in
+        // react-hook-form memory until submit, then they're cleared.
+        if (key === "password" || key === "confirmPassword") {
+          return acc;
+        }
         if (
           (Array.isArray(value) && value.length === 0) ||
           (Array.isArray(value) && typeof value[0] === "object" && value[0].file instanceof File)
