@@ -99,11 +99,11 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          token,
-          password: data.password,
-        }),
+        body: JSON.stringify(
+          resetUrl
+            ? { resetUrl, password: data.password }
+            : { customerId, token, password: data.password }
+        ),
       }
     );
 
