@@ -141,6 +141,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    password: z.string().min(8).optional(),
   }),
   z.object({
     accountType: z.literal("salon"),
@@ -171,6 +172,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    password: z.string().min(8).optional(),
   }),
   z.object({
     accountType: z.literal("student"),
@@ -193,6 +195,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    password: z.string().min(8).optional(),
   }),
 ]);
 
@@ -393,7 +396,6 @@ Deno.serve(async (req: Request) => {
       "Please use a permanent email address — disposable inboxes aren't accepted",
     ]);
   }
-
 
   console.log("Processing customer sync for:", requestBody.data.email);
 
@@ -686,6 +688,104 @@ Deno.serve(async (req: Request) => {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
     }
+
+    // ----------------------------------------------------------------
+    // Auto-approval: if a password was sent AND the admin has flipped
+    // auto_approval_enabled = true, activate the Shopify customer
+    // server-side so they can sign in immediately. Without this the
+    // Shopify customer stays in "invited" state and Helium shows
+    // "Account not active". Failures here are logged but do NOT block
+    // the success response — the user still has a registered account
+    // and can be activated later via the standard invite flow.
+    // ----------------------------------------------------------------
+    const submittedPassword = (parseResult.data as { password?: string }).password;
+    if (submittedPassword && shopifyCustomerId) {
+      try {
+        let autoApprovalEnabled = false;
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supabaseUrl && serviceRoleKey) {
+          const settingsRes = await fetch(
+            `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=auto_approval_enabled`,
+            {
+              headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+            }
+          );
+          if (settingsRes.ok) {
+            const rows = (await settingsRes.json()) as Array<{ auto_approval_enabled?: boolean }>;
+            autoApprovalEnabled = rows?.[0]?.auto_approval_enabled === true;
+          }
+        }
+
+        if (autoApprovalEnabled) {
+          const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+          const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+          if (shopifyDomain && shopifyAdminToken) {
+            // Step 1: ask Shopify Admin API for the activation URL.
+            const urlRes = await fetch(
+              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/account_activation_url.json`,
+              {
+                method: "POST",
+                headers: {
+                  "X-Shopify-Access-Token": shopifyAdminToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (urlRes.ok) {
+              const json = await urlRes.json();
+              const activationUrl: string | undefined = json?.account_activation_url;
+              if (activationUrl) {
+                // Step 2: POST password to the activation URL exactly like
+                // the activate-account edge function does.
+                const activateRes = await fetch(activationUrl, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                  },
+                  body: new URLSearchParams({
+                    "customer[password]": submittedPassword,
+                    "customer[password_confirmation]": submittedPassword,
+                  }).toString(),
+                  redirect: "manual",
+                });
+
+                if (activateRes.status === 302 || activateRes.status === 200) {
+                  console.log("Auto-activated Shopify customer:", shopifyCustomerId);
+                } else {
+                  const txt = await activateRes.text();
+                  console.warn(
+                    "Auto-activation POST failed (non-blocking):",
+                    activateRes.status,
+                    txt.substring(0, 300)
+                  );
+                }
+              } else {
+                console.warn("No account_activation_url returned for customer", shopifyCustomerId);
+              }
+            } else {
+              const txt = await urlRes.text();
+              console.warn(
+                "Failed to fetch account_activation_url (non-blocking):",
+                urlRes.status,
+                txt.substring(0, 300)
+              );
+            }
+          } else {
+            console.warn(
+              "Auto-approval enabled but SHOPIFY_STORE_DOMAIN/SHOPIFY_ADMIN_ACCESS_TOKEN missing"
+            );
+          }
+        }
+      } catch (activationErr) {
+        console.warn("Auto-approval activation threw (non-blocking):", activationErr);
+      }
+    }
+
 
     const response: FunctionResponse<CustomerFieldsResponse> = {
       success: true,
