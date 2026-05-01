@@ -224,7 +224,9 @@ export function StepProvider({ children }: StepProviderProps) {
 
   const formProgress = useMemo(() => {
     // Get only the valid steps (exclude onboarding and summary)
-    const validSteps = steps.filter((step) => step !== "onboarding" && step !== "summary");
+    const validSteps = steps.filter(
+      (step) => step !== "onboarding" && step !== "summary" && step !== "assessing"
+    );
 
     if (validSteps.length === 0) return 0;
 
