@@ -17,6 +17,7 @@ import {
 } from "@/lib/validations/password-schemas";
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
+import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 
 type FormState =
   | "form"
@@ -116,7 +117,18 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     );
 
     if (result.success) {
-      const customerEmail = result.data?.email ?? null;
+      // Shopify's Storefront API can return customer.email = null from
+      // customerResetByUrl for certain account states / access scopes
+      // (legacy customers, etc.). Fall back to the email the user typed
+      // into "Forgot password?" earlier in this same browser session,
+      // captured by SignInForm via setResetEmailHint().
+      const customerEmail =
+        result.data?.email ?? getResetEmailHint() ?? null;
+      // Hint is single-use — clear regardless of which path resolved it
+      // so a subsequent reset attempt with a different email isn't
+      // contaminated.
+      clearResetEmailHint();
+
       setResetCustomer({
         firstName: result.data?.firstName ?? null,
         email: customerEmail,
@@ -126,9 +138,10 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
         email: customerEmail,
       });
 
-      // Defensive: skip auto-login entirely if Shopify omitted the email
-      // (shouldn't happen with the current selection set, but the field
-      // is nullable in the schema). Show success straight away.
+      // Defensive: even with the hint fallback, if we still have no email
+      // (e.g. user opened the reset link in a different browser/session),
+      // there's no way to auto-sign-in. Drop to success with manual-login
+      // copy.
       if (!customerEmail) {
         setAutoLoginStatus("failed");
         setFormState("success");

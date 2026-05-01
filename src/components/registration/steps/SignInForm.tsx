@@ -23,6 +23,7 @@ import { useNavigate } from "react-router";
 import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
+import { setResetEmailHint } from "@/lib/reset-email-hint";
 
 export type LoginErrorKind =
   | "no_account"
@@ -343,6 +344,12 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           });
           return;
         }
+
+        // Persist the typed email into sessionStorage so the reset page
+        // (which boots fresh after the user clicks the email link) can
+        // recover it when Shopify's customerResetByUrl returns a customer
+        // object with email: null. See ResetPasswordForm fallback path.
+        setResetEmailHint(data.email);
 
         forgotPassword({
           email: data.email,

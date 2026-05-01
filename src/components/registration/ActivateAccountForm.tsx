@@ -17,6 +17,7 @@ import {
 } from "@/lib/validations/password-schemas";
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
+import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 
 type FormState =
   | "form"
@@ -107,13 +108,21 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     );
 
     if (result.success) {
-      const customerEmail = result.data?.email ?? null;
+      // The activate-account edge function does a best-effort Admin API
+      // lookup for the email; fall back to the sessionStorage hint
+      // (typed earlier into "Forgot password?" or anywhere we set it)
+      // so auto-sign-in can still proceed when the Admin API token is
+      // unset or the lookup transiently fails.
+      const customerEmail =
+        result.data?.email ?? getResetEmailHint() ?? null;
       const customerFirstName = result.data?.firstName ?? null;
+      clearResetEmailHint();
+
       setActivatedEmail(customerEmail);
       sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
 
-      // No email back from Admin lookup → can't auto-sign-in. Drop straight
-      // to the success screen with manual-login copy.
+      // No email anywhere → can't auto-sign-in. Drop straight to the
+      // success screen with manual-login copy.
       if (!customerEmail) {
         setAutoLoginStatus("failed");
         setFormState("success");
