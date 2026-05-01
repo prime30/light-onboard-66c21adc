@@ -219,6 +219,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
     }
   }, [isInIframe, closeIframe]);
 
+  // Sends the user back to the sign-in screen where the "Forgot password?"
+  // flow lives. Works identically inside the iframe and standalone — the
+  // /login route is the canonical entry point for requesting a fresh link.
+  const handleRequestNewLink = useCallback(() => {
+    window.location.assign("/login?forgot=1");
+  }, []);
+
+
   // Signing-in state (auto-login in progress after reset)
   if (formState === "signing-in") {
     return (
