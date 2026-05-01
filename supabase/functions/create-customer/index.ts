@@ -600,7 +600,20 @@ Deno.serve(async (req: Request) => {
     }
 
     const preferredMethodTags = (preferredMethods ?? []).map((m) => `Preferred method: ${m}`);
-    const newTags = [...preferredMethodTags, ...extraAdminTags];
+
+    const accountTypeLabelMap: Record<string, string> = {
+      professional: "Professional",
+      salon: "Salon",
+      student: "Student",
+      licensed_stylist: "Licensed Stylist",
+    };
+    const accountTypeTags: string[] = [];
+    if (customer.account_type) {
+      const label = accountTypeLabelMap[customer.account_type] ?? customer.account_type;
+      accountTypeTags.push(`Account type: ${label}`);
+    }
+
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
 
     if (shopifyCustomerId && newTags.length > 0) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
