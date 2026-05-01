@@ -53,6 +53,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const accountType = watch("accountType");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
+  const { enabled: autoApprove } = useAutoApproval();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -62,9 +63,15 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
-    const newSteps = getStepOrder(accountType).slice();
+    const newSteps = getStepOrder(accountType, autoApprove).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
+    // When auto-approval is ON, the password step moves to AFTER summary,
+    // gated by a faux "assessing" review animation. Submit on summary just
+    // advances to assessing; the real backend submit happens on password.
+    if (autoApprove && accountType) {
+      newSteps.push("assessing", "create-password");
+    }
 
     const totalSteps = newSteps.length;
     const currentStepNumber = newSteps.indexOf(currentStep);
@@ -74,7 +81,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, currentStep]);
+  }, [accountType, currentStep, autoApprove]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
