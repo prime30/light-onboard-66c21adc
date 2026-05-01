@@ -168,37 +168,51 @@ export function ResetPasswordForm({ token, customerId, resetUrl }: ResetPassword
           setFormState("success");
         }, 3000);
       } else {
-        // Standalone: exchange credentials for a Storefront access token.
-        const loginResult = await apiCall<{
-          accessToken: string;
-          expiresAt: string;
-        }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: customerEmail,
-            password: data.password,
-          }),
-        });
+        // Standalone: prefer the access token returned directly by
+        // customerResetByUrl (already a fresh, valid Storefront token).
+        // Falls back to a customer-login exchange if Shopify didn't issue
+        // one (some legacy account states).
+        let accessToken = result.data?.accessToken ?? null;
+        let expiresAt = result.data?.expiresAt ?? null;
+        let loginFailedCode: number | undefined;
 
-        if (loginResult.success && loginResult.data?.accessToken) {
+        if (!accessToken) {
+          const loginResult = await apiCall<{
+            accessToken: string;
+            expiresAt: string;
+          }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: customerEmail,
+              password: data.password,
+            }),
+          });
+          if (loginResult.success && loginResult.data?.accessToken) {
+            accessToken = loginResult.data.accessToken;
+            expiresAt = loginResult.data.expiresAt;
+          } else {
+            loginFailedCode = (loginResult as { statusCode?: number }).statusCode;
+          }
+        }
+
+        if (accessToken) {
           saveStoredSession({
-            accessToken: loginResult.data.accessToken,
-            expiresAt: loginResult.data.expiresAt,
+            accessToken,
+            expiresAt: expiresAt ?? undefined,
             email: customerEmail,
             firstName: resetCustomer.firstName,
           });
           setCustomer({
             isLoggedIn: true,
-            accessToken: loginResult.data.accessToken,
-            expiresAt: loginResult.data.expiresAt,
+            accessToken,
+            expiresAt,
             email: customerEmail,
             firstName: resetCustomer.firstName,
           });
           setAutoLoginStatus("succeeded");
         } else {
-          const failed = loginResult as { statusCode?: number };
-          setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
+          setAutoLoginStatus(loginFailedCode === 429 ? "rate_limited" : "failed");
         }
         // Always reach the success screen — password IS reset; the inline
         // note explains the auto-login outcome if it didn't take.
