@@ -214,6 +214,13 @@ export const STEPS: Record<Step, StepInfo> = {
     schema: stepValidations["contact-basics"],
     accountTypes: ["professional", "salon", "student"],
   },
+  "create-password": {
+    name: "create-password",
+    displayName: STEP_DISPLAY_NAMES["create-password"],
+    fields: fieldsForStep["create-password"],
+    schema: stepValidations["create-password"],
+    accountTypes: ["professional", "salon", "student"],
+  },
   license: {
     name: "license",
     displayName: STEP_DISPLAY_NAMES.license,
