@@ -262,6 +262,7 @@ export const preferencesSchema = z.object(preferencesValidators);
 
 const baseValidators = {
   ...contactBasicsValidators,
+  ...createPasswordValidators,
   ...taxExemptionValidators,
   ...wholesaleValidators,
   ...preferredMethodValidators,
@@ -288,7 +289,19 @@ export const registrationSchema = z
       ...baseValidators,
       ...schoolInfoValidators,
     }),
-  ]);
+  ])
+  .superRefine((data, ctx) => {
+    // Cross-field check for the dedicated create-password step.
+    // discriminatedUnion can't .refine, so we enforce confirmPassword here.
+    const d = data as { password?: string; confirmPassword?: string };
+    if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
+  });
 // Note: license format is shown as a helper hint in the UI only.
 // We intentionally do NOT block submission when the format doesn't match —
 // the field just needs to be filled (enforced by licenseValidators).
