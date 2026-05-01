@@ -130,23 +130,25 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       }
 
       setAutoLoginStatus("idle");
-      setFormState("signing-in");
 
       if (isInIframe) {
-        // Iframe: parent theme owns the storefront session. Post USER_LOGIN
-        // and wait up to 3s for CUSTOMER_DATA to confirm.
-        iframeWatchActive.current = true;
+        // Iframe: parent theme owns the storefront session. Fire USER_LOGIN
+        // and jump straight to the success screen — mirroring registration
+        // (FormDataContext.submitForm) and ResetPasswordForm. The parent
+        // reloads in the background while our success scrim stays on top;
+        // CLOSE_IFRAME on the user's "Close" click reveals an
+        // already-logged-in storefront. We don't watchdog on CUSTOMER_DATA
+        // because the parent ack arrives via a full reload after a couple
+        // of retry attempts (~3-4s worst case), which used to race the
+        // 3s timer and surface a false "couldn't auto-sign-in" note.
         sendMessage("USER_LOGIN", {
           email: customerEmail,
           password: data.password,
         });
-        iframeTimeoutRef.current = setTimeout(() => {
-          if (!iframeWatchActive.current) return;
-          iframeWatchActive.current = false;
-          setAutoLoginStatus("failed");
-          setFormState("success");
-        }, 3000);
+        setAutoLoginStatus("succeeded");
+        setFormState("success");
       } else {
+        setFormState("signing-in");
         // Standalone: exchange credentials for a Storefront access token.
         const loginResult = await apiCall<{
           accessToken: string;
