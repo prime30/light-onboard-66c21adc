@@ -24,6 +24,7 @@ type NormalizedReview = {
   verified: boolean;
 };
 
+type KlaviyoStatus = string | { value?: string | null } | null;
 type KlaviyoReviewAttrs = {
   rating?: number;
   title?: string | null;
@@ -33,8 +34,9 @@ type KlaviyoReviewAttrs = {
   product?: { name?: string | null } | null;
   created?: string | null;
   verified?: boolean | null;
-  status?: string | null;
+  status?: KlaviyoStatus;
   public?: boolean | null;
+  review_type?: string | null;
 };
 
 type KlaviyoReview = {
