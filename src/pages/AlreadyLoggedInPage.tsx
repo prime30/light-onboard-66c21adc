@@ -4,7 +4,7 @@ import { FadeText } from "@/components/registration/FadeText";
 import { useCloseIframe } from "@/hooks/messages";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { useStandaloneSession } from "@/hooks/use-standalone-session";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 export const AlreadyLoggedInPage = () => {
@@ -12,9 +12,18 @@ export const AlreadyLoggedInPage = () => {
   const { setMode } = useModeContext();
   const { customer, signOut } = useStandaloneSession();
   const navigate = useNavigate();
+  const [justSignedIn, setJustSignedIn] = useState(false);
 
   useEffect(() => {
     setMode("signin");
+    try {
+      if (sessionStorage.getItem("dde_just_signed_in") === "1") {
+        setJustSignedIn(true);
+        sessionStorage.removeItem("dde_just_signed_in");
+      }
+    } catch {
+      // ignore
+    }
   }, [setMode]);
 
   const handleContinue = () => {
