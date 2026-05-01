@@ -286,6 +286,13 @@ export const STEPS: Record<Step, StepInfo> = {
     schema: stepValidations.summary,
     accountTypes: ["professional", "salon", "student"],
   },
+  assessing: {
+    name: "assessing",
+    displayName: STEP_DISPLAY_NAMES.assessing,
+    fields: [],
+    schema: null,
+    accountTypes: [],
+  },
   success: {
     name: "success",
     displayName: STEP_DISPLAY_NAMES.success,
