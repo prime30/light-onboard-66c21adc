@@ -42,9 +42,15 @@ export function AuthFooter({
     setFocus,
     incompleteSteps,
   } = useForm();
+  const { enabled: autoApprove } = useAutoApproval();
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
+  // When auto-approval is ON, the password step is the LAST gate before the
+  // real backend submit fires. The summary "Submit application" button is a
+  // faux submit that just advances to the assessing animation.
+  const isLatePasswordStep = autoApprove && currentStep === "create-password";
+  const isFauxSubmitStep = autoApprove && isSummaryStep;
 
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
@@ -89,6 +95,7 @@ export function AuthFooter({
     if (isUploading) return null; // Will show upload progress
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
+    if (isLatePasswordStep) return "Create account & continue";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
