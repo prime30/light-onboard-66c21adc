@@ -241,22 +241,22 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           ? "Couldn't sign you in automatically — please log in with your new password."
           : null;
 
-    const ctaLabel = isInIframe
-      ? "Close"
-      : autoLoginStatus === "succeeded"
-        ? "Continue to store"
-        : "Go to login";
+    const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"
+      ? "Go to login"
+      : isInIframe
+        ? "Close"
+        : "Continue to store";
 
     const handleSuccessCta = () => {
+      if (autoLoginStatus === "failed" || autoLoginStatus === "rate_limited") {
+        window.location.href = withBasename("/login");
+        return;
+      }
       if (isInIframe) {
         closeIframe();
         return;
       }
-      if (autoLoginStatus === "succeeded") {
-        window.location.href = withBasename("/");
-      } else {
-        window.location.href = withBasename("/login");
-      }
+      window.location.href = withBasename("/");
     };
 
     return (
