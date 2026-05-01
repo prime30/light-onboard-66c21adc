@@ -1,19 +1,34 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight, UserCheck } from "lucide-react";
+import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { FadeText } from "./FadeText";
 import { TextInput } from "@/components/TextInput";
 import { useGlobalApp } from "@/contexts";
 import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
+import { customerAtom } from "@/contexts/store";
+import { saveStoredSession } from "@/lib/standalone-session";
 import {
   activateAccountSchema,
   ActivateAccountFormData,
 } from "@/lib/validations/password-schemas";
+import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 
-type FormState = "form" | "success" | "already-active" | "expired" | "invalid" | "missing-params" | "error" | "rate-limited";
+type FormState =
+  | "form"
+  | "signing-in"
+  | "success"
+  | "already-active"
+  | "expired"
+  | "invalid"
+  | "missing-params"
+  | "error"
+  | "rate-limited";
+
+type AutoLoginStatus = "idle" | "succeeded" | "failed" | "rate_limited";
 
 interface ActivateAccountFormProps {
   token: string | null;
@@ -25,12 +40,41 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
+  const [customer, setCustomer] = useAtom(customerAtom);
 
-  const hasParams = !!activationUrl || (!!token && !!customerId);
+  // Reject activation URLs that don't point to a trusted Shopify host —
+  // mirrors the reset flow's URL-origin guard.
+  const activationUrlIsTrusted = !activationUrl || isTrustedShopifyUrl(activationUrl);
+  const safeActivationUrl = activationUrlIsTrusted ? activationUrl : null;
+  const hasParams = !!safeActivationUrl || (!!token && !!customerId);
   const [formState, setFormState] = useState<FormState>(
-    hasParams ? "form" : "missing-params"
+    !activationUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
+  const [activatedEmail, setActivatedEmail] = useState<string | null>(null);
+  const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const iframeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeWatchActive = useRef(false);
+
+  // Iframe auto-login watcher: parent flips customerAtom.isLoggedIn after the
+  // theme processes USER_LOGIN; if it doesn't happen in 3s, fall through to
+  // the success screen with an inline note.
+  useEffect(() => {
+    if (!iframeWatchActive.current) return;
+    if (formState !== "signing-in") return;
+    if (customer.isLoggedIn) {
+      iframeWatchActive.current = false;
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+      setAutoLoginStatus("succeeded");
+      setFormState("success");
+    }
+  }, [customer.isLoggedIn, formState]);
+
+  useEffect(() => {
+    return () => {
+      if (iframeTimeoutRef.current) clearTimeout(iframeTimeoutRef.current);
+    };
+  }, []);
 
   const {
     register,
