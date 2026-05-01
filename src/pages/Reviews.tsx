@@ -135,33 +135,21 @@ const Reviews = () => {
           </div>
         )}
 
-        {/* Product images from real reviews */}
-        {(() => {
-          const productImages = Array.from(
-            new Set(
-              (reviews ?? [])
-                .map((r) => r.productImage)
-                .filter((src): src is string => !!src)
-            )
-          ).slice(0, 5);
-          if (productImages.length === 0) return null;
-          return (
-            <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-              <div className="flex -space-x-2">
-                {productImages.map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    className="w-8 h-8 rounded-full border-2 border-background object-cover bg-muted"
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
-            </div>
-          );
-        })()}
+        {/* Social proof — fake stylist avatars */}
+        <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
+          <div className="flex -space-x-2">
+            {SOCIAL_PROOF_AVATARS.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                loading="lazy"
+                className="w-8 h-8 rounded-full border-2 border-background object-cover bg-muted"
+              />
+            ))}
+          </div>
+          <span className="text-sm text-muted-foreground">Join 8,000+ stylists</span>
+        </div>
 
         {/* Review grid */}
         <div className="space-y-4">
