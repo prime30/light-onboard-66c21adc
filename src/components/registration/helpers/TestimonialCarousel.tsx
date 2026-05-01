@@ -49,38 +49,18 @@ const testimonial: Testimonial = {
 };
 
 export const TestimonialCarousel = () => {
-  // Warm the browser image cache for ALL avatars as soon as testimonials are
-  // known. Each avatar is small (~10-30KB) and there are at most ~8, so we can
-  // safely fetch them all up front — guaranteeing zero flash on rotation.
+  // Warm the browser image cache for the only curated hero review avatar.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const img = new Image();
     img.decoding = "async";
     img.src = testimonial.avatar;
-  }, [testimonials]);
+  }, []);
 
   return (
     <div className="space-y-4">
-      <div
-        className="cursor-grab active:cursor-grabbing select-none touch-pan-y"
-        onMouseDown={(e) => handleDragStart(e.clientX)}
-        onMouseMove={(e) => handleDragMove(e.clientX)}
-        onMouseUp={handleDragEnd}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-        onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
-        onTouchEnd={handleDragEnd}
-      >
-        <div
-          key={currentIndex}
-          className="animate-fade-in"
-          style={{
-            transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
-            transition: isDragging ? "none" : "transform 0.3s ease-out",
-            opacity: isDragging ? Math.max(1 - Math.abs(dragOffset) * 0.003, 0.7) : 1,
-          }}
-        >
+      <div className="select-none touch-pan-y">
+        <div className="animate-fade-in">
           <blockquote className="text-sm lg:text-base text-background/90 italic leading-relaxed mb-4">
             "{testimonial.quote}"
           </blockquote>
@@ -99,52 +79,6 @@ export const TestimonialCarousel = () => {
             </div>
           </div>
         </div>
-
-        {/* Hidden but rendered <img> tags for ALL avatars. Keeping them in the
-            DOM (not display:none) forces the browser to paint+decode each
-            bitmap so rotating to the next slide is instant — zero flash. */}
-        <div aria-hidden className="absolute pointer-events-none w-px h-px overflow-hidden opacity-0">
-          {testimonials.map((t, i) => (
-            <img
-              key={i}
-              src={t.avatar}
-              alt=""
-              width={1}
-              height={1}
-              loading="eager"
-              decoding="async"
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Carousel dots */}
-      <div className="flex gap-1.5">
-        {testimonials.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Go to testimonial ${i + 1}`}
-            style={{ touchAction: "manipulation" }}
-            className={cn(
-              "relative h-1 rounded-full overflow-hidden transition-[width] duration-300",
-              i === currentIndex ? "w-6 bg-background/20" : "w-1 bg-background/20 hover:bg-background/30"
-            )}
-          >
-            {i === currentIndex && !isPaused && (
-              <span
-                key={timerKey}
-                className="absolute inset-y-0 left-0 rounded-full bg-background/60"
-                style={{
-                  animation: `carousel-progress ${INTERVAL_MS}ms linear forwards`,
-                }}
-              />
-            )}
-            {i === currentIndex && isPaused && (
-              <span className="absolute inset-y-0 left-0 w-full rounded-full bg-background/60" />
-            )}
-          </button>
-        ))}
       </div>
     </div>
   );
