@@ -128,6 +128,20 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     return { kind: "generic", message: raw };
   }, []);
 
+  // Watchdog: parent reports `success` after its login fetch resolves, but in
+  // some cross-origin cookie scenarios the session cookie is silently dropped
+  // (opaqueredirect / 3rd-party cookie). In that case CUSTOMER_DATA with
+  // isLoggedIn:true never arrives. If the watchdog fires, treat it as a
+  // failed login and surface "contact support" instead of a stale success.
+  const successWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearSuccessWatchdog = useCallback(() => {
+    if (successWatchdogRef.current) {
+      clearTimeout(successWatchdogRef.current);
+      successWatchdogRef.current = null;
+    }
+  }, []);
+  useEffect(() => () => clearSuccessWatchdog(), [clearSuccessWatchdog]);
+
   const loginUpdate: (message: FormUpdateData) => void = useCallback(
     (message) => {
       if (message.status === "submitting") {
@@ -137,15 +151,28 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       }
 
       if (message.status === "error") {
+        clearSuccessWatchdog();
+        setIsLoginSuccessful(false);
         setLoginError(classifyLoginError(message.message));
       }
 
       if (message.status === "success") {
         setLoginError(null);
         setIsLoginSuccessful(true);
+        clearSuccessWatchdog();
+        successWatchdogRef.current = setTimeout(() => {
+          // CUSTOMER_DATA never confirmed login — treat as failure.
+          setIsLoginSuccessful(false);
+          setIsSubmitting(false);
+          setLoginError({
+            kind: "generic",
+            message:
+              "Login failed. Please contact support at support@dropdeadextensions.com.",
+          });
+        }, 3000);
       }
     },
-    [classifyLoginError]
+    [classifyLoginError, clearSuccessWatchdog]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
