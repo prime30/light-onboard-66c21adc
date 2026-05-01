@@ -729,7 +729,7 @@ export const SignInForm = () => {
               )}
               {loginError.kind === "unactivated" && (
                 <a
-                  href="mailto:support@dropdeadextensions.com"
+                  href="mailto:hello@dropdeadextensions.com"
                   className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
                 >
                   Contact support
