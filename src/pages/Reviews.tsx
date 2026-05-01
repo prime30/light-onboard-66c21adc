@@ -2,12 +2,50 @@ import { ArrowLeft, Star, Quote, ArrowUpRight, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
-import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
-import stylistBlue1 from "@/assets/avatars/stylist-blue-1.jpg";
-import stylistOmbre1 from "@/assets/avatars/stylist-ombre-1.jpg";
-import stylistTeal1 from "@/assets/avatars/stylist-teal-1.jpg";
-import { useReviews } from "@/hooks/use-reviews";
+import { useReviews, type Review } from "@/hooks/use-reviews";
+
+/** Pick the most "real" image we have for a review. */
+function reviewImage(r: Review): string | null {
+  return r.images[0] ?? r.productImage ?? null;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+}
+
+/** Avatar slot — customer photo > product image > initials placeholder. */
+const ReviewAvatar = ({
+  review,
+  className,
+}: {
+  review: Review;
+  className?: string;
+}) => {
+  const src = reviewImage(review);
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={review.productName ?? review.authorName}
+        loading="lazy"
+        className={cn("rounded-full object-cover bg-muted", className)}
+      />
+    );
+  }
+  return (
+    <div
+      className={cn(
+        "rounded-full bg-muted text-foreground/70 flex items-center justify-center text-xs font-medium uppercase",
+        className
+      )}
+      aria-hidden="true"
+    >
+      {initials(review.authorName)}
+    </div>
+  );
+};
+
 
 const Reviews = () => {
   const navigate = useNavigate();
