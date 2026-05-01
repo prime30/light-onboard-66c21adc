@@ -116,23 +116,36 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
         email: customerEmail,
       });
 
-      // Auto-login: use the password the user just set.
+      // Defensive: skip auto-login entirely if Shopify omitted the email
+      // (shouldn't happen with the current selection set, but the field
+      // is nullable in the schema). Show success straight away.
+      if (!customerEmail) {
+        setAutoLoginStatus("failed");
+        setFormState("success");
+        return;
+      }
+
+      setAutoLoginStatus("idle");
       setFormState("signing-in");
 
       if (isInIframe) {
-        // Iframe: parent Shopify theme handles the storefront session via
-        // the existing USER_LOGIN postMessage flow. We optimistically flip
-        // to success after a short window; CUSTOMER_DATA from the parent
-        // will mark the user logged-in.
+        // Iframe: parent Shopify theme owns the storefront session. Post
+        // USER_LOGIN, then wait for CUSTOMER_DATA (which flips
+        // customerAtom.isLoggedIn). If no confirmation in 3s, fall through
+        // to success with a "couldn't auto-sign-in" inline note.
+        iframeWatchActive.current = true;
         sendMessage("USER_LOGIN", {
-          email: customerEmail ?? "",
+          email: customerEmail,
           password: data.password,
         });
-        successRedirectTimer.current = setTimeout(() => {
+        iframeTimeoutRef.current = setTimeout(() => {
+          if (!iframeWatchActive.current) return;
+          iframeWatchActive.current = false;
+          setAutoLoginStatus("failed");
           setFormState("success");
-        }, 1200);
+        }, 3000);
       } else {
-        // Standalone: get a Storefront access token and persist it.
+        // Standalone: exchange credentials for a Storefront access token.
         const loginResult = await apiCall<{
           accessToken: string;
           expiresAt: string;
@@ -155,12 +168,16 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
               })
             );
           } catch {
-            // localStorage unavailable — fall through; success screen still works
+            // localStorage unavailable — session-only login is still useful.
           }
           setCustomer({ isLoggedIn: true });
+          setAutoLoginStatus("succeeded");
+        } else {
+          const failed = loginResult as { statusCode?: number };
+          setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
         }
-        // Whether or not auto-login succeeded, show success — the password
-        // is reset and the user can manually log in if needed.
+        // Always reach the success screen — password IS reset; the inline
+        // note explains the auto-login outcome if it didn't take.
         setFormState("success");
       }
     } else {
