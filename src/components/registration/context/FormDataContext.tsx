@@ -24,6 +24,7 @@ import { readHoneypotValue, readFormStartedAt } from "@/components/registration/
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
 import { useGlobalApp } from "@/contexts";
+import { setPendingLogin } from "@/lib/pending-login";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
