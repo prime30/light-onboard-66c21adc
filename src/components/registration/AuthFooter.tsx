@@ -6,6 +6,7 @@ import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
+import { useAutoApproval } from "@/lib/app-settings";
 
 interface AuthFooterProps {
   mode: AuthMode;
@@ -41,9 +42,15 @@ export function AuthFooter({
     setFocus,
     incompleteSteps,
   } = useForm();
+  const { enabled: autoApprove } = useAutoApproval();
 
   const showBackButton = mode === "signup" && currentStep !== "onboarding";
   const isSummaryStep = currentStep === "summary";
+  // When auto-approval is ON, the password step is the LAST gate before the
+  // real backend submit fires. The summary "Submit application" button is a
+  // faux submit that just advances to the assessing animation.
+  const isLatePasswordStep = autoApprove && currentStep === "create-password";
+  const isFauxSubmitStep = autoApprove && isSummaryStep;
 
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
@@ -88,6 +95,7 @@ export function AuthFooter({
     if (isUploading) return null; // Will show upload progress
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
+    if (isLatePasswordStep) return "Create account & continue";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
@@ -181,13 +189,33 @@ export function AuthFooter({
       return;
     }
 
-    if (isSummaryStep) {
+    // Auto-approval flow: summary "Submit application" is a faux submit —
+    // just advance to the assessing animation. The real backend submit
+    // happens when the user sets a password on the next step.
+    if (isFauxSubmitStep) {
+      goToStep("assessing");
+      return;
+    }
+
+    // Final real submit: either the late password step (auto-approval ON)
+    // or the summary step (auto-approval OFF, original flow).
+    if (isLatePasswordStep || isSummaryStep) {
       submitForm();
       return;
     }
 
     goToNextStep();
-  }, [continueBlocked, popoverSteps, shakeMissingFields, goToNextStep, isSummaryStep, submitForm]);
+  }, [
+    continueBlocked,
+    popoverSteps,
+    shakeMissingFields,
+    goToNextStep,
+    isSummaryStep,
+    isFauxSubmitStep,
+    isLatePasswordStep,
+    goToStep,
+    submitForm,
+  ]);
 
 
   return (
@@ -218,7 +246,7 @@ export function AuthFooter({
             <Button
               variant="outline"
               size="pill-lg"
-              onClick={goToPrevStep}
+              onClick={isLatePasswordStep ? () => goToStep("summary") : goToPrevStep}
               aria-label="Go back"
               className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
             >

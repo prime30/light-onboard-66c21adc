@@ -76,6 +76,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "preferred-method": "Preferred Method",
   preferences: "Preferences",
   summary: "Review & Submit",
+  assessing: "Assessing Application",
   success: "Success",
 };
 
@@ -119,11 +120,22 @@ export const STEP_ORDER: Record<string, Step[]> = {
 };
 
 /**
- * Get the step order for a given account type
+ * Get the step order for a given account type.
+ *
+ * When `autoApprove` is true we move the create-password step OUT of its
+ * normal mid-flow position and the StepProvider will append it after the
+ * faux "assessing" screen — so the user submits an "application" at the
+ * summary, watches a 100% review animation, then sets a password to
+ * actually create the account.
  */
-export function getStepOrder(accountType: AccountType): Step[] {
+export function getStepOrder(
+  accountType: AccountType,
+  autoApprove = false
+): Step[] {
   if (!accountType) return ["account-type"];
-  return STEP_ORDER[accountType] || STEP_ORDER.professional;
+  const order = STEP_ORDER[accountType] || STEP_ORDER.professional;
+  if (!autoApprove) return order;
+  return order.filter((s) => s !== "create-password");
 }
 
 export const stepValidations: Record<Step, ZodObject | null> = {
@@ -142,6 +154,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "preferred-method": preferredMethodSchema,
   preferences: preferencesSchema,
   summary: null,
+  assessing: null,
   success: null,
 };
 
@@ -283,6 +296,13 @@ export const STEPS: Record<Step, StepInfo> = {
     fields: fieldsForStep.summary,
     schema: stepValidations.summary,
     accountTypes: ["professional", "salon", "student"],
+  },
+  assessing: {
+    name: "assessing",
+    displayName: STEP_DISPLAY_NAMES.assessing,
+    fields: [],
+    schema: null,
+    accountTypes: [],
   },
   success: {
     name: "success",

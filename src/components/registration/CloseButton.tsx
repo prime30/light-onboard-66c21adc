@@ -8,6 +8,17 @@ import { customerAtom } from "@/contexts/store";
 import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
 import { StepContext } from "./context/StepContext";
+import { useAutoApproval } from "@/lib/app-settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function CloseButton() {
   const navigate = useNavigate();
@@ -21,8 +32,16 @@ export function CloseButton() {
 
   const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [saveProgressText, setSaveProgressText] = useState<"saving" | "saved">("saving");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { closeIframe, isInIframe } = useCloseIframe();
   const [customer] = useAtom(customerAtom);
+  const { enabled: autoApprove } = useAutoApproval();
+
+  // On the late create-password step (auto-approval flow), the user has
+  // already "approved" their application. Closing here would discard a
+  // ready-to-shop account, so we soft-confirm before letting them out.
+  const needsCloseConfirm =
+    autoApprove && currentStep === "create-password" && !customer?.isLoggedIn;
 
   const handleCloseModal = useCallback(() => {
     const close = () => {
@@ -73,6 +92,14 @@ export function CloseButton() {
     }
   }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
 
+  const requestClose = useCallback(() => {
+    if (needsCloseConfirm) {
+      setConfirmOpen(true);
+      return;
+    }
+    handleCloseModal();
+  }, [needsCloseConfirm, handleCloseModal]);
+
   return (
     <div className="hidden sm:flex items-center justify-end sm:flex-shrink-0 relative">
       {/* Saving text - positioned absolutely to the left so button doesn't move */}
@@ -90,7 +117,7 @@ export function CloseButton() {
         </span>
       </span>
       <button
-        onClick={handleCloseModal}
+        onClick={requestClose}
         disabled={isSavingProgress}
         className="relative flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-muted transition-colors hover:bg-muted/80 group disabled:cursor-default"
         aria-label="Close"
@@ -142,6 +169,30 @@ export function CloseButton() {
           />
         )}
       </button>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave without finishing?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your application has been approved. Set a password to activate
+              your wholesale account — it only takes a few seconds. If you
+              leave now, you'll need to start over.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Set password</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmOpen(false);
+                handleCloseModal();
+              }}
+            >
+              Leave anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

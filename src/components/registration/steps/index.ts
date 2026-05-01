@@ -1,5 +1,6 @@
 // Steps barrel exports
 export { AccountTypeForm } from "./AccountTypeForm";
+export { AssessingStep } from "./AssessingStep";
 export { BusinessLocationStep } from "./BusinessLocationStep";
 export { BusinessOperationStep } from "./BusinessOperationStep";
 export { ContactBasicsStep, CountryFlag } from "./ContactBasicsStep";
