@@ -88,15 +88,63 @@ export function ResetPasswordForm({ token, customerId }: ResetPasswordFormProps)
     );
 
     if (result.success) {
+      const customerEmail = result.data?.email ?? null;
       setResetCustomer({
         firstName: result.data?.firstName ?? null,
-        email: result.data?.email ?? null,
+        email: customerEmail,
       });
-      setFormState("success");
       sendMessage("PASSWORD_RESET_SUCCESS", {
         customerId,
-        email: result.data?.email ?? null,
+        email: customerEmail,
       });
+
+      // Auto-login: use the password the user just set.
+      setFormState("signing-in");
+
+      if (isInIframe) {
+        // Iframe: parent Shopify theme handles the storefront session via
+        // the existing USER_LOGIN postMessage flow. We optimistically flip
+        // to success after a short window; CUSTOMER_DATA from the parent
+        // will mark the user logged-in.
+        sendMessage("USER_LOGIN", {
+          email: customerEmail ?? "",
+          password: data.password,
+        });
+        successRedirectTimer.current = setTimeout(() => {
+          setFormState("success");
+        }, 1200);
+      } else {
+        // Standalone: get a Storefront access token and persist it.
+        const loginResult = await apiCall<{
+          accessToken: string;
+          expiresAt: string;
+        }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: customerEmail,
+            password: data.password,
+          }),
+        });
+
+        if (loginResult.success && loginResult.data?.accessToken) {
+          try {
+            localStorage.setItem(
+              STOREFRONT_TOKEN_KEY,
+              JSON.stringify({
+                accessToken: loginResult.data.accessToken,
+                expiresAt: loginResult.data.expiresAt,
+              })
+            );
+          } catch {
+            // localStorage unavailable — fall through; success screen still works
+          }
+          setCustomer({ isLoggedIn: true });
+        }
+        // Whether or not auto-login succeeded, show success — the password
+        // is reset and the user can manually log in if needed.
+        setFormState("success");
+      }
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
