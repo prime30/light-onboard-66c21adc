@@ -1,13 +1,17 @@
 import { BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { FadeText } from "./FadeText";
-import {
-  CircularProgress,
-  MagneticFeatureBox,
-  RotatingStylistAvatars,
-  TestimonialCarousel,
-} from "./helpers";
+import { CircularProgress, MagneticFeatureBox } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, lazy, Suspense } from "react";
+
+// Lazy-load below-the-fold panel children — they don't need to block first paint
+// of the hero copy / progress / logo.
+const RotatingStylistAvatars = lazy(() =>
+  import("./helpers/AnimatedCounters").then((m) => ({ default: m.RotatingStylistAvatars }))
+);
+const TestimonialCarousel = lazy(() =>
+  import("./helpers/TestimonialCarousel").then((m) => ({ default: m.TestimonialCarousel }))
+);
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
