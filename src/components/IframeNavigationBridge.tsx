@@ -2,6 +2,32 @@ import { useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 
+// Map first path segment → dynamic import of its lazy chunk. Triggering the
+// import warms the module cache so React.lazy's Suspense fence resolves
+// synchronously when navigate() commits — no skeleton flash.
+const ROUTE_PREFETCHERS: Record<string, () => Promise<unknown>> = {
+  login: () => import("@/pages/LoginPage"),
+  "reset-password": () => import("@/pages/ResetPasswordPage"),
+  "activate-account": () => import("@/pages/ActivateAccountPage"),
+  "already-logged-in": () => import("@/pages/AlreadyLoggedInPage"),
+  "not-eligible": () => import("@/pages/NotEligiblePage"),
+  reviews: () => import("@/pages/Reviews"),
+  "blog/resale-license": () => import("@/pages/BlogResaleLicense"),
+};
+
+function prefetchRoute(path: string) {
+  const clean = path.split("?")[0].split("#")[0].replace(/^\/+/, "");
+  // Try longest match first (e.g. "blog/resale-license") then first segment.
+  const candidates = [clean, clean.split("/")[0]];
+  for (const key of candidates) {
+    const loader = ROUTE_PREFETCHERS[key];
+    if (loader) {
+      void loader().catch(() => {});
+      return;
+    }
+  }
+}
+
 /**
  * Listens for { type: "NAVIGATE", path } postMessages from the parent theme
  * and routes the SPA via React Router (no iframe document reload). After the
@@ -40,6 +66,9 @@ export const IframeNavigationBridge = () => {
         return;
       }
 
+      // Kick off the chunk fetch in parallel with navigate(). If it lands
+      // before Suspense fences, the route mounts synchronously — no skeleton.
+      prefetchRoute(path);
       pendingPathRef.current = path;
       navigate(path);
     });
