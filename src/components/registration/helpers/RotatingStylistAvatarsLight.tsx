@@ -1,8 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
-import { OdometerCounter } from "@/components/registration/helpers/AnimatedCounters";
 
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
 import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
