@@ -3,7 +3,8 @@ import { ModeProvider } from "./context/ModeContext";
 import { ReactNode, useState, lazy, Suspense, useEffect } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
-// Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
+import { MobileDragHandle } from "./MobileDragHandle";
+// Parent Shopify theme overlay also renders .reg-overlay__drag-handle; this is a cosmetic in-iframe fallback.
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
 import { useState as useReactState } from "react";
