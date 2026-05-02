@@ -6,7 +6,7 @@ import { CloseButton } from "./CloseButton";
 // Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
-import { lazy, Suspense, useEffect, useState as useReactState } from "react";
+import { useState as useReactState } from "react";
 
 const LeftPanel = lazy(() =>
   import("./LeftPanel").then((m) => ({ default: m.LeftPanel }))
