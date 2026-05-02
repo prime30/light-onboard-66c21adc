@@ -88,9 +88,11 @@ export function SignInSlide() {
       >
         {description}
       </FadeText>
-      {/* Testimonial Carousel */}
+      {/* Testimonial Carousel (lazy) */}
       <div className="hidden xl:block">
-        <TestimonialCarousel />
+        <Suspense fallback={null}>
+          <TestimonialCarousel />
+        </Suspense>
       </div>
     </div>
   );
@@ -321,7 +323,11 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
 
         {/* Trust Badge - visible on all sizes — gated on fontsLoaded to prevent FOUC */}
         <div style={{ minHeight: "28px", display: "flex", alignItems: "center" }}>
-          {fontsLoaded && <RotatingStylistAvatars />}
+          {fontsLoaded && (
+            <Suspense fallback={null}>
+              <RotatingStylistAvatars />
+            </Suspense>
+          )}
         </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
