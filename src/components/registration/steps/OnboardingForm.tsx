@@ -202,9 +202,9 @@ export const OnboardingForm = ({
         ))}
       </div>
 
-      {/* Benefits highlight with animated counters — gated on fontsLoaded to prevent FOUC */}
+      {/* Benefits highlight with animated counters — desktop only */}
       <div
-        className="flex justify-center gap-6 text-center animate-stagger-3"
+        className="hidden lg:flex justify-center gap-6 text-center animate-stagger-3"
         style={{ minHeight: "52px" }}
       >
         {fontsLoaded && (
