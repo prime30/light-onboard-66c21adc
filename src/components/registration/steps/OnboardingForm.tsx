@@ -421,7 +421,7 @@ export const OnboardingForm = ({
           as="h1"
           className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
         >
-          Let's get started
+          Apply for pro pricing
         </FadeText>
         <FadeText
           as="p"
