@@ -24,6 +24,7 @@ export const IframeMessageTypes = {
   FORGOT_PASSWORD_STATUS: "FORGOT_PASSWORD_STATUS",
   GET_STATUS: "GET_STATUS",
   PING: "PING",
+  NAVIGATE: "NAVIGATE",
 
   // Custom events
   CUSTOM_EVENT: "CUSTOM_EVENT",
