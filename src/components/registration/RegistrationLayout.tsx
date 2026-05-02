@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { ModeProvider } from "./context/ModeContext";
-import { ReactNode, useState, lazy, Suspense, useEffect } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 import { MobileDragHandle } from "./MobileDragHandle";
@@ -8,10 +8,11 @@ import { MobileDragHandle } from "./MobileDragHandle";
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
 import { useState as useReactState } from "react";
-
-const LeftPanel = lazy(() =>
-  import("./LeftPanel").then((m) => ({ default: m.LeftPanel }))
-);
+// LeftPanel is eager — it's the desktop critical-path layout half. Lazy-loading it
+// caused a "wrong layout" flash on hard reload (boot skeleton → right-only flash →
+// final two-column paint). Heavy children inside LeftPanel (carousel, avatars) are
+// still individually lazy.
+import { LeftPanel } from "./LeftPanel";
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useReactState(() => {
