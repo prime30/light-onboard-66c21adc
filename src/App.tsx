@@ -9,6 +9,7 @@ import { UploadFileProvider } from "./contexts";
 import { RegistrationLayout } from "./components/registration/RegistrationLayout";
 import { AuthBootFallback, GenericBootFallback } from "./components/registration/AuthBootFallback";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
+import { IframeNavigationBridge } from "./components/IframeNavigationBridge";
 import AuthPage from "./pages/AuthPage";
 import { useStandaloneSession } from "./hooks/use-standalone-session";
 
