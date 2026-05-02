@@ -1,13 +1,17 @@
 import { BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { FadeText } from "./FadeText";
-import {
-  CircularProgress,
-  MagneticFeatureBox,
-  RotatingStylistAvatars,
-  TestimonialCarousel,
-} from "./helpers";
+import { CircularProgress, MagneticFeatureBox } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, lazy, Suspense } from "react";
+
+// Lazy-load below-the-fold panel children — they don't need to block first paint
+// of the hero copy / progress / logo.
+const RotatingStylistAvatars = lazy(() =>
+  import("./helpers/AnimatedCounters").then((m) => ({ default: m.RotatingStylistAvatars }))
+);
+const TestimonialCarousel = lazy(() =>
+  import("./helpers/TestimonialCarousel").then((m) => ({ default: m.TestimonialCarousel }))
+);
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
@@ -84,9 +88,11 @@ export function SignInSlide() {
       >
         {description}
       </FadeText>
-      {/* Testimonial Carousel */}
+      {/* Testimonial Carousel (lazy) */}
       <div className="hidden xl:block">
-        <TestimonialCarousel />
+        <Suspense fallback={null}>
+          <TestimonialCarousel />
+        </Suspense>
       </div>
     </div>
   );
@@ -317,7 +323,11 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
 
         {/* Trust Badge - visible on all sizes — gated on fontsLoaded to prevent FOUC */}
         <div style={{ minHeight: "28px", display: "flex", alignItems: "center" }}>
-          {fontsLoaded && <RotatingStylistAvatars />}
+          {fontsLoaded && (
+            <Suspense fallback={null}>
+              <RotatingStylistAvatars />
+            </Suspense>
+          )}
         </div>
 
         {/* Nav Arrows - Desktop - Only on sign-up */}
