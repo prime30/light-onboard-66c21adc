@@ -66,6 +66,9 @@ export const IframeNavigationBridge = () => {
         return;
       }
 
+      // Kick off the chunk fetch in parallel with navigate(). If it lands
+      // before Suspense fences, the route mounts synchronously — no skeleton.
+      prefetchRoute(path);
       pendingPathRef.current = path;
       navigate(path);
     });
