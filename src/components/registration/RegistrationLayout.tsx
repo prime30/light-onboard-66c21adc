@@ -69,6 +69,7 @@ function RightPanel({ outletContext }: RightPanelProps) {
 export function RegistrationLayout() {
   const [formProgress, setFormProgress] = useState(0);
   const [middleComponent, setMiddleComponent] = useState<ReactNode>(null);
+  const isDesktop = useIsDesktop();
   useCustomerLogin();
 
   const outletContext: RegistrationLayoutOutletContext = {
@@ -81,7 +82,11 @@ export function RegistrationLayout() {
   return (
     <ModeProvider>
       <div className="h-[var(--app-height,100dvh)] bg-background flex flex-col lg:flex-row overflow-hidden">
-        <LeftPanel formProgress={formProgress} />
+        {isDesktop && (
+          <Suspense fallback={null}>
+            <LeftPanel formProgress={formProgress} />
+          </Suspense>
+        )}
         <RightPanel outletContext={outletContext} />
       </div>
     </ModeProvider>
