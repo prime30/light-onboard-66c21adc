@@ -40,15 +40,7 @@ export const AlreadyLoggedInPage = () => {
     navigate("/login", { replace: true });
   };
 
-  const greeting = justSignedIn
-    ? customer.firstName
-      ? `Welcome back, ${customer.firstName}`
-      : "You're signed in"
-    : customer.firstName
-      ? `Signed in as ${customer.firstName}`
-      : customer.email
-        ? `Signed in as ${customer.email}`
-        : "Already logged in";
+  const greeting = "Signed in";
 
   const subcopy = justSignedIn
     ? customer.email
