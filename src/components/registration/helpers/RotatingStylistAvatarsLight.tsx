@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
