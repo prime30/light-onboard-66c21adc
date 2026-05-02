@@ -85,11 +85,7 @@ export function RegistrationLayout() {
   return (
     <ModeProvider>
       <div className="h-[var(--app-height,100dvh)] bg-background flex flex-col lg:flex-row overflow-hidden">
-        {isDesktop && (
-          <Suspense fallback={null}>
-            <LeftPanel formProgress={formProgress} />
-          </Suspense>
-        )}
+        {isDesktop && <LeftPanel formProgress={formProgress} />}
         <RightPanel outletContext={outletContext} />
       </div>
     </ModeProvider>
