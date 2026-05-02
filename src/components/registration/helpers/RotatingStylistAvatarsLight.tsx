@@ -1,8 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { useMagnetic } from "@/hooks/use-magnetic";
-import { OdometerCounter } from "@/components/registration/helpers/AnimatedCounters";
 
 import stylistPink1 from "@/assets/avatars/stylist-pink-1.jpg";
 import stylistPurple1 from "@/assets/avatars/stylist-purple-1.jpg";
@@ -112,7 +111,7 @@ export const RotatingStylistAvatarsLight = () => {
           </div>
         ))}
       </div>
-      <OdometerCounter variant="light" onIncrement={handleOdometerIncrement} />
+      <span className="text-xs text-muted-foreground whitespace-nowrap">1,500+ pros</span>
     </Link>
   );
 };
