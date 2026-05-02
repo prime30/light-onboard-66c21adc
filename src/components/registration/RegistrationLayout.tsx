@@ -1,12 +1,30 @@
 import { Outlet } from "react-router";
 import { ModeProvider } from "./context/ModeContext";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, lazy, Suspense, useEffect } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 // Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
-import { LeftPanel } from "./LeftPanel";
+import { useState as useReactState } from "react";
+
+const LeftPanel = lazy(() =>
+  import("./LeftPanel").then((m) => ({ default: m.LeftPanel }))
+);
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useReactState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(min-width: 1024px)").matches;
+  });
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  return isDesktop;
+}
 
 
 export type RegistrationLayoutOutletContext = {
@@ -51,6 +69,7 @@ function RightPanel({ outletContext }: RightPanelProps) {
 export function RegistrationLayout() {
   const [formProgress, setFormProgress] = useState(0);
   const [middleComponent, setMiddleComponent] = useState<ReactNode>(null);
+  const isDesktop = useIsDesktop();
   useCustomerLogin();
 
   const outletContext: RegistrationLayoutOutletContext = {
@@ -63,7 +82,11 @@ export function RegistrationLayout() {
   return (
     <ModeProvider>
       <div className="h-[var(--app-height,100dvh)] bg-background flex flex-col lg:flex-row overflow-hidden">
-        <LeftPanel formProgress={formProgress} />
+        {isDesktop && (
+          <Suspense fallback={null}>
+            <LeftPanel formProgress={formProgress} />
+          </Suspense>
+        )}
         <RightPanel outletContext={outletContext} />
       </div>
     </ModeProvider>
