@@ -112,7 +112,7 @@ export const RotatingStylistAvatarsLight = () => {
           </div>
         ))}
       </div>
-      <OdometerCounter variant="light" onIncrement={handleOdometerIncrement} />
+      <span className="text-xs text-muted-foreground whitespace-nowrap">1,500+ pros</span>
     </Link>
   );
 };
