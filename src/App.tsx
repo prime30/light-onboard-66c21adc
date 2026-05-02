@@ -45,6 +45,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <StandaloneSessionBoot />
+          <IframeNavigationBridge />
           <AppErrorBoundary>
             <Outlet />
           </AppErrorBoundary>
