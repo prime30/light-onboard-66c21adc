@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { ModeProvider } from "./context/ModeContext";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, lazy, Suspense, useEffect } from "react";
 import { AuthToggle } from "./AuthToggle";
 import { CloseButton } from "./CloseButton";
 // Drag handle is rendered by the parent Shopify theme overlay (.reg-overlay__drag-handle)
