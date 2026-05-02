@@ -13,8 +13,9 @@ import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 
 // Calculate dynamic starting number based on months elapsed
 const getOdometerBaseNumber = () => {
-  const baseDate = new Date(2025, 11, 1);
-  const baseNumber = 8340;
+  // Rebased May 2026 → start at 1,543 pros, then accrue ~122/month.
+  const baseDate = new Date(2026, 4, 1);
+  const baseNumber = 1543;
   const now = new Date();
 
   const monthsElapsed =
