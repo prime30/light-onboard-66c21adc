@@ -48,7 +48,6 @@ export default defineConfig(({ mode }) => ({
         // dramatically faster.
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router"],
-          "motion-vendor": ["framer-motion"],
         },
       },
     },
