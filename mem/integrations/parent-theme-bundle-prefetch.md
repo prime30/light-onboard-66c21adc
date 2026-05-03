@@ -1,37 +1,62 @@
 ---
 name: Parent theme bundle prefetch
-description: Vite emits /prefetch.js — parent Shopify theme loads it on every page to warm HTTP cache for SPA bundle before iframe opens
+description: Vite emits /prefetch.js (parent warms HTTP cache) AND /_headers with Link: preload (covers direct iframe loads). Self-versioning.
 type: integration
 ---
-A Vite plugin (`parent-prefetch-manifest` in `vite.config.ts`) emits
-`dist/prefetch.js` at build time. The script contains the **hashed**
-URLs of the entry chunk + its static imports (e.g. `react-vendor`).
+Two complementary cold-start optimizations, both auto-generated at build
+time by the `parent-prefetch-manifest` plugin in `vite.config.ts`.
 
-**Parent theme integration** — add ONCE to `theme.liquid`, ideally near
-the bottom of `<body>`:
+## 1. /prefetch.js — parent-side warming
+
+Add ONCE to `theme.liquid`, near the bottom of `<body>`:
 
 ```liquid
 <script src="https://apply.dropdeadextensions.com/prefetch.js" defer crossorigin="anonymous"></script>
 ```
 
-What it does on the storefront:
-1. Idempotently guards on `window.__APPLY_PREFETCHED__`.
-2. Schedules `requestIdleCallback` (or 1.5s setTimeout fallback).
-3. Injects `<link rel="prefetch" as="script" crossorigin>` for each
-   bundle URL into the parent document head.
-4. Browser fetches the bundle into the HTTP cache during idle time.
+Behavior on the storefront:
+- Idempotently guards on `window.__APPLY_PREFETCHED__`.
+- Skips if `window.__customerLoggedIn === true` (theme should set this for
+  logged-in customers — they never see the iframe).
+- During `requestIdleCallback` (1.5s setTimeout fallback), injects
+  `<link rel="prefetch" as="script|style" crossorigin>` for the iframe's
+  hashed entry chunk + vendor chunks + entry CSS.
 
-When the user opens the apply iframe, the JS bundle is served from disk
-cache — saves ~500ms+ on first open per session.
+**CRITICAL — URL match for cache hits**: Chrome partitions HTTP cache by
+(top-level site, frame site, URL). The iframe is mounted same-site at
+`https://dropdeadextensions.com/apps/apply/...` via App Proxy. Vite uses
+`base: "./"`, so iframe bundle requests resolve to
+`https://dropdeadextensions.com/apps/apply/assets/<hash>.js`. The
+prefetch URLs MUST use that exact origin+path — NOT the
+`apply.dropdeadextensions.com` origin — or the cache lookup misses
+silently. The plugin emits `proxyBase = "https://dropdeadextensions.com/apps/apply"`
+for this reason. If the proxy mount path ever changes, update both.
 
-**Versioning**: Hash-busted automatically. After a deploy, the parent
-theme keeps requesting the OLD `prefetch.js` (which Netlify/Vercel still
-serves from cache for ~minutes), and the URLs inside reference the OLD
-hashed chunks. When the parent eventually re-fetches `prefetch.js`, it
-gets the new URLs. Worst case: prefetch is a no-op for one session after
-deploy. No errors, just a missed optimization.
+## 2. /_headers — Link: preload on iframe HTML
 
-**Cache headers**: `prefetch.js` itself should be served with a SHORT
-`Cache-Control: max-age=300` (5 min) so themes pick up new bundle URLs
-quickly. The hashed JS chunks it references should be `immutable`
-long-cached as Vite already does.
+Auto-generated alongside `prefetch.js` with the SAME hashed URLs.
+Netlify reads `_headers` natively. For Vercel, port to `vercel.json`
+headers config.
+
+The `/*` entry adds `Link: </assets/index-abc.js>; rel=preload; as=script; crossorigin`
+to every HTML response, so the browser starts fetching bundles as soon
+as response headers arrive — before HTML body finishes downloading.
+Covers direct iframe visits, retries, popups, contexts the parent
+doesn't control.
+
+## Versioning
+
+Both files reference hashed filenames baked in at build time:
+- `_headers` is always in sync with the served HTML (atomic deploy).
+- `prefetch.js` has `Cache-Control: max-age=300` (5 min). After a deploy,
+  the parent theme keeps the old `prefetch.js` for up to 5 min and
+  prefetches stale URLs (which 404 — harmless, just a missed
+  optimization for one session).
+
+## Cache headers
+
+- `/assets/*` → `max-age=31536000, immutable` (Vite hashed filenames)
+- `/prefetch.js` → `max-age=300, must-revalidate`
+- `/*` (HTML) → `no-cache` + Link: preload directives
+- All include `Access-Control-Allow-Origin: *` so the cross-origin
+  storefront parent can load them.
