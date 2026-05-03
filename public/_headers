@@ -1,0 +1,26 @@
+# Netlify headers — also picked up by some other static hosts.
+# Vercel users: equivalent config lives in vercel.json.
+
+# prefetch.js: short cache so the parent theme picks up new bundle URLs
+# within minutes of a deploy. Permissive CORS so cross-origin parents
+# (the storefront) can load it.
+/prefetch.js
+  Cache-Control: public, max-age=300, must-revalidate
+  Access-Control-Allow-Origin: *
+
+# Hashed JS/CSS chunks: long-lived immutable cache (filename is the version).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# Iframe HTML: emit Link: preload headers for the entry chunk + entry CSS so
+# the browser starts fetching them as soon as the response arrives — before
+# the HTML body finishes parsing. Supplements the parent-side prefetch.js
+# (which only helps when the user visits a storefront page before opening
+# the iframe). These cover direct visits, retries, popups.
+#
+# IMPORTANT: filenames here are placeholders — replace with the actual hashed
+# filenames from your latest build (or generate this file at build time).
+# See vite.config.ts → parent-prefetch-manifest plugin for the hashed list.
+/index.html
+  Cache-Control: no-cache
