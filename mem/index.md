@@ -61,4 +61,5 @@ Support email is **hello@dropdeadextensions.com** (NOT support@…).
 - [Shopify App Proxy mount](mem://integrations/shopify-app-proxy-mount) — SPA served first-party at dropdeadextensions.com/apps/apply via App Proxy; runtime basename auto-detect
 - [IFRAME_READY handoff phases](mem://architecture/iframe-ready-handoff-phases) — Two-stage: head-initial/heartbeat from index.html + double-rAF react-painted from useIframeComm; never use fixed setTimeout
 - [Cold start build optimizations](mem://performance/cold-start-build-optimizations) — manualChunks, fetchpriority on entry, Supabase preconnect
+- [Parent theme bundle prefetch](mem://integrations/parent-theme-bundle-prefetch) — Vite emits /prefetch.js for theme to warm SPA bundle into HTTP cache
 - [NAVIGATE postMessage handler](mem://features/navigate-postmessage-handler) — Parent → SPA route changes via postMessage (no iframe reload); fires NAVIGATE_COMPLETE on commit
