@@ -24,10 +24,10 @@ export default defineConfig(({ mode }) => ({
     // and lower-priority resources inside the iframe.
     {
       name: "boot-fetchpriority",
-      transformIndexHtml(html) {
+      transformIndexHtml(html: string) {
         return html.replace(
           /<script type="module" (crossorigin )?src="([^"]+)"><\/script>/,
-          (_m, cors, src) =>
+          (_m: string, cors: string | undefined, src: string) =>
             `<script type="module" ${cors ?? ""}src="${src}" fetchpriority="high"></script>`
         );
       },
