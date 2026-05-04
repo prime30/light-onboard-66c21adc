@@ -131,9 +131,14 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
         >
           {/* Intro/Onboarding step with icon */}
           <button
-            onClick={() => currentStep !== "onboarding" && goToStep("onboarding")}
+            type="button"
+            onClick={() => isAdmin && currentStep !== "onboarding" && goToStep("onboarding")}
+            disabled={!isAdmin}
             aria-label="Go to introduction step"
-            className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
+            className={cn(
+              "flex items-center transition-opacity",
+              isAdmin ? "cursor-pointer hover:opacity-100" : "cursor-default"
+            )}
             style={{
               opacity: currentStep === "onboarding" ? 1 : 0.6,
               transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
