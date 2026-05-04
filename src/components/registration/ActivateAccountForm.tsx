@@ -199,6 +199,20 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     }
   }, [isInIframe, closeIframe]);
 
+  // Auto-close iframe after a successful auto-login so the user lands on
+  // their (now-logged-in) storefront without an extra "Close" click. Mirrors
+  // registration success UX. Manual-login fallbacks keep the explicit CTA.
+  useEffect(() => {
+    if (
+      formState === "success" &&
+      autoLoginStatus === "succeeded" &&
+      isInIframe
+    ) {
+      const t = setTimeout(() => closeIframe(), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [formState, autoLoginStatus, isInIframe, closeIframe]);
+
 
   // Signing-in state (auto-login in progress after activation)
   if (formState === "signing-in") {
