@@ -94,9 +94,10 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       // (typed earlier into "Forgot password?" or anywhere we set it)
       // so auto-sign-in can still proceed when the Admin API token is
       // unset or the lookup transiently fails.
+      const payload = result.data?.data ?? result.data;
       const customerEmail =
-        result.data?.email ?? getResetEmailHint() ?? null;
-      const customerFirstName = result.data?.firstName ?? null;
+        payload?.email ?? getResetEmailHint() ?? null;
+      const customerFirstName = payload?.firstName ?? null;
       clearResetEmailHint();
 
       setActivatedEmail(customerEmail);
