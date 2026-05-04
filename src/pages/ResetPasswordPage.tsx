@@ -14,7 +14,10 @@ export function ResetPasswordPage() {
   const token = searchParams.get("token");
   const customerId = searchParams.get("customer_id");
   const resetUrl = searchParams.get("reset_url");
-  const emailHint = searchParams.get("email") || searchParams.get("customer_email");
+  const emailHint =
+    searchParams.get("email_hint") ||
+    searchParams.get("email") ||
+    searchParams.get("customer_email");
 
   useEffect(() => {
     setMode("signin");
