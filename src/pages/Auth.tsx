@@ -356,14 +356,6 @@ const Auth = () => {
   return (
     <>
       <StepIndicatorBar />
-      {/* Subtle gradient below header on mobile */}
-      <div
-        className="lg:hidden absolute top-[70px] sm:top-[80px] left-0 right-0 h-[80px] pointer-events-none bg-gradient-to-b from-background via-background/70 via-40% to-transparent z-10 transition-all duration-300 ease-out"
-        style={{
-          opacity: headerGradientOpacity,
-          transform: `translateY(${-8 + headerGradientOpacity * 8}px)`,
-        }}
-      />
 
       <main
         ref={mainScrollRef}
