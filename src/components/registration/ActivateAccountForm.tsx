@@ -71,10 +71,11 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
     // Edge function wraps payload as { success, statusCode, data: {...} },
     // so the actual activation result lives under result.data.data.
     const result = await apiCall<{
-      data?: { activated: boolean; email: string | null; firstName: string | null };
+      data?: { activated: boolean; email: string | null; firstName: string | null; shopifyCustomerId?: number | null };
       activated?: boolean;
       email?: string | null;
       firstName?: string | null;
+      shopifyCustomerId?: number | null;
     }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-account`,
       {
