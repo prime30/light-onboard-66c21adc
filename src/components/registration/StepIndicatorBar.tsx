@@ -76,6 +76,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   }, []);
 
   const handleStepSwipeEnd = useCallback(() => {
+    if (!isAdmin) return;
     if (stepSwipeStartX.current === null || stepSwipeEndX.current === null) return;
 
     const diff = stepSwipeStartX.current - stepSwipeEndX.current;
@@ -92,7 +93,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
     stepSwipeStartX.current = null;
     stepSwipeEndX.current = null;
-  }, [goToNextStep, goToPrevStep]);
+  }, [goToNextStep, goToPrevStep, isAdmin]);
 
   // Only show for signup mode
   if (mode !== "signup") return null;
