@@ -19,9 +19,14 @@ export function ActivateAccountPage() {
     setMode("signin");
   }, [setMode]);
 
-  // Redirect already-logged-in users
+  // Redirect already-logged-in users — but ONLY if they were already logged
+  // in when this page mounted. Otherwise activation's own auto-login flow
+  // would flip customer.isLoggedIn mid-flow and trigger a second success
+  // screen on /already-logged-in, stacked on top of the form's own success
+  // state. The form handles its own post-success UX (auto-close in iframe).
+  const wasLoggedInOnMount = useRef(customer.isLoggedIn);
   useEffect(() => {
-    if (customer.isLoggedIn) {
+    if (wasLoggedInOnMount.current && customer.isLoggedIn) {
       navigate("/already-logged-in");
     }
   }, [customer.isLoggedIn, navigate]);
