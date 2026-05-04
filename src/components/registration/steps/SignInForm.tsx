@@ -24,6 +24,8 @@ import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
+import { takePendingLogin } from "@/lib/pending-login";
+import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
 export type LoginErrorKind =
   | "no_account"
