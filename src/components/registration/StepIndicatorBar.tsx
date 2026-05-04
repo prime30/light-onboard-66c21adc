@@ -21,6 +21,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   } = useStepContext();
 
   const { mode } = useModeContext();
+  const isAdmin = useAdminMode();
 
   const [inDelay, setInDelay] = useState(true);
   const accountType = watch("accountType");
