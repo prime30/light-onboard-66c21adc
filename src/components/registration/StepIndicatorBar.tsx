@@ -217,9 +217,14 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
             return (
               <div key={step} className="flex items-center">
                 <button
-                  onClick={() => goToStep(step)}
+                  type="button"
+                  onClick={() => isAdmin && goToStep(step)}
+                  disabled={!isAdmin}
                   aria-label={`Go to step ${stepNum}`}
-                  className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
+                  className={cn(
+                    "flex items-center transition-opacity",
+                    isAdmin ? "cursor-pointer hover:opacity-100" : "cursor-default"
+                  )}
                   style={{
                     opacity,
                     transform: `scale(${scale})`,
