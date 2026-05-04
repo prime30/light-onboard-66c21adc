@@ -20,7 +20,9 @@
         var baseSegments = routeIndex === -1 ? segments : segments.slice(0, routeIndex);
         var href = '/' + baseSegments.join('/');
         if (!href.endsWith('/')) href += '/';
-        document.write('<base href="' + href.replace(/"/g, '&quot;') + '">');
+        var base = document.createElement('base');
+        base.href = href;
+        document.head.appendChild(base);
       })();
     </script>
     <meta charset="UTF-8" />
