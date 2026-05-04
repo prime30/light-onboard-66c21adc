@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon } from "lucide-react";
+import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check } from "lucide-react";
 import { setAdminMode } from "@/lib/admin-mode";
 
 const MAX_TAGS = 50;
