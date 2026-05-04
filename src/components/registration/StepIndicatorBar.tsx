@@ -5,6 +5,7 @@ import { useStepContext } from "./context/StepContext";
 import { useModeContext } from "./context/ModeContext";
 import { useFormData } from "./context";
 import { createPortal } from "react-dom";
+import { useAdminMode } from "@/lib/admin-mode";
 
 export const StepIndicatorBar = memo(function StepIndicatorBar() {
   const { watch } = useFormData();
