@@ -1,6 +1,28 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      (function () {
+        var known = {
+          auth: true,
+          login: true,
+          'already-logged-in': true,
+          'reset-password': true,
+          'activate-account': true,
+          'not-eligible': true,
+          reviews: true,
+          blog: true,
+          'sso-preview': true,
+          admin: true,
+        };
+        var segments = window.location.pathname.split('/').filter(Boolean);
+        var routeIndex = segments.findIndex(function (segment) { return known[segment]; });
+        var baseSegments = routeIndex === -1 ? segments : segments.slice(0, routeIndex);
+        var href = '/' + baseSegments.join('/');
+        if (!href.endsWith('/')) href += '/';
+        document.write('<base href="' + href.replace(/"/g, '&quot;') + '">');
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
