@@ -156,6 +156,14 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         setIsSubmitting(false);
       }
 
+      if (message.status === "confirmed") {
+        clearSuccessWatchdog();
+        setLoginError(null);
+        setIsLoginSuccessful(true);
+        setIsSubmitting(false);
+        return;
+      }
+
       if (message.status === "error") {
         clearSuccessWatchdog();
         setIsLoginSuccessful(false);
