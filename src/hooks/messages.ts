@@ -62,7 +62,7 @@ type ForgotPasswordData = {
 
 export type FormUpdateData =
   | {
-      status: "success" | "submitting";
+      status: "success" | "submitting" | "confirmed";
     }
   | {
       status: "error";
@@ -100,6 +100,8 @@ export function useCustomerLogin({
       //     we skip the success page entirely and close the iframe so the
       //     parent storefront reloads in its logged-in state.
       if (customer.isLoggedIn) {
+        loginUpdate?.({ status: "confirmed" });
+
         let onSuccessScreen = false;
         let justSignedIn = false;
         try {
