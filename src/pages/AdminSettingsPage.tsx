@@ -463,6 +463,180 @@ const AdminSettingsPage = () => {
           </div>
         </div>
 
+        {/* Welcome offer backfill */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-0.5">
+              <Gift className="w-4 h-4 text-foreground" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Welcome offer backfill
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Find recently activated customers (Shopify state{" "}
+                <code className="text-xs">enabled</code>) and issue a fresh 48h Color Ring
+                discount. Defaults to customers created in the last 14 days whose record
+                was touched in the last 48h.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="bf-created" className="text-xs">
+                Created within (days)
+              </Label>
+              <Input
+                id="bf-created"
+                type="number"
+                min={1}
+                max={90}
+                value={backfillCreatedDays}
+                onChange={(e) => setBackfillCreatedDays(Number(e.target.value) || 1)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bf-updated" className="text-xs">
+                Updated within (hours)
+              </Label>
+              <Input
+                id="bf-updated"
+                type="number"
+                min={1}
+                max={720}
+                value={backfillUpdatedHours}
+                onChange={(e) => setBackfillUpdatedHours(Number(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={loadBackfillMatches}
+            disabled={loadingMatches}
+          >
+            {loadingMatches ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "Find matching customers"
+            )}
+          </Button>
+
+          {backfillCustomers !== null && (
+            <div className="space-y-3 pt-2 border-t border-border/50">
+              {backfillCustomers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No matching customers in this window.
+                </p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {selectedIds.size} of {backfillCustomers.length} selected
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          setSelectedIds(
+                            new Set(backfillCustomers.map((c) => String(c.numericId)))
+                          )
+                        }
+                      >
+                        Select all
+                      </button>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <button
+                        type="button"
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => setSelectedIds(new Set())}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto rounded-[10px] border border-border/50 divide-y divide-border/50">
+                    {backfillCustomers.map((c) => {
+                      const id = String(c.numericId);
+                      const checked = selectedIds.has(id);
+                      const result = applyResults?.find((r) => r.customerId === id);
+                      return (
+                        <label
+                          key={id}
+                          className="flex items-start gap-3 p-3 text-sm cursor-pointer hover:bg-muted/40"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleSelected(id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-foreground truncate">
+                                {c.firstName || c.lastName
+                                  ? `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim()
+                                  : c.email ?? "(no name)"}
+                              </span>
+                              {c.hasUnexpiredCode && (
+                                <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  has active code
+                                </span>
+                              )}
+                              {result?.success && (
+                                <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-status-green/15 text-status-green inline-flex items-center gap-1">
+                                  <Check className="w-3 h-3" /> issued
+                                </span>
+                              )}
+                              {result && !result.success && (
+                                <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">
+                                  failed
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              {c.email ?? "—"}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              Created {new Date(c.createdAt).toLocaleDateString()} · Updated{" "}
+                              {new Date(c.updatedAt).toLocaleString()}
+                              {result?.code ? ` · New code: ${result.code}` : ""}
+                              {result?.error ? ` · ${result.error}` : ""}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      Issuing resets the clock to a fresh 48h for each selected customer.
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={applyBackfillOffers}
+                      disabled={applyingOffers || selectedIds.size === 0}
+                    >
+                      {applyingOffers ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        `Issue offers (${selectedIds.size})`
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={() => {
