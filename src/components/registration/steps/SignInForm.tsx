@@ -65,7 +65,7 @@ type SignInFormProps = {
 
 function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { initialEmail } = props;
-  const { setEmail, ssoContext } = useGlobalApp();
+  const { setEmail, ssoContext, isInIframe } = useGlobalApp();
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
