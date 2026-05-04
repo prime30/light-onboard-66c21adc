@@ -1,0 +1,81 @@
+{% comment %}
+  dd-account-details — password row + change-password disclosure panel.
+
+  Drop into Dawn (or any Shopify theme) with:
+    {% render 'dd-account-details' %}
+  on the /account page template (e.g. customers/account.liquid).
+
+  Requires:
+    - assets/dd-account-details.css
+    - assets/dd-account-password.js
+  registered in the theme's layout/theme.liquid:
+    {{ 'dd-account-details.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'dd-account-password.js' | asset_url }}" defer></script>
+
+  Safe to render only when a customer is logged in:
+    {% if customer %}{% render 'dd-account-details' %}{% endif %}
+{% endcomment %}
+
+<section class="dd-account-details" aria-labelledby="dd-account-details-heading">
+  <h2 id="dd-account-details-heading" class="dd-account-details__heading">Account</h2>
+
+  <div class="dd-account-details__row" data-dd-password-row>
+    <div class="dd-account-details__row-label">
+      <span class="dd-account-details__row-title">Password</span>
+      <span class="dd-account-details__row-meta">Change the password you use to sign in</span>
+    </div>
+    <button
+      type="button"
+      class="dd-account-details__row-action"
+      data-dd-password-toggle
+      aria-expanded="false"
+      aria-controls="dd-account-password-panel"
+    >
+      Change
+    </button>
+  </div>
+
+  <div
+    id="dd-account-password-panel"
+    class="dd-account-details__panel"
+    data-dd-password-panel
+    hidden
+  >
+    <form class="dd-account-details__form" data-dd-password-form novalidate>
+      <label class="dd-account-details__field">
+        <span class="dd-account-details__field-label">New password</span>
+        <input
+          type="password"
+          name="new_password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+          data-dd-password-input
+        />
+      </label>
+
+      <label class="dd-account-details__field">
+        <span class="dd-account-details__field-label">Confirm new password</span>
+        <input
+          type="password"
+          name="confirm_password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+          data-dd-password-confirm
+        />
+      </label>
+
+      <p class="dd-account-details__message" data-dd-password-message role="status" aria-live="polite"></p>
+
+      <div class="dd-account-details__actions">
+        <button type="button" class="dd-account-details__btn dd-account-details__btn--ghost" data-dd-password-cancel>
+          Cancel
+        </button>
+        <button type="submit" class="dd-account-details__btn dd-account-details__btn--primary" data-dd-password-submit>
+          Update password
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
