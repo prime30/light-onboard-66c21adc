@@ -162,8 +162,19 @@ Deno.serve(async (req) => {
           console.warn("Admin customer lookup threw:", e);
         }
       }
+      // Return the numeric Shopify customer ID so the SPA can hand it to
+      // generate-discount directly (skips the racy email-based lookup when
+      // writing the welcome-offer customer metafields).
+      const shopifyCustomerId = derivedCustomerId
+        ? Number(derivedCustomerId)
+        : null;
       return sendSuccess(
-        { activated: true, email, firstName },
+        {
+          activated: true,
+          email,
+          firstName,
+          shopifyCustomerId: Number.isFinite(shopifyCustomerId) ? shopifyCustomerId : null,
+        },
         "Account has been activated successfully"
       );
     }
