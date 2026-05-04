@@ -232,7 +232,16 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
 
     const handleSuccessCta = () => {
       if (autoLoginStatus === "failed" || autoLoginStatus === "rate_limited") {
-        window.location.href = "/login";
+        if (isInIframe) {
+          // Ask the parent theme to re-point the iframe at the SPA login
+          // route. The parent's NAVIGATE handler updates iframe.src (or posts
+          // back to our IframeNavigationBridge for in-place routing) — using
+          // window.location here would resolve "/login" against the parent
+          // origin (apps/apply proxy) and load the storefront login page.
+          sendMessage("NAVIGATE", { path: "/login" });
+        } else {
+          window.location.href = withBasename("/login");
+        }
         return;
       }
       if (isInIframe) {
