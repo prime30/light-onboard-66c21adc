@@ -252,7 +252,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"
       ? "Go to login"
       : isInIframe
-        ? "Close"
+        ? "Close and continue shopping"
         : "Continue to store";
 
     const handleSuccessCta = () => {
@@ -281,7 +281,11 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
             Your password has been changed successfully.
             {autoLoginStatus === "succeeded" ? (
-              <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
+              isInIframe ? (
+                <> Close this window and you'll be signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null} automatically.</>
+              ) : (
+                <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
+              )
             ) : (
               <> You can now log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : <> with your new password</>}.</>
             )}
