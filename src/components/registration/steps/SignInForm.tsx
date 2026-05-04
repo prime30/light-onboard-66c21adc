@@ -24,6 +24,8 @@ import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
+import { takePendingLogin } from "@/lib/pending-login";
+import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
 export type LoginErrorKind =
   | "no_account"
@@ -63,7 +65,7 @@ type SignInFormProps = {
 
 function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { initialEmail } = props;
-  const { setEmail, ssoContext } = useGlobalApp();
+  const { setEmail, ssoContext, isInIframe } = useGlobalApp();
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
@@ -174,8 +176,45 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         setLoginError(null);
         setIsLoginSuccessful(true);
         clearSuccessWatchdog();
+
+        // Auto-close the iframe after a brief delay so the user sees the
+        // "Logged In!" success state. We don't wait for CUSTOMER_DATA — the
+        // parent will reload in its logged-in state once we close. We also
+        // re-flush USER_LOGIN as a safety net in case the parent's first
+        // login attempt was dropped.
+        if (isInIframe) {
+          setTimeout(() => {
+            try {
+              const pending = takePendingLogin();
+              if (pending) {
+                window.parent.postMessage(
+                  {
+                    type: IframeMessageTypes.USER_LOGIN,
+                    data: pending,
+                    timestamp: new Date().toISOString(),
+                  },
+                  "*"
+                );
+              }
+              window.parent.postMessage(
+                {
+                  type: IframeMessageTypes.CLOSE_IFRAME,
+                  data: { reason: "Login success", url: window.location.href },
+                  timestamp: new Date().toISOString(),
+                },
+                "*"
+              );
+            } catch (err) {
+              console.error("[SignInForm] Failed to auto-close on login success:", err);
+            }
+          }, 900);
+          return;
+        }
+
+        // Standalone fallback: keep watchdog so we surface a real failure if
+        // CUSTOMER_DATA never arrives (shouldn't happen — useCustomerLogin
+        // already navigates on the standalone path, but defensive).
         successWatchdogRef.current = setTimeout(() => {
-          // CUSTOMER_DATA never confirmed login — treat as failure.
           setIsLoginSuccessful(false);
           setIsSubmitting(false);
           setLoginError({
@@ -186,7 +225,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         }, 3000);
       }
     },
-    [classifyLoginError, clearSuccessWatchdog]
+    [classifyLoginError, clearSuccessWatchdog, isInIframe]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
