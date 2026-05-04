@@ -213,6 +213,85 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const loadBackfillMatches = async () => {
+    setLoadingMatches(true);
+    setApplyResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
+        body: {
+          email,
+          password,
+          mode: "list",
+          createdDays: backfillCreatedDays,
+          updatedHours: backfillUpdatedHours,
+        },
+      });
+      if (error || !data?.success) {
+        toast({
+          title: "Failed to load matches",
+          description: data?.error || "Could not query Shopify.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const list = (data.customers ?? []) as BackfillCustomer[];
+      setBackfillCustomers(list);
+      setSelectedIds(new Set(list.map((c) => String(c.numericId))));
+      toast({
+        title: `${list.length} customer${list.length === 1 ? "" : "s"} found`,
+        description: `Created in last ${backfillCreatedDays}d, updated in last ${backfillUpdatedHours}h.`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Could not load matches.", variant: "destructive" });
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  const applyBackfillOffers = async () => {
+    if (selectedIds.size === 0) return;
+    setApplyingOffers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
+        body: {
+          email,
+          password,
+          mode: "apply",
+          customerIds: Array.from(selectedIds),
+        },
+      });
+      if (error || !data?.success) {
+        toast({
+          title: "Backfill failed",
+          description: data?.error || "Could not issue offers.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const results = (data.results ?? []) as BackfillResult[];
+      setApplyResults(results);
+      toast({
+        title: "Backfill complete",
+        description: `${data.created} issued · ${data.failed} failed`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Could not issue offers.", variant: "destructive" });
+    } finally {
+      setApplyingOffers(false);
+    }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
