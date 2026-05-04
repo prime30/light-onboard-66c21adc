@@ -28,6 +28,34 @@ const AdminSettingsPage = () => {
   const [savingTags, setSavingTags] = useState(false);
   const [tagsDirty, setTagsDirty] = useState(false);
 
+  // Welcome-offer backfill
+  type BackfillCustomer = {
+    id: string;
+    numericId: number;
+    email: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    createdAt: string;
+    updatedAt: string;
+    existingCode: string | null;
+    existingEndsAt: string | null;
+    hasUnexpiredCode: boolean;
+  };
+  type BackfillResult = {
+    customerId: string;
+    success: boolean;
+    code?: string;
+    endsAt?: string;
+    error?: string;
+  };
+  const [backfillCreatedDays, setBackfillCreatedDays] = useState(14);
+  const [backfillUpdatedHours, setBackfillUpdatedHours] = useState(48);
+  const [backfillCustomers, setBackfillCustomers] = useState<BackfillCustomer[] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [applyingOffers, setApplyingOffers] = useState(false);
+  const [applyResults, setApplyResults] = useState<BackfillResult[] | null>(null);
+
   // Load current settings on mount
   useEffect(() => {
     let cancelled = false;
