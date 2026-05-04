@@ -127,6 +127,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       setAutoLoginStatus("idle");
 
       if (isInIframe) {
+        // Mark that we're sitting on the success screen so the global
+        // CUSTOMER_DATA handler doesn't yank us to /already-logged-in
+        // when the parent theme reloads in its newly-authed state.
+        try {
+          sessionStorage.setItem("dde_on_success_screen", "1");
+        } catch {
+          // ignore storage failures
+        }
         // Iframe: parent Shopify theme owns the storefront session. Fire
         // USER_LOGIN immediately and jump straight to the success screen —
         // mirroring the registration flow (FormDataContext.submitForm).
