@@ -68,10 +68,13 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
+    // Edge function wraps payload as { success, statusCode, data: {...} },
+    // so the actual activation result lives under result.data.data.
     const result = await apiCall<{
-      activated: boolean;
-      email: string | null;
-      firstName: string | null;
+      data?: { activated: boolean; email: string | null; firstName: string | null };
+      activated?: boolean;
+      email?: string | null;
+      firstName?: string | null;
     }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-account`,
       {
@@ -91,9 +94,10 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       // (typed earlier into "Forgot password?" or anywhere we set it)
       // so auto-sign-in can still proceed when the Admin API token is
       // unset or the lookup transiently fails.
+      const payload = result.data?.data ?? result.data;
       const customerEmail =
-        result.data?.email ?? getResetEmailHint() ?? null;
-      const customerFirstName = result.data?.firstName ?? null;
+        payload?.email ?? getResetEmailHint() ?? null;
+      const customerFirstName = payload?.firstName ?? null;
       clearResetEmailHint();
 
       setActivatedEmail(customerEmail);
