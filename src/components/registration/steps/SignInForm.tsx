@@ -225,7 +225,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         }, 3000);
       }
     },
-    [classifyLoginError, clearSuccessWatchdog]
+    [classifyLoginError, clearSuccessWatchdog, isInIframe]
   );
 
   const forgotPasswordUpdate: (message: FormUpdateData) => void = useCallback(
