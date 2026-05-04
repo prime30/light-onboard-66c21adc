@@ -45,6 +45,13 @@ export function useStandaloneSession() {
     if (isInIframe) return;
     if (!customer.isLoggedIn) return;
     if (REDIRECT_FROM_ROUTES.has(location.pathname)) {
+      try {
+        if (sessionStorage.getItem("dde_on_success_screen") === "1") {
+          return;
+        }
+      } catch {
+        // ignore storage failures
+      }
       navigate("/already-logged-in", { replace: true });
     }
   }, [isInIframe, customer.isLoggedIn, location.pathname, navigate]);

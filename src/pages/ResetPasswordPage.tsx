@@ -20,9 +20,17 @@ export function ResetPasswordPage() {
     setMode("signin");
   }, [setMode]);
 
-  // Redirect already-logged-in users
+  // Redirect already-logged-in users, unless a reset just succeeded and the
+  // success screen is intentionally being held while the parent theme logs in.
   useEffect(() => {
     if (customer.isLoggedIn) {
+      try {
+        if (sessionStorage.getItem("dde_on_success_screen") === "1") {
+          return;
+        }
+      } catch {
+        // ignore storage failures
+      }
       navigate("/already-logged-in");
     }
   }, [customer.isLoggedIn, navigate]);
