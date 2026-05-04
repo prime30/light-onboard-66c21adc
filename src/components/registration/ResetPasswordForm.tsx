@@ -252,7 +252,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"
       ? "Go to login"
       : isInIframe
-        ? "Close"
+        ? "Close and continue shopping"
         : "Continue to store";
 
     const handleSuccessCta = () => {
