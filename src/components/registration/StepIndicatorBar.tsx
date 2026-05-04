@@ -5,6 +5,7 @@ import { useStepContext } from "./context/StepContext";
 import { useModeContext } from "./context/ModeContext";
 import { useFormData } from "./context";
 import { createPortal } from "react-dom";
+import { useAdminMode } from "@/lib/admin-mode";
 
 export const StepIndicatorBar = memo(function StepIndicatorBar() {
   const { watch } = useFormData();
@@ -20,6 +21,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   } = useStepContext();
 
   const { mode } = useModeContext();
+  const isAdmin = useAdminMode();
 
   const [inDelay, setInDelay] = useState(true);
   const accountType = watch("accountType");
@@ -74,6 +76,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   }, []);
 
   const handleStepSwipeEnd = useCallback(() => {
+    if (!isAdmin) return;
     if (stepSwipeStartX.current === null || stepSwipeEndX.current === null) return;
 
     const diff = stepSwipeStartX.current - stepSwipeEndX.current;
@@ -90,7 +93,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
     stepSwipeStartX.current = null;
     stepSwipeEndX.current = null;
-  }, [goToNextStep, goToPrevStep]);
+  }, [goToNextStep, goToPrevStep, isAdmin]);
 
   // Only show for signup mode
   if (mode !== "signup") return null;
@@ -128,9 +131,14 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
         >
           {/* Intro/Onboarding step with icon */}
           <button
-            onClick={() => currentStep !== "onboarding" && goToStep("onboarding")}
+            type="button"
+            onClick={() => isAdmin && currentStep !== "onboarding" && goToStep("onboarding")}
+            disabled={!isAdmin}
             aria-label="Go to introduction step"
-            className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
+            className={cn(
+              "flex items-center transition-opacity",
+              isAdmin ? "cursor-pointer hover:opacity-100" : "cursor-default"
+            )}
             style={{
               opacity: currentStep === "onboarding" ? 1 : 0.6,
               transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
@@ -209,9 +217,14 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
             return (
               <div key={step} className="flex items-center">
                 <button
-                  onClick={() => goToStep(step)}
+                  type="button"
+                  onClick={() => isAdmin && goToStep(step)}
+                  disabled={!isAdmin}
                   aria-label={`Go to step ${stepNum}`}
-                  className="flex items-center cursor-pointer hover:opacity-100 transition-opacity"
+                  className={cn(
+                    "flex items-center transition-opacity",
+                    isAdmin ? "cursor-pointer hover:opacity-100" : "cursor-default"
+                  )}
                   style={{
                     opacity,
                     transform: `scale(${scale})`,
