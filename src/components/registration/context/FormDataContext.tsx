@@ -158,6 +158,17 @@ export function FormDataProvider({
       const password = (values as any).password as string | undefined;
       if (password && values.email) {
         if (isInIframe) {
+          // Set the success-screen flag SYNCHRONOUSLY before USER_LOGIN
+          // fires. The parent's CUSTOMER_DATA(isLoggedIn=true) reply can
+          // arrive before SuccessForm mounts and sets it via useEffect —
+          // without this guard, customerHandler in messages.ts would
+          // navigate to /already-logged-in and stack a second success
+          // screen on top of the welcome-offer screen.
+          try {
+            sessionStorage.setItem("dde_on_success_screen", "1");
+          } catch {
+            // ignore storage failures
+          }
           sendMessage(IframeMessageTypes.USER_LOGIN, {
             email: values.email,
             password,

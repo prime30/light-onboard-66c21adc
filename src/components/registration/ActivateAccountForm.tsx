@@ -123,6 +123,15 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         // because the parent ack arrives via a full reload after a couple
         // of retry attempts (~3-4s worst case), which used to race the
         // 3s timer and surface a false "couldn't auto-sign-in" note.
+        // Set the success-screen guard SYNCHRONOUSLY before USER_LOGIN.
+        // CUSTOMER_DATA(isLoggedIn=true) from the parent would otherwise
+        // race in and navigate to /already-logged-in, stacking a second
+        // success screen on top of this one.
+        try {
+          sessionStorage.setItem("dde_on_success_screen", "1");
+        } catch {
+          // ignore
+        }
         sendMessage("USER_LOGIN", {
           email: customerEmail,
           password: data.password,
