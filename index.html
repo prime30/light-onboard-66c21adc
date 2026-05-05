@@ -143,6 +143,11 @@
           notify('skeleton-heartbeat');
           if (attempts >= maxAttempts) window.clearInterval(timer);
         }, 250);
+        // Allow React to stop the heartbeat once it has painted, so we don't
+        // keep spamming IFRAME_READY for the full 5s window after handoff.
+        window.__ddStopBootHeartbeat = function () {
+          if (timer) { window.clearInterval(timer); timer = 0; }
+        };
         window.addEventListener('load', function () { notify('window-load'); }, { once: true });
       })();
     </script>
