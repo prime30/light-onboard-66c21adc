@@ -307,6 +307,13 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
     let raf2 = 0;
     raf1 = window.requestAnimationFrame(() => {
       raf2 = window.requestAnimationFrame(() => {
+        // Stop the index.html boot heartbeat so the parent doesn't keep
+        // receiving skeleton-heartbeat IFRAME_READY messages after React
+        // has painted (≈25 wasted postMessages otherwise).
+        try {
+          const stop = (window as unknown as { __ddStopBootHeartbeat?: () => void }).__ddStopBootHeartbeat;
+          if (typeof stop === "function") stop();
+        } catch {}
         sendMessage("IFRAME_READY", {
           phase: "react-painted",
           url: window.location.href,
