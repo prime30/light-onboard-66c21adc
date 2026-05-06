@@ -583,7 +583,7 @@ const AdminSettingsPage = () => {
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
-                      {selectedIds.size} of {backfillCustomers.length} selected
+                      {selectedIds.size} of {visible.length} selected
                     </span>
                     <div className="flex gap-2">
                       <button
@@ -591,7 +591,7 @@ const AdminSettingsPage = () => {
                         className="text-xs text-muted-foreground hover:text-foreground"
                         onClick={() =>
                           setSelectedIds(
-                            new Set(backfillCustomers.map((c) => String(c.numericId)))
+                            new Set(visible.map((c) => String(c.numericId)))
                           )
                         }
                       >
@@ -609,7 +609,7 @@ const AdminSettingsPage = () => {
                   </div>
 
                   <div className="max-h-80 overflow-y-auto rounded-[10px] border border-border/50 divide-y divide-border/50">
-                    {backfillCustomers.map((c) => {
+                    {visible.map((c) => {
                       const id = String(c.numericId);
                       const checked = selectedIds.has(id);
                       const result = applyResults?.find((r) => r.customerId === id);
@@ -682,7 +682,8 @@ const AdminSettingsPage = () => {
                 </>
               )}
             </div>
-          )}
+            );
+          })()}
         </div>
 
         <button
