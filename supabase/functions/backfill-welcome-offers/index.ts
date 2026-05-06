@@ -152,12 +152,14 @@ async function listRecentActivations(
   existingEndsAt: string | null;
   hasUnexpiredCode: boolean;
 }>> {
-  const createdSince = new Date(Date.now() - createdDays * 24 * 60 * 60 * 1000)
-    .toISOString();
-  const updatedSince = new Date(Date.now() - updatedHours * 60 * 60 * 1000)
-    .toISOString();
+  const createdSinceMs = Date.now() - createdDays * 24 * 60 * 60 * 1000;
+  const updatedSinceMs = Date.now() - updatedHours * 60 * 60 * 1000;
+  const createdSince = new Date(createdSinceMs).toISOString();
+  const updatedSince = new Date(updatedSinceMs).toISOString();
   // Shopify customer search query syntax. state:enabled excludes invited/disabled.
-  const queryStr = `state:enabled AND created_at:>${createdSince} AND updated_at:>${updatedSince}`;
+  // Quote ISO timestamps so the colons inside them aren't parsed as field separators.
+  // Exclude customers already tagged with the color ring tag.
+  const queryStr = `state:enabled AND created_at:>'${createdSince}' AND updated_at:>'${updatedSince}' AND NOT tag:'has color ring'`;
 
   const out: Awaited<ReturnType<typeof listRecentActivations>> = [];
   let after: string | null = null;
