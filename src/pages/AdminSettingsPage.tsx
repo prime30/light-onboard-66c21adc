@@ -565,9 +565,17 @@ const AdminSettingsPage = () => {
             )}
           </Button>
 
-          {backfillCustomers !== null && (
+          {backfillCustomers !== null && (() => {
+            const visible = backfillCustomers.filter((c) =>
+              backfillFilter === "all"
+                ? true
+                : backfillFilter === "blank"
+                ? !c.hasUnexpiredCode
+                : c.hasUnexpiredCode
+            );
+            return (
             <div className="space-y-3 pt-2 border-t border-border/50">
-              {backfillCustomers.length === 0 ? (
+              {visible.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No matching customers in this window.
                 </p>
