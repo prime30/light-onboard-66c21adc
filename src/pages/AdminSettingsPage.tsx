@@ -237,7 +237,14 @@ const AdminSettingsPage = () => {
       }
       const list = (data.customers ?? []) as BackfillCustomer[];
       setBackfillCustomers(list);
-      setSelectedIds(new Set(list.map((c) => String(c.numericId))));
+      const initial = list.filter((c) =>
+        backfillFilter === "all"
+          ? true
+          : backfillFilter === "blank"
+          ? !c.hasUnexpiredCode
+          : c.hasUnexpiredCode
+      );
+      setSelectedIds(new Set(initial.map((c) => String(c.numericId))));
       toast({
         title: `${list.length} customer${list.length === 1 ? "" : "s"} found`,
         description: `Created in last ${backfillCreatedDays}d, updated in last ${backfillUpdatedHours}h.`,
