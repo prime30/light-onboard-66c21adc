@@ -218,9 +218,18 @@ export function FormDataProvider({
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
           // Pull the freshly-created Shopify customer ID out of create-customer's
           // response so generate-discount can write metafields by GID directly,
-          // skipping the racy email-based customer lookup.
+          // skipping the racy email-based customer lookup. apiCall returns the
+          // full edge-function envelope { success, data: { customer: {...} } },
+          // so we have to drill through `.data.data.customer.shopify_id` —
+          // missing this nesting is what previously caused metafields to never
+          // get written for auto-approved customers (the email-based fallback
+          // races Shopify's search index for brand-new customers).
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const shopifyCustomerId = (result.data as any)?.customer?.shopify_id ?? null;
+          const envelope = result.data as any;
+          const shopifyCustomerId =
+            envelope?.data?.customer?.shopify_id ??
+            envelope?.customer?.shopify_id ??
+            null;
           const discountResponse = await fetch(discountUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
