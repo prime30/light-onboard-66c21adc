@@ -55,6 +55,7 @@ const AdminSettingsPage = () => {
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [applyingOffers, setApplyingOffers] = useState(false);
   const [applyResults, setApplyResults] = useState<BackfillResult[] | null>(null);
+  const [backfillFilter, setBackfillFilter] = useState<"all" | "blank" | "has">("blank");
 
   // Load current settings on mount
   useEffect(() => {
@@ -236,7 +237,14 @@ const AdminSettingsPage = () => {
       }
       const list = (data.customers ?? []) as BackfillCustomer[];
       setBackfillCustomers(list);
-      setSelectedIds(new Set(list.map((c) => String(c.numericId))));
+      const initial = list.filter((c) =>
+        backfillFilter === "all"
+          ? true
+          : backfillFilter === "blank"
+          ? !c.hasUnexpiredCode
+          : c.hasUnexpiredCode
+      );
+      setSelectedIds(new Set(initial.map((c) => String(c.numericId))));
       toast({
         title: `${list.length} customer${list.length === 1 ? "" : "s"} found`,
         description: `Created in last ${backfillCreatedDays}d, updated in last ${backfillUpdatedHours}h.`,
@@ -511,6 +519,38 @@ const AdminSettingsPage = () => {
             </div>
           </div>
 
+          <div className="space-y-1">
+            <Label className="text-xs">Filter</Label>
+            <div className="flex gap-2">
+              {([
+                ["blank", "No active code"],
+                ["has", "Has active code"],
+                ["all", "All"],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => {
+                    setBackfillFilter(val);
+                    if (backfillCustomers) {
+                      const next = backfillCustomers.filter((c) =>
+                        val === "all" ? true : val === "blank" ? !c.hasUnexpiredCode : c.hasUnexpiredCode
+                      );
+                      setSelectedIds(new Set(next.map((c) => String(c.numericId))));
+                    }
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-[10px] border ${
+                    backfillFilter === val
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-card text-foreground border-border/50 hover:bg-muted/40"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Button
             type="button"
             size="sm"
@@ -525,9 +565,17 @@ const AdminSettingsPage = () => {
             )}
           </Button>
 
-          {backfillCustomers !== null && (
+          {backfillCustomers !== null && (() => {
+            const visible = backfillCustomers.filter((c) =>
+              backfillFilter === "all"
+                ? true
+                : backfillFilter === "blank"
+                ? !c.hasUnexpiredCode
+                : c.hasUnexpiredCode
+            );
+            return (
             <div className="space-y-3 pt-2 border-t border-border/50">
-              {backfillCustomers.length === 0 ? (
+              {visible.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No matching customers in this window.
                 </p>
@@ -535,7 +583,7 @@ const AdminSettingsPage = () => {
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
-                      {selectedIds.size} of {backfillCustomers.length} selected
+                      {selectedIds.size} of {visible.length} selected
                     </span>
                     <div className="flex gap-2">
                       <button
@@ -543,7 +591,7 @@ const AdminSettingsPage = () => {
                         className="text-xs text-muted-foreground hover:text-foreground"
                         onClick={() =>
                           setSelectedIds(
-                            new Set(backfillCustomers.map((c) => String(c.numericId)))
+                            new Set(visible.map((c) => String(c.numericId)))
                           )
                         }
                       >
@@ -561,7 +609,7 @@ const AdminSettingsPage = () => {
                   </div>
 
                   <div className="max-h-80 overflow-y-auto rounded-[10px] border border-border/50 divide-y divide-border/50">
-                    {backfillCustomers.map((c) => {
+                    {visible.map((c) => {
                       const id = String(c.numericId);
                       const checked = selectedIds.has(id);
                       const result = applyResults?.find((r) => r.customerId === id);
@@ -634,7 +682,8 @@ const AdminSettingsPage = () => {
                 </>
               )}
             </div>
-          )}
+            );
+          })()}
         </div>
 
         <button
