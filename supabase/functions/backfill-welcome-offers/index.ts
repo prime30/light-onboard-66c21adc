@@ -152,12 +152,14 @@ async function listRecentActivations(
   existingEndsAt: string | null;
   hasUnexpiredCode: boolean;
 }>> {
-  const createdSince = new Date(Date.now() - createdDays * 24 * 60 * 60 * 1000)
-    .toISOString();
-  const updatedSince = new Date(Date.now() - updatedHours * 60 * 60 * 1000)
-    .toISOString();
+  const createdSinceMs = Date.now() - createdDays * 24 * 60 * 60 * 1000;
+  const updatedSinceMs = Date.now() - updatedHours * 60 * 60 * 1000;
+  const createdSince = new Date(createdSinceMs).toISOString();
+  const updatedSince = new Date(updatedSinceMs).toISOString();
   // Shopify customer search query syntax. state:enabled excludes invited/disabled.
-  const queryStr = `state:enabled AND created_at:>${createdSince} AND updated_at:>${updatedSince}`;
+  // Quote ISO timestamps so the colons inside them aren't parsed as field separators.
+  // Exclude customers already tagged with the color ring tag.
+  const queryStr = `state:enabled AND created_at:>'${createdSince}' AND updated_at:>'${updatedSince}' AND NOT tag:'has color ring'`;
 
   const out: Awaited<ReturnType<typeof listRecentActivations>> = [];
   let after: string | null = null;
@@ -175,6 +177,14 @@ async function listRecentActivations(
     for (const c of nodes) {
       const numericId = Number(c.id.split("/").pop());
       if (!Number.isFinite(numericId)) continue;
+      // Defensive client-side enforcement: Shopify search syntax can be
+      // permissive, so re-check the created/updated windows and tag exclusion.
+      const createdMs = Date.parse(c.createdAt);
+      if (!Number.isFinite(createdMs) || createdMs < createdSinceMs) continue;
+      const updatedMs = Date.parse(c.updatedAt);
+      if (!Number.isFinite(updatedMs) || updatedMs < updatedSinceMs) continue;
+      const tagsLower = (c.tags ?? []).map((t) => t.toLowerCase().trim());
+      if (tagsLower.includes("has color ring")) continue;
       const existingCode = c.codeMetafield?.value ?? null;
       const existingEndsAt = c.endsAtMetafield?.value ?? null;
       const endsAtMs = existingEndsAt ? Date.parse(existingEndsAt) : NaN;
