@@ -55,6 +55,7 @@ const AdminSettingsPage = () => {
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [applyingOffers, setApplyingOffers] = useState(false);
   const [applyResults, setApplyResults] = useState<BackfillResult[] | null>(null);
+  const [backfillFilter, setBackfillFilter] = useState<"all" | "blank" | "has">("blank");
 
   // Load current settings on mount
   useEffect(() => {
