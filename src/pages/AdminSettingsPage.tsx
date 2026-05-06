@@ -503,7 +503,39 @@ const AdminSettingsPage = () => {
                 value={backfillCreatedDays}
                 onChange={(e) => setBackfillCreatedDays(Number(e.target.value) || 1)}
               />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Filter</Label>
+            <div className="flex gap-2">
+              {([
+                ["blank", "No active code"],
+                ["has", "Has active code"],
+                ["all", "All"],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => {
+                    setBackfillFilter(val);
+                    if (backfillCustomers) {
+                      const next = backfillCustomers.filter((c) =>
+                        val === "all" ? true : val === "blank" ? !c.hasUnexpiredCode : c.hasUnexpiredCode
+                      );
+                      setSelectedIds(new Set(next.map((c) => String(c.numericId))));
+                    }
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-[10px] border ${
+                    backfillFilter === val
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-card text-foreground border-border/50 hover:bg-muted/40"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
+          </div>
             <div className="space-y-1">
               <Label htmlFor="bf-updated" className="text-xs">
                 Updated within (hours)
