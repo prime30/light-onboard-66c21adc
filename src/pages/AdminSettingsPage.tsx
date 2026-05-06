@@ -503,6 +503,20 @@ const AdminSettingsPage = () => {
                 value={backfillCreatedDays}
                 onChange={(e) => setBackfillCreatedDays(Number(e.target.value) || 1)}
               />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bf-updated" className="text-xs">
+                Updated within (hours)
+              </Label>
+              <Input
+                id="bf-updated"
+                type="number"
+                min={1}
+                max={720}
+                value={backfillUpdatedHours}
+                onChange={(e) => setBackfillUpdatedHours(Number(e.target.value) || 1)}
+              />
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -534,20 +548,6 @@ const AdminSettingsPage = () => {
                   {label}
                 </button>
               ))}
-            </div>
-          </div>
-            <div className="space-y-1">
-              <Label htmlFor="bf-updated" className="text-xs">
-                Updated within (hours)
-              </Label>
-              <Input
-                id="bf-updated"
-                type="number"
-                min={1}
-                max={720}
-                value={backfillUpdatedHours}
-                onChange={(e) => setBackfillUpdatedHours(Number(e.target.value) || 1)}
-              />
             </div>
           </div>
 
