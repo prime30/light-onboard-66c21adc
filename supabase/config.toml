@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.backfill-welcome-offers]
 verify_jwt = false
+
+[functions.orders]
+verify_jwt = false
