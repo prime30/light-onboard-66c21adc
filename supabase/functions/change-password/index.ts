@@ -118,6 +118,7 @@ async function verifyAppProxySignature(
 }
 
 Deno.serve(async (req) => {
+ try {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
