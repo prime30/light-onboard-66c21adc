@@ -1,0 +1,13 @@
+# Shopify App Proxy → Supabase Edge Function bridge.
+#
+# The storefront proxies POST https://dropdeadextensions.com/apps/apply/change-password
+# to https://apply.dropdeadextensions.com/change-password (this origin). Without
+# this rewrite the request falls through to index.html and returns 200 text/html,
+# which the theme JS rejects. Forwarding to the Supabase Edge Function (where
+# `change-password` is configured with verify_jwt = false) makes the route return
+# the JSON contract documented in docs/contracts/account-change-password.md.
+#
+# Status 200 = full proxy: preserves method, body, and query string (Shopify's
+# signed `signature`, `logged_in_customer_id`, `shop`, `timestamp`, `path_prefix`
+# all flow through to the function for HMAC verification).
+/change-password  https://qsunfiextzzdxnsyrkkc.supabase.co/functions/v1/change-password  200!
