@@ -132,6 +132,7 @@ function rateLimited(customerId: string): boolean {
 const ORDER_NOTE_PATH = /^\/(?:functions\/v1\/)?orders\/(\d+)\/note\/?$/;
 
 Deno.serve(async (req) => {
+ try {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -159,7 +160,7 @@ Deno.serve(async (req) => {
 
   if (!APP_SECRET || !ADMIN_TOKEN) {
     console.error("[orders] Missing SHOPIFY_ACCOUNT_APP_SECRET or admin token");
-    return fail("shopify_error", 500, "Server configuration error");
+    return fail("shopify_error", 400, "Server configuration error");
   }
 
   // 1. HMAC verification — anything before this point is untrusted.
@@ -239,29 +240,37 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("[orders] Ownership fetch threw:", e);
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   if (!ownershipRes.ok) {
+    let bodyText = "";
+    try { bodyText = (await ownershipRes.text()).slice(0, 500); } catch {}
     console.error(
-      `[orders] Ownership query non-2xx ${ownershipRes.status} for order ${orderId}`,
+      `[orders] Ownership query non-2xx ${ownershipRes.status} for order ${orderId} body=${bodyText}`,
     );
-    return fail("shopify_error", 500);
+    if (ownershipRes.status === 401 || ownershipRes.status === 403) {
+      return fail("shopify_error", 400, "admin_scope_or_auth");
+    }
+    return fail("shopify_error", 400);
   }
 
   let ownershipJson: any;
   try {
     ownershipJson = await ownershipRes.json();
   } catch {
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   const topErrs = ownershipJson?.errors;
   if (Array.isArray(topErrs) && topErrs.length > 0) {
     const code = topErrs[0]?.extensions?.code;
     if (code === "THROTTLED") return fail("rate_limited", 429);
-    console.error("[orders] Ownership query GraphQL errors", code ?? "unknown");
-    return fail("shopify_error", 500);
+    console.error(
+      "[orders] Ownership GraphQL errors",
+      JSON.stringify(topErrs).slice(0, 500),
+    );
+    return fail("shopify_error", 400, code === "ACCESS_DENIED" ? "admin_scope" : undefined);
   }
 
   const order = ownershipJson?.data?.order;
@@ -289,33 +298,44 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("[orders] orderUpdate fetch threw:", e);
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   if (!updateRes.ok) {
+    let bodyText = "";
+    try { bodyText = (await updateRes.text()).slice(0, 500); } catch {}
     console.error(
-      `[orders] orderUpdate non-2xx ${updateRes.status} for order ${orderId}`,
+      `[orders] orderUpdate non-2xx ${updateRes.status} for order ${orderId} body=${bodyText}`,
     );
-    return fail("shopify_error", 500);
+    if (updateRes.status === 401 || updateRes.status === 403) {
+      return fail("shopify_error", 400, "admin_scope_or_auth");
+    }
+    return fail("shopify_error", 400);
   }
 
   let updateJson: any;
   try {
     updateJson = await updateRes.json();
   } catch {
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   const updateTopErrs = updateJson?.errors;
   if (Array.isArray(updateTopErrs) && updateTopErrs.length > 0) {
     const code = updateTopErrs[0]?.extensions?.code;
     if (code === "THROTTLED") return fail("rate_limited", 429);
+    console.error(
+      "[orders] orderUpdate GraphQL errors",
+      JSON.stringify(updateTopErrs).slice(0, 500),
+    );
     return fail(
       "shopify_error",
-      500,
-      typeof updateTopErrs[0]?.message === "string"
-        ? updateTopErrs[0].message
-        : undefined,
+      400,
+      code === "ACCESS_DENIED"
+        ? "admin_scope"
+        : (typeof updateTopErrs[0]?.message === "string"
+            ? updateTopErrs[0].message
+            : undefined),
     );
   }
 
@@ -324,9 +344,17 @@ Deno.serve(async (req) => {
     const msg = typeof userErrors[0]?.message === "string"
       ? userErrors[0].message
       : "Note rejected.";
+    console.error("[orders] orderUpdate userErrors", JSON.stringify(userErrors).slice(0, 500));
     return fail("validation", 400, msg);
   }
 
   const savedNote = updateJson?.data?.orderUpdate?.order?.note ?? note;
   return jsonResponse({ ok: true, note: savedNote }, 200);
+ } catch (e) {
+  console.error("[orders] Unhandled exception:", e);
+  return jsonResponse(
+    { ok: false, error: "shopify_error", message: "internal_error" },
+    400,
+  );
+ }
 });
