@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
 
   if (!APP_SECRET || !ADMIN_TOKEN) {
     console.error("[change-password] Missing SHOPIFY_APP_API_SECRET or SHOPIFY_ADMIN_ACCESS_TOKEN");
-    return fail("shopify_error", 500, "Server configuration error");
+    return fail("shopify_error", 400, "Server configuration error");
   }
 
   const url = new URL(req.url);
@@ -187,7 +187,6 @@ Deno.serve(async (req) => {
     return fail("weak_password", 400, "Password must be at least 8 characters.");
   }
   if (newPassword.length > 256) {
-    // Hard upper bound — Shopify's own cap is well below this; reject early.
     return fail("weak_password", 400, "Password is too long.");
   }
 
@@ -211,7 +210,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("[change-password] Admin API fetch threw:", e);
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   if (adminRes.ok) {
@@ -223,8 +222,6 @@ Deno.serve(async (req) => {
   }
 
   if (adminRes.status === 422) {
-    // Try to detect a password-specific validation failure without echoing
-    // the Admin API body to the client.
     try {
       const j = await adminRes.json();
       if (j?.errors?.password) {
@@ -233,12 +230,19 @@ Deno.serve(async (req) => {
     } catch {
       // fall through to generic
     }
-    return fail("shopify_error", 500);
+    return fail("shopify_error", 400);
   }
 
   // 401/403/5xx — log status only (no body echo) for debugging.
   console.error(
     `[change-password] Admin API returned ${adminRes.status} for customer ${customerId}`
   );
-  return fail("shopify_error", 500);
+  return fail("shopify_error", 400, adminRes.status === 401 || adminRes.status === 403 ? "admin_scope_or_auth" : undefined);
+ } catch (e) {
+  console.error("[change-password] Unhandled exception:", e);
+  return jsonResponse(
+    { ok: false, error: "shopify_error", message: "internal_error" },
+    400,
+  );
+ }
 });
