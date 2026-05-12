@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
 
   if (!APP_SECRET || !ADMIN_TOKEN) {
     console.error("[orders] Missing SHOPIFY_ACCOUNT_APP_SECRET or admin token");
-    return fail("shopify_error", 500, "Server configuration error");
+    return fail("shopify_error", 400, "Server configuration error");
   }
 
   // 1. HMAC verification — anything before this point is untrusted.
