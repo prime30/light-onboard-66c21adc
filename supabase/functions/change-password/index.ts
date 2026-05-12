@@ -125,7 +125,12 @@ Deno.serve(async (req) => {
     return fail("shopify_error", 405, "Method not allowed");
   }
 
-  const APP_SECRET = Deno.env.get("SHOPIFY_APP_API_SECRET");
+  // The /apps/account/* App Proxy belongs to a separate Shopify custom app
+  // and signs requests with that app's Client secret. Fall back to the
+  // legacy SHOPIFY_APP_API_SECRET only if the account-app secret isn't set.
+  const APP_SECRET =
+    Deno.env.get("SHOPIFY_ACCOUNT_APP_SECRET") ??
+    Deno.env.get("SHOPIFY_APP_API_SECRET");
   const ADMIN_TOKEN = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   const STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN") ?? EXPECTED_SHOP;
 
