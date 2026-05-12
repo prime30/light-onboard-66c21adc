@@ -132,6 +132,7 @@ function rateLimited(customerId: string): boolean {
 const ORDER_NOTE_PATH = /^\/(?:functions\/v1\/)?orders\/(\d+)\/note\/?$/;
 
 Deno.serve(async (req) => {
+ try {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
