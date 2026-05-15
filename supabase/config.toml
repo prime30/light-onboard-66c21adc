@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.orders]
 verify_jwt = false
+
+[functions.update-tax-exempt]
+verify_jwt = false
