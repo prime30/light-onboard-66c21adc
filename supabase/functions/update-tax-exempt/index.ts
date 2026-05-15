@@ -6,15 +6,16 @@
 //   2. Theme JS POSTs multipart form-data through the App Proxy.
 //      Shopify appends a signed query string with logged_in_customer_id.
 //   3. We HMAC-verify the query, upload the file to Supabase Storage
-//      using the service role key, then call Admin API customerUpdate
-//      to set taxExempt: true and write the document path metafield.
+//      (service role), then call Admin API customerUpdate to set
+//      taxExempt: true and write the document path metafield.
+//   4. If Admin update fails after upload, best-effort delete the
+//      orphaned Storage object.
 //
-// Forbidden behaviors:
+// Forbidden:
 //   - Never trust logged_in_customer_id without HMAC verification.
-//   - Never accept customer id from the request body / form.
+//   - Never accept customer id from request body / form.
 //   - Never echo Admin API error bodies verbatim to the client.
-
-import { createClient } from "npm:@supabase/supabase-js@2";
+//   - Never return 5xx — App Proxy masks 5xx with HTML.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,8 +24,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const EXPECTED_SHOP = "drop-dead-2428.myshopify.com";
-const ADMIN_API_VERSION = "2026-04";
+const DEFAULT_SHOP = "drop-dead-2428.myshopify.com";
+const DEFAULT_ADMIN_API_VERSION = "2026-04";
 const TIMESTAMP_SKEW_SECONDS = 60;
 const STORAGE_BUCKET = "registration-documents";
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -34,7 +35,7 @@ const ALLOWED_MIME = new Set([
   "image/jpg",
   "image/png",
 ]);
-const METAFIELD_NAMESPACE = "compliance";
+const METAFIELD_NAMESPACE = "custom";
 const METAFIELD_KEY = "tax_exempt_document_url";
 
 type ErrorCode =
@@ -52,7 +53,9 @@ function jsonResponse(body: unknown, status: number): Response {
 }
 
 function fail(error: ErrorCode, status: number, message?: string): Response {
-  return jsonResponse({ ok: false, error, message }, status);
+  // Clamp to 4xx — App Proxy turns 5xx into HTML error pages.
+  const safeStatus = status >= 500 ? 400 : status;
+  return jsonResponse({ ok: false, error, message }, safeStatus);
 }
 
 function timingSafeEqualHex(a: string, b: string): boolean {
@@ -107,9 +110,77 @@ async function verifyAppProxySignature(
 }
 
 function safeFilename(name: string): string {
-  // Strip path components, keep alphanum/dash/dot/underscore.
   const base = name.split(/[\\/]/).pop() ?? "file";
   return base.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120) || "file";
+}
+
+/**
+ * Magic-byte sniff. Confirms the declared MIME matches the actual bytes for
+ * PDF / JPEG / PNG. Defense against a renamed .exe with a forged Content-Type.
+ */
+function sniffMimeMatches(bytes: Uint8Array, declared: string): boolean {
+  if (bytes.length < 4) return false;
+  // PDF: %PDF
+  if (declared === "application/pdf") {
+    return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+  }
+  // JPEG: FF D8 FF
+  if (declared === "image/jpeg" || declared === "image/jpg") {
+    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (declared === "image/png") {
+    return (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a
+    );
+  }
+  return false;
+}
+
+async function uploadToStorage(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  objectPath: string,
+  bytes: Uint8Array,
+  contentType: string,
+): Promise<{ ok: true } | { ok: false; status: number; body: string }> {
+  const endpoint = `${supabaseUrl}/storage/v1/object/${STORAGE_BUCKET}/${objectPath}`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": contentType,
+      "x-upsert": "false",
+      "cache-control": "3600",
+    },
+    body: bytes,
+  });
+  if (res.ok) return { ok: true };
+  let body = "";
+  try { body = await res.text(); } catch { /* ignore */ }
+  return { ok: false, status: res.status, body };
+}
+
+async function deleteFromStorage(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  objectPath: string,
+): Promise<void> {
+  try {
+    await fetch(`${supabaseUrl}/storage/v1/object/${STORAGE_BUCKET}/${objectPath}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${serviceRoleKey}` },
+    });
+  } catch (e) {
+    console.error("[update-tax-exempt] orphan cleanup failed:", (e as Error).message);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -117,10 +188,20 @@ Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return fail("shopify_error", 405, "Method not allowed");
 
+    // Secrets — prefer the Account API Proxy names, fall back to legacy.
     const APP_SECRET =
-      Deno.env.get("SHOPIFY_ACCOUNT_APP_SECRET") ?? Deno.env.get("SHOPIFY_APP_API_SECRET");
-    const ADMIN_TOKEN = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
-    const STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN") ?? EXPECTED_SHOP;
+      Deno.env.get("SHOPIFY_CUSTOMERS_PROXY_SECRET") ??
+      Deno.env.get("SHOPIFY_ACCOUNT_APP_SECRET") ??
+      Deno.env.get("SHOPIFY_APP_API_SECRET");
+    const ADMIN_TOKEN =
+      Deno.env.get("SHOPIFY_ADMIN_API_TOKEN") ??
+      Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    const STORE_DOMAIN =
+      Deno.env.get("SHOPIFY_SHOP_DOMAIN") ??
+      Deno.env.get("SHOPIFY_STORE_DOMAIN") ??
+      DEFAULT_SHOP;
+    const ADMIN_API_VERSION =
+      Deno.env.get("SHOPIFY_ADMIN_API_VERSION") ?? DEFAULT_ADMIN_API_VERSION;
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -160,26 +241,30 @@ Deno.serve(async (req) => {
     const file = form.get("file");
     if (!(file instanceof File)) return fail("invalid_file", 400, "Missing file");
     if (file.size === 0) return fail("invalid_file", 400, "Empty file");
-    if (file.size > MAX_FILE_BYTES) {
-      return fail("invalid_file", 400, "File exceeds 10 MB");
-    }
+    if (file.size > MAX_FILE_BYTES) return fail("invalid_file", 400, "File exceeds 10 MB");
     if (!ALLOWED_MIME.has(file.type)) {
       return fail("invalid_file", 400, "File must be PDF, JPG, or PNG");
     }
 
-    // 6. Upload to Supabase Storage (service role bypasses RLS).
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    // 5b. Magic-byte sniff.
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!sniffMimeMatches(bytes, file.type)) {
+      return fail("invalid_file", 400, "File contents do not match its declared type");
+    }
+
+    // 6. Upload via Storage REST.
     const objectPath = `shopify/${customerId}/tax-exempt/${Date.now()}-${safeFilename(file.name)}`;
-    const { error: uploadErr } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(objectPath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
-    if (uploadErr) {
-      console.error("[update-tax-exempt] Storage upload failed:", uploadErr.message);
+    const uploadResult = await uploadToStorage(
+      SUPABASE_URL,
+      SERVICE_ROLE_KEY,
+      objectPath,
+      bytes,
+      file.type,
+    );
+    if (!uploadResult.ok) {
+      console.error(
+        `[update-tax-exempt] Storage ${uploadResult.status}: ${uploadResult.body.slice(0, 300)}`,
+      );
       return fail("storage_error", 400, "Could not store the document");
     }
 
@@ -221,32 +306,32 @@ Deno.serve(async (req) => {
       });
     } catch (e) {
       console.error("[update-tax-exempt] Admin API fetch threw:", e);
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
       return fail("shopify_error", 400);
     }
 
-    if (adminRes.status === 429) return fail("rate_limited", 429);
+    if (adminRes.status === 429) {
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
+      return fail("rate_limited", 429);
+    }
 
     let bodyText = "";
-    try {
-      bodyText = await adminRes.text();
-    } catch {
-      /* ignore */
-    }
+    try { bodyText = await adminRes.text(); } catch { /* ignore */ }
 
     if (!adminRes.ok) {
       console.error(
         `[update-tax-exempt] Admin HTTP ${adminRes.status} for customer ${customerId}: ${bodyText.slice(0, 500)}`,
       );
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
       const tag =
         adminRes.status === 401 || adminRes.status === 403 ? "admin_scope_or_auth" : undefined;
       return fail("shopify_error", 400, tag);
     }
 
     let parsed: any = null;
-    try {
-      parsed = JSON.parse(bodyText);
-    } catch {
+    try { parsed = JSON.parse(bodyText); } catch {
       console.error("[update-tax-exempt] Admin returned non-JSON:", bodyText.slice(0, 500));
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
       return fail("shopify_error", 400);
     }
 
@@ -255,6 +340,7 @@ Deno.serve(async (req) => {
       console.error(
         `[update-tax-exempt] GraphQL errors for ${customerId}: ${JSON.stringify(parsed.errors).slice(0, 500)}`,
       );
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
       const tag = code === "ACCESS_DENIED" ? "admin_scope" : undefined;
       return fail("shopify_error", 400, tag);
     }
@@ -264,10 +350,11 @@ Deno.serve(async (req) => {
       console.error(
         `[update-tax-exempt] userErrors for ${customerId}: ${JSON.stringify(userErrors).slice(0, 500)}`,
       );
+      await deleteFromStorage(SUPABASE_URL, SERVICE_ROLE_KEY, objectPath);
       return fail("shopify_error", 400, userErrors[0]?.message ?? undefined);
     }
 
-    return jsonResponse({ ok: true, path: objectPath }, 200);
+    return jsonResponse({ ok: true, file_path: objectPath }, 200);
   } catch (e) {
     console.error("[update-tax-exempt] Unhandled exception:", e);
     return jsonResponse(
