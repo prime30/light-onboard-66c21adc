@@ -177,23 +177,50 @@ async function adminGraphQL<T = any>(
     console.error(
       `[update-tax-exempt] Admin HTTP ${res.status}: ${bodyText.slice(0, 500)}`,
     );
-    const tag = res.status === 401 || res.status === 403 ? "admin_scope_or_auth" : undefined;
+    // Differentiate transport-level auth/scope failures from everything else.
+    // 401 = bad/missing/expired Admin API token (auth).
+    // 403 = token valid but missing the required Access Scope for this resource.
+    // Other 4xx/5xx = generic Admin transport error.
+    let tag: string | undefined;
+    if (res.status === 401) tag = "admin_auth";
+    else if (res.status === 403) tag = "admin_scope";
+    else tag = `admin_http_${res.status}`;
     return { ok: false, status: res.status, tag };
   }
 
   let parsed: any = null;
   try { parsed = JSON.parse(bodyText); } catch {
     console.error("[update-tax-exempt] Admin returned non-JSON:", bodyText.slice(0, 500));
-    return { ok: false, status: 502 };
+    return { ok: false, status: 502, tag: "admin_non_json" };
   }
 
   if (parsed?.errors?.length) {
-    const code = parsed.errors[0]?.extensions?.code;
+    // GraphQL-level errors. HTTP is 200 but the response has a top-level `errors` array.
+    // Distinguish:
+    //   - ACCESS_DENIED                  → scope problem (semantic 403)
+    //   - THROTTLED                      → rate-limit
+    //   - undefinedField / argumentNotAccepted / Field ... doesn't exist / Parse error /
+    //     Variable $... of type ... → query/schema mismatch (OUR bug, not a Shopify auth issue)
+    //   - anything else                  → generic graphql_error
+    const first = parsed.errors[0] ?? {};
+    const code = first?.extensions?.code as string | undefined;
+    const msg = String(first?.message ?? "");
     console.error(
-      `[update-tax-exempt] GraphQL errors: ${JSON.stringify(parsed.errors).slice(0, 500)}`,
+      `[update-tax-exempt] GraphQL errors (code=${code ?? "none"}): ${JSON.stringify(parsed.errors).slice(0, 500)}`,
     );
-    const tag = code === "ACCESS_DENIED" ? "admin_scope" : undefined;
-    return { ok: false, status: 400, tag };
+    let tag = "graphql_error";
+    let status = 400;
+    if (code === "ACCESS_DENIED") { tag = "admin_scope"; status = 403; }
+    else if (code === "THROTTLED") { tag = "graphql_throttled"; status = 429; }
+    else if (
+      code === "undefinedField" ||
+      code === "argumentNotAccepted" ||
+      code === "variableMismatch" ||
+      /doesn't exist on type|is not defined|Parse error|Syntax Error|wasn't defined/i.test(msg)
+    ) {
+      tag = "graphql_schema";
+    }
+    return { ok: false, status, tag, userMessage: msg.slice(0, 200) };
   }
 
   return { ok: true, data: parsed.data as T };
