@@ -356,7 +356,7 @@ async function customerSetTaxExempt(
     mutation TaxExemptUpdate($input: CustomerInput!) {
       customerUpdate(input: $input) {
         customer { id taxExempt }
-        userErrors { field message code }
+        userErrors { field message }
       }
     }
   `;
