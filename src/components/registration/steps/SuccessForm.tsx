@@ -104,8 +104,11 @@ export const SuccessForm = () => {
   }, []);
 
   const colorRingVariantId = useMemo(() => {
-    const parsed = Number(import.meta.env.VITE_COLOR_RING_VARIANT_ID ?? "");
-    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    // Default variant ID for the Color Ring product (Shopify production store).
+    // Can be overridden via VITE_COLOR_RING_VARIANT_ID build env var.
+    const DEFAULT_COLOR_RING_VARIANT_ID = 47854762524989;
+    const fromEnv = Number(import.meta.env.VITE_COLOR_RING_VARIANT_ID ?? "");
+    const parsed = Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : DEFAULT_COLOR_RING_VARIANT_ID;
     return Math.floor(parsed);
   }, []);
 
