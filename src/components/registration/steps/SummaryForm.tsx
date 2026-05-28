@@ -135,7 +135,7 @@ export const SummaryForm = () => {
     birthdayMonth,
     birthdayDay,
     socialMediaHandle,
-    subscribeOrderUpdates,
+    
     acceptsMarketing,
     acceptsSmsMarketing,
     preferredMethods,
