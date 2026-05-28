@@ -17,7 +17,7 @@ export function useCloseIframe() {
   // for cases where the immediate USER_LOGIN posted at success time was
   // dropped or arrived before the parent handler was ready — the parent
   // gets one last chance to log the user in before the iframe tears down.
-  const closeIframe = useCallback(() => {
+  const closeIframe = useCallback((reason?: string) => {
     try {
       const pending = takePendingLogin();
       if (pending) {
@@ -35,14 +35,16 @@ export function useCloseIframe() {
         {
           type: IframeMessageTypes.CLOSE_IFRAME,
           data: {
-            reason: "User requested closure",
+            reason: reason ?? "User requested closure",
             url: window.location.href,
           },
           timestamp: new Date().toISOString(),
         },
         "*"
       );
-      console.log("[useCloseIframe] Posted CLOSE_IFRAME to parent with '*' origin");
+      console.log(
+        `[useCloseIframe] Posted CLOSE_IFRAME to parent with '*' origin (reason: ${reason ?? "User requested closure"})`
+      );
     } catch (error) {
       console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
     }
