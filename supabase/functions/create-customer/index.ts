@@ -553,9 +553,12 @@ Deno.serve(async (req: Request) => {
     const responseText = await apiResponse.text();
 
     if (!apiResponse.ok) {
+      // Log full upstream detail server-side only; never echo raw API
+      // response back to the client (may leak internals/stack traces).
       console.error("Customer Fields API request failed:", apiResponse.status, responseText);
-      return sendError(apiResponse.status, [
-        `Customer Fields API error: ${apiResponse.status} - ${responseText}`,
+      const safeStatus = apiResponse.status >= 400 && apiResponse.status < 500 ? 400 : 502;
+      return sendError(safeStatus, [
+        "We couldn't complete your registration right now. Please try again in a moment.",
       ]);
     }
 
