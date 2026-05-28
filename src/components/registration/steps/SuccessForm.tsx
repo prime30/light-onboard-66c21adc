@@ -9,6 +9,9 @@ import {
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
 import { useFormData } from "@/components/registration/context";
+import { useForm } from "@/components/registration/context/FormContext";
+import { useGlobalApp } from "@/contexts";
+import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval } from "@/lib/app-settings";
 
 type AtcStatus = "idle" | "submitting" | "success" | "error";
