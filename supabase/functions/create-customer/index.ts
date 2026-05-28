@@ -621,7 +621,20 @@ Deno.serve(async (req: Request) => {
 
     const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
 
-    const needsShopifyUpdate = !!shopifyCustomerId && (newTags.length > 0 || taxExemptFlag);
+    // Marketing consent — write to Shopify so the customer actually shows as
+    // "Subscribed" in admin → Customers → Marketing. Helium's accepts_marketing
+    // field is metadata only and does NOT flip Shopify's native consent state.
+    // Single opt-in matches the in-form checkbox UX (no double-confirmation email).
+    const acceptsMarketingFlag = customer.accepts_marketing === true;
+    const customerPhone = formatPhoneNumber(
+      customer.phone_country_code,
+      customer.phone_number
+    );
+    const consentTimestamp = new Date().toISOString();
+
+    const needsShopifyUpdate =
+      !!shopifyCustomerId &&
+      (newTags.length > 0 || taxExemptFlag || acceptsMarketingFlag);
 
     if (needsShopifyUpdate) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
@@ -660,6 +673,30 @@ Deno.serve(async (req: Request) => {
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
 
+          if (acceptsMarketingFlag) {
+            // Email marketing — always safe to set when opt-in is true
+            // (the customer always has an email at this point).
+            customerUpdate.email_marketing_consent = {
+              state: "subscribed",
+              opt_in_level: "single_opt_in",
+              consent_updated_at: consentTimestamp,
+            };
+
+            // SMS marketing — only if we have an E.164 phone. Shopify rejects
+            // sms_marketing_consent without a valid phone on the customer, so
+            // we set the top-level phone here too in case it isn't already on
+            // the Shopify record.
+            if (customerPhone) {
+              customerUpdate.phone = customerPhone;
+              customerUpdate.sms_marketing_consent = {
+                state: "subscribed",
+                opt_in_level: "single_opt_in",
+                consent_updated_at: consentTimestamp,
+                consent_collected_from: "OTHER",
+              };
+            }
+          }
+
           const updRes = await fetch(
             `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
             {
@@ -679,6 +716,8 @@ Deno.serve(async (req: Request) => {
             console.log("Updated Shopify customer:", {
               tags: newTags,
               taxExempt: taxExemptFlag,
+              emailMarketing: acceptsMarketingFlag,
+              smsMarketing: acceptsMarketingFlag && !!customerPhone,
             });
           }
         } catch (updErr) {
