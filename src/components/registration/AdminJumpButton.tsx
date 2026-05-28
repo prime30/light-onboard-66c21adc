@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useStepContext } from "@/components/registration/context";
 import { useAdminMode } from "@/lib/admin-mode";
 import { STEP_DISPLAY_NAMES } from "@/data/step-order";
+import type { Step } from "@/types/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,9 @@ import {
  * Floating shortcut visible only when the current session has been authenticated
  * via /admin/settings. Lets an admin jump straight to any step in the current
  * flow without filling the form, for QA of step UI.
+ *
+ * Also exposes terminal/non-flow screens (summary, assessing, success) so admins
+ * can preview them without completing the form.
  */
 export function AdminJumpButton() {
   const isAdmin = useAdminMode();
@@ -23,6 +27,10 @@ export function AdminJumpButton() {
   const [open, setOpen] = useState(false);
 
   if (!isAdmin) return null;
+
+  const terminalSteps: Step[] = (["summary", "assessing", "success"] as Step[]).filter(
+    (s) => !steps.includes(s)
+  );
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -49,6 +57,24 @@ export function AdminJumpButton() {
             {STEP_DISPLAY_NAMES[step] || step}
           </DropdownMenuItem>
         ))}
+        {terminalSteps.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              Preview screens
+            </DropdownMenuLabel>
+            {terminalSteps.map((step) => (
+              <DropdownMenuItem
+                key={step}
+                onSelect={() => setCurrentStep(step)}
+                className={step === currentStep ? "bg-accent font-medium" : ""}
+              >
+                <span className="text-muted-foreground w-5">→</span>
+                {STEP_DISPLAY_NAMES[step] || step}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
