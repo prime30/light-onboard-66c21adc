@@ -228,8 +228,10 @@ export const PreferencesStep = () => {
             {/* SMS marketing — Shopify sms_marketing_consent (TCPA) */}
             <label
               className={cn(
-                "flex items-start gap-[15px] group",
-                hasPhone ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form border-l-2 bg-gradient-to-r from-primary/[0.04] to-transparent transition-colors",
+                hasPhone
+                  ? "cursor-pointer border-primary/40 hover:from-primary/[0.07]"
+                  : "cursor-not-allowed opacity-60 border-border"
               )}
             >
               <Checkbox
@@ -239,20 +241,29 @@ export const PreferencesStep = () => {
                   if (!hasPhone) return;
                   setValue("acceptsSmsMarketing", !!checked, dirtyFieldOptions);
                 }}
-                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                className="rounded-full mt-1.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Text me about promotions, drops & restocks
-                </span>
-                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                    Get drops 24 hrs early — text only
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground/[0.06] text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/70">
+                    VIP
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Restock alerts, new colors, and pro-only deals before they hit email.
+                  <span className="text-muted-foreground/70"> ~2–4 texts/month. Stop anytime.</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
                   By checking this box, you agree to receive recurring automated marketing text
-                  messages (cart reminders, new drops, restocks) from Drop Dead Extensions at the
-                  phone number you provided. Consent is not a condition of purchase. Msg frequency
-                  varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                  messages from Drop Dead Extensions at the phone number you provided. Consent is
+                  not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel,
+                  HELP for help. See our{" "}
                   <button
                     type="button"
-                    onClick={() => setShowTerms(true)}
+                    onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
                     className="underline underline-offset-2 hover:text-foreground transition-colors"
                   >
                     Terms
@@ -260,7 +271,7 @@ export const PreferencesStep = () => {
                   {" & "}
                   <button
                     type="button"
-                    onClick={() => setShowPrivacy(true)}
+                    onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
                     className="underline underline-offset-2 hover:text-foreground transition-colors"
                   >
                     Privacy Policy
