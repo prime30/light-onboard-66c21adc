@@ -261,7 +261,11 @@ const preferencesValidators = {
   acceptsMarketing: z
     .boolean()
     .optional()
-    .transform((val) => val ?? true),
+    .transform((val) => val ?? false),
+  acceptsSmsMarketing: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? false),
 };
 export const preferencesSchema = z.object(preferencesValidators);
 
