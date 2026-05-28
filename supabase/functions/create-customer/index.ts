@@ -141,6 +141,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    acceptsSmsMarketing: z.boolean().nullish().default(false),
     password: z.string().min(8).optional(),
   }),
   z.object({
@@ -172,6 +173,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    acceptsSmsMarketing: z.boolean().nullish().default(false),
     password: z.string().min(8).optional(),
   }),
   z.object({
@@ -195,6 +197,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     referralSource: z.string().nullish(),
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
+    acceptsSmsMarketing: z.boolean().nullish().default(false),
     password: z.string().min(8).optional(),
   }),
 ]);
@@ -249,6 +252,7 @@ type CustomerCreateInput = {
   birthday_day?: number;
   wholesale_agreed?: boolean;
   accepts_marketing?: boolean;
+  accepts_sms_marketing?: boolean;
   subscribe_order_updates?: boolean;
   social_media_handle?: string;
   referral_source?: string;
@@ -256,6 +260,7 @@ type CustomerCreateInput = {
 
 const defaultCustomerCreateInput: Partial<CustomerCreateInput> = {
   accepts_marketing: false,
+  accepts_sms_marketing: false,
   subscribe_order_updates: false,
   tax_exempt: false,
 };
@@ -445,6 +450,7 @@ Deno.serve(async (req: Request) => {
     birthday_day: customer.birthday_day ? parseInt(customer.birthday_day) : undefined,
     wholesale_agreed: customer.wholesale_agreed || false,
     accepts_marketing: customer.accepts_marketing,
+    accepts_sms_marketing: customer.accepts_sms_marketing,
     subscribe_order_updates: customer.subscribe_order_updates,
     social_media_handle: customer.social_media_handle,
     referral_source: customer.referral_source,
@@ -621,20 +627,24 @@ Deno.serve(async (req: Request) => {
 
     const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
 
-    // Marketing consent — write to Shopify so the customer actually shows as
-    // "Subscribed" in admin → Customers → Marketing. Helium's accepts_marketing
-    // field is metadata only and does NOT flip Shopify's native consent state.
-    // Single opt-in matches the in-form checkbox UX (no double-confirmation email).
-    const acceptsMarketingFlag = customer.accepts_marketing === true;
+    // Marketing consent — email and SMS are tracked separately for TCPA / GDPR
+    // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
+    // we never derive one from the other.
+    const acceptsEmailMarketingFlag = customer.accepts_marketing === true;
+    const acceptsSmsMarketingFlag = customer.accepts_sms_marketing === true;
     const customerPhone = formatPhoneNumber(
       customer.phone_country_code,
       customer.phone_number
     );
+    const canCollectSms = acceptsSmsMarketingFlag && !!customerPhone;
     const consentTimestamp = new Date().toISOString();
 
     const needsShopifyUpdate =
       !!shopifyCustomerId &&
-      (newTags.length > 0 || taxExemptFlag || acceptsMarketingFlag);
+      (newTags.length > 0 ||
+        taxExemptFlag ||
+        acceptsEmailMarketingFlag ||
+        canCollectSms);
 
     if (needsShopifyUpdate) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
@@ -673,28 +683,27 @@ Deno.serve(async (req: Request) => {
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
 
-          if (acceptsMarketingFlag) {
-            // Email marketing — always safe to set when opt-in is true
-            // (the customer always has an email at this point).
+          // Email marketing — independent of SMS
+          if (acceptsEmailMarketingFlag) {
             customerUpdate.email_marketing_consent = {
               state: "subscribed",
               opt_in_level: "single_opt_in",
               consent_updated_at: consentTimestamp,
             };
+          }
 
-            // SMS marketing — only if we have an E.164 phone. Shopify rejects
-            // sms_marketing_consent without a valid phone on the customer, so
-            // we set the top-level phone here too in case it isn't already on
-            // the Shopify record.
-            if (customerPhone) {
-              customerUpdate.phone = customerPhone;
-              customerUpdate.sms_marketing_consent = {
-                state: "subscribed",
-                opt_in_level: "single_opt_in",
-                consent_updated_at: consentTimestamp,
-                consent_collected_from: "OTHER",
-              };
-            }
+          // SMS marketing — requires its own opt-in AND a valid E.164 phone.
+          // Shopify rejects sms_marketing_consent without a phone on the
+          // customer, so we set the top-level phone here too in case it isn't
+          // already on the Shopify record.
+          if (canCollectSms) {
+            customerUpdate.phone = customerPhone;
+            customerUpdate.sms_marketing_consent = {
+              state: "subscribed",
+              opt_in_level: "single_opt_in",
+              consent_updated_at: consentTimestamp,
+              consent_collected_from: "OTHER",
+            };
           }
 
           const updRes = await fetch(
@@ -716,8 +725,8 @@ Deno.serve(async (req: Request) => {
             console.log("Updated Shopify customer:", {
               tags: newTags,
               taxExempt: taxExemptFlag,
-              emailMarketing: acceptsMarketingFlag,
-              smsMarketing: acceptsMarketingFlag && !!customerPhone,
+              emailMarketing: acceptsEmailMarketingFlag,
+              smsMarketing: canCollectSms,
             });
           }
         } catch (updErr) {
@@ -727,6 +736,92 @@ Deno.serve(async (req: Request) => {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
     }
+
+    // ----------------------------------------------------------------
+    // Proof-of-consent log — TCPA / GDPR. Writes one row per channel the
+    // user opted into so we can later prove (a) they ticked the box,
+    // (b) when, (c) from what IP/UA, (d) what disclosure text they saw.
+    // Best-effort: failures here are logged but do NOT block the response.
+    // ----------------------------------------------------------------
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && serviceRoleKey && (acceptsEmailMarketingFlag || canCollectSms)) {
+        const ipAddress =
+          req.headers.get("cf-connecting-ip") ??
+          req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          null;
+        const userAgent = req.headers.get("user-agent") ?? null;
+        const sourceUrl = req.headers.get("origin") ?? req.headers.get("referer") ?? null;
+
+        const EMAIL_DISCLOSURE =
+          "Email me about promotions, new products & deals — Marketing emails from Drop Dead Extensions. Unsubscribe anytime.";
+        const SMS_DISCLOSURE =
+          "By checking this box, you agree to receive recurring automated marketing text messages (cart reminders, new drops, restocks) from Drop Dead Extensions at the phone number you provided. Consent is not a condition of purchase. Msg frequency varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help.";
+
+        const consentRows: Array<Record<string, unknown>> = [];
+        if (acceptsEmailMarketingFlag) {
+          consentRows.push({
+            shopify_customer_id: shopifyCustomerId ? String(shopifyCustomerId) : null,
+            email: customer.email ?? null,
+            phone_e164: null,
+            channel: "email",
+            granted: true,
+            opt_in_level: "single_opt_in",
+            disclosure_text: EMAIL_DISCLOSURE,
+            source_url: sourceUrl,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+          });
+        }
+        if (canCollectSms) {
+          consentRows.push({
+            shopify_customer_id: shopifyCustomerId ? String(shopifyCustomerId) : null,
+            email: customer.email ?? null,
+            phone_e164: customerPhone,
+            channel: "sms",
+            granted: true,
+            opt_in_level: "single_opt_in",
+            disclosure_text: SMS_DISCLOSURE,
+            source_url: sourceUrl,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+          });
+        }
+
+        if (consentRows.length > 0) {
+          const logRes = await fetch(
+            `${supabaseUrl}/rest/v1/marketing_consent_log`,
+            {
+              method: "POST",
+              headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+                "Content-Type": "application/json",
+                Prefer: "return=minimal",
+              },
+              body: JSON.stringify(consentRows),
+            }
+          );
+          if (!logRes.ok) {
+            console.warn(
+              "Failed to write marketing_consent_log:",
+              logRes.status,
+              await logRes.text()
+            );
+          } else {
+            console.log("Logged marketing consent:", {
+              channels: consentRows.map((r) => r.channel),
+            });
+          }
+        }
+      }
+    } catch (logErr) {
+      console.warn("Error writing marketing consent log (non-blocking):", logErr);
+    }
+
+
 
     // ----------------------------------------------------------------
     // Auto-approval: if a password was sent AND the admin has flipped

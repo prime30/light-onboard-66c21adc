@@ -261,7 +261,11 @@ const preferencesValidators = {
   acceptsMarketing: z
     .boolean()
     .optional()
-    .transform((val) => val ?? true),
+    .transform((val) => val ?? false),
+  acceptsSmsMarketing: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? false),
 };
 export const preferencesSchema = z.object(preferencesValidators);
 
@@ -320,7 +324,8 @@ export const defaultValues: Partial<RegistrationFormData> = {
   phoneCountryCode: "us",
   countryCode: "US",
   subscribeOrderUpdates: true,
-  acceptsMarketing: true,
+  acceptsMarketing: false,
+  acceptsSmsMarketing: false,
 };
 
 // Generic type to extract specific account type data (supports single or multiple types)

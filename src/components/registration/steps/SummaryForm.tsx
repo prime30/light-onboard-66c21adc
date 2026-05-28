@@ -137,6 +137,7 @@ export const SummaryForm = () => {
     socialMediaHandle,
     subscribeOrderUpdates,
     acceptsMarketing,
+    acceptsSmsMarketing,
     preferredMethods,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
@@ -360,7 +361,8 @@ export const SummaryForm = () => {
               <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
             )}
             <SummaryRow label="Order Updates" value={subscribeOrderUpdates ? "Yes" : "No"} />
-            <SummaryRow label="Promotions" value={acceptsMarketing ? "Yes" : "No"} />
+            <SummaryRow label="Email Marketing" value={acceptsMarketing ? "Yes" : "No"} />
+            <SummaryRow label="SMS Marketing" value={acceptsSmsMarketing ? "Yes" : "No"} />
           </SummarySection>
         </div>
 

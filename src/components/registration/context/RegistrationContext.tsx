@@ -53,6 +53,7 @@ type InternalFormData = {
   referralSource?: string;
   subscribeOrderUpdates: boolean;
   acceptsMarketing: boolean;
+  acceptsSmsMarketing: boolean;
 };
 
 const initialFormData: InternalFormData = {
@@ -87,7 +88,8 @@ const initialFormData: InternalFormData = {
   socialMediaHandle: "",
   referralSource: "",
   subscribeOrderUpdates: true,
-  acceptsMarketing: true,
+  acceptsMarketing: false,
+  acceptsSmsMarketing: false,
 };
 
 const initialUIState: RegistrationUIState = {

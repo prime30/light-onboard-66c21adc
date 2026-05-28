@@ -41,6 +41,54 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_consent_log: {
+        Row: {
+          channel: string
+          created_at: string
+          disclosure_text: string
+          email: string | null
+          granted: boolean
+          id: string
+          ip_address: string | null
+          opt_in_level: string
+          phone_e164: string | null
+          shopify_customer_id: string | null
+          source_url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          disclosure_text: string
+          email?: string | null
+          granted: boolean
+          id?: string
+          ip_address?: string | null
+          opt_in_level?: string
+          phone_e164?: string | null
+          shopify_customer_id?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          disclosure_text?: string
+          email?: string | null
+          granted?: boolean
+          id?: string
+          ip_address?: string | null
+          opt_in_level?: string
+          phone_e164?: string | null
+          shopify_customer_id?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
@@ -73,6 +121,7 @@ export type Database = {
           state: string | null
           subscribe_order_updates: boolean | null
           subscribe_promotions: boolean | null
+          subscribe_sms_promotions: boolean | null
           suite_number: string | null
           tax_exempt_document_path: string | null
           updated_at: string | null
@@ -110,6 +159,7 @@ export type Database = {
           state?: string | null
           subscribe_order_updates?: boolean | null
           subscribe_promotions?: boolean | null
+          subscribe_sms_promotions?: boolean | null
           suite_number?: string | null
           tax_exempt_document_path?: string | null
           updated_at?: string | null
@@ -147,6 +197,7 @@ export type Database = {
           state?: string | null
           subscribe_order_updates?: boolean | null
           subscribe_promotions?: boolean | null
+          subscribe_sms_promotions?: boolean | null
           suite_number?: string | null
           tax_exempt_document_path?: string | null
           updated_at?: string | null

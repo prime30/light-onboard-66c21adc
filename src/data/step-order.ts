@@ -58,7 +58,8 @@ export const FIELD_DISPLAY_NAMES: Partial<Record<ValidFieldNames, string>> = {
   socialMediaHandle: "Social media handle",
   referralSource: "How you heard about us",
   subscribeOrderUpdates: "Order update preference",
-  acceptsMarketing: "Marketing preference",
+  acceptsMarketing: "Email marketing preference",
+  acceptsSmsMarketing: "SMS marketing preference",
 };
 
 export const STEP_DISPLAY_NAMES: Record<Step, string> = {
