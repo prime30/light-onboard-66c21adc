@@ -25,6 +25,7 @@ import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
 import { takePendingLogin } from "@/lib/pending-login";
+import { resolveParentOrigin } from "@/lib/parent-origin";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
 export type LoginErrorKind =
@@ -185,6 +186,11 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         if (isInIframe) {
           setTimeout(() => {
             try {
+              const targetOrigin = resolveParentOrigin();
+              if (!targetOrigin) {
+                console.warn("[SignInForm] Parent origin not allowlisted; skipping postMessage");
+                return;
+              }
               const pending = takePendingLogin();
               if (pending) {
                 window.parent.postMessage(
@@ -193,7 +199,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
                     data: pending,
                     timestamp: new Date().toISOString(),
                   },
-                  "*"
+                  targetOrigin
                 );
               }
               window.parent.postMessage(
@@ -202,7 +208,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
                   data: { reason: "Login success", url: window.location.href },
                   timestamp: new Date().toISOString(),
                 },
-                "*"
+                targetOrigin
               );
             } catch (err) {
               console.error("[SignInForm] Failed to auto-close on login success:", err);
