@@ -25,31 +25,38 @@ export const PreferencesStep = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Watch form values
-  const watchedValues = watch(["subscribeOrderUpdates", "acceptsMarketing"]);
+  const watchedValues = watch([
+    "subscribeOrderUpdates",
+    "acceptsMarketing",
+    "acceptsSmsMarketing",
+    "phoneNumber",
+  ]);
 
-  const [subscribeOrderUpdates, acceptsMarketing] = watchedValues;
+  const [subscribeOrderUpdates, acceptsMarketing, acceptsSmsMarketing, phoneNumber] =
+    watchedValues;
 
   const validationStatus = getStepValidationStatus(currentStep);
 
-  // SMS notice visibility with exit animation
-  const hasPreferenceSelected = subscribeOrderUpdates || acceptsMarketing;
-  const [showSmsNotice, setShowSmsNotice] = useState(hasPreferenceSelected);
+  // SMS checkbox is only available when a phone number was provided earlier.
+  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
+
+  // Footer notice visibility (only relevant when SMS is opted-in)
+  const [showSmsNotice, setShowSmsNotice] = useState(acceptsSmsMarketing);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    if (hasPreferenceSelected) {
+    if (acceptsSmsMarketing) {
       setIsExiting(false);
       setShowSmsNotice(true);
     } else if (showSmsNotice) {
-      // Start exit animation
       setIsExiting(true);
       const timer = setTimeout(() => {
         setShowSmsNotice(false);
         setIsExiting(false);
-      }, 200); // Match animation duration
+      }, 200);
       return () => clearTimeout(timer);
     }
-  }, [hasPreferenceSelected, showSmsNotice]);
+  }, [acceptsSmsMarketing, showSmsNotice]);
 
   // Create month options
   const monthOptions = [
