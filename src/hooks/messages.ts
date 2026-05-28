@@ -6,19 +6,22 @@ import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
 import { saveStoredSession } from "@/lib/standalone-session";
 import { takePendingLogin } from "@/lib/pending-login";
+import { resolveParentOrigin } from "@/lib/parent-origin";
 
 export function useCloseIframe() {
   const { isInIframe } = useGlobalApp();
 
-  // Fire CLOSE_IFRAME directly with wildcard origin to guarantee delivery
-  // to the parent theme listener regardless of origin resolution state.
-  // Before closing, flush any pending USER_LOGIN credentials queued by a
-  // success flow (registration, reset, activate). This is the safety net
-  // for cases where the immediate USER_LOGIN posted at success time was
-  // dropped or arrived before the parent handler was ready — the parent
-  // gets one last chance to log the user in before the iframe tears down.
+  // Post CLOSE_IFRAME (and any queued USER_LOGIN) to the parent. We resolve
+  // the parent origin against our allowlist and skip the post if it isn't
+  // trusted — never broadcast credentials to "*", which would let any
+  // embedding page capture them.
   const closeIframe = useCallback((reason?: string) => {
     try {
+      const targetOrigin = resolveParentOrigin();
+      if (!targetOrigin) {
+        console.warn("[useCloseIframe] Parent origin not allowlisted; skipping postMessage");
+        return;
+      }
       const pending = takePendingLogin();
       if (pending) {
         window.parent.postMessage(
@@ -27,7 +30,7 @@ export function useCloseIframe() {
             data: pending,
             timestamp: new Date().toISOString(),
           },
-          "*"
+          targetOrigin
         );
         console.log("[useCloseIframe] Flushed pending USER_LOGIN before close");
       }
@@ -40,10 +43,10 @@ export function useCloseIframe() {
           },
           timestamp: new Date().toISOString(),
         },
-        "*"
+        targetOrigin
       );
       console.log(
-        `[useCloseIframe] Posted CLOSE_IFRAME to parent with '*' origin (reason: ${reason ?? "User requested closure"})`
+        `[useCloseIframe] Posted CLOSE_IFRAME to ${targetOrigin} (reason: ${reason ?? "User requested closure"})`
       );
     } catch (error) {
       console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
