@@ -252,6 +252,7 @@ type CustomerCreateInput = {
   birthday_day?: number;
   wholesale_agreed?: boolean;
   accepts_marketing?: boolean;
+  accepts_sms_marketing?: boolean;
   subscribe_order_updates?: boolean;
   social_media_handle?: string;
   referral_source?: string;
@@ -259,6 +260,7 @@ type CustomerCreateInput = {
 
 const defaultCustomerCreateInput: Partial<CustomerCreateInput> = {
   accepts_marketing: false,
+  accepts_sms_marketing: false,
   subscribe_order_updates: false,
   tax_exempt: false,
 };
