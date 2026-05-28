@@ -450,6 +450,7 @@ Deno.serve(async (req: Request) => {
     birthday_day: customer.birthday_day ? parseInt(customer.birthday_day) : undefined,
     wholesale_agreed: customer.wholesale_agreed || false,
     accepts_marketing: customer.accepts_marketing,
+    accepts_sms_marketing: customer.accepts_sms_marketing,
     subscribe_order_updates: customer.subscribe_order_updates,
     social_media_handle: customer.social_media_handle,
     referral_source: customer.referral_source,
