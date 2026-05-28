@@ -324,7 +324,8 @@ export const defaultValues: Partial<RegistrationFormData> = {
   phoneCountryCode: "us",
   countryCode: "US",
   subscribeOrderUpdates: true,
-  acceptsMarketing: true,
+  acceptsMarketing: false,
+  acceptsSmsMarketing: false,
 };
 
 // Generic type to extract specific account type data (supports single or multiple types)
