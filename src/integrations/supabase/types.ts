@@ -52,9 +52,10 @@ export type Database = {
           ip_address: string | null
           opt_in_level: string
           phone_e164: string | null
+          shopify_customer_id: string | null
           source_url: string | null
           user_agent: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           channel: string
@@ -66,9 +67,10 @@ export type Database = {
           ip_address?: string | null
           opt_in_level?: string
           phone_e164?: string | null
+          shopify_customer_id?: string | null
           source_url?: string | null
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           channel?: string
@@ -80,9 +82,10 @@ export type Database = {
           ip_address?: string | null
           opt_in_level?: string
           phone_e164?: string | null
+          shopify_customer_id?: string | null
           source_url?: string | null
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
