@@ -26,14 +26,13 @@ export const PreferencesStep = () => {
 
   // Watch form values
   const watchedValues = watch([
-    "subscribeOrderUpdates",
     "acceptsMarketing",
     "acceptsSmsMarketing",
     "phoneNumber",
   ]);
 
-  const [subscribeOrderUpdates, acceptsMarketing, acceptsSmsMarketing, phoneNumber] =
-    watchedValues;
+  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber] = watchedValues;
+
 
   const validationStatus = getStepValidationStatus(currentStep);
 
