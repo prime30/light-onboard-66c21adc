@@ -203,24 +203,8 @@ export const PreferencesStep = () => {
         >
           <p className="text-sm font-medium text-foreground">Communication preferences</p>
           <div className="space-y-[15px]">
-            {/* Order updates — transactional, soft preference (Helium metadata only) */}
-            <label className="flex items-start gap-[15px] cursor-pointer group">
-              <Checkbox
-                checked={subscribeOrderUpdates || false}
-                onCheckedChange={(checked) => {
-                  setValue("subscribeOrderUpdates", !!checked, dirtyFieldOptions);
-                }}
-                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Order updates
-                </span>
-                <p className="text-xs text-muted-foreground">
-                  Shipping notifications and order status. Transactional only.
-                </p>
-              </div>
-            </label>
+
+
 
             {/* Email marketing — Shopify email_marketing_consent */}
             <label className="flex items-start gap-[15px] cursor-pointer group">
