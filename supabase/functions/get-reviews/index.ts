@@ -18,7 +18,6 @@ type NormalizedReview = {
   title: string | null;
   content: string;
   authorName: string;
-  authorEmail: string | null;
   productName: string | null;
   productUrl: string | null;
   productImage: string | null;
