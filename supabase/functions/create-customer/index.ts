@@ -746,9 +746,8 @@ Deno.serve(async (req: Request) => {
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL");
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      const authUserId = (customer as { auth_user_id?: string }).auth_user_id;
 
-      if (supabaseUrl && serviceRoleKey && authUserId) {
+      if (supabaseUrl && serviceRoleKey && (acceptsEmailMarketingFlag || canCollectSms)) {
         const ipAddress =
           req.headers.get("cf-connecting-ip") ??
           req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -764,7 +763,7 @@ Deno.serve(async (req: Request) => {
         const consentRows: Array<Record<string, unknown>> = [];
         if (acceptsEmailMarketingFlag) {
           consentRows.push({
-            user_id: authUserId,
+            shopify_customer_id: shopifyCustomerId ? String(shopifyCustomerId) : null,
             email: customer.email ?? null,
             phone_e164: null,
             channel: "email",
@@ -778,7 +777,7 @@ Deno.serve(async (req: Request) => {
         }
         if (canCollectSms) {
           consentRows.push({
-            user_id: authUserId,
+            shopify_customer_id: shopifyCustomerId ? String(shopifyCustomerId) : null,
             email: customer.email ?? null,
             phone_e164: customerPhone,
             channel: "sms",
