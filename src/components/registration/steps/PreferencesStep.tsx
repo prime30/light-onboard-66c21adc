@@ -202,8 +202,9 @@ export const PreferencesStep = () => {
             "animate-stagger-7"
           )}
         >
-          <p className="text-sm font-medium text-foreground">Communication Preferences</p>
+          <p className="text-sm font-medium text-foreground">Communication preferences</p>
           <div className="space-y-[15px]">
+            {/* Order updates — transactional, soft preference (Helium metadata only) */}
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
                 checked={subscribeOrderUpdates || false}
@@ -213,17 +214,16 @@ export const PreferencesStep = () => {
                 className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
                   Order updates
-                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                    Recommended
-                  </span>
                 </span>
                 <p className="text-xs text-muted-foreground">
-                  Receive shipping notifications and order status updates
+                  Shipping notifications and order status. Transactional only.
                 </p>
               </div>
             </label>
+
+            {/* Email marketing — Shopify email_marketing_consent */}
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
                 checked={acceptsMarketing || false}
@@ -233,21 +233,68 @@ export const PreferencesStep = () => {
                 className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-2">
-                  Promotions & deals
-                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                    Recommended
-                  </span>
+                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  Email me about promotions, new products & deals
                 </span>
                 <p className="text-xs text-muted-foreground">
-                  Exclusive discounts, sales, and special offers
+                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
                 </p>
+              </div>
+            </label>
+
+            {/* SMS marketing — Shopify sms_marketing_consent (TCPA) */}
+            <label
+              className={cn(
+                "flex items-start gap-[15px] group",
+                hasPhone ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+              )}
+            >
+              <Checkbox
+                checked={hasPhone ? acceptsSmsMarketing || false : false}
+                disabled={!hasPhone}
+                onCheckedChange={(checked) => {
+                  if (!hasPhone) return;
+                  setValue("acceptsSmsMarketing", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+              />
+              <div className="space-y-1">
+                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  Text me about promotions, drops & restocks
+                </span>
+                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+                  By checking this box, you agree to receive recurring automated marketing text
+                  messages (cart reminders, new drops, restocks) from Drop Dead Extensions at the
+                  phone number you provided. Consent is not a condition of purchase. Msg frequency
+                  varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    Terms
+                  </button>
+                  {" & "}
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacy(true)}
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </p>
+                {!hasPhone && (
+                  <p className="text-[11px] text-muted-foreground/70 italic">
+                    Add a phone number in the previous step to enable SMS.
+                  </p>
+                )}
               </div>
             </label>
           </div>
         </div>
 
-        {/* SMS Consent Notice - only shows when a preference is selected */}
+        {/* SMS opt-in confirmation strip — only after SMS is selected */}
         {showSmsNotice && (
           <div
             className={cn(
@@ -260,28 +307,13 @@ export const PreferencesStep = () => {
           >
             <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              You may receive text messages about orders, promos, and updates. Msg & data rates may
-              apply. Reply STOP to cancel. View our{" "}
-              <button
-                type="button"
-                onClick={() => setShowTerms(true)}
-                className="underline underline-offset-2 hover:text-foreground transition-colors"
-              >
-                Terms
-              </button>
-              {" & "}
-              <button
-                type="button"
-                onClick={() => setShowPrivacy(true)}
-                className="underline underline-offset-2 hover:text-foreground transition-colors"
-              >
-                Privacy Policy
-              </button>
-              .
+              You'll receive a confirmation text shortly after sign-up. Reply STOP at any time to
+              opt out.
             </p>
           </div>
         )}
       </div>
+
 
       {/* Terms of Service Modal */}
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
