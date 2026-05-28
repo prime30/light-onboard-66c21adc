@@ -46,7 +46,9 @@ export function CloseButton() {
   const handleCloseModal = useCallback(() => {
     const close = () => {
       if (isInIframe) {
-        closeIframe();
+        const reason =
+          currentStep === "success" ? "registration_complete" : undefined;
+        closeIframe(reason);
       } else {
         navigate("/");
       }
