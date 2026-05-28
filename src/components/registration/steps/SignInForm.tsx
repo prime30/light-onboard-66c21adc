@@ -25,6 +25,7 @@ import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
 import { takePendingLogin } from "@/lib/pending-login";
+import { resolveParentOrigin } from "@/lib/parent-origin";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
 export type LoginErrorKind =
