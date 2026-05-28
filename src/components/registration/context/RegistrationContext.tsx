@@ -53,6 +53,7 @@ type InternalFormData = {
   referralSource?: string;
   subscribeOrderUpdates: boolean;
   acceptsMarketing: boolean;
+  acceptsSmsMarketing: boolean;
 };
 
 const initialFormData: InternalFormData = {
