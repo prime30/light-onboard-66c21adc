@@ -212,6 +212,24 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
+    // Mirror the cross-field refinements applied in getStepValidationStatus
+    // so users can't skip past steps whose rules live on the union-level
+    // registrationSchema (e.g. password / confirm-password must match).
+    if (currentStep === "create-password") {
+      const { password, confirmPassword } = watch() as {
+        password?: string;
+        confirmPassword?: string;
+      };
+      if (password && confirmPassword && password !== confirmPassword) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Passwords do not match",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const nextStep = steps[currentStepNumber + 1] || currentStep;
     goToStep(nextStep);
   };
