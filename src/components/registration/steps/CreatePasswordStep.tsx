@@ -114,7 +114,7 @@ export const CreatePasswordStep = () => {
 
       <div className="space-y-5">
         {/* Password */}
-        <div className="space-y-2.5 animate-stagger-2 group" data-field-wrapper="password">
+        <div className="space-y-2.5 animate-stagger-2 group">
           <Label
             htmlFor="password"
             className={cn(
@@ -124,7 +124,10 @@ export const CreatePasswordStep = () => {
           >
             Password*
           </Label>
-          <div className="relative input-glow input-ripple rounded-form">
+          <div
+            className="relative input-glow input-ripple rounded-form"
+            data-field-wrapper="password"
+          >
             <PasswordPrefixIcon error={!!e.password} />
             <Input
               id="password"
