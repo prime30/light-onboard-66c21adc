@@ -122,7 +122,10 @@ const createPasswordValidators = {
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(72, "Password must be less than 72 characters"),
+    .max(72, "Password must be less than 72 characters")
+    .regex(/[a-z]/, "Password must include a lowercase letter")
+    .regex(/[A-Z]/, "Password must include an uppercase letter")
+    .regex(/\d/, "Password must include a number"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
 };
 // Plain ZodObject used for step-level gating (consumed by step-order
