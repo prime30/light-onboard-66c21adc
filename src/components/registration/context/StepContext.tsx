@@ -102,8 +102,27 @@ export function StepProvider({ children }: StepProviderProps) {
         return "complete";
       }
 
-      const isValid = schema.safeParse(watch());
-      if (isValid.success) {
+      const values = watch();
+      const isValid = schema.safeParse(values);
+
+      // Cross-field refinements not encoded in the per-step ZodObject must
+      // also gate completion — otherwise the submit button stays enabled
+      // and the user sees a generic "fix errors" toast with nothing
+      // highlighted. Add each such rule here.
+      const passesExtraRefinements = (() => {
+        if (step === "create-password") {
+          const { password, confirmPassword } = values as {
+            password?: string;
+            confirmPassword?: string;
+          };
+          if (password && confirmPassword && password !== confirmPassword) {
+            return false;
+          }
+        }
+        return true;
+      })();
+
+      if (isValid.success && passesExtraRefinements) {
         return "complete";
       }
 
@@ -117,7 +136,7 @@ export function StepProvider({ children }: StepProviderProps) {
         return errors[field as ValidFieldNames];
       });
 
-      if (hasErrors) {
+      if (hasErrors || !passesExtraRefinements) {
         return "error";
       }
 
@@ -187,6 +206,24 @@ export function StepProvider({ children }: StepProviderProps) {
         setShowValidationErrors(true);
         toast({
           title: "Please complete all required fields",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Mirror the cross-field refinements applied in getStepValidationStatus
+    // so users can't skip past steps whose rules live on the union-level
+    // registrationSchema (e.g. password / confirm-password must match).
+    if (currentStep === "create-password") {
+      const { password, confirmPassword } = watch() as {
+        password?: string;
+        confirmPassword?: string;
+      };
+      if (password && confirmPassword && password !== confirmPassword) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Passwords do not match",
           variant: "destructive",
         });
         return;
