@@ -118,7 +118,11 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
           const discountResponse = await fetch(discountUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
             body: JSON.stringify({ email: customerEmail, shopifyCustomerId }),
           });
           if (discountResponse.ok) {
