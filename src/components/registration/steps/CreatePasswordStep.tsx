@@ -206,9 +206,11 @@ export const CreatePasswordStep = () => {
             </button>
             <CheckMarkIcon show={confirmValid} />
           </div>
-          {e.confirmPassword?.message && (
+          {e.confirmPassword?.message ? (
             <p className="text-xs text-destructive">{e.confirmPassword.message}</p>
-          )}
+          ) : confirmMismatch ? (
+            <p className="text-xs text-destructive">Passwords do not match</p>
+          ) : null}
         </div>
       </div>
     </div>
