@@ -153,17 +153,20 @@ export const CreatePasswordStep = () => {
             <CheckMarkIcon show={passwordValid} />
           </div>
 
-          {/* Requirements checklist — must all pass to advance */}
-          {password.length > 0 && (
-            <ul className="space-y-1 pt-1.5">
+          {/* Requirements checklist — always visible until every rule is
+              satisfied, so the user sees exactly what's still wrong instead
+              of relying on a single generic error message. */}
+          {!allChecksPassed ? (
+            <ul className="space-y-1 pt-1.5" aria-live="polite">
               {checks.map((c) => (
                 <RequirementRow key={c.id} passed={c.passed} label={c.label} />
               ))}
             </ul>
-          )}
-
-          {e.password?.message && (
-            <p className="text-xs text-destructive">{e.password.message}</p>
+          ) : (
+            <p className="text-[11px] text-success flex items-center gap-1.5 pt-1.5">
+              <Check className="w-3 h-3" />
+              <span>Password meets all requirements</span>
+            </p>
           )}
         </div>
 
