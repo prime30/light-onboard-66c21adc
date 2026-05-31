@@ -26,6 +26,7 @@ import { saveStoredSession } from "@/lib/standalone-session";
 import { setPendingLogin } from "@/lib/pending-login";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
+import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -277,9 +278,57 @@ export function FormDataProvider({
     },
     (errors) => {
       console.log("errors: ", errors);
+
+      // Build a specific, human-readable list so the user sees exactly which
+      // field(s) need correcting instead of a generic "fix the field errors"
+      // message. This is the fallback when AuthFooter's missing-fields popover
+      // didn't catch the failure (e.g. a cross-field superRefine on the full
+      // registrationSchema, or a field that isn't covered by any per-step
+      // subschema in stepValidations).
+      const collected: Array<{ field: string; message: string }> = [];
+      const seen = new Set<string>();
+      const visit = (node: unknown, path: string) => {
+        if (!node || typeof node !== "object") return;
+        const obj = node as Record<string, unknown> & { message?: unknown };
+        if (typeof obj.message === "string" && obj.message && path) {
+          if (!seen.has(path)) {
+            seen.add(path);
+            collected.push({ field: path, message: obj.message });
+          }
+          return;
+        }
+        for (const [key, value] of Object.entries(obj)) {
+          if (key === "ref" || key === "type" || key === "message" || key === "types") continue;
+          visit(value, path ? `${path}.${key}` : key);
+        }
+      };
+      visit(errors, "");
+
+      // Try to focus the first failing field so it scrolls into view if it's
+      // currently mounted (e.g. user advanced past summary by other means).
+      try {
+        const firstField = collected[0]?.field.split(".")[0] as ValidFieldNames | undefined;
+        if (firstField) setFocus(firstField);
+      } catch {
+        /* non-focusable field — ignore */
+      }
+
+      let message = "Please fix the field errors and try again.";
+      if (collected.length > 0) {
+        const labelFor = (path: string): string => {
+          const top = path.split(".")[0] as ValidFieldNames;
+          return FIELD_DISPLAY_NAMES[top] || top;
+        };
+        const lines = collected
+          .slice(0, 6)
+          .map((e) => `• ${labelFor(e.field)} — ${e.message}`);
+        const extra = collected.length > 6 ? `\n…and ${collected.length - 6} more.` : "";
+        message = `Please correct the following:\n${lines.join("\n")}${extra}`;
+      }
+
       setError("root.form", {
         type: "validation",
-        message: "Please fix the field errors and try again.",
+        message,
       });
     }
   );
