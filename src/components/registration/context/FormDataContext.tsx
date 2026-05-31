@@ -232,7 +232,11 @@ export function FormDataProvider({
             null;
           const discountResponse = await fetch(discountUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
             // Send email + shopifyCustomerId so the edge function can write
             // the welcome offer to the customer's Shopify metafields (powers
             // the cross-device announcement bar marquee on the storefront).
