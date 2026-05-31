@@ -153,31 +153,13 @@ export const CreatePasswordStep = () => {
             <CheckMarkIcon show={passwordValid} />
           </div>
 
-          {/* Strength meter */}
+          {/* Requirements checklist — must all pass to advance */}
           {password.length > 0 && (
-            <div className="space-y-1.5 pt-1">
-              <div className="flex gap-1">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "h-1 flex-1 rounded-full transition-colors duration-300",
-                      strength.score >= i ? strength.tone : "bg-border"
-                    )}
-                  />
-                ))}
-              </div>
-              <p
-                className={cn(
-                  "text-[11px] font-medium transition-colors duration-200",
-                  strength.score === 1 && "text-destructive",
-                  strength.score === 2 && "text-amber-600",
-                  strength.score === 3 && "text-success"
-                )}
-              >
-                {strength.label}
-              </p>
-            </div>
+            <ul className="space-y-1 pt-1.5">
+              {checks.map((c) => (
+                <RequirementRow key={c.id} passed={c.passed} label={c.label} />
+              ))}
+            </ul>
           )}
 
           {e.password?.message && (
