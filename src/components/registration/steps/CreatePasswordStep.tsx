@@ -26,18 +26,39 @@ function PasswordPrefixIcon({ error }: { error: boolean }) {
 }
 
 /**
- * Password strength meter — purely visual signal, no scoring penalty on submit.
- * Buckets: <8 → weak, 8-11 → fair, 12+ with mixed → strong.
+ * Password requirements — these mirror the zod schema in
+ * `auth-schemas.ts → createPasswordValidators`. Keep both in sync so the
+ * visual checklist always matches what blocks the user from continuing.
  */
-function getStrength(password: string): { score: 0 | 1 | 2 | 3; label: string; tone: string } {
-  if (!password) return { score: 0, label: "", tone: "bg-border" };
-  if (password.length < 8) return { score: 1, label: "Weak", tone: "bg-destructive" };
-  const hasMix =
-    /[a-z]/.test(password) && /[A-Z]/.test(password) && /\d/.test(password);
-  if (password.length >= 12 && hasMix) {
-    return { score: 3, label: "Strong", tone: "bg-success" };
-  }
-  return { score: 2, label: "Fair", tone: "bg-amber-500" };
+function getPasswordChecks(password: string) {
+  return [
+    { id: "length", label: "At least 8 characters", passed: password.length >= 8 },
+    { id: "lower", label: "One lowercase letter", passed: /[a-z]/.test(password) },
+    { id: "upper", label: "One uppercase letter", passed: /[A-Z]/.test(password) },
+    { id: "number", label: "One number", passed: /\d/.test(password) },
+  ];
+}
+
+function RequirementRow({ passed, label }: { passed: boolean; label: string }) {
+  return (
+    <li className="flex items-center gap-1.5 text-[11px] transition-colors duration-200">
+      <span
+        className={cn(
+          "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors duration-200",
+          passed ? "bg-success/15 text-success" : "bg-muted text-muted-foreground/60"
+        )}
+      >
+        {passed ? <Check className="w-2.5 h-2.5" /> : <X className="w-2 h-2" />}
+      </span>
+      <span
+        className={cn(
+          passed ? "text-success" : "text-muted-foreground/70"
+        )}
+      >
+        {label}
+      </span>
+    </li>
+  );
 }
 
 export const CreatePasswordStep = () => {
@@ -58,10 +79,14 @@ export const CreatePasswordStep = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const strength = getStrength(password);
-  const passwordValid = getValidationStatus("password") === "complete";
+  const checks = getPasswordChecks(password);
+  const allChecksPassed = checks.every((c) => c.passed);
+  const passwordValid =
+    getValidationStatus("password") === "complete" && allChecksPassed;
   const confirmValid =
     confirmPassword.length > 0 && password === confirmPassword && passwordValid;
+  const confirmMismatch =
+    confirmPassword.length > 0 && password !== confirmPassword;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const e = errors as any;
