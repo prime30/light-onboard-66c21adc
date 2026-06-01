@@ -266,74 +266,113 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const code = generateUniqueCode();
     const now = new Date();
     const endsAt = new Date(now.getTime() + DISCOUNT_DURATION_HOURS * 60 * 60 * 1000);
 
-    const variables = {
-      basicCodeDiscount: {
-        title: `Welcome Ring Offer — ${code}`,
-        code,
-        startsAt: now.toISOString(),
-        endsAt: endsAt.toISOString(),
-        customerSelection: {
-          all: true,
-        },
-        customerGets: {
-          value: {
-            percentage: DISCOUNT_PERCENTAGE,
-          },
-          items: {
-            products: {
-              productsToAdd: [COLOR_RING_PRODUCT_GID],
-            },
-          },
-        },
-        usageLimit: 1,
-        appliesOncePerCustomer: false,
-      },
-    };
+    const MAX_ATTEMPTS = 3;
+    let confirmedCode = "";
+    let confirmedEndsAt = endsAt.toISOString();
+    let confirmedDiscountId: string | null = null;
+    let lastUserErrors: Array<{ field: string[]; message: string; code: string }> = [];
 
-    const createRes = await shopifyGraphQL<{
-      discountCodeBasicCreate: {
-        codeDiscountNode: {
-          id: string;
-          codeDiscount: {
-            codes: { nodes: Array<{ code: string }> };
-            endsAt: string;
-          };
-        } | null;
-        userErrors: Array<{ field: string[]; message: string; code: string }>;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const code = generateUniqueCode();
+      const variables = {
+        basicCodeDiscount: {
+          title: `Welcome Ring Offer — ${code}`,
+          code,
+          startsAt: now.toISOString(),
+          endsAt: endsAt.toISOString(),
+          customerSelection: { all: true },
+          customerGets: {
+            value: { percentage: DISCOUNT_PERCENTAGE },
+            items: { products: { productsToAdd: [COLOR_RING_PRODUCT_GID] } },
+          },
+          usageLimit: 1,
+          appliesOncePerCustomer: false,
+        },
       };
-    }>(CREATE_DISCOUNT_MUTATION, variables, "discountCodeBasicCreate");
 
-    const result = createRes.data?.discountCodeBasicCreate;
-    if (!result) {
-      console.error("Unexpected Shopify response:", JSON.stringify(createRes));
-      return new Response(
-        JSON.stringify({ error: "Unexpected response from Shopify." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      const createRes = await shopifyGraphQL<{
+        discountCodeBasicCreate: {
+          codeDiscountNode: {
+            id: string;
+            codeDiscount: {
+              codes: { nodes: Array<{ code: string }> };
+              endsAt: string;
+            };
+          } | null;
+          userErrors: Array<{ field: string[]; message: string; code: string }>;
+        };
+      }>(CREATE_DISCOUNT_MUTATION, variables, `discountCodeBasicCreate (attempt ${attempt})`);
+
+      const result = createRes.data?.discountCodeBasicCreate;
+      if (!result) {
+        console.error("Unexpected Shopify response:", JSON.stringify(createRes));
+        return new Response(
+          JSON.stringify({ error: "Unexpected response from Shopify." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userErrors = result.userErrors ?? [];
+      const isDuplicate = userErrors.some(
+        (e) => e.code === "TAKEN" || /already exists|taken/i.test(e.message ?? "")
       );
+
+      if (userErrors.length > 0 && isDuplicate && attempt < MAX_ATTEMPTS) {
+        console.warn(`[generate-discount] code collision on attempt ${attempt}, retrying`);
+        lastUserErrors = userErrors;
+        continue;
+      }
+
+      if (userErrors.length > 0) {
+        const errorMessages = userErrors
+          .map((e) => `${e.field?.join(".")}: ${e.message}`)
+          .join("; ");
+        console.error("Shopify discount creation errors:", errorMessages);
+        return new Response(
+          JSON.stringify({ error: "Failed to create discount.", details: errorMessages }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const codeDiscount = result.codeDiscountNode?.codeDiscount;
+      confirmedCode = codeDiscount?.codes?.nodes?.[0]?.code ?? code;
+      confirmedEndsAt = codeDiscount?.endsAt ?? endsAt.toISOString();
+      confirmedDiscountId = result.codeDiscountNode?.id ?? null;
+      break;
     }
 
-    if (result.userErrors?.length > 0) {
-      const errorMessages = result.userErrors
-        .map((e) => `${e.field?.join(".")}: ${e.message}`)
-        .join("; ");
-      console.error("Shopify discount creation errors:", errorMessages);
+    if (!confirmedCode) {
+      console.error("[generate-discount] exhausted retries:", JSON.stringify(lastUserErrors));
       return new Response(
-        JSON.stringify({ error: "Failed to create discount.", details: errorMessages }),
+        JSON.stringify({ error: "Failed to mint unique discount code." }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const codeDiscount = result.codeDiscountNode?.codeDiscount;
-    const confirmedCode = codeDiscount?.codes?.nodes?.[0]?.code ?? code;
-    const confirmedEndsAt = codeDiscount?.endsAt ?? endsAt.toISOString();
+    // Audit log — best-effort, never blocks response.
+    if (supabaseAdmin) {
+      supabaseAdmin
+        .from("welcome_offer_codes")
+        .insert({
+          code: confirmedCode,
+          email: email || null,
+          shopify_customer_id: shopifyCustomerId ? String(shopifyCustomerId) : null,
+          shopify_discount_id: confirmedDiscountId,
+          ends_at: confirmedEndsAt,
+        })
+        .then(({ error }) => {
+          if (error) console.warn("[generate-discount] audit insert failed:", error.message);
+        });
+    }
 
     // Best-effort metafield write — runs sequentially after the discount exists,
     // so any failure here cannot affect the user-facing response.
     await writeCustomerMetafields(shopifyCustomerId, email, confirmedCode, confirmedEndsAt);
+
+
 
     return new Response(
       JSON.stringify({
