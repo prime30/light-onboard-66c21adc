@@ -206,6 +206,36 @@ export type Database = {
         }
         Relationships: []
       }
+      welcome_offer_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string | null
+          ends_at: string | null
+          id: string
+          shopify_customer_id: string | null
+          shopify_discount_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email?: string | null
+          ends_at?: string | null
+          id?: string
+          shopify_customer_id?: string | null
+          shopify_discount_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string | null
+          ends_at?: string | null
+          id?: string
+          shopify_customer_id?: string | null
+          shopify_discount_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
