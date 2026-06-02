@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
 import { useAtom } from "jotai";
@@ -64,11 +64,23 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
+
+  const [passwordValue, confirmValue] = useWatch({
+    control,
+    name: ["password", "confirmPassword"],
+  });
+  const passwordsMatch =
+    !!passwordValue &&
+    !!confirmValue &&
+    passwordValue === confirmValue;
+  const showMismatch =
+    !!confirmValue && !!passwordValue && passwordValue !== confirmValue;
 
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
@@ -508,6 +520,27 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           }
           className="[&>div.input-glow]:input-ultra"
         />
+
+        {(passwordsMatch || showMismatch) && (
+          <div
+            className={`flex items-center justify-center gap-1.5 text-xs font-medium transition-all duration-300 -mt-1 ${
+              passwordsMatch ? "text-success" : "text-destructive"
+            }`}
+            aria-live="polite"
+          >
+            {passwordsMatch ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Passwords match</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Passwords don't match</span>
+              </>
+            )}
+          </div>
+        )}
 
         <Button
           type="submit"
