@@ -64,11 +64,23 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
+
+  const [passwordValue, confirmValue] = useWatch({
+    control,
+    name: ["password", "confirmPassword"],
+  });
+  const passwordsMatch =
+    !!passwordValue &&
+    !!confirmValue &&
+    passwordValue === confirmValue;
+  const showMismatch =
+    !!confirmValue && !!passwordValue && passwordValue !== confirmValue;
 
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
