@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.get_auto_approval_enabled() TO anon, authenticated;
