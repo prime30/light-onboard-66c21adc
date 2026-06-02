@@ -45,6 +45,50 @@ const bodySchema = z.object({
 
 const STOREFRONT_API_VERSION = "2024-10";
 
+let cachedStorefrontToken: string | null = null;
+
+async function getStorefrontToken(domain: string, adminToken: string, adminVersion: string): Promise<string | null> {
+  if (cachedStorefrontToken) return cachedStorefrontToken;
+
+  const envToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  if (envToken && envToken.length === 32 && /^[a-f0-9]+$/i.test(envToken)) {
+    cachedStorefrontToken = envToken;
+    return envToken;
+  }
+
+  const res = await fetch(`https://${domain}/admin/api/${adminVersion}/graphql.json`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Access-Token": adminToken,
+    },
+    body: JSON.stringify({
+      query: `mutation StorefrontTokenCreate($title: String!) {
+        storefrontAccessTokenCreate(input: { title: $title }) {
+          storefrontAccessToken { accessToken }
+          userErrors { field message }
+        }
+      }`,
+      variables: { title: `lovable-login-${Date.now()}` },
+    }),
+  });
+
+  if (!res.ok) {
+    console.error("Failed to mint storefront token:", res.status, await res.text());
+    return null;
+  }
+
+  const json = await res.json();
+  const token = json?.data?.storefrontAccessTokenCreate?.storefrontAccessToken?.accessToken;
+  if (!token) {
+    console.error("No storefront token returned:", JSON.stringify(json));
+    return null;
+  }
+
+  cachedStorefrontToken = token;
+  return token;
+}
+
 const ACCESS_TOKEN_CREATE_MUTATION = `
   mutation customerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
     customerAccessTokenCreate(input: $input) {
@@ -63,12 +107,13 @@ Deno.serve(async (req) => {
   }
 
   const SHOPIFY_STORE_DOMAIN = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-  const STOREFRONT_TOKEN = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  const ADMIN_TOKEN = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+  const ADMIN_VERSION = Deno.env.get("SHOPIFY_ADMIN_API_VERSION") || "2024-10";
 
-  if (!SHOPIFY_STORE_DOMAIN || !STOREFRONT_TOKEN) {
+  if (!SHOPIFY_STORE_DOMAIN || !ADMIN_TOKEN) {
     console.error("Missing Shopify config", {
       hasDomain: !!SHOPIFY_STORE_DOMAIN,
-      hasToken: !!STOREFRONT_TOKEN,
+      hasAdmin: !!ADMIN_TOKEN,
     });
     return sendError(500, ["Server configuration error"]);
   }
@@ -87,6 +132,10 @@ Deno.serve(async (req) => {
   }
 
   const { email, password } = parsed.data;
+  const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
+  if (!storefrontToken) {
+    return sendError(500, ["Server configuration error"]);
+  }
 
   try {
     const response = await fetch(
@@ -95,7 +144,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
         },
         body: JSON.stringify({
           query: ACCESS_TOKEN_CREATE_MUTATION,
@@ -107,6 +156,9 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const text = await response.text();
       console.error("Storefront API HTTP error:", response.status, text.substring(0, 500));
+      if (response.status === 401 || response.status === 403) {
+        cachedStorefrontToken = null;
+      }
       if (response.status === 429) {
         return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
       }
