@@ -521,6 +521,27 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           className="[&>div.input-glow]:input-ultra"
         />
 
+        {(passwordsMatch || showMismatch) && (
+          <div
+            className={`flex items-center justify-center gap-1.5 text-xs font-medium transition-all duration-300 -mt-1 ${
+              passwordsMatch ? "text-success" : "text-destructive"
+            }`}
+            aria-live="polite"
+          >
+            {passwordsMatch ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Passwords match</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Passwords don't match</span>
+              </>
+            )}
+          </div>
+        )}
+
         <Button
           type="submit"
           disabled={isSubmitting}
