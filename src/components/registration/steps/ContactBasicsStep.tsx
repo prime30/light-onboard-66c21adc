@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,7 @@ import { SelectInput } from "@/components/SelectInput";
 import { useForm } from "../context";
 import { countryCodes } from "@/data/country-codes";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -65,8 +67,49 @@ export const ContactBasicsStep = () => {
     getStepValidationStatus,
     getStepNumber,
     setValue,
+    watch,
+    setError,
+    clearErrors,
   } = useForm();
   const validationStatus = getStepValidationStatus(currentStep);
+
+  // Debounced check: does an account already exist with this email?
+  // Surfaces the conflict inline on the email field so the user finds out
+  // here instead of at the final submit step.
+  const email = watch("email");
+  const lastCheckedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const value = (email ?? "").trim().toLowerCase();
+    if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+    if (lastCheckedRef.current === value) return;
+    const handle = window.setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("check-email", {
+          body: { email: value },
+        });
+        if (error) return;
+        lastCheckedRef.current = value;
+        // Only act if the email in the field hasn't changed since
+        const current = (watch("email") ?? "").trim().toLowerCase();
+        if (current !== value) return;
+        if (data?.exists) {
+          setError("email", {
+            type: "manual",
+            message:
+              "An account with this email already exists. Please sign in instead.",
+          });
+        } else {
+          // Clear only if the current error is our manual one
+          if (errors.email?.type === "manual") clearErrors("email");
+        }
+      } catch {
+        // Fail silently — submit will still catch the conflict server-side.
+      }
+    }, 600);
+    return () => window.clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
