@@ -260,6 +260,10 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const formProgress = useMemo(() => {
+    // Once the user lands on the success step the form has already been
+    // reset (clearing completed-step status), so always show 100%.
+    if (currentStep === "success") return 100;
+
     // Get only the valid steps (exclude onboarding and summary)
     const validSteps = steps.filter(
       (step) => step !== "onboarding" && step !== "summary" && step !== "assessing"
@@ -274,7 +278,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
     const progress = (completedStepsCount / validSteps.length) * 100;
     return progress;
-  }, [steps, completedSteps, dirtySteps]);
+  }, [currentStep, steps, completedSteps, dirtySteps]);
 
   useEffect(() => {
     setFormProgress(formProgress);
