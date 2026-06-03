@@ -451,6 +451,7 @@ export function FormDataProvider({
     watch,
     reset,
     setError,
+    clearErrors,
     setFocus,
     submitForm,
     setValue,
