@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,7 @@ import { SelectInput } from "@/components/SelectInput";
 import { useForm } from "../context";
 import { countryCodes } from "@/data/country-codes";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
