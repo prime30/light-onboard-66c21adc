@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.update-tax-exempt]
 verify_jwt = false
+
+[functions.check-email]
+verify_jwt = false
