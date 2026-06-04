@@ -41,7 +41,9 @@ export default function SchedulePage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { firstName?: string; lastName?: string; email?: string } };
   const prefill = location.state ?? {};
-  const useNativeProxy = shouldUseNativeCalendlyProxy();
+  const canUseNativeProxy = shouldUseNativeCalendlyProxy();
+  const [forceFallback, setForceFallback] = useState(false);
+  const useNativeProxy = canUseNativeProxy && !forceFallback;
 
   const [step, setStep] = useState<Step>("date");
 
@@ -89,6 +91,7 @@ export default function SchedulePage() {
     } catch (err) {
       fetchedWindows.current.delete(startKey);
       setWindowError(err instanceof Error ? err.message : "Couldn't load availability.");
+      setForceFallback(true);
     } finally {
       setLoadingWindow(false);
     }
@@ -377,6 +380,26 @@ export default function SchedulePage() {
         ) : (
           <CalendlyFallback />
         )}
+      </div>
+    </div>
+  );
+}
+
+function CalendlyFallback() {
+  return (
+    <div className="rounded-form border border-border bg-card overflow-hidden">
+      <iframe
+        title="Schedule a founder call"
+        src={CALENDLY_EMBED_URL}
+        className="w-full h-[760px] md:h-[700px] bg-background"
+        loading="lazy"
+      />
+      <div className="p-5 border-t border-border text-center">
+        <Button asChild variant="outline" className="h-11 rounded-form">
+          <a href={CALENDLY_PUBLIC_URL} target="_blank" rel="noopener noreferrer">
+            Open Calendly
+          </a>
+        </Button>
       </div>
     </div>
   );
