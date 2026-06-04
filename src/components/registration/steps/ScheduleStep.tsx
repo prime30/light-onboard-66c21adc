@@ -139,7 +139,8 @@ export const ScheduleStep = () => {
     !!selectedSlot &&
     firstName.trim().length >= 1 &&
     lastName.trim().length >= 1 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    !phoneError;
 
   const handleBook = useCallback(async () => {
     if (!canBook || !selectedSlot) return;
