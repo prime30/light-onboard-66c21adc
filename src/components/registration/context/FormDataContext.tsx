@@ -27,6 +27,8 @@ import { setPendingLogin } from "@/lib/pending-login";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
+import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
+
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
