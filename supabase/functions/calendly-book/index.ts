@@ -23,11 +23,12 @@ type BookInput = {
   name: string;
   email: string;
   timezone: string;
+  phone?: string;
 };
 
 function validate(input: any): { ok: true; value: BookInput } | { ok: false; error: string } {
   if (!input || typeof input !== "object") return { ok: false, error: "Body must be JSON" };
-  const { start_time, name, email, timezone } = input;
+  const { start_time, name, email, timezone, phone } = input;
   if (typeof start_time !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(start_time))
     return { ok: false, error: "start_time must be ISO timestamp" };
   if (typeof name !== "string" || name.trim().length < 1 || name.length > 200)
@@ -35,7 +36,24 @@ function validate(input: any): { ok: true; value: BookInput } | { ok: false; err
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return { ok: false, error: "valid email required" };
   if (typeof timezone !== "string" || timezone.length < 1) return { ok: false, error: "timezone required" };
-  return { ok: true, value: { start_time, name: name.trim(), email: email.trim().toLowerCase(), timezone } };
+  let normalizedPhone: string | undefined;
+  if (phone !== undefined && phone !== null && phone !== "") {
+    if (typeof phone !== "string") return { ok: false, error: "phone must be string" };
+    // Normalise to E.164-ish: keep leading + and digits.
+    const trimmed = phone.trim();
+    const e164 = trimmed.startsWith("+") ? "+" + trimmed.slice(1).replace(/\D/g, "") : trimmed.replace(/\D/g, "");
+    if (e164.replace(/\D/g, "").length >= 7) normalizedPhone = e164;
+  }
+  return {
+    ok: true,
+    value: {
+      start_time,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      timezone,
+      phone: normalizedPhone,
+    },
+  };
 }
 
 // Module-scoped 1h memo for the event type (location, slug, etc.) — survives
