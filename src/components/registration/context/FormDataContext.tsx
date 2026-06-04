@@ -219,6 +219,8 @@ export function FormDataProvider({
       // Failures here do not block the success screen.
       (async () => {
         try {
+          const welcomeEnabled = await fetchWelcomeOfferEnabled();
+          if (!welcomeEnabled) return;
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
           // Pull the freshly-created Shopify customer ID out of create-customer's
           // response so generate-discount can write metafields by GID directly,
