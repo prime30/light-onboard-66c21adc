@@ -302,6 +302,110 @@ export const SuccessForm = () => {
         </p>
       </div>
 
+      {!welcomeOfferEnabled && (
+        /* Founder Call — personal invitation */
+        <div id="success-offer-section" className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-status-green opacity-60 animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-green" />
+              </span>
+              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Booking this week
+              </p>
+            </div>
+            <span className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              4 slots left
+            </span>
+          </div>
+
+          <div className="relative rounded-form border border-border/60 bg-gradient-to-br from-background via-background to-muted/40 overflow-hidden text-left shadow-[0_1px_0_0_hsl(var(--foreground)/0.03),0_30px_60px_-30px_hsl(var(--foreground)/0.18)]">
+            {/* soft prestige ring */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-px rounded-form opacity-60"
+              style={{
+                background:
+                  "radial-gradient(120% 60% at 50% 0%, hsl(var(--foreground)/0.05), transparent 60%)",
+              }}
+            />
+
+            <div className="relative px-5 pt-6 pb-5">
+              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                A personal invitation
+              </p>
+
+              <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
+                Thirty minutes with the founder,{" "}
+                <span className="font-accent text-[26px] leading-[1.05]">just for you.</span>
+              </h3>
+
+              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
+                Eric, our co-founder, sets aside a handful of slots each week
+                for new pros. Samples in hand, no script — your questions, his
+                answers.
+              </p>
+
+              {/* Eric — signature row */}
+              <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
+                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
+                  <img
+                    src={ericAvatar.url}
+                    alt="Eric, co-founder"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium text-foreground leading-tight">
+                    Eric — co-founder
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                    30 min · video call · complimentary
+                  </p>
+                </div>
+              </div>
+
+              {/* what's covered — refined inline list */}
+              <ul className="mt-5 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
+                {[
+                  "Pro benefits",
+                  "Product walkthrough",
+                  "Ethical standards",
+                  "Pricing",
+                  "Replacement & troubleshooting",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                type="button"
+                onClick={() => setCurrentStep("schedule")}
+                className="w-full mt-6 h-12 min-h-12 touch-manipulation rounded-form group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  Accept the invitation
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-background/15 to-transparent"
+                />
+              </Button>
+
+              <p className="mt-3 text-center text-[10px] font-termina font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
+                Reserved for verified pros
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pro Member */}
       <div
         className={cn(
@@ -342,7 +446,7 @@ export const SuccessForm = () => {
         </div>
       </div>
 
-      {welcomeOfferEnabled ? (
+      {welcomeOfferEnabled && (
         /* First Purchase Upsell — Color Ring discount */
         <div id="success-offer-section" className="space-y-3">
           {/* Title and Timer */}
@@ -460,109 +564,6 @@ export const SuccessForm = () => {
                 {statusMessage}
               </p>
             )}
-          </div>
-        </div>
-      ) : (
-        /* Founder Call — personal invitation */
-        <div id="success-offer-section" className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-status-green opacity-60 animate-ping" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-green" />
-              </span>
-              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Booking this week
-              </p>
-            </div>
-            <span className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              4 slots left
-            </span>
-          </div>
-
-          <div className="relative rounded-form border border-border/60 bg-gradient-to-br from-background via-background to-muted/40 overflow-hidden text-left shadow-[0_1px_0_0_hsl(var(--foreground)/0.03),0_30px_60px_-30px_hsl(var(--foreground)/0.18)]">
-            {/* soft prestige ring */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-px rounded-form opacity-60"
-              style={{
-                background:
-                  "radial-gradient(120% 60% at 50% 0%, hsl(var(--foreground)/0.05), transparent 60%)",
-              }}
-            />
-
-            <div className="relative px-5 pt-6 pb-5">
-              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                A personal invitation
-              </p>
-
-              <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
-                Thirty minutes with the founder,{" "}
-                <span className="font-accent text-[26px] leading-[1.05]">just for you.</span>
-              </h3>
-
-              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
-                Eric, our co-founder, sets aside a handful of slots each week
-                for new pros. Samples in hand, no script — your questions, his
-                answers.
-              </p>
-
-              {/* Eric — signature row */}
-              <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
-                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
-                  <img
-                    src={ericAvatar.url}
-                    alt="Eric, co-founder"
-                    className="w-full h-full object-cover"
-                  />
-                  
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-foreground leading-tight">
-                    Eric — co-founder
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
-                    30 min · video call · complimentary
-                  </p>
-                </div>
-              </div>
-
-              {/* what's covered — refined inline list */}
-              <ul className="mt-5 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
-                {[
-                  "Pro benefits",
-                  "Product walkthrough",
-                  "Ethical standards",
-                  "Pricing",
-                  "Replacement & troubleshooting",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                type="button"
-                onClick={() => setCurrentStep("schedule")}
-                className="w-full mt-6 h-12 min-h-12 touch-manipulation rounded-form group relative overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  Accept the invitation
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-background/15 to-transparent"
-                />
-              </Button>
-
-              <p className="mt-3 text-center text-[10px] font-termina font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
-                Reserved for verified pros
-              </p>
-            </div>
           </div>
         </div>
       )}
