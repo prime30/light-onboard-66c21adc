@@ -44,8 +44,10 @@ export function AuthFooter({
     incompleteSteps,
   } = useForm();
   const { enabled: autoApprove } = useAutoApproval();
+  const { closeIframe, isInIframe } = useCloseIframe();
 
-  const showBackButton = mode === "signup" && currentStep !== "onboarding";
+  const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
+  const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
   // When auto-approval is ON, the password step is the LAST gate before the
   // real backend submit fires. The summary "Submit application" button is a
