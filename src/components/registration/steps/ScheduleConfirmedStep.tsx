@@ -41,6 +41,16 @@ export const ScheduleConfirmedStep = () => {
     };
   }, [booking.start_time]);
 
+  const handleGoToShop = () => {
+    if (isInIframe) {
+      closeIframe("registration_complete");
+    } else {
+      window.location.href = "/";
+    }
+  };
+
+
+
 
   const expectItems = [
     {
