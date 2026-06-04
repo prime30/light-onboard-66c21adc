@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Check, Mail, Sparkles, MessageCircle, ListChecks } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useStepContext } from "@/components/registration/context";
-import { useCloseIframe } from "@/hooks/messages";
 
 type Booking = {
   start_time?: string;
@@ -16,8 +13,6 @@ type Booking = {
 };
 
 export const ScheduleConfirmedStep = () => {
-  const { setCurrentStep } = useStepContext();
-  const { closeIframe, isInIframe } = useCloseIframe();
   const [booking, setBooking] = useState<Booking>({});
 
   useEffect(() => {
@@ -43,13 +38,6 @@ export const ScheduleConfirmedStep = () => {
     };
   }, [booking.start_time]);
 
-  const handleGoToShop = () => {
-    if (isInIframe) {
-      closeIframe("registration_complete");
-    } else {
-      window.location.href = "/";
-    }
-  };
 
   const expectItems = [
     {
