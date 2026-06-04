@@ -7,6 +7,7 @@ import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval } from "@/lib/app-settings";
+import { useCloseIframe } from "@/hooks/messages";
 
 interface AuthFooterProps {
   mode: AuthMode;
@@ -43,8 +44,10 @@ export function AuthFooter({
     incompleteSteps,
   } = useForm();
   const { enabled: autoApprove } = useAutoApproval();
+  const { closeIframe, isInIframe } = useCloseIframe();
 
-  const showBackButton = mode === "signup" && currentStep !== "onboarding";
+  const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
+  const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
   // When auto-approval is ON, the password step is the LAST gate before the
   // real backend submit fires. The summary "Submit application" button is a
@@ -102,6 +105,7 @@ export function AuthFooter({
     if (isUploading) return null; // Will show upload progress
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
+    if (isScheduleConfirmedStep) return "Go to shop";
     if (isLatePasswordStep) return "Create account & continue";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
@@ -195,6 +199,17 @@ export function AuthFooter({
   }, [setFocus]);
 
   const handleContinue = useCallback(() => {
+    // Schedule-confirmed: button is "Go to shop" — close the iframe (Shopify
+    // embed) or navigate to the shop home.
+    if (isScheduleConfirmedStep) {
+      if (isInIframe) {
+        closeIframe("registration_complete");
+      } else {
+        window.location.href = "/";
+      }
+      return;
+    }
+
     if (continueBlocked) {
       // Disabled-but-clickable path: surface the popover and shake fields.
       const missing = popoverSteps.flatMap((s) => s.missingFields);
@@ -220,6 +235,9 @@ export function AuthFooter({
 
     goToNextStep();
   }, [
+    isScheduleConfirmedStep,
+    isInIframe,
+    closeIframe,
     continueBlocked,
     popoverSteps,
     shakeMissingFields,
