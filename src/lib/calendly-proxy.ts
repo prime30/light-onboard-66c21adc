@@ -90,6 +90,12 @@ export async function bookSlot(input: {
   });
   const data = await safeJson(res);
   if (!res.ok || !data?.booking) {
+    // Log the raw proxy response so we can see what Calendly actually said.
+    // The Vercel proxy currently summarizes Calendly errors into a single
+    // "parameters are invalid" string — to get the real reason check the
+    // proxy logs in Vercel for the same request.
+    // eslint-disable-next-line no-console
+    console.error("[calendly.book] failed", { status: res.status, response: data, request: input });
     throw new Error(proxyErrorMessage(data, `Booking failed (${res.status})`));
   }
   return data.booking as BookingResult;
@@ -107,12 +113,6 @@ function proxyErrorMessage(data: any, fallback: string): string {
       : typeof data?.detail === "string"
         ? data.detail
         : "";
-
-  // Friendlier hint for Calendly's opaque "parameters are invalid" — almost
-  // always a duplicate invitee (same email already booked on this event type).
-  if (/parameters are invalid/i.test(detail) || /parameters are invalid/i.test(parts[0] ?? "")) {
-    return "This time couldn't be booked. The slot may have just been taken, or this email already has a meeting scheduled. Try a different time or email.";
-  }
 
   if (detail && !parts.includes(detail)) parts.push(detail);
   return parts.join(" — ") || fallback;
