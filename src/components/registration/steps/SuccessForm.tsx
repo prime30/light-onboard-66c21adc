@@ -515,7 +515,7 @@ export const SuccessForm = () => {
                     alt="Eric, co-founder"
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-green border-2 border-background" />
+                  
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-foreground leading-tight">
