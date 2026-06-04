@@ -117,6 +117,23 @@ export const SuccessForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Prefetch the schedule step chunk + first week of Calendly slots so that
+  // tapping "Accept the invitation" navigates to a fully-ready calendar with
+  // no network wait.
+  useEffect(() => {
+    prefetchStep("schedule");
+    prefetchStep("schedule-confirmed");
+    const { start, end } = defaultScheduleWindow();
+    prefetchSlots(start, end);
+    // Also warm the following week — ScheduleStep eagerly fetches it too.
+    const nextStart = new Date(start);
+    nextStart.setUTCDate(nextStart.getUTCDate() + 7);
+    const nextEnd = new Date(nextStart);
+    nextEnd.setUTCDate(nextEnd.getUTCDate() + 6);
+    const ymd = (d: Date) => d.toISOString().slice(0, 10);
+    prefetchSlots(ymd(nextStart), ymd(nextEnd));
+  }, []);
+
   const [copied, setCopied] = useState(false);
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
   const [atcState, dispatch] = useReducer(atcReducer, initialAtcState);
