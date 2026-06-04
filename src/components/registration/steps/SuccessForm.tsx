@@ -505,7 +505,7 @@ export const SuccessForm = () => {
                 <span className="font-accent text-[26px] leading-[1.05]">just for you.</span>
               </h3>
 
-              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed max-w-[38ch]">
+              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
                 Eric, our co-founder, sets aside a handful of slots each week
                 for new pros. Samples in hand, no script — your questions, his
                 answers.
