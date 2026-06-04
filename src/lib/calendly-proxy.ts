@@ -3,15 +3,6 @@
 // CORS: the SPA origin MUST be listed in the proxy's ALLOWED_ORIGINS env var.
 
 export const CALENDLY_PROXY_BASE = "https://dd-calendly-proxy.vercel.app";
-export const CALENDLY_PUBLIC_URL = "https://calendly.com/hello-dropdeadextensions/30min";
-export const CALENDLY_EMBED_URL = `${CALENDLY_PUBLIC_URL}?hide_event_type_details=1&hide_gdpr_banner=1&primary_color=1a1a1a`;
-
-const nativeProxyOrigins = new Set(["https://apply.dropdeadextensions.com", "https://dropdeadextensions.com"]);
-
-export function shouldUseNativeCalendlyProxy(): boolean {
-  if (typeof window === "undefined") return false;
-  return nativeProxyOrigins.has(window.location.origin);
-}
 
 // Hardcoded event-type metadata. The proxy doesn't expose event-type info;
 // these mirror the founder-call event configured in CALENDLY_EVENT_TYPE_URI.

@@ -7,12 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
-  CALENDLY_EMBED_URL,
-  CALENDLY_PUBLIC_URL,
   FOUNDER_CALL,
   bookSlot,
   fetchSlots,
-  shouldUseNativeCalendlyProxy,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
 
@@ -41,9 +38,6 @@ export default function SchedulePage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { firstName?: string; lastName?: string; email?: string } };
   const prefill = location.state ?? {};
-  const canUseNativeProxy = shouldUseNativeCalendlyProxy();
-  const [forceFallback, setForceFallback] = useState(false);
-  const useNativeProxy = canUseNativeProxy && !forceFallback;
 
   const [step, setStep] = useState<Step>("date");
 
@@ -64,7 +58,6 @@ export default function SchedulePage() {
   // Proxy /slots accepts windows up to 7 days, dates in UTC YYYY-MM-DD.
   const fetchedWindows = useRef<Set<string>>(new Set());
   const fetchWindow = useCallback(async (start: Date) => {
-    if (!useNativeProxy) return;
     const startKey = toYmdUtc(start);
     if (fetchedWindows.current.has(startKey)) return;
     fetchedWindows.current.add(startKey);
@@ -91,11 +84,10 @@ export default function SchedulePage() {
     } catch (err) {
       fetchedWindows.current.delete(startKey);
       setWindowError(err instanceof Error ? err.message : "Couldn't load availability.");
-      setForceFallback(true);
     } finally {
       setLoadingWindow(false);
     }
-  }, [useNativeProxy]);
+  }, []);
 
   useEffect(() => {
     fetchWindow(windowStart);
@@ -199,10 +191,9 @@ export default function SchedulePage() {
           <Stepper step={step} />
         </div>
 
-        {useNativeProxy ? (
-          <>
-            {/* Step content */}
-            {step === "date" && (
+        <>
+          {/* Step content */}
+          {step === "date" && (
           <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">Pick a date</p>
@@ -376,30 +367,7 @@ export default function SchedulePage() {
             </Button>
           </div>
             )}
-          </>
-        ) : (
-          <CalendlyFallback />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CalendlyFallback() {
-  return (
-    <div className="rounded-form border border-border bg-card overflow-hidden">
-      <iframe
-        title="Schedule a founder call"
-        src={CALENDLY_EMBED_URL}
-        className="w-full h-[760px] md:h-[700px] bg-background"
-        loading="lazy"
-      />
-      <div className="p-5 border-t border-border text-center">
-        <Button asChild variant="outline" className="h-11 rounded-form">
-          <a href={CALENDLY_PUBLIC_URL} target="_blank" rel="noopener noreferrer">
-            Open Calendly
-          </a>
-        </Button>
+        </>
       </div>
     </div>
   );
