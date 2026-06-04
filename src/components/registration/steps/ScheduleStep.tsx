@@ -11,6 +11,7 @@ import {
   fetchSlots,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
+import { countryCodes } from "@/data/country-codes";
 import { useStepContext, useForm } from "@/components/registration/context";
 
 type SubStep = "date" | "time" | "confirm";
@@ -37,7 +38,23 @@ const toYmdUtc = (d: Date) => d.toISOString().slice(0, 10);
 export const ScheduleStep = () => {
   const { setCurrentStep } = useStepContext();
   const { watch } = useForm();
-  const values = watch() as { firstName?: string; lastName?: string; email?: string };
+  const values = watch() as {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+    phoneCountryCode?: string;
+  };
+
+  // Convert form phone (national digits + country iso) into E.164 for Calendly.
+  const formPhoneE164 = (() => {
+    const raw = (values?.phoneNumber ?? "").replace(/\D/g, "");
+    if (!raw) return undefined;
+    const iso = values?.phoneCountryCode;
+    const dial = countryCodes.find((c) => c.iso === iso)?.code; // e.g. "+1"
+    if (!dial) return raw.length >= 7 ? `+${raw}` : undefined;
+    return `${dial}${raw}`;
+  })();
 
   const [subStep, setSubStep] = useState<SubStep>("date");
   const [slotsByDay, setSlotsByDay] = useState<Record<string, ProxySlot[]>>({});
@@ -137,6 +154,7 @@ export const ScheduleStep = () => {
         name,
         email: email.trim().toLowerCase(),
         timezone: userTimezone,
+        phone: formPhoneE164,
       });
       try {
         sessionStorage.setItem(
@@ -161,7 +179,7 @@ export const ScheduleStep = () => {
     } finally {
       setBooking(false);
     }
-  }, [canBook, selectedSlot, firstName, lastName, email, setCurrentStep]);
+  }, [canBook, selectedSlot, firstName, lastName, email, formPhoneE164, setCurrentStep]);
 
   const subStepLabel = subStep === "date" ? "Pick a date" : subStep === "time" ? "Pick a time" : "Confirm details";
   const subStepNumber = subStep === "date" ? 1 : subStep === "time" ? 2 : 3;
