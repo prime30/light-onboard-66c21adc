@@ -11,7 +11,6 @@ import {
   fetchSlots,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
-import { countryCodes } from "@/data/country-codes";
 import { toE164 } from "@/lib/phone-e164";
 import { useStepContext, useForm } from "@/components/registration/context";
 
