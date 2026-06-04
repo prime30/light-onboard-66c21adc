@@ -15,6 +15,7 @@ type Booking = {
 };
 
 export const ScheduleConfirmedStep = () => {
+  const { closeIframe, isInIframe } = useCloseIframe();
   const [booking, setBooking] = useState<Booking>({});
 
   useEffect(() => {
