@@ -554,7 +554,6 @@ export const SuccessForm = () => {
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   Accept the invitation
-                  <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
                 <span
                   aria-hidden
