@@ -86,6 +86,7 @@ export const SuccessForm = () => {
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { watch } = useForm();
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
+  const navigate = useNavigate();
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
