@@ -19,6 +19,8 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
+
 
 type FormState =
   | "form"
