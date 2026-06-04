@@ -385,9 +385,10 @@ export const SuccessForm = () => {
                 />
               </Button>
 
-              <p className="mt-3 text-center text-[10px] font-termina font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
+              <p className="mt-3 text-center font-mono-eyebrow text-[10px] text-muted-foreground/80">
                 Reserved availability (4 slots left)
               </p>
+
             </div>
           </div>
         </div>
