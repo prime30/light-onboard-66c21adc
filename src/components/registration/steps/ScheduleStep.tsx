@@ -179,7 +179,7 @@ export const ScheduleStep = () => {
     } finally {
       setBooking(false);
     }
-  }, [canBook, selectedSlot, firstName, lastName, email, setCurrentStep]);
+  }, [canBook, selectedSlot, firstName, lastName, email, formPhoneE164, setCurrentStep]);
 
   const subStepLabel = subStep === "date" ? "Pick a date" : subStep === "time" ? "Pick a time" : "Confirm details";
   const subStepNumber = subStep === "date" ? 1 : subStep === "time" ? 2 : 3;
