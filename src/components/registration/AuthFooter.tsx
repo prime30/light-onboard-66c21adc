@@ -105,6 +105,7 @@ export function AuthFooter({
     if (isUploading) return null; // Will show upload progress
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
+    if (isScheduleConfirmedStep) return "Go to shop";
     if (isLatePasswordStep) return "Create account & continue";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
