@@ -1,10 +1,10 @@
-// Client for the Vercel-hosted Calendly proxy (vercel/calendly-proxy).
-// The proxy holds the Calendly PAT + event-type URI server-side.
-// CORS: the SPA origin MUST be listed in the proxy's ALLOWED_ORIGINS env var.
+// Calendly client — calls Lovable Cloud edge functions (calendly-slots, calendly-book).
+// Replaces the previous Vercel proxy. Secrets (CALENDLY_API_TOKEN,
+// CALENDLY_EVENT_TYPE_URI) live in Cloud and are never exposed to the browser.
 
-export const CALENDLY_PROXY_BASE = "https://dd-calendly-proxy.vercel.app";
+import { supabase } from "@/integrations/supabase/client";
 
-// Hardcoded event-type metadata. The proxy doesn't expose event-type info;
+// Hardcoded event-type metadata. The edge function doesn't expose event-type info;
 // these mirror the founder-call event configured in CALENDLY_EVENT_TYPE_URI.
 export const FOUNDER_CALL = {
   name: "Founder call with Eric",
@@ -24,21 +24,16 @@ export async function fetchSlots(startDate: string, endDate: string): Promise<Pr
   const cached = slotsCache.get(key);
   if (cached) return cached;
 
-  const url = new URL(`${CALENDLY_PROXY_BASE}/api/calendly/slots`);
-  url.searchParams.set("start_date", startDate);
-  url.searchParams.set("end_date", endDate);
   const p = (async () => {
-    const res = await fetch(url.toString(), {
+    const { data, error } = await supabase.functions.invoke("calendly-slots", {
       method: "GET",
-      credentials: "omit",
-      headers: { Accept: "application/json" },
+      // supabase-js doesn't support GET query params via invoke; pass as body
+      // and read in function. To keep the function simple we use POST-like URL:
+      body: { start_date: startDate, end_date: endDate },
     });
-    if (!res.ok) {
-      const detail = await safeJson(res);
-      throw new Error(proxyErrorMessage(detail, `Slots request failed (${res.status})`));
-    }
-    const data = await res.json();
-    return Array.isArray(data?.slots) ? (data.slots as ProxySlot[]) : [];
+    if (error) throw new Error(extractMessage(error, "Couldn't load availability."));
+    if ((data as any)?.error) throw new Error(extractMessage((data as any).error, "Couldn't load availability."));
+    return Array.isArray((data as any)?.slots) ? ((data as any).slots as ProxySlot[]) : [];
   })();
 
   slotsCache.set(key, p);
@@ -78,59 +73,31 @@ export async function bookSlot(input: {
   email: string;
   timezone: string;
 }): Promise<BookingResult> {
-  const res = await fetch(`${CALENDLY_PROXY_BASE}/api/calendly/book`, {
+  const { data, error } = await supabase.functions.invoke("calendly-book", {
     method: "POST",
-    credentials: "omit",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "Idempotency-Key": uuidv4(),
-    },
-    body: JSON.stringify(input),
+    body: input,
   });
-  const data = await safeJson(res);
-  if (!res.ok || !data?.booking) {
-    // Log the raw proxy response so we can see what Calendly actually said.
-    // The Vercel proxy currently summarizes Calendly errors into a single
-    // "parameters are invalid" string — to get the real reason check the
-    // proxy logs in Vercel for the same request.
+  if (error) {
     // eslint-disable-next-line no-console
-    console.error("[calendly.book] failed", { status: res.status, response: data, request: input });
-    throw new Error(proxyErrorMessage(data, `Booking failed (${res.status})`));
+    console.error("[calendly.book] invoke error", { error, request: input });
+    throw new Error(extractMessage(error, "Booking failed."));
   }
-  return data.booking as BookingResult;
-}
-
-function proxyErrorMessage(data: any, fallback: string): string {
-  const parts: string[] = [];
-  if (typeof data?.error === "string") parts.push(data.error);
-  else if (typeof data?.error?.message === "string") parts.push(data.error.message);
-  else if (typeof data?.message === "string") parts.push(data.message);
-
-  const detail =
-    typeof data?.error?.detail === "string"
-      ? data.error.detail
-      : typeof data?.detail === "string"
-        ? data.detail
-        : "";
-
-  if (detail && !parts.includes(detail)) parts.push(detail);
-  return parts.join(" — ") || fallback;
-}
-
-function uuidv4(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-async function safeJson(res: Response): Promise<any> {
-  try {
-    return await res.json();
-  } catch {
-    return null;
+  if ((data as any)?.error) {
+    // eslint-disable-next-line no-console
+    console.error("[calendly.book] upstream error", { response: data, request: input });
+    throw new Error(extractMessage((data as any).error, "Booking failed."));
   }
+  const booking = (data as any)?.booking as BookingResult | undefined;
+  if (!booking) throw new Error("Booking response was empty.");
+  return booking;
+}
+
+function extractMessage(err: any, fallback: string): string {
+  if (!err) return fallback;
+  if (typeof err === "string") return err;
+  if (typeof err.message === "string" && err.message) {
+    const detail = typeof err.details === "string" ? err.details : "";
+    return detail ? `${err.message} — ${detail}` : err.message;
+  }
+  return fallback;
 }
