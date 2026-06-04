@@ -50,9 +50,13 @@ Deno.serve(async (req) => {
   }
 
 
-  // Calendly requires ISO timestamps with timezone for available_times.
-  const startTime = `${startDate}T00:00:00.000Z`;
+  // Calendly requires ISO timestamps with timezone for available_times,
+  // and start_time must be strictly in the future.
+  const now = new Date();
+  let startTime = new Date(`${startDate}T00:00:00.000Z`);
+  if (startTime <= now) startTime = new Date(now.getTime() + 60_000);
   const endTime = `${endDate}T23:59:59.999Z`;
+
 
   const cUrl = new URL(`${CALENDLY_API}/event_type_available_times`);
   cUrl.searchParams.set("event_type", eventTypeUri);
