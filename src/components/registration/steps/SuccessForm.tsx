@@ -489,10 +489,6 @@ export const SuccessForm = () => {
                   "radial-gradient(120% 60% at 50% 0%, hsl(var(--foreground)/0.05), transparent 60%)",
               }}
             />
-            {/* corner ornament */}
-            <div className="absolute top-4 right-4 text-[9px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
-              N° 001
-            </div>
 
             <div className="relative px-5 pt-6 pb-5">
               <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
