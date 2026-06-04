@@ -97,9 +97,12 @@ const AdminSettingsPage = () => {
       }
       setAuthed(true);
       setAdminMode(true);
-      // Hydrate tags from verify response if present
+      // Hydrate tags + welcome offer from verify response if present
       const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
       setExtraTags(Array.isArray(tags) ? tags : []);
+      if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
+        setWelcomeOffer(data.setting.welcome_offer_enabled);
+      }
     } catch (err) {
       console.error(err);
       toast({
