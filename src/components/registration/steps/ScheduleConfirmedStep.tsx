@@ -142,14 +142,6 @@ export const ScheduleConfirmedStep = () => {
           ))}
         </ul>
       </div>
-
-      <Button
-        type="button"
-        onClick={handleGoToShop}
-        className="w-full h-12 min-h-12 rounded-form animate-stagger-3"
-      >
-        Go to shop
-      </Button>
     </div>
   );
 };
