@@ -386,13 +386,6 @@ export const ScheduleStep = () => {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setCurrentStep("success")}
-        className="block mx-auto text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-      >
-        Back to summary
-      </button>
     </div>
   );
 };
