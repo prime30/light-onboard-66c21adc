@@ -76,14 +76,15 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   const hasToggle = typeof body.autoApprovalEnabled === "boolean";
+  const hasWelcomeToggle = typeof body.welcomeOfferEnabled === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasTags) {
+  if (!hasToggle && !hasWelcomeToggle && !hasTags) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, extra_customer_tags")
+      .select("auto_approval_enabled, welcome_offer_enabled, extra_customer_tags")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -95,6 +96,7 @@ Deno.serve(async (req: Request) => {
 
   const update: Record<string, unknown> = { updated_by: email };
   if (hasToggle) update.auto_approval_enabled = body.autoApprovalEnabled;
+  if (hasWelcomeToggle) update.welcome_offer_enabled = body.welcomeOfferEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
 
   const { data, error } = await supabase
