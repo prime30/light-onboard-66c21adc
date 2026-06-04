@@ -3,6 +3,15 @@
 // CORS: the SPA origin MUST be listed in the proxy's ALLOWED_ORIGINS env var.
 
 export const CALENDLY_PROXY_BASE = "https://dd-calendly-proxy.vercel.app";
+export const CALENDLY_PUBLIC_URL = "https://calendly.com/hello-dropdeadextensions/30min";
+export const CALENDLY_EMBED_URL = `${CALENDLY_PUBLIC_URL}?hide_event_type_details=1&hide_gdpr_banner=1&primary_color=1a1a1a`;
+
+const nativeProxyOrigins = new Set(["https://apply.dropdeadextensions.com", "https://dropdeadextensions.com"]);
+
+export function shouldUseNativeCalendlyProxy(): boolean {
+  if (typeof window === "undefined") return false;
+  return nativeProxyOrigins.has(window.location.origin);
+}
 
 // Hardcoded event-type metadata. The proxy doesn't expose event-type info;
 // these mirror the founder-call event configured in CALENDLY_EVENT_TYPE_URI.
@@ -18,10 +27,14 @@ export async function fetchSlots(startDate: string, endDate: string): Promise<Pr
   const url = new URL(`${CALENDLY_PROXY_BASE}/api/calendly/slots`);
   url.searchParams.set("start_date", startDate);
   url.searchParams.set("end_date", endDate);
-  const res = await fetch(url.toString(), { method: "GET" });
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    credentials: "omit",
+    headers: { Accept: "application/json" },
+  });
   if (!res.ok) {
     const detail = await safeJson(res);
-    throw new Error(detail?.error || `Slots request failed (${res.status})`);
+    throw new Error(proxyErrorMessage(detail, `Slots request failed (${res.status})`));
   }
   const data = await res.json();
   return Array.isArray(data?.slots) ? data.slots : [];
@@ -46,17 +59,26 @@ export async function bookSlot(input: {
 }): Promise<BookingResult> {
   const res = await fetch(`${CALENDLY_PROXY_BASE}/api/calendly/book`, {
     method: "POST",
+    credentials: "omit",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
       "Idempotency-Key": uuidv4(),
     },
     body: JSON.stringify(input),
   });
   const data = await safeJson(res);
   if (!res.ok || !data?.booking) {
-    throw new Error(data?.error || `Booking failed (${res.status})`);
+    throw new Error(proxyErrorMessage(data, `Booking failed (${res.status})`));
   }
   return data.booking as BookingResult;
+}
+
+function proxyErrorMessage(data: any, fallback: string): string {
+  if (typeof data?.error === "string") return data.error;
+  if (typeof data?.error?.message === "string") return data.error.message;
+  if (typeof data?.message === "string") return data.message;
+  return fallback;
 }
 
 function uuidv4(): string {
