@@ -157,6 +157,22 @@ const children: RouteObject[] = [
     ),
   },
   {
+    path: "schedule",
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <SchedulePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "schedule/confirmed",
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <ScheduleConfirmedPage />
+      </Suspense>
+    ),
+  },
+  {
     path: "*",
     element: (
       <Suspense fallback={<GenericBootFallback />}>
