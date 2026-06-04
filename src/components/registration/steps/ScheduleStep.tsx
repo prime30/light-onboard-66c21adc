@@ -38,7 +38,23 @@ const toYmdUtc = (d: Date) => d.toISOString().slice(0, 10);
 export const ScheduleStep = () => {
   const { setCurrentStep } = useStepContext();
   const { watch } = useForm();
-  const values = watch() as { firstName?: string; lastName?: string; email?: string };
+  const values = watch() as {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+    phoneCountryCode?: string;
+  };
+
+  // Convert form phone (national digits + country iso) into E.164 for Calendly.
+  const formPhoneE164 = (() => {
+    const raw = (values?.phoneNumber ?? "").replace(/\D/g, "");
+    if (!raw) return undefined;
+    const iso = values?.phoneCountryCode;
+    const dial = countryCodes.find((c) => c.iso === iso)?.code; // e.g. "+1"
+    if (!dial) return raw.length >= 7 ? `+${raw}` : undefined;
+    return `${dial}${raw}`;
+  })();
 
   const [subStep, setSubStep] = useState<SubStep>("date");
   const [slotsByDay, setSlotsByDay] = useState<Record<string, ProxySlot[]>>({});
