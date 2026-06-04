@@ -29,13 +29,26 @@ Deno.serve(async (req) => {
     return json({ error: { code: "config_missing", message: "Calendly not configured" } }, 500);
   }
 
+  // Accept params from either querystring (GET) or JSON body (POST/invoke).
+  let startDate = "";
+  let endDate = "";
   const url = new URL(req.url);
-  const startDate = url.searchParams.get("start_date") ?? "";
-  const endDate = url.searchParams.get("end_date") ?? "";
+  startDate = url.searchParams.get("start_date") ?? "";
+  endDate = url.searchParams.get("end_date") ?? "";
+  if ((!startDate || !endDate) && (req.method === "POST" || req.headers.get("content-type")?.includes("application/json"))) {
+    try {
+      const body = await req.json();
+      startDate ||= body?.start_date ?? "";
+      endDate ||= body?.end_date ?? "";
+    } catch {
+      // ignore
+    }
+  }
 
   if (!isYmd(startDate) || !isYmd(endDate)) {
     return json({ error: { code: "bad_request", message: "start_date and end_date must be YYYY-MM-DD" } }, 400);
   }
+
 
   // Calendly requires ISO timestamps with timezone for available_times.
   const startTime = `${startDate}T00:00:00.000Z`;
