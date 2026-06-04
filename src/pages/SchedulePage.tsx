@@ -5,20 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { FOUNDER_CALL, bookSlot, fetchSlots, type ProxySlot } from "@/lib/calendly-proxy";
 
 type Step = "date" | "time" | "confirm";
-
-type EventTypeMeta = {
-  uri: string;
-  name: string;
-  duration: number;
-  scheduling_url?: string;
-  location?: { kind?: string; type?: string; location?: string } | null;
-};
-
-type Slot = { start_time: string; status?: string; scheduling_url?: string };
 
 const userTimezone = (() => {
   try {
@@ -32,15 +22,12 @@ const fmtDate = (d: Date) =>
   d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-const toUtcIso = (d: Date) => {
-  const c = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()));
-  return c.toISOString().replace(/\.\d{3}Z$/, "Z");
-};
-const startOfDayUtc = (d: Date) => {
+const startOfDayLocal = (d: Date) => {
   const c = new Date(d);
-  c.setUTCHours(0, 0, 0, 0);
+  c.setHours(0, 0, 0, 0);
   return c;
 };
+const toYmdUtc = (d: Date) => d.toISOString().slice(0, 10);
 
 export default function SchedulePage() {
   const navigate = useNavigate();
@@ -48,19 +35,14 @@ export default function SchedulePage() {
   const prefill = location.state ?? {};
 
   const [step, setStep] = useState<Step>("date");
-  const [meta, setMeta] = useState<EventTypeMeta | null>(null);
-  const [metaError, setMetaError] = useState<string | null>(null);
 
-  const [slotsByDay, setSlotsByDay] = useState<Record<string, Slot[]>>({});
+  const [slotsByDay, setSlotsByDay] = useState<Record<string, ProxySlot[]>>({});
   const [loadingWindow, setLoadingWindow] = useState(false);
-  const [windowStart, setWindowStart] = useState<Date>(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
+  const [windowError, setWindowError] = useState<string | null>(null);
+  const [windowStart, setWindowStart] = useState<Date>(() => startOfDayLocal(new Date()));
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<ProxySlot | null>(null);
 
   const [firstName, setFirstName] = useState(prefill.firstName ?? "");
   const [lastName, setLastName] = useState(prefill.lastName ?? "");
@@ -68,69 +50,50 @@ export default function SchedulePage() {
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState<string | null>(null);
 
-  // Fetch event type metadata once
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase.functions.invoke("calendly-event-type", { body: {} });
-      if (cancelled) return;
-      if (error || !data?.uri) {
-        setMetaError("Couldn't load scheduler. Please try again later.");
-        return;
-      }
-      setMeta(data as EventTypeMeta);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Fetch 7-day availability for a window
+  // Proxy /slots accepts windows up to 7 days, dates in UTC YYYY-MM-DD.
   const fetchedWindows = useRef<Set<string>>(new Set());
   const fetchWindow = useCallback(async (start: Date) => {
-    const startKey = start.toISOString().slice(0, 10);
+    const startKey = toYmdUtc(start);
     if (fetchedWindows.current.has(startKey)) return;
     fetchedWindows.current.add(startKey);
 
-    const startUtc = new Date(start);
-    startUtc.setUTCHours(0, 1, 0, 0);
-    const endUtc = new Date(startUtc);
-    endUtc.setUTCDate(endUtc.getUTCDate() + 6);
-    endUtc.setUTCHours(23, 59, 0, 0);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 6);
 
     setLoadingWindow(true);
-    const { data, error } = await supabase.functions.invoke("calendly-availability", {
-      body: { start_time: toUtcIso(startUtc), end_time: toUtcIso(endUtc) },
-    });
-    setLoadingWindow(false);
-    if (error || !data?.collection) return;
-
-    const byDay: Record<string, Slot[]> = {};
-    for (const slot of data.collection as Slot[]) {
-      const localDateKey = new Date(slot.start_time).toLocaleDateString("en-CA"); // YYYY-MM-DD local
-      (byDay[localDateKey] ||= []).push(slot);
-    }
-    setSlotsByDay((prev) => {
-      const next = { ...prev };
-      for (const [k, v] of Object.entries(byDay)) {
-        next[k] = [...(next[k] || []), ...v].sort((a, b) => a.start_time.localeCompare(b.start_time));
+    setWindowError(null);
+    try {
+      const slots = await fetchSlots(toYmdUtc(start), toYmdUtc(end));
+      const byDay: Record<string, ProxySlot[]> = {};
+      for (const slot of slots) {
+        const localDateKey = new Date(slot.start_time).toLocaleDateString("en-CA");
+        (byDay[localDateKey] ||= []).push(slot);
       }
-      return next;
-    });
+      setSlotsByDay((prev) => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(byDay)) {
+          next[k] = [...(next[k] || []), ...v].sort((a, b) => a.start_time.localeCompare(b.start_time));
+        }
+        return next;
+      });
+    } catch (err) {
+      fetchedWindows.current.delete(startKey);
+      setWindowError(err instanceof Error ? err.message : "Couldn't load availability.");
+    } finally {
+      setLoadingWindow(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!meta) return;
     fetchWindow(windowStart);
-  }, [meta, windowStart, fetchWindow]);
+  }, [windowStart, fetchWindow]);
 
-  // Fetch second window proactively so the calendar shows ~14 days
+  // Pre-fetch the following week so the calendar shows ~14 days.
   useEffect(() => {
-    if (!meta) return;
     const next = new Date(windowStart);
     next.setDate(next.getDate() + 7);
     fetchWindow(next);
-  }, [meta, windowStart, fetchWindow]);
+  }, [windowStart, fetchWindow]);
 
   const availableDays = useMemo(() => {
     const s = new Set<string>();
@@ -143,7 +106,7 @@ export default function SchedulePage() {
   const isDayDisabled = useCallback(
     (d: Date) => {
       const key = d.toLocaleDateString("en-CA");
-      const today = startOfDayUtc(new Date());
+      const today = startOfDayLocal(new Date());
       if (d < today) return true;
       return !availableDays.has(key);
     },
@@ -156,70 +119,43 @@ export default function SchedulePage() {
     return slotsByDay[key] ?? [];
   }, [selectedDate, slotsByDay]);
 
-  const canBook = !!selectedSlot && firstName.trim() && lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const canBook =
+    !!selectedSlot &&
+    firstName.trim().length >= 1 &&
+    lastName.trim().length >= 1 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleBook = useCallback(async () => {
     if (!canBook || !selectedSlot) return;
     setBooking(true);
     setBookError(null);
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
-    const { data, error } = await supabase.functions.invoke("calendly-book", {
-      body: {
+    try {
+      const booking = await bookSlot({
         start_time: selectedSlot.start_time,
         name,
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
         email: email.trim().toLowerCase(),
         timezone: userTimezone,
-        // Only send when fixed kind; ask_invitee would require extra input.
-        location_kind:
-          meta?.location?.kind && meta.location.kind !== "ask_invitee" ? meta.location.kind : undefined,
-      },
-    });
-    setBooking(false);
-    if (error || !data || data.error) {
-      setBookError(
-        (data?.details?.message as string) ||
-          (data?.error as string) ||
-          "Booking failed. Try a different time or try again.",
-      );
-      return;
+      });
+      navigate("/schedule/confirmed", {
+        replace: true,
+        state: {
+          start_time: booking.start_time,
+          timezone: userTimezone,
+          cancel_url: booking.cancel_url,
+          reschedule_url: booking.reschedule_url,
+          name,
+          email: email.trim().toLowerCase(),
+          eventName: FOUNDER_CALL.name,
+          duration: FOUNDER_CALL.duration,
+        },
+      });
+    } catch (err) {
+      setBookError(err instanceof Error ? err.message : "Booking failed. Try a different time.");
+    } finally {
+      setBooking(false);
     }
-    navigate("/schedule/confirmed", {
-      replace: true,
-      state: {
-        start_time: data.start_time ?? selectedSlot.start_time,
-        timezone: data.timezone ?? userTimezone,
-        cancel_url: data.cancel_url,
-        reschedule_url: data.reschedule_url,
-        name,
-        email: email.trim().toLowerCase(),
-        eventName: meta?.name,
-        duration: meta?.duration,
-      },
-    });
-  }, [canBook, selectedSlot, firstName, lastName, email, meta, navigate]);
-
-  // ---------- Render ----------
-
-  if (metaError) {
-    return (
-      <CenteredShell>
-        <p className="text-sm text-muted-foreground">{metaError}</p>
-        <Button variant="outline" onClick={() => navigate(-1)} className="mt-5">
-          Go back
-        </Button>
-      </CenteredShell>
-    );
-  }
-
-  if (!meta) {
-    return (
-      <CenteredShell>
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </CenteredShell>
-    );
-  }
+  }, [canBook, selectedSlot, firstName, lastName, email, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -235,18 +171,16 @@ export default function SchedulePage() {
               <ArrowLeft className="w-3.5 h-3.5" />
               Back
             </button>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{meta.name}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{FOUNDER_CALL.name}</h1>
             <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                {meta.duration} min
+                {FOUNDER_CALL.duration} min
               </span>
-              {meta.location?.kind && (
-                <span className="inline-flex items-center gap-1.5 capitalize">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {String(meta.location.kind).replace(/_/g, " ")}
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" />
+                {FOUNDER_CALL.locationLabel}
+              </span>
             </div>
           </div>
           <Stepper step={step} />
@@ -264,7 +198,7 @@ export default function SchedulePage() {
                   onClick={() => {
                     const d = new Date(windowStart);
                     d.setDate(d.getDate() - 7);
-                    if (d < startOfDayUtc(new Date())) return;
+                    if (d < startOfDayLocal(new Date())) return;
                     setWindowStart(d);
                   }}
                   aria-label="Previous week"
@@ -308,6 +242,7 @@ export default function SchedulePage() {
               )}
             </div>
 
+            {windowError && <p className="text-xs text-destructive text-center">{windowError}</p>}
             <p className="text-[11px] text-muted-foreground text-center">Times shown in {userTimezone}</p>
           </div>
         )}
@@ -364,7 +299,7 @@ export default function SchedulePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">
-                  {fmtTime(selectedSlot.start_time)} · {meta.duration} min
+                  {fmtTime(selectedSlot.start_time)} · {FOUNDER_CALL.duration} min
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {fmtDate(new Date(selectedSlot.start_time))} · {userTimezone}
@@ -427,14 +362,6 @@ export default function SchedulePage() {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function CenteredShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center p-5">
-      {children}
     </div>
   );
 }

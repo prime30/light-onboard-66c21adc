@@ -44,12 +44,3 @@ verify_jwt = false
 
 [functions.check-email]
 verify_jwt = false
-
-[functions.calendly-event-type]
-verify_jwt = false
-
-[functions.calendly-availability]
-verify_jwt = false
-
-[functions.calendly-book]
-verify_jwt = false
