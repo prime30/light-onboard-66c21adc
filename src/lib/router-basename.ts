@@ -26,6 +26,7 @@ const KNOWN_ROUTE_SEGMENTS = new Set<string>([
   "blog",
   "sso-preview",
   "admin",
+  "schedule",
 ]);
 
 /**
