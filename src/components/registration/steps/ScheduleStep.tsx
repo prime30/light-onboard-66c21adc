@@ -52,7 +52,7 @@ export const ScheduleStep = () => {
   // booking instead of getting an opaque Calendly rejection.
   const phoneResult = toE164(values?.phoneNumber, values?.phoneCountryCode);
   const formPhoneE164 = phoneResult.ok ? phoneResult.value : undefined;
-  const phoneError: string | null = phoneResult.ok ? null : phoneResult.reason;
+  const phoneError: string | null = !phoneResult.ok ? phoneResult.reason : null;
 
   const [subStep, setSubStep] = useState<SubStep>("date");
   const [slotsByDay, setSlotsByDay] = useState<Record<string, ProxySlot[]>>({});
