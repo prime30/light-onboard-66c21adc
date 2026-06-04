@@ -122,6 +122,22 @@ const children: RouteObject[] = [
           </Suspense>
         ),
       },
+      {
+        path: "schedule",
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <SchedulePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "schedule/confirmed",
+        element: (
+          <Suspense fallback={<AuthBootFallback />}>
+            <ScheduleConfirmedPage />
+          </Suspense>
+        ),
+      },
     ],
   },
   {
@@ -153,22 +169,6 @@ const children: RouteObject[] = [
     element: (
       <Suspense fallback={<GenericBootFallback />}>
         <AdminSettingsPage />
-      </Suspense>
-    ),
-  },
-  {
-    path: "schedule",
-    element: (
-      <Suspense fallback={<GenericBootFallback />}>
-        <SchedulePage />
-      </Suspense>
-    ),
-  },
-  {
-    path: "schedule/confirmed",
-    element: (
-      <Suspense fallback={<GenericBootFallback />}>
-        <ScheduleConfirmedPage />
       </Suspense>
     ),
   },
