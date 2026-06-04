@@ -11,6 +11,7 @@ import {
 import colorRingProduct from "@/assets/color-ring-product.png";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
+import { useStepContext } from "@/components/registration/context/StepContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
@@ -87,6 +88,7 @@ export const SuccessForm = () => {
   const { watch } = useForm();
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
+  const { setCurrentStep } = useStepContext();
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -507,16 +509,7 @@ export const SuccessForm = () => {
             <Button
               type="button"
               size="sm"
-              onClick={() => {
-                const values = watch() as { firstName?: string; lastName?: string; email?: string };
-                navigate("/schedule", {
-                  state: {
-                    firstName: values?.firstName,
-                    lastName: values?.lastName,
-                    email: values?.email,
-                  },
-                });
-              }}
+              onClick={() => setCurrentStep("schedule")}
               className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl group"
             >
               Schedule a founder call

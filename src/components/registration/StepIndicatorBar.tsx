@@ -38,10 +38,11 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   }, [accountType, currentStep, inDelay]);
 
   // Memoize the current step number to prevent recalculation on every render.
-  // The "success" step isn't in the steps array — it conceptually sits one
-  // past the last real step (where the flag is rendered), so map it there.
+  // The "success" step (and post-success schedule steps) aren't in the steps
+  // array — they conceptually sit one past the last real step (where the
+  // flag is rendered), so map them there.
   const getCurrentStepNumber = useMemo(() => {
-    if (currentStep === "success") return steps.length;
+    if (currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed") return steps.length;
     const index = steps.indexOf(currentStep);
     return index === -1 ? 0 : index;
   }, [currentStep, steps]);
@@ -266,7 +267,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
                   <div
                     className={cn(
                       "absolute inset-0 bg-foreground/50 rounded-full origin-left transition-transform duration-500 ease-out",
-                      isPassed || currentStep === "success" ? "scale-x-100" : "scale-x-0"
+                      isPassed || currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed" ? "scale-x-100" : "scale-x-0"
                     )}
                   />
                 </div>
@@ -279,7 +280,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
             const successStepIndex = steps.length; // one past the last actual step
             const currentStepNum = getCurrentStepNumber;
             const distance = Math.abs(successStepIndex - currentStepNum);
-            const isActive = currentStep === "success";
+            const isActive = currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed";
             const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
             const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
 

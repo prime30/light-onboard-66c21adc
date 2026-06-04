@@ -23,6 +23,8 @@ const BusinessOperationStep = lazy(() => import("@/components/registration/steps
 const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryForm").then(m => ({ default: m.SummaryForm })));
 const AssessingStep = lazy(() => import("@/components/registration/steps/AssessingStep").then(m => ({ default: m.AssessingStep })));
 const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
+const ScheduleStep = lazy(() => import("@/components/registration/steps/ScheduleStep").then(m => ({ default: m.ScheduleStep })));
+const ScheduleConfirmedStep = lazy(() => import("@/components/registration/steps/ScheduleConfirmedStep").then(m => ({ default: m.ScheduleConfirmedStep })));
 import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
 import { useUploadFile } from "@/contexts";
@@ -483,6 +485,8 @@ const Auth = () => {
               {currentStep === "success" && (
                 <SuccessForm />
               )}
+              {currentStep === "schedule" && <ScheduleStep />}
+              {currentStep === "schedule-confirmed" && <ScheduleConfirmedStep />}
             </Suspense>
           )}
         </div>

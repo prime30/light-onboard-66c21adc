@@ -79,6 +79,8 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   summary: "Review & Submit",
   assessing: "Assessing Application",
   success: "Success",
+  schedule: "Schedule Founder Call",
+  "schedule-confirmed": "Call Confirmed",
 };
 
 /**
@@ -157,6 +159,8 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   summary: null,
   assessing: null,
   success: null,
+  schedule: null,
+  "schedule-confirmed": null,
 };
 
 /**
@@ -310,6 +314,20 @@ export const STEPS: Record<Step, StepInfo> = {
     displayName: STEP_DISPLAY_NAMES.success,
     fields: fieldsForStep.success,
     schema: stepValidations.success,
+    accountTypes: [],
+  },
+  schedule: {
+    name: "schedule",
+    displayName: STEP_DISPLAY_NAMES.schedule,
+    fields: [],
+    schema: null,
+    accountTypes: [],
+  },
+  "schedule-confirmed": {
+    name: "schedule-confirmed",
+    displayName: STEP_DISPLAY_NAMES["schedule-confirmed"],
+    fields: [],
+    schema: null,
     accountTypes: [],
   },
 };
