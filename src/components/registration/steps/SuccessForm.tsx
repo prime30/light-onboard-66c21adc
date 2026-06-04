@@ -9,7 +9,7 @@ import {
   useIframeCartBridge,
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
-import ericAvatar from "@/assets/eric-avatar.png.asset.json";
+import ericAvatar from "@/assets/avatars/eric.jpg";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
