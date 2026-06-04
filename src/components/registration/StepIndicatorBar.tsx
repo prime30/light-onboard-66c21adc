@@ -267,7 +267,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
                   <div
                     className={cn(
                       "absolute inset-0 bg-foreground/50 rounded-full origin-left transition-transform duration-500 ease-out",
-                      isPassed || currentStep === "success" ? "scale-x-100" : "scale-x-0"
+                      isPassed || currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed" ? "scale-x-100" : "scale-x-0"
                     )}
                   />
                 </div>
@@ -280,7 +280,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
             const successStepIndex = steps.length; // one past the last actual step
             const currentStepNum = getCurrentStepNumber;
             const distance = Math.abs(successStepIndex - currentStepNum);
-            const isActive = currentStep === "success";
+            const isActive = currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed";
             const opacity = isActive ? 1 : distance === 1 ? 0.6 : distance === 2 ? 0.3 : 0.15;
             const scale = isActive ? 1 : distance === 1 ? 0.85 : 0.7;
 
