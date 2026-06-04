@@ -27,8 +27,6 @@ const BlogResaleLicense = lazy(() => import("./pages/BlogResaleLicense"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SsoPreviewPage = lazy(() => import("./pages/SsoPreviewPage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
-const SchedulePage = lazy(() => import("./pages/SchedulePage"));
-const ScheduleConfirmedPage = lazy(() => import("./pages/ScheduleConfirmedPage"));
 
 const queryClient = new QueryClient();
 
@@ -119,22 +117,6 @@ const children: RouteObject[] = [
         element: (
           <Suspense fallback={<AuthBootFallback />}>
             <NotEligiblePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "schedule",
-        element: (
-          <Suspense fallback={<AuthBootFallback />}>
-            <SchedulePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "schedule/confirmed",
-        element: (
-          <Suspense fallback={<AuthBootFallback />}>
-            <ScheduleConfirmedPage />
           </Suspense>
         ),
       },
