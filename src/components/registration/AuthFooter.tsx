@@ -199,6 +199,17 @@ export function AuthFooter({
   }, [setFocus]);
 
   const handleContinue = useCallback(() => {
+    // Schedule-confirmed: button is "Go to shop" — close the iframe (Shopify
+    // embed) or navigate to the shop home.
+    if (isScheduleConfirmedStep) {
+      if (isInIframe) {
+        closeIframe("registration_complete");
+      } else {
+        window.location.href = "/";
+      }
+      return;
+    }
+
     if (continueBlocked) {
       // Disabled-but-clickable path: surface the popover and shake fields.
       const missing = popoverSteps.flatMap((s) => s.missingFields);
@@ -224,6 +235,9 @@ export function AuthFooter({
 
     goToNextStep();
   }, [
+    isScheduleConfirmedStep,
+    isInIframe,
+    closeIframe,
     continueBlocked,
     popoverSteps,
     shakeMissingFields,
