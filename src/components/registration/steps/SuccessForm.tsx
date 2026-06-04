@@ -17,6 +17,8 @@ import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
+import { prefetchStep } from "@/lib/step-prefetch";
+import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
 
 
 
