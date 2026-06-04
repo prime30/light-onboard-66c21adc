@@ -148,6 +148,38 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const handleWelcomeOfferToggle = async (next: boolean) => {
+    if (welcomeOffer === null) return;
+    const previous = welcomeOffer;
+    setWelcomeOffer(next);
+    setUpdatingWelcome(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, welcomeOfferEnabled: next },
+      });
+      if (error || !data?.success) {
+        setWelcomeOffer(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Welcome offer enabled" : "Welcome offer disabled",
+        description: next
+          ? "Success screen will show the 30% Color Ring discount."
+          : "Success screen will invite users to schedule a founder call instead.",
+      });
+    } catch (err) {
+      console.error(err);
+      setWelcomeOffer(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingWelcome(false);
+    }
+
   const addTag = (raw: string) => {
     const t = raw.trim().replace(/,/g, " ").slice(0, MAX_TAG_LENGTH);
     if (!t) return;
