@@ -483,18 +483,22 @@ export const SuccessForm = () => {
             </ul>
 
             <Button
-              asChild
+              type="button"
               size="sm"
+              onClick={() => {
+                const values = watch() as { firstName?: string; lastName?: string; email?: string };
+                navigate("/schedule", {
+                  state: {
+                    firstName: values?.firstName,
+                    lastName: values?.lastName,
+                    email: values?.email,
+                  },
+                });
+              }}
               className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl group"
             >
-              <a
-                href={FOUNDER_CALL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Schedule a founder call
-                <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
+              Schedule a founder call
+              <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Button>
           </div>
         </div>
