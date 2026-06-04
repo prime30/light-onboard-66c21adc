@@ -96,10 +96,26 @@ export async function bookSlot(input: {
 }
 
 function proxyErrorMessage(data: any, fallback: string): string {
-  if (typeof data?.error === "string") return data.error;
-  if (typeof data?.error?.message === "string") return data.error.message;
-  if (typeof data?.message === "string") return data.message;
-  return fallback;
+  const parts: string[] = [];
+  if (typeof data?.error === "string") parts.push(data.error);
+  else if (typeof data?.error?.message === "string") parts.push(data.error.message);
+  else if (typeof data?.message === "string") parts.push(data.message);
+
+  const detail =
+    typeof data?.error?.detail === "string"
+      ? data.error.detail
+      : typeof data?.detail === "string"
+        ? data.detail
+        : "";
+
+  // Friendlier hint for Calendly's opaque "parameters are invalid" — almost
+  // always a duplicate invitee (same email already booked on this event type).
+  if (/parameters are invalid/i.test(detail) || /parameters are invalid/i.test(parts[0] ?? "")) {
+    return "This time couldn't be booked. The slot may have just been taken, or this email already has a meeting scheduled. Try a different time or email.";
+  }
+
+  if (detail && !parts.includes(detail)) parts.push(detail);
+  return parts.join(" — ") || fallback;
 }
 
 function uuidv4(): string {
