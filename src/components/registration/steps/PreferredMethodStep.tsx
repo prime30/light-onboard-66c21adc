@@ -37,7 +37,7 @@ const METHOD_DETAILS: Record<
     ),
   },
   "Keratin Tips": {
-    tagline: "Pre-bonded",
+    tagline: "K-Tips",
     description: "Individual strands for fusion installs with maximum versatility.",
     image: keratinTipsImg,
     displayName: <>KERATIN TIPS</>,
