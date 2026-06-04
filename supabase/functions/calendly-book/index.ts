@@ -124,17 +124,24 @@ Deno.serve(async (req) => {
 
     if (!res.ok) {
       console.error("[calendly-book] /invitees failed", { status: res.status, data, payload });
-      return json(
-        {
-          error: {
-            code: "calendly_error",
-            message: data?.title ?? data?.message ?? `Calendly rejected the booking (${res.status})`,
-            status: res.status,
-            details: data,
-          },
+      // Extract first field-level detail (e.g. "invitee.email: disposable email")
+      const firstDetail = Array.isArray(data?.details) && data.details[0]
+        ? `${data.details[0].parameter ?? ""}: ${data.details[0].message ?? data.details[0].code ?? ""}`.trim().replace(/^:\s*/, "")
+        : null;
+      const message =
+        firstDetail ||
+        data?.message ||
+        data?.title ||
+        `Calendly rejected the booking (${res.status})`;
+      // Return 200 so the client can read the error body (invoke throws on non-2xx).
+      return json({
+        error: {
+          code: "calendly_error",
+          message,
+          status: res.status,
+          details: data,
         },
-        502,
-      );
+      });
     }
 
     // Normalise booking response — Calendly returns slightly different shapes
