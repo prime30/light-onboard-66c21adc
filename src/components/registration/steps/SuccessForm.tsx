@@ -306,7 +306,7 @@ export const SuccessForm = () => {
         /* Founder Call — personal invitation */
         <div id="success-offer-section" className="space-y-3">
 
-          <div className="relative rounded-form border border-border/60 bg-gradient-to-br from-background via-background to-muted/40 overflow-hidden text-left shadow-[0_1px_0_0_hsl(var(--foreground)/0.03),0_30px_60px_-30px_hsl(var(--foreground)/0.18)]">
+          <div className="relative rounded-form border border-border/60 bg-muted/30 overflow-hidden text-left">
             {/* soft prestige ring */}
             <div
               aria-hidden
@@ -318,9 +318,10 @@ export const SuccessForm = () => {
             />
 
             <div className="relative px-5 pt-6 pb-5">
-              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
                 A personal invitation
               </p>
+
 
               <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
                 Thirty minutes with the founder,{" "}
@@ -384,9 +385,10 @@ export const SuccessForm = () => {
                 />
               </Button>
 
-              <p className="mt-3 text-center text-[10px] font-termina font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
+              <p className="mt-3 text-center font-mono-eyebrow text-[10px] text-muted-foreground/80">
                 Reserved availability (4 slots left)
               </p>
+
             </div>
           </div>
         </div>
