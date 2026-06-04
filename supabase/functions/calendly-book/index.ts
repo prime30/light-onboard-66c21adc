@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
   const parsed = validate(body);
   if (!parsed.ok) return json({ error: { code: "bad_request", message: parsed.error } }, 400);
-  const { start_time, name, email, timezone } = parsed.value;
+  const { start_time, name, email, timezone, phone } = parsed.value;
 
   // Refuse past start_time early — Calendly will 422 with an opaque error.
   if (new Date(start_time).getTime() <= Date.now()) {
@@ -115,10 +115,15 @@ Deno.serve(async (req) => {
     );
   }
 
+  const invitee: Record<string, unknown> = { name, email, timezone };
+  // Calendly opts the invitee into SMS reminders when text_reminder_number is
+  // set (event type must have SMS reminders enabled in Calendly settings).
+  if (phone) invitee.text_reminder_number = phone;
+
   const payload: Record<string, unknown> = {
     event_type: eventTypeUri,
     start_time,
-    invitee: { name, email, timezone },
+    invitee,
   };
   if (location) payload.location = location;
 
