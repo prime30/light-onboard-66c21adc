@@ -300,13 +300,34 @@ export const SuccessForm = () => {
       </div>
 
       {/* Pro Member */}
-      <div className="p-5 rounded-[20px] bg-muted border border-border/50">
+      <div
+        className={cn(
+          "p-5 rounded-[20px] border",
+          autoApproved
+            ? "bg-success/10 border-success/30"
+            : "bg-muted border-border/50",
+        )}
+      >
         <div className="flex items-center gap-5">
-          <div className="w-[50px] h-[50px] rounded-form bg-foreground flex items-center justify-center">
-            <Sparkles className="w-[25px] h-[25px] text-background" />
+          <div
+            className={cn(
+              "w-[50px] h-[50px] rounded-form flex items-center justify-center",
+              autoApproved ? "bg-success" : "bg-foreground",
+            )}
+          >
+            {autoApproved ? (
+              <Check className="w-[25px] h-[25px] text-success-foreground" strokeWidth={2.5} />
+            ) : (
+              <Sparkles className="w-[25px] h-[25px] text-background" />
+            )}
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium text-foreground">
+            <p
+              className={cn(
+                "text-sm font-medium",
+                autoApproved ? "text-success" : "text-foreground",
+              )}
+            >
               {autoApproved ? "Pro account active" : "Pro Member"}
             </p>
             <p className="text-xs text-muted-foreground">
