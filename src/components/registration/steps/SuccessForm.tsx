@@ -16,7 +16,7 @@ import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 
-const FOUNDER_CALL_URL = "https://calendly.com/hello-dropdeadextensions/30min";
+
 
 
 type AtcStatus = "idle" | "submitting" | "success" | "error";
