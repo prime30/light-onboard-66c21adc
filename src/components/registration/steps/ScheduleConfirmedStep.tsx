@@ -60,7 +60,7 @@ export const ScheduleConfirmedStep = () => {
     {
       icon: Sparkles,
       title: "Samples in hand",
-      body: "He'll have product on the table — wefts, tape-ins, clip-ins — to walk through texture, weight, and finish.",
+      body: "He'll have product on the table — SuperWefts, Keratin Tips, Color Ring, and Tapes — to walk through texture, weight, and finish.",
     },
     {
       icon: ListChecks,
