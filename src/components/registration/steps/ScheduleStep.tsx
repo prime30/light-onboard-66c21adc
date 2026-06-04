@@ -382,6 +382,11 @@ export const ScheduleStep = () => {
             </div>
           </div>
 
+          {phoneError && (
+            <p className="text-xs text-destructive">
+              We can't text your reminder — {phoneError.toLowerCase()}. Update your phone number on the contact step.
+            </p>
+          )}
           {bookError && <p className="text-xs text-destructive">{bookError}</p>}
 
           <Button
