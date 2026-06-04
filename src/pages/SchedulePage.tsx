@@ -196,13 +196,10 @@ export default function SchedulePage() {
           <Stepper step={step} />
         </div>
 
-        {!useNativeProxy ? (
-          <CalendlyFallback />
-        ) : null}
-
-        {/* Step content */}
-        {useNativeProxy &&
-        {step === "date" && (
+        {useNativeProxy ? (
+          <>
+            {/* Step content */}
+            {step === "date" && (
           <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">Pick a date</p>
@@ -260,9 +257,9 @@ export default function SchedulePage() {
             {windowError && <p className="text-xs text-destructive text-center">{windowError}</p>}
             <p className="text-[11px] text-muted-foreground text-center">Times shown in {userTimezone}</p>
           </div>
-        )}
+            )}
 
-        {step === "time" && selectedDate && (
+            {step === "time" && selectedDate && (
           <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
             <div className="flex items-center justify-between">
               <div>
@@ -304,9 +301,9 @@ export default function SchedulePage() {
               </div>
             )}
           </div>
-        )}
+            )}
 
-        {step === "confirm" && selectedSlot && (
+            {step === "confirm" && selectedSlot && (
           <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
             <div className="flex items-start gap-3 pb-5 border-b border-border">
               <div className="w-10 h-10 rounded-form bg-muted flex items-center justify-center shrink-0">
@@ -375,6 +372,10 @@ export default function SchedulePage() {
               )}
             </Button>
           </div>
+            )}
+          </>
+        ) : (
+          <CalendlyFallback />
         )}
       </div>
     </div>
