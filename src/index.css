@@ -82,6 +82,21 @@
   line-gap-override: 0%;
 }
 
+@font-face {
+  font-family: "Canela";
+  src: url("/__l5e/assets-v1/fcef6c21-a569-4b96-8829-582b906850df/Canela-LightItalic-Web.woff2") format("woff2"),
+       url("/__l5e/assets-v1/ff23d0c2-1565-4db1-b85b-5ace586644d0/Canela-LightItalic-Web.woff") format("woff");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+.font-accent {
+  font-family: "Canela", "Die Grotesk B", serif;
+  font-style: italic;
+  font-weight: 300;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
