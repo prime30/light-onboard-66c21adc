@@ -513,7 +513,6 @@ export const SuccessForm = () => {
               className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl group"
             >
               Schedule a founder call
-              <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Button>
           </div>
         </div>
