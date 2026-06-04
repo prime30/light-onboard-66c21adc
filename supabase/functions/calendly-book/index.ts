@@ -36,13 +36,18 @@ function validate(input: any): { ok: true; value: BookInput } | { ok: false; err
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return { ok: false, error: "valid email required" };
   if (typeof timezone !== "string" || timezone.length < 1) return { ok: false, error: "timezone required" };
+  // Strict E.164 validation: leading "+", 1-3 digit country code, total 8-15
+  // digits. Reject anything malformed so Calendly never receives garbage.
   let normalizedPhone: string | undefined;
   if (phone !== undefined && phone !== null && phone !== "") {
-    if (typeof phone !== "string") return { ok: false, error: "phone must be string" };
-    // Normalise to E.164-ish: keep leading + and digits.
+    if (typeof phone !== "string") return { ok: false, error: "phone must be a string" };
     const trimmed = phone.trim();
-    const e164 = trimmed.startsWith("+") ? "+" + trimmed.slice(1).replace(/\D/g, "") : trimmed.replace(/\D/g, "");
-    if (e164.replace(/\D/g, "").length >= 7) normalizedPhone = e164;
+    if (!trimmed.startsWith("+"))
+      return { ok: false, error: "phone must be E.164 (start with +country code)" };
+    const e164 = "+" + trimmed.slice(1).replace(/\D/g, "");
+    if (!/^\+[1-9]\d{7,14}$/.test(e164))
+      return { ok: false, error: "phone is not a valid E.164 number" };
+    normalizedPhone = e164;
   }
   return {
     ok: true,

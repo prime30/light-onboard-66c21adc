@@ -11,7 +11,7 @@ import {
   fetchSlots,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
-import { countryCodes } from "@/data/country-codes";
+import { toE164 } from "@/lib/phone-e164";
 import { useStepContext, useForm } from "@/components/registration/context";
 
 type SubStep = "date" | "time" | "confirm";
@@ -46,15 +46,12 @@ export const ScheduleStep = () => {
     phoneCountryCode?: string;
   };
 
-  // Convert form phone (national digits + country iso) into E.164 for Calendly.
-  const formPhoneE164 = (() => {
-    const raw = (values?.phoneNumber ?? "").replace(/\D/g, "");
-    if (!raw) return undefined;
-    const iso = values?.phoneCountryCode;
-    const dial = countryCodes.find((c) => c.iso === iso)?.code; // e.g. "+1"
-    if (!dial) return raw.length >= 7 ? `+${raw}` : undefined;
-    return `${dial}${raw}`;
-  })();
+  // Convert form phone (national digits + country iso) into strict E.164 for
+  // Calendly. We surface the failure reason inline so users can fix it before
+  // booking instead of getting an opaque Calendly rejection.
+  const phoneResult = toE164(values?.phoneNumber, values?.phoneCountryCode);
+  const formPhoneE164 = phoneResult.ok ? phoneResult.value : undefined;
+  const phoneError: string | null = phoneResult.ok === false ? phoneResult.reason : null;
 
   const [subStep, setSubStep] = useState<SubStep>("date");
   const [slotsByDay, setSlotsByDay] = useState<Record<string, ProxySlot[]>>({});
@@ -141,7 +138,8 @@ export const ScheduleStep = () => {
     !!selectedSlot &&
     firstName.trim().length >= 1 &&
     lastName.trim().length >= 1 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    !phoneError;
 
   const handleBook = useCallback(async () => {
     if (!canBook || !selectedSlot) return;
@@ -383,6 +381,11 @@ export const ScheduleStep = () => {
             </div>
           </div>
 
+          {phoneError && (
+            <p className="text-xs text-destructive">
+              We can't text your reminder — {phoneError.toLowerCase()}. Update your phone number on the contact step.
+            </p>
+          )}
           {bookError && <p className="text-xs text-destructive">{bookError}</p>}
 
           <Button
