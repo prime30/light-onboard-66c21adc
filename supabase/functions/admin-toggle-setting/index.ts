@@ -12,6 +12,7 @@ interface RequestBody {
   email?: string;
   password?: string;
   autoApprovalEnabled?: boolean;
+  welcomeOfferEnabled?: boolean;
   extraCustomerTags?: string[];
 }
 
