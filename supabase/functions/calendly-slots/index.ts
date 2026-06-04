@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
   const cUrl = new URL(`${CALENDLY_API}/event_type_available_times`);
   cUrl.searchParams.set("event_type", eventTypeUri);
-  cUrl.searchParams.set("start_time", startTime);
+  cUrl.searchParams.set("start_time", startTime.toISOString());
   cUrl.searchParams.set("end_time", endTime);
 
   try {
