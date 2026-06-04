@@ -19,6 +19,8 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
+
 
 type FormState =
   | "form"
@@ -113,6 +115,8 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       // call from registration. Failures never block the success screen.
       (async () => {
         try {
+          const welcomeEnabled = await fetchWelcomeOfferEnabled();
+          if (!welcomeEnabled) return;
           const shopifyCustomerId =
             (payload as { shopifyCustomerId?: number | null } | undefined)?.shopifyCustomerId ?? null;
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;

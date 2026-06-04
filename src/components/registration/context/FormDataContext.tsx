@@ -27,6 +27,8 @@ import { setPendingLogin } from "@/lib/pending-login";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
+import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
+
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
 
@@ -217,6 +219,8 @@ export function FormDataProvider({
       // Failures here do not block the success screen.
       (async () => {
         try {
+          const welcomeEnabled = await fetchWelcomeOfferEnabled();
+          if (!welcomeEnabled) return;
           const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
           // Pull the freshly-created Shopify customer ID out of create-customer's
           // response so generate-discount can write metafields by GID directly,

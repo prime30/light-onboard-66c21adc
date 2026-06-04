@@ -21,6 +21,8 @@ const AdminSettingsPage = () => {
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
   const [loadingSetting, setLoadingSetting] = useState(true);
+  const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
+  const [updatingWelcome, setUpdatingWelcome] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -66,6 +68,12 @@ const AdminSettingsPage = () => {
       setAutoApproval((data as boolean | null) ?? false);
       setLoadingSetting(false);
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.rpc as any)("get_welcome_offer_enabled").then(({ data, error }: { data: unknown; error: unknown }) => {
+      if (cancelled) return;
+      if (error) console.error("Failed to load welcome_offer flag:", error);
+      setWelcomeOffer((data as boolean | null) ?? false);
+    });
     return () => {
       cancelled = true;
     };
@@ -89,9 +97,12 @@ const AdminSettingsPage = () => {
       }
       setAuthed(true);
       setAdminMode(true);
-      // Hydrate tags from verify response if present
+      // Hydrate tags + welcome offer from verify response if present
       const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
       setExtraTags(Array.isArray(tags) ? tags : []);
+      if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
+        setWelcomeOffer(data.setting.welcome_offer_enabled);
+      }
     } catch (err) {
       console.error(err);
       toast({
@@ -136,6 +147,41 @@ const AdminSettingsPage = () => {
       setUpdating(false);
     }
   };
+
+  const handleWelcomeOfferToggle = async (next: boolean) => {
+    if (welcomeOffer === null) return;
+    const previous = welcomeOffer;
+    setWelcomeOffer(next);
+    setUpdatingWelcome(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, welcomeOfferEnabled: next },
+      });
+      if (error || !data?.success) {
+        setWelcomeOffer(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Welcome offer enabled" : "Welcome offer disabled",
+        description: next
+          ? "Success screen will show the 30% Color Ring discount."
+          : "Success screen will invite users to schedule a founder call instead.",
+      });
+    } catch (err) {
+      console.error(err);
+      setWelcomeOffer(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingWelcome(false);
+    }
+  };
+
+
 
   const addTag = (raw: string) => {
     const t = raw.trim().replace(/,/g, " ").slice(0, MAX_TAG_LENGTH);
@@ -408,6 +454,45 @@ const AdminSettingsPage = () => {
             </div>
           )}
         </div>
+
+        {/* Welcome offer (30% Color Ring) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Color Ring welcome offer
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, the success screen shows the 30% off Color Ring discount.
+                When disabled, users are invited to schedule a founder call with Eric instead.
+              </p>
+            </div>
+            {welcomeOffer === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={welcomeOffer}
+                onCheckedChange={handleWelcomeOfferToggle}
+                disabled={updatingWelcome}
+                aria-label="Toggle welcome offer"
+              />
+            )}
+          </div>
+          {welcomeOffer !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  welcomeOffer ? "text-status-green font-medium" : "font-medium text-foreground"
+                }
+              >
+                {welcomeOffer ? "Discount ON" : "Founder call CTA"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
 
         {/* Extra customer tags */}
         <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">

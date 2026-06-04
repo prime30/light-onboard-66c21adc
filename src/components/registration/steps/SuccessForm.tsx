@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
-import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag } from "lucide-react";
+import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -12,7 +12,10 @@ import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
+
+const FOUNDER_CALL_URL = "https://calendly.com/hello-dropdeadextensions/30min";
+
 
 type AtcStatus = "idle" | "submitting" | "success" | "error";
 type AtcState = {
@@ -78,8 +81,10 @@ function atcReducer(state: AtcState, action: AtcAction): AtcState {
 export const SuccessForm = () => {
   const { discountCode, discountExpiry } = useFormData();
   const { enabled: autoApproved } = useAutoApproval();
+  const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { watch } = useForm();
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
+
 
   // Use real server expiry if available, otherwise count down 48h from mount
   const countdown = useCountdown(discountExpiry ?? 48);
@@ -310,125 +315,189 @@ export const SuccessForm = () => {
         </div>
       </div>
 
-      {/* First Purchase Upsell */}
-      <div id="success-offer-section" className="space-y-3">
-        {/* Title and Timer */}
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-foreground">
-            {autoApproved ? "Your welcome offer" : "Offer while you wait"}
-          </p>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
-            <div className="flex items-center gap-1 text-[11px] text-accent-red font-semibold tabular-nums">
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
-                {formatNumber(countdown.hours)}h
-              </span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
-                {formatNumber(countdown.minutes)}m
-              </span>
-              <span>:</span>
-              <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
-                {formatNumber(countdown.seconds)}s
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Card */}
-        <div className="p-5 rounded-lg bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-accent-red text-background text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
-            30% OFF
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
-              <img
-                src={colorRingProduct}
-                alt="Color Ring Product"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="text-left flex-1 min-w-0">
-              <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
-                Recommended for you
-              </p>
-              <p className="text-sm font-semibold text-foreground">Color Ring</p>
-              <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                Perfect for matching colors with clients
-              </p>
-            </div>
-          </div>
-
-          {/* Discount Code */}
-          {discountCode ? (
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              style={{ touchAction: "manipulation" }}
-              className="w-full mt-4 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors group"
-              aria-label="Copy discount code"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
-                <span className="text-sm font-mono font-semibold text-accent-red tracking-wider truncate">
-                  {discountCode}
+      {welcomeOfferEnabled ? (
+        /* First Purchase Upsell — Color Ring discount */
+        <div id="success-offer-section" className="space-y-3">
+          {/* Title and Timer */}
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground">
+              {autoApproved ? "Your welcome offer" : "Offer while you wait"}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-accent-red animate-pulse" />
+              <div className="flex items-center gap-1 text-[11px] text-accent-red font-semibold tabular-nums">
+                <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
+                  {formatNumber(countdown.hours)}h
+                </span>
+                <span>:</span>
+                <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
+                  {formatNumber(countdown.minutes)}m
+                </span>
+                <span>:</span>
+                <span className="bg-accent-red/10 px-1.5 py-0.5 rounded">
+                  {formatNumber(countdown.seconds)}s
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
-                {copied ? (
-                  <>
-                    <CheckCheck className="w-3.5 h-3.5 text-status-green" />
-                    <span className="text-status-green">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </div>
-            </button>
-          ) : (
-            <div className="w-full mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border/50 bg-muted/50">
-              <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <div className="h-3 w-32 bg-muted-foreground/20 rounded animate-pulse" />
             </div>
-          )}
+          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAddToCart}
-            disabled={isAddingToCart || atcSuccess}
-            className="w-full mt-3 h-11 min-h-11 touch-manipulation rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
-          >
-            {isAddingToCart ? (
-              <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" />
-            ) : atcSuccess ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Added to Cart
-              </>
+          {/* Product Card */}
+          <div className="p-5 rounded-lg bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 border border-accent-red/20 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-accent-red text-background text-[10px] font-semibold px-3 py-1 rounded-bl-xl">
+              30% OFF
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0">
+                <img
+                  src={colorRingProduct}
+                  alt="Color Ring Product"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider mb-0.5">
+                  Recommended for you
+                </p>
+                <p className="text-sm font-semibold text-foreground">Color Ring</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  Perfect for matching colors with clients
+                </p>
+              </div>
+            </div>
+
+            {/* Discount Code */}
+            {discountCode ? (
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                style={{ touchAction: "manipulation" }}
+                className="w-full mt-4 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors group"
+                aria-label="Copy discount code"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                  <span className="text-sm font-mono font-semibold text-accent-red tracking-wider truncate">
+                    {discountCode}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                  {copied ? (
+                    <>
+                      <CheckCheck className="w-3.5 h-3.5 text-status-green" />
+                      <span className="text-status-green">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </div>
+              </button>
             ) : (
-              <>
-                <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
-                Add to Cart
-              </>
+              <div className="w-full mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border/50 bg-muted/50">
+                <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <div className="h-3 w-32 bg-muted-foreground/20 rounded animate-pulse" />
+              </div>
             )}
-          </Button>
-          {statusMessage && (
-            <p
-              className={
-                activeStatus?.status === "error"
-                  ? "mt-2 text-xs text-destructive"
-                  : "mt-2 text-xs text-status-green"
-              }
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || atcSuccess}
+              className="w-full mt-3 h-11 min-h-11 touch-manipulation rounded-xl border-accent-red/30 text-accent-red hover:bg-accent-red/10 hover:text-accent-red group disabled:opacity-100"
             >
-              {statusMessage}
-            </p>
-          )}
+              {isAddingToCart ? (
+                <div className="w-4 h-4 border-2 border-accent-red/30 border-t-accent-red rounded-full animate-spin" />
+              ) : atcSuccess ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Added to Cart
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-100 group-hover:mr-2 transition-all duration-200" />
+                  Add to Cart
+                </>
+              )}
+            </Button>
+            {statusMessage && (
+              <p
+                className={
+                  activeStatus?.status === "error"
+                    ? "mt-2 text-xs text-destructive"
+                    : "mt-2 text-xs text-status-green"
+                }
+              >
+                {statusMessage}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Founder Call invite */
+        <div id="success-offer-section" className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground">Recommended next step</p>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              30 min · free
+            </span>
+          </div>
+
+          <div className="p-5 rounded-lg bg-gradient-to-br from-muted/60 via-muted/30 to-accent/10 border border-border/60 relative overflow-hidden text-left">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-form bg-foreground flex items-center justify-center shrink-0">
+                <Calendar className="w-6 h-6 text-background" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                  Founder call with Eric
+                </p>
+                <p className="text-sm font-semibold text-foreground">
+                  Meet the team and the hair
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  30 minutes with Drop Dead's co-founder. Samples shown, product
+                  explained, questions answered — the fastest way to know if our line
+                  fits your business.
+                </p>
+              </div>
+            </div>
+
+            <ul className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
+              {[
+                "Pro benefits",
+                "Live product walkthrough",
+                "Ethical standards",
+                "Pricing",
+                "Replacement & troubleshooting",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-1.5">
+                  <Check className="w-3 h-3 text-foreground shrink-0" />
+                  <span className="truncate">{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              asChild
+              size="sm"
+              className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl group"
+            >
+              <a
+                href={FOUNDER_CALL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Schedule a founder call
+                <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
