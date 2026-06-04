@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Calendar, Check, Mail, RotateCcw, X } from "lucide-react";
+import { Calendar, Check, Mail, Sparkles, MessageCircle, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStepContext } from "@/components/registration/context";
+import { useCloseIframe } from "@/hooks/messages";
 
 type Booking = {
   start_time?: string;
@@ -16,6 +17,7 @@ type Booking = {
 
 export const ScheduleConfirmedStep = () => {
   const { setCurrentStep } = useStepContext();
+  const { closeIframe, isInIframe } = useCloseIframe();
   const [booking, setBooking] = useState<Booking>({});
 
   useEffect(() => {
@@ -41,12 +43,38 @@ export const ScheduleConfirmedStep = () => {
     };
   }, [booking.start_time]);
 
+  const handleGoToShop = () => {
+    if (isInIframe) {
+      closeIframe("registration_complete");
+    } else {
+      window.location.href = "/";
+    }
+  };
+
+  const expectItems = [
+    {
+      icon: MessageCircle,
+      title: "A real conversation",
+      body: "No pitch deck. Eric will ask what you're working on and answer whatever's on your mind.",
+    },
+    {
+      icon: Sparkles,
+      title: "Samples in hand",
+      body: "He'll have product on the table — wefts, tape-ins, clip-ins — to walk through texture, weight, and finish.",
+    },
+    {
+      icon: ListChecks,
+      title: "Come with questions",
+      body: "Pricing, application, replacements, troubleshooting — jot down anything you want covered.",
+    },
+  ];
+
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
       <div className="space-y-[clamp(5px,1vh,10px)] animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <Check className="w-3 h-3 text-success" strokeWidth={3} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+          <span className="font-mono-eyebrow text-[10px] text-muted-foreground">
             Booking confirmed
           </span>
         </div>
@@ -90,27 +118,37 @@ export const ScheduleConfirmedStep = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-stagger-3">
-        {booking.reschedule_url && (
-          <Button asChild variant="outline" className="h-11 rounded-form">
-            <a href={booking.reschedule_url} target="_blank" rel="noopener noreferrer">
-              <RotateCcw className="w-4 h-4" /> Reschedule
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
-            </a>
-          </Button>
-        )}
-        {booking.cancel_url && (
-          <Button asChild variant="outline" className="h-11 rounded-form">
-            <a href={booking.cancel_url} target="_blank" rel="noopener noreferrer">
-              <X className="w-4 h-4" /> Cancel
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
-            </a>
-          </Button>
-        )}
+      {/* What to expect & how to prepare */}
+      <div className="rounded-form border border-border bg-muted/30 p-5 md:p-[30px] text-left space-y-5 animate-stagger-3">
+        <div className="space-y-1">
+          <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
+            What to expect
+          </p>
+          <h2 className="text-base md:text-lg font-medium text-foreground tracking-[-0.01em]">
+            How to prepare for your call
+          </h2>
+        </div>
+        <ul className="space-y-[15px]">
+          {expectItems.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-form bg-background border border-border/60 flex items-center justify-center shrink-0">
+                <Icon className="w-4 h-4 text-foreground" strokeWidth={1.75} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground leading-tight">{title}</p>
+                <p className="text-[12px] text-muted-foreground leading-relaxed mt-1">{body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <Button variant="ghost" className="text-xs" onClick={() => setCurrentStep("success")}>
-        Done
+      <Button
+        type="button"
+        onClick={handleGoToShop}
+        className="w-full h-12 min-h-12 rounded-form animate-stagger-3"
+      >
+        Go to shop
       </Button>
     </div>
   );
