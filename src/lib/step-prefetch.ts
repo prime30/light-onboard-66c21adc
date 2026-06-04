@@ -58,6 +58,8 @@ const STEP_IMPORTS: Partial<Record<Step, () => Promise<unknown>>> = {
   "summary":            () => import("@/components/registration/steps/SummaryForm"),
   "assessing":          () => import("@/components/registration/steps/AssessingStep"),
   "success":            () => import("@/components/registration/steps/SuccessForm"),
+  "schedule":           () => import("@/components/registration/steps/ScheduleStep"),
+  "schedule-confirmed": () => import("@/components/registration/steps/ScheduleConfirmedStep"),
 };
 
 /** Fire-and-forget import for a single step. Safe to call multiple times. */
