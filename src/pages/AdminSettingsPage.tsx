@@ -455,6 +455,45 @@ const AdminSettingsPage = () => {
           )}
         </div>
 
+        {/* Welcome offer (30% Color Ring) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Color Ring welcome offer
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, the success screen shows the 30% off Color Ring discount.
+                When disabled, users are invited to schedule a founder call with Eric instead.
+              </p>
+            </div>
+            {welcomeOffer === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={welcomeOffer}
+                onCheckedChange={handleWelcomeOfferToggle}
+                disabled={updatingWelcome}
+                aria-label="Toggle welcome offer"
+              />
+            )}
+          </div>
+          {welcomeOffer !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  welcomeOffer ? "text-status-green font-medium" : "font-medium text-foreground"
+                }
+              >
+                {welcomeOffer ? "Discount ON" : "Founder call CTA"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+
         {/* Extra customer tags */}
         <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
           <div className="flex items-start gap-3">
