@@ -84,8 +84,8 @@
 
 @font-face {
   font-family: "Canela";
-  src: url("/__l5e/assets-v1/fcef6c21-a569-4b96-8829-582b906850df/Canela-LightItalic-Web.woff2") format("woff2"),
-       url("/__l5e/assets-v1/ff23d0c2-1565-4db1-b85b-5ace586644d0/Canela-LightItalic-Web.woff") format("woff");
+  src: url("/fonts/canela-lightitalic-web.woff2") format("woff2"),
+       url("/fonts/canela-lightitalic-web.woff") format("woff");
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -93,8 +93,8 @@
 
 @font-face {
   font-family: "Aeonik Fono";
-  src: url("/__l5e/assets-v1/2d9b5f9b-7798-4309-9f17-4ec88fa2532c/AeonikFonoPro-Medium.woff2") format("woff2"),
-       url("/__l5e/assets-v1/9d4afeca-a039-4bdf-9418-b94bdfd48145/AeonikFonoPro-Medium.woff") format("woff");
+  src: url("/fonts/aeonikfonopro-medium.woff2") format("woff2"),
+       url("/fonts/aeonikfonopro-medium.woff") format("woff");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
