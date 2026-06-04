@@ -7,12 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
-  CALENDLY_EMBED_URL,
-  CALENDLY_PUBLIC_URL,
   FOUNDER_CALL,
   bookSlot,
   fetchSlots,
-  shouldUseNativeCalendlyProxy,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
 
@@ -41,9 +38,6 @@ export default function SchedulePage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { firstName?: string; lastName?: string; email?: string } };
   const prefill = location.state ?? {};
-  const canUseNativeProxy = shouldUseNativeCalendlyProxy();
-  const [forceFallback, setForceFallback] = useState(false);
-  const useNativeProxy = canUseNativeProxy && !forceFallback;
 
   const [step, setStep] = useState<Step>("date");
 
@@ -64,7 +58,6 @@ export default function SchedulePage() {
   // Proxy /slots accepts windows up to 7 days, dates in UTC YYYY-MM-DD.
   const fetchedWindows = useRef<Set<string>>(new Set());
   const fetchWindow = useCallback(async (start: Date) => {
-    if (!useNativeProxy) return;
     const startKey = toYmdUtc(start);
     if (fetchedWindows.current.has(startKey)) return;
     fetchedWindows.current.add(startKey);
@@ -91,11 +84,10 @@ export default function SchedulePage() {
     } catch (err) {
       fetchedWindows.current.delete(startKey);
       setWindowError(err instanceof Error ? err.message : "Couldn't load availability.");
-      setForceFallback(true);
     } finally {
       setLoadingWindow(false);
     }
-  }, [useNativeProxy]);
+  }, []);
 
   useEffect(() => {
     fetchWindow(windowStart);
