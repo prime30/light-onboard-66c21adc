@@ -500,8 +500,7 @@ export const SuccessForm = () => {
               </p>
 
               <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
-                Thirty minutes with the founder,
-                <br />
+                Thirty minutes with the founder,{" "}
                 <span className="font-accent text-[26px] leading-[1.05]">just for you.</span>
               </h3>
 
