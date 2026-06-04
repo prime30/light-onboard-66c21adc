@@ -11,6 +11,7 @@ import {
   fetchSlots,
   type ProxySlot,
 } from "@/lib/calendly-proxy";
+import { countryCodes } from "@/data/country-codes";
 import { useStepContext, useForm } from "@/components/registration/context";
 
 type SubStep = "date" | "time" | "confirm";
