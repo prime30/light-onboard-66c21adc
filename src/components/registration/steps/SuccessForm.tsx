@@ -462,61 +462,114 @@ export const SuccessForm = () => {
           </div>
         </div>
       ) : (
-        /* Founder Call invite */
+        /* Founder Call — personal invitation */
         <div id="success-offer-section" className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium text-foreground">Recommended next step</p>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              30 min · free
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-status-green opacity-60 animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-green" />
+              </span>
+              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Booking this week
+              </p>
+            </div>
+            <span className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              4 slots left
             </span>
           </div>
 
-          <div className="p-5 rounded-lg bg-gradient-to-br from-muted/60 via-muted/30 to-accent/10 border border-border/60 relative overflow-hidden text-left">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-form bg-foreground flex items-center justify-center shrink-0">
-                <Calendar className="w-6 h-6 text-background" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                  Founder call with Eric
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  Meet the team and the hair
-                </p>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                  30 minutes with Drop Dead's co-founder. Samples shown, product
-                  explained, questions answered — the fastest way to know if our line
-                  fits your business.
-                </p>
-              </div>
+          <div className="relative rounded-form border border-border/60 bg-gradient-to-br from-background via-background to-muted/40 overflow-hidden text-left shadow-[0_1px_0_0_hsl(var(--foreground)/0.03),0_30px_60px_-30px_hsl(var(--foreground)/0.18)]">
+            {/* soft prestige ring */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-px rounded-form opacity-60"
+              style={{
+                background:
+                  "radial-gradient(120% 60% at 50% 0%, hsl(var(--foreground)/0.05), transparent 60%)",
+              }}
+            />
+            {/* corner ornament */}
+            <div className="absolute top-4 right-4 text-[9px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
+              N° 001
             </div>
 
-            <ul className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
-              {[
-                "Pro benefits",
-                "Live product walkthrough",
-                "Ethical standards",
-                "Pricing",
-                "Replacement & troubleshooting",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-foreground shrink-0" />
-                  <span className="truncate">{item}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="relative px-5 pt-6 pb-5">
+              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                A personal invitation
+              </p>
 
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => setCurrentStep("schedule")}
-              className="w-full mt-4 h-11 min-h-11 touch-manipulation rounded-xl group"
-            >
-              Schedule a founder call
-            </Button>
+              <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
+                Thirty minutes with the founder,
+                <br />
+                <span className="italic font-normal">just for you.</span>
+              </h3>
+
+              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed max-w-[38ch]">
+                Eric, our co-founder, sets aside a handful of slots each week
+                for new pros. Samples in hand, no script — your questions, his
+                answers.
+              </p>
+
+              {/* Eric — signature row */}
+              <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
+                <div className="relative w-11 h-11 rounded-full bg-foreground text-background flex items-center justify-center shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
+                  <span className="text-[13px] font-termina font-medium tracking-wider">
+                    EM
+                  </span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-green border-2 border-background" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium text-foreground leading-tight">
+                    Eric — co-founder
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                    30 min · video call · complimentary
+                  </p>
+                </div>
+              </div>
+
+              {/* what's covered — refined inline list */}
+              <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-2 text-[11px] text-foreground/80">
+                {[
+                  "Pro benefits",
+                  "Product walkthrough",
+                  "Ethical standards",
+                  "Pricing",
+                  "Replacement & troubleshooting",
+                ].map((item, i) => (
+                  <li key={item} className="flex items-center gap-3">
+                    {i > 0 && (
+                      <span className="w-0.5 h-0.5 rounded-full bg-foreground/30" />
+                    )}
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                type="button"
+                onClick={() => setCurrentStep("schedule")}
+                className="w-full mt-6 h-12 min-h-12 touch-manipulation rounded-form group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  Accept the invitation
+                  <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-background/15 to-transparent"
+                />
+              </Button>
+
+              <p className="mt-3 text-center text-[10px] font-termina font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
+                Reserved for verified pros
+              </p>
+            </div>
           </div>
         </div>
       )}
+
 
     </div>
   );
