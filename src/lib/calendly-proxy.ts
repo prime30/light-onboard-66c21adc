@@ -72,6 +72,8 @@ export async function bookSlot(input: {
   name: string;
   email: string;
   timezone: string;
+  /** E.164 phone, e.g. "+15551234567". Forwarded as Calendly text_reminder_number. */
+  phone?: string;
 }): Promise<BookingResult> {
   const { data, error } = await supabase.functions.invoke("calendly-book", {
     method: "POST",
