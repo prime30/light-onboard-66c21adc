@@ -154,6 +154,7 @@ export const ScheduleStep = () => {
         name,
         email: email.trim().toLowerCase(),
         timezone: userTimezone,
+        phone: formPhoneE164,
       });
       try {
         sessionStorage.setItem(
