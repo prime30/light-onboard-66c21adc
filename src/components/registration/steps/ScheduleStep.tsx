@@ -190,7 +190,16 @@ export const ScheduleStep = () => {
             {FOUNDER_CALL.locationLabel}
           </span>
         </div>
-        {subStep !== "date" && (
+        {subStep === "date" ? (
+          <button
+            type="button"
+            onClick={() => setCurrentStep("success")}
+            className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors pt-2.5"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Back to summary
+          </button>
+        ) : (
           <button
             type="button"
             onClick={() => setSubStep(subStep === "confirm" ? "time" : "date")}
