@@ -22,6 +22,7 @@ export type Database = {
           singleton: boolean
           updated_at: string
           updated_by: string | null
+          welcome_offer_enabled: boolean
         }
         Insert: {
           auto_approval_enabled?: boolean
@@ -30,6 +31,7 @@ export type Database = {
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
+          welcome_offer_enabled?: boolean
         }
         Update: {
           auto_approval_enabled?: boolean
@@ -38,6 +40,7 @@ export type Database = {
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
+          welcome_offer_enabled?: boolean
         }
         Relationships: []
       }
@@ -243,6 +246,7 @@ export type Database = {
     Functions: {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
       get_extra_customer_tags: { Args: never; Returns: string[] }
+      get_welcome_offer_enabled: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
