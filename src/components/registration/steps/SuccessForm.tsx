@@ -81,8 +81,10 @@ function atcReducer(state: AtcState, action: AtcAction): AtcState {
 export const SuccessForm = () => {
   const { discountCode, discountExpiry } = useFormData();
   const { enabled: autoApproved } = useAutoApproval();
+  const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { watch } = useForm();
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
+
 
   // Use real server expiry if available, otherwise count down 48h from mount
   const countdown = useCountdown(discountExpiry ?? 48);
