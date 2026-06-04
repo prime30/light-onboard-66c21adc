@@ -9,6 +9,7 @@ import {
   useIframeCartBridge,
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
+import ericAvatar from "@/assets/eric-avatar.png.asset.json";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
@@ -508,10 +509,12 @@ export const SuccessForm = () => {
 
               {/* Eric — signature row */}
               <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
-                <div className="relative w-11 h-11 rounded-full bg-foreground text-background flex items-center justify-center shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
-                  <span className="text-[13px] font-termina font-medium tracking-wider">
-                    EM
-                  </span>
+                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
+                  <img
+                    src={ericAvatar.url}
+                    alt="Eric, co-founder"
+                    className="w-full h-full object-cover"
+                  />
                   <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-green border-2 border-background" />
                 </div>
                 <div className="min-w-0">
