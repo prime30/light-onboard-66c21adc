@@ -179,6 +179,9 @@ const AdminSettingsPage = () => {
     } finally {
       setUpdatingWelcome(false);
     }
+  };
+
+
 
   const addTag = (raw: string) => {
     const t = raw.trim().replace(/,/g, " ").slice(0, MAX_TAG_LENGTH);
