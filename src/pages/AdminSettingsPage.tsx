@@ -68,6 +68,12 @@ const AdminSettingsPage = () => {
       setAutoApproval((data as boolean | null) ?? false);
       setLoadingSetting(false);
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.rpc as any)("get_welcome_offer_enabled").then(({ data, error }: { data: unknown; error: unknown }) => {
+      if (cancelled) return;
+      if (error) console.error("Failed to load welcome_offer flag:", error);
+      setWelcomeOffer((data as boolean | null) ?? false);
+    });
     return () => {
       cancelled = true;
     };
