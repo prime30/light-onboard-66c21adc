@@ -528,19 +528,19 @@ export const SuccessForm = () => {
               </div>
 
               {/* what's covered — refined inline list */}
-              <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-2 text-[11px] text-foreground/80">
+              <ul className="mt-5 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
                 {[
                   "Pro benefits",
                   "Product walkthrough",
                   "Ethical standards",
                   "Pricing",
                   "Replacement & troubleshooting",
-                ].map((item, i) => (
-                  <li key={item} className="flex items-center gap-3">
-                    {i > 0 && (
-                      <span className="w-0.5 h-0.5 rounded-full bg-foreground/30" />
-                    )}
-                    <span>{item}</span>
+                ].map((item) => (
+                  <li
+                    key={item}
+                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
+                  >
+                    {item}
                   </li>
                 ))}
               </ul>
