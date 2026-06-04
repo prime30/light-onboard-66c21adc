@@ -318,9 +318,10 @@ export const SuccessForm = () => {
             />
 
             <div className="relative px-5 pt-6 pb-5">
-              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
                 A personal invitation
               </p>
+
 
               <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
                 Thirty minutes with the founder,{" "}
