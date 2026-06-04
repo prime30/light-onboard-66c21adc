@@ -104,7 +104,11 @@ const Auth = () => {
   const [footerEnterReady, setFooterEnterReady] = useState(false);
   const footerVisible =
     mode === "signin" ||
-    (mode === "signup" && currentStep !== "success" && currentStep !== "assessing");
+    (mode === "signup" &&
+      currentStep !== "success" &&
+      currentStep !== "assessing" &&
+      currentStep !== "schedule" &&
+      currentStep !== "schedule-confirmed");
   useEffect(() => {
     if (!footerVisible) {
       setFooterEnterReady(false);

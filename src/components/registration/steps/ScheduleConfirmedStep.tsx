@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Check, Mail, Sparkles, MessageCircle, ListChecks } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCloseIframe } from "@/hooks/messages";
 
 type Booking = {
   start_time?: string;
@@ -13,6 +15,7 @@ type Booking = {
 };
 
 export const ScheduleConfirmedStep = () => {
+  const { closeIframe, isInIframe } = useCloseIframe();
   const [booking, setBooking] = useState<Booking>({});
 
   useEffect(() => {
@@ -37,6 +40,16 @@ export const ScheduleConfirmedStep = () => {
       time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
     };
   }, [booking.start_time]);
+
+  const handleGoToShop = () => {
+    if (isInIframe) {
+      closeIframe("registration_complete");
+    } else {
+      window.location.href = "/";
+    }
+  };
+
+
 
 
   const expectItems = [
@@ -130,6 +143,14 @@ export const ScheduleConfirmedStep = () => {
           ))}
         </ul>
       </div>
+
+      <Button
+        type="button"
+        onClick={handleGoToShop}
+        className="w-full h-12 min-h-12 rounded-form animate-stagger-3"
+      >
+        Go to shop
+      </Button>
     </div>
   );
 };
