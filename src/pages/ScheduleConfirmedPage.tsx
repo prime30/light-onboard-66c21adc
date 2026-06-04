@@ -40,27 +40,24 @@ export default function ScheduleConfirmedPage() {
   if (!s.start_time) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-xl mx-auto px-5 py-10 md:py-16 text-center">
-        <div className="relative h-[130px] mb-5">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-[100px] h-[100px] rounded-full bg-success/15" />
+    <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="max-w-xl mx-auto px-5 pt-5 pb-[max(40px,env(safe-area-inset-bottom))] md:py-10 text-center space-y-[clamp(15px,2.5vh,25px)]">
+        <div className="space-y-[clamp(5px,1vh,10px)] animate-stagger-1">
+          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+            <Check className="w-3 h-3 text-success" strokeWidth={3} />
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+              Booking confirmed
+            </span>
           </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-[65px] h-[65px] rounded-full bg-success flex items-center justify-center">
-              <Check className="w-[30px] h-[30px] text-success-foreground" strokeWidth={2.5} />
-            </div>
-          </div>
+          <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+            You're booked
+          </h1>
+          <p className="text-xs text-muted-foreground pt-1">
+            A confirmation has been sent to <span className="text-foreground">{s.email}</span>.
+          </p>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
-          You're booked
-        </h1>
-        <p className="text-sm text-muted-foreground mt-2.5">
-          A confirmation has been sent to <span className="text-foreground">{s.email}</span>.
-        </p>
-
-        <div className="mt-10 p-5 md:p-10 rounded-form border border-border bg-card text-left space-y-5">
+        <div className="rounded-form border border-border bg-card p-5 md:p-10 text-left space-y-5 animate-stagger-2">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-form bg-muted flex items-center justify-center shrink-0">
               <Calendar className="w-5 h-5 text-foreground" />
@@ -88,7 +85,7 @@ export default function ScheduleConfirmedPage() {
           )}
         </div>
 
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-stagger-3">
           {s.reschedule_url && (
             <Button asChild variant="outline" className="h-11 rounded-form">
               <a href={s.reschedule_url} target="_blank" rel="noopener noreferrer">
@@ -107,7 +104,7 @@ export default function ScheduleConfirmedPage() {
           )}
         </div>
 
-        <Button variant="ghost" className="mt-10 text-xs" onClick={() => navigate("/auth")}>
+        <Button variant="ghost" className="text-xs" onClick={() => navigate("/auth")}>
           Done
         </Button>
       </div>
