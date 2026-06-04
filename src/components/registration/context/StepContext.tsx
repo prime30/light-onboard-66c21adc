@@ -260,9 +260,10 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const formProgress = useMemo(() => {
-    // Once the user lands on the success step the form has already been
-    // reset (clearing completed-step status), so always show 100%.
-    if (currentStep === "success") return 100;
+    // Once the user lands on the success step (or post-success schedule steps)
+    // the form has already been reset (clearing completed-step status), so
+    // always show 100%.
+    if (currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed") return 100;
 
     // Get only the valid steps (exclude onboarding and summary)
     const validSteps = steps.filter(

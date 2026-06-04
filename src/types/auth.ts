@@ -27,7 +27,9 @@ export type Step =
   | "preferences"
   | "summary"
   | "assessing"
-  | "success";
+  | "success"
+  | "schedule"
+  | "schedule-confirmed";
 
 /** Account type options */
 export type AccountType = "professional" | "salon" | "student" | null;
