@@ -14,21 +14,51 @@ export const FOUNDER_CALL = {
 
 export type ProxySlot = { start_time: string };
 
+// In-flight + resolved cache so a prefetch from a prior screen makes the
+// ScheduleStep render instantly (no network wait on mount).
+const slotsCache = new Map<string, Promise<ProxySlot[]>>();
+const slotsCacheKey = (start: string, end: string) => `${start}|${end}`;
+
 export async function fetchSlots(startDate: string, endDate: string): Promise<ProxySlot[]> {
+  const key = slotsCacheKey(startDate, endDate);
+  const cached = slotsCache.get(key);
+  if (cached) return cached;
+
   const url = new URL(`${CALENDLY_PROXY_BASE}/api/calendly/slots`);
   url.searchParams.set("start_date", startDate);
   url.searchParams.set("end_date", endDate);
-  const res = await fetch(url.toString(), {
-    method: "GET",
-    credentials: "omit",
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) {
-    const detail = await safeJson(res);
-    throw new Error(proxyErrorMessage(detail, `Slots request failed (${res.status})`));
-  }
-  const data = await res.json();
-  return Array.isArray(data?.slots) ? data.slots : [];
+  const p = (async () => {
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      credentials: "omit",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) {
+      const detail = await safeJson(res);
+      throw new Error(proxyErrorMessage(detail, `Slots request failed (${res.status})`));
+    }
+    const data = await res.json();
+    return Array.isArray(data?.slots) ? (data.slots as ProxySlot[]) : [];
+  })();
+
+  slotsCache.set(key, p);
+  p.catch(() => slotsCache.delete(key));
+  return p;
+}
+
+/** Fire-and-forget warmup so the schedule screen has slots ready on mount. */
+export function prefetchSlots(startDate: string, endDate: string): void {
+  void fetchSlots(startDate, endDate).catch(() => {});
+}
+
+/** Compute the same initial window ScheduleStep uses (today + next 6 days). */
+export function defaultScheduleWindow(): { start: string; end: string } {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 6);
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+  return { start: ymd(start), end: ymd(end) };
 }
 
 export type BookingResult = {
