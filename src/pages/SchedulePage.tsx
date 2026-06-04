@@ -191,10 +191,9 @@ export default function SchedulePage() {
           <Stepper step={step} />
         </div>
 
-        {useNativeProxy ? (
-          <>
-            {/* Step content */}
-            {step === "date" && (
+        <>
+          {/* Step content */}
+          {step === "date" && (
           <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">Pick a date</p>
@@ -368,30 +367,7 @@ export default function SchedulePage() {
             </Button>
           </div>
             )}
-          </>
-        ) : (
-          <CalendlyFallback />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CalendlyFallback() {
-  return (
-    <div className="rounded-form border border-border bg-card overflow-hidden">
-      <iframe
-        title="Schedule a founder call"
-        src={CALENDLY_EMBED_URL}
-        className="w-full h-[760px] md:h-[700px] bg-background"
-        loading="lazy"
-      />
-      <div className="p-5 border-t border-border text-center">
-        <Button asChild variant="outline" className="h-11 rounded-form">
-          <a href={CALENDLY_PUBLIC_URL} target="_blank" rel="noopener noreferrer">
-            Open Calendly
-          </a>
-        </Button>
+        </>
       </div>
     </div>
   );
