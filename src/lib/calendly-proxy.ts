@@ -1,11 +1,14 @@
-// Calendly client — calls Lovable Cloud edge functions (calendly-slots, calendly-book).
-// Replaces the previous Vercel proxy. Secrets (CALENDLY_API_TOKEN,
-// CALENDLY_EVENT_TYPE_URI) live in Cloud and are never exposed to the browser.
+// Calendly client.
+// - Slots come from the Lovable Cloud edge function `calendly-slots` (good error visibility).
+// - Booking POSTs to the Vercel-hosted proxy because Calendly's public API does
+//   not expose direct invitee creation via PAT; the proxy wraps the working flow.
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Hardcoded event-type metadata. The edge function doesn't expose event-type info;
-// these mirror the founder-call event configured in CALENDLY_EVENT_TYPE_URI.
+const CALENDLY_PROXY_BASE = "https://dd-calendly-proxy.vercel.app";
+
+// Hardcoded event-type metadata. Mirrors the founder-call event configured in
+// CALENDLY_EVENT_TYPE_URI on both Cloud (for slots) and Vercel (for booking).
 export const FOUNDER_CALL = {
   name: "Founder call with Eric",
   duration: 30,
@@ -26,14 +29,13 @@ export async function fetchSlots(startDate: string, endDate: string): Promise<Pr
 
   const p = (async () => {
     const { data, error } = await supabase.functions.invoke("calendly-slots", {
-      method: "GET",
-      // supabase-js doesn't support GET query params via invoke; pass as body
-      // and read in function. To keep the function simple we use POST-like URL:
+      method: "POST",
       body: { start_date: startDate, end_date: endDate },
     });
-    if (error) throw new Error(extractMessage(error, "Couldn't load availability."));
-    if ((data as any)?.error) throw new Error(extractMessage((data as any).error, "Couldn't load availability."));
-    return Array.isArray((data as any)?.slots) ? ((data as any).slots as ProxySlot[]) : [];
+    if (error) throw new Error(extractInvokeMessage(error, "Couldn't load availability."));
+    const payload = data as { slots?: ProxySlot[]; error?: { message?: string; details?: unknown } } | null;
+    if (payload?.error) throw new Error(payload.error.message ?? "Couldn't load availability.");
+    return Array.isArray(payload?.slots) ? payload!.slots : [];
   })();
 
   slotsCache.set(key, p);
@@ -73,31 +75,62 @@ export async function bookSlot(input: {
   email: string;
   timezone: string;
 }): Promise<BookingResult> {
-  const { data, error } = await supabase.functions.invoke("calendly-book", {
+  const res = await fetch(`${CALENDLY_PROXY_BASE}/api/calendly/book`, {
     method: "POST",
-    body: input,
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "Idempotency-Key": uuidv4(),
+    },
+    body: JSON.stringify(input),
   });
-  if (error) {
+  const data = await safeJson(res);
+  if (!res.ok || !data?.booking) {
     // eslint-disable-next-line no-console
-    console.error("[calendly.book] invoke error", { error, request: input });
-    throw new Error(extractMessage(error, "Booking failed."));
+    console.error("[calendly.book] failed", { status: res.status, response: data, request: input });
+    throw new Error(proxyErrorMessage(data, `Booking failed (${res.status})`));
   }
-  if ((data as any)?.error) {
-    // eslint-disable-next-line no-console
-    console.error("[calendly.book] upstream error", { response: data, request: input });
-    throw new Error(extractMessage((data as any).error, "Booking failed."));
-  }
-  const booking = (data as any)?.booking as BookingResult | undefined;
-  if (!booking) throw new Error("Booking response was empty.");
-  return booking;
+  return data.booking as BookingResult;
 }
 
-function extractMessage(err: any, fallback: string): string {
+function proxyErrorMessage(data: any, fallback: string): string {
+  const parts: string[] = [];
+  if (typeof data?.error === "string") parts.push(data.error);
+  else if (typeof data?.error?.message === "string") parts.push(data.error.message);
+  else if (typeof data?.message === "string") parts.push(data.message);
+
+  const detail =
+    typeof data?.error?.detail === "string"
+      ? data.error.detail
+      : typeof data?.detail === "string"
+        ? data.detail
+        : "";
+
+  if (detail && !parts.includes(detail)) parts.push(detail);
+  return parts.join(" — ") || fallback;
+}
+
+function extractInvokeMessage(err: any, fallback: string): string {
   if (!err) return fallback;
   if (typeof err === "string") return err;
-  if (typeof err.message === "string" && err.message) {
-    const detail = typeof err.details === "string" ? err.details : "";
-    return detail ? `${err.message} — ${detail}` : err.message;
-  }
+  if (typeof err.message === "string" && err.message) return err.message;
   return fallback;
+}
+
+function uuidv4(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+async function safeJson(res: Response): Promise<any> {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
