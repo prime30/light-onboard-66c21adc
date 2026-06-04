@@ -21,6 +21,8 @@ const AdminSettingsPage = () => {
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
   const [loadingSetting, setLoadingSetting] = useState(true);
+  const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
+  const [updatingWelcome, setUpdatingWelcome] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
