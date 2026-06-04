@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, ArrowUpRight } from "lucide-react";
+import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -554,7 +554,6 @@ export const SuccessForm = () => {
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   Accept the invitation
-                  <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
                 <span
                   aria-hidden
