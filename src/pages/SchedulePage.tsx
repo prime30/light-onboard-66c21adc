@@ -162,39 +162,49 @@ export default function SchedulePage() {
     }
   }, [canBook, selectedSlot, firstName, lastName, email, navigate]);
 
+  const stepLabel = step === "date" ? "Pick a date" : step === "time" ? "Pick a time" : "Confirm details";
+  const stepNumber = step === "date" ? 1 : step === "time" ? 2 : 3;
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-5 py-10">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-5 mb-10">
-          <div className="space-y-1.5">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="max-w-2xl mx-auto px-5 pt-5 pb-[max(40px,env(safe-area-inset-bottom))] md:py-10 space-y-[clamp(15px,2.5vh,25px)]">
+        {/* Step header — matches registration step pattern */}
+        <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[9px] font-semibold">
+              {stepNumber}
+            </span>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+              {stepLabel}
+            </span>
+          </div>
+          <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+            {FOUNDER_CALL.name}
+          </h1>
+          <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground pt-1">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="w-3 h-3" />
+              {FOUNDER_CALL.duration} min
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="w-3 h-3" />
+              {FOUNDER_CALL.locationLabel}
+            </span>
+          </div>
+          {step !== "date" && (
             <button
               type="button"
-              onClick={() => (step === "date" ? navigate(-1) : setStep(step === "confirm" ? "time" : "date"))}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setStep(step === "confirm" ? "time" : "date")}
+              className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors pt-2.5"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3 h-3" />
               Back
             </button>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{FOUNDER_CALL.name}</h1>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                {FOUNDER_CALL.duration} min
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" />
-                {FOUNDER_CALL.locationLabel}
-              </span>
-            </div>
-          </div>
-          <Stepper step={step} />
+          )}
         </div>
 
-        <>
-          {/* Step content */}
-          {step === "date" && (
-          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
+        {step === "date" && (
+          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5 animate-stagger-2">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">Pick a date</p>
               <div className="flex items-center gap-1">
@@ -251,10 +261,10 @@ export default function SchedulePage() {
             {windowError && <p className="text-xs text-destructive text-center">{windowError}</p>}
             <p className="text-[11px] text-muted-foreground text-center">Times shown in {userTimezone}</p>
           </div>
-            )}
+        )}
 
-            {step === "time" && selectedDate && (
-          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
+        {step === "time" && selectedDate && (
+          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5 animate-stagger-2">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">Pick a time</p>
@@ -295,10 +305,10 @@ export default function SchedulePage() {
               </div>
             )}
           </div>
-            )}
+        )}
 
-            {step === "confirm" && selectedSlot && (
-          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5">
+        {step === "confirm" && selectedSlot && (
+          <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5 animate-stagger-2">
             <div className="flex items-start gap-3 pb-5 border-b border-border">
               <div className="w-10 h-10 rounded-form bg-muted flex items-center justify-center shrink-0">
                 <CalendarIcon className="w-5 h-5 text-foreground" />
@@ -366,38 +376,8 @@ export default function SchedulePage() {
               )}
             </Button>
           </div>
-            )}
-        </>
+        )}
       </div>
     </div>
-  );
-}
-
-function Stepper({ step }: { step: Step }) {
-  const steps: { id: Step; label: string }[] = [
-    { id: "date", label: "Date" },
-    { id: "time", label: "Time" },
-    { id: "confirm", label: "Confirm" },
-  ];
-  const activeIdx = steps.findIndex((s) => s.id === step);
-  return (
-    <ol className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-      {steps.map((s, i) => (
-        <li key={s.id} className="flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center justify-center w-5 h-5 rounded-full border text-[10px] font-semibold transition-colors",
-              i <= activeIdx
-                ? "bg-foreground text-background border-foreground"
-                : "bg-background text-muted-foreground border-border",
-            )}
-          >
-            {i + 1}
-          </span>
-          <span className={cn(i === activeIdx && "text-foreground")}>{s.label}</span>
-          {i < steps.length - 1 && <span className="w-4 h-px bg-border" />}
-        </li>
-      ))}
-    </ol>
   );
 }
