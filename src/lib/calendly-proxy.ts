@@ -9,7 +9,7 @@ export const CALENDLY_PROXY_BASE = "https://dd-calendly-proxy.vercel.app";
 export const FOUNDER_CALL = {
   name: "Founder call with Eric",
   duration: 30,
-  locationLabel: "Google Meet",
+  locationLabel: "Zoom",
 };
 
 export type ProxySlot = { start_time: string };
