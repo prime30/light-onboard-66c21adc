@@ -241,11 +241,15 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const goToStep = (step: Step) => {
+    // Allow post-flow steps (success, schedule, schedule-confirmed) even
+    // though they're intentionally outside the dynamic `steps` array.
+    const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
     // Check if the step is valid (exists in the steps array)
-    if (!steps.includes(step)) {
+    if (!steps.includes(step) && !POST_FLOW.includes(step)) {
       console.warn(`Invalid step: ${step}. Valid steps are:`, steps);
       return;
     }
+
 
     const targetStepNumber = steps.indexOf(step);
     const direction = targetStepNumber > currentStepNumber ? "forward" : "backward";
