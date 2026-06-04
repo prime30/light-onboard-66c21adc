@@ -305,20 +305,6 @@ export const SuccessForm = () => {
       {!welcomeOfferEnabled && (
         /* Founder Call — personal invitation */
         <div id="success-offer-section" className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-status-green opacity-60 animate-ping" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-green" />
-              </span>
-              <p className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Booking this week
-              </p>
-            </div>
-            <span className="text-[10px] font-termina font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              4 slots left
-            </span>
-          </div>
 
           <div className="relative rounded-form border border-border/60 bg-gradient-to-br from-background via-background to-muted/40 overflow-hidden text-left shadow-[0_1px_0_0_hsl(var(--foreground)/0.03),0_30px_60px_-30px_hsl(var(--foreground)/0.18)]">
             {/* soft prestige ring */}
