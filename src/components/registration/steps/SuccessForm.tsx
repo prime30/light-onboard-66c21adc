@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useNavigate } from "react-router";
 import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
@@ -13,6 +14,7 @@ import { useForm } from "@/components/registration/context/FormContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
+import { cn } from "@/lib/utils";
 
 const FOUNDER_CALL_URL = "https://calendly.com/hello-dropdeadextensions/30min";
 
