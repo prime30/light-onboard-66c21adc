@@ -107,6 +107,10 @@ export const ContactBasicsStep = () => {
   const lastCheckedRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
+    if (emailConflict && emailConflict.email !== value) {
+      setEmailConflict(null);
+      if (errors.email?.type === "manual") clearErrors("email");
+    }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
     if (lastCheckedRef.current === value) return;
 
