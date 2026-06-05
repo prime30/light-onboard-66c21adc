@@ -596,9 +596,16 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    console.log("Sending request to Customer Fields API...");
-    const apiResponse = await fetch(customerFieldsApiUrl, {
-      method: "POST",
+    const isSoftMerge = !!existingCustomerId;
+    const targetUrl = isSoftMerge
+      ? `${customerFieldsApiUrl}/${existingCustomerId}.json`
+      : customerFieldsApiUrl;
+    const targetMethod = isSoftMerge ? "PUT" : "POST";
+    console.log(
+      `Sending ${targetMethod} to Customer Fields API (${isSoftMerge ? "soft-merge" : "create"})...`
+    );
+    const apiResponse = await fetch(targetUrl, {
+      method: targetMethod,
       headers: apiHeaders,
       body: JSON.stringify(customerFieldsRequest),
     });
