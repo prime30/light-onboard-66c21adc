@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check } from "lucide-react";
 import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
+import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
 
 const MAX_TAGS = 50;
 const MAX_TAG_LENGTH = 80;
