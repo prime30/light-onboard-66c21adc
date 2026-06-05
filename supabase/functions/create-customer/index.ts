@@ -96,13 +96,30 @@ function objectKeysToSnake<T extends Record<string, unknown>>(obj: T): Record<st
   return result;
 }
 
-// Format phone number with country code
+// Format phone number with country code. Accepts either a dial code ("+1",
+// "1") or an ISO-3166-alpha-2 region ("US", "CA"); resolves the latter via
+// libphonenumber so we never produce bogus E.164 like "+US…".
 function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string | undefined {
   if (!phoneNumber) return undefined;
   const cleanPhone = phoneNumber.replace(/\D/g, "");
   if (!cleanPhone) return undefined;
-  const code = countryCode?.startsWith("+") ? countryCode : `+${countryCode || "1"}`;
-  return `${code}${cleanPhone}`;
+  const cc = (countryCode ?? "").trim();
+  // Dial code path: "+1" or bare digits like "1".
+  if (cc.startsWith("+") || /^\d+$/.test(cc)) {
+    const code = cc.startsWith("+") ? cc : `+${cc || "1"}`;
+    return `${code}${cleanPhone}`;
+  }
+  // ISO region path: let libphonenumber attach the right dial code.
+  if (/^[A-Za-z]{2}$/.test(cc)) {
+    try {
+      const parsed = parsePhoneNumberFromString(cleanPhone, cc.toUpperCase() as never);
+      if (parsed) return parsed.number; // E.164
+    } catch {
+      /* fall through */
+    }
+  }
+  // Last resort: assume NANP.
+  return `+1${cleanPhone}`;
 }
 
 // Inline the registration schema for edge function
