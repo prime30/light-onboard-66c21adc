@@ -86,10 +86,12 @@ export function AuthFooter({
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
-  // Popover surfaces on any step where Continue is blocked, so users always
-  // see exactly what's missing (covers resumed sessions and jump-to-step
-  // skips where a prior step is still incomplete).
-  const showTooltip = continueBlocked && popoverSteps.length > 0;
+  // Popover only surfaces on the final-gate steps: the review/summary page
+  // and the late create-password page (the safety net if a user somehow got
+  // past summary). On every other step, an invalid Continue just shakes the
+  // missing fields without opening the "incomplete steps" list.
+  const isFinalGateStep = isSummaryStep || isLatePasswordStep || isFauxSubmitStep;
+  const showTooltip = isFinalGateStep && continueBlocked && popoverSteps.length > 0;
 
   const openSubmitTooltip = useCallback(() => {
     if (submitPopoverCloseTimer.current) {
