@@ -104,9 +104,10 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 };
 
 export const SummaryForm = () => {
-  const { watch, currentStep, errors, errorActions } = useForm();
+  const { watch, currentStep, errors, errorActions, submitErrorMessage } = useForm();
   const navigate = useNavigate();
   const errorRef = useRef<HTMLDivElement>(null);
+  const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   // Watch all form values at once
   const formData = watch() as AllRegistrationFormData;
@@ -166,13 +167,13 @@ export const SummaryForm = () => {
 
   // Scroll to error when it appears
   useEffect(() => {
-    if (errors.root?.form && errorRef.current) {
+    if (visibleSubmitError && errorRef.current) {
       errorRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
-  }, [errors.root?.form]);
+  }, [visibleSubmitError]);
 
   // Warm the display fonts used on the upcoming SuccessForm ("Welcome to Drop Dead")
   // so they're parsed and in the FontFaceSet by the time that screen mounts. The
@@ -208,7 +209,7 @@ export const SummaryForm = () => {
       </div>
 
       {/* Error Display */}
-      {errors.root?.form && (
+      {visibleSubmitError && (
         <div
           ref={errorRef}
           className="flex items-start gap-3 p-4 rounded-form bg-destructive/10 border border-destructive/30 animate-stagger-2"
@@ -220,7 +221,7 @@ export const SummaryForm = () => {
                 Unable to Submit Application
               </p>
               <p className="text-sm text-destructive/80 whitespace-pre-line">
-                {errors.root.form.message}
+                {visibleSubmitError}
               </p>
             </div>
             {errorActions.length > 0 && (
