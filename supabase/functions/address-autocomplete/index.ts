@@ -137,14 +137,14 @@ serve(async (req) => {
     let biasPoint: { lat: number; lng: number; radiusKm: number } | null = null;
     let biasSource = "";
     if (centroid) {
-      biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 150 };
+      biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 50 };
       biasSource = `region:${regionCode}`;
     } else if (
       clientLocationBias &&
       typeof clientLocationBias.lat === "number" &&
       typeof clientLocationBias.lng === "number"
     ) {
-      biasPoint = { lat: clientLocationBias.lat, lng: clientLocationBias.lng, radiusKm: 75 };
+      biasPoint = { lat: clientLocationBias.lat, lng: clientLocationBias.lng, radiusKm: 50 };
       biasSource = "browser-ip-geo";
     } else {
       const fwd = req.headers.get("x-forwarded-for") ?? "";
@@ -156,9 +156,9 @@ serve(async (req) => {
       if (isPublic) {
         const geo = await lookupIpGeo(clientIp);
         if (geo) {
-          // ~75km circle around the user's metro — tight enough to suppress
+          // 50km is Google's maximum circle radius for Places Autocomplete.
           // out-of-state matches but wide enough to catch nearby suburbs.
-          biasPoint = { lat: geo.lat, lng: geo.lng, radiusKm: 75 };
+          biasPoint = { lat: geo.lat, lng: geo.lng, radiusKm: 50 };
           biasSource = "edge-ip-geo";
         }
       }
@@ -168,7 +168,7 @@ serve(async (req) => {
       requestBody.locationBias = {
         circle: {
           center: { latitude: biasPoint.lat, longitude: biasPoint.lng },
-          radius: biasPoint.radiusKm * 1000,
+          radius: Math.min(biasPoint.radiusKm * 1000, 50_000),
         },
       };
     }
