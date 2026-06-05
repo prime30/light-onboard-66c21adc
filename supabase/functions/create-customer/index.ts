@@ -1476,11 +1476,13 @@ Deno.serve(async (req: Request) => {
     // Audit: finalize. `succeeded` even if some non-blocking soft failures
     // were recorded (Shopify-side enrichments) — the applicant has a Helium
     // record and the error_log lets us replay just the failed pieces.
-    await updateAuditRow({
+    // Run in the background — the user doesn't need to wait on the audit
+    // PATCH (~80-150ms) to see their success screen.
+    runInBackground(updateAuditRow({
       status: auditErrors.length > 0 ? "shopify_ok" : "succeeded",
       shopify_customer_id: shopifyCustomerId ?? null,
       error_log: auditErrors,
-    });
+    }));
 
     return new Response(JSON.stringify(response), {
       status: 200,
