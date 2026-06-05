@@ -118,30 +118,24 @@ export const ContactBasicsStep = () => {
     // Dedupe per session so editing nearby fields doesn't re-fire.
     if (lastTrackedLeadRef.current !== value) {
       lastTrackedLeadRef.current = value;
-      const trackHandle = window.setTimeout(() => {
-        const accountType = watch("accountType");
-        const firstName = watch("firstName");
-        const lastName = watch("lastName");
+      window.setTimeout(() => {
+        // Re-check dedupe at fire time in case email changed during the delay.
+        if (lastTrackedLeadRef.current !== value) return;
         supabase.functions
           .invoke("track-registration-lead", {
             body: {
               email: value,
               phase: "started",
-              accountType: accountType ?? null,
+              accountType: watch("accountType") ?? null,
               lastStep: "contact-basics",
-              firstName: firstName ?? null,
-              lastName: lastName ?? null,
+              firstName: watch("firstName") ?? null,
+              lastName: watch("lastName") ?? null,
             },
           })
           .catch(() => {
             // Non-blocking — never let lead capture interfere with UX.
           });
       }, 1200);
-      // Cleanup is unified with the check-email cleanup below by
-      // returning a combined cleanup at the end of this effect.
-      // We keep this handle in a closure ref via the outer setTimeout below.
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      trackHandle;
     }
 
     if (lastCheckedRef.current === value) return;
