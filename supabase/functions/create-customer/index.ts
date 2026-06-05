@@ -410,15 +410,68 @@ Deno.serve(async (req: Request) => {
     customerFieldsApiKey
   );
 
-  if (existingCustomerSearch && existingCustomerSearch.customers.length > 0) {
-    console.log("Customer already exists with email:", requestBody.data.email);
-    return sendError(409, ["Customer already exists with this email address"], "Conflict", [
-      {
-        type: "LOGIN",
-        label: "Go to Login",
-        url: "/login",
-      },
-    ]);
+  const existingCustomer = existingCustomerSearch?.customers?.[0];
+  const existingCustomerId = existingCustomer?.id;
+  const existingShopifyId = existingCustomer?.shopify_id;
+
+  // If a customer already exists, decide whether to soft-merge or block.
+  // We treat the presence of an "Account type:" Shopify tag as proof the
+  // customer has already completed a B2B application. Anything else
+  // (e.g. an order-only customer, or a Klaviyo-synced support contact)
+  // is fair game to soft-merge: we PUT the new application data onto
+  // the existing record instead of creating a duplicate.
+  if (existingCustomer) {
+    let alreadyApplied = false;
+    if (existingShopifyId) {
+      const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+      const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      if (shopifyDomain && shopifyAdminToken) {
+        try {
+          const tagRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${existingShopifyId}.json`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (tagRes.ok) {
+            const json = await tagRes.json();
+            const tagStr: string = json?.customer?.tags ?? "";
+            alreadyApplied = tagStr
+              .split(",")
+              .map((t: string) => t.trim())
+              .some((t: string) => /^account type:/i.test(t));
+          } else {
+            console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
+            // Fail closed — if we can't tell, keep prior behavior and block
+            // so we never silently overwrite a legit prior application.
+            alreadyApplied = true;
+          }
+        } catch (e) {
+          console.warn("Error checking Shopify tags for soft-merge (failing closed):", e);
+          alreadyApplied = true;
+        }
+      }
+    }
+
+    if (alreadyApplied) {
+      console.log("Existing customer has prior application — blocking:", requestBody.data.email);
+      return sendError(409, ["Customer already exists with this email address"], "Conflict", [
+        {
+          type: "LOGIN",
+          label: "Go to Login",
+          url: "/login",
+        },
+      ]);
+    }
+
+    console.log(
+      "Existing un-applied customer found — soft-merging application onto:",
+      existingCustomerId
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
