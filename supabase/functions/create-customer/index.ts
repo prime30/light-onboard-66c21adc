@@ -1,4 +1,6 @@
 import z from "zod";
+import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
+
 
 // CORS headers
 const corsHeaders = {
@@ -732,7 +734,30 @@ Deno.serve(async (req: Request) => {
       customer.phone_country_code,
       customer.phone_number
     );
-    const canCollectSms = acceptsSmsMarketingFlag && !!customerPhone;
+
+    // Server-side phone validation (libphonenumber). Shopify uses
+    // libphonenumber too and rejects the whole PUT on bad NANP / impossible
+    // numbers, so skip sending phone when it's clearly invalid.
+    let phoneValid = false;
+    if (customerPhone) {
+      try {
+        const parsed = parsePhoneNumberFromString(customerPhone);
+        phoneValid = !!parsed && parsed.isValid();
+        if (!phoneValid) {
+          console.warn("Phone failed libphonenumber validation; will not send to Shopify:", customerPhone);
+        }
+      } catch (e) {
+        console.warn("libphonenumber threw; treating phone as invalid:", e);
+      }
+    }
+
+    // Phone-collision check happens later (needs shopifyDomain/token + the
+    // current shopifyCustomerId). We optimistically allow phone now and may
+    // flip this to false if Shopify returns a different customer for the
+    // same E.164 phone.
+    let phoneSafeToSend = phoneValid;
+    let canCollectSms = acceptsSmsMarketingFlag && phoneSafeToSend;
+
     const consentTimestamp = new Date().toISOString();
 
     // Build a human-readable note summarizing the application — lands in
@@ -807,6 +832,46 @@ Deno.serve(async (req: Request) => {
             console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
+          // Phone-uniqueness check: Shopify rejects the whole PUT with
+          // {"phone":["is invalid"]} if another customer already owns this
+          // E.164 number. Search by phone first and drop it from the
+          // payload on collision.
+          if (phoneSafeToSend && customerPhone) {
+            try {
+              const phoneSearchRes = await fetch(
+                `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+                  `phone:${customerPhone}`
+                )}`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": shopifyAdminToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              if (phoneSearchRes.ok) {
+                const pjson = await phoneSearchRes.json();
+                const owners: Array<{ id?: number }> = pjson?.customers ?? [];
+                const collidingId = owners.find(
+                  (c) => typeof c?.id === "number" && c.id !== shopifyCustomerId
+                )?.id;
+                if (collidingId) {
+                  console.warn(
+                    "Phone already owned by another Shopify customer; dropping phone from update:",
+                    { phone: customerPhone, collidingId }
+                  );
+                  phoneSafeToSend = false;
+                  canCollectSms = false;
+                }
+              } else {
+                console.warn("Phone-collision search failed (non-blocking):", phoneSearchRes.status);
+              }
+            } catch (e) {
+              console.warn("Phone-collision search threw (non-blocking):", e);
+            }
+          }
+
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -816,8 +881,9 @@ Deno.serve(async (req: Request) => {
           // isn't blank regardless of Helium field-mapping config.
           if (customer.first_name) customerUpdate.first_name = customer.first_name;
           if (customer.last_name) customerUpdate.last_name = customer.last_name;
-          if (customerPhone) customerUpdate.phone = customerPhone;
+          if (phoneSafeToSend && customerPhone) customerUpdate.phone = customerPhone;
           if (applicationNote) customerUpdate.note = applicationNote;
+
 
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
@@ -836,7 +902,8 @@ Deno.serve(async (req: Request) => {
                 province_code: customer.province_code,
                 zip: customer.zip_code,
                 country_code: customer.country_code,
-                phone: customerPhone,
+                phone: phoneSafeToSend ? customerPhone : undefined,
+
                 default: true,
               },
             ];
