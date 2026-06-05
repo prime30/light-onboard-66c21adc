@@ -85,6 +85,10 @@ Deno.serve(async (req: Request) => {
 
   if (!valid) return ok({ valid: false, inUse: false });
 
+  // Cache hit short-circuits the Shopify search.
+  const cached = cacheGet(e164);
+  if (cached !== undefined) return ok({ valid: true, inUse: cached });
+
   // Uniqueness check via Shopify Admin search.
   const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
   const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -112,6 +116,7 @@ Deno.serve(async (req: Request) => {
     }
     const json = (await res.json()) as { customers?: Array<{ id?: number }> };
     const inUse = Array.isArray(json.customers) && json.customers.length > 0;
+    cacheSet(e164, inUse);
     return ok({ valid: true, inUse });
   } catch (e) {
     console.warn("check-phone: search threw:", e);
