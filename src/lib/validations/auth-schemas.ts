@@ -331,7 +331,12 @@ export const registrationSchema = z
   .superRefine((data, ctx) => {
     // Cross-field check for the dedicated create-password step.
     // discriminatedUnion can't .refine, so we enforce confirmPassword here.
-    const d = data as { password?: string; confirmPassword?: string };
+    const d = data as {
+      password?: string;
+      confirmPassword?: string;
+      zipCode?: string;
+      countryCode?: string;
+    };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
         code: "custom",
@@ -339,10 +344,13 @@ export const registrationSchema = z
         path: ["confirmPassword"],
       });
     }
+    if (d.zipCode) {
+      const result = isValidZipForCountry(d.zipCode, d.countryCode);
+      if (result !== true) {
+        ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+      }
+    }
   });
-// Note: license format is shown as a helper hint in the UI only.
-// We intentionally do NOT block submission when the format doesn't match —
-// the field just needs to be filled (enforced by licenseValidators).
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
