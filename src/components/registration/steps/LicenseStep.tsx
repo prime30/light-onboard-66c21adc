@@ -27,32 +27,15 @@ export const LicenseStep = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errors = rawErrors as any;
 
-  // Watch form values — include countryCode + provinceCode so we can surface
-  // state-specific license format hints.
-  const watchedValues = watch([
-    "accountType",
-    "licenseNumber",
-    "licenseProofFiles",
-    "countryCode",
-    "provinceCode",
-  ]);
-  const [accountType, licenseNumber, licenseProofFiles, countryCode, provinceCode] = watchedValues;
+  // Watch form values used in this step.
+  const watchedValues = watch(["accountType", "licenseNumber", "licenseProofFiles"]);
+  const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
 
   const isSalon = accountType === "salon";
   const label = isSalon
     ? "Upload your salon license*"
     : "For quicker account verification process upload your license";
   const validationStatus = getStepValidationStatus(currentStep);
-
-  // State-aware license format metadata (Phase 1 format validation).
-  const licensePattern = getLicensePattern(countryCode, provinceCode);
-  const formatResult = licenseNumber
-    ? validateLicenseFormat(licenseNumber, countryCode, provinceCode)
-    : null;
-  const hasStateContext = !!provinceCode;
-  const showFormatHint = hasStateContext && !licensePattern.fallback;
-  const showFormatMatched =
-    showFormatHint && formatResult?.valid && (licenseNumber?.trim().length ?? 0) >= 2;
 
   // Create options for selects
   const salonSizeOptions = salonSizes.map((size) => ({
