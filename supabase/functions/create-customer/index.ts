@@ -1110,6 +1110,10 @@ Deno.serve(async (req: Request) => {
 
           if (!updRes.ok) {
             console.warn("Failed to update Shopify customer:", updRes.status, updResBodyText);
+            recordAuditFailure(
+              "shopify_customer_update",
+              `HTTP ${updRes.status}: ${updResBodyText.substring(0, 500)}`
+            );
           } else {
             console.log("Updated Shopify customer:", {
               shopifyCustomerId,
@@ -1120,6 +1124,10 @@ Deno.serve(async (req: Request) => {
 
         } catch (updErr) {
           console.warn("Error updating Shopify customer (non-blocking):", updErr);
+          recordAuditFailure(
+            "shopify_customer_update",
+            updErr instanceof Error ? updErr.message : String(updErr)
+          );
         }
       } else {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
