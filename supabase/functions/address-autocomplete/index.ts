@@ -139,42 +139,11 @@ serve(async (req) => {
         clientIp &&
         !/^(10\.|192\.168\.|127\.|169\.254\.|::1|fc|fd)/i.test(clientIp);
       if (isPublic) {
-        try {
-          // ipapi.co — free, no key, 1000 req/day. Times out fast so the
-          // autocomplete UX never stalls if the lookup is slow.
-          const ctrl = new AbortController();
-          const timeout = setTimeout(() => ctrl.abort(), 600);
-          const geoRes = await fetch(`https://ipapi.co/${clientIp}/json/`, {
-            signal: ctrl.signal,
-          });
-          clearTimeout(timeout);
-          if (geoRes.ok) {
-            const geo = (await geoRes.json()) as {
-              latitude?: number;
-              longitude?: number;
-              city?: string;
-              region?: string;
-            };
-            if (
-              typeof geo.latitude === "number" &&
-              typeof geo.longitude === "number"
-            ) {
-              // ~75km radius around the user's metro — tight enough to
-              // suppress out-of-state matches but wide enough to catch
-              // neighboring suburbs.
-              biasPoint = {
-                lat: geo.latitude,
-                lng: geo.longitude,
-                radiusKm: 75,
-              };
-              console.log(
-                `[address-autocomplete] IP geo: ${geo.city}, ${geo.region}`,
-              );
-            }
-          }
-        } catch (geoErr) {
-          // Fail silently — Google's default behavior takes over.
-          console.warn("[address-autocomplete] IP geo failed:", geoErr);
+        const geo = await lookupIpGeo(clientIp);
+        if (geo) {
+          // ~75km circle around the user's metro — tight enough to suppress
+          // out-of-state matches but wide enough to catch nearby suburbs.
+          biasPoint = { lat: geo.lat, lng: geo.lng, radiusKm: 75 };
         }
       }
     }
