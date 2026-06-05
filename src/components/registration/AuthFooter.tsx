@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
@@ -46,11 +47,15 @@ export function AuthFooter({
     setSubmitError,
     watch,
     errors,
+    errorActions,
+    submitErrorMessage,
     incompleteSteps,
   } = useForm();
   const [preflightChecking, setPreflightChecking] = useState(false);
+  const navigate = useNavigate();
   const { enabled: autoApprove } = useAutoApproval();
   const { closeIframe, isInIframe } = useCloseIframe();
+  const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
   const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
@@ -345,6 +350,33 @@ export function AuthFooter({
       )}
     >
       <div className="lg:max-w-[38rem] mx-auto flex flex-col gap-[10px]">
+        {visibleSubmitError && isFinalGateStep && (
+          <div className="flex items-start gap-3 rounded-form border border-destructive/30 bg-destructive/10 p-4 shadow-[0_10px_30px_-20px_hsl(var(--destructive)/0.45)]">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+            <div className="flex-1 space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-destructive">Unable to submit application</p>
+                <p className="whitespace-pre-line text-sm text-destructive/80">
+                  {visibleSubmitError}
+                </p>
+              </div>
+              {errorActions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {errorActions.map((action, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      variant="destructive"
+                      onClick={() => action.url && navigate(action.url)}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         <div
           className={cn("flex", showBackButton ? "gap-[10px]" : "gap-0")}
           style={{ transition: footerTransitionsEnabled ? "gap 300ms ease-out" : "none" }}
