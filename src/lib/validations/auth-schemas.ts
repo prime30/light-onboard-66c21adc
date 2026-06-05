@@ -36,11 +36,29 @@ function fileUploadSchema(optional: boolean) {
 }
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
-// Phone number validation (10 digits, various formats)
-const phoneRegex = /^[\d\s\-().]+$/;
+// Phone number validation — allow common separators and an optional leading "+".
+// Pasting "+1 (415) 555-1212" or "+44 20 7946 0958" should pass.
+const phoneRegex = /^\+?[\d\s\-().]+$/;
 const isValidPhoneNumber = (phone: string): boolean => {
   const digits = phone.replace(/\D/g, "");
   return digits.length >= 10 && digits.length <= 15;
+};
+
+// Zip / postal code patterns. Defaults to a permissive 3–10 alphanumeric/space/dash
+// match for countries we don't have a specific rule for.
+const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
+  US: { regex: /^\d{5}(-\d{4})?$/, message: "Enter a valid US ZIP (12345 or 12345-6789)" },
+  CA: {
+    regex: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
+    message: "Enter a valid Canadian postal code (A1A 1A1)",
+  },
+};
+const isValidZipForCountry = (zip: string, country: string | undefined): true | string => {
+  const trimmed = zip.trim();
+  const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
+  if (pattern) return pattern.regex.test(trimmed) || pattern.message;
+  // Generic fallback: 3–10 alphanumeric (allowing space/dash).
+  return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed) || "Please enter a valid postal code";
 };
 
 // Account Type Schema
