@@ -228,6 +228,33 @@ export function AuthFooter({
       return;
     }
 
+    // Summary / faux-submit: if the only thing blocking is a duplicate-email
+    // (or duplicate-phone) manual error from the Contact step, surface the
+    // red root.form block + "Go to Login" action right here instead of
+    // silently shaking a field they can't see (it's two steps back).
+    if (isSummaryStep || isFauxSubmitStep || isLatePasswordStep) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const emailErr = (errors as any).email?.message as string | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const phoneErr = (errors as any).phoneNumber?.message as string | undefined;
+      if (emailErr && /already exists|already registered/i.test(emailErr)) {
+        setSubmitError({
+          message:
+            "An account with this email already exists. Please sign in instead.",
+          actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+        });
+        return;
+      }
+      if (phoneErr && /already linked|already in use/i.test(phoneErr)) {
+        setSubmitError({
+          message:
+            "This phone number is already linked to another account. Please sign in instead.",
+          actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+        });
+        return;
+      }
+    }
+
     if (continueBlocked) {
       // Disabled-but-clickable path: shake the missing fields. Only open the
       // popover on final-gate steps (summary / late password) — on regular
@@ -237,6 +264,7 @@ export function AuthFooter({
       shakeMissingFields(missing);
       return;
     }
+
 
     // Auto-approval flow: summary "Submit application" is a faux submit —
     // pre-flight check for duplicate email so we surface "Go to Login"
