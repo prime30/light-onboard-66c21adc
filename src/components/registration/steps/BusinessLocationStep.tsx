@@ -65,14 +65,34 @@ export const BusinessLocationStep = () => {
   const errors = rawErrors as any;
 
   // Watch form values
-  const watchedValues = watch(["accountType", "businessAddress", "countryCode", "provinceCode"]);
-  const [accountType, businessAddress, countryCode, provinceCode] = watchedValues;
+  const watchedValues = watch([
+    "accountType",
+    "businessAddress",
+    "countryCode",
+    "provinceCode",
+    "zipCode",
+  ]);
+  const [accountType, businessAddress, countryCode, provinceCode, zipCode] = watchedValues;
 
   const isStudent = accountType === "student";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Get country metadata
   const selectedCountry = countries.find((c) => c.code === countryCode);
+
+  // Country-aware ZIP/postal validity for the inline green checkmark.
+  // Mirrors ZIP_PATTERNS in auth-schemas.ts so the UI signal matches the
+  // schema's superRefine gating (US: 5 or 5-4, CA: A1A 1A1, else generic).
+  const isZipValid = (() => {
+    const trimmed = (zipCode ?? "").trim();
+    if (!trimmed) return false;
+    const cc = countryCode?.toUpperCase();
+    if (cc === "US") return /^\d{5}(-\d{4})?$/.test(trimmed);
+    if (cc === "CA")
+      return /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i.test(trimmed);
+    return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed);
+  })();
+
 
   // Address autocomplete functionality
   const { isLoading, inputRef, handleInputChange, handleInputFocus, AddressDropdown } =
@@ -288,7 +308,7 @@ export const BusinessLocationStep = () => {
             error={errors.zipCode}
             placeholder={selectedCountry?.postalCodeLabel || "Zip/Postal code"}
             label={`${selectedCountry?.postalCodeLabel || "Zip/Postal code"}*`}
-            isValid={getValidationStatus("zipCode") === "complete"}
+            isValid={isZipValid}
             autoComplete="postal-code"
           />
         </div>
