@@ -734,7 +734,30 @@ Deno.serve(async (req: Request) => {
       customer.phone_country_code,
       customer.phone_number
     );
-    const canCollectSms = acceptsSmsMarketingFlag && !!customerPhone;
+
+    // Server-side phone validation (libphonenumber). Shopify uses
+    // libphonenumber too and rejects the whole PUT on bad NANP / impossible
+    // numbers, so skip sending phone when it's clearly invalid.
+    let phoneValid = false;
+    if (customerPhone) {
+      try {
+        const parsed = parsePhoneNumberFromString(customerPhone);
+        phoneValid = !!parsed && parsed.isValid();
+        if (!phoneValid) {
+          console.warn("Phone failed libphonenumber validation; will not send to Shopify:", customerPhone);
+        }
+      } catch (e) {
+        console.warn("libphonenumber threw; treating phone as invalid:", e);
+      }
+    }
+
+    // Phone-collision check happens later (needs shopifyDomain/token + the
+    // current shopifyCustomerId). We optimistically allow phone now and may
+    // flip this to false if Shopify returns a different customer for the
+    // same E.164 phone.
+    let phoneSafeToSend = phoneValid;
+    const canCollectSms = acceptsSmsMarketingFlag && phoneSafeToSend;
+
     const consentTimestamp = new Date().toISOString();
 
     // Build a human-readable note summarizing the application — lands in
