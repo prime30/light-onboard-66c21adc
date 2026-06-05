@@ -66,16 +66,32 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   // Reset form and move to success step on successful submission
   useEffect(() => {
     const accountType = watch("accountType");
+    const firstName = watch("firstName");
+    const lastName = watch("lastName");
+    const phoneNumber = watch("phoneNumber");
+    const phoneCountryCode = watch("phoneCountryCode");
     if (isSubmitSuccessful) {
       // Notify the parent Shopify theme (when embedded) that an application
       // was submitted, so it can set the dd_applied cookie used to gate the
       // "Discount unlocked" banner on the Color Ring PDP. Fires before any
       // step transition so the message is sent prior to potential navigation.
       emitApplicationSubmitted();
-      reset({ email, accountType } as Partial<AllRegistrationFormData>);
+      // Preserve identity + contact fields so the post-submit ScheduleStep
+      // can prefill name/email and send a valid phone to Calendly. Without
+      // these, toE164() returns "Phone number is required" and booking is
+      // blocked even though the user just entered the phone.
+      reset({
+        email,
+        accountType,
+        firstName,
+        lastName,
+        phoneNumber,
+        phoneCountryCode,
+      } as Partial<AllRegistrationFormData>);
       setCurrentStep("success");
     }
   }, [email, isSubmitSuccessful, reset, setCurrentStep, watch]);
+
 
   // Sync email to global app context. Email is used for uploading files,
   // and shares the email between forms.
