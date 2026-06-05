@@ -5,6 +5,47 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Module-scope IP-geo cache. Survives across warm invocations of the same
+// isolate so we don't burn an ipapi.co call on every keystroke. 24h TTL.
+type GeoEntry = { lat: number; lng: number; expiresAt: number };
+const ipGeoCache = new Map<string, GeoEntry | null>();
+const GEO_TTL_MS = 24 * 60 * 60 * 1000;
+
+async function lookupIpGeo(ip: string): Promise<GeoEntry | null> {
+  const cached = ipGeoCache.get(ip);
+  if (cached !== undefined && (cached === null || cached.expiresAt > Date.now())) {
+    return cached;
+  }
+  try {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 600);
+    const res = await fetch(`https://ipapi.co/${ip}/json/`, { signal: ctrl.signal });
+    clearTimeout(timeout);
+    if (!res.ok) {
+      ipGeoCache.set(ip, null);
+      return null;
+    }
+    const geo = (await res.json()) as { latitude?: number; longitude?: number };
+    if (typeof geo.latitude !== "number" || typeof geo.longitude !== "number") {
+      ipGeoCache.set(ip, null);
+      return null;
+    }
+    const entry: GeoEntry = {
+      lat: geo.latitude,
+      lng: geo.longitude,
+      expiresAt: Date.now() + GEO_TTL_MS,
+    };
+    ipGeoCache.set(ip, entry);
+    return entry;
+  } catch {
+    // Negative-cache for a short window so we don't retry-storm on outages.
+    ipGeoCache.set(ip, { lat: 0, lng: 0, expiresAt: Date.now() + 60_000 } as GeoEntry);
+    ipGeoCache.set(ip, null);
+    return null;
+  }
+}
+
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
