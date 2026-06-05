@@ -26,6 +26,32 @@ function ok(body: Record<string, unknown>) {
   });
 }
 
+// Tiny in-memory LRU cache (per-isolate). Dedupes Shopify search calls
+// across users hitting the same E.164 within the TTL window. Cuts upstream
+// load during traffic bursts; safe because results are stable for minutes.
+const CACHE_TTL_MS = 60_000;
+const CACHE_MAX = 500;
+const phoneCache = new Map<string, { at: number; inUse: boolean }>();
+function cacheGet(key: string): boolean | undefined {
+  const hit = phoneCache.get(key);
+  if (!hit) return undefined;
+  if (Date.now() - hit.at > CACHE_TTL_MS) {
+    phoneCache.delete(key);
+    return undefined;
+  }
+  // Refresh recency (LRU): re-insert.
+  phoneCache.delete(key);
+  phoneCache.set(key, hit);
+  return hit.inUse;
+}
+function cacheSet(key: string, inUse: boolean) {
+  if (phoneCache.size >= CACHE_MAX) {
+    const oldest = phoneCache.keys().next().value;
+    if (oldest) phoneCache.delete(oldest);
+  }
+  phoneCache.set(key, { at: Date.now(), inUse });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -59,6 +85,10 @@ Deno.serve(async (req: Request) => {
 
   if (!valid) return ok({ valid: false, inUse: false });
 
+  // Cache hit short-circuits the Shopify search.
+  const cached = cacheGet(e164);
+  if (cached !== undefined) return ok({ valid: true, inUse: cached });
+
   // Uniqueness check via Shopify Admin search.
   const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
   const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -86,6 +116,7 @@ Deno.serve(async (req: Request) => {
     }
     const json = (await res.json()) as { customers?: Array<{ id?: number }> };
     const inUse = Array.isArray(json.customers) && json.customers.length > 0;
+    cacheSet(e164, inUse);
     return ok({ valid: true, inUse });
   } catch (e) {
     console.warn("check-phone: search threw:", e);
