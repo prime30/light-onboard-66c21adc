@@ -98,6 +98,7 @@ export const BusinessLocationStep = () => {
   const { isLoading, inputRef, handleInputChange, handleInputFocus, AddressDropdown } =
     useAddressAutocomplete({
       countryCode: selectedCountry?.code,
+      regionCode: provinceCode,
       onAddressSelect: (details: AddressDetails) => {
         // Auto-fill form fields with address details
         if (details.streetAddress) setValue("businessAddress", details.streetAddress);
