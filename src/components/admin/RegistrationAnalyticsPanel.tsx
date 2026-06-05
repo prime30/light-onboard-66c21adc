@@ -278,6 +278,46 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
           </div>
         </div>
       )}
+
+      {/* Cohort retention */}
+      {(data?.cohorts?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Cohort retention (by start day)
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              % of cohort completed within window · <span className="italic">partial</span> = window not fully elapsed
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Day</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Size</th>
+                  <th className="text-right py-1.5 px-2 font-medium">1h</th>
+                  <th className="text-right py-1.5 px-2 font-medium">24h</th>
+                  <th className="text-right py-1.5 px-2 font-medium">7d</th>
+                  <th className="text-right py-1.5 pl-2 font-medium">Ever</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.cohorts.slice(0, 30).map((row) => (
+                  <tr key={row.date}>
+                    <td className="py-1.5 pr-3 font-medium tabular-nums">{row.date.slice(5)}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.size}</td>
+                    <CohortCell rate={row.rate1h} count={row.within1h} partial={row.partial1h} />
+                    <CohortCell rate={row.rate24h} count={row.within24h} partial={row.partial24h} />
+                    <CohortCell rate={row.rate7d} count={row.within7d} partial={row.partial7d} />
+                    <CohortCell rate={row.rateEver} count={row.ever} partial={false} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
