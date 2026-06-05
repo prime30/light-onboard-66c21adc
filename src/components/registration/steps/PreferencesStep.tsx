@@ -191,7 +191,7 @@ export const PreferencesStep = () => {
         {showSmsNotice && (
           <div
             className={cn(
-              "flex gap-[15px] pl-5 border-l-2 border-border transition-all duration-200",
+              "flex gap-[15px] transition-all duration-200",
               isExiting
                 ? "opacity-0 translate-y-2"
                 : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
