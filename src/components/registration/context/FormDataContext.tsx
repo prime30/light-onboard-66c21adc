@@ -110,6 +110,7 @@ export function FormDataProvider({
     setError,
     setFocus,
     clearErrors,
+    trigger,
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
@@ -384,6 +385,12 @@ export function FormDataProvider({
         setValue(key as ValidFieldNames, value, dirtyFieldOptions);
       });
     }
+    // Force full-schema validation after restore so MISSING required fields
+    // (which setValue wouldn't have touched) populate `errors`. Without this,
+    // a resumed session that's missing a now-required field can sail past the
+    // step validators and only blow up at summary/password submit.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (trigger as any)?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

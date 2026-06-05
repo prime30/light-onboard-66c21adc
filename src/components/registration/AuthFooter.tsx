@@ -57,25 +57,27 @@ export function AuthFooter({
 
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
-  // On non-summary steps, only surface the *current* step's missing fields so
-  // the popover guides users to what's blocking the Continue button right here.
-  // On the summary step (and the late create-password step in auto-approval
-  // mode — which is the real submit gate AFTER summary), list every incomplete
-  // step across the whole form so users can see exactly what's blocking the
-  // backend submit.
+  // Popover content rules:
+  //   • Summary + late create-password (in auto-approval mode) are the final
+  //     submit gates — list every incomplete step across the whole form.
+  //   • The faux "Submit application" in auto-approval mode hides the
+  //     password step (it's collected AFTER summary), but still lists every
+  //     other incomplete step.
+  //   • Any other step: list the current step's missing fields PLUS any
+  //     other incomplete steps so users who skipped via jump-to-step or who
+  //     resumed a stale session can see exactly what's still blocking them.
   const popoverSteps = useMemo(() => {
-    if (isSummaryStep) {
-      // In auto-approval mode, the password step happens AFTER summary, so it
-      // should not be listed as a blocker on the faux "Submit application".
-      if (isFauxSubmitStep) {
-        return incompleteSteps.filter((s) => s.step !== "create-password");
-      }
+    if (isFauxSubmitStep) {
+      return incompleteSteps.filter((s) => s.step !== "create-password");
+    }
+    if (isSummaryStep || isLatePasswordStep) {
       return incompleteSteps;
     }
-    if (isLatePasswordStep) {
-      return incompleteSteps;
-    }
-    return incompleteSteps.filter((s) => s.step === currentStep);
+    // Put the current step first if it's incomplete so the most relevant
+    // gap appears at the top of the popover.
+    const current = incompleteSteps.find((s) => s.step === currentStep);
+    const others = incompleteSteps.filter((s) => s.step !== currentStep);
+    return current ? [current, ...others] : others;
   }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, currentStep]);
 
   const continueBlocked = isSummaryStep
@@ -84,11 +86,10 @@ export function AuthFooter({
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
-  // Popover (with the list of incomplete steps/fields) is shown on the final
-  // submit gates: the summary step, and the late create-password step in
-  // auto-approval mode. Other steps still get the click-to-shake + red flash
-  // on the missing fields, but no popover.
-  const showTooltip = (isSummaryStep || isLatePasswordStep) && continueBlocked;
+  // Popover surfaces on any step where Continue is blocked, so users always
+  // see exactly what's missing (covers resumed sessions and jump-to-step
+  // skips where a prior step is still incomplete).
+  const showTooltip = continueBlocked && popoverSteps.length > 0;
 
   const openSubmitTooltip = useCallback(() => {
     if (submitPopoverCloseTimer.current) {
