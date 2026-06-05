@@ -223,9 +223,11 @@ export function AuthFooter({
     }
 
     if (continueBlocked) {
-      // Disabled-but-clickable path: surface the popover and shake fields.
+      // Disabled-but-clickable path: shake the missing fields. Only open the
+      // popover on final-gate steps (summary / late password) — on regular
+      // steps the inline field errors are enough.
       const missing = popoverSteps.flatMap((s) => s.missingFields);
-      setSubmitTooltipOpen(true);
+      if (isFinalGateStep) setSubmitTooltipOpen(true);
       shakeMissingFields(missing);
       return;
     }
