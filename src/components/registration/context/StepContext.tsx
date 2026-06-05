@@ -49,7 +49,7 @@ type StepProviderProps = {
 // Provider component
 export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
-  const { watch, errors, subscribe, fullErrors } = useFormData();
+  const { watch, errors, subscribe, fullErrors, emailConflict } = useFormData();
   const accountType = watch("accountType");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
@@ -103,6 +103,12 @@ export function StepProvider({ children }: StepProviderProps) {
       }
 
       const values = watch();
+      if (
+        step === "contact-basics" &&
+        emailConflict?.email === ((values.email ?? "") as string).trim().toLowerCase()
+      ) {
+        return "error";
+      }
       const isValid = schema.safeParse(values);
 
       // Cross-field refinements not encoded in the per-step ZodObject must
@@ -142,7 +148,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
       return "in-progress";
     },
-    [errors, watch, accountType]
+    [errors, watch, accountType, emailConflict]
   );
 
   const getStepNumber = useCallback(
@@ -199,8 +205,20 @@ export function StepProvider({ children }: StepProviderProps) {
   const goToNextStep = () => {
     const schema = getStepSchema(currentStep, accountType);
     if (schema) {
+      const values = watch();
+      if (
+        currentStep === "contact-basics" &&
+        emailConflict?.email === ((values.email ?? "") as string).trim().toLowerCase()
+      ) {
+        setShowValidationErrors(true);
+        toast({
+          title: "This email is already registered",
+          variant: "destructive",
+        });
+        return;
+      }
       // Perform validation using the corresponding Zod schema
-      const result = schema.safeParse(watch());
+      const result = schema.safeParse(values);
 
       if (!result.success) {
         setShowValidationErrors(true);
@@ -302,6 +320,14 @@ export function StepProvider({ children }: StepProviderProps) {
             missingFields.push(fieldName);
           }
         });
+          const currentData = watch();
+          if (
+            step === "contact-basics" &&
+            emailConflict?.email === ((currentData.email ?? "") as string).trim().toLowerCase() &&
+            !missingFields.includes("email")
+          ) {
+            missingFields.push("email");
+          }
 
         // If no specific field errors but step is not complete,
         // check fullErrors for validation issues or empty required fields
@@ -335,7 +361,7 @@ export function StepProvider({ children }: StepProviderProps) {
           missingFields,
         };
       });
-  }, [steps, completedSteps, errors, fullErrors, watch, getStepNumber]);
+  }, [steps, completedSteps, errors, fullErrors, watch, getStepNumber, emailConflict]);
 
   const value: StepContextType = {
     totalSteps,

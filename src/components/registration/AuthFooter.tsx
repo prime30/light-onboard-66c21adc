@@ -49,6 +49,7 @@ export function AuthFooter({
     errors,
     errorActions,
     submitErrorMessage,
+    setEmailConflict,
     incompleteSteps,
   } = useForm();
   const [preflightChecking, setPreflightChecking] = useState(false);
@@ -248,6 +249,34 @@ export function AuthFooter({
       return;
     }
 
+    if (currentStep === "contact-basics") {
+      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+      if (!email) {
+        goToNextStep();
+        return;
+      }
+      setPreflightChecking(true);
+      supabase.functions
+        .invoke("check-email", { body: { email } })
+        .then(({ data, error }) => {
+          if (error) {
+            goToNextStep();
+            return;
+          }
+          if ((data as { exists?: boolean } | undefined)?.exists) {
+            const message = "An account with this email already exists. Please sign in instead.";
+            setEmailConflict({ email, message });
+            setError("email", { type: "manual", message });
+            return;
+          }
+          setEmailConflict(null);
+          goToNextStep();
+        })
+        .catch(() => goToNextStep())
+        .finally(() => setPreflightChecking(false));
+      return;
+    }
+
 
     // Auto-approval flow: summary "Submit application" is a faux submit —
     // pre-flight check for duplicate email so we surface "Go to Login"
@@ -320,6 +349,7 @@ export function AuthFooter({
     watch,
     setError,
     setSubmitError,
+    setEmailConflict,
     errors,
   ]);
 

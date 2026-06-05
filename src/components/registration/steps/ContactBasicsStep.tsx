@@ -71,6 +71,8 @@ export const ContactBasicsStep = () => {
     watch,
     setError,
     clearErrors,
+    emailConflict,
+    setEmailConflict,
   } = useForm();
   const validationStatus = getStepValidationStatus(currentStep);
 
@@ -95,18 +97,30 @@ export const ContactBasicsStep = () => {
 
   // Debounced check: does an account already exist with this email?
   const email = watch("email");
+  const normalizedEmail = (email ?? "").trim().toLowerCase();
+  const matchingEmailConflict = emailConflict?.email === normalizedEmail ? emailConflict : null;
+  const emailDisplayError = errors.email || (
+    matchingEmailConflict
+      ? { type: "manual", message: matchingEmailConflict.message }
+      : undefined
+  );
   const lastCheckedRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
+    if (emailConflict && emailConflict.email !== value) {
+      setEmailConflict(null);
+      if (errors.email?.type === "manual") clearErrors("email");
+    }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
     if (lastCheckedRef.current === value) return;
 
     const applyResult = (data: { exists?: boolean } | undefined) => {
       if (data?.exists) {
+        const message = "An account with this email already exists. Please sign in instead.";
+        setEmailConflict({ email: value, message });
         setError("email", {
           type: "manual",
-          message:
-            "An account with this email already exists. Please sign in instead.",
+          message,
         });
         toast.error("This email is already registered", {
           id: `email-exists:${value}`,
@@ -114,6 +128,7 @@ export const ContactBasicsStep = () => {
           duration: 6000,
         });
       } else if (errors.email?.type === "manual") {
+        setEmailConflict(null);
         clearErrors("email");
       }
     };
@@ -306,12 +321,12 @@ export const ContactBasicsStep = () => {
             name={"email"}
             type="email"
             register={register}
-            error={errors.email}
+            error={emailDisplayError}
             placeholder="your@email"
             label="Email*"
             autoComplete="email"
-            isValid={getValidationStatus("email") === "complete"}
-            prefixIcon={<EmailPrefixIcon emailError={!!errors.email} />}
+            isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
+            prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
           />
         </div>
 
