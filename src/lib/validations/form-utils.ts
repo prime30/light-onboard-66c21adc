@@ -3,10 +3,13 @@ export const isValidEmail = (email: string): boolean => {
   return email.trim() !== "" && email.includes("@");
 };
 
-// Format phone number as user types (local number only, no country code)
+// Format phone number as user types (local number only, no country code).
+// If the user pastes a full international number (e.g. "+1 (415) 555-1212"),
+// keep the LAST 10 digits — the country selector already supplies the dial code,
+// so the local number is what we display & store.
 export const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters
-  const cleaned = value.replace(/\D/g, "").slice(0, 10);
+  const allDigits = value.replace(/\D/g, "");
+  const cleaned = allDigits.length > 10 ? allDigits.slice(-10) : allDigits;
 
   // US format: (555) 123-4567
   if (cleaned.length <= 3) return cleaned;
