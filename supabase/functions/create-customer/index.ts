@@ -905,45 +905,11 @@ Deno.serve(async (req: Request) => {
             console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
-          // Phone-uniqueness check: Shopify rejects the whole PUT with
-          // {"phone":["is invalid"]} if another customer already owns this
-          // E.164 number. Search by phone first and drop it from the
-          // payload on collision.
-          if (phoneSafeToSend && customerPhone) {
-            try {
-              const phoneSearchRes = await fetch(
-                `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
-                  `phone:${customerPhone}`
-                )}`,
-                {
-                  method: "GET",
-                  headers: {
-                    "X-Shopify-Access-Token": shopifyAdminToken,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-              if (phoneSearchRes.ok) {
-                const pjson = await phoneSearchRes.json();
-                const owners: Array<{ id?: number }> = pjson?.customers ?? [];
-                const collidingId = owners.find(
-                  (c) => typeof c?.id === "number" && c.id !== shopifyCustomerId
-                )?.id;
-                if (collidingId) {
-                  console.warn(
-                    "Phone already owned by another Shopify customer; dropping phone from update:",
-                    { phone: customerPhone, collidingId }
-                  );
-                  phoneSafeToSend = false;
-                  canCollectSms = false;
-                }
-              } else {
-                console.warn("Phone-collision search failed (non-blocking):", phoneSearchRes.status);
-              }
-            } catch (e) {
-              console.warn("Phone-collision search threw (non-blocking):", e);
-            }
-          }
+          // Phone validity + uniqueness are enforced earlier (before any
+          // writes), so by the time we get here phoneSafeToSend reflects
+          // libphonenumber validity only. The early check returns 409
+          // PHONE_IN_USE if a different customer owns the number.
+
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
