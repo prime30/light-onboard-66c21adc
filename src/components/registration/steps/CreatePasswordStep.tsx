@@ -74,7 +74,9 @@ export const CreatePasswordStep = () => {
     getStepNumber,
     clearErrors,
     setError,
+    errorActions,
   } = useForm();
+  const navigate = useNavigate();
 
   const validationStatus = getStepValidationStatus(currentStep);
   const password = (watch("password") as string | undefined) ?? "";
