@@ -67,6 +67,26 @@ export const ScheduleStep = () => {
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState<string | null>(null);
 
+  // Sync prefill once form values become available (post-submit reset
+  // settles a tick after mount, so the initial useState may have captured
+  // empty strings).
+  const prefilledRef = useRef({ firstName: false, lastName: false, email: false });
+  useEffect(() => {
+    if (!prefilledRef.current.firstName && values?.firstName && !firstName) {
+      setFirstName(values.firstName);
+      prefilledRef.current.firstName = true;
+    }
+    if (!prefilledRef.current.lastName && values?.lastName && !lastName) {
+      setLastName(values.lastName);
+      prefilledRef.current.lastName = true;
+    }
+    if (!prefilledRef.current.email && values?.email && !email) {
+      setEmail(values.email);
+      prefilledRef.current.email = true;
+    }
+  }, [values?.firstName, values?.lastName, values?.email, firstName, lastName, email]);
+
+
   const fetchedWindows = useRef<Set<string>>(new Set());
   const fetchWindow = useCallback(async (start: Date) => {
     const startKey = toYmdUtc(start);
@@ -381,11 +401,25 @@ export const ScheduleStep = () => {
             </div>
           </div>
 
-          {phoneError && (
-            <p className="text-xs text-destructive">
-              We can't text your reminder — {phoneError.toLowerCase()}. Update your phone number on the contact step.
-            </p>
-          )}
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
+              SMS reminder number
+            </Label>
+            {formPhoneE164 ? (
+              <div className="flex items-center justify-between gap-3 rounded-form border border-border bg-muted/40 px-4 py-3">
+                <span className="font-mono text-sm text-foreground tabular-nums">
+                  {formPhoneE164}
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Sent to Calendly
+                </span>
+              </div>
+            ) : (
+              <p className="text-xs text-destructive">
+                We can't text your reminder — {(phoneError ?? "phone is missing").toLowerCase()}. Update your phone number on the contact step.
+              </p>
+            )}
+          </div>
           {bookError && <p className="text-xs text-destructive">{bookError}</p>}
 
           <Button
