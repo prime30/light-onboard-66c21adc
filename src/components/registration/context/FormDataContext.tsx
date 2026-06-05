@@ -53,6 +53,10 @@ export type FormDataContextType = {
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
+  setSubmitError: (input: {
+    message: string;
+    actions?: Array<{ type: string; label: string; url?: string }>;
+  }) => void;
   discountCode: string | null;
   discountExpiry: string | null;
 };
@@ -470,6 +474,20 @@ export function FormDataProvider({
     [hookFormReset, setStoredFormValues]
   );
 
+  const setSubmitError = useCallback(
+    ({
+      message,
+      actions = [],
+    }: {
+      message: string;
+      actions?: Array<{ type: string; label: string; url?: string }>;
+    }) => {
+      setErrorActions(actions);
+      setError("root.form", { type: "manual", message });
+    },
+    [setError]
+  );
+
   const value: FormDataContextType = {
     register,
     control,
@@ -491,6 +509,7 @@ export function FormDataProvider({
     isSubmitSuccessful,
     isSubmitting,
     errorActions,
+    setSubmitError,
     discountCode,
     discountExpiry,
   };

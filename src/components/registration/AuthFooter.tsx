@@ -8,6 +8,7 @@ import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval } from "@/lib/app-settings";
 import { useCloseIframe } from "@/hooks/messages";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthFooterProps {
   mode: AuthMode;
@@ -41,8 +42,12 @@ export function AuthFooter({
     goToStep,
     submitForm,
     setFocus,
+    setError,
+    setSubmitError,
+    watch,
     incompleteSteps,
   } = useForm();
+  const [preflightChecking, setPreflightChecking] = useState(false);
   const { enabled: autoApprove } = useAutoApproval();
   const { closeIframe, isInIframe } = useCloseIframe();
 
@@ -124,7 +129,7 @@ export function AuthFooter({
     return "Continue";
   };
 
-  const isProcessing = isSubmitting || isUploading;
+  const isProcessing = isSubmitting || isUploading || preflightChecking;
 
   // Briefly highlight + shake the missing fields so users see exactly what's
   // blocking submission. We target inputs by id (TextInput sets id={name}) and
@@ -233,10 +238,43 @@ export function AuthFooter({
     }
 
     // Auto-approval flow: summary "Submit application" is a faux submit —
-    // just advance to the assessing animation. The real backend submit
-    // happens when the user sets a password on the next step.
+    // pre-flight check for duplicate email so we surface "Go to Login"
+    // BEFORE the user lands on the late password step. Phone duplicates are
+    // already caught on the Contact step.
     if (isFauxSubmitStep) {
-      goToStep("assessing");
+      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+      if (!email) {
+        goToStep("assessing");
+        return;
+      }
+      setPreflightChecking(true);
+      supabase.functions
+        .invoke("check-email", { body: { email } })
+        .then(({ data, error }) => {
+          if (error) {
+            // Fail open — server-side submit will still catch it.
+            goToStep("assessing");
+            return;
+          }
+          if ((data as { exists?: boolean } | undefined)?.exists) {
+            setError("email", {
+              type: "manual",
+              message:
+                "An account with this email already exists. Please sign in instead.",
+            });
+            setSubmitError({
+              message:
+                "An account with this email already exists. Please sign in instead.",
+              actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+            });
+            return;
+          }
+          goToStep("assessing");
+        })
+        .catch(() => {
+          goToStep("assessing");
+        })
+        .finally(() => setPreflightChecking(false));
       return;
     }
 
@@ -262,6 +300,9 @@ export function AuthFooter({
     isFinalGateStep,
     goToStep,
     submitForm,
+    watch,
+    setError,
+    setSubmitError,
   ]);
 
 
