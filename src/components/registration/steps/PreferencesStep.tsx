@@ -204,28 +204,9 @@ export const PreferencesStep = () => {
           <p className="text-sm font-medium text-foreground">Communication preferences</p>
           <div className="space-y-[15px]">
 
-
-
-            {/* Email marketing — Shopify email_marketing_consent */}
-            <label className="flex items-start gap-[15px] cursor-pointer group">
-              <Checkbox
-                checked={acceptsMarketing || false}
-                onCheckedChange={(checked) => {
-                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
-                }}
-                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Email me about promotions, new products & deals
-                </span>
-                <p className="text-xs text-muted-foreground">
-                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
-                </p>
-              </div>
-            </label>
-
-            {/* SMS marketing — Shopify sms_marketing_consent (TCPA) */}
+            {/* SMS marketing — Shopify sms_marketing_consent (TCPA). Top of
+                the stack: framed around the approval moment, which is what
+                the applicant actually cares about right now. */}
             <label
               className={cn(
                 "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form border-l-2 bg-gradient-to-r from-primary/[0.04] to-transparent transition-colors",
@@ -246,14 +227,14 @@ export const PreferencesStep = () => {
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                    Get drops 24 hrs early — text only
+                    Text me when I'm approved to shop & with pro-only deals
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground/[0.06] text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/70">
-                    VIP
+                    Recommended
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Restock alerts, new colors, and pro-only deals before they hit email.
+                  Approval notification, restock alerts, early drops, and pro-only deals before they hit email.
                   <span className="text-muted-foreground/70"> ~2–4 texts/month. Stop anytime.</span>
                 </p>
                 <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
@@ -283,6 +264,25 @@ export const PreferencesStep = () => {
                     Add a phone number in the previous step to enable SMS.
                   </p>
                 )}
+              </div>
+            </label>
+
+            {/* Email marketing — Shopify email_marketing_consent */}
+            <label className="flex items-start gap-[15px] cursor-pointer group">
+              <Checkbox
+                checked={acceptsMarketing || false}
+                onCheckedChange={(checked) => {
+                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+              />
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  Email me about promotions, new products & deals
+                </span>
+                <p className="text-xs text-muted-foreground">
+                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
+                </p>
               </div>
             </label>
           </div>
