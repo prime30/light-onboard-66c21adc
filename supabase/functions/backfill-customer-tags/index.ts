@@ -227,14 +227,28 @@ Deno.serve(async (req: Request) => {
       const mfJson = await mfRes.json();
       const mf = metafieldMap((mfJson?.metafields ?? []) as ShopifyMetafield[]);
 
-      // Derive account type tag from Helium metafield if present
+      // Derive account type tag from Helium metafield if present.
+      // CRITICAL: only customers with a Helium account_type metafield are
+      // treated as real B2B applicants. Anyone without it (support contacts,
+      // Klaviyo syncs, order-only customers) is skipped entirely so we
+      // don't pollute their record with wholesale/B2B/Account-type tags
+      // and don't trip the soft-merge block on future registrations.
       const rawAccountType = (mf["account_type"] ?? "").toLowerCase().trim();
-      const accountTypeLabel = rawAccountType
-        ? accountTypeLabelMap[rawAccountType] ?? rawAccountType
-        : null;
+      if (!rawAccountType) {
+        skipped++;
+        results.push({
+          id: c.id,
+          email: c.email,
+          action: "skipped",
+          reason: "no Helium account_type — not an applicant",
+        });
+        continue;
+      }
+      const accountTypeLabel =
+        accountTypeLabelMap[rawAccountType] ?? rawAccountType;
 
       const desiredTags: string[] = [];
-      if (accountTypeLabel) desiredTags.push(`Account type: ${accountTypeLabel}`);
+      desiredTags.push(`Account type: ${accountTypeLabel}`);
       const taxExemptFlag = mf["tax_exempt"] === "true" || c.tax_exempt === true;
       if (taxExemptFlag) desiredTags.push("Tax exempt");
       desiredTags.push(...extraAdminTags);
