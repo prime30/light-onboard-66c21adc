@@ -119,11 +119,6 @@ const contactBasicsValidators = {
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
     .refine((val) => isValidPhoneNumber(val), "Please enter a valid phone number")
     .transform((val) => formatPhoneNumber(val)),
-    .string()
-    .min(1, "Phone number is required")
-    .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
-    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number")
-    .transform((val) => formatPhoneNumber(val)),
   phoneCountryCode: z
     .string()
     .min(1, "Country code is required")
