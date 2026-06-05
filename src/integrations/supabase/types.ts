@@ -209,6 +209,51 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_submissions: {
+        Row: {
+          account_type: string | null
+          created_at: string
+          email: string
+          error_log: Json
+          helium_customer_id: string | null
+          id: string
+          ip_address: string | null
+          payload: Json
+          shopify_customer_id: number | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          created_at?: string
+          email: string
+          error_log?: Json
+          helium_customer_id?: string | null
+          id?: string
+          ip_address?: string | null
+          payload: Json
+          shopify_customer_id?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          created_at?: string
+          email?: string
+          error_log?: Json
+          helium_customer_id?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json
+          shopify_customer_id?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       welcome_offer_codes: {
         Row: {
           code: string
