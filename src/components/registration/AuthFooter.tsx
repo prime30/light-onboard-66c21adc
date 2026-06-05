@@ -255,9 +255,12 @@ export function AuthFooter({
     // already caught on the Contact step.
     if (shouldRunDuplicateEmailCheck) {
       const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+      const continueAfterCheck = () => {
+        if (isFauxSubmitStep) goToStep("assessing");
+        else submitForm();
+      };
       if (!email) {
-          if (isFauxSubmitStep) goToStep("assessing");
-          else submitForm();
+        continueAfterCheck();
         return;
       }
       setPreflightChecking(true);
@@ -266,8 +269,7 @@ export function AuthFooter({
         .then(({ data, error }) => {
           if (error) {
             // Fail open — server-side submit will still catch it.
-      if (isFauxSubmitStep) goToStep("assessing");
-      else submitForm();
+            continueAfterCheck();
             return;
           }
           if ((data as { exists?: boolean } | undefined)?.exists) {
@@ -283,10 +285,10 @@ export function AuthFooter({
             });
             return;
           }
-          goToStep("assessing");
+          continueAfterCheck();
         })
         .catch(() => {
-          goToStep("assessing");
+          continueAfterCheck();
         })
         .finally(() => setPreflightChecking(false));
       return;
@@ -310,6 +312,7 @@ export function AuthFooter({
     goToNextStep,
     isSummaryStep,
     isFauxSubmitStep,
+    autoApprove,
     isLatePasswordStep,
     isFinalGateStep,
     goToStep,
