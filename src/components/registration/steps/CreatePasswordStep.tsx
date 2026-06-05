@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Check, Eye, EyeOff, Lock, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Lock, ShieldCheck, X } from "lucide-react";
+import { useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { CheckMarkIcon } from "@/components/CheckMarkIcon";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { useForm } from "../context";
