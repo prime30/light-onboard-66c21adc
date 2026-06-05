@@ -13,10 +13,22 @@ function toE164(countryCode?: string, phoneNumber?: string): string | undefined 
   if (!phoneNumber) return undefined;
   const cleaned = phoneNumber.replace(/\D/g, "");
   if (!cleaned) return undefined;
-  const code = countryCode?.startsWith("+")
-    ? countryCode
-    : `+${(countryCode || "1").replace(/\D/g, "")}`;
-  return `${code}${cleaned}`;
+  const cc = (countryCode ?? "").trim();
+  // Dial code path: "+1" or bare digits like "1".
+  if (cc.startsWith("+") || /^\d+$/.test(cc)) {
+    const code = cc.startsWith("+") ? cc : `+${cc || "1"}`;
+    return `${code}${cleaned}`;
+  }
+  // ISO region path ("US", "CA"): resolve via libphonenumber.
+  if (/^[A-Za-z]{2}$/.test(cc)) {
+    try {
+      const parsed = parsePhoneNumberFromString(cleaned, cc.toUpperCase() as never);
+      if (parsed) return parsed.number;
+    } catch {
+      /* fall through */
+    }
+  }
+  return `+1${cleaned}`;
 }
 
 function ok(body: Record<string, unknown>) {
