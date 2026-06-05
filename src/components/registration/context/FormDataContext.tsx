@@ -447,9 +447,15 @@ export function FormDataProvider({
   );
 
   const clearFormErrors = useCallback(
-    ({ errors }: FormStateWithValues) => {
-      // Clear form errors when any field changes
-      if (errors?.root?.form && !isSubmitting) {
+    ({ errors, values }: FormStateWithValues) => {
+      const valuesSignature = JSON.stringify(values ?? {});
+      const previousValuesSignature = lastSubscribedValuesSignature.current;
+      lastSubscribedValuesSignature.current = valuesSignature;
+
+      // Clear form errors only after a real value edit. Calling setError also
+      // notifies subscribers with the same values; clearing on that notification
+      // erased duplicate-email errors immediately after they were set.
+      if (errors?.root?.form && !isSubmitting && previousValuesSignature !== null && previousValuesSignature !== valuesSignature) {
         clearErrors("root.form");
         setErrorActions([]);
         setSubmitErrorMessage(null);
