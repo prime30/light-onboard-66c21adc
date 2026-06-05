@@ -1397,12 +1397,33 @@ Deno.serve(async (req: Request) => {
       statusCode: 200,
     };
 
+    // Audit: finalize. `succeeded` even if some non-blocking soft failures
+    // were recorded (Shopify-side enrichments) — the applicant has a Helium
+    // record and the error_log lets us replay just the failed pieces.
+    await updateAuditRow({
+      status: auditErrors.length > 0 ? "shopify_ok" : "succeeded",
+      shopify_customer_id: shopifyCustomerId ?? null,
+      error_log: auditErrors,
+    });
+
     return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Unexpected error in customer sync function:", error);
+    await updateAuditRow({
+      status: "failed",
+      error_log: [
+        ...auditErrors,
+        {
+          step: "unhandled",
+          status: "error",
+          message: error instanceof Error ? error.message : String(error),
+          at: new Date().toISOString(),
+        },
+      ],
+    });
     return sendError(500, [
       error instanceof Error ? error.message : "Unknown internal server error",
     ]);
