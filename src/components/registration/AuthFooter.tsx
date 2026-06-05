@@ -8,6 +8,7 @@ import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval } from "@/lib/app-settings";
 import { useCloseIframe } from "@/hooks/messages";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthFooterProps {
   mode: AuthMode;
