@@ -69,12 +69,72 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const data = (await res.json()) as { customers?: unknown[] };
-    const exists = Array.isArray(data.customers) && data.customers.length > 0;
-    return new Response(JSON.stringify({ exists }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const data = (await res.json()) as {
+      customers?: Array<{ shopify_id?: number | string }>;
+    };
+    const customer = Array.isArray(data.customers) ? data.customers[0] : undefined;
+
+    // No record at all → free to register.
+    if (!customer) {
+      return new Response(JSON.stringify({ exists: false }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Soft-merge: a Shopify customer may already exist because support/Klaviyo
+    // created one. We only block registration when the customer has already
+    // completed a B2B application — detected by an "Account type:" Shopify tag
+    // (written by create-customer on every successful submission).
+    const shopifyId = customer.shopify_id;
+    const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+    const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+
+    if (!shopifyId || !shopifyDomain || !shopifyAdminToken) {
+      // Can't determine tag state — preserve prior behavior (block) so we
+      // don't silently let a duplicate application through.
+      return new Response(JSON.stringify({ exists: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const tagRes = await fetch(
+        `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyId}.json`,
+        {
+          method: "GET",
+          headers: {
+            "X-Shopify-Access-Token": shopifyAdminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!tagRes.ok) {
+        console.warn("check-email: Shopify tag fetch failed:", tagRes.status);
+        return new Response(JSON.stringify({ exists: true }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const json = await tagRes.json();
+      const tagStr: string = json?.customer?.tags ?? "";
+      const hasAppliedTag = tagStr
+        .split(",")
+        .map((t: string) => t.trim())
+        .some((t: string) => /^account type:/i.test(t));
+
+      return new Response(JSON.stringify({ exists: hasAppliedTag }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (tagErr) {
+      console.warn("check-email: Shopify tag fetch threw:", tagErr);
+      return new Response(JSON.stringify({ exists: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   } catch (err) {
     console.error("check-email error:", err);
     return new Response(JSON.stringify({ exists: false }), {
