@@ -74,6 +74,75 @@ function sendError(
   );
 }
 
+// ------------------------------------------------------------------
+// 429-aware Shopify Admin API fetch. One retry honoring Retry-After
+// (capped so a wedged upstream can't blow the function timeout).
+// Shopify's leaky bucket rarely fires for this app's volume, but when it
+// does it returns 429 with Retry-After — surviving that gracefully is
+// the difference between a clean re-submit and a failed registration.
+// ------------------------------------------------------------------
+async function shopifyFetch(input: string | URL, init?: RequestInit): Promise<Response> {
+  const res = await fetch(input, init);
+  if (res.status !== 429) return res;
+  const retryAfter = Number(res.headers.get("Retry-After") ?? "1");
+  const waitMs = Math.min(Math.max(retryAfter, 1), 4) * 1000;
+  console.warn(`Shopify 429 — retrying after ${waitMs}ms`);
+  await new Promise((r) => setTimeout(r, waitMs));
+  return fetch(input, init);
+}
+
+// Run a non-critical task after the response is sent, when the edge
+// runtime supports it. Falls back to fire-and-forget. Either way the
+// user isn't blocked on tail-end writes (final audit-row PATCH, etc.).
+function runInBackground(promise: Promise<unknown>): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const er = (globalThis as any).EdgeRuntime;
+  if (er && typeof er.waitUntil === "function") {
+    er.waitUntil(promise.catch((e) => console.warn("background task failed:", e)));
+  } else {
+    promise.catch((e) => console.warn("background task failed:", e));
+  }
+}
+
+// Combined app_settings fetch — one RTT for both auto_approval_enabled
+// and extra_customer_tags. Previously the enrichment and activation tails
+// each did their own RTT. Returns safe defaults if anything fails.
+async function loadAppSettings(): Promise<{
+  autoApprovalEnabled: boolean;
+  extraCustomerTags: string[];
+}> {
+  const fallback = { autoApprovalEnabled: false, extraCustomerTags: [] as string[] };
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return fallback;
+  try {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=auto_approval_enabled,extra_customer_tags`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+    );
+    if (!r.ok) {
+      console.warn("app_settings fetch failed:", r.status);
+      return fallback;
+    }
+    const rows = (await r.json()) as Array<{
+      auto_approval_enabled?: boolean;
+      extra_customer_tags?: string[];
+    }>;
+    const row = rows?.[0] ?? {};
+    const tagsRaw = Array.isArray(row.extra_customer_tags) ? row.extra_customer_tags : [];
+    return {
+      autoApprovalEnabled: row.auto_approval_enabled === true,
+      extraCustomerTags: tagsRaw
+        .filter((t): t is string => typeof t === "string")
+        .map((t) => t.trim().replace(/,/g, " "))
+        .filter(Boolean),
+    };
+  } catch (e) {
+    console.warn("app_settings fetch threw:", e);
+    return fallback;
+  }
+}
+
 // Convert camelCase to snake_case
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
