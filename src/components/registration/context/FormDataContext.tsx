@@ -53,6 +53,10 @@ export type FormDataContextType = {
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
+  setSubmitError: (input: {
+    message: string;
+    actions?: Array<{ type: string; label: string; url?: string }>;
+  }) => void;
   discountCode: string | null;
   discountExpiry: string | null;
 };
