@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export interface UseAddressAutocompleteOptions {
   onAddressSelect?: (details: AddressDetails) => void;
   countryCode?: string;
+  regionCode?: string;
   debounceMs?: number;
 }
 
