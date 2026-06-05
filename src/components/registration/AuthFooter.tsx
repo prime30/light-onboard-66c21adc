@@ -233,38 +233,16 @@ export function AuthFooter({
       return;
     }
 
-    // Summary / faux-submit: if the only thing blocking is a duplicate-email
-    // (or duplicate-phone) manual error from the Contact step, surface the
-    // red root.form block + "Go to Login" action right here instead of
-    // silently shaking a field they can't see (it's two steps back).
-    if (isSummaryStep || isFauxSubmitStep || isLatePasswordStep) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const emailErr = (errors as any).email?.message as string | undefined;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const phoneErr = (errors as any).phoneNumber?.message as string | undefined;
-      if (emailErr && /already exists|already registered/i.test(emailErr)) {
-        setSubmitError({
-          message:
-            "An account with this email already exists. Please sign in instead.",
-          actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
-        });
-        return;
-      }
-      if (phoneErr && /already linked|already in use/i.test(phoneErr)) {
-        setSubmitError({
-          message:
-            "This phone number is already linked to another account. Please sign in instead.",
-          actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
-        });
-        return;
-      }
-    }
+    const shouldRunDuplicateEmailCheck = isFauxSubmitStep || (!autoApprove && isSummaryStep);
+    const blockingSteps = shouldRunDuplicateEmailCheck
+      ? popoverSteps.filter((s) => !s.missingFields.every((field) => field === "email"))
+      : popoverSteps;
 
-    if (continueBlocked) {
+    if (continueBlocked && blockingSteps.length > 0) {
       // Disabled-but-clickable path: shake the missing fields. Only open the
       // popover on final-gate steps (summary / late password) — on regular
       // steps the inline field errors are enough.
-      const missing = popoverSteps.flatMap((s) => s.missingFields);
+      const missing = blockingSteps.flatMap((s) => s.missingFields);
       if (isFinalGateStep) setSubmitTooltipOpen(true);
       shakeMissingFields(missing);
       return;
@@ -275,10 +253,14 @@ export function AuthFooter({
     // pre-flight check for duplicate email so we surface "Go to Login"
     // BEFORE the user lands on the late password step. Phone duplicates are
     // already caught on the Contact step.
-    if (isFauxSubmitStep) {
+    if (shouldRunDuplicateEmailCheck) {
       const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+      const continueAfterCheck = () => {
+        if (isFauxSubmitStep) goToStep("assessing");
+        else submitForm();
+      };
       if (!email) {
-        goToStep("assessing");
+        continueAfterCheck();
         return;
       }
       setPreflightChecking(true);
@@ -287,7 +269,7 @@ export function AuthFooter({
         .then(({ data, error }) => {
           if (error) {
             // Fail open — server-side submit will still catch it.
-            goToStep("assessing");
+            continueAfterCheck();
             return;
           }
           if ((data as { exists?: boolean } | undefined)?.exists) {
@@ -303,10 +285,10 @@ export function AuthFooter({
             });
             return;
           }
-          goToStep("assessing");
+          continueAfterCheck();
         })
         .catch(() => {
-          goToStep("assessing");
+          continueAfterCheck();
         })
         .finally(() => setPreflightChecking(false));
       return;
@@ -330,6 +312,7 @@ export function AuthFooter({
     goToNextStep,
     isSummaryStep,
     isFauxSubmitStep,
+    autoApprove,
     isLatePasswordStep,
     isFinalGateStep,
     goToStep,
