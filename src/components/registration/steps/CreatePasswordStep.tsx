@@ -70,6 +70,8 @@ export const CreatePasswordStep = () => {
     currentStep,
     getStepValidationStatus,
     getStepNumber,
+    clearErrors,
+    setError,
   } = useForm();
 
   const validationStatus = getStepValidationStatus(currentStep);
