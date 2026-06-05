@@ -569,6 +569,86 @@ Deno.serve(async (req: Request) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customer = objectKeysToSnake(parseResult.data) as any;
 
+  // ----------------------------------------------------------------
+  // Audit log — write a `pending` row to public.registration_submissions
+  // BEFORE we hit Helium/Shopify so we can replay failures even if the
+  // EF crashes mid-flight. Best-effort: never block on a log write.
+  // Password is stripped from the stored payload (PII / hashed elsewhere).
+  // ----------------------------------------------------------------
+  const _supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const _serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const auditIp =
+    req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    null;
+  const auditUa = req.headers.get("user-agent") ?? null;
+  const auditErrors: Array<{ step: string; status: string; message: string; at: string }> = [];
+  let auditSubmissionId: string | null = null;
+
+  const auditPayloadForLog = (() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, confirm_password: _cpw, ...rest } = customer ?? {};
+    return rest;
+  })();
+
+  const recordAuditFailure = (step: string, message: string) => {
+    auditErrors.push({ step, status: "error", message, at: new Date().toISOString() });
+  };
+
+  const updateAuditRow = async (patch: Record<string, unknown>) => {
+    if (!auditSubmissionId || !_supabaseUrl || !_serviceRoleKey) return;
+    try {
+      const r = await fetch(
+        `${_supabaseUrl}/rest/v1/registration_submissions?id=eq.${auditSubmissionId}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: _serviceRoleKey,
+            Authorization: `Bearer ${_serviceRoleKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify(patch),
+        }
+      );
+      if (!r.ok) {
+        console.warn("Audit log update failed (non-blocking):", r.status, await r.text());
+      }
+    } catch (e) {
+      console.warn("Audit log update threw (non-blocking):", e);
+    }
+  };
+
+  if (_supabaseUrl && _serviceRoleKey) {
+    try {
+      const insRes = await fetch(`${_supabaseUrl}/rest/v1/registration_submissions`, {
+        method: "POST",
+        headers: {
+          apikey: _serviceRoleKey,
+          Authorization: `Bearer ${_serviceRoleKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          email: customer.email,
+          account_type: customer.account_type ?? null,
+          status: "pending",
+          payload: auditPayloadForLog,
+          ip_address: auditIp,
+          user_agent: auditUa,
+        }),
+      });
+      if (insRes.ok) {
+        const rows = (await insRes.json()) as Array<{ id?: string }>;
+        auditSubmissionId = rows?.[0]?.id ?? null;
+      } else {
+        console.warn("Audit log insert failed (non-blocking):", insRes.status, await insRes.text());
+      }
+    } catch (e) {
+      console.warn("Audit log insert threw (non-blocking):", e);
+    }
+  }
+
   // Handle tax exempt files (common to all account types)
   const taxExemptFiles = Array.isArray(customer.tax_exempt_file)
     ? customer.tax_exempt_file || []
