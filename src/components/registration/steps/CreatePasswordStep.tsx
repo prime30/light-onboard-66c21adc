@@ -244,6 +244,36 @@ export const CreatePasswordStep = () => {
           ) : null}
         </div>
       </div>
+
+      {errors.root?.form && (
+        <div className="flex items-start gap-3 p-4 rounded-form bg-destructive/10 border border-destructive/30">
+          <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+          <div className="space-y-3 flex-1">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-destructive">
+                Unable to submit application
+              </p>
+              <p className="text-sm text-destructive/80 whitespace-pre-line">
+                {errors.root.form.message}
+              </p>
+            </div>
+            {errorActions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {errorActions.map((action, i) => (
+                  <Button
+                    key={i}
+                    type="button"
+                    variant="destructive"
+                    onClick={() => action.url && navigate(action.url)}
+                  >
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
