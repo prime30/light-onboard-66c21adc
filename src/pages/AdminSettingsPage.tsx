@@ -771,6 +771,8 @@ const AdminSettingsPage = () => {
           })()}
         </div>
 
+        <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
+
         <button
           type="button"
           onClick={() => {
