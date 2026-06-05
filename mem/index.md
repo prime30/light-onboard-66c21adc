@@ -60,6 +60,7 @@ Support email is **hello@dropdeadextensions.com** (NOT support@…).
 - [Auto-approval Shopify activation](mem://features/auto-approval-shopify-activation) — create-customer EF activates the Shopify customer server-side via account_activation_url when auto_approval_enabled
 - [Shopify App Proxy mount](mem://integrations/shopify-app-proxy-mount) — SPA served first-party at dropdeadextensions.com/apps/apply via App Proxy; runtime basename auto-detect
 - [IFRAME_READY handoff phases](mem://architecture/iframe-ready-handoff-phases) — Two-stage: head-initial/heartbeat from index.html + double-rAF react-painted from useIframeComm; never use fixed setTimeout
+- [Registration submissions audit log](mem://features/registration-submissions-audit-log) — public.registration_submissions backup of every signup, surfaced in admin panel via admin-list-submissions EF
 - [Marketing consent TCPA split](mem://features/marketing-consent-tcpa-split) — Email vs SMS opt-ins are separate fields with channel-specific disclosure and consent logging
 - [Cold start build optimizations](mem://performance/cold-start-build-optimizations) — manualChunks, fetchpriority on entry, Supabase preconnect
 - [Parent theme bundle prefetch](mem://integrations/parent-theme-bundle-prefetch) — Vite emits /prefetch.js for theme to warm SPA bundle into HTTP cache
