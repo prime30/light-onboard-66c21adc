@@ -26,10 +26,14 @@ export interface AddressDetailsResponse {
   error?: string;
 }
 
+type ClientLocationBias = { lat: number; lng: number };
+
 // Proper Singleton implementation
 export class AddressService {
   private static instance: AddressService;
   private sessionToken: string;
+  private clientLocationBias: ClientLocationBias | null | undefined;
+  private clientLocationBiasPromise: Promise<ClientLocationBias | null> | null = null;
 
   private constructor() {
     this.sessionToken = crypto.randomUUID();
@@ -40,6 +44,64 @@ export class AddressService {
       AddressService.instance = new AddressService();
     }
     return AddressService.instance;
+  }
+
+  private async getClientLocationBias(): Promise<ClientLocationBias | null> {
+    if (this.clientLocationBias !== undefined) {
+      return this.clientLocationBias;
+    }
+
+    if (this.clientLocationBiasPromise) {
+      return this.clientLocationBiasPromise;
+    }
+
+    this.clientLocationBiasPromise = (async () => {
+      try {
+        const cached = sessionStorage.getItem("addressClientLocationBias");
+        if (cached) {
+          const parsed = JSON.parse(cached) as ClientLocationBias & { expiresAt?: number };
+          if (
+            typeof parsed.lat === "number" &&
+            typeof parsed.lng === "number" &&
+            typeof parsed.expiresAt === "number" &&
+            parsed.expiresAt > Date.now()
+          ) {
+            this.clientLocationBias = { lat: parsed.lat, lng: parsed.lng };
+            return this.clientLocationBias;
+          }
+        }
+
+        const ctrl = new AbortController();
+        const timeout = setTimeout(() => ctrl.abort(), 800);
+        const response = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          this.clientLocationBias = null;
+          return null;
+        }
+
+        const geo = (await response.json()) as { latitude?: number; longitude?: number };
+        if (typeof geo.latitude !== "number" || typeof geo.longitude !== "number") {
+          this.clientLocationBias = null;
+          return null;
+        }
+
+        this.clientLocationBias = { lat: geo.latitude, lng: geo.longitude };
+        sessionStorage.setItem(
+          "addressClientLocationBias",
+          JSON.stringify({ ...this.clientLocationBias, expiresAt: Date.now() + 24 * 60 * 60 * 1000 })
+        );
+        return this.clientLocationBias;
+      } catch {
+        this.clientLocationBias = null;
+        return null;
+      } finally {
+        this.clientLocationBiasPromise = null;
+      }
+    })();
+
+    return this.clientLocationBiasPromise;
   }
 
   /**
@@ -55,6 +117,7 @@ export class AddressService {
     }
 
     try {
+      const clientLocationBias = await this.getClientLocationBias();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/address-autocomplete`,
         {
@@ -68,6 +131,7 @@ export class AddressService {
             sessionToken: this.sessionToken,
             country: countryCode,
             regionCode,
+            clientLocationBias,
           }),
         }
       );
