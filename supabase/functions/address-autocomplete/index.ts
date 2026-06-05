@@ -82,13 +82,67 @@ serve(async (req) => {
       typeof regionCode === "string"
         ? STATE_CENTROIDS[regionCode.trim().toUpperCase()]
         : undefined;
+
+    // Resolve a bias point. Priority:
+    //   1. Explicit state/province centroid (user already picked one).
+    //   2. IP-geo fallback derived from the caller's real IP (x-forwarded-for),
+    //      so first-keystroke results are local instead of CA-datacenter.
+    let biasPoint: { lat: number; lng: number; radiusKm: number } | null = null;
     if (centroid) {
-      // ~150km circle around the state's centroid — broad enough to cover
-      // any state while still ranking local results above out-of-state ones.
+      biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 150 };
+    } else {
+      const fwd = req.headers.get("x-forwarded-for") ?? "";
+      const clientIp = fwd.split(",")[0]?.trim();
+      // Skip private/loopback IPs so dev requests don't waste an API call.
+      const isPublic =
+        clientIp &&
+        !/^(10\.|192\.168\.|127\.|169\.254\.|::1|fc|fd)/i.test(clientIp);
+      if (isPublic) {
+        try {
+          // ipapi.co — free, no key, 1000 req/day. Times out fast so the
+          // autocomplete UX never stalls if the lookup is slow.
+          const ctrl = new AbortController();
+          const timeout = setTimeout(() => ctrl.abort(), 600);
+          const geoRes = await fetch(`https://ipapi.co/${clientIp}/json/`, {
+            signal: ctrl.signal,
+          });
+          clearTimeout(timeout);
+          if (geoRes.ok) {
+            const geo = (await geoRes.json()) as {
+              latitude?: number;
+              longitude?: number;
+              city?: string;
+              region?: string;
+            };
+            if (
+              typeof geo.latitude === "number" &&
+              typeof geo.longitude === "number"
+            ) {
+              // ~75km radius around the user's metro — tight enough to
+              // suppress out-of-state matches but wide enough to catch
+              // neighboring suburbs.
+              biasPoint = {
+                lat: geo.latitude,
+                lng: geo.longitude,
+                radiusKm: 75,
+              };
+              console.log(
+                `[address-autocomplete] IP geo: ${geo.city}, ${geo.region}`,
+              );
+            }
+          }
+        } catch (geoErr) {
+          // Fail silently — Google's default behavior takes over.
+          console.warn("[address-autocomplete] IP geo failed:", geoErr);
+        }
+      }
+    }
+
+    if (biasPoint) {
       requestBody.locationBias = {
         circle: {
-          center: { latitude: centroid.lat, longitude: centroid.lng },
-          radius: 150000,
+          center: { latitude: biasPoint.lat, longitude: biasPoint.lng },
+          radius: biasPoint.radiusKm * 1000,
         },
       };
     }
@@ -98,7 +152,12 @@ serve(async (req) => {
       requestBody.sessionToken = sessionToken;
     }
 
-    console.log("Fetching autocomplete for:", input, regionCode ? `(bias: ${regionCode})` : "");
+    console.log(
+      "Fetching autocomplete for:",
+      input,
+      regionCode ? `(bias: ${regionCode})` : biasPoint ? "(bias: IP-geo)" : "",
+    );
+
 
     // Use Places API (New) endpoint
     const response = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
