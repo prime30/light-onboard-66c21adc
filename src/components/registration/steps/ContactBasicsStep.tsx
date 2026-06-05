@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,14 @@ export const ContactBasicsStep = () => {
             type: "manual",
             message:
               "An account with this email already exists. Please sign in instead.",
+          });
+          // Also surface a toast so the conflict can't be missed on mobile
+          // where the inline error sits below the fold. De-duped per email
+          // via a stable toast id so retyping the same address doesn't spam.
+          toast.error("This email is already registered", {
+            id: `email-exists:${value}`,
+            description: "Please sign in instead of creating a new account.",
+            duration: 6000,
           });
         } else {
           // Clear only if the current error is our manual one
