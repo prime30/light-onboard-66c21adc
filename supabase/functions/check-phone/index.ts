@@ -1,0 +1,94 @@
+// Lightweight phone validity + uniqueness check used by ContactBasicsStep.
+// Returns { valid, inUse } based on libphonenumber-js validation and a
+// Shopify Admin customers/search lookup. Mirrors check-email shape.
+import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
+
+function toE164(countryCode?: string, phoneNumber?: string): string | undefined {
+  if (!phoneNumber) return undefined;
+  const cleaned = phoneNumber.replace(/\D/g, "");
+  if (!cleaned) return undefined;
+  const code = countryCode?.startsWith("+")
+    ? countryCode
+    : `+${(countryCode || "1").replace(/\D/g, "")}`;
+  return `${code}${cleaned}`;
+}
+
+function ok(body: Record<string, unknown>) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  let body: { phoneNumber?: string; phoneCountryCode?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const e164 = toE164(body.phoneCountryCode, body.phoneNumber);
+  // Empty / partial number: don't block the UI while user is typing.
+  if (!e164) return ok({ valid: false, inUse: false });
+
+  let valid = false;
+  try {
+    const parsed = parsePhoneNumberFromString(e164);
+    valid = !!parsed && parsed.isValid();
+  } catch {
+    valid = false;
+  }
+
+  if (!valid) return ok({ valid: false, inUse: false });
+
+  // Uniqueness check via Shopify Admin search.
+  const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+  const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+  if (!shopifyDomain || !shopifyAdminToken) {
+    // Fail open on infra hiccup — server-side backstop on submit still applies.
+    return ok({ valid: true, inUse: false });
+  }
+
+  try {
+    const res = await fetch(
+      `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+        `phone:${e164}`
+      )}`,
+      {
+        method: "GET",
+        headers: {
+          "X-Shopify-Access-Token": shopifyAdminToken,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!res.ok) {
+      console.warn("check-phone: Shopify search failed:", res.status);
+      return ok({ valid: true, inUse: false });
+    }
+    const json = (await res.json()) as { customers?: Array<{ id?: number }> };
+    const inUse = Array.isArray(json.customers) && json.customers.length > 0;
+    return ok({ valid: true, inUse });
+  } catch (e) {
+    console.warn("check-phone: search threw:", e);
+    return ok({ valid: true, inUse: false });
+  }
+});

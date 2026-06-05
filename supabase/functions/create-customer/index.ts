@@ -476,6 +476,79 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // ----------------------------------------------------------------
+  // Phone validation + uniqueness — block early, BEFORE any writes.
+  // We require every applicant to have a valid, unique phone (real
+  // contact channel for B2B verification). Mirrors check-phone EF.
+  // ----------------------------------------------------------------
+  const submittedPhone = formatPhoneNumber(
+    parseResult.data.phoneCountryCode,
+    parseResult.data.phoneNumber
+  );
+  if (submittedPhone) {
+    let phoneIsValid = false;
+    try {
+      const parsed = parsePhoneNumberFromString(submittedPhone);
+      phoneIsValid = !!parsed && parsed.isValid();
+    } catch {
+      phoneIsValid = false;
+    }
+    if (!phoneIsValid) {
+      console.log("Phone failed validation:", submittedPhone);
+      return sendError(
+        400,
+        ["Please enter a valid phone number."],
+        "PHONE_INVALID"
+      );
+    }
+
+    // Uniqueness: does another Shopify customer already own this E.164?
+    // Skip the colliding-id when it's the soft-merge target (same email).
+    const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+    const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    if (shopifyDomain && shopifyAdminToken) {
+      try {
+        const pres = await fetch(
+          `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+            `phone:${submittedPhone}`
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": shopifyAdminToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (pres.ok) {
+          const pjson = (await pres.json()) as {
+            customers?: Array<{ id?: number }>;
+          };
+          const owners = pjson.customers ?? [];
+          const collidingId = owners.find(
+            (c) => typeof c?.id === "number" && c.id !== existingShopifyId
+          )?.id;
+          if (collidingId) {
+            console.log("Phone already in use by another customer:", {
+              phone: submittedPhone,
+              collidingId,
+            });
+            return sendError(
+              409,
+              ["This phone number is already linked to another account."],
+              "PHONE_IN_USE"
+            );
+          }
+        } else {
+          console.warn("Phone-uniqueness search failed (non-blocking):", pres.status);
+        }
+      } catch (e) {
+        console.warn("Phone-uniqueness search threw (non-blocking):", e);
+      }
+    }
+  }
+
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customer = objectKeysToSnake(parseResult.data) as any;
 
@@ -832,45 +905,11 @@ Deno.serve(async (req: Request) => {
             console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
-          // Phone-uniqueness check: Shopify rejects the whole PUT with
-          // {"phone":["is invalid"]} if another customer already owns this
-          // E.164 number. Search by phone first and drop it from the
-          // payload on collision.
-          if (phoneSafeToSend && customerPhone) {
-            try {
-              const phoneSearchRes = await fetch(
-                `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
-                  `phone:${customerPhone}`
-                )}`,
-                {
-                  method: "GET",
-                  headers: {
-                    "X-Shopify-Access-Token": shopifyAdminToken,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-              if (phoneSearchRes.ok) {
-                const pjson = await phoneSearchRes.json();
-                const owners: Array<{ id?: number }> = pjson?.customers ?? [];
-                const collidingId = owners.find(
-                  (c) => typeof c?.id === "number" && c.id !== shopifyCustomerId
-                )?.id;
-                if (collidingId) {
-                  console.warn(
-                    "Phone already owned by another Shopify customer; dropping phone from update:",
-                    { phone: customerPhone, collidingId }
-                  );
-                  phoneSafeToSend = false;
-                  canCollectSms = false;
-                }
-              } else {
-                console.warn("Phone-collision search failed (non-blocking):", phoneSearchRes.status);
-              }
-            } catch (e) {
-              console.warn("Phone-collision search threw (non-blocking):", e);
-            }
-          }
+          // Phone validity + uniqueness are enforced earlier (before any
+          // writes), so by the time we get here phoneSafeToSend reflects
+          // libphonenumber validity only. The early check returns 409
+          // PHONE_IN_USE if a different customer owns the number.
+
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 

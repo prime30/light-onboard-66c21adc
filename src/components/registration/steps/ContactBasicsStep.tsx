@@ -119,6 +119,57 @@ export const ContactBasicsStep = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
+  // Debounced check: is this phone number valid AND not already in use by
+  // another account? Mirrors the email check. Server-side backstop in
+  // create-customer returns 400 PHONE_INVALID / 409 PHONE_IN_USE.
+  const phoneNumber = watch("phoneNumber");
+  const phoneCountryCode = watch("phoneCountryCode");
+  const lastCheckedPhoneRef = useRef<string | null>(null);
+  useEffect(() => {
+    const raw = (phoneNumber ?? "").replace(/\D/g, "");
+    if (!raw || raw.length < 7) return;
+    const key = `${phoneCountryCode ?? ""}|${raw}`;
+    if (lastCheckedPhoneRef.current === key) return;
+    const handle = window.setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("check-phone", {
+          body: { phoneNumber, phoneCountryCode },
+        });
+        if (error) return;
+        lastCheckedPhoneRef.current = key;
+        // Only act if the inputs haven't changed since.
+        const currentRaw = (watch("phoneNumber") ?? "").replace(/\D/g, "");
+        const currentCode = watch("phoneCountryCode") ?? "";
+        if (`${currentCode}|${currentRaw}` !== key) return;
+        if (data?.valid === false) {
+          setError("phoneNumber", {
+            type: "manual",
+            message: "Please enter a valid phone number.",
+          });
+        } else if (data?.inUse) {
+          setError("phoneNumber", {
+            type: "manual",
+            message:
+              "This phone number is already linked to another account.",
+          });
+          toast.error("This phone number is already in use", {
+            id: `phone-in-use:${key}`,
+            description:
+              "Please use a different number or sign in to the existing account.",
+            duration: 6000,
+          });
+        } else {
+          if (errors.phoneNumber?.type === "manual") clearErrors("phoneNumber");
+        }
+      } catch {
+        // Fail silently — submit will still catch the conflict server-side.
+      }
+    }, 600);
+    return () => window.clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneNumber, phoneCountryCode]);
+
+
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,

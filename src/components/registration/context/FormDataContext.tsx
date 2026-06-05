@@ -144,12 +144,26 @@ export function FormDataProvider({
       if (result.success === false) {
         console.log("set error");
         setErrorActions(result.actions || []);
+        // Map server-side phone errors back to the phone field so the user
+        // sees the error inline on the Contact step (not just a root toast).
+        const errText = (result.error || "").toLowerCase();
+        const isPhoneInvalid =
+          result.statusCode === 400 && errText.includes("valid phone number");
+        const isPhoneInUse =
+          result.statusCode === 409 && errText.includes("phone number is already linked");
+        if (isPhoneInvalid || isPhoneInUse) {
+          setError("phoneNumber", {
+            type: "server",
+            message: result.error,
+          });
+        }
         setError("root.form", {
           type: "server",
           message: result.error,
         });
         throw new Error(result.error);
       }
+
 
       // Auto-login: hand the parent Shopify theme the credentials so the
       // user lands logged-in on the storefront. In iframe mode we fire
