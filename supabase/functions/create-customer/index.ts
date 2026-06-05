@@ -987,6 +987,26 @@ Deno.serve(async (req: Request) => {
         hasNativeAddress);
 
 
+    // Defensive log: catch the case where a soft-merge produced no
+    // shopify_id (or no tags were generated) and the whole Shopify
+    // enrichment block — including tags — gets skipped silently.
+    if (!needsShopifyUpdate) {
+      const skipReason = !shopifyCustomerId
+        ? "no shopify_customer_id resolved (Helium PUT returned none AND email-fallback failed)"
+        : "no enrichment fields to write";
+      console.warn("Skipping Shopify enrichment:", {
+        skipReason,
+        isSoftMerge: !!existingCustomerId,
+        shopifyCustomerId: shopifyCustomerId ?? null,
+        newTagsCount: newTags.length,
+        email: customer.email,
+      });
+      recordAuditFailure(
+        "shopify_enrichment_skipped",
+        `${skipReason} (soft-merge=${!!existingCustomerId}, newTags=${newTags.length})`
+      );
+    }
+
     if (needsShopifyUpdate) {
       if (shopifyDomain && shopifyAdminToken) {
         try {
