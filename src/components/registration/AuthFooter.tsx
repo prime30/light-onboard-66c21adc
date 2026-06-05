@@ -332,6 +332,7 @@ export function AuthFooter({
     watch,
     setError,
     setSubmitError,
+    errors,
   ]);
 
 
