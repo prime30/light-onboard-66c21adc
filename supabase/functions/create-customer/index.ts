@@ -492,6 +492,11 @@ Deno.serve(async (req: Request) => {
 
   console.log("Processing customer sync for:", requestBody.data.email);
 
+  // Kick off app_settings (auto_approval_enabled + extra_customer_tags) in
+  // parallel with the Helium write — both the enrichment and activation
+  // tails need it later, but we don't want to block on it sequentially.
+  const appSettingsPromise = loadAppSettings();
+
   // First, check if customer already exists
   const existingCustomerSearch = await searchCustomerByEmail(
     requestBody.data.email,
