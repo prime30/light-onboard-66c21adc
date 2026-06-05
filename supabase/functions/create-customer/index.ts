@@ -1054,14 +1054,30 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // ----------------------------------------------------------------
+    // Post-Helium tail: three independent chains that previously ran
+    // strictly serially (~600-1200ms wall time). They share no mutable
+    // state, so we run them concurrently and Promise.allSettled the
+    // group — one failure can't poison the others, and `recordAuditFailure`
+    // is already idempotent.
+    //
+    //   A) Shopify enrichment  — GET customer → PUT merged update
+    //   B) Marketing consent   — POST marketing_consent_log
+    //   C) Auto-approval       — POST activation URL → POST password
+    //                           (with soft-merge Storefront customerRecover fallback)
+    // ----------------------------------------------------------------
+    const tailTasks: Promise<unknown>[] = [];
+
+    // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
+      tailTasks.push((async () => {
       if (shopifyDomain && shopifyAdminToken) {
         try {
           // Fetch existing customer to merge tags and detect whether a
           // default_address already exists (avoid clobbering it).
           let existingTags: string[] = [];
           let existingHasDefaultAddress = false;
-          const getRes = await fetch(
+          const getRes = await shopifyFetch(
             `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
             {
               method: "GET",
@@ -1147,7 +1163,7 @@ Deno.serve(async (req: Request) => {
           }
 
           const putCustomer = async (payload: Record<string, unknown>) =>
-            fetch(
+            shopifyFetch(
               `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
               {
                 method: "PUT",
@@ -1206,15 +1222,15 @@ Deno.serve(async (req: Request) => {
       } else {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
+      })());
     }
 
 
-    // ----------------------------------------------------------------
-    // Proof-of-consent log — TCPA / GDPR. Writes one row per channel the
-    // user opted into so we can later prove (a) they ticked the box,
-    // (b) when, (c) from what IP/UA, (d) what disclosure text they saw.
-    // Best-effort: failures here are logged but do NOT block the response.
-    // ----------------------------------------------------------------
+    // ---- Chain B: Marketing consent log (TCPA / GDPR) --------------
+    // Writes one row per channel the user opted into so we can later
+    // prove (a) they ticked the box, (b) when, (c) from what IP/UA,
+    // (d) what disclosure text they saw. Best-effort.
+    tailTasks.push((async () => {
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL");
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -1292,46 +1308,27 @@ Deno.serve(async (req: Request) => {
     } catch (logErr) {
       console.warn("Error writing marketing consent log (non-blocking):", logErr);
     }
+    })());
 
 
 
-    // ----------------------------------------------------------------
-    // Auto-approval: if a password was sent AND the admin has flipped
-    // auto_approval_enabled = true, activate the Shopify customer
-    // server-side so they can sign in immediately. Without this the
-    // Shopify customer stays in "invited" state and Helium shows
-    // "Account not active". Failures here are logged but do NOT block
-    // the success response — the user still has a registered account
-    // and can be activated later via the standard invite flow.
-    // ----------------------------------------------------------------
+    // ---- Chain C: Auto-approval Shopify activation -----------------
+    // If a password was sent AND auto_approval_enabled = true, activate
+    // the Shopify customer server-side so they can sign in immediately.
+    // Without this they stay in "invited" state. Failures are logged
+    // but do NOT block the success response.
     const submittedPassword = (parseResult.data as { password?: string }).password;
     if (submittedPassword && shopifyCustomerId) {
+      tailTasks.push((async () => {
       try {
-        let autoApprovalEnabled = false;
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        if (supabaseUrl && serviceRoleKey) {
-          const settingsRes = await fetch(
-            `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=auto_approval_enabled`,
-            {
-              headers: {
-                apikey: serviceRoleKey,
-                Authorization: `Bearer ${serviceRoleKey}`,
-              },
-            }
-          );
-          if (settingsRes.ok) {
-            const rows = (await settingsRes.json()) as Array<{ auto_approval_enabled?: boolean }>;
-            autoApprovalEnabled = rows?.[0]?.auto_approval_enabled === true;
-          }
-        }
+        // Reuse the shared app_settings promise kicked off at the top of
+        // the handler — no extra round trip here.
+        const { autoApprovalEnabled } = await appSettingsPromise;
 
         if (autoApprovalEnabled) {
-          const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-          const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
           if (shopifyDomain && shopifyAdminToken) {
             // Step 1: ask Shopify Admin API for the activation URL.
-            const urlRes = await fetch(
+            const urlRes = await shopifyFetch(
               `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/account_activation_url.json`,
               {
                 method: "POST",
@@ -1462,7 +1459,12 @@ Deno.serve(async (req: Request) => {
       } catch (activationErr) {
         console.warn("Auto-approval activation threw (non-blocking):", activationErr);
       }
+      })());
     }
+
+    // Wait for all three independent tails to complete before finalizing
+    // the audit row. allSettled — one failure mustn't poison the others.
+    await Promise.allSettled(tailTasks);
 
 
     const response: FunctionResponse<CustomerFieldsResponse> = {
