@@ -635,8 +635,41 @@ Deno.serve(async (req: Request) => {
     // Tag Shopify customer with "Preferred method: X" for each selected method,
     // plus any admin-configured extra tags from app_settings. Fire-and-forget —
     // failures here must not block account creation.
-    const shopifyCustomerId = customerFieldsData.customer.shopify_id;
+    let shopifyCustomerId: number | undefined = customerFieldsData.customer.shopify_id;
     const preferredMethods = (parseResult.data as { preferredMethods?: string[] }).preferredMethods;
+
+    const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+    const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+
+    // Fallback: if Helium didn't return a shopify_id (race / async link),
+    // resolve it via Shopify Admin search by email so we still get tags and
+    // native fields written.
+    if (!shopifyCustomerId && shopifyDomain && shopifyAdminToken) {
+      try {
+        const searchRes = await fetch(
+          `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(`email:${customer.email}`)}`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": shopifyAdminToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (searchRes.ok) {
+          const sjson = await searchRes.json();
+          const sid = sjson?.customers?.[0]?.id;
+          if (typeof sid === "number") {
+            shopifyCustomerId = sid;
+            console.log("Resolved shopify_id via email fallback:", sid);
+          }
+        } else {
+          console.warn("Shopify email-fallback search failed:", searchRes.status);
+        }
+      } catch (e) {
+        console.warn("Error in Shopify email-fallback search (non-blocking):", e);
+      }
+    }
 
     // Load admin-configured extra tags (best-effort).
     let extraAdminTags: string[] = [];
@@ -702,12 +735,48 @@ Deno.serve(async (req: Request) => {
     const canCollectSms = acceptsSmsMarketingFlag && !!customerPhone;
     const consentTimestamp = new Date().toISOString();
 
+    // Build a human-readable note summarizing the application — lands in
+    // the native Shopify customer `note` field so support can see context
+    // without opening Helium.
+    const noteLines: string[] = [];
+    if (customer.account_type) {
+      const label = accountTypeLabelMap[customer.account_type] ?? customer.account_type;
+      noteLines.push(`Account type: ${label}`);
+    }
+    if (customer.business_name) noteLines.push(`Business: ${customer.business_name}`);
+    if (customer.license_number) noteLines.push(`License #: ${customer.license_number}`);
+    if (customer.salon_size) noteLines.push(`Salon size: ${customer.salon_size}`);
+    if (customer.salon_structure) noteLines.push(`Salon structure: ${customer.salon_structure}`);
+    if (customer.school_name) noteLines.push(`School: ${customer.school_name}`);
+    if (customer.school_state) noteLines.push(`School state: ${customer.school_state}`);
+    if (customer.referral_source) noteLines.push(`Referral: ${customer.referral_source}`);
+    if (customer.social_media_handle) noteLines.push(`Social: ${customer.social_media_handle}`);
+    const applicationNote = noteLines.length
+      ? `Application submitted ${consentTimestamp}\n${noteLines.join("\n")}`
+      : "";
+
+    // Native fields we always want mirrored onto the Shopify customer record,
+    // so they're populated regardless of Helium field-mapping configuration.
+    const hasNativeAddress = !!(
+      customer.business_address ||
+      customer.city ||
+      customer.province_code ||
+      customer.zip_code ||
+      customer.country_code
+    );
+
     const needsShopifyUpdate =
       !!shopifyCustomerId &&
       (newTags.length > 0 ||
         taxExemptFlag ||
         acceptsEmailMarketingFlag ||
-        canCollectSms);
+        canCollectSms ||
+        !!customer.first_name ||
+        !!customer.last_name ||
+        !!customerPhone ||
+        !!applicationNote ||
+        hasNativeAddress);
+
 
     if (needsShopifyUpdate) {
       const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
