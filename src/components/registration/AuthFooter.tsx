@@ -259,6 +259,7 @@ export function AuthFooter({
     isSummaryStep,
     isFauxSubmitStep,
     isLatePasswordStep,
+    isFinalGateStep,
     goToStep,
     submitForm,
   ]);
