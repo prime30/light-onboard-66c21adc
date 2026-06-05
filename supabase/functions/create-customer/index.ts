@@ -902,7 +902,8 @@ Deno.serve(async (req: Request) => {
                 province_code: customer.province_code,
                 zip: customer.zip_code,
                 country_code: customer.country_code,
-                phone: customerPhone,
+                phone: phoneSafeToSend ? customerPhone : undefined,
+
                 default: true,
               },
             ];
