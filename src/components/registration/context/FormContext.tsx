@@ -28,6 +28,7 @@ export type AuthFormContextType = {
   isSubmitSuccessful: ReturnType<typeof useFormData>["isSubmitSuccessful"];
   isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
   errorActions: ReturnType<typeof useFormData>["errorActions"];
+  setSubmitError: ReturnType<typeof useFormData>["setSubmitError"];
 
   // Step-related (from StepContext)
   totalSteps: ReturnType<typeof useStepContext>["totalSteps"];
