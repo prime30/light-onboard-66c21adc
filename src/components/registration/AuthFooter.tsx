@@ -59,7 +59,10 @@ export function AuthFooter({
 
   // On non-summary steps, only surface the *current* step's missing fields so
   // the popover guides users to what's blocking the Continue button right here.
-  // On the summary step, list every incomplete step across the whole form.
+  // On the summary step (and the late create-password step in auto-approval
+  // mode — which is the real submit gate AFTER summary), list every incomplete
+  // step across the whole form so users can see exactly what's blocking the
+  // backend submit.
   const popoverSteps = useMemo(() => {
     if (isSummaryStep) {
       // In auto-approval mode, the password step happens AFTER summary, so it
@@ -69,17 +72,23 @@ export function AuthFooter({
       }
       return incompleteSteps;
     }
+    if (isLatePasswordStep) {
+      return incompleteSteps;
+    }
     return incompleteSteps.filter((s) => s.step === currentStep);
-  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, currentStep]);
 
   const continueBlocked = isSummaryStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
-    : !isStepValid && popoverSteps.length > 0;
+    : isLatePasswordStep
+      ? !isFormValid && popoverSteps.length > 0
+      : !isStepValid && popoverSteps.length > 0;
 
-  // Popover (with the list of incomplete steps/fields) is intentionally only
-  // shown on the final summary step. Other steps still get the click-to-shake
-  // + red flash on the missing fields, but no popover.
-  const showTooltip = isSummaryStep && continueBlocked;
+  // Popover (with the list of incomplete steps/fields) is shown on the final
+  // submit gates: the summary step, and the late create-password step in
+  // auto-approval mode. Other steps still get the click-to-shake + red flash
+  // on the missing fields, but no popover.
+  const showTooltip = (isSummaryStep || isLatePasswordStep) && continueBlocked;
 
   const openSubmitTooltip = useCallback(() => {
     if (submitPopoverCloseTimer.current) {
