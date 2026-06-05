@@ -74,15 +74,59 @@ export const ContactBasicsStep = () => {
   } = useForm();
   const validationStatus = getStepValidationStatus(currentStep);
 
+  // sessionStorage-cached lookups to avoid re-calling Shopify for the same
+  // value twice in a session (covers back-nav, refresh-into-restore, and
+  // users editing nearby fields without changing email/phone).
+  const cacheGet = (key: string): unknown | undefined => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      return raw ? JSON.parse(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const cacheSet = (key: string, value: unknown) => {
+    try {
+      sessionStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // ignore quota / private-mode failures
+    }
+  };
+
   // Debounced check: does an account already exist with this email?
-  // Surfaces the conflict inline on the email field so the user finds out
-  // here instead of at the final submit step.
   const email = watch("email");
   const lastCheckedRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
     if (lastCheckedRef.current === value) return;
+
+    const applyResult = (data: { exists?: boolean } | undefined) => {
+      if (data?.exists) {
+        setError("email", {
+          type: "manual",
+          message:
+            "An account with this email already exists. Please sign in instead.",
+        });
+        toast.error("This email is already registered", {
+          id: `email-exists:${value}`,
+          description: "Please sign in instead of creating a new account.",
+          duration: 6000,
+        });
+      } else if (errors.email?.type === "manual") {
+        clearErrors("email");
+      }
+    };
+
+    // Cache hit — skip the network round trip entirely.
+    const cacheKey = `dde:check-email:${value}`;
+    const cached = cacheGet(cacheKey) as { exists?: boolean } | undefined;
+    if (cached) {
+      lastCheckedRef.current = value;
+      applyResult(cached);
+      return;
+    }
+
     const handle = window.setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke("check-email", {
@@ -90,27 +134,10 @@ export const ContactBasicsStep = () => {
         });
         if (error) return;
         lastCheckedRef.current = value;
-        // Only act if the email in the field hasn't changed since
         const current = (watch("email") ?? "").trim().toLowerCase();
         if (current !== value) return;
-        if (data?.exists) {
-          setError("email", {
-            type: "manual",
-            message:
-              "An account with this email already exists. Please sign in instead.",
-          });
-          // Also surface a toast so the conflict can't be missed on mobile
-          // where the inline error sits below the fold. De-duped per email
-          // via a stable toast id so retyping the same address doesn't spam.
-          toast.error("This email is already registered", {
-            id: `email-exists:${value}`,
-            description: "Please sign in instead of creating a new account.",
-            duration: 6000,
-          });
-        } else {
-          // Clear only if the current error is our manual one
-          if (errors.email?.type === "manual") clearErrors("email");
-        }
+        cacheSet(cacheKey, data ?? {});
+        applyResult(data as { exists?: boolean } | undefined);
       } catch {
         // Fail silently — submit will still catch the conflict server-side.
       }
@@ -119,17 +146,59 @@ export const ContactBasicsStep = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
-  // Debounced check: is this phone number valid AND not already in use by
-  // another account? Mirrors the email check. Server-side backstop in
+  // Debounced check: phone validity + uniqueness. Gated on plausible
+  // length per country (NANP = 10 digits, others 7–15) so we never fire a
+  // Shopify search for clearly-incomplete input. Server-side backstop in
   // create-customer returns 400 PHONE_INVALID / 409 PHONE_IN_USE.
   const phoneNumber = watch("phoneNumber");
   const phoneCountryCode = watch("phoneCountryCode");
   const lastCheckedPhoneRef = useRef<string | null>(null);
   useEffect(() => {
     const raw = (phoneNumber ?? "").replace(/\D/g, "");
-    if (!raw || raw.length < 7) return;
-    const key = `${phoneCountryCode ?? ""}|${raw}`;
+    const code = phoneCountryCode ?? "";
+    // NANP (+1) must be exactly 10 digits; everything else 7–15 (E.164 max).
+    const isNanp = code === "+1" || code === "1";
+    const lengthOk = isNanp ? raw.length === 10 : raw.length >= 7 && raw.length <= 15;
+    if (!raw || !lengthOk) return;
+
+    const key = `${code}|${raw}`;
     if (lastCheckedPhoneRef.current === key) return;
+
+    const applyResult = (
+      data: { valid?: boolean; inUse?: boolean } | undefined
+    ) => {
+      if (data?.valid === false) {
+        setError("phoneNumber", {
+          type: "manual",
+          message: "Please enter a valid phone number.",
+        });
+      } else if (data?.inUse) {
+        setError("phoneNumber", {
+          type: "manual",
+          message:
+            "This phone number is already linked to another account.",
+        });
+        toast.error("This phone number is already in use", {
+          id: `phone-in-use:${key}`,
+          description:
+            "Please use a different number or sign in to the existing account.",
+          duration: 6000,
+        });
+      } else if (errors.phoneNumber?.type === "manual") {
+        clearErrors("phoneNumber");
+      }
+    };
+
+    const cacheKey = `dde:check-phone:${key}`;
+    const cached = cacheGet(cacheKey) as
+      | { valid?: boolean; inUse?: boolean }
+      | undefined;
+    if (cached) {
+      lastCheckedPhoneRef.current = key;
+      applyResult(cached);
+      return;
+    }
+
     const handle = window.setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke("check-phone", {
@@ -137,30 +206,11 @@ export const ContactBasicsStep = () => {
         });
         if (error) return;
         lastCheckedPhoneRef.current = key;
-        // Only act if the inputs haven't changed since.
         const currentRaw = (watch("phoneNumber") ?? "").replace(/\D/g, "");
         const currentCode = watch("phoneCountryCode") ?? "";
         if (`${currentCode}|${currentRaw}` !== key) return;
-        if (data?.valid === false) {
-          setError("phoneNumber", {
-            type: "manual",
-            message: "Please enter a valid phone number.",
-          });
-        } else if (data?.inUse) {
-          setError("phoneNumber", {
-            type: "manual",
-            message:
-              "This phone number is already linked to another account.",
-          });
-          toast.error("This phone number is already in use", {
-            id: `phone-in-use:${key}`,
-            description:
-              "Please use a different number or sign in to the existing account.",
-            duration: 6000,
-          });
-        } else {
-          if (errors.phoneNumber?.type === "manual") clearErrors("phoneNumber");
-        }
+        cacheSet(cacheKey, data ?? {});
+        applyResult(data as { valid?: boolean; inUse?: boolean } | undefined);
       } catch {
         // Fail silently — submit will still catch the conflict server-side.
       }
@@ -168,6 +218,7 @@ export const ContactBasicsStep = () => {
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phoneNumber, phoneCountryCode]);
+
 
 
 
