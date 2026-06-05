@@ -115,9 +115,9 @@ export const PreferencesStep = () => {
                 the applicant actually cares about right now. */}
             <label
               className={cn(
-                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form border-l-2 bg-gradient-to-r from-primary/[0.04] to-transparent transition-colors",
+                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors",
                 hasPhone
-                  ? "cursor-pointer border-primary/40 hover:from-primary/[0.07]"
+                  ? "cursor-pointer border-border hover:border-foreground/30"
                   : "cursor-not-allowed opacity-60 border-border"
               )}
             >
@@ -132,22 +132,15 @@ export const PreferencesStep = () => {
               />
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  <span className="text-sm font-medium text-foreground">
                     Text me when I'm approved to shop & with pro-only deals
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground/[0.06] text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/70">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                     Recommended
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Approval notification, restock alerts, early drops, and pro-only deals before they hit email.
-                  <span className="text-muted-foreground/70"> ~2–4 texts/month. Stop anytime.</span>
-                </p>
-                <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
-                  By checking this box, you agree to receive recurring automated marketing text
-                  messages from Drop Dead Extensions at the phone number you provided. Consent is
-                  not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel,
-                  HELP for help. See our{" "}
+                <p className="text-xs text-foreground/70">
+                  ~2–4 texts/month. Reply STOP to cancel.{" "}
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
@@ -161,12 +154,12 @@ export const PreferencesStep = () => {
                     onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
                     className="underline underline-offset-2 hover:text-foreground transition-colors"
                   >
-                    Privacy Policy
+                    Privacy
                   </button>
                   .
                 </p>
                 {!hasPhone && (
-                  <p className="text-[11px] text-muted-foreground/70 italic">
+                  <p className="text-[11px] text-foreground/60 italic">
                     Add a phone number in the previous step to enable SMS.
                   </p>
                 )}
@@ -198,7 +191,7 @@ export const PreferencesStep = () => {
         {showSmsNotice && (
           <div
             className={cn(
-              "flex gap-[15px] pl-5 border-l-2 border-border transition-all duration-200",
+              "flex gap-[15px] transition-all duration-200",
               isExiting
                 ? "opacity-0 translate-y-2"
                 : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
