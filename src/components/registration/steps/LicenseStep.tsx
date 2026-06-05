@@ -6,10 +6,6 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
-import {
-  getLicensePattern,
-  validateLicenseFormat,
-} from "@/data/cosmetology-license-patterns";
 
 const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
 const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-operated"];
