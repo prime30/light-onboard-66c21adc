@@ -67,6 +67,26 @@ export const ScheduleStep = () => {
   const [booking, setBooking] = useState(false);
   const [bookError, setBookError] = useState<string | null>(null);
 
+  // Sync prefill once form values become available (post-submit reset
+  // settles a tick after mount, so the initial useState may have captured
+  // empty strings).
+  const prefilledRef = useRef({ firstName: false, lastName: false, email: false });
+  useEffect(() => {
+    if (!prefilledRef.current.firstName && values?.firstName && !firstName) {
+      setFirstName(values.firstName);
+      prefilledRef.current.firstName = true;
+    }
+    if (!prefilledRef.current.lastName && values?.lastName && !lastName) {
+      setLastName(values.lastName);
+      prefilledRef.current.lastName = true;
+    }
+    if (!prefilledRef.current.email && values?.email && !email) {
+      setEmail(values.email);
+      prefilledRef.current.email = true;
+    }
+  }, [values?.firstName, values?.lastName, values?.email, firstName, lastName, email]);
+
+
   const fetchedWindows = useRef<Set<string>>(new Set());
   const fetchWindow = useCallback(async (start: Date) => {
     const startKey = toYmdUtc(start);
