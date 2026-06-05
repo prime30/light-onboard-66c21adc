@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Eye, EyeOff, Lock, ShieldCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -70,6 +70,8 @@ export const CreatePasswordStep = () => {
     currentStep,
     getStepValidationStatus,
     getStepNumber,
+    clearErrors,
+    setError,
   } = useForm();
 
   const validationStatus = getStepValidationStatus(currentStep);
@@ -87,6 +89,22 @@ export const CreatePasswordStep = () => {
     confirmPassword.length > 0 && password === confirmPassword && passwordValid;
   const confirmMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
+
+  // Keep confirmPassword error in sync when EITHER field changes — RHF only
+  // re-validates the field being typed in, so editing the password field
+  // after a mismatch would leave a stale "Passwords do not match" error
+  // attached to confirmPassword until the user re-touched it.
+  useEffect(() => {
+    if (confirmPassword.length === 0) return;
+    if (password === confirmPassword) {
+      clearErrors("confirmPassword");
+    } else {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match",
+      });
+    }
+  }, [password, confirmPassword, clearErrors, setError]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const e = errors as any;
