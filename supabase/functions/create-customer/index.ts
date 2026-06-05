@@ -74,6 +74,75 @@ function sendError(
   );
 }
 
+// ------------------------------------------------------------------
+// 429-aware Shopify Admin API fetch. One retry honoring Retry-After
+// (capped so a wedged upstream can't blow the function timeout).
+// Shopify's leaky bucket rarely fires for this app's volume, but when it
+// does it returns 429 with Retry-After — surviving that gracefully is
+// the difference between a clean re-submit and a failed registration.
+// ------------------------------------------------------------------
+async function shopifyFetch(input: string | URL, init?: RequestInit): Promise<Response> {
+  const res = await fetch(input, init);
+  if (res.status !== 429) return res;
+  const retryAfter = Number(res.headers.get("Retry-After") ?? "1");
+  const waitMs = Math.min(Math.max(retryAfter, 1), 4) * 1000;
+  console.warn(`Shopify 429 — retrying after ${waitMs}ms`);
+  await new Promise((r) => setTimeout(r, waitMs));
+  return fetch(input, init);
+}
+
+// Run a non-critical task after the response is sent, when the edge
+// runtime supports it. Falls back to fire-and-forget. Either way the
+// user isn't blocked on tail-end writes (final audit-row PATCH, etc.).
+function runInBackground(promise: Promise<unknown>): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const er = (globalThis as any).EdgeRuntime;
+  if (er && typeof er.waitUntil === "function") {
+    er.waitUntil(promise.catch((e) => console.warn("background task failed:", e)));
+  } else {
+    promise.catch((e) => console.warn("background task failed:", e));
+  }
+}
+
+// Combined app_settings fetch — one RTT for both auto_approval_enabled
+// and extra_customer_tags. Previously the enrichment and activation tails
+// each did their own RTT. Returns safe defaults if anything fails.
+async function loadAppSettings(): Promise<{
+  autoApprovalEnabled: boolean;
+  extraCustomerTags: string[];
+}> {
+  const fallback = { autoApprovalEnabled: false, extraCustomerTags: [] as string[] };
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return fallback;
+  try {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=auto_approval_enabled,extra_customer_tags`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+    );
+    if (!r.ok) {
+      console.warn("app_settings fetch failed:", r.status);
+      return fallback;
+    }
+    const rows = (await r.json()) as Array<{
+      auto_approval_enabled?: boolean;
+      extra_customer_tags?: string[];
+    }>;
+    const row = rows?.[0] ?? {};
+    const tagsRaw = Array.isArray(row.extra_customer_tags) ? row.extra_customer_tags : [];
+    return {
+      autoApprovalEnabled: row.auto_approval_enabled === true,
+      extraCustomerTags: tagsRaw
+        .filter((t): t is string => typeof t === "string")
+        .map((t) => t.trim().replace(/,/g, " "))
+        .filter(Boolean),
+    };
+  } catch (e) {
+    console.warn("app_settings fetch threw:", e);
+    return fallback;
+  }
+}
+
 // Convert camelCase to snake_case
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -422,6 +491,11 @@ Deno.serve(async (req: Request) => {
   }
 
   console.log("Processing customer sync for:", requestBody.data.email);
+
+  // Kick off app_settings (auto_approval_enabled + extra_customer_tags) in
+  // parallel with the Helium write — both the enrichment and activation
+  // tails need it later, but we don't want to block on it sequentially.
+  const appSettingsPromise = loadAppSettings();
 
   // First, check if customer already exists
   const existingCustomerSearch = await searchCustomerByEmail(
@@ -857,37 +931,10 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Load admin-configured extra tags (best-effort).
-    let extraAdminTags: string[] = [];
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      if (supabaseUrl && serviceRoleKey) {
-        const tagsRes = await fetch(
-          `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=extra_customer_tags`,
-          {
-            headers: {
-              apikey: serviceRoleKey,
-              Authorization: `Bearer ${serviceRoleKey}`,
-            },
-          }
-        );
-        if (tagsRes.ok) {
-          const rows = (await tagsRes.json()) as Array<{ extra_customer_tags?: string[] }>;
-          const arr = rows?.[0]?.extra_customer_tags;
-          if (Array.isArray(arr)) {
-            extraAdminTags = arr
-              .filter((t): t is string => typeof t === "string")
-              .map((t) => t.trim().replace(/,/g, " "))
-              .filter(Boolean);
-          }
-        } else {
-          console.warn("Could not fetch admin extra tags:", tagsRes.status);
-        }
-      }
-    } catch (e) {
-      console.warn("Error loading admin extra tags (non-blocking):", e);
-    }
+    // Admin-configured extra tags come from the shared app_settings fetch
+    // (kicked off in parallel with the Helium write at the top of the
+    // handler). By the time we get here it's already resolved or close to.
+    const { extraCustomerTags: extraAdminTags } = await appSettingsPromise;
 
     const preferredMethodTags = (preferredMethods ?? []).map((m) => `Preferred method: ${m}`);
 
@@ -1007,14 +1054,30 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // ----------------------------------------------------------------
+    // Post-Helium tail: three independent chains that previously ran
+    // strictly serially (~600-1200ms wall time). They share no mutable
+    // state, so we run them concurrently and Promise.allSettled the
+    // group — one failure can't poison the others, and `recordAuditFailure`
+    // is already idempotent.
+    //
+    //   A) Shopify enrichment  — GET customer → PUT merged update
+    //   B) Marketing consent   — POST marketing_consent_log
+    //   C) Auto-approval       — POST activation URL → POST password
+    //                           (with soft-merge Storefront customerRecover fallback)
+    // ----------------------------------------------------------------
+    const tailTasks: Promise<unknown>[] = [];
+
+    // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
+      tailTasks.push((async () => {
       if (shopifyDomain && shopifyAdminToken) {
         try {
           // Fetch existing customer to merge tags and detect whether a
           // default_address already exists (avoid clobbering it).
           let existingTags: string[] = [];
           let existingHasDefaultAddress = false;
-          const getRes = await fetch(
+          const getRes = await shopifyFetch(
             `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
             {
               method: "GET",
@@ -1100,7 +1163,7 @@ Deno.serve(async (req: Request) => {
           }
 
           const putCustomer = async (payload: Record<string, unknown>) =>
-            fetch(
+            shopifyFetch(
               `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
               {
                 method: "PUT",
@@ -1159,15 +1222,15 @@ Deno.serve(async (req: Request) => {
       } else {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
+      })());
     }
 
 
-    // ----------------------------------------------------------------
-    // Proof-of-consent log — TCPA / GDPR. Writes one row per channel the
-    // user opted into so we can later prove (a) they ticked the box,
-    // (b) when, (c) from what IP/UA, (d) what disclosure text they saw.
-    // Best-effort: failures here are logged but do NOT block the response.
-    // ----------------------------------------------------------------
+    // ---- Chain B: Marketing consent log (TCPA / GDPR) --------------
+    // Writes one row per channel the user opted into so we can later
+    // prove (a) they ticked the box, (b) when, (c) from what IP/UA,
+    // (d) what disclosure text they saw. Best-effort.
+    tailTasks.push((async () => {
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL");
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -1245,46 +1308,27 @@ Deno.serve(async (req: Request) => {
     } catch (logErr) {
       console.warn("Error writing marketing consent log (non-blocking):", logErr);
     }
+    })());
 
 
 
-    // ----------------------------------------------------------------
-    // Auto-approval: if a password was sent AND the admin has flipped
-    // auto_approval_enabled = true, activate the Shopify customer
-    // server-side so they can sign in immediately. Without this the
-    // Shopify customer stays in "invited" state and Helium shows
-    // "Account not active". Failures here are logged but do NOT block
-    // the success response — the user still has a registered account
-    // and can be activated later via the standard invite flow.
-    // ----------------------------------------------------------------
+    // ---- Chain C: Auto-approval Shopify activation -----------------
+    // If a password was sent AND auto_approval_enabled = true, activate
+    // the Shopify customer server-side so they can sign in immediately.
+    // Without this they stay in "invited" state. Failures are logged
+    // but do NOT block the success response.
     const submittedPassword = (parseResult.data as { password?: string }).password;
     if (submittedPassword && shopifyCustomerId) {
+      tailTasks.push((async () => {
       try {
-        let autoApprovalEnabled = false;
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        if (supabaseUrl && serviceRoleKey) {
-          const settingsRes = await fetch(
-            `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=auto_approval_enabled`,
-            {
-              headers: {
-                apikey: serviceRoleKey,
-                Authorization: `Bearer ${serviceRoleKey}`,
-              },
-            }
-          );
-          if (settingsRes.ok) {
-            const rows = (await settingsRes.json()) as Array<{ auto_approval_enabled?: boolean }>;
-            autoApprovalEnabled = rows?.[0]?.auto_approval_enabled === true;
-          }
-        }
+        // Reuse the shared app_settings promise kicked off at the top of
+        // the handler — no extra round trip here.
+        const { autoApprovalEnabled } = await appSettingsPromise;
 
         if (autoApprovalEnabled) {
-          const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-          const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
           if (shopifyDomain && shopifyAdminToken) {
             // Step 1: ask Shopify Admin API for the activation URL.
-            const urlRes = await fetch(
+            const urlRes = await shopifyFetch(
               `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/account_activation_url.json`,
               {
                 method: "POST",
@@ -1415,7 +1459,12 @@ Deno.serve(async (req: Request) => {
       } catch (activationErr) {
         console.warn("Auto-approval activation threw (non-blocking):", activationErr);
       }
+      })());
     }
+
+    // Wait for all three independent tails to complete before finalizing
+    // the audit row. allSettled — one failure mustn't poison the others.
+    await Promise.allSettled(tailTasks);
 
 
     const response: FunctionResponse<CustomerFieldsResponse> = {
@@ -1427,11 +1476,13 @@ Deno.serve(async (req: Request) => {
     // Audit: finalize. `succeeded` even if some non-blocking soft failures
     // were recorded (Shopify-side enrichments) — the applicant has a Helium
     // record and the error_log lets us replay just the failed pieces.
-    await updateAuditRow({
+    // Run in the background — the user doesn't need to wait on the audit
+    // PATCH (~80-150ms) to see their success screen.
+    runInBackground(updateAuditRow({
       status: auditErrors.length > 0 ? "shopify_ok" : "succeeded",
       shopify_customer_id: shopifyCustomerId ?? null,
       error_log: auditErrors,
-    });
+    }));
 
     return new Response(JSON.stringify(response), {
       status: 200,
