@@ -528,6 +528,8 @@ export function FormDataProvider({
     isSubmitting,
     errorActions,
     submitErrorMessage,
+    emailConflict,
+    setEmailConflict,
     setSubmitError,
     discountCode,
     discountExpiry,
