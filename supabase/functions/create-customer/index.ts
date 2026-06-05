@@ -933,6 +933,14 @@ Deno.serve(async (req: Request) => {
               }
             );
 
+            // Track whether activation succeeded; if not, on a soft-merge
+            // (where the customer may already be enabled with a prior
+            // password from support/Klaviyo) we fall back to a Storefront
+            // customerRecover so they get a reset link by email and can
+            // claim the account themselves.
+            let activated = false;
+            let activationStatusForFallback = 0;
+
             if (urlRes.ok) {
               const json = await urlRes.json();
               const activationUrl: string | undefined = json?.account_activation_url;
@@ -953,8 +961,10 @@ Deno.serve(async (req: Request) => {
 
                 if (activateRes.status === 302 || activateRes.status === 200) {
                   console.log("Auto-activated Shopify customer:", shopifyCustomerId);
+                  activated = true;
                 } else {
                   const txt = await activateRes.text();
+                  activationStatusForFallback = activateRes.status;
                   console.warn(
                     "Auto-activation POST failed (non-blocking):",
                     activateRes.status,
@@ -966,11 +976,73 @@ Deno.serve(async (req: Request) => {
               }
             } else {
               const txt = await urlRes.text();
+              activationStatusForFallback = urlRes.status;
               console.warn(
                 "Failed to fetch account_activation_url (non-blocking):",
                 urlRes.status,
                 txt.substring(0, 300)
               );
+            }
+
+            // Fallback: on a soft-merge, an existing Shopify customer is
+            // often already "enabled" (support set a password, or they
+            // recovered previously). The Admin activation endpoint returns
+            // 422 in that case. Send a Storefront password-reset email so
+            // the user can claim the account with their chosen password.
+            const isSoftMerge = !!existingCustomerId;
+            if (!activated && isSoftMerge) {
+              try {
+                const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+                if (storefrontToken) {
+                  const recoverRes = await fetch(
+                    `https://${shopifyDomain}/api/2024-10/graphql.json`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "X-Shopify-Storefront-Access-Token": storefrontToken,
+                      },
+                      body: JSON.stringify({
+                        query:
+                          "mutation customerRecover($email: String!) { customerRecover(email: $email) { customerUserErrors { code field message } } }",
+                        variables: { email: customer.email },
+                      }),
+                    }
+                  );
+                  if (recoverRes.ok) {
+                    const rJson = await recoverRes.json();
+                    const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
+                    if (errs.length === 0) {
+                      console.log(
+                        "Soft-merge: sent password-reset email to already-enabled customer:",
+                        customer.email,
+                        "(activation status was",
+                        activationStatusForFallback + ")"
+                      );
+                    } else {
+                      console.warn(
+                        "Soft-merge customerRecover returned userErrors (non-blocking):",
+                        JSON.stringify(errs)
+                      );
+                    }
+                  } else {
+                    console.warn(
+                      "Soft-merge customerRecover HTTP failed (non-blocking):",
+                      recoverRes.status,
+                      (await recoverRes.text()).substring(0, 200)
+                    );
+                  }
+                } else {
+                  console.warn(
+                    "Soft-merge fallback: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing, skipping reset email"
+                  );
+                }
+              } catch (recoverErr) {
+                console.warn(
+                  "Soft-merge customerRecover threw (non-blocking):",
+                  recoverErr
+                );
+              }
             }
           } else {
             console.warn(
