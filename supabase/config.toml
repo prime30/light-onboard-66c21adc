@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.track-registration-lead]
 verify_jwt = false
+
+[functions.admin-registration-analytics]
+verify_jwt = false
