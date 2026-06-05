@@ -635,8 +635,41 @@ Deno.serve(async (req: Request) => {
     // Tag Shopify customer with "Preferred method: X" for each selected method,
     // plus any admin-configured extra tags from app_settings. Fire-and-forget —
     // failures here must not block account creation.
-    const shopifyCustomerId = customerFieldsData.customer.shopify_id;
+    let shopifyCustomerId: number | undefined = customerFieldsData.customer.shopify_id;
     const preferredMethods = (parseResult.data as { preferredMethods?: string[] }).preferredMethods;
+
+    const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+    const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+
+    // Fallback: if Helium didn't return a shopify_id (race / async link),
+    // resolve it via Shopify Admin search by email so we still get tags and
+    // native fields written.
+    if (!shopifyCustomerId && shopifyDomain && shopifyAdminToken) {
+      try {
+        const searchRes = await fetch(
+          `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(`email:${customer.email}`)}`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": shopifyAdminToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (searchRes.ok) {
+          const sjson = await searchRes.json();
+          const sid = sjson?.customers?.[0]?.id;
+          if (typeof sid === "number") {
+            shopifyCustomerId = sid;
+            console.log("Resolved shopify_id via email fallback:", sid);
+          }
+        } else {
+          console.warn("Shopify email-fallback search failed:", searchRes.status);
+        }
+      } catch (e) {
+        console.warn("Error in Shopify email-fallback search (non-blocking):", e);
+      }
+    }
 
     // Load admin-configured extra tags (best-effort).
     let extraAdminTags: string[] = [];
@@ -702,49 +735,112 @@ Deno.serve(async (req: Request) => {
     const canCollectSms = acceptsSmsMarketingFlag && !!customerPhone;
     const consentTimestamp = new Date().toISOString();
 
+    // Build a human-readable note summarizing the application — lands in
+    // the native Shopify customer `note` field so support can see context
+    // without opening Helium.
+    const noteLines: string[] = [];
+    if (customer.account_type) {
+      const label = accountTypeLabelMap[customer.account_type] ?? customer.account_type;
+      noteLines.push(`Account type: ${label}`);
+    }
+    if (customer.business_name) noteLines.push(`Business: ${customer.business_name}`);
+    if (customer.license_number) noteLines.push(`License #: ${customer.license_number}`);
+    if (customer.salon_size) noteLines.push(`Salon size: ${customer.salon_size}`);
+    if (customer.salon_structure) noteLines.push(`Salon structure: ${customer.salon_structure}`);
+    if (customer.school_name) noteLines.push(`School: ${customer.school_name}`);
+    if (customer.school_state) noteLines.push(`School state: ${customer.school_state}`);
+    if (customer.referral_source) noteLines.push(`Referral: ${customer.referral_source}`);
+    if (customer.social_media_handle) noteLines.push(`Social: ${customer.social_media_handle}`);
+    const applicationNote = noteLines.length
+      ? `Application submitted ${consentTimestamp}\n${noteLines.join("\n")}`
+      : "";
+
+    // Native fields we always want mirrored onto the Shopify customer record,
+    // so they're populated regardless of Helium field-mapping configuration.
+    const hasNativeAddress = !!(
+      customer.business_address ||
+      customer.city ||
+      customer.province_code ||
+      customer.zip_code ||
+      customer.country_code
+    );
+
     const needsShopifyUpdate =
       !!shopifyCustomerId &&
       (newTags.length > 0 ||
         taxExemptFlag ||
         acceptsEmailMarketingFlag ||
-        canCollectSms);
+        canCollectSms ||
+        !!customer.first_name ||
+        !!customer.last_name ||
+        !!customerPhone ||
+        !!applicationNote ||
+        hasNativeAddress);
+
 
     if (needsShopifyUpdate) {
-      const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-      const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (shopifyDomain && shopifyAdminToken) {
         try {
-          // Fetch existing tags to merge
+          // Fetch existing customer to merge tags and detect whether a
+          // default_address already exists (avoid clobbering it).
           let existingTags: string[] = [];
-          if (newTags.length > 0) {
-            const getRes = await fetch(
-              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
-              {
-                method: "GET",
-                headers: {
-                  "X-Shopify-Access-Token": shopifyAdminToken,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            if (getRes.ok) {
-              const existing = await getRes.json();
-              const tagStr: string = existing?.customer?.tags ?? "";
-              existingTags = tagStr
-                .split(",")
-                .map((t: string) => t.trim())
-                .filter(Boolean);
-            } else {
-              console.warn("Could not fetch existing Shopify tags:", getRes.status);
+          let existingHasDefaultAddress = false;
+          const getRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
             }
+          );
+          if (getRes.ok) {
+            const existing = await getRes.json();
+            const tagStr: string = existing?.customer?.tags ?? "";
+            existingTags = tagStr
+              .split(",")
+              .map((t: string) => t.trim())
+              .filter(Boolean);
+            existingHasDefaultAddress = !!existing?.customer?.default_address?.address1;
+          } else {
+            console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const customerUpdate: Record<string, any> = { id: shopifyCustomerId };
+
+          // Native identity fields — always mirror so the Shopify record
+          // isn't blank regardless of Helium field-mapping config.
+          if (customer.first_name) customerUpdate.first_name = customer.first_name;
+          if (customer.last_name) customerUpdate.last_name = customer.last_name;
+          if (customerPhone) customerUpdate.phone = customerPhone;
+          if (applicationNote) customerUpdate.note = applicationNote;
+
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
+
+          // Native default address — only set if the customer doesn't
+          // already have one (don't overwrite a customer-edited address).
+          if (hasNativeAddress && !existingHasDefaultAddress) {
+            customerUpdate.addresses = [
+              {
+                first_name: customer.first_name,
+                last_name: customer.last_name,
+                company: customer.business_name,
+                address1: customer.business_address,
+                address2: customer.suite_number,
+                city: customer.city,
+                province_code: customer.province_code,
+                zip: customer.zip_code,
+                country_code: customer.country_code,
+                phone: customerPhone,
+                default: true,
+              },
+            ];
+          }
 
           // Email marketing — independent of SMS
           if (acceptsEmailMarketingFlag) {
@@ -756,9 +852,6 @@ Deno.serve(async (req: Request) => {
           }
 
           // SMS marketing — requires its own opt-in AND a valid E.164 phone.
-          // Shopify rejects sms_marketing_consent without a phone on the
-          // customer, so we set the top-level phone here too in case it isn't
-          // already on the Shopify record.
           if (canCollectSms) {
             customerUpdate.phone = customerPhone;
             customerUpdate.sms_marketing_consent = {
@@ -786,10 +879,9 @@ Deno.serve(async (req: Request) => {
             console.warn("Failed to update Shopify customer:", updRes.status, errText);
           } else {
             console.log("Updated Shopify customer:", {
+              shopifyCustomerId,
+              fields: Object.keys(customerUpdate).filter((k) => k !== "id"),
               tags: newTags,
-              taxExempt: taxExemptFlag,
-              emailMarketing: acceptsEmailMarketingFlag,
-              smsMarketing: canCollectSms,
             });
           }
         } catch (updErr) {
@@ -799,6 +891,7 @@ Deno.serve(async (req: Request) => {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
     }
+
 
     // ----------------------------------------------------------------
     // Proof-of-consent log — TCPA / GDPR. Writes one row per channel the
