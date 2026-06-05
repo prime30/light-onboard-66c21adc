@@ -174,6 +174,17 @@ export const SummaryForm = () => {
     }
   }, [errors.root?.form]);
 
+  // Warm the display fonts used on the upcoming SuccessForm ("Welcome to Drop Dead")
+  // so they're parsed and in the FontFaceSet by the time that screen mounts. The
+  // index.html `<link rel="prefetch">` already pulled the bytes; this guarantees
+  // the browser has decoded them so the success step never shows a swap flash.
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts?.load) return;
+    document.fonts.load('300 italic 1em "Canela"').catch(() => {});
+    document.fonts.load('500 1em "Aeonik Fono"').catch(() => {});
+  }, []);
+
+
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
