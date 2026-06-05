@@ -862,21 +862,44 @@ Deno.serve(async (req: Request) => {
             };
           }
 
-          const updRes = await fetch(
-            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
-            {
-              method: "PUT",
-              headers: {
-                "X-Shopify-Access-Token": shopifyAdminToken,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ customer: customerUpdate }),
-            }
-          );
+          const putCustomer = async (payload: Record<string, unknown>) =>
+            fetch(
+              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+              {
+                method: "PUT",
+                headers: {
+                  "X-Shopify-Access-Token": shopifyAdminToken,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ customer: payload }),
+              }
+            );
+
+          let updRes = await putCustomer(customerUpdate);
+          let updResBodyText = "";
 
           if (!updRes.ok) {
-            const errText = await updRes.text();
-            console.warn("Failed to update Shopify customer:", updRes.status, errText);
+            updResBodyText = await updRes.text();
+            // Shopify rejects the whole PUT if any single field is invalid
+            // (commonly `phone` — bad NANP area code, duplicate, etc.). Retry
+            // without phone/SMS so tags/note/tax_exempt/address still land.
+            const phoneRejected =
+              updRes.status === 422 && /"phone"/i.test(updResBodyText);
+            if (phoneRejected && ("phone" in customerUpdate || "sms_marketing_consent" in customerUpdate)) {
+              console.warn(
+                "Shopify rejected phone on customer update; retrying without phone/SMS:",
+                updResBodyText
+              );
+              const { phone: _p, sms_marketing_consent: _s, ...retryPayload } = customerUpdate;
+              updRes = await putCustomer(retryPayload);
+              if (!updRes.ok) {
+                updResBodyText = await updRes.text();
+              }
+            }
+          }
+
+          if (!updRes.ok) {
+            console.warn("Failed to update Shopify customer:", updRes.status, updResBodyText);
           } else {
             console.log("Updated Shopify customer:", {
               shopifyCustomerId,
@@ -884,6 +907,7 @@ Deno.serve(async (req: Request) => {
               tags: newTags,
             });
           }
+
         } catch (updErr) {
           console.warn("Error updating Shopify customer (non-blocking):", updErr);
         }
