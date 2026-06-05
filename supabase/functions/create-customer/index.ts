@@ -832,6 +832,46 @@ Deno.serve(async (req: Request) => {
             console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
+          // Phone-uniqueness check: Shopify rejects the whole PUT with
+          // {"phone":["is invalid"]} if another customer already owns this
+          // E.164 number. Search by phone first and drop it from the
+          // payload on collision.
+          if (phoneSafeToSend && customerPhone) {
+            try {
+              const phoneSearchRes = await fetch(
+                `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+                  `phone:${customerPhone}`
+                )}`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": shopifyAdminToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              if (phoneSearchRes.ok) {
+                const pjson = await phoneSearchRes.json();
+                const owners: Array<{ id?: number }> = pjson?.customers ?? [];
+                const collidingId = owners.find(
+                  (c) => typeof c?.id === "number" && c.id !== shopifyCustomerId
+                )?.id;
+                if (collidingId) {
+                  console.warn(
+                    "Phone already owned by another Shopify customer; dropping phone from update:",
+                    { phone: customerPhone, collidingId }
+                  );
+                  phoneSafeToSend = false;
+                  canCollectSms = false;
+                }
+              } else {
+                console.warn("Phone-collision search failed (non-blocking):", phoneSearchRes.status);
+              }
+            } catch (e) {
+              console.warn("Phone-collision search threw (non-blocking):", e);
+            }
+          }
+
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -841,8 +881,9 @@ Deno.serve(async (req: Request) => {
           // isn't blank regardless of Helium field-mapping config.
           if (customer.first_name) customerUpdate.first_name = customer.first_name;
           if (customer.last_name) customerUpdate.last_name = customer.last_name;
-          if (customerPhone) customerUpdate.phone = customerPhone;
+          if (phoneSafeToSend && customerPhone) customerUpdate.phone = customerPhone;
           if (applicationNote) customerUpdate.note = applicationNote;
+
 
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
