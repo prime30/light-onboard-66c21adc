@@ -186,7 +186,14 @@ const businessLocationValidators = {
     .min(1, "Zip/Postal code is required")
     .max(20, "Zip code must be less than 20 characters"),
 };
-export const businessLocationSchema = z.object(businessLocationValidators);
+export const businessLocationSchema = z
+  .object(businessLocationValidators)
+  .superRefine((data, ctx) => {
+    const result = isValidZipForCountry(data.zipCode, data.countryCode);
+    if (result !== true) {
+      ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+    }
+  });
 
 // License Schema (for professionals)
 const licenseValidators = {
