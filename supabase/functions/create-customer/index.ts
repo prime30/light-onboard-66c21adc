@@ -931,37 +931,10 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Load admin-configured extra tags (best-effort).
-    let extraAdminTags: string[] = [];
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      if (supabaseUrl && serviceRoleKey) {
-        const tagsRes = await fetch(
-          `${supabaseUrl}/rest/v1/app_settings?singleton=eq.true&select=extra_customer_tags`,
-          {
-            headers: {
-              apikey: serviceRoleKey,
-              Authorization: `Bearer ${serviceRoleKey}`,
-            },
-          }
-        );
-        if (tagsRes.ok) {
-          const rows = (await tagsRes.json()) as Array<{ extra_customer_tags?: string[] }>;
-          const arr = rows?.[0]?.extra_customer_tags;
-          if (Array.isArray(arr)) {
-            extraAdminTags = arr
-              .filter((t): t is string => typeof t === "string")
-              .map((t) => t.trim().replace(/,/g, " "))
-              .filter(Boolean);
-          }
-        } else {
-          console.warn("Could not fetch admin extra tags:", tagsRes.status);
-        }
-      }
-    } catch (e) {
-      console.warn("Error loading admin extra tags (non-blocking):", e);
-    }
+    // Admin-configured extra tags come from the shared app_settings fetch
+    // (kicked off in parallel with the Helium write at the top of the
+    // handler). By the time we get here it's already resolved or close to.
+    const { extraCustomerTags: extraAdminTags } = await appSettingsPromise;
 
     const preferredMethodTags = (preferredMethods ?? []).map((m) => `Preferred method: ${m}`);
 
