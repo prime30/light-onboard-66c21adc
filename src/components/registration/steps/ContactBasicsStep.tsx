@@ -99,6 +99,11 @@ export const ContactBasicsStep = () => {
   const email = watch("email");
   const normalizedEmail = (email ?? "").trim().toLowerCase();
   const matchingEmailConflict = emailConflict?.email === normalizedEmail ? emailConflict : null;
+  const emailDisplayError = errors.email || (
+    matchingEmailConflict
+      ? { type: "manual", message: matchingEmailConflict.message }
+      : undefined
+  );
   const lastCheckedRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
@@ -312,12 +317,12 @@ export const ContactBasicsStep = () => {
             name={"email"}
             type="email"
             register={register}
-            error={errors.email || matchingEmailConflict || undefined}
+            error={emailDisplayError}
             placeholder="your@email"
             label="Email*"
             autoComplete="email"
             isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
-            prefixIcon={<EmailPrefixIcon emailError={!!(errors.email || matchingEmailConflict)} />}
+            prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
           />
         </div>
 
