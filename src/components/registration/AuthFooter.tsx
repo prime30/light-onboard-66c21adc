@@ -129,7 +129,7 @@ export function AuthFooter({
     return "Continue";
   };
 
-  const isProcessing = isSubmitting || isUploading;
+  const isProcessing = isSubmitting || isUploading || preflightChecking;
 
   // Briefly highlight + shake the missing fields so users see exactly what's
   // blocking submission. We target inputs by id (TextInput sets id={name}) and
