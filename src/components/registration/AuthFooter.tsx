@@ -45,6 +45,7 @@ export function AuthFooter({
     setError,
     setSubmitError,
     watch,
+    errors,
     incompleteSteps,
   } = useForm();
   const [preflightChecking, setPreflightChecking] = useState(false);
