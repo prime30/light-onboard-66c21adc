@@ -17,6 +17,21 @@ import {
 type SeriesPoint = { date: string; started: number; completed: number; bounceRate: number };
 type AccountTypeRow = { type: string; started: number; completed: number; bounceRate: number };
 type DropOffRow = { step: string; count: number };
+type CohortRow = {
+  date: string;
+  size: number;
+  within1h: number;
+  within24h: number;
+  within7d: number;
+  ever: number;
+  rate1h: number;
+  rate24h: number;
+  rate7d: number;
+  rateEver: number;
+  partial1h: boolean;
+  partial24h: boolean;
+  partial7d: boolean;
+};
 
 type ApiResponse = {
   success: boolean;
@@ -33,6 +48,7 @@ type ApiResponse = {
   series: SeriesPoint[];
   accountTypes: AccountTypeRow[];
   dropOffSteps: DropOffRow[];
+  cohorts: CohortRow[];
   error?: string;
 };
 
