@@ -804,6 +804,13 @@ Deno.serve(async (req: Request) => {
 
     console.log("Customer Fields API request successful:", customerFieldsData.customer.id);
 
+    // Audit: Helium write succeeded.
+    await updateAuditRow({
+      status: "helium_ok",
+      helium_customer_id: customerFieldsData.customer.id,
+      shopify_customer_id: customerFieldsData.customer.shopify_id ?? null,
+    });
+
     // Tag Shopify customer with "Preferred method: X" for each selected method,
     // plus any admin-configured extra tags from app_settings. Fire-and-forget —
     // failures here must not block account creation.
