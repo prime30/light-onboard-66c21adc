@@ -105,6 +105,7 @@ export const ContactBasicsStep = () => {
       : undefined
   );
   const lastCheckedRef = useRef<string | null>(null);
+  const lastTrackedLeadRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
     if (emailConflict && emailConflict.email !== value) {
@@ -112,6 +113,31 @@ export const ContactBasicsStep = () => {
       if (errors.email?.type === "manual") clearErrors("email");
     }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+
+    // Fire-and-forget lead capture for Klaviyo abandonment flow.
+    // Dedupe per session so editing nearby fields doesn't re-fire.
+    if (lastTrackedLeadRef.current !== value) {
+      lastTrackedLeadRef.current = value;
+      window.setTimeout(() => {
+        // Re-check dedupe at fire time in case email changed during the delay.
+        if (lastTrackedLeadRef.current !== value) return;
+        supabase.functions
+          .invoke("track-registration-lead", {
+            body: {
+              email: value,
+              phase: "started",
+              accountType: watch("accountType") ?? null,
+              lastStep: "contact-basics",
+              firstName: watch("firstName") ?? null,
+              lastName: watch("lastName") ?? null,
+            },
+          })
+          .catch(() => {
+            // Non-blocking — never let lead capture interfere with UX.
+          });
+      }, 1200);
+    }
+
     if (lastCheckedRef.current === value) return;
 
     const applyResult = (data: { exists?: boolean } | undefined) => {

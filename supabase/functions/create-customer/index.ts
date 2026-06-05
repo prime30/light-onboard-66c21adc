@@ -1462,7 +1462,33 @@ Deno.serve(async (req: Request) => {
       })());
     }
 
-    // Wait for all three independent tails to complete before finalizing
+    // Mark the registration lead as completed so the Klaviyo
+    // "Finish your registration" flow stops sending. Flow filter is
+    // `registration_completed is not true`; Klaviyo re-evaluates filters
+    // at every step so flipping the property mid-sequence drops queued
+    // sends without us needing a separate "unsubscribe from flow" call.
+    tailTasks.push((async () => {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        if (!supabaseUrl) return;
+        await fetch(`${supabaseUrl}/functions/v1/track-registration-lead`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: parseResult.data.email,
+            phase: "completed",
+            accountType: parseResult.data.accountType,
+            lastStep: "submitted",
+            firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
+            lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
+          }),
+        });
+      } catch (err) {
+        console.warn("track-registration-lead completion threw (non-blocking):", err);
+      }
+    })());
+
+    // Wait for all independent tails to complete before finalizing
     // the audit row. allSettled — one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
 

@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.check-email]
 verify_jwt = false
+
+[functions.track-registration-lead]
+verify_jwt = false
