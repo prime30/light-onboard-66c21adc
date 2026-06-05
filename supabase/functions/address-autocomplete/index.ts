@@ -53,7 +53,7 @@ serve(async (req) => {
   }
 
   try {
-    const { input, sessionToken, country, regionCode } = await req.json();
+    const { input, sessionToken, country, regionCode, clientLocationBias } = await req.json();
 
     if (!input || input.trim().length < 2) {
       return new Response(JSON.stringify({ predictions: [] }), {
@@ -75,7 +75,13 @@ serve(async (req) => {
 
     // Add country restriction if provided
     if (country) {
-      const countryCode = country === "United States" ? "US" : country === "Canada" ? "CA" : "";
+      const normalizedCountry = String(country).trim().toUpperCase();
+      const countryCode =
+        normalizedCountry === "US" || normalizedCountry === "UNITED STATES"
+          ? "US"
+          : normalizedCountry === "CA" || normalizedCountry === "CANADA"
+            ? "CA"
+            : "";
       if (countryCode) {
         requestBody.includedRegionCodes = [countryCode];
       }
@@ -129,8 +135,17 @@ serve(async (req) => {
     //   2. IP-geo fallback derived from the caller's real IP (x-forwarded-for),
     //      so first-keystroke results are local instead of CA-datacenter.
     let biasPoint: { lat: number; lng: number; radiusKm: number } | null = null;
+    let biasSource = "";
     if (centroid) {
       biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 150 };
+      biasSource = `region:${regionCode}`;
+    } else if (
+      clientLocationBias &&
+      typeof clientLocationBias.lat === "number" &&
+      typeof clientLocationBias.lng === "number"
+    ) {
+      biasPoint = { lat: clientLocationBias.lat, lng: clientLocationBias.lng, radiusKm: 75 };
+      biasSource = "browser-ip-geo";
     } else {
       const fwd = req.headers.get("x-forwarded-for") ?? "";
       const clientIp = fwd.split(",")[0]?.trim();
@@ -144,6 +159,7 @@ serve(async (req) => {
           // ~75km circle around the user's metro — tight enough to suppress
           // out-of-state matches but wide enough to catch nearby suburbs.
           biasPoint = { lat: geo.lat, lng: geo.lng, radiusKm: 75 };
+          biasSource = "edge-ip-geo";
         }
       }
     }
@@ -165,7 +181,7 @@ serve(async (req) => {
     console.log(
       "Fetching autocomplete for:",
       input,
-      regionCode ? `(bias: ${regionCode})` : biasPoint ? "(bias: IP-geo)" : "",
+      biasSource ? `(bias: ${biasSource})` : "",
     );
 
 
