@@ -350,3 +350,14 @@ function Tile({
     </div>
   );
 }
+
+function CohortCell({ rate, count, partial }: { rate: number; count: number; partial: boolean }) {
+  const tone = rate >= 50 ? "text-status-green" : rate >= 25 ? "text-foreground" : "text-muted-foreground";
+  return (
+    <td className="py-1.5 px-2 text-right tabular-nums">
+      <span className={cn(tone, partial && "italic opacity-60")} title={`${count} completed${partial ? " · partial window" : ""}`}>
+        {rate}%
+      </span>
+    </td>
+  );
+}
