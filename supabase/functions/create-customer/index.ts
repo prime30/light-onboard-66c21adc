@@ -122,7 +122,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     lastName: z.string().min(1),
     preferredName: z.string().nullish(),
     email: z.email(),
-    phoneNumber: z.string(),
+    phoneNumber: z.string().min(7),
     phoneCountryCode: z.string().default("+1"),
     businessName: z.string().min(1),
     businessAddress: z.string().min(1),
