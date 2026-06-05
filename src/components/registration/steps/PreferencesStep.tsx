@@ -97,6 +97,122 @@ export const PreferencesStep = () => {
       </div>
 
       <div className="space-y-5">
+        {/* Communication preferences — promoted above birthday because the
+            approval-notification SMS is the single highest-value action a
+            new applicant can take here. SMS is intentionally the top
+            option in the stack. */}
+        <div
+          className={cn(
+            "space-y-[15px] p-5 rounded-form bg-muted border border-border/50",
+            "animate-stagger-2"
+          )}
+        >
+          <p className="text-sm font-medium text-foreground">Communication preferences</p>
+          <div className="space-y-[15px]">
+
+            {/* SMS marketing — Shopify sms_marketing_consent (TCPA). Top of
+                the stack: framed around the approval moment, which is what
+                the applicant actually cares about right now. */}
+            <label
+              className={cn(
+                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form border-l-2 bg-gradient-to-r from-primary/[0.04] to-transparent transition-colors",
+                hasPhone
+                  ? "cursor-pointer border-primary/40 hover:from-primary/[0.07]"
+                  : "cursor-not-allowed opacity-60 border-border"
+              )}
+            >
+              <Checkbox
+                checked={hasPhone ? acceptsSmsMarketing || false : false}
+                disabled={!hasPhone}
+                onCheckedChange={(checked) => {
+                  if (!hasPhone) return;
+                  setValue("acceptsSmsMarketing", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-1.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+              />
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                    Text me when I'm approved to shop & with pro-only deals
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground/[0.06] text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/70">
+                    Recommended
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Approval notification, restock alerts, early drops, and pro-only deals before they hit email.
+                  <span className="text-muted-foreground/70"> ~2–4 texts/month. Stop anytime.</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
+                  By checking this box, you agree to receive recurring automated marketing text
+                  messages from Drop Dead Extensions at the phone number you provided. Consent is
+                  not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel,
+                  HELP for help. See our{" "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    Terms
+                  </button>
+                  {" & "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </p>
+                {!hasPhone && (
+                  <p className="text-[11px] text-muted-foreground/70 italic">
+                    Add a phone number in the previous step to enable SMS.
+                  </p>
+                )}
+              </div>
+            </label>
+
+            {/* Email marketing — Shopify email_marketing_consent */}
+            <label className="flex items-start gap-[15px] cursor-pointer group">
+              <Checkbox
+                checked={acceptsMarketing || false}
+                onCheckedChange={(checked) => {
+                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
+                }}
+                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+              />
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  Email me about promotions, new products & deals
+                </span>
+                <p className="text-xs text-muted-foreground">
+                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* SMS opt-in confirmation strip — only after SMS is selected */}
+        {showSmsNotice && (
+          <div
+            className={cn(
+              "flex gap-[15px] pl-5 border-l-2 border-border transition-all duration-200",
+              isExiting
+                ? "opacity-0 translate-y-2"
+                : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
+              "animate-stagger-3"
+            )}
+          >
+            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              You'll receive a confirmation text shortly after sign-up. Reply STOP at any time to
+              opt out.
+            </p>
+          </div>
+        )}
+
         {/* Birthday (Optional) */}
         <div className="space-y-2.5 animate-stagger-2 group">
           <div className="grid grid-cols-2 gap-2.5">
@@ -193,119 +309,6 @@ export const PreferencesStep = () => {
             ))}
           </div>
         </div>
-
-        {/* Subscription Preferences */}
-        <div
-          className={cn(
-            "space-y-[15px] p-5 rounded-form bg-muted border border-border/50",
-            "animate-stagger-7"
-          )}
-        >
-          <p className="text-sm font-medium text-foreground">Communication preferences</p>
-          <div className="space-y-[15px]">
-
-
-
-            {/* Email marketing — Shopify email_marketing_consent */}
-            <label className="flex items-start gap-[15px] cursor-pointer group">
-              <Checkbox
-                checked={acceptsMarketing || false}
-                onCheckedChange={(checked) => {
-                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
-                }}
-                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Email me about promotions, new products & deals
-                </span>
-                <p className="text-xs text-muted-foreground">
-                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
-                </p>
-              </div>
-            </label>
-
-            {/* SMS marketing — Shopify sms_marketing_consent (TCPA) */}
-            <label
-              className={cn(
-                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form border-l-2 bg-gradient-to-r from-primary/[0.04] to-transparent transition-colors",
-                hasPhone
-                  ? "cursor-pointer border-primary/40 hover:from-primary/[0.07]"
-                  : "cursor-not-allowed opacity-60 border-border"
-              )}
-            >
-              <Checkbox
-                checked={hasPhone ? acceptsSmsMarketing || false : false}
-                disabled={!hasPhone}
-                onCheckedChange={(checked) => {
-                  if (!hasPhone) return;
-                  setValue("acceptsSmsMarketing", !!checked, dirtyFieldOptions);
-                }}
-                className="rounded-full mt-1.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-1.5 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                    Get drops 24 hrs early — text only
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground/[0.06] text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/70">
-                    VIP
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Restock alerts, new colors, and pro-only deals before they hit email.
-                  <span className="text-muted-foreground/70"> ~2–4 texts/month. Stop anytime.</span>
-                </p>
-                <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
-                  By checking this box, you agree to receive recurring automated marketing text
-                  messages from Drop Dead Extensions at the phone number you provided. Consent is
-                  not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel,
-                  HELP for help. See our{" "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
-                    className="underline underline-offset-2 hover:text-foreground transition-colors"
-                  >
-                    Terms
-                  </button>
-                  {" & "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
-                    className="underline underline-offset-2 hover:text-foreground transition-colors"
-                  >
-                    Privacy Policy
-                  </button>
-                  .
-                </p>
-                {!hasPhone && (
-                  <p className="text-[11px] text-muted-foreground/70 italic">
-                    Add a phone number in the previous step to enable SMS.
-                  </p>
-                )}
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* SMS opt-in confirmation strip — only after SMS is selected */}
-        {showSmsNotice && (
-          <div
-            className={cn(
-              "flex gap-[15px] pl-5 border-l-2 border-border transition-all duration-200",
-              isExiting
-                ? "opacity-0 translate-y-2"
-                : "opacity-100 translate-y-0 animate-in fade-in slide-in-from-bottom-2 duration-300",
-              "animate-stagger-6"
-            )}
-          >
-            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              You'll receive a confirmation text shortly after sign-up. Reply STOP at any time to
-              opt out.
-            </p>
-          </div>
-        )}
       </div>
 
 
