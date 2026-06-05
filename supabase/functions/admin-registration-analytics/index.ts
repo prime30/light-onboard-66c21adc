@@ -131,6 +131,69 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
+  // ---- cohort retention (by start day) ----
+  // For each daily cohort: % completed within 1h / 24h / 7d, and ever.
+  // Cohorts where the window hasn't fully elapsed yet are flagged `partial`.
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
+  const now = Date.now();
+  type CohortAgg = {
+    size: number;
+    within1h: number;
+    within24h: number;
+    within7d: number;
+    ever: number;
+    cohortStartMs: number;
+  };
+  const cohortMap = new Map<string, CohortAgg>();
+  for (const r of leads) {
+    const day = r.started_at.slice(0, 10);
+    const startMs = Date.parse(r.started_at);
+    const cur =
+      cohortMap.get(day) ??
+      ({
+        size: 0,
+        within1h: 0,
+        within24h: 0,
+        within7d: 0,
+        ever: 0,
+        cohortStartMs: Date.parse(day + "T00:00:00Z"),
+      } as CohortAgg);
+    cur.size += 1;
+    if (r.completed_at) {
+      const elapsed = Date.parse(r.completed_at) - startMs;
+      if (elapsed <= HOUR) cur.within1h += 1;
+      if (elapsed <= DAY) cur.within24h += 1;
+      if (elapsed <= 7 * DAY) cur.within7d += 1;
+      cur.ever += 1;
+    }
+    cohortMap.set(day, cur);
+  }
+  const cohorts = Array.from(cohortMap.entries())
+    .map(([date, v]) => {
+      // A cohort's window is "complete" when (now - cohortStart) >= window length.
+      // Cohort start = beginning of that UTC day; we approximate using +24h
+      // (so the 1h window for a cohort is settled once the day is >25h old).
+      const ageMs = now - v.cohortStartMs;
+      const pct = (n: number) => (v.size > 0 ? Math.round((n / v.size) * 1000) / 10 : 0);
+      return {
+        date,
+        size: v.size,
+        within1h: v.within1h,
+        within24h: v.within24h,
+        within7d: v.within7d,
+        ever: v.ever,
+        rate1h: pct(v.within1h),
+        rate24h: pct(v.within24h),
+        rate7d: pct(v.within7d),
+        rateEver: pct(v.ever),
+        partial1h: ageMs < DAY + HOUR,
+        partial24h: ageMs < 2 * DAY,
+        partial7d: ageMs < 8 * DAY,
+      };
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+
   return json({
     success: true,
     rangeDays: days,
@@ -146,5 +209,6 @@ Deno.serve(async (req: Request) => {
     series,
     accountTypes,
     dropOffSteps,
+    cohorts,
   });
 });
