@@ -42,8 +42,12 @@ export function AuthFooter({
     goToStep,
     submitForm,
     setFocus,
+    setError,
+    setSubmitError,
+    watch,
     incompleteSteps,
   } = useForm();
+  const [preflightChecking, setPreflightChecking] = useState(false);
   const { enabled: autoApprove } = useAutoApproval();
   const { closeIframe, isInIframe } = useCloseIframe();
 
