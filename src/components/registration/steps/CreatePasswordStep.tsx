@@ -90,6 +90,22 @@ export const CreatePasswordStep = () => {
   const confirmMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
 
+  // Keep confirmPassword error in sync when EITHER field changes — RHF only
+  // re-validates the field being typed in, so editing the password field
+  // after a mismatch would leave a stale "Passwords do not match" error
+  // attached to confirmPassword until the user re-touched it.
+  useEffect(() => {
+    if (confirmPassword.length === 0) return;
+    if (password === confirmPassword) {
+      clearErrors("confirmPassword");
+    } else {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match",
+      });
+    }
+  }, [password, confirmPassword, clearErrors, setError]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const e = errors as any;
 
