@@ -139,12 +139,17 @@ export const PreferencesStep = () => {
                     Recommended
                   </span>
                 </div>
-                <p className="text-xs text-foreground/70">
-                  ~2–4 texts/month. Reply STOP to cancel.{" "}
+                <p className="text-xs text-foreground/70 leading-relaxed">
+                  Approval notification, restock alerts, early drops & pro-only deals. ~2–4 texts/month.
+                </p>
+                <p className="text-[11px] text-foreground/60 leading-relaxed">
+                  By checking this box, you agree to receive recurring automated marketing texts from
+                  Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+                  Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
-                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
                   >
                     Terms
                   </button>
@@ -152,9 +157,9 @@ export const PreferencesStep = () => {
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
-                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
                   >
-                    Privacy
+                    Privacy Policy
                   </button>
                   .
                 </p>
