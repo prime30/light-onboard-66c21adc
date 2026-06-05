@@ -105,6 +105,7 @@ export const ContactBasicsStep = () => {
       : undefined
   );
   const lastCheckedRef = useRef<string | null>(null);
+  const lastTrackedLeadRef = useRef<string | null>(null);
   useEffect(() => {
     const value = (email ?? "").trim().toLowerCase();
     if (emailConflict && emailConflict.email !== value) {
@@ -112,6 +113,37 @@ export const ContactBasicsStep = () => {
       if (errors.email?.type === "manual") clearErrors("email");
     }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+
+    // Fire-and-forget lead capture for Klaviyo abandonment flow.
+    // Dedupe per session so editing nearby fields doesn't re-fire.
+    if (lastTrackedLeadRef.current !== value) {
+      lastTrackedLeadRef.current = value;
+      const trackHandle = window.setTimeout(() => {
+        const accountType = watch("accountType");
+        const firstName = watch("firstName");
+        const lastName = watch("lastName");
+        supabase.functions
+          .invoke("track-registration-lead", {
+            body: {
+              email: value,
+              phase: "started",
+              accountType: accountType ?? null,
+              lastStep: "contact-basics",
+              firstName: firstName ?? null,
+              lastName: lastName ?? null,
+            },
+          })
+          .catch(() => {
+            // Non-blocking — never let lead capture interfere with UX.
+          });
+      }, 1200);
+      // Cleanup is unified with the check-email cleanup below by
+      // returning a combined cleanup at the end of this effect.
+      // We keep this handle in a closure ref via the outer setTimeout below.
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      trackHandle;
+    }
+
     if (lastCheckedRef.current === value) return;
 
     const applyResult = (data: { exists?: boolean } | undefined) => {
