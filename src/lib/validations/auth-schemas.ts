@@ -111,8 +111,14 @@ const contactBasicsValidators = {
     .email("Please enter a valid email address")
     .trim()
     .max(255, "Email must be less than 255 characters")
+    .transform((val) => val.toLowerCase())
     .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
   phoneNumber: z
+    .string()
+    .min(1, "Phone number is required")
+    .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
+    .refine((val) => isValidPhoneNumber(val), "Please enter a valid phone number")
+    .transform((val) => formatPhoneNumber(val)),
     .string()
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
