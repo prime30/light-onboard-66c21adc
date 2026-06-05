@@ -45,7 +45,11 @@ export class AddressService {
   /**
    * Fetch address predictions based on user input
    */
-  async fetchPredictions(input: string, countryCode?: string): Promise<AddressPrediction[]> {
+  async fetchPredictions(
+    input: string,
+    countryCode?: string,
+    regionCode?: string
+  ): Promise<AddressPrediction[]> {
     if (input.length < 3) {
       return [];
     }
@@ -63,6 +67,7 @@ export class AddressService {
             input,
             sessionToken: this.sessionToken,
             country: countryCode,
+            regionCode,
           }),
         }
       );

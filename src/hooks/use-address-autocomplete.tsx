@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export interface UseAddressAutocompleteOptions {
   onAddressSelect?: (details: AddressDetails) => void;
   countryCode?: string;
+  regionCode?: string;
   debounceMs?: number;
 }
 
@@ -40,7 +41,7 @@ export interface AddressDropdownProps {
 export function useAddressAutocomplete(
   options: UseAddressAutocompleteOptions = {}
 ): UseAddressAutocompleteReturn {
-  const { onAddressSelect, countryCode, debounceMs = 300 } = options;
+  const { onAddressSelect, countryCode, regionCode, debounceMs = 300 } = options;
 
   // State
   const [predictions, setPredictions] = useState<AddressPrediction[]>([]);
@@ -64,7 +65,7 @@ export function useAddressAutocomplete(
       setIsLoading(true);
 
       try {
-        const results = await addressService.fetchPredictions(input, countryCode);
+        const results = await addressService.fetchPredictions(input, countryCode, regionCode);
         setPredictions(results);
         setShowPredictions(results.length > 0);
       } catch (error) {
@@ -75,7 +76,7 @@ export function useAddressAutocomplete(
         setIsLoading(false);
       }
     },
-    [countryCode]
+    [countryCode, regionCode]
   );
 
   // Handle input change with debounce
