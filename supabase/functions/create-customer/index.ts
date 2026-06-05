@@ -756,7 +756,7 @@ Deno.serve(async (req: Request) => {
     // flip this to false if Shopify returns a different customer for the
     // same E.164 phone.
     let phoneSafeToSend = phoneValid;
-    const canCollectSms = acceptsSmsMarketingFlag && phoneSafeToSend;
+    let canCollectSms = acceptsSmsMarketingFlag && phoneSafeToSend;
 
     const consentTimestamp = new Date().toISOString();
 
