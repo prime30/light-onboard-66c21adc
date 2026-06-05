@@ -209,6 +209,48 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_leads: {
+        Row: {
+          account_type: string | null
+          completed_at: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          klaviyo_synced_at: string | null
+          last_step: string | null
+          started_at: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          klaviyo_synced_at?: string | null
+          last_step?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          klaviyo_synced_at?: string | null
+          last_step?: string | null
+          started_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       registration_submissions: {
         Row: {
           account_type: string | null
