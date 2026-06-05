@@ -53,6 +53,7 @@ export type FormDataContextType = {
   isSubmitSuccessful: boolean;
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
+  submitErrorMessage: string | null;
   setSubmitError: (input: {
     message: string;
     actions?: Array<{ type: string; label: string; url?: string }>;
@@ -99,6 +100,7 @@ export function FormDataProvider({
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
   >([]);
+  const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
 
@@ -446,6 +448,7 @@ export function FormDataProvider({
       if (errors?.root?.form && !isSubmitting) {
         clearErrors("root.form");
         setErrorActions([]);
+        setSubmitErrorMessage(null);
       }
     },
     [clearErrors, isSubmitting]
@@ -482,6 +485,7 @@ export function FormDataProvider({
       message: string;
       actions?: Array<{ type: string; label: string; url?: string }>;
     }) => {
+      setSubmitErrorMessage(message);
       setErrorActions(actions);
       setError("root.form", { type: "manual", message });
     },
@@ -509,6 +513,7 @@ export function FormDataProvider({
     isSubmitSuccessful,
     isSubmitting,
     errorActions,
+    submitErrorMessage,
     setSubmitError,
     discountCode,
     discountExpiry,
