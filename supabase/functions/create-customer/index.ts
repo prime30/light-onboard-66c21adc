@@ -788,6 +788,11 @@ Deno.serve(async (req: Request) => {
       // Log full upstream detail server-side only; never echo raw API
       // response back to the client (may leak internals/stack traces).
       console.error("Customer Fields API request failed:", apiResponse.status, responseText);
+      recordAuditFailure(
+        "helium_create",
+        `HTTP ${apiResponse.status}: ${responseText.substring(0, 500)}`
+      );
+      await updateAuditRow({ status: "failed", error_log: auditErrors });
       const safeStatus = apiResponse.status >= 400 && apiResponse.status < 500 ? 400 : 502;
       return sendError(safeStatus, [
         "We couldn't complete your registration right now. Please try again in a moment.",
@@ -799,6 +804,8 @@ Deno.serve(async (req: Request) => {
       customerFieldsData = JSON.parse(responseText);
     } catch {
       console.error("Failed to parse Customer Fields API response:", responseText);
+      recordAuditFailure("helium_parse", responseText.substring(0, 500));
+      await updateAuditRow({ status: "failed", error_log: auditErrors });
       return sendError(502, ["Invalid response from Customer Fields API"]);
     }
 
