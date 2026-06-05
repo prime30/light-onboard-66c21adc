@@ -300,6 +300,9 @@ export function AuthFooter({
     isFinalGateStep,
     goToStep,
     submitForm,
+    watch,
+    setError,
+    setSubmitError,
   ]);
 
 
