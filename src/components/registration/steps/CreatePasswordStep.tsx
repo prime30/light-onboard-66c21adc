@@ -75,8 +75,10 @@ export const CreatePasswordStep = () => {
     clearErrors,
     setError,
     errorActions,
+    submitErrorMessage,
   } = useForm();
   const navigate = useNavigate();
+  const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   const validationStatus = getStepValidationStatus(currentStep);
   const password = (watch("password") as string | undefined) ?? "";
@@ -245,7 +247,7 @@ export const CreatePasswordStep = () => {
         </div>
       </div>
 
-      {errors.root?.form && (
+      {visibleSubmitError && (
         <div className="flex items-start gap-3 p-4 rounded-form bg-destructive/10 border border-destructive/30">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-3 flex-1">
@@ -254,7 +256,7 @@ export const CreatePasswordStep = () => {
                 Unable to submit application
               </p>
               <p className="text-sm text-destructive/80 whitespace-pre-line">
-                {errors.root.form.message}
+                {visibleSubmitError}
               </p>
             </div>
             {errorActions.length > 0 && (

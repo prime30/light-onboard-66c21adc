@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -101,6 +102,7 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  const lastSubscribedValuesSignature = useRef<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
 
@@ -150,6 +152,7 @@ export function FormDataProvider({
       if (result.success === false) {
         console.log("set error");
         setErrorActions(result.actions || []);
+        setSubmitErrorMessage(result.error);
         // Map server-side phone errors back to the phone field so the user
         // sees the error inline on the Contact step (not just a root toast).
         const errText = (result.error || "").toLowerCase();
@@ -356,6 +359,7 @@ export function FormDataProvider({
         type: "validation",
         message,
       });
+      setSubmitErrorMessage(message);
     }
   );
 
