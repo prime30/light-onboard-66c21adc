@@ -779,41 +779,68 @@ Deno.serve(async (req: Request) => {
 
 
     if (needsShopifyUpdate) {
-      const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-      const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (shopifyDomain && shopifyAdminToken) {
         try {
-          // Fetch existing tags to merge
+          // Fetch existing customer to merge tags and detect whether a
+          // default_address already exists (avoid clobbering it).
           let existingTags: string[] = [];
-          if (newTags.length > 0) {
-            const getRes = await fetch(
-              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
-              {
-                method: "GET",
-                headers: {
-                  "X-Shopify-Access-Token": shopifyAdminToken,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            if (getRes.ok) {
-              const existing = await getRes.json();
-              const tagStr: string = existing?.customer?.tags ?? "";
-              existingTags = tagStr
-                .split(",")
-                .map((t: string) => t.trim())
-                .filter(Boolean);
-            } else {
-              console.warn("Could not fetch existing Shopify tags:", getRes.status);
+          let existingHasDefaultAddress = false;
+          const getRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
             }
+          );
+          if (getRes.ok) {
+            const existing = await getRes.json();
+            const tagStr: string = existing?.customer?.tags ?? "";
+            existingTags = tagStr
+              .split(",")
+              .map((t: string) => t.trim())
+              .filter(Boolean);
+            existingHasDefaultAddress = !!existing?.customer?.default_address?.address1;
+          } else {
+            console.warn("Could not fetch existing Shopify customer:", getRes.status);
           }
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const customerUpdate: Record<string, any> = { id: shopifyCustomerId };
+
+          // Native identity fields — always mirror so the Shopify record
+          // isn't blank regardless of Helium field-mapping config.
+          if (customer.first_name) customerUpdate.first_name = customer.first_name;
+          if (customer.last_name) customerUpdate.last_name = customer.last_name;
+          if (customerPhone) customerUpdate.phone = customerPhone;
+          if (applicationNote) customerUpdate.note = applicationNote;
+
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
+
+          // Native default address — only set if the customer doesn't
+          // already have one (don't overwrite a customer-edited address).
+          if (hasNativeAddress && !existingHasDefaultAddress) {
+            customerUpdate.addresses = [
+              {
+                first_name: customer.first_name,
+                last_name: customer.last_name,
+                company: customer.business_name,
+                address1: customer.business_address,
+                address2: customer.suite_number,
+                city: customer.city,
+                province_code: customer.province_code,
+                zip: customer.zip_code,
+                country_code: customer.country_code,
+                phone: customerPhone,
+                default: true,
+              },
+            ];
+          }
 
           // Email marketing — independent of SMS
           if (acceptsEmailMarketingFlag) {
@@ -825,9 +852,6 @@ Deno.serve(async (req: Request) => {
           }
 
           // SMS marketing — requires its own opt-in AND a valid E.164 phone.
-          // Shopify rejects sms_marketing_consent without a phone on the
-          // customer, so we set the top-level phone here too in case it isn't
-          // already on the Shopify record.
           if (canCollectSms) {
             customerUpdate.phone = customerPhone;
             customerUpdate.sms_marketing_consent = {
@@ -855,10 +879,9 @@ Deno.serve(async (req: Request) => {
             console.warn("Failed to update Shopify customer:", updRes.status, errText);
           } else {
             console.log("Updated Shopify customer:", {
+              shopifyCustomerId,
+              fields: Object.keys(customerUpdate).filter((k) => k !== "id"),
               tags: newTags,
-              taxExempt: taxExemptFlag,
-              emailMarketing: acceptsEmailMarketingFlag,
-              smsMarketing: canCollectSms,
             });
           }
         } catch (updErr) {
@@ -868,6 +891,7 @@ Deno.serve(async (req: Request) => {
         console.warn("SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_ACCESS_TOKEN not set; skipping update");
       }
     }
+
 
     // ----------------------------------------------------------------
     // Proof-of-consent log — TCPA / GDPR. Writes one row per channel the
