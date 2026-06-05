@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check } from "lucide-react";
 import { setAdminMode } from "@/lib/admin-mode";
+import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 
 const MAX_TAGS = 50;
 const MAX_TAG_LENGTH = 80;
@@ -770,6 +771,8 @@ const AdminSettingsPage = () => {
             );
           })()}
         </div>
+
+        <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
 
         <button
           type="button"
