@@ -32,6 +32,7 @@ import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
 
 
 export type ValidationStatus = "complete" | "in-progress" | "error";
+export type EmailConflict = { email: string; message: string } | null;
 
 export type FormDataContextType = {
   register: UseFormRegister<RegistrationFormData>;
@@ -55,6 +56,8 @@ export type FormDataContextType = {
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
   submitErrorMessage: string | null;
+  emailConflict: EmailConflict;
+  setEmailConflict: (conflict: EmailConflict) => void;
   setSubmitError: (input: {
     message: string;
     actions?: Array<{ type: string; label: string; url?: string }>;
@@ -102,6 +105,7 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  const [emailConflict, setEmailConflict] = useState<EmailConflict>(null);
   const lastSubscribedValuesSignature = useRef<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
