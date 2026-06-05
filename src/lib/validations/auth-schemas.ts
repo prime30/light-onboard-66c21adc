@@ -36,11 +36,29 @@ function fileUploadSchema(optional: boolean) {
 }
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
-// Phone number validation (10 digits, various formats)
-const phoneRegex = /^[\d\s\-().]+$/;
+// Phone number validation — allow common separators and an optional leading "+".
+// Pasting "+1 (415) 555-1212" or "+44 20 7946 0958" should pass.
+const phoneRegex = /^\+?[\d\s\-().]+$/;
 const isValidPhoneNumber = (phone: string): boolean => {
   const digits = phone.replace(/\D/g, "");
   return digits.length >= 10 && digits.length <= 15;
+};
+
+// Zip / postal code patterns. Defaults to a permissive 3–10 alphanumeric/space/dash
+// match for countries we don't have a specific rule for.
+const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
+  US: { regex: /^\d{5}(-\d{4})?$/, message: "Enter a valid US ZIP (12345 or 12345-6789)" },
+  CA: {
+    regex: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
+    message: "Enter a valid Canadian postal code (A1A 1A1)",
+  },
+};
+const isValidZipForCountry = (zip: string, country: string | undefined): true | string => {
+  const trimmed = zip.trim();
+  const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
+  if (pattern) return pattern.regex.test(trimmed) || pattern.message;
+  // Generic fallback: 3–10 alphanumeric (allowing space/dash).
+  return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed) || "Please enter a valid postal code";
 };
 
 // Account Type Schema
@@ -93,12 +111,13 @@ const contactBasicsValidators = {
     .email("Please enter a valid email address")
     .trim()
     .max(255, "Email must be less than 255 characters")
+    .transform((val) => val.toLowerCase())
     .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
-    .refine((val) => isValidPhoneNumber(val), "Please enter a valid 10-digit phone number")
+    .refine((val) => isValidPhoneNumber(val), "Please enter a valid phone number")
     .transform((val) => formatPhoneNumber(val)),
   phoneCountryCode: z
     .string()
@@ -167,7 +186,14 @@ const businessLocationValidators = {
     .min(1, "Zip/Postal code is required")
     .max(20, "Zip code must be less than 20 characters"),
 };
-export const businessLocationSchema = z.object(businessLocationValidators);
+export const businessLocationSchema = z
+  .object(businessLocationValidators)
+  .superRefine((data, ctx) => {
+    const result = isValidZipForCountry(data.zipCode, data.countryCode);
+    if (result !== true) {
+      ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+    }
+  });
 
 // License Schema (for professionals)
 const licenseValidators = {
@@ -305,7 +331,12 @@ export const registrationSchema = z
   .superRefine((data, ctx) => {
     // Cross-field check for the dedicated create-password step.
     // discriminatedUnion can't .refine, so we enforce confirmPassword here.
-    const d = data as { password?: string; confirmPassword?: string };
+    const d = data as {
+      password?: string;
+      confirmPassword?: string;
+      zipCode?: string;
+      countryCode?: string;
+    };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
         code: "custom",
@@ -313,10 +344,13 @@ export const registrationSchema = z
         path: ["confirmPassword"],
       });
     }
+    if (d.zipCode) {
+      const result = isValidZipForCountry(d.zipCode, d.countryCode);
+      if (result !== true) {
+        ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+      }
+    }
   });
-// Note: license format is shown as a helper hint in the UI only.
-// We intentionally do NOT block submission when the format doesn't match —
-// the field just needs to be filled (enforced by licenseValidators).
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
