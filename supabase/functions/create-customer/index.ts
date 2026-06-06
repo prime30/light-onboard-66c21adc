@@ -497,15 +497,63 @@ Deno.serve(async (req: Request) => {
   // tails need it later, but we don't want to block on it sequentially.
   const appSettingsPromise = loadAppSettings();
 
-  // First, check if customer already exists
+  // First, check if customer already exists in Helium / Customer Fields.
   const existingCustomerSearch = await searchCustomerByEmail(
     requestBody.data.email,
     customerFieldsApiKey
   );
 
   const existingCustomer = existingCustomerSearch?.customers?.[0];
-  const existingCustomerId = existingCustomer?.id;
-  const existingShopifyId = existingCustomer?.shopify_id;
+  // Mutable: may be reassigned to the Shopify customer id below when Helium
+  // hasn't yet synced a Shopify-only customer (Klaviyo / storefront signup).
+  // Helium's PUT /customers/{id}.json accepts a shopify_id in the URL and
+  // lazily imports the record, so using shopify_id as the soft-merge target
+  // works the same as using a native Helium id.
+  let existingCustomerId: string | number | undefined = existingCustomer?.id;
+  let existingShopifyId: number | string | undefined = existingCustomer?.shopify_id;
+
+  const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+  const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+
+  // Fallback: if Helium search returned nothing, the customer may still
+  // exist in Shopify (created by Klaviyo subscription, storefront signup,
+  // or a support agent) and Helium's sync hasn't caught up. A naive POST
+  // to Helium would then fail 422 "email has already been taken" because
+  // Shopify enforces unique emails. Look directly in Shopify Admin so we
+  // can soft-merge via shopify_id instead.
+  if (!existingCustomer && shopifyDomain && shopifyAdminToken) {
+    try {
+      const sres = await fetch(
+        `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+          `email:${requestBody.data.email}`
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Shopify-Access-Token": shopifyAdminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (sres.ok) {
+        const sjson = await sres.json();
+        const sCust = sjson?.customers?.[0];
+        if (sCust?.id) {
+          console.log(
+            "Helium search missed but Shopify has a customer — using shopify_id for soft-merge:",
+            sCust.id
+          );
+          existingShopifyId = sCust.id;
+          // Helium accepts shopify_id in the PUT URL; this avoids the 422.
+          existingCustomerId = sCust.id;
+        }
+      } else {
+        console.warn("Shopify email-fallback search failed:", sres.status);
+      }
+    } catch (e) {
+      console.warn("Shopify email-fallback search threw (non-blocking):", e);
+    }
+  }
 
   // If a customer already exists, decide whether to soft-merge or block.
   // We treat the presence of an "Account type:" Shopify tag as proof the
@@ -513,40 +561,36 @@ Deno.serve(async (req: Request) => {
   // (e.g. an order-only customer, or a Klaviyo-synced support contact)
   // is fair game to soft-merge: we PUT the new application data onto
   // the existing record instead of creating a duplicate.
-  if (existingCustomer) {
+  if (existingCustomerId) {
     let alreadyApplied = false;
-    if (existingShopifyId) {
-      const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
-      const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
-      if (shopifyDomain && shopifyAdminToken) {
-        try {
-          const tagRes = await fetch(
-            `https://${shopifyDomain}/admin/api/2024-10/customers/${existingShopifyId}.json`,
-            {
-              method: "GET",
-              headers: {
-                "X-Shopify-Access-Token": shopifyAdminToken,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          if (tagRes.ok) {
-            const json = await tagRes.json();
-            const tagStr: string = json?.customer?.tags ?? "";
-            alreadyApplied = tagStr
-              .split(",")
-              .map((t: string) => t.trim())
-              .some((t: string) => /^account type:/i.test(t));
-          } else {
-            console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
-            // Fail closed — if we can't tell, keep prior behavior and block
-            // so we never silently overwrite a legit prior application.
-            alreadyApplied = true;
+    if (existingShopifyId && shopifyDomain && shopifyAdminToken) {
+      try {
+        const tagRes = await fetch(
+          `https://${shopifyDomain}/admin/api/2024-10/customers/${existingShopifyId}.json`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": shopifyAdminToken,
+              "Content-Type": "application/json",
+            },
           }
-        } catch (e) {
-          console.warn("Error checking Shopify tags for soft-merge (failing closed):", e);
+        );
+        if (tagRes.ok) {
+          const json = await tagRes.json();
+          const tagStr: string = json?.customer?.tags ?? "";
+          alreadyApplied = tagStr
+            .split(",")
+            .map((t: string) => t.trim())
+            .some((t: string) => /^account type:/i.test(t));
+        } else {
+          console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
+          // Fail closed — if we can't tell, keep prior behavior and block
+          // so we never silently overwrite a legit prior application.
           alreadyApplied = true;
         }
+      } catch (e) {
+        console.warn("Error checking Shopify tags for soft-merge (failing closed):", e);
+        alreadyApplied = true;
       }
     }
 
