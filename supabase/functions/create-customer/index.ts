@@ -1536,12 +1536,47 @@ Deno.serve(async (req: Request) => {
     // the audit row. allSettled — one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
 
+    // Welcome-offer minting moved server-side: generate-discount is now an
+    // internal-only edge function (gated by service-role bearer header) so
+    // the public can no longer mint unlimited discount codes by hitting it
+    // directly. We invoke it here so the client gets the code in the same
+    // create-customer response and never needs to call generate-discount.
+    let welcomeOffer: { code: string; endsAt: string | null } | null = null;
+    try {
+      const welcomeEnabled =
+        (await _supabase?.rpc("get_welcome_offer_enabled"))?.data === true;
+      if (welcomeEnabled) {
+        const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
+        const discountRes = await fetch(discountUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-key": _serviceRoleKey ?? "",
+          },
+          body: JSON.stringify({
+            email: parseResult.data.email,
+            shopifyCustomerId: shopifyCustomerId ?? null,
+          }),
+        });
+        if (discountRes.ok) {
+          const j = await discountRes.json();
+          if (j?.success && j?.code) {
+            welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
+          }
+        } else {
+          console.warn("generate-discount internal call failed:", discountRes.status);
+        }
+      }
+    } catch (err) {
+      console.warn("generate-discount internal call threw (non-blocking):", err);
+    }
 
-    const response: FunctionResponse<CustomerFieldsResponse> = {
+    const response: FunctionResponse<CustomerFieldsResponse & { welcomeOffer?: typeof welcomeOffer }> = {
       success: true,
-      data: customerFieldsData,
+      data: { ...customerFieldsData, welcomeOffer },
       statusCode: 200,
     };
+
 
     // Audit: finalize. `succeeded` even if some non-blocking soft failures
     // were recorded (Shopify-side enrichments) — the applicant has a Helium
