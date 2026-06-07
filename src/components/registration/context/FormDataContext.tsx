@@ -243,69 +243,42 @@ export function FormDataProvider({
         }
       }
 
-      // Fire-and-forget: generate discount code after successful registration.
-      // Failures here do not block the success screen.
-      (async () => {
-        try {
-          const welcomeEnabled = await fetchWelcomeOfferEnabled();
-          if (!welcomeEnabled) return;
-          const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
-          // Pull the freshly-created Shopify customer ID out of create-customer's
-          // response so generate-discount can write metafields by GID directly,
-          // skipping the racy email-based customer lookup. apiCall returns the
-          // full edge-function envelope { success, data: { customer: {...} } },
-          // so we have to drill through `.data.data.customer.shopify_id` —
-          // missing this nesting is what previously caused metafields to never
-          // get written for auto-approved customers (the email-based fallback
-          // races Shopify's search index for brand-new customers).
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const envelope = result.data as any;
-          const shopifyCustomerId =
-            envelope?.data?.customer?.shopify_id ??
-            envelope?.customer?.shopify_id ??
-            null;
-          const discountResponse = await fetch(discountUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            // Send email + shopifyCustomerId so the edge function can write
-            // the welcome offer to the customer's Shopify metafields (powers
-            // the cross-device announcement bar marquee on the storefront).
-            body: JSON.stringify({ email: values.email, shopifyCustomerId }),
-          });
-          if (discountResponse.ok) {
-            const discountResult = await discountResponse.json();
-            if (discountResult.success && discountResult.code) {
-              setDiscountCode(discountResult.code);
-              setDiscountExpiry(discountResult.endsAt ?? null);
+      // Welcome-offer code is now minted server-side inside create-customer
+      // (generate-discount is internal-only — anyone could previously hit it
+      // anonymously to mint unlimited single-use 30% codes). Read it from the
+      // same response and surface it the same way as before.
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const envelope = result.data as any;
+        const welcomeOffer =
+          envelope?.data?.welcomeOffer ??
+          envelope?.welcomeOffer ??
+          null;
+        if (welcomeOffer?.code) {
+          setDiscountCode(welcomeOffer.code);
+          setDiscountExpiry(welcomeOffer.endsAt ?? null);
 
-              // Notify the parent Shopify theme (when embedded as an iframe)
-              // that a fresh welcome offer is available. The theme's
-              // announcement bar listens for this and saves it to localStorage
-              // so the marquee slide appears immediately on subsequent pages.
-              try {
-                window.parent?.postMessage(
-                  {
-                    type: "dd:welcome_offer",
-                    code: discountResult.code,
-                    endsAt: discountResult.endsAt ?? null,
-                  },
-                  "*"
-                );
-              } catch (postErr) {
-                console.warn("welcome_offer postMessage failed:", postErr);
-              }
-            }
-          } else {
-            console.warn("generate-discount non-OK response:", discountResponse.status);
+          // Notify the parent Shopify theme (when embedded as an iframe)
+          // that a fresh welcome offer is available. The theme's
+          // announcement bar listens for this and saves it to localStorage
+          // so the marquee slide appears immediately on subsequent pages.
+          try {
+            window.parent?.postMessage(
+              {
+                type: "dd:welcome_offer",
+                code: welcomeOffer.code,
+                endsAt: welcomeOffer.endsAt ?? null,
+              },
+              "*"
+            );
+          } catch (postErr) {
+            console.warn("welcome_offer postMessage failed:", postErr);
           }
-        } catch (err) {
-          console.warn("generate-discount error (non-blocking):", err);
         }
-      })();
+      } catch (err) {
+        console.warn("welcome_offer extraction failed (non-blocking):", err);
+      }
+
 
       return result.data;
     },
