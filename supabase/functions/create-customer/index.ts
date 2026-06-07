@@ -1543,15 +1543,31 @@ Deno.serve(async (req: Request) => {
     // create-customer response and never needs to call generate-discount.
     let welcomeOffer: { code: string; endsAt: string | null } | null = null;
     try {
-      const welcomeEnabled =
-        (await _supabase?.rpc("get_welcome_offer_enabled"))?.data === true;
-      if (welcomeEnabled) {
+      let welcomeEnabled = false;
+      if (_supabaseUrl && _serviceRoleKey) {
+        const flagRes = await fetch(
+          `${_supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: _serviceRoleKey,
+              Authorization: `Bearer ${_serviceRoleKey}`,
+            },
+            body: "{}",
+          }
+        );
+        if (flagRes.ok) {
+          welcomeEnabled = (await flagRes.json()) === true;
+        }
+      }
+      if (welcomeEnabled && _supabaseUrl && _serviceRoleKey) {
         const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
         const discountRes = await fetch(discountUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-internal-key": _serviceRoleKey ?? "",
+            "x-internal-key": _serviceRoleKey,
           },
           body: JSON.stringify({
             email: parseResult.data.email,
@@ -1576,6 +1592,7 @@ Deno.serve(async (req: Request) => {
       data: { ...customerFieldsData, welcomeOffer },
       statusCode: 200,
     };
+
 
 
     // Audit: finalize. `succeeded` even if some non-blocking soft failures
