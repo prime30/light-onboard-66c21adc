@@ -237,12 +237,26 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Internal-only endpoint. Only the trusted create-customer / activate-account
+  // edge functions (which run with the service-role key) are allowed to mint
+  // discount codes — otherwise anyone on the internet could loop this
+  // endpoint to generate unlimited single-use 30% codes.
+  const INTERNAL_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const provided = req.headers.get("x-internal-key") ?? "";
+  if (!INTERNAL_KEY || provided !== INTERNAL_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (!SHOPIFY_ADMIN_API_TOKEN) {
     return new Response(
       JSON.stringify({ error: "Shopify Admin API token not configured." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
+
 
   // Optional email + shopifyCustomerId — used to write customer metafields
   // for cross-device marquee. shopifyCustomerId (numeric) is preferred since
