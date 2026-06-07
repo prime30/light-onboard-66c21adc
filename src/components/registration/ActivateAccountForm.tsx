@@ -19,7 +19,9 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
-import { fetchWelcomeOfferEnabled } from "@/lib/app-settings";
+// fetchWelcomeOfferEnabled is no longer used — welcome-offer minting moved
+// server-side into the activate-account edge function.
+
 
 
 type FormState =
@@ -106,52 +108,33 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       setActivatedEmail(customerEmail);
       sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
 
-      // Fire-and-forget: mint a fresh 48h Color Ring welcome offer for any
-      // customer who just completed activation. The 48h window starts at
-      // the moment the account becomes usable, not at Shopify-row creation
-      // time — so customers whose original create-time code has expired
-      // get a real, usable window. generate-discount overwrites prior
-      // metafields, so calling it here is safe alongside the create-time
-      // call from registration. Failures never block the success screen.
-      (async () => {
-        try {
-          const welcomeEnabled = await fetchWelcomeOfferEnabled();
-          if (!welcomeEnabled) return;
-          const shopifyCustomerId =
-            (payload as { shopifyCustomerId?: number | null } | undefined)?.shopifyCustomerId ?? null;
-          const discountUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-discount`;
-          const discountResponse = await fetch(discountUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({ email: customerEmail, shopifyCustomerId }),
-          });
-          if (discountResponse.ok) {
-            const discountResult = await discountResponse.json();
-            if (discountResult.success && discountResult.code) {
-              try {
-                window.parent?.postMessage(
-                  {
-                    type: "dd:welcome_offer",
-                    code: discountResult.code,
-                    endsAt: discountResult.endsAt ?? null,
-                  },
-                  "*"
-                );
-              } catch (postErr) {
-                console.warn("welcome_offer postMessage failed:", postErr);
-              }
-            }
-          } else {
-            console.warn("generate-discount non-OK response:", discountResponse.status);
+      // Welcome-offer code is now minted server-side inside activate-account
+      // (generate-discount is internal-only — anyone could previously hit it
+      // anonymously to mint unlimited single-use 30% codes). Read it off the
+      // same response and broadcast it the same way as before. Failures are
+      // already non-blocking on the server side.
+      try {
+        const welcomeOffer =
+          (payload as { welcomeOffer?: { code?: string; endsAt?: string | null } } | undefined)
+            ?.welcomeOffer ?? null;
+        if (welcomeOffer?.code) {
+          try {
+            window.parent?.postMessage(
+              {
+                type: "dd:welcome_offer",
+                code: welcomeOffer.code,
+                endsAt: welcomeOffer.endsAt ?? null,
+              },
+              "*"
+            );
+          } catch (postErr) {
+            console.warn("welcome_offer postMessage failed:", postErr);
           }
-        } catch (err) {
-          console.warn("generate-discount error (non-blocking):", err);
         }
-      })();
+      } catch (err) {
+        console.warn("welcome_offer extraction failed (non-blocking):", err);
+      }
+
 
       // No email anywhere → can't auto-sign-in. Drop straight to the
       // success screen with manual-login copy.
