@@ -163,20 +163,74 @@ Deno.serve(async (req) => {
         }
       }
       // Return the numeric Shopify customer ID so the SPA can hand it to
-      // generate-discount directly (skips the racy email-based lookup when
-      // writing the welcome-offer customer metafields).
+      // downstream code without re-fetching it.
       const shopifyCustomerId = derivedCustomerId
         ? Number(derivedCustomerId)
         : null;
+
+      // Mint the welcome-offer code server-side (generate-discount is now an
+      // internal-only edge function gated by service-role bearer header so the
+      // public can no longer mint unlimited discount codes by calling it
+      // directly). Failures here are non-blocking — activation already
+      // succeeded and the response shape carries `welcomeOffer: null`.
+      let welcomeOffer: { code: string; endsAt: string | null } | null = null;
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supabaseUrl && serviceRoleKey) {
+          const flagRes = await fetch(
+            `${supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+              body: "{}",
+            }
+          );
+          const welcomeEnabled = flagRes.ok && (await flagRes.json()) === true;
+          if (welcomeEnabled) {
+            const discountRes = await fetch(
+              `${supabaseUrl}/functions/v1/generate-discount`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-internal-key": serviceRoleKey,
+                },
+                body: JSON.stringify({
+                  email,
+                  shopifyCustomerId,
+                }),
+              }
+            );
+            if (discountRes.ok) {
+              const j = await discountRes.json();
+              if (j?.success && j?.code) {
+                welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
+              }
+            } else {
+              console.warn("[activate-account] generate-discount failed:", discountRes.status);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[activate-account] generate-discount threw (non-blocking):", err);
+      }
+
       return sendSuccess(
         {
           activated: true,
           email,
           firstName,
           shopifyCustomerId: Number.isFinite(shopifyCustomerId) ? shopifyCustomerId : null,
+          welcomeOffer,
         },
         "Account has been activated successfully"
       );
+
     }
 
     const responseText = await activateResponse.text();
