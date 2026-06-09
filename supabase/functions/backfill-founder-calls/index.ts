@@ -78,6 +78,31 @@ Deno.serve(async (req) => {
 
   const admin = createClient(supabaseUrl, serviceKey);
 
+  // Calendly's /scheduled_events requires at least one of organization|user|group,
+  // even when event_type is provided. Fetch the token owner's URIs first.
+  let organizationUri = "";
+  let userUri = "";
+  try {
+    const meRes = await fetch(`${CALENDLY_API}/users/me`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+    if (!meRes.ok) {
+      const t = await meRes.text();
+      return json(
+        { success: false, error: `Calendly users/me ${meRes.status}: ${t.slice(0, 300)}` },
+        502,
+      );
+    }
+    const me = await meRes.json();
+    organizationUri = me?.resource?.current_organization ?? "";
+    userUri = me?.resource?.uri ?? "";
+  } catch (e) {
+    return json(
+      { success: false, error: `Calendly users/me threw: ${String(e).slice(0, 200)}` },
+      502,
+    );
+  }
+
   // 1. Page through scheduled_events for this event type.
   const events: Array<{ uri: string; start_time: string }> = [];
   let pageToken: string | null = null;
@@ -91,6 +116,8 @@ Deno.serve(async (req) => {
       count: "100",
       sort: "start_time:asc",
     });
+    if (organizationUri) qs.set("organization", organizationUri);
+    else if (userUri) qs.set("user", userUri);
     if (pageToken) qs.set("page_token", pageToken);
     const r = await fetch(`${CALENDLY_API}/scheduled_events?${qs.toString()}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
