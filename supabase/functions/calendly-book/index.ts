@@ -2,6 +2,7 @@
 // Fetches the event type once (cached for 1h) to echo back its configured
 // location, which is required by Calendly when location.kind is custom,
 // physical, ask_invitee, or outbound_call.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,7 @@ const corsHeaders = {
 };
 
 const CALENDLY_API = "https://api.calendly.com";
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
