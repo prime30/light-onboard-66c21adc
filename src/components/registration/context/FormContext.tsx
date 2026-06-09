@@ -117,6 +117,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     reset,
     setFocus,
     setCurrentStep,
+    currentStep,
     errorActions,
     ...formDataContext,
     ...stepContext,
@@ -124,6 +125,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
+
 
 // Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {
