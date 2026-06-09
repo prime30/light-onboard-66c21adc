@@ -60,10 +60,20 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
     useFormData();
-  const { setCurrentStep, ...stepContext } = useStepContext();
+  const { setCurrentStep, currentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
   const email = watch("email");
+  const accountType = watch("accountType");
+
+  // Bounce diagnostics: device, last focused field, validation errors.
+  useBounceTelemetry({
+    email,
+    currentStep,
+    errors: formDataContext.errors,
+    accountType: accountType ?? null,
+  });
+
 
   // Reset form and move to success step on successful submission
   useEffect(() => {
