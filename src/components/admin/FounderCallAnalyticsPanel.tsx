@@ -58,6 +58,44 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
+
+  const runBackfill = useCallback(
+    async (dryRun: boolean) => {
+      setBackfilling(true);
+      setBackfillResult(null);
+      try {
+        const { data: res, error: invokeErr } = await supabase.functions.invoke(
+          "backfill-founder-calls",
+          {
+            body: {
+              email: adminEmail,
+              password: adminPassword,
+              dryRun,
+              daysBack: 365,
+              daysForward: 90,
+            },
+          },
+        );
+        if (invokeErr || !res?.success) {
+          setBackfillResult(`Error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
+        } else {
+          setBackfillResult(
+            `${dryRun ? "Dry run" : "Backfilled"} — ${res.bookingsFound} Calendly bookings, ${res.updated} leads ${dryRun ? "would be" : ""} updated, ${res.skipped} already stamped, ${res.noLead} with no matching lead.`,
+          );
+          if (!dryRun) fetchDataRef.current?.();
+        }
+      } catch (e) {
+        setBackfillResult(`Error: ${e instanceof Error ? e.message : "failed"}`);
+      } finally {
+        setBackfilling(false);
+      }
+    },
+    [adminEmail, adminPassword],
+  );
+
+  const fetchDataRef = { current: null as null | (() => void) };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
