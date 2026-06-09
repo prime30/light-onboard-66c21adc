@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, founder_call_booked_at, founder_call_start_time",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
@@ -66,9 +66,14 @@ Deno.serve(async (req: Request) => {
     completed_at: string | null;
     account_type: string | null;
     last_step: string | null;
+    last_field: string | null;
+    validation_errors: Record<string, number> | null;
+    device_type: string | null;
+    viewport_width: number | null;
     founder_call_booked_at: string | null;
     founder_call_start_time: string | null;
   };
+
 
   const leads = (rows ?? []) as Row[];
 
@@ -135,6 +140,105 @@ Deno.serve(async (req: Request) => {
     .map(([step, count]) => ({ step, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
+
+  // ---- last field distribution for bounced leads ----
+  const fieldMap = new Map<string, { count: number; step: string }>();
+  for (const r of leads) {
+    if (r.completed_at) continue;
+    if (r.started_at >= graceCutoff) continue;
+    if (!r.last_field) continue;
+    const key = r.last_field;
+    const cur = fieldMap.get(key) ?? { count: 0, step: r.last_step ?? "(none)" };
+    cur.count += 1;
+    fieldMap.set(key, cur);
+  }
+  const dropOffFields = Array.from(fieldMap.entries())
+    .map(([field, v]) => ({ field, count: v.count, step: v.step }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+
+  // ---- validation error frequency (aggregate jsonb counts across leads) ----
+  type ValAgg = { totalErrors: number; usersAffected: number; bouncedAffected: number };
+  const valMap = new Map<string, ValAgg>();
+  for (const r of leads) {
+    const errs = r.validation_errors;
+    if (!errs || typeof errs !== "object") continue;
+    const bounced = !r.completed_at && r.started_at < graceCutoff;
+    for (const [field, raw] of Object.entries(errs)) {
+      const n = typeof raw === "number" ? raw : Number(raw);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      const cur = valMap.get(field) ?? { totalErrors: 0, usersAffected: 0, bouncedAffected: 0 };
+      cur.totalErrors += n;
+      cur.usersAffected += 1;
+      if (bounced) cur.bouncedAffected += 1;
+      valMap.set(field, cur);
+    }
+  }
+  const validationErrors = Array.from(valMap.entries())
+    .map(([field, v]) => ({
+      field,
+      totalErrors: v.totalErrors,
+      usersAffected: v.usersAffected,
+      bouncedAffected: v.bouncedAffected,
+      bounceRate:
+        v.usersAffected > 0
+          ? Math.round((v.bouncedAffected / v.usersAffected) * 1000) / 10
+          : 0,
+    }))
+    .sort((a, b) => b.totalErrors - a.totalErrors)
+    .slice(0, 15);
+
+  // ---- device / viewport split ----
+  type DeviceAgg = { started: number; completed: number };
+  const deviceMap = new Map<string, DeviceAgg>();
+  for (const r of leads) {
+    const k = r.device_type ?? "unknown";
+    const cur = deviceMap.get(k) ?? { started: 0, completed: 0 };
+    cur.started += 1;
+    if (r.completed_at) cur.completed += 1;
+    deviceMap.set(k, cur);
+  }
+  const devices = Array.from(deviceMap.entries())
+    .map(([device, v]) => ({
+      device,
+      started: v.started,
+      completed: v.completed,
+      bounceRate:
+        v.started > 0 ? Math.round(((v.started - v.completed) / v.started) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.started - a.started);
+
+  // Mobile vs desktop bounce per step (only for mobile + desktop with last_step).
+  const deviceStepMap = new Map<string, { mobileStarted: number; mobileBounced: number; desktopStarted: number; desktopBounced: number }>();
+  for (const r of leads) {
+    if (!r.last_step) continue;
+    if (r.device_type !== "mobile" && r.device_type !== "desktop") continue;
+    const cur = deviceStepMap.get(r.last_step) ?? {
+      mobileStarted: 0, mobileBounced: 0, desktopStarted: 0, desktopBounced: 0,
+    };
+    const bounced = !r.completed_at && r.started_at < graceCutoff;
+    if (r.device_type === "mobile") {
+      cur.mobileStarted += 1;
+      if (bounced) cur.mobileBounced += 1;
+    } else {
+      cur.desktopStarted += 1;
+      if (bounced) cur.desktopBounced += 1;
+    }
+    deviceStepMap.set(r.last_step, cur);
+  }
+  const deviceByStep = Array.from(deviceStepMap.entries())
+    .map(([step, v]) => ({
+      step,
+      mobileStarted: v.mobileStarted,
+      desktopStarted: v.desktopStarted,
+      mobileBounceRate:
+        v.mobileStarted > 0 ? Math.round((v.mobileBounced / v.mobileStarted) * 1000) / 10 : 0,
+      desktopBounceRate:
+        v.desktopStarted > 0 ? Math.round((v.desktopBounced / v.desktopStarted) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => (b.mobileStarted + b.desktopStarted) - (a.mobileStarted + a.desktopStarted))
+    .slice(0, 12);
+
 
   // ---- cohort retention (by start day) ----
   // For each daily cohort: % completed within 1h / 24h / 7d, and ever.
@@ -282,7 +386,12 @@ Deno.serve(async (req: Request) => {
     series,
     accountTypes,
     dropOffSteps,
+    dropOffFields,
+    validationErrors,
+    devices,
+    deviceByStep,
     cohorts,
+
     founderCall: {
       completedCount: completedLeads.length,
       bookedCount: booked.length,

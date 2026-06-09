@@ -5,6 +5,8 @@ import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
 import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
+import { useBounceTelemetry } from "@/hooks/use-bounce-telemetry";
+
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
@@ -58,10 +60,20 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
     useFormData();
-  const { setCurrentStep, ...stepContext } = useStepContext();
+  const { setCurrentStep, currentStep, ...stepContext } = useStepContext();
   const { setEmail } = useGlobalApp();
 
   const email = watch("email");
+  const accountType = watch("accountType");
+
+  // Bounce diagnostics: device, last focused field, validation errors.
+  useBounceTelemetry({
+    email,
+    currentStep,
+    errors: formDataContext.errors,
+    accountType: accountType ?? null,
+  });
+
 
   // Reset form and move to success step on successful submission
   useEffect(() => {
@@ -105,6 +117,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     reset,
     setFocus,
     setCurrentStep,
+    currentStep,
     errorActions,
     ...formDataContext,
     ...stepContext,
@@ -112,6 +125,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
+
 
 // Main provider component that wraps form and step contexts
 export function FormProvider({ children }: { children: ReactNode }) {

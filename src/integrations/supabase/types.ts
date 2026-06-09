@@ -214,6 +214,7 @@ export type Database = {
           account_type: string | null
           completed_at: string | null
           created_at: string
+          device_type: string | null
           email: string
           founder_call_booked_at: string | null
           founder_call_invitee_uri: string | null
@@ -221,15 +222,20 @@ export type Database = {
           id: string
           ip_address: string | null
           klaviyo_synced_at: string | null
+          last_field: string | null
           last_step: string | null
           started_at: string
           updated_at: string
           user_agent: string | null
+          validation_errors: Json
+          viewport_height: number | null
+          viewport_width: number | null
         }
         Insert: {
           account_type?: string | null
           completed_at?: string | null
           created_at?: string
+          device_type?: string | null
           email: string
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
@@ -237,15 +243,20 @@ export type Database = {
           id?: string
           ip_address?: string | null
           klaviyo_synced_at?: string | null
+          last_field?: string | null
           last_step?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
+          validation_errors?: Json
+          viewport_height?: number | null
+          viewport_width?: number | null
         }
         Update: {
           account_type?: string | null
           completed_at?: string | null
           created_at?: string
+          device_type?: string | null
           email?: string
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
@@ -253,10 +264,14 @@ export type Database = {
           id?: string
           ip_address?: string | null
           klaviyo_synced_at?: string | null
+          last_field?: string | null
           last_step?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
+          validation_errors?: Json
+          viewport_height?: number | null
+          viewport_width?: number | null
         }
         Relationships: []
       }
@@ -343,6 +358,10 @@ export type Database = {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
       get_extra_customer_tags: { Args: never; Returns: string[] }
       get_welcome_offer_enabled: { Args: never; Returns: boolean }
+      increment_registration_validation_errors: {
+        Args: { _email: string; _fields: string[] }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
