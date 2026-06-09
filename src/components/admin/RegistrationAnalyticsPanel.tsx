@@ -17,6 +17,22 @@ import {
 type SeriesPoint = { date: string; started: number; completed: number; bounceRate: number };
 type AccountTypeRow = { type: string; started: number; completed: number; bounceRate: number };
 type DropOffRow = { step: string; count: number };
+type DropOffFieldRow = { field: string; count: number; step: string };
+type ValidationErrorRow = {
+  field: string;
+  totalErrors: number;
+  usersAffected: number;
+  bouncedAffected: number;
+  bounceRate: number;
+};
+type DeviceRow = { device: string; started: number; completed: number; bounceRate: number };
+type DeviceByStepRow = {
+  step: string;
+  mobileStarted: number;
+  desktopStarted: number;
+  mobileBounceRate: number;
+  desktopBounceRate: number;
+};
 type CohortRow = {
   date: string;
   size: number;
@@ -48,9 +64,14 @@ type ApiResponse = {
   series: SeriesPoint[];
   accountTypes: AccountTypeRow[];
   dropOffSteps: DropOffRow[];
+  dropOffFields?: DropOffFieldRow[];
+  validationErrors?: ValidationErrorRow[];
+  devices?: DeviceRow[];
+  deviceByStep?: DeviceByStepRow[];
   cohorts: CohortRow[];
   error?: string;
 };
+
 
 interface Props {
   adminEmail: string;
