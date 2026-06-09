@@ -28,6 +28,8 @@ const AdminSettingsPage = () => {
   const [loadingSetting, setLoadingSetting] = useState(true);
   const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
+  const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
+  const [updatingMetafields, setUpdatingMetafields] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
