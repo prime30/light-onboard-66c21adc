@@ -778,6 +778,9 @@ const AdminSettingsPage = () => {
 
         <RegistrationAnalyticsPanel adminEmail={email} adminPassword={password} />
 
+        <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
+
+
         <ReferralAnalyticsPanel adminEmail={email} adminPassword={password} />
 
         <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
