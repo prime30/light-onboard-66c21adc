@@ -215,6 +215,9 @@ export type Database = {
           completed_at: string | null
           created_at: string
           email: string
+          founder_call_booked_at: string | null
+          founder_call_invitee_uri: string | null
+          founder_call_start_time: string | null
           id: string
           ip_address: string | null
           klaviyo_synced_at: string | null
@@ -228,6 +231,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           email: string
+          founder_call_booked_at?: string | null
+          founder_call_invitee_uri?: string | null
+          founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
           klaviyo_synced_at?: string | null
@@ -241,6 +247,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           email?: string
+          founder_call_booked_at?: string | null
+          founder_call_invitee_uri?: string | null
+          founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
           klaviyo_synced_at?: string | null
