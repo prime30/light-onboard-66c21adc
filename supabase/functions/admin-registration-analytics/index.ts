@@ -49,7 +49,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: rows, error } = await supabase
     .from("registration_leads")
-    .select("email, started_at, completed_at, account_type, last_step")
+    .select(
+      "email, started_at, completed_at, account_type, last_step, founder_call_booked_at, founder_call_start_time",
+    )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
 
@@ -64,7 +66,10 @@ Deno.serve(async (req: Request) => {
     completed_at: string | null;
     account_type: string | null;
     last_step: string | null;
+    founder_call_booked_at: string | null;
+    founder_call_start_time: string | null;
   };
+
   const leads = (rows ?? []) as Row[];
 
   // ---- totals (apply grace window for bounce) ----
@@ -194,6 +199,74 @@ Deno.serve(async (req: Request) => {
     })
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
+  // ---- founder call funnel ----
+  // Denominator = completed registrations (only they see the schedule CTA).
+  // Take rate = booked / completed.
+  const completedLeads = leads.filter((r) => !!r.completed_at);
+  const booked = completedLeads.filter((r) => !!r.founder_call_booked_at);
+  const futureCalls = booked.filter(
+    (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) > Date.now(),
+  ).length;
+  const takeRate =
+    completedLeads.length > 0 ? Math.round((booked.length / completedLeads.length) * 1000) / 10 : 0;
+
+  // Daily booked vs completed (use completed_at for completed cohort, booked_at for booked).
+  const fcDayMap = new Map<string, { completed: number; booked: number }>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    fcDayMap.set(d, { completed: 0, booked: 0 });
+  }
+  for (const r of completedLeads) {
+    const cDay = r.completed_at!.slice(0, 10);
+    const cBucket = fcDayMap.get(cDay);
+    if (cBucket) cBucket.completed += 1;
+    if (r.founder_call_booked_at) {
+      const bDay = r.founder_call_booked_at.slice(0, 10);
+      const bBucket = fcDayMap.get(bDay);
+      if (bBucket) bBucket.booked += 1;
+    }
+  }
+  const founderCallSeries = Array.from(fcDayMap.entries()).map(([date, v]) => ({
+    date,
+    completed: v.completed,
+    booked: v.booked,
+    takeRate:
+      v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
+  }));
+
+  // Take rate by account type.
+  const fcByType = new Map<string, { completed: number; booked: number }>();
+  for (const r of completedLeads) {
+    const k = r.account_type ?? "unknown";
+    const cur = fcByType.get(k) ?? { completed: 0, booked: 0 };
+    cur.completed += 1;
+    if (r.founder_call_booked_at) cur.booked += 1;
+    fcByType.set(k, cur);
+  }
+  const founderCallByType = Array.from(fcByType.entries())
+    .map(([type, v]) => ({
+      type,
+      completed: v.completed,
+      booked: v.booked,
+      takeRate:
+        v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.completed - a.completed);
+
+  // Recent bookings (most recent 25).
+  const recentBookings = booked
+    .slice()
+    .sort((a, b) =>
+      (b.founder_call_booked_at ?? "") < (a.founder_call_booked_at ?? "") ? -1 : 1,
+    )
+    .slice(0, 25)
+    .map((r) => ({
+      email: r.email,
+      accountType: r.account_type,
+      bookedAt: r.founder_call_booked_at,
+      startTime: r.founder_call_start_time,
+    }));
+
   return json({
     success: true,
     rangeDays: days,
@@ -210,5 +283,15 @@ Deno.serve(async (req: Request) => {
     accountTypes,
     dropOffSteps,
     cohorts,
+    founderCall: {
+      completedCount: completedLeads.length,
+      bookedCount: booked.length,
+      futureCount: futureCalls,
+      takeRate,
+      series: founderCallSeries,
+      byType: founderCallByType,
+      recent: recentBookings,
+    },
   });
 });
+

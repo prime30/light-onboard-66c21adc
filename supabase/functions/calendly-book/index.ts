@@ -2,6 +2,7 @@
 // Fetches the event type once (cached for 1h) to echo back its configured
 // location, which is required by Calendly when location.kind is custom,
 // physical, ask_invitee, or outbound_call.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,7 @@ const corsHeaders = {
 };
 
 const CALENDLY_API = "https://api.calendly.com";
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -177,12 +179,38 @@ Deno.serve(async (req) => {
     const ev = data?.resource?.event ?? data?.event ?? data?.scheduled_event ?? {};
     const inv = data?.resource ?? data?.invitee ?? {};
 
+    const bookingStartTime: string = ev?.start_time ?? start_time;
+    const inviteeUri: string = inv?.uri ?? "";
+
+    // Best-effort: stamp the matching registration_lead so admin analytics can
+    // compute founder-call take rate. Never block the booking response on this.
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supabaseUrl && serviceKey) {
+        const admin = createClient(supabaseUrl, serviceKey);
+        const { error: updErr } = await admin
+          .from("registration_leads")
+          .update({
+            founder_call_booked_at: new Date().toISOString(),
+            founder_call_start_time: bookingStartTime,
+            founder_call_invitee_uri: inviteeUri || null,
+          })
+          .eq("email", email);
+        if (updErr) {
+          console.warn("[calendly-book] lead stamp failed", updErr.message);
+        }
+      }
+    } catch (stampErr) {
+      console.warn("[calendly-book] lead stamp threw", stampErr);
+    }
+
     return json({
       booking: {
-        uri: inv?.uri ?? "",
+        uri: inviteeUri,
         name,
         email,
-        start_time: ev?.start_time ?? start_time,
+        start_time: bookingStartTime,
         end_time: ev?.end_time ?? "",
         join_url: ev?.location?.join_url ?? ev?.join_url,
         cancel_url: inv?.cancel_url,
@@ -194,3 +222,4 @@ Deno.serve(async (req) => {
     return json({ error: { code: "network_error", message: String(err) } }, 502);
   }
 });
+
