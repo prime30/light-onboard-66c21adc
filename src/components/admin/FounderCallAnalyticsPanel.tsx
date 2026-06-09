@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +58,44 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
+
+  const runBackfill = useCallback(
+    async (dryRun: boolean) => {
+      setBackfilling(true);
+      setBackfillResult(null);
+      try {
+        const { data: res, error: invokeErr } = await supabase.functions.invoke(
+          "backfill-founder-calls",
+          {
+            body: {
+              email: adminEmail,
+              password: adminPassword,
+              dryRun,
+              daysBack: 365,
+              daysForward: 90,
+            },
+          },
+        );
+        if (invokeErr || !res?.success) {
+          setBackfillResult(`Error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
+        } else {
+          setBackfillResult(
+            `${dryRun ? "Dry run" : "Backfilled"} — ${res.bookingsFound} Calendly bookings, ${res.updated} leads ${dryRun ? "would be" : ""} updated, ${res.skipped} already stamped, ${res.noLead} with no matching lead.`,
+          );
+          if (!dryRun) fetchDataRef.current?.();
+        }
+      } catch (e) {
+        setBackfillResult(`Error: ${e instanceof Error ? e.message : "failed"}`);
+      } finally {
+        setBackfilling(false);
+      }
+    },
+    [adminEmail, adminPassword],
+  );
+
+  const fetchDataRef = useRef<(() => void) | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -81,6 +119,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
   }, [adminEmail, adminPassword, days]);
 
   useEffect(() => {
+    fetchDataRef.current = fetchData;
     fetchData();
   }, [fetchData]);
 
@@ -97,14 +136,42 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
             Bookings are stamped when Calendly accepts the invitee.
           </p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={fetchData} disabled={loading}>
-          {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="w-3.5 h-3.5" />
-          )}
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => runBackfill(true)}
+            disabled={backfilling}
+            title="Preview how many leads would be stamped from Calendly history"
+          >
+            {backfilling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Dry run"}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => runBackfill(false)}
+            disabled={backfilling}
+            title="Stamp registration_leads from past 365d of Calendly bookings"
+          >
+            Backfill
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={fetchData} disabled={loading}>
+            {loading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+          </Button>
+        </div>
       </div>
+
+      {backfillResult && (
+        <div className="text-xs text-muted-foreground rounded-[10px] border border-border/50 px-3 py-2">
+          {backfillResult}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-1.5 text-[11px]">
         {RANGE_OPTIONS.map((d) => (
