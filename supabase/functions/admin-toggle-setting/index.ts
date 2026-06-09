@@ -13,6 +13,7 @@ interface RequestBody {
   password?: string;
   autoApprovalEnabled?: boolean;
   welcomeOfferEnabled?: boolean;
+  discountMetafieldsEnabled?: boolean;
   extraCustomerTags?: string[];
 }
 
