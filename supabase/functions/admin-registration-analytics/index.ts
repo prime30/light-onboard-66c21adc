@@ -386,7 +386,12 @@ Deno.serve(async (req: Request) => {
     series,
     accountTypes,
     dropOffSteps,
+    dropOffFields,
+    validationErrors,
+    devices,
+    deviceByStep,
     cohorts,
+
     founderCall: {
       completedCount: completedLeads.length,
       bookedCount: booked.length,
