@@ -544,6 +544,50 @@ const AdminSettingsPage = () => {
           )}
         </div>
 
+        {/* Continue writing discount metafields (independent of SPA welcome screen) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Continue writing discount metafields
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, every new approved customer still gets a unique discount code
+                minted and written to their Shopify customer metafields, so the theme can
+                surface it elsewhere — even when the SPA welcome-offer screen above is OFF.
+                Turn this OFF to stop minting codes entirely.
+              </p>
+            </div>
+            {metafieldsEnabled === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={metafieldsEnabled}
+                onCheckedChange={handleMetafieldsToggle}
+                disabled={updatingMetafields}
+                aria-label="Toggle discount metafield writes"
+              />
+            )}
+          </div>
+          {metafieldsEnabled !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  metafieldsEnabled
+                    ? "text-status-green font-medium"
+                    : "font-medium text-foreground"
+                }
+              >
+                {metafieldsEnabled ? "Writing metafields" : "Not writing metafields"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+
+
 
 
         {/* Extra customer tags */}
