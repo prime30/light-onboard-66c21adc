@@ -1541,27 +1541,41 @@ Deno.serve(async (req: Request) => {
     // the public can no longer mint unlimited discount codes by hitting it
     // directly. We invoke it here so the client gets the code in the same
     // create-customer response and never needs to call generate-discount.
+    //
+    // Two independent toggles drive this:
+    //   - welcome_offer_enabled — SPA success screen shows the code
+    //   - discount_metafields_enabled — write code to customer metafields so
+    //     the Shopify theme can keep surfacing the discount elsewhere even
+    //     when the SPA welcome-offer screen is off.
+    // If either is true we mint, but we only return `welcomeOffer` on the
+    // response when the SPA flag is on (otherwise the SPA would render it).
     let welcomeOffer: { code: string; endsAt: string | null } | null = null;
     try {
       let welcomeEnabled = false;
+      let metafieldsEnabled = false;
       if (_supabaseUrl && _serviceRoleKey) {
-        const flagRes = await fetch(
-          `${_supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`,
-          {
+        const headers = {
+          "Content-Type": "application/json",
+          apikey: _serviceRoleKey,
+          Authorization: `Bearer ${_serviceRoleKey}`,
+        };
+        const [welcomeRes, metaRes] = await Promise.all([
+          fetch(`${_supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: _serviceRoleKey,
-              Authorization: `Bearer ${_serviceRoleKey}`,
-            },
+            headers,
             body: "{}",
-          }
-        );
-        if (flagRes.ok) {
-          welcomeEnabled = (await flagRes.json()) === true;
-        }
+          }),
+          fetch(`${_supabaseUrl}/rest/v1/rpc/get_discount_metafields_enabled`, {
+            method: "POST",
+            headers,
+            body: "{}",
+          }),
+        ]);
+        if (welcomeRes.ok) welcomeEnabled = (await welcomeRes.json()) === true;
+        if (metaRes.ok) metafieldsEnabled = (await metaRes.json()) === true;
       }
-      if (welcomeEnabled && _supabaseUrl && _serviceRoleKey) {
+      const shouldMint = welcomeEnabled || metafieldsEnabled;
+      if (shouldMint && _supabaseUrl && _serviceRoleKey) {
         const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
         const discountRes = await fetch(discountUrl, {
           method: "POST",
@@ -1576,7 +1590,7 @@ Deno.serve(async (req: Request) => {
         });
         if (discountRes.ok) {
           const j = await discountRes.json();
-          if (j?.success && j?.code) {
+          if (welcomeEnabled && j?.success && j?.code) {
             welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
           }
         } else {

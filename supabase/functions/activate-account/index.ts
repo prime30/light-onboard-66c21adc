@@ -171,27 +171,38 @@ Deno.serve(async (req) => {
       // Mint the welcome-offer code server-side (generate-discount is now an
       // internal-only edge function gated by service-role bearer header so the
       // public can no longer mint unlimited discount codes by calling it
-      // directly). Failures here are non-blocking — activation already
-      // succeeded and the response shape carries `welcomeOffer: null`.
+      // directly). Two independent toggles drive this:
+      //   - welcome_offer_enabled — SPA surfaces the code on success
+      //   - discount_metafields_enabled — write code to customer metafields
+      //     so the Shopify theme can keep surfacing the discount elsewhere
+      //     even when the SPA welcome-offer screen is off.
+      // Failures here are non-blocking — activation already succeeded.
       let welcomeOffer: { code: string; endsAt: string | null } | null = null;
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
         if (supabaseUrl && serviceRoleKey) {
-          const flagRes = await fetch(
-            `${supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`,
-            {
+          const headers = {
+            "Content-Type": "application/json",
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          };
+          const [welcomeRes, metaRes] = await Promise.all([
+            fetch(`${supabaseUrl}/rest/v1/rpc/get_welcome_offer_enabled`, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                apikey: serviceRoleKey,
-                Authorization: `Bearer ${serviceRoleKey}`,
-              },
+              headers,
               body: "{}",
-            }
-          );
-          const welcomeEnabled = flagRes.ok && (await flagRes.json()) === true;
-          if (welcomeEnabled) {
+            }),
+            fetch(`${supabaseUrl}/rest/v1/rpc/get_discount_metafields_enabled`, {
+              method: "POST",
+              headers,
+              body: "{}",
+            }),
+          ]);
+          const welcomeEnabled = welcomeRes.ok && (await welcomeRes.json()) === true;
+          const metafieldsEnabled = metaRes.ok && (await metaRes.json()) === true;
+          const shouldMint = welcomeEnabled || metafieldsEnabled;
+          if (shouldMint) {
             const discountRes = await fetch(
               `${supabaseUrl}/functions/v1/generate-discount`,
               {
@@ -208,7 +219,7 @@ Deno.serve(async (req) => {
             );
             if (discountRes.ok) {
               const j = await discountRes.json();
-              if (j?.success && j?.code) {
+              if (welcomeEnabled && j?.success && j?.code) {
                 welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
               }
             } else {

@@ -28,6 +28,8 @@ const AdminSettingsPage = () => {
   const [loadingSetting, setLoadingSetting] = useState(true);
   const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
+  const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
+  const [updatingMetafields, setUpdatingMetafields] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -108,6 +110,14 @@ const AdminSettingsPage = () => {
       if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
         setWelcomeOffer(data.setting.welcome_offer_enabled);
       }
+      if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
+        setMetafieldsEnabled(data.setting.discount_metafields_enabled);
+      } else {
+        // Default to ON when the column hasn't been hydrated yet — matches the
+        // server-side column default and the user's intent of preserving theme
+        // discount visibility.
+        setMetafieldsEnabled(true);
+      }
     } catch (err) {
       console.error(err);
       toast({
@@ -185,6 +195,43 @@ const AdminSettingsPage = () => {
       setUpdatingWelcome(false);
     }
   };
+
+  const handleMetafieldsToggle = async (next: boolean) => {
+    if (metafieldsEnabled === null) return;
+    const previous = metafieldsEnabled;
+    setMetafieldsEnabled(next);
+    setUpdatingMetafields(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, discountMetafieldsEnabled: next },
+      });
+      if (error || !data?.success) {
+        setMetafieldsEnabled(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Discount metafields ON" : "Discount metafields OFF",
+        description: next
+          ? "New submissions will still mint a code and write it to customer metafields."
+          : "Submissions will no longer mint a discount code or write it to metafields.",
+      });
+    } catch (err) {
+      console.error(err);
+      setMetafieldsEnabled(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingMetafields(false);
+    }
+  };
+
+
+
+
 
 
 
@@ -496,6 +543,50 @@ const AdminSettingsPage = () => {
             </div>
           )}
         </div>
+
+        {/* Continue writing discount metafields (independent of SPA welcome screen) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Continue writing discount metafields
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, every new approved customer still gets a unique discount code
+                minted and written to their Shopify customer metafields, so the theme can
+                surface it elsewhere — even when the SPA welcome-offer screen above is OFF.
+                Turn this OFF to stop minting codes entirely.
+              </p>
+            </div>
+            {metafieldsEnabled === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={metafieldsEnabled}
+                onCheckedChange={handleMetafieldsToggle}
+                disabled={updatingMetafields}
+                aria-label="Toggle discount metafield writes"
+              />
+            )}
+          </div>
+          {metafieldsEnabled !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  metafieldsEnabled
+                    ? "text-status-green font-medium"
+                    : "font-medium text-foreground"
+                }
+              >
+                {metafieldsEnabled ? "Writing metafields" : "Not writing metafields"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+
 
 
 
