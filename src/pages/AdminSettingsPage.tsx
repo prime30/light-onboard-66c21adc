@@ -110,6 +110,14 @@ const AdminSettingsPage = () => {
       if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
         setWelcomeOffer(data.setting.welcome_offer_enabled);
       }
+      if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
+        setMetafieldsEnabled(data.setting.discount_metafields_enabled);
+      } else {
+        // Default to ON when the column hasn't been hydrated yet — matches the
+        // server-side column default and the user's intent of preserving theme
+        // discount visibility.
+        setMetafieldsEnabled(true);
+      }
     } catch (err) {
       console.error(err);
       toast({
