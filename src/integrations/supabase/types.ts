@@ -17,6 +17,7 @@ export type Database = {
       app_settings: {
         Row: {
           auto_approval_enabled: boolean
+          discount_metafields_enabled: boolean
           extra_customer_tags: string[]
           id: string
           singleton: boolean
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           auto_approval_enabled?: boolean
+          discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           id?: string
           singleton?: boolean
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           auto_approval_enabled?: boolean
+          discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           id?: string
           singleton?: boolean
@@ -356,6 +359,7 @@ export type Database = {
     }
     Functions: {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
+      get_discount_metafields_enabled: { Args: never; Returns: boolean }
       get_extra_customer_tags: { Args: never; Returns: string[] }
       get_welcome_offer_enabled: { Args: never; Returns: boolean }
       increment_registration_validation_errors: {
