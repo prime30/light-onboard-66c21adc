@@ -36,10 +36,14 @@ interface Payload {
   phase?: Phase;
   accountType?: string | null;
   lastStep?: string | null;
+  lastField?: string | null;
+  validationErrorFields?: string[] | null;
+  device?: { type?: string | null; width?: number | null; height?: number | null } | null;
   firstName?: string | null;
   lastName?: string | null;
   phoneE164?: string | null;
 }
+
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
