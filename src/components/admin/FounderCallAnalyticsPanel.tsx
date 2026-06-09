@@ -95,7 +95,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     [adminEmail, adminPassword],
   );
 
-  const fetchDataRef = { current: null as null | (() => void) };
+  const fetchDataRef = useRef<(() => void) | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -119,6 +119,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
   }, [adminEmail, adminPassword, days]);
 
   useEffect(() => {
+    fetchDataRef.current = fetchData;
     fetchData();
   }, [fetchData]);
 
