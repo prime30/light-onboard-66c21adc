@@ -304,6 +304,11 @@ Deno.serve(async (req: Request) => {
           },
           usageLimit: 1,
           appliesOncePerCustomer: false,
+          combinesWith: {
+            orderDiscounts: true,
+            productDiscounts: true,
+            shippingDiscounts: true,
+          },
         },
       };
 
