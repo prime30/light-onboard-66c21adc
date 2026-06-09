@@ -300,6 +300,139 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
         </div>
       )}
 
+      {/* Last field before bounce */}
+      {(data?.dropOffFields?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Last focused field before bounce
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            The exact input users were on right before abandoning. Pair with step to find micro-friction.
+          </p>
+          <div className="divide-y divide-border/50">
+            {data!.dropOffFields!.map((row) => (
+              <div key={row.field} className="flex items-center justify-between py-1.5 text-xs gap-3">
+                <span className="font-medium truncate">{row.field}</span>
+                <span className="text-muted-foreground tabular-nums whitespace-nowrap">
+                  {row.count} <span className="text-[10px] opacity-70">· {row.step}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Validation errors */}
+      {(data?.validationErrors?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Validation error hotspots
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            Fields that fire validation errors most often. High bounce % among affected users = fixable friction.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Field</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Errors</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Users</th>
+                  <th className="text-right py-1.5 pl-2 font-medium">Bounce %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.validationErrors!.map((row) => (
+                  <tr key={row.field}>
+                    <td className="py-1.5 pr-3 font-medium truncate max-w-[180px]">{row.field}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">{row.totalErrors}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.usersAffected}</td>
+                    <td
+                      className={cn(
+                        "py-1.5 pl-2 text-right tabular-nums",
+                        row.bounceRate > 50 ? "text-destructive" : "text-muted-foreground",
+                      )}
+                    >
+                      {row.bounceRate}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Device split */}
+      {(data?.devices?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            By device
+          </div>
+          <div className="divide-y divide-border/50">
+            {data!.devices!.map((row) => (
+              <div key={row.device} className="flex items-center justify-between py-1.5 text-xs">
+                <span className="font-medium capitalize">{row.device}</span>
+                <span className="text-muted-foreground tabular-nums">
+                  {row.completed} / {row.started}
+                  <span
+                    className={cn(
+                      "ml-2",
+                      row.bounceRate > 50 ? "text-destructive" : "text-status-green",
+                    )}
+                  >
+                    {row.bounceRate}% bounce
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile vs desktop bounce per step */}
+      {(data?.deviceByStep?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Mobile vs desktop bounce by step
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            A step where mobile bounce far exceeds desktop usually has a mobile-specific UX issue (upload, autocomplete, keyboard).
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Step</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Mobile n</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Mobile %</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Desktop n</th>
+                  <th className="text-right py-1.5 pl-2 font-medium">Desktop %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.deviceByStep!.map((row) => {
+                  const gap = row.mobileBounceRate - row.desktopBounceRate;
+                  return (
+                    <tr key={row.step}>
+                      <td className="py-1.5 pr-3 font-medium truncate max-w-[200px]">{row.step}</td>
+                      <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.mobileStarted}</td>
+                      <td className={cn("py-1.5 px-2 text-right tabular-nums", gap > 15 ? "text-destructive" : "")}>
+                        {row.mobileBounceRate}%
+                      </td>
+                      <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.desktopStarted}</td>
+                      <td className="py-1.5 pl-2 text-right tabular-nums">{row.desktopBounceRate}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+
+
       {/* Cohort retention */}
       {(data?.cohorts?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
