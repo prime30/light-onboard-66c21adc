@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_discount_metafields_enabled() FROM anon, authenticated;
