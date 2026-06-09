@@ -196,6 +196,43 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const handleMetafieldsToggle = async (next: boolean) => {
+    if (metafieldsEnabled === null) return;
+    const previous = metafieldsEnabled;
+    setMetafieldsEnabled(next);
+    setUpdatingMetafields(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, discountMetafieldsEnabled: next },
+      });
+      if (error || !data?.success) {
+        setMetafieldsEnabled(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Discount metafields ON" : "Discount metafields OFF",
+        description: next
+          ? "New submissions will still mint a code and write it to customer metafields."
+          : "Submissions will no longer mint a discount code or write it to metafields.",
+      });
+    } catch (err) {
+      console.error(err);
+      setMetafieldsEnabled(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingMetafields(false);
+    }
+  };
+
+
+
+
+
 
 
   const addTag = (raw: string) => {
