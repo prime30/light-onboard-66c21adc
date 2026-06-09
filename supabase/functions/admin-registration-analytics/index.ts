@@ -49,7 +49,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: rows, error } = await supabase
     .from("registration_leads")
-    .select("email, started_at, completed_at, account_type, last_step")
+    .select(
+      "email, started_at, completed_at, account_type, last_step, founder_call_booked_at, founder_call_start_time",
+    )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
 
@@ -64,7 +66,10 @@ Deno.serve(async (req: Request) => {
     completed_at: string | null;
     account_type: string | null;
     last_step: string | null;
+    founder_call_booked_at: string | null;
+    founder_call_start_time: string | null;
   };
+
   const leads = (rows ?? []) as Row[];
 
   // ---- totals (apply grace window for bounce) ----
