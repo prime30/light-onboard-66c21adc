@@ -11,6 +11,8 @@ import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
 import { RegistrationAnalyticsPanel } from "@/components/admin/RegistrationAnalyticsPanel";
+import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
+
 
 const MAX_TAGS = 50;
 const MAX_TAG_LENGTH = 80;
