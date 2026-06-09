@@ -93,6 +93,14 @@ Deno.serve(async (req: Request) => {
   const phase: Phase = payload.phase ?? "started";
   const accountType = payload.accountType ?? null;
   const lastStep = payload.lastStep ?? null;
+  const lastField = payload.lastField ?? null;
+  const validationErrorFields = Array.isArray(payload.validationErrorFields)
+    ? payload.validationErrorFields.filter((s): s is string => typeof s === "string" && s.length > 0 && s.length < 80).slice(0, 25)
+    : [];
+  const device = payload.device ?? null;
+  const deviceType = device?.type && ["mobile", "tablet", "desktop"].includes(device.type) ? device.type : null;
+  const viewportWidth = typeof device?.width === "number" && device.width > 0 && device.width < 10000 ? Math.round(device.width) : null;
+  const viewportHeight = typeof device?.height === "number" && device.height > 0 && device.height < 10000 ? Math.round(device.height) : null;
   const firstName = payload.firstName ?? null;
   const lastName = payload.lastName ?? null;
   const phoneE164 = payload.phoneE164 ?? null;
@@ -114,6 +122,19 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const upsertBody: Record<string, unknown> = {
+      email,
+      account_type: accountType,
+      last_step: lastStep,
+      completed_at: isCompleted ? new Date().toISOString() : null,
+      user_agent: userAgent,
+      ip_address: ip,
+    };
+    if (lastField) upsertBody.last_field = lastField;
+    if (deviceType) upsertBody.device_type = deviceType;
+    if (viewportWidth) upsertBody.viewport_width = viewportWidth;
+    if (viewportHeight) upsertBody.viewport_height = viewportHeight;
+
     const upsertRes = await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?on_conflict=email`,
       {
@@ -124,14 +145,7 @@ Deno.serve(async (req: Request) => {
           "Content-Type": "application/json",
           Prefer: "resolution=merge-duplicates,return=minimal",
         },
-        body: JSON.stringify({
-          email,
-          account_type: accountType,
-          last_step: lastStep,
-          completed_at: isCompleted ? new Date().toISOString() : null,
-          user_agent: userAgent,
-          ip_address: ip,
-        }),
+        body: JSON.stringify(upsertBody),
       },
     );
     if (!upsertRes.ok) {
@@ -141,9 +155,30 @@ Deno.serve(async (req: Request) => {
         await upsertRes.text(),
       );
     }
+
+    // Increment per-field validation error counters (best-effort, post-upsert so row exists).
+    if (validationErrorFields.length > 0) {
+      try {
+        const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_registration_validation_errors`, {
+          method: "POST",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ _email: email, _fields: validationErrorFields }),
+        });
+        if (!rpcRes.ok) {
+          console.warn("track-registration-lead: increment errors failed", rpcRes.status, await rpcRes.text());
+        }
+      } catch (err) {
+        console.warn("track-registration-lead: increment errors threw", err);
+      }
+    }
   } catch (err) {
     console.warn("track-registration-lead: upsert threw", err);
   }
+
 
   // ----------------- Sync to Klaviyo -----------------
   const klaviyoKey = Deno.env.get("KLAVIYO_PRIVATE_API_KEY");
