@@ -5,6 +5,8 @@ import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
 import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
+import { useBounceTelemetry } from "@/hooks/use-bounce-telemetry";
+
 
 export type AuthFormContextType = {
   // Form-related (from FormDataContext)
