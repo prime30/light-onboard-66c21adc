@@ -230,6 +230,9 @@ Deno.serve(async (req: Request) => {
           account_type: accountType,
           last_step: lastStep,
           phase,
+          ...(preferredMethods.length > 0
+            ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
+            : {}),
         },
         metric: {
           data: { type: "metric", attributes: { name: metricName } },
