@@ -42,6 +42,7 @@ interface Payload {
   firstName?: string | null;
   lastName?: string | null;
   phoneE164?: string | null;
+  preferredMethods?: string[] | null;
 }
 
 
