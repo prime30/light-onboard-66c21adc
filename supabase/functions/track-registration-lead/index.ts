@@ -105,6 +105,12 @@ Deno.serve(async (req: Request) => {
   const firstName = payload.firstName ?? null;
   const lastName = payload.lastName ?? null;
   const phoneE164 = payload.phoneE164 ?? null;
+  const preferredMethods = Array.isArray(payload.preferredMethods)
+    ? payload.preferredMethods
+        .filter((s): s is string => typeof s === "string" && s.length > 0 && s.length < 60)
+        .slice(0, 10)
+    : [];
+  const primaryMethod = preferredMethods[0] ?? null;
   const isCompleted = phase === "completed";
 
   // Capture lightweight request metadata for audit.
