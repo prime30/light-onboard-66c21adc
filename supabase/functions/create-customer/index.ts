@@ -1525,7 +1525,7 @@ Deno.serve(async (req: Request) => {
             lastStep: "submitted",
             firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
             lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
-            preferredMethods: preferredMethods ?? null,
+            preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
           }),
         });
       } catch (err) {
