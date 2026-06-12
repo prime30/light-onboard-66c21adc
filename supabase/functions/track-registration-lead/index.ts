@@ -42,6 +42,7 @@ interface Payload {
   firstName?: string | null;
   lastName?: string | null;
   phoneE164?: string | null;
+  preferredMethods?: string[] | null;
 }
 
 
@@ -104,6 +105,12 @@ Deno.serve(async (req: Request) => {
   const firstName = payload.firstName ?? null;
   const lastName = payload.lastName ?? null;
   const phoneE164 = payload.phoneE164 ?? null;
+  const preferredMethods = Array.isArray(payload.preferredMethods)
+    ? payload.preferredMethods
+        .filter((s): s is string => typeof s === "string" && s.length > 0 && s.length < 60)
+        .slice(0, 10)
+    : [];
+  const primaryMethod = preferredMethods[0] ?? null;
   const isCompleted = phase === "completed";
 
   // Capture lightweight request metadata for audit.
@@ -197,6 +204,9 @@ Deno.serve(async (req: Request) => {
       registration_completed: isCompleted,
       registration_completed_at: isCompleted ? new Date().toISOString() : null,
       registration_source: "apply.dropdeadextensions.com",
+      ...(preferredMethods.length > 0
+        ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
+        : {}),
     },
   };
   if (firstName) profileAttrs.first_name = firstName;
@@ -220,6 +230,9 @@ Deno.serve(async (req: Request) => {
           account_type: accountType,
           last_step: lastStep,
           phase,
+          ...(preferredMethods.length > 0
+            ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
+            : {}),
         },
         metric: {
           data: { type: "metric", attributes: { name: metricName } },
