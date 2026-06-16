@@ -41,9 +41,12 @@ type ApiResponse = {
     completedCount: number;
     bookedCount: number;
     futureCount: number;
+    noShowCount: number;
+    pastBookedCount: number;
+    showRate: number;
     takeRate: number;
     series: SeriesPoint[];
-    byType: TypeRow[];
+    byType: ByTypeRow[];
     recent: RecentRow[];
   };
   error?: string;
