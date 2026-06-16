@@ -35,6 +35,7 @@ Deno.serve(async (req: Request) => {
 
 
 
+
   const calendlyToken = Deno.env.get("CALENDLY_API_TOKEN");
   if (!calendlyToken) return json(500, { error: "CALENDLY_API_TOKEN not set" });
 
@@ -57,30 +58,32 @@ Deno.serve(async (req: Request) => {
       return json(500, { step: "users/me", error: "Missing user/org URI", meBody });
     }
 
-    // 2) Optional: list existing subscriptions and short-circuit if one already
-    //    points at our callback URL.
+    // 2) Delete any existing subscriptions pointing at our callback URL so we
+    //    can recreate with a fresh signing_key.
     const listUrl = new URL(`${CALENDLY_BASE}/webhook_subscriptions`);
     listUrl.searchParams.set("organization", organizationUri);
-    listUrl.searchParams.set("user", userUri);
-    listUrl.searchParams.set("scope", "user");
+    listUrl.searchParams.set("scope", "organization");
     const listRes = await fetch(listUrl.toString(), {
       headers: { Authorization: `Bearer ${calendlyToken}` },
     });
     const listBody = await listRes.json();
     if (listRes.ok && Array.isArray(listBody?.collection)) {
-      const existing = listBody.collection.find((s: any) => s?.callback_url === callbackUrl);
-      if (existing) {
-        return json(200, {
-          ok: true,
-          alreadyExists: true,
-          subscription: existing,
-          note:
-            "Subscription already exists for this callback URL. signing_key is only returned at creation time — if you don't have it, delete this subscription in Calendly and re-run.",
-        });
+      for (const s of listBody.collection) {
+        if (s?.callback_url === callbackUrl && s?.uri) {
+          await fetch(s.uri, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${calendlyToken}` },
+          });
+        }
       }
     }
 
-    // 3) Create the subscription
+    // 3) Generate a signing key (32 random bytes, base64-encoded).
+    const keyBytes = new Uint8Array(32);
+    crypto.getRandomValues(keyBytes);
+    const signingKey = btoa(String.fromCharCode(...keyBytes));
+
+    // 4) Create the subscription with our signing_key
     const createRes = await fetch(`${CALENDLY_BASE}/webhook_subscriptions`, {
       method: "POST",
       headers: {
@@ -97,6 +100,7 @@ Deno.serve(async (req: Request) => {
         ],
         organization: organizationUri,
         scope: "organization",
+        signing_key: signingKey,
       }),
     });
     const createBody = await createRes.json();
@@ -108,7 +112,7 @@ Deno.serve(async (req: Request) => {
       ok: true,
       callbackUrl,
       subscription: createBody?.resource,
-      signing_key: createBody?.resource?.signing_key,
+      signing_key: signingKey,
       next: "Copy signing_key and save it as CALENDLY_WEBHOOK_SIGNING_KEY in Lovable Cloud secrets.",
     });
   } catch (err) {
