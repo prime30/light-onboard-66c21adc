@@ -9,6 +9,7 @@ import {
   CalendarClock,
   Percent,
   AlertCircle,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -29,7 +30,9 @@ type RecentRow = {
   accountType: string | null;
   bookedAt: string | null;
   startTime: string | null;
+  noShowAt: string | null;
 };
+type ByTypeRow = TypeRow & { noShow?: number };
 
 type ApiResponse = {
   success: boolean;
@@ -38,9 +41,12 @@ type ApiResponse = {
     completedCount: number;
     bookedCount: number;
     futureCount: number;
+    noShowCount: number;
+    pastBookedCount: number;
+    showRate: number;
     takeRate: number;
     series: SeriesPoint[];
-    byType: TypeRow[];
+    byType: ByTypeRow[];
     recent: RecentRow[];
   };
   error?: string;
@@ -197,7 +203,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <Tile
           icon={<CheckCircle2 className="w-3.5 h-3.5 text-status-green" />}
           label="Completed"
@@ -221,6 +227,19 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
           icon={<CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />}
           label="Upcoming"
           value={fc?.futureCount ?? 0}
+          loading={loading && !data}
+        />
+        <Tile
+          icon={<UserX className="w-3.5 h-3.5 text-destructive" />}
+          label="No-shows"
+          value={fc?.noShowCount ?? 0}
+          loading={loading && !data}
+        />
+        <Tile
+          icon={<Percent className="w-3.5 h-3.5 text-status-green" />}
+          label="Show rate"
+          value={fc?.showRate ?? 0}
+          suffix="%"
           loading={loading && !data}
         />
       </div>
@@ -316,6 +335,11 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
                 <span className="font-medium capitalize">{row.type.replace(/_/g, " ")}</span>
                 <span className="text-muted-foreground tabular-nums">
                   {row.booked} / {row.completed}
+                  {(row.noShow ?? 0) > 0 && (
+                    <span className="ml-2 text-destructive">
+                      {row.noShow} no-show{row.noShow! === 1 ? "" : "s"}
+                    </span>
+                  )}
                   <span
                     className={cn(
                       "ml-2",
@@ -344,7 +368,14 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
                 className="flex items-center justify-between gap-3 py-1.5 text-xs"
               >
                 <div className="min-w-0">
-                  <div className="font-medium truncate">{r.email}</div>
+                  <div className="font-medium truncate flex items-center gap-1.5">
+                    {r.email}
+                    {r.noShowAt && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-normal text-destructive border border-destructive/40 rounded-full px-1.5 py-0.5">
+                        <UserX className="w-2.5 h-2.5" /> no-show
+                      </span>
+                    )}
+                  </div>
                   <div className="text-[10px] text-muted-foreground capitalize">
                     {(r.accountType ?? "unknown").replace(/_/g, " ")}
                   </div>

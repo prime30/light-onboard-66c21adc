@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
@@ -72,6 +72,7 @@ Deno.serve(async (req: Request) => {
     viewport_width: number | null;
     founder_call_booked_at: string | null;
     founder_call_start_time: string | null;
+    founder_call_no_show_at: string | null;
   };
 
 
@@ -314,6 +315,16 @@ Deno.serve(async (req: Request) => {
   const takeRate =
     completedLeads.length > 0 ? Math.round((booked.length / completedLeads.length) * 1000) / 10 : 0;
 
+  // No-shows: only count bookings whose start time is in the past.
+  const pastBooked = booked.filter(
+    (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) <= Date.now(),
+  );
+  const noShows = pastBooked.filter((r) => !!r.founder_call_no_show_at);
+  const showRate =
+    pastBooked.length > 0
+      ? Math.round(((pastBooked.length - noShows.length) / pastBooked.length) * 1000) / 10
+      : 0;
+
   // Daily booked vs completed (use completed_at for completed cohort, booked_at for booked).
   const fcDayMap = new Map<string, { completed: number; booked: number }>();
   for (let i = days - 1; i >= 0; i--) {
@@ -339,12 +350,13 @@ Deno.serve(async (req: Request) => {
   }));
 
   // Take rate by account type.
-  const fcByType = new Map<string, { completed: number; booked: number }>();
+  const fcByType = new Map<string, { completed: number; booked: number; noShow: number }>();
   for (const r of completedLeads) {
     const k = r.account_type ?? "unknown";
-    const cur = fcByType.get(k) ?? { completed: 0, booked: 0 };
+    const cur = fcByType.get(k) ?? { completed: 0, booked: 0, noShow: 0 };
     cur.completed += 1;
     if (r.founder_call_booked_at) cur.booked += 1;
+    if (r.founder_call_no_show_at) cur.noShow += 1;
     fcByType.set(k, cur);
   }
   const founderCallByType = Array.from(fcByType.entries())
@@ -352,6 +364,7 @@ Deno.serve(async (req: Request) => {
       type,
       completed: v.completed,
       booked: v.booked,
+      noShow: v.noShow,
       takeRate:
         v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
     }))
@@ -369,6 +382,7 @@ Deno.serve(async (req: Request) => {
       accountType: r.account_type,
       bookedAt: r.founder_call_booked_at,
       startTime: r.founder_call_start_time,
+      noShowAt: r.founder_call_no_show_at,
     }));
 
   return json({
@@ -396,6 +410,9 @@ Deno.serve(async (req: Request) => {
       completedCount: completedLeads.length,
       bookedCount: booked.length,
       futureCount: futureCalls,
+      noShowCount: noShows.length,
+      pastBookedCount: pastBooked.length,
+      showRate,
       takeRate,
       series: founderCallSeries,
       byType: founderCallByType,
