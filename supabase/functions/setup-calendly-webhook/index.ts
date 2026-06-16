@@ -33,6 +33,7 @@ Deno.serve(async (req: Request) => {
     return json(401, { error: "Unauthorized" });
   }
 
+
   const calendlyToken = Deno.env.get("CALENDLY_API_TOKEN");
   if (!calendlyToken) return json(500, { error: "CALENDLY_API_TOKEN not set" });
 
