@@ -9,6 +9,7 @@ import {
   CalendarClock,
   Percent,
   AlertCircle,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
