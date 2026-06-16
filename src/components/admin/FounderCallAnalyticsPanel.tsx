@@ -203,7 +203,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <Tile
           icon={<CheckCircle2 className="w-3.5 h-3.5 text-status-green" />}
           label="Completed"
@@ -227,6 +227,19 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
           icon={<CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />}
           label="Upcoming"
           value={fc?.futureCount ?? 0}
+          loading={loading && !data}
+        />
+        <Tile
+          icon={<UserX className="w-3.5 h-3.5 text-destructive" />}
+          label="No-shows"
+          value={fc?.noShowCount ?? 0}
+          loading={loading && !data}
+        />
+        <Tile
+          icon={<Percent className="w-3.5 h-3.5 text-status-green" />}
+          label="Show rate"
+          value={fc?.showRate ?? 0}
+          suffix="%"
           loading={loading && !data}
         />
       </div>
