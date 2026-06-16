@@ -221,6 +221,7 @@ export type Database = {
           email: string
           founder_call_booked_at: string | null
           founder_call_invitee_uri: string | null
+          founder_call_no_show_at: string | null
           founder_call_start_time: string | null
           id: string
           ip_address: string | null
@@ -242,6 +243,7 @@ export type Database = {
           email: string
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
+          founder_call_no_show_at?: string | null
           founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           email?: string
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
+          founder_call_no_show_at?: string | null
           founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
