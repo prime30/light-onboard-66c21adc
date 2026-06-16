@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
     start_time: string;
     invitee_uri: string;
     created_at: string;
+    no_show_at: string | null;
   };
   const bookings: Booking[] = [];
 
@@ -157,11 +158,16 @@ Deno.serve(async (req) => {
     for (const inv of j?.collection ?? []) {
       const invEmail = (inv?.email ?? "").trim().toLowerCase();
       if (!invEmail) continue;
+      // Calendly invitee schema: `no_show` is null OR `{ uri, created_at }` when marked.
+      const ns = inv?.no_show;
+      const noShowAt =
+        ns && typeof ns === "object" ? (ns.created_at ?? new Date().toISOString()) : null;
       bookings.push({
         email: invEmail,
         start_time: ev.start_time,
         invitee_uri: inv?.uri ?? "",
         created_at: inv?.created_at ?? new Date().toISOString(),
+        no_show_at: noShowAt,
       });
     }
     // Light pacing — Calendly is ~10 req/s soft.
@@ -177,50 +183,77 @@ Deno.serve(async (req) => {
   let updated = 0;
   let skipped = 0;
   let noLead = 0;
+  let noShowStamped = 0;
 
   // Pre-fetch existing leads in one query to avoid per-row reads.
   const emails = Array.from(new Set(bookings.map((b) => b.email)));
   const { data: existing, error: fetchErr } = await admin
     .from("registration_leads")
-    .select("email, founder_call_booked_at")
+    .select("email, founder_call_booked_at, founder_call_no_show_at")
     .in("email", emails);
   if (fetchErr) {
     return json({ success: false, error: `lead lookup failed: ${fetchErr.message}` }, 500);
   }
   const existingMap = new Map(
-    (existing ?? []).map((r: any) => [r.email, r.founder_call_booked_at as string | null]),
+    (existing ?? []).map((r: any) => [
+      r.email,
+      {
+        booked: r.founder_call_booked_at as string | null,
+        noShow: r.founder_call_no_show_at as string | null,
+      },
+    ]),
   );
 
   for (const b of bookings) {
-    if (!existingMap.has(b.email)) {
+    const cur = existingMap.get(b.email);
+    if (!cur) {
       noLead++;
       results.push({ email: b.email, action: "no_lead" });
       continue;
     }
-    if (!force && existingMap.get(b.email)) {
+    const needsBooking = force || !cur.booked;
+    const needsNoShow = !!b.no_show_at && (force || !cur.noShow);
+    if (!needsBooking && !needsNoShow) {
       skipped++;
       results.push({ email: b.email, action: "skipped", reason: "already stamped" });
       continue;
     }
     if (dryRun) {
-      updated++;
-      results.push({ email: b.email, action: "updated", reason: "dry-run" });
+      if (needsBooking) updated++;
+      if (needsNoShow) noShowStamped++;
+      results.push({
+        email: b.email,
+        action: "updated",
+        reason: needsNoShow ? "dry-run (incl. no-show)" : "dry-run",
+      });
       continue;
+    }
+    const patch: Record<string, unknown> = {};
+    if (needsBooking) {
+      patch.founder_call_booked_at = b.created_at;
+      patch.founder_call_start_time = b.start_time;
+      patch.founder_call_invitee_uri = b.invitee_uri || null;
+    }
+    if (needsNoShow) {
+      patch.founder_call_no_show_at = b.no_show_at;
+      // Make sure invitee_uri is stamped even on existing rows so the webhook can match later.
+      if (!cur.booked || force) patch.founder_call_invitee_uri = b.invitee_uri || null;
     }
     const { error: updErr } = await admin
       .from("registration_leads")
-      .update({
-        founder_call_booked_at: b.created_at,
-        founder_call_start_time: b.start_time,
-        founder_call_invitee_uri: b.invitee_uri || null,
-      })
+      .update(patch)
       .eq("email", b.email);
     if (updErr) {
       results.push({ email: b.email, action: "error", reason: updErr.message });
       continue;
     }
-    updated++;
-    results.push({ email: b.email, action: "updated" });
+    if (needsBooking) updated++;
+    if (needsNoShow) noShowStamped++;
+    results.push({
+      email: b.email,
+      action: "updated",
+      reason: needsNoShow ? "stamped no-show" : undefined,
+    });
   }
 
   return json({
