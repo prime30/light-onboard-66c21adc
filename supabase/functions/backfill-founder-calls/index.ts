@@ -264,6 +264,7 @@ Deno.serve(async (req) => {
     eventsFound: events.length,
     bookingsFound: bookings.length,
     updated,
+    noShowStamped,
     skipped,
     noLead,
     errors: results.filter((r) => r.action === "error").length,
