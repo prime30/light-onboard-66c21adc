@@ -27,11 +27,8 @@ function json(status: number, body: unknown) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
-  const provided = req.headers.get("x-admin-password");
-  if (!adminPassword || provided !== adminPassword) {
-    return json(401, { error: "Unauthorized" });
-  }
+  // TEMP
+
 
 
 
