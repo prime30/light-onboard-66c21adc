@@ -95,8 +95,7 @@ Deno.serve(async (req: Request) => {
           "invitee_no_show.deleted",
         ],
         organization: organizationUri,
-        user: userUri,
-        scope: "user",
+        scope: "organization",
       }),
     });
     const createBody = await createRes.json();
