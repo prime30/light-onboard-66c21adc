@@ -30,7 +30,9 @@ type RecentRow = {
   accountType: string | null;
   bookedAt: string | null;
   startTime: string | null;
+  noShowAt: string | null;
 };
+type ByTypeRow = TypeRow & { noShow?: number };
 
 type ApiResponse = {
   success: boolean;
