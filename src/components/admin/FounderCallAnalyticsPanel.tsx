@@ -335,6 +335,11 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
                 <span className="font-medium capitalize">{row.type.replace(/_/g, " ")}</span>
                 <span className="text-muted-foreground tabular-nums">
                   {row.booked} / {row.completed}
+                  {(row.noShow ?? 0) > 0 && (
+                    <span className="ml-2 text-destructive">
+                      {row.noShow} no-show{row.noShow! === 1 ? "" : "s"}
+                    </span>
+                  )}
                   <span
                     className={cn(
                       "ml-2",
