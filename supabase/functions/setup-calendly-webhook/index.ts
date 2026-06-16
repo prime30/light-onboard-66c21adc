@@ -34,6 +34,7 @@ Deno.serve(async (req: Request) => {
   }
 
 
+
   const calendlyToken = Deno.env.get("CALENDLY_API_TOKEN");
   if (!calendlyToken) return json(500, { error: "CALENDLY_API_TOKEN not set" });
 
@@ -95,8 +96,7 @@ Deno.serve(async (req: Request) => {
           "invitee_no_show.deleted",
         ],
         organization: organizationUri,
-        user: userUri,
-        scope: "user",
+        scope: "organization",
       }),
     });
     const createBody = await createRes.json();
