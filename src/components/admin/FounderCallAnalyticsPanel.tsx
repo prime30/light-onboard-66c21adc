@@ -368,7 +368,14 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
                 className="flex items-center justify-between gap-3 py-1.5 text-xs"
               >
                 <div className="min-w-0">
-                  <div className="font-medium truncate">{r.email}</div>
+                  <div className="font-medium truncate flex items-center gap-1.5">
+                    {r.email}
+                    {r.noShowAt && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-normal text-destructive border border-destructive/40 rounded-full px-1.5 py-0.5">
+                        <UserX className="w-2.5 h-2.5" /> no-show
+                      </span>
+                    )}
+                  </div>
                   <div className="text-[10px] text-muted-foreground capitalize">
                     {(r.accountType ?? "unknown").replace(/_/g, " ")}
                   </div>
