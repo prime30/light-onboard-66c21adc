@@ -44,6 +44,7 @@ interface Payload {
   phoneE164?: string | null;
   preferredMethods?: string[] | null;
   monthlyOrderVolume?: string | null;
+  autoApproved?: boolean | null;
 }
 
 
