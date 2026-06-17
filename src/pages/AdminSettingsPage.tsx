@@ -607,7 +607,53 @@ const AdminSettingsPage = () => {
                 aria-label="Toggle discount metafield writes"
               />
             )}
+        </div>
+
+        {/* Founder call high-volume gating */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Founder call: high-volume only
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, the founder call nudge on the success screen only
+                shows to Stylists and Salon owners who selected{" "}
+                <strong>6–10</strong> or <strong>10+</strong> extensions per month.
+                When disabled, all eligible accounts see the nudge.
+              </p>
+            </div>
+            {founderHighVolume === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={founderHighVolume}
+                onCheckedChange={handleFounderHighVolumeToggle}
+                disabled={updatingFounderHighVolume}
+                aria-label="Toggle founder call high-volume gating"
+              />
+            )}
           </div>
+          {founderHighVolume !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  founderHighVolume
+                    ? "text-status-green font-medium"
+                    : "font-medium text-foreground"
+                }
+              >
+                {founderHighVolume
+                  ? "Gated to 6–10 / 10+ stylists & salons"
+                  : "Shown to all eligible accounts"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+
           {metafieldsEnabled !== null && (
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
               Current state:{" "}
