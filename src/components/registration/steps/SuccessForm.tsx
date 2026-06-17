@@ -596,7 +596,11 @@ export const SuccessForm = () => {
             type="button"
             onClick={() => {
               if (isInIframeClose) {
-                closeIframe("registration_complete");
+                closeIframe("registration_complete", {
+                  founderCallEligible: showFounderCallNudge,
+                  monthlyOrderVolume: monthlyOrderVolume ?? null,
+                  accountType: accountType ?? null,
+                });
               } else {
                 navigate("/");
               }
