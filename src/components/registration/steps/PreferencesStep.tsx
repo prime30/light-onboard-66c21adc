@@ -270,8 +270,7 @@ export const PreferencesStep = () => {
         {/* How did you hear about us? */}
         <div className="space-y-2.5 animate-stagger-6">
           <p className="text-sm font-medium text-foreground">
-            How did you hear about us?{" "}
-            <span className="text-muted-foreground font-normal">(optional)</span>
+            How did you hear about us?
           </p>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -299,6 +298,8 @@ export const PreferencesStep = () => {
                   "p-3 rounded-xl border text-left text-sm transition-all duration-200",
                   watch("referralSource") === option.value
                     ? "border-foreground bg-foreground/5 font-medium"
+                    : errors.referralSource
+                    ? "border-destructive/50 hover:border-destructive/70"
                     : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
                 )}
               >
@@ -306,6 +307,11 @@ export const PreferencesStep = () => {
               </button>
             ))}
           </div>
+          {errors.referralSource && (
+            <p className="text-xs text-destructive">
+              {errors.referralSource.message as string}
+            </p>
+          )}
         </div>
       </div>
 
