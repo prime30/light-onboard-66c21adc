@@ -283,7 +283,7 @@ const preferencesValidators = {
     .max(100, "Handle must be less than 100 characters")
     .optional(),
   referralSource: z
-    .string({ required_error: "Please tell us how you heard about us" })
+    .string({ error: "Please tell us how you heard about us" })
     .min(1, "Please tell us how you heard about us"),
   subscribeOrderUpdates: z
     .boolean()
