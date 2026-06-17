@@ -159,6 +159,7 @@ Deno.serve(async (req: Request) => {
     if (deviceType) upsertBody.device_type = deviceType;
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
     if (viewportHeight) upsertBody.viewport_height = viewportHeight;
+    if (monthlyOrderVolume) upsertBody.monthly_order_volume = monthlyOrderVolume;
 
     const upsertRes = await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?on_conflict=email`,

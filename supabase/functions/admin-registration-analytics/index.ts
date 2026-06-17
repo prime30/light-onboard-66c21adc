@@ -47,10 +47,21 @@ Deno.serve(async (req: Request) => {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const graceCutoff = new Date(Date.now() - GRACE_MINUTES * 60 * 1000).toISOString();
 
+  // Read the founder-call gate so we can scope the take-rate denominator to
+  // users who would have actually seen the schedule CTA. When the gate is OFF,
+  // every completed lead is eligible. When ON, only pro/salon with monthly
+  // order volume in 6-10 / 10+ are eligible.
+  const { data: gateRow } = await supabase
+    .from("app_settings")
+    .select("founder_call_high_volume_only")
+    .eq("singleton", true)
+    .maybeSingle();
+  const founderGateOn = !!gateRow?.founder_call_high_volume_only;
+
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
@@ -329,8 +340,23 @@ Deno.serve(async (req: Request) => {
   const futureCalls = booked.filter(
     (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) > Date.now(),
   ).length;
+  // Eligibility for the founder call. When the gate is OFF, everyone who
+  // completes is eligible. When ON, only pro/salon at the high-volume tiers
+  // would have ever seen the schedule CTA — so they're the only ones who
+  // belong in the take-rate denominator.
+  const isEligible = (r: typeof completedLeads[number]) => {
+    if (!founderGateOn) return true;
+    const v = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
+    const highVolume = v === "6-10" || v === "10+";
+    const proOrSalon = r.account_type === "professional" || r.account_type === "salon";
+    return proOrSalon && highVolume;
+  };
+  const eligibleLeads = completedLeads.filter(isEligible);
+  const eligibleBooked = eligibleLeads.filter((r) => !!r.founder_call_booked_at);
   const takeRate =
-    completedLeads.length > 0 ? Math.round((booked.length / completedLeads.length) * 1000) / 10 : 0;
+    eligibleLeads.length > 0
+      ? Math.round((eligibleBooked.length / eligibleLeads.length) * 1000) / 10
+      : 0;
 
   // No-shows: only count bookings whose start time is in the past.
   const pastBooked = booked.filter(
@@ -348,7 +374,7 @@ Deno.serve(async (req: Request) => {
     const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     fcDayMap.set(d, { completed: 0, booked: 0 });
   }
-  for (const r of completedLeads) {
+  for (const r of eligibleLeads) {
     const cDay = r.completed_at!.slice(0, 10);
     const cBucket = fcDayMap.get(cDay);
     if (cBucket) cBucket.completed += 1;
@@ -366,9 +392,9 @@ Deno.serve(async (req: Request) => {
       v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
   }));
 
-  // Take rate by account type.
+  // Take rate by account type — only eligible cohort counts in the denominator.
   const fcByType = new Map<string, { completed: number; booked: number; noShow: number }>();
-  for (const r of completedLeads) {
+  for (const r of eligibleLeads) {
     const k = r.account_type ?? "unknown";
     const cur = fcByType.get(k) ?? { completed: 0, booked: 0, noShow: 0 };
     cur.completed += 1;
@@ -515,7 +541,10 @@ Deno.serve(async (req: Request) => {
     cohorts,
 
     founderCall: {
+      gateOn: founderGateOn,
       completedCount: completedLeads.length,
+      eligibleCount: eligibleLeads.length,
+      eligibleBookedCount: eligibleBooked.length,
       bookedCount: booked.length,
       futureCount: futureCalls,
       noShowCount: noShows.length,
