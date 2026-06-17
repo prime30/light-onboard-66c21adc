@@ -58,8 +58,8 @@ const BoxGrid = ({
   const pad = 5;
   const gap = 1.5;
   const cell = (tile - pad * 2 - gap * (cols - 1)) / cols;
-  const onFill = selected ? "hsl(var(--background))" : "hsl(var(--foreground))";
-  const offFill = selected ? "hsl(var(--background) / 0.18)" : "hsl(var(--foreground) / 0.12)";
+  const onFill = "hsl(var(--foreground))";
+  const offFill = "hsl(var(--foreground) / 0.12)";
 
   return (
     <svg
