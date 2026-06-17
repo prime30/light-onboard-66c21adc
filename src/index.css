@@ -1486,3 +1486,8 @@ div:has(> .field-highlight-fade) > div:first-child:not(.field-highlight-fade) sv
   to   { width: 100%; }
 }
 
+
+@keyframes pack-rise {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

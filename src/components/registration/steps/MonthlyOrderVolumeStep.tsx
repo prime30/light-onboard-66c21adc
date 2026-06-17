@@ -14,33 +14,84 @@ const fieldName: ValidFieldNames = "monthlyOrderVolume";
 
 const OPTION_DETAILS: Record<
   MonthlyOrderVolume,
-  { label: string; tier: string; description: string; fill: number }
+  { label: string; tier: string; description: string; packs: number }
 > = {
   "1": {
     label: "1",
     tier: "Starter",
     description: "Just getting started or occasional installs.",
-    fill: 1,
+    packs: 1,
   },
   "2-5": {
     label: "2–5",
     tier: "Growing",
     description: "Building a steady client base.",
-    fill: 2,
+    packs: 3,
   },
   "6-10": {
     label: "6–10",
     tier: "Established",
     description: "Consistent monthly volume.",
-    fill: 3,
+    packs: 7,
   },
   "10+": {
     label: "10+",
     tier: "High volume",
     description: "Power stylist or salon.",
-    fill: 4,
+    packs: 12,
   },
 };
+
+// Pictogram: a literal stack of extension packs that grows taller/denser per tier.
+// Drawn in a 48×48 tile, stacked from the bottom up so volume visually accumulates.
+const PackStack = ({
+  packs,
+  selected,
+}: {
+  packs: number;
+  selected: boolean;
+}) => {
+  const tileSize = 48;
+  const padX = 9;
+  const baseY = 40; // bottom of stack
+  // Pack height shrinks slightly as count grows so a tall stack still fits.
+  const packH = packs <= 1 ? 6 : packs <= 3 ? 5 : packs <= 7 ? 3.5 : 2.6;
+  const gap = packs <= 3 ? 2 : 1.4;
+  const fill = selected ? "hsl(var(--background))" : "hsl(var(--foreground))";
+
+  return (
+    <svg
+      width={tileSize}
+      height={tileSize}
+      viewBox={`0 0 ${tileSize} ${tileSize}`}
+      className="relative"
+      aria-hidden
+    >
+      {Array.from({ length: packs }).map((_, i) => {
+        const y = baseY - i * (packH + gap) - packH;
+        // Subtle pyramid: top packs slightly narrower for a hand-stacked feel
+        const inset = Math.min(i * 0.35, 3);
+        return (
+          <rect
+            key={i}
+            x={padX + inset}
+            y={y}
+            width={tileSize - padX * 2 - inset * 2}
+            height={packH}
+            rx={packH / 2}
+            fill={fill}
+            style={{
+              opacity: 0,
+              animation: `pack-rise 380ms cubic-bezier(0.34,1.56,0.64,1) forwards`,
+              animationDelay: `${i * 35}ms`,
+            }}
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
 
 export const MonthlyOrderVolumeStep = () => {
   const { getStepValidationStatus, setValue, watch, getStepNumber, errors } = useForm();
@@ -92,7 +143,7 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
-              {/* Left visual — stacked wefts representing extension bundles */}
+              {/* Left visual — literal stack of extension packs that grows per tier */}
               <div
                 className={cn(
                   "flex-shrink-0 relative w-12 h-12 rounded-[12px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out",
@@ -101,7 +152,6 @@ export const MonthlyOrderVolumeStep = () => {
                     : "bg-muted/60 group-hover:bg-muted"
                 )}
               >
-                {/* subtle inner ring */}
                 <div
                   aria-hidden
                   className={cn(
@@ -109,34 +159,7 @@ export const MonthlyOrderVolumeStep = () => {
                     isSelected ? "ring-background/15" : "ring-border/60"
                   )}
                 />
-                <div className="relative flex flex-col items-start gap-[3px] w-7">
-                  {[0, 1, 2, 3].map((i) => {
-                    // Stack from bottom up — fewer bars = lower tier
-                    const idxFromBottom = 3 - i;
-                    const active = idxFromBottom < details.fill;
-                    // Each weft grows wider toward the bottom for left-weighted hierarchy
-                    const widths = ["w-3", "w-4", "w-5", "w-7"];
-                    return (
-                      <div
-                        key={i}
-                        className={cn(
-                          "h-[3px] rounded-full transition-all duration-500 ease-out",
-                          widths[idxFromBottom],
-                          active
-                            ? isSelected
-                              ? "bg-background"
-                              : "bg-foreground"
-                            : isSelected
-                              ? "bg-background/20"
-                              : "bg-foreground/15"
-                        )}
-                        style={{
-                          transitionDelay: active ? `${idxFromBottom * 40}ms` : "0ms",
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+                <PackStack packs={details.packs} selected={isSelected} />
               </div>
 
               <div className="flex-1 min-w-0">
