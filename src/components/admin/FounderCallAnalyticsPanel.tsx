@@ -586,7 +586,7 @@ function Tile({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | string;
   suffix?: string;
   loading?: boolean;
 }) {
