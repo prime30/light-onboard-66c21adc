@@ -301,6 +301,13 @@ export const STEPS: Record<Step, StepInfo> = {
     schema: stepValidations["preferred-method"],
     accountTypes: ["professional", "salon", "student"],
   },
+  "monthly-order-volume": {
+    name: "monthly-order-volume",
+    displayName: STEP_DISPLAY_NAMES["monthly-order-volume"],
+    fields: fieldsForStep["monthly-order-volume"],
+    schema: stepValidations["monthly-order-volume"],
+    accountTypes: ["professional", "salon"],
+  },
   summary: {
     name: "summary",
     displayName: STEP_DISPLAY_NAMES.summary,
