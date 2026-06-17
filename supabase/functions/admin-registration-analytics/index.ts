@@ -374,7 +374,7 @@ Deno.serve(async (req: Request) => {
     const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     fcDayMap.set(d, { completed: 0, booked: 0 });
   }
-  for (const r of completedLeads) {
+  for (const r of eligibleLeads) {
     const cDay = r.completed_at!.slice(0, 10);
     const cBucket = fcDayMap.get(cDay);
     if (cBucket) cBucket.completed += 1;
@@ -392,9 +392,9 @@ Deno.serve(async (req: Request) => {
       v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
   }));
 
-  // Take rate by account type.
+  // Take rate by account type — only eligible cohort counts in the denominator.
   const fcByType = new Map<string, { completed: number; booked: number; noShow: number }>();
-  for (const r of completedLeads) {
+  for (const r of eligibleLeads) {
     const k = r.account_type ?? "unknown";
     const cur = fcByType.get(k) ?? { completed: 0, booked: 0, noShow: 0 };
     cur.completed += 1;
