@@ -19,25 +19,25 @@ const OPTION_DETAILS: Record<
   "1": {
     label: "1",
     tier: "Starter",
-    description: "Occasional install.",
+    description: "Occasional install",
     count: 1,
   },
   "2-5": {
     label: "2–5",
     tier: "Growing",
-    description: "Building a steady client base.",
+    description: "Building a steady client base",
     count: 5,
   },
   "6-10": {
     label: "6–10",
     tier: "Established",
-    description: "Consistent monthly volume.",
+    description: "Consistent monthly volume",
     count: 10,
   },
   "10+": {
     label: "10+",
     tier: "High volume",
-    description: "Power stylist or salon.",
+    description: "Power stylist or salon",
     count: 20,
   },
 };
