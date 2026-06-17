@@ -52,7 +52,7 @@ const BoxGrid = ({
   selected: boolean;
 }) => {
   const cols = 5;
-  const rows = 4;
+  const rows = 5;
   const total = cols * rows;
   const tile = 48;
   const pad = 5;
