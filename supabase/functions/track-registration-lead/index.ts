@@ -258,6 +258,13 @@ Deno.serve(async (req: Request) => {
           ...(preferredMethods.length > 0
             ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
             : {}),
+          ...(monthlyOrderVolume
+            ? {
+                monthly_order_volume: monthlyOrderVolume,
+                volume_cohort: volumeCohort,
+                is_high_volume: isHighVolume,
+              }
+            : {}),
         },
         metric: {
           data: { type: "metric", attributes: { name: metricName } },
