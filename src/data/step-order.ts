@@ -6,6 +6,7 @@ import {
   contactBasicsSchema,
   createPasswordStepSchema,
   licenseSchema,
+  monthlyOrderVolumeSchema,
   preferencesSchema,
   preferredMethodSchema,
   salonLicenseStepSchema,
