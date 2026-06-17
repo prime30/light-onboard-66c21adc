@@ -14,76 +14,82 @@ const fieldName: ValidFieldNames = "monthlyOrderVolume";
 
 const OPTION_DETAILS: Record<
   MonthlyOrderVolume,
-  { label: string; tier: string; description: string; packs: number }
+  { label: string; tier: string; description: string; count: number }
 > = {
   "1": {
     label: "1",
     tier: "Starter",
     description: "Just getting started or occasional installs.",
-    packs: 1,
+    count: 1,
   },
   "2-5": {
     label: "2–5",
     tier: "Growing",
     description: "Building a steady client base.",
-    packs: 3,
+    count: 5,
   },
   "6-10": {
     label: "6–10",
     tier: "Established",
     description: "Consistent monthly volume.",
-    packs: 7,
+    count: 10,
   },
   "10+": {
     label: "10+",
     tier: "High volume",
     description: "Power stylist or salon.",
-    packs: 12,
+    count: 20,
   },
 };
 
-// Pictogram: a literal stack of extension packs that grows taller/denser per tier.
-// Drawn in a 48×48 tile, stacked from the bottom up so volume visually accumulates.
-const PackStack = ({
-  packs,
+// Pictogram: a 5×4 grid (20 cells) — fills 1 / 5 / 10 / 20 from bottom-left
+// so the visual itself reads as "how much" at a glance.
+const BoxGrid = ({
+  count,
   selected,
 }: {
-  packs: number;
+  count: number;
   selected: boolean;
 }) => {
-  const tileSize = 48;
-  const padX = 9;
-  const baseY = 40; // bottom of stack
-  // Pack height shrinks slightly as count grows so a tall stack still fits.
-  const packH = packs <= 1 ? 6 : packs <= 3 ? 5 : packs <= 7 ? 3.5 : 2.6;
-  const gap = packs <= 3 ? 2 : 1.4;
-  const fill = selected ? "hsl(var(--background))" : "hsl(var(--foreground))";
+  const cols = 5;
+  const rows = 4;
+  const total = cols * rows;
+  const tile = 48;
+  const pad = 5;
+  const gap = 1.5;
+  const cell = (tile - pad * 2 - gap * (cols - 1)) / cols;
+  const onFill = selected ? "hsl(var(--background))" : "hsl(var(--foreground))";
+  const offFill = selected ? "hsl(var(--background) / 0.18)" : "hsl(var(--foreground) / 0.12)";
 
   return (
     <svg
-      width={tileSize}
-      height={tileSize}
-      viewBox={`0 0 ${tileSize} ${tileSize}`}
-      className="relative"
+      width={tile}
+      height={tile}
+      viewBox={`0 0 ${tile} ${tile}`}
       aria-hidden
+      className="relative"
     >
-      {Array.from({ length: packs }).map((_, i) => {
-        const y = baseY - i * (packH + gap) - packH;
-        // Subtle pyramid: top packs slightly narrower for a hand-stacked feel
-        const inset = Math.min(i * 0.35, 3);
+      {Array.from({ length: total }).map((_, i) => {
+        // Iterate bottom-left → top-right so fills accumulate upward.
+        const col = i % cols;
+        const rowFromBottom = Math.floor(i / cols);
+        const row = rows - 1 - rowFromBottom;
+        const active = i < count;
+        const x = pad + col * (cell + gap);
+        const y = pad + row * (cell + gap);
         return (
           <rect
             key={i}
-            x={padX + inset}
+            x={x}
             y={y}
-            width={tileSize - padX * 2 - inset * 2}
-            height={packH}
-            rx={packH / 2}
-            fill={fill}
+            width={cell}
+            height={cell}
+            rx={1.5}
+            fill={active ? onFill : offFill}
             style={{
               opacity: 0,
-              animation: `pack-rise 380ms cubic-bezier(0.34,1.56,0.64,1) forwards`,
-              animationDelay: `${i * 35}ms`,
+              animation: `pack-rise 320ms cubic-bezier(0.34,1.56,0.64,1) forwards`,
+              animationDelay: `${active ? i * 18 : 0}ms`,
             }}
           />
         );
@@ -91,6 +97,8 @@ const PackStack = ({
     </svg>
   );
 };
+
+
 
 
 export const MonthlyOrderVolumeStep = () => {
@@ -159,7 +167,7 @@ export const MonthlyOrderVolumeStep = () => {
                     isSelected ? "ring-background/15" : "ring-border/60"
                   )}
                 />
-                <PackStack packs={details.packs} selected={isSelected} />
+                <BoxGrid count={details.count} selected={isSelected} />
               </div>
 
               <div className="flex-1 min-w-0">
