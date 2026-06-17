@@ -122,6 +122,8 @@ export const SuccessForm = () => {
         email: values?.email,
         accountType: values?.accountType,
         autoApproved: !!autoApproved,
+        monthlyOrderVolume: monthlyOrderVolume ?? null,
+        founderCallEligible: showFounderCallNudge,
       });
     } catch (err) {
       console.error("[SuccessForm] Failed to post REGISTRATION_SUCCESS:", err);
