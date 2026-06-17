@@ -211,8 +211,56 @@ export const PreferencesStep = () => {
           </div>
         )}
 
+        {/* How did you hear about us? */}
+        <div className="space-y-2.5 animate-stagger-2">
+          <p className="text-sm font-medium text-foreground">
+            How did you hear about us?
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: "instagram", label: "Instagram" },
+              { value: "tiktok", label: "TikTok" },
+              { value: "facebook", label: "Facebook" },
+              { value: "google", label: "Google Search" },
+              { value: "friend", label: "Friend or Colleague" },
+              { value: "salon", label: "My Salon" },
+              { value: "event", label: "Industry Event" },
+              { value: "other", label: "Other" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                data-field-wrapper="referralSource"
+                style={{ touchAction: "manipulation" }}
+                onClick={() =>
+                  setValue(
+                    "referralSource",
+                    watch("referralSource") === option.value ? "" : option.value,
+                    dirtyFieldOptions
+                  )
+                }
+                className={cn(
+                  "p-3 rounded-xl border text-left text-sm transition-all duration-200",
+                  watch("referralSource") === option.value
+                    ? "border-foreground bg-foreground/5 font-medium"
+                    : errors.referralSource
+                    ? "border-destructive/50 hover:border-destructive/70"
+                    : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {errors.referralSource && (
+            <p className="text-xs text-destructive">
+              {errors.referralSource.message as string}
+            </p>
+          )}
+        </div>
+
         {/* Birthday (Optional) */}
-        <div className="space-y-2.5 animate-stagger-2 group">
+        <div className="space-y-2.5 animate-stagger-3 group">
           <div className="grid grid-cols-2 gap-2.5">
             <SelectInput
               name="birthdayMonth"
@@ -265,54 +313,6 @@ export const PreferencesStep = () => {
           <p className="text-xs text-muted-foreground mt-2.5">
             Instagram, TikTok, or your primary platform
           </p>
-        </div>
-
-        {/* How did you hear about us? */}
-        <div className="space-y-2.5 animate-stagger-6">
-          <p className="text-sm font-medium text-foreground">
-            How did you hear about us?
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: "instagram", label: "Instagram" },
-              { value: "tiktok", label: "TikTok" },
-              { value: "facebook", label: "Facebook" },
-              { value: "google", label: "Google Search" },
-              { value: "friend", label: "Friend or Colleague" },
-              { value: "salon", label: "My Salon" },
-              { value: "event", label: "Industry Event" },
-              { value: "other", label: "Other" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                data-field-wrapper="referralSource"
-                style={{ touchAction: "manipulation" }}
-                onClick={() =>
-                  setValue(
-                    "referralSource",
-                    watch("referralSource") === option.value ? "" : option.value,
-                    dirtyFieldOptions
-                  )
-                }
-                className={cn(
-                  "p-3 rounded-xl border text-left text-sm transition-all duration-200",
-                  watch("referralSource") === option.value
-                    ? "border-foreground bg-foreground/5 font-medium"
-                    : errors.referralSource
-                    ? "border-destructive/50 hover:border-destructive/70"
-                    : "border-border/50 hover:border-foreground/30 hover:bg-muted/60"
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          {errors.referralSource && (
-            <p className="text-xs text-destructive">
-              {errors.referralSource.message as string}
-            </p>
-          )}
         </div>
       </div>
 
