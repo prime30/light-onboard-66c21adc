@@ -13,7 +13,7 @@ import { Step } from "@/types/auth";
 const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: string }> = {
   "1": {
     title: "Welcome in",
-    description: "We'll send a curated starter shade kit and tutorials for your first installs.",
+    description: "We're excited to partner with you and take you further.",
   },
   "2-5": {
     title: "You're building something",
