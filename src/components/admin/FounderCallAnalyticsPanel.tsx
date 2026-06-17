@@ -232,6 +232,16 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
           >
             {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Sync orders"}
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={tagAttendees}
+            disabled={tagging}
+            title='Add "Founder Call Attendee" tag in Shopify to everyone who attended a past call'
+          >
+            {tagging ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Tag attendees"}
+          </Button>
           <Button type="button" size="sm" variant="outline" onClick={fetchData} disabled={loading}>
             {loading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
