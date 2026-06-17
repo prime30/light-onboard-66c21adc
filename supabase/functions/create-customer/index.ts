@@ -917,11 +917,34 @@ Deno.serve(async (req: Request) => {
         `HTTP ${apiResponse.status}: ${responseText.substring(0, 500)}`
       );
       await updateAuditRow({ status: "failed", error_log: auditErrors });
+
+      // Translate known upstream validation errors into specific client codes
+      // so the SPA can highlight the right field. The pre-checks earlier
+      // catch most of these, but if the pre-check is skipped (env missing)
+      // or races with another signup, Helium/Shopify still enforce them.
+      if (apiResponse.status === 422) {
+        const lower = responseText.toLowerCase();
+        if (lower.includes('"phone"') && lower.includes("already")) {
+          return sendError(
+            409,
+            ["This phone number is already linked to another account."],
+            "PHONE_IN_USE"
+          );
+        }
+        if (lower.includes('"email"') && lower.includes("already")) {
+          return sendError(409, ["Customer already exists with this email address"], "Conflict", [
+            { type: "LOGIN", label: "Go to Login", url: "/login" },
+          ]);
+        }
+      }
+
       const safeStatus = apiResponse.status >= 400 && apiResponse.status < 500 ? 400 : 502;
       return sendError(safeStatus, [
         "We couldn't complete your registration right now. Please try again in a moment.",
       ]);
     }
+
+
 
     let customerFieldsData: CustomerFieldsResponse;
     try {
