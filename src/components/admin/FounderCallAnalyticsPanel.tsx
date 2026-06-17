@@ -113,6 +113,30 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     [adminEmail, adminPassword],
   );
 
+  const [syncing, setSyncing] = useState(false);
+  const syncFirstOrders = useCallback(async () => {
+    setSyncing(true);
+    setBackfillResult(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "backfill-first-orders",
+        { body: { email: adminEmail, password: adminPassword, daysBack: 365 } },
+      );
+      if (invokeErr || !res?.success) {
+        setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
+      } else {
+        setBackfillResult(
+          `Synced first orders — scanned ${res.totalOrdersSeen} orders across ${res.pages} pages, ${res.uniqueEmails} unique emails, ${res.matchedLeads} matched leads, ${res.updated} updated, ${res.skipped} already current.`,
+        );
+        fetchDataRef.current?.();
+      }
+    } catch (e) {
+      setBackfillResult(`Sync error: ${e instanceof Error ? e.message : "failed"}`);
+    } finally {
+      setSyncing(false);
+    }
+  }, [adminEmail, adminPassword]);
+
   const fetchDataRef = useRef<(() => void) | null>(null);
 
   const fetchData = useCallback(async () => {
