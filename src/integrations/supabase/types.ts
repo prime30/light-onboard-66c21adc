@@ -219,6 +219,10 @@ export type Database = {
           created_at: string
           device_type: string | null
           email: string
+          first_order_at: string | null
+          first_order_id: string | null
+          first_order_synced_at: string | null
+          first_order_value: number | null
           founder_call_booked_at: string | null
           founder_call_invitee_uri: string | null
           founder_call_no_show_at: string | null
@@ -241,6 +245,10 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           email: string
+          first_order_at?: string | null
+          first_order_id?: string | null
+          first_order_synced_at?: string | null
+          first_order_value?: number | null
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
           founder_call_no_show_at?: string | null
@@ -263,6 +271,10 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           email?: string
+          first_order_at?: string | null
+          first_order_id?: string | null
+          first_order_synced_at?: string | null
+          first_order_value?: number | null
           founder_call_booked_at?: string | null
           founder_call_invitee_uri?: string | null
           founder_call_no_show_at?: string | null
