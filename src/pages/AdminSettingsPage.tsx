@@ -235,6 +235,38 @@ const AdminSettingsPage = () => {
       setUpdatingMetafields(false);
     }
   };
+  const handleFounderHighVolumeToggle = async (next: boolean) => {
+    if (founderHighVolume === null) return;
+    const previous = founderHighVolume;
+    setFounderHighVolume(next);
+    setUpdatingFounderHighVolume(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, founderCallHighVolumeOnly: next },
+      });
+      if (error || !data?.success) {
+        setFounderHighVolume(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Founder call gating ON" : "Founder call gating OFF",
+        description: next
+          ? "Only stylists and salons who order 6-10 or 10+ extensions per month will see the founder call nudge."
+          : "All eligible accounts will see the founder call nudge.",
+      });
+    } catch (err) {
+      console.error(err);
+      setFounderHighVolume(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingFounderHighVolume(false);
+    }
+  };
 
 
 
