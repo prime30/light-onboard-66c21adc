@@ -272,7 +272,7 @@ export const PreferencesStep = () => {
           <p className="text-sm font-medium text-foreground">
             How did you hear about us?
           </p>
-          <div className="grid grid-cols-2 gap-2" data-field-wrapper="referralSource">
+          <div className="grid grid-cols-2 gap-2">
             {[
               { value: "instagram", label: "Instagram" },
               { value: "tiktok", label: "TikTok" },
@@ -286,6 +286,7 @@ export const PreferencesStep = () => {
               <button
                 key={option.value}
                 type="button"
+                data-field-wrapper="referralSource"
                 style={{ touchAction: "manipulation" }}
                 onClick={() =>
                   setValue(
