@@ -541,7 +541,10 @@ Deno.serve(async (req: Request) => {
     cohorts,
 
     founderCall: {
+      gateOn: founderGateOn,
       completedCount: completedLeads.length,
+      eligibleCount: eligibleLeads.length,
+      eligibleBookedCount: eligibleBooked.length,
       bookedCount: booked.length,
       futureCount: futureCalls,
       noShowCount: noShows.length,
