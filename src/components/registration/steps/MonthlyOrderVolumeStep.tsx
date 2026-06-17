@@ -92,26 +92,51 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
-              {/* Left-weighted bar visual — Lyft-style tier indicator */}
-              <div className="flex-shrink-0 flex items-end gap-[3px] h-10 w-10">
-                {[1, 2, 3, 4].map((i) => {
-                  const active = i <= details.fill;
-                  const heights = ["h-2", "h-4", "h-7", "h-10"];
-                  return (
-                    <div
-                      key={i}
-                      className={cn(
-                        "w-1.5 rounded-sm transition-all duration-300",
-                        heights[i - 1],
-                        active
-                          ? isSelected
-                            ? "bg-foreground"
-                            : "bg-foreground/70"
-                          : "bg-border"
-                      )}
-                    />
-                  );
-                })}
+              {/* Left visual — stacked wefts representing extension bundles */}
+              <div
+                className={cn(
+                  "flex-shrink-0 relative w-12 h-12 rounded-[12px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out",
+                  isSelected
+                    ? "bg-foreground shadow-[0_8px_24px_-12px_hsl(var(--foreground)/0.45)]"
+                    : "bg-muted/60 group-hover:bg-muted"
+                )}
+              >
+                {/* subtle inner ring */}
+                <div
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-0 rounded-[12px] ring-1 ring-inset transition-colors duration-300",
+                    isSelected ? "ring-background/15" : "ring-border/60"
+                  )}
+                />
+                <div className="relative flex flex-col items-start gap-[3px] w-7">
+                  {[0, 1, 2, 3].map((i) => {
+                    // Stack from bottom up — fewer bars = lower tier
+                    const idxFromBottom = 3 - i;
+                    const active = idxFromBottom < details.fill;
+                    // Each weft grows wider toward the bottom for left-weighted hierarchy
+                    const widths = ["w-3", "w-4", "w-5", "w-7"];
+                    return (
+                      <div
+                        key={i}
+                        className={cn(
+                          "h-[3px] rounded-full transition-all duration-500 ease-out",
+                          widths[idxFromBottom],
+                          active
+                            ? isSelected
+                              ? "bg-background"
+                              : "bg-foreground"
+                            : isSelected
+                              ? "bg-background/20"
+                              : "bg-foreground/15"
+                        )}
+                        style={{
+                          transitionDelay: active ? `${idxFromBottom * 40}ms` : "0ms",
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex-1 min-w-0">
