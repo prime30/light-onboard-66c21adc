@@ -58,8 +58,8 @@ const BoxGrid = ({
   const pad = 5;
   const gap = 1.5;
   const cell = (tile - pad * 2 - gap * (cols - 1)) / cols;
-  const onFill = selected ? "hsl(var(--background))" : "hsl(var(--foreground))";
-  const offFill = selected ? "hsl(var(--background) / 0.18)" : "hsl(var(--foreground) / 0.12)";
+  const onFill = "hsl(var(--foreground))";
+  const offFill = "hsl(var(--foreground) / 0.12)";
 
   return (
     <svg
@@ -151,22 +151,8 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
-              {/* Left visual — literal stack of extension packs that grows per tier */}
-              <div
-                className={cn(
-                  "flex-shrink-0 relative w-12 h-12 rounded-[12px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out",
-                  isSelected
-                    ? "bg-foreground shadow-[0_8px_24px_-12px_hsl(var(--foreground)/0.45)]"
-                    : "bg-muted/60 group-hover:bg-muted"
-                )}
-              >
-                <div
-                  aria-hidden
-                  className={cn(
-                    "absolute inset-0 rounded-[12px] ring-1 ring-inset transition-colors duration-300",
-                    isSelected ? "ring-background/15" : "ring-border/60"
-                  )}
-                />
+              {/* Left visual — bare grid, no tile background */}
+              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                 <BoxGrid count={details.count} selected={isSelected} />
               </div>
 
