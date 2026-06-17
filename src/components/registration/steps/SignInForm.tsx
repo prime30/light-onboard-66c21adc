@@ -740,21 +740,10 @@ export const SignInForm = () => {
           />
 
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2.5 cursor-pointer group">
-              <div className="relative w-[18px] h-[18px]">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <div className="w-full h-full rounded-sm border-2 border-border/50 bg-muted peer-checked:bg-foreground peer-checked:border-foreground transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background" />
-                <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-background opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
-              </div>
-              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-                Remember me
-              </span>
-            </label>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Lock className="w-[13px] h-[13px]" aria-hidden="true" />
+              <span>Secure, we never share your information</span>
+            </div>
 
             <button
               onClick={switchToForgotPassword}
