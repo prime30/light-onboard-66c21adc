@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
 import {
@@ -8,6 +9,25 @@ import {
 } from "@/lib/validations/auth-schemas";
 import { dirtyFieldOptions, useForm } from "../context";
 import { Step } from "@/types/auth";
+
+const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: string }> = {
+  "1": {
+    title: "Welcome in",
+    description: "We'll send a curated starter shade kit and tutorials for your first installs.",
+  },
+  "2-5": {
+    title: "You're building something",
+    description: "Expect restock reminders and early access to new lengths in your top shades.",
+  },
+  "6-10": {
+    title: "You're our kind of pro",
+    description: "We'll flag bundle pricing and prioritize you on limited drops.",
+  },
+  "10+": {
+    title: "Power user — we got you",
+    description: "An account manager and salon-level pricing will be lined up for you.",
+  },
+};
 
 const STEP: Step = "monthly-order-volume";
 const fieldName: ValidFieldNames = "monthlyOrderVolume";
