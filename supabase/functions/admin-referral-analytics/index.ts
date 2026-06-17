@@ -80,8 +80,17 @@ Deno.serve(async (req: Request) => {
   let withSource = 0;
 
   for (const row of data ?? []) {
-    total += 1;
     const payload = (row as { payload?: Record<string, unknown> }).payload ?? {};
+    // Skip internal test users (first name "Test", case-insensitive).
+    const firstName = (
+      (payload.first_name as string | undefined) ??
+      (payload.firstName as string | undefined) ??
+      ""
+    )
+      .trim()
+      .toLowerCase();
+    if (firstName === "test") continue;
+    total += 1;
     const rawSource = (payload.referralSource as string | undefined) ?? "";
     const source = rawSource.trim().toLowerCase();
     const key = source && LABELS[source] ? source : source ? "other" : "unspecified";

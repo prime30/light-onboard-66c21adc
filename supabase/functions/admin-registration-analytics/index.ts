@@ -76,7 +76,22 @@ Deno.serve(async (req: Request) => {
   };
 
 
-  const leads = (rows ?? []) as Row[];
+  // Exclude internal test users: any email whose submission payload first
+  // name is "Test" (case-insensitive). Pulled from registration_submissions
+  // since registration_leads doesn't store first_name.
+  const { data: testRows } = await supabase
+    .from("registration_submissions")
+    .select("email, payload")
+    .ilike("payload->>first_name", "test");
+  const excludedEmails = new Set(
+    (testRows ?? [])
+      .map((r: { email?: string }) => (r.email ?? "").trim().toLowerCase())
+      .filter(Boolean),
+  );
+
+  const leads = ((rows ?? []) as Row[]).filter(
+    (r) => !excludedEmails.has((r.email ?? "").trim().toLowerCase()),
+  );
 
   // ---- totals (apply grace window for bounce) ----
   const eligible = leads.filter((r) => r.completed_at || r.started_at < graceCutoff);
