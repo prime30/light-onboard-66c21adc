@@ -14,23 +14,31 @@ const fieldName: ValidFieldNames = "monthlyOrderVolume";
 
 const OPTION_DETAILS: Record<
   MonthlyOrderVolume,
-  { label: string; description: string }
+  { label: string; tier: string; description: string; fill: number }
 > = {
   "1": {
     label: "1",
+    tier: "Starter",
     description: "Just getting started or occasional installs.",
+    fill: 1,
   },
   "2-5": {
     label: "2–5",
+    tier: "Growing",
     description: "Building a steady client base.",
+    fill: 2,
   },
   "6-10": {
     label: "6–10",
+    tier: "Established",
     description: "Consistent monthly volume.",
+    fill: 3,
   },
   "10+": {
     label: "10+",
-    description: "High-volume stylist or salon.",
+    tier: "High volume",
+    description: "Power stylist or salon.",
+    fill: 4,
   },
 };
 
