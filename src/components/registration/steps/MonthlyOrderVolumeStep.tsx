@@ -167,7 +167,7 @@ export const MonthlyOrderVolumeStep = () => {
                     isSelected ? "ring-background/15" : "ring-border/60"
                   )}
                 />
-                <PackStack packs={details.packs} selected={isSelected} />
+                <BoxGrid count={details.count} selected={isSelected} />
               </div>
 
               <div className="flex-1 min-w-0">
