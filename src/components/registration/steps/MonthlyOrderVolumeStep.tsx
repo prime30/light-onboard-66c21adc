@@ -21,7 +21,7 @@ const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: strin
   },
   "6-10": {
     title: "You're our kind of pro",
-    description: "We'll flag bundle pricing and prioritize you on limited drops.",
+    description: "You'll likely qualify for huge savings and education opportunities.",
   },
   "10+": {
     title: "Power user — we got you",
