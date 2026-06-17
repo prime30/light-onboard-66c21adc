@@ -282,10 +282,11 @@ const preferencesValidators = {
     .trim()
     .max(100, "Handle must be less than 100 characters")
     .optional(),
-  referralSource: z.preprocess(
-    (value) => (typeof value === "string" ? value : ""),
-    z.string().trim().min(1, "Please tell us how you heard about us")
-  ),
+  referralSource: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => Boolean(value), "Please tell us how you heard about us"),
   subscribeOrderUpdates: z
     .boolean()
     .optional()
