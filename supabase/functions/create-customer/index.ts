@@ -199,6 +199,8 @@ const PREFERRED_METHOD_OPTIONS = [
   "Volume Weft",
 ] as const;
 const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
+const MONTHLY_ORDER_VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+const monthlyOrderVolumeSchema = z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish();
 
 const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({
@@ -223,6 +225,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
     preferredMethods: preferredMethodsSchema,
+    monthlyOrderVolume: monthlyOrderVolumeSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -255,6 +258,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.literal(true),
     preferredMethods: preferredMethodsSchema,
+    monthlyOrderVolume: monthlyOrderVolumeSchema,
     birthdayMonth: z.string().nullish(),
     birthdayDay: z.string().nullish(),
     socialMediaHandle: z.string().nullish(),
@@ -1526,6 +1530,7 @@ Deno.serve(async (req: Request) => {
             firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
             lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
             preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
+            monthlyOrderVolume: (parseResult.data as { monthlyOrderVolume?: string }).monthlyOrderVolume ?? null,
           }),
         });
       } catch (err) {
