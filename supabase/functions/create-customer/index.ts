@@ -588,13 +588,15 @@ Deno.serve(async (req: Request) => {
             .some((t: string) => /^account type:/i.test(t));
         } else {
           console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
-          // Fail closed — if we can't tell, keep prior behavior and block
-          // so we never silently overwrite a legit prior application.
-          alreadyApplied = true;
+          // Fail OPEN — Klaviyo / storefront-synced contacts (no prior
+          // application) are far more common than legit duplicate
+          // applications. A transient Shopify API hiccup should not block
+          // a legit recovery; we'd rather soft-merge than 409.
+          alreadyApplied = false;
         }
       } catch (e) {
-        console.warn("Error checking Shopify tags for soft-merge (failing closed):", e);
-        alreadyApplied = true;
+        console.warn("Error checking Shopify tags for soft-merge (failing open):", e);
+        alreadyApplied = false;
       }
     }
 
