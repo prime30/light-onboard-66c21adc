@@ -14,6 +14,7 @@ const ContactBasicsStep = lazy(() => import("@/components/registration/steps/Con
 const CreatePasswordStep = lazy(() => import("@/components/registration/steps/CreatePasswordStep").then(m => ({ default: m.CreatePasswordStep })));
 const PreferencesStep = lazy(() => import("@/components/registration/steps/PreferencesStep").then(m => ({ default: m.PreferencesStep })));
 const PreferredMethodStep = lazy(() => import("@/components/registration/steps/PreferredMethodStep").then(m => ({ default: m.PreferredMethodStep })));
+const MonthlyOrderVolumeStep = lazy(() => import("@/components/registration/steps/MonthlyOrderVolumeStep").then(m => ({ default: m.MonthlyOrderVolumeStep })));
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
 const SchoolInfoStep = lazy(() => import("@/components/registration/steps/SchoolInfoStep").then(m => ({ default: m.SchoolInfoStep })));
 const LicenseStep = lazy(() => import("@/components/registration/steps/LicenseStep").then(m => ({ default: m.LicenseStep })));
@@ -483,6 +484,7 @@ const Auth = () => {
               {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
               {currentStep === "tax-exemption" && <TaxExemptionStep />}
               {currentStep === "preferred-method" && <PreferredMethodStep />}
+              {currentStep === "monthly-order-volume" && <MonthlyOrderVolumeStep />}
               {currentStep === "preferences" && <PreferencesStep />}
               {currentStep === "summary" && <SummaryForm />}
               {currentStep === "assessing" && <AssessingStep />}
