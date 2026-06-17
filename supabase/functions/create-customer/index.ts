@@ -1440,13 +1440,16 @@ Deno.serve(async (req: Request) => {
               );
             }
 
-            // Fallback: on a soft-merge, an existing Shopify customer is
-            // often already "enabled" (support set a password, or they
-            // recovered previously). The Admin activation endpoint returns
-            // 422 in that case. Send a Storefront password-reset email so
-            // the user can claim the account with their chosen password.
-            const isSoftMerge = !!existingCustomerId;
-            if (!activated && isSoftMerge) {
+            // Fallback: if activation didn't succeed for any reason, send a
+            // Storefront password-reset email so the user always has a path
+            // to claim the account. Covers both:
+            //   - soft-merge where customer is already enabled (Admin
+            //     activation returns 422)
+            //   - brand-new customer whose activation POST failed mid-flow
+            //     (network blip, password edge case) — without this they'd
+            //     be stuck in "invited" with the one-time URL consumed.
+            if (!activated) {
+
               try {
                 const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
                 if (storefrontToken) {
@@ -1470,11 +1473,12 @@ Deno.serve(async (req: Request) => {
                     const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
                     if (errs.length === 0) {
                       console.log(
-                        "Soft-merge: sent password-reset email to already-enabled customer:",
+                        "Sent password-reset email as activation fallback:",
                         customer.email,
-                        "(activation status was",
-                        activationStatusForFallback + ")"
+                        "(soft-merge=" + (!!existingCustomerId) +
+                        ", activation status was " + activationStatusForFallback + ")"
                       );
+
                     } else {
                       console.warn(
                         "Soft-merge customerRecover returned userErrors (non-blocking):",
