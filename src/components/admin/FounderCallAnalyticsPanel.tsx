@@ -401,6 +401,102 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
         </div>
       )}
 
+      {/* Purchase cohorts: attended vs no-show vs no-call */}
+      {(fc?.purchaseCohorts?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              First-purchase cohort comparison
+            </div>
+            {typeof fc?.attendedLiftPp === "number" && (
+              <div
+                className={cn(
+                  "text-[11px] tabular-nums",
+                  fc.attendedLiftPp > 0
+                    ? "text-status-green"
+                    : fc.attendedLiftPp < 0
+                      ? "text-destructive"
+                      : "text-muted-foreground",
+                )}
+                title="Attended purchase rate minus no-call baseline (percentage points)"
+              >
+                {fc.attendedLiftPp > 0 ? "+" : ""}
+                {fc.attendedLiftPp} pp vs no-call
+              </div>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+            Of completed registrations, % who made a first purchase and how fast.
+            Upcoming bookings are excluded. Run “Sync orders” to refresh Shopify data.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground border-b border-border/50">
+                  <th className="text-left font-normal py-1.5 pr-3">Cohort</th>
+                  <th className="text-right font-normal py-1.5 pr-3">Users</th>
+                  <th className="text-right font-normal py-1.5 pr-3">Purchasers</th>
+                  <th className="text-right font-normal py-1.5 pr-3">Rate</th>
+                  <th className="text-right font-normal py-1.5 pr-3">Median time</th>
+                  <th className="text-right font-normal py-1.5 pr-3">Avg time</th>
+                  <th className="text-right font-normal py-1.5 pr-3">AOV</th>
+                  <th className="text-right font-normal py-1.5">Revenue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {fc!.purchaseCohorts!.map((c) => {
+                  const label =
+                    c.cohort === "attended"
+                      ? "Attended call"
+                      : c.cohort === "no_show"
+                        ? "No-show"
+                        : "No call booked";
+                  const fmtHours = (h: number) => {
+                    if (h <= 0) return "—";
+                    if (h < 24) return `${h}h`;
+                    const d = h / 24;
+                    return `${Math.round(d * 10) / 10}d`;
+                  };
+                  return (
+                    <tr key={c.cohort}>
+                      <td className="py-1.5 pr-3 font-medium">{label}</td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
+                        {c.size}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
+                        {c.purchasers}
+                      </td>
+                      <td
+                        className={cn(
+                          "py-1.5 pr-3 text-right tabular-nums",
+                          c.cohort === "attended" && c.purchaseRate > 0
+                            ? "text-status-green font-medium"
+                            : "text-foreground",
+                        )}
+                      >
+                        {c.purchaseRate}%
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
+                        {fmtHours(c.medianTimeToPurchaseHours)}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
+                        {fmtHours(c.avgTimeToPurchaseHours)}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
+                        {c.avgOrderValue > 0 ? `$${c.avgOrderValue.toFixed(2)}` : "—"}
+                      </td>
+                      <td className="py-1.5 text-right tabular-nums text-muted-foreground">
+                        {c.totalRevenue > 0 ? `$${c.totalRevenue.toFixed(2)}` : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Recent bookings */}
       {(fc?.recent?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
