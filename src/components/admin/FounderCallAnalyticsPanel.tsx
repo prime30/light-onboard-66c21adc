@@ -137,6 +137,29 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     }
   }, [adminEmail, adminPassword]);
 
+  const [tagging, setTagging] = useState(false);
+  const tagAttendees = useCallback(async () => {
+    setTagging(true);
+    setBackfillResult(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "tag-founder-call-attendees",
+        { body: { email: adminEmail, password: adminPassword } },
+      );
+      if (invokeErr || !res?.success) {
+        setBackfillResult(`Tag error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
+      } else {
+        setBackfillResult(
+          `Tagged Shopify attendees — ${res.candidates} attendees, ${res.tagged} newly tagged "${res.tag}", ${res.alreadyTagged} already tagged, ${res.notFound} no Shopify customer, ${res.failed} failed.`,
+        );
+      }
+    } catch (e) {
+      setBackfillResult(`Tag error: ${e instanceof Error ? e.message : "failed"}`);
+    } finally {
+      setTagging(false);
+    }
+  }, [adminEmail, adminPassword]);
+
   const fetchDataRef = useRef<(() => void) | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -208,6 +231,16 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
             title="Pull Shopify orders and stamp each lead's first-order date / value"
           >
             {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Sync orders"}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={tagAttendees}
+            disabled={tagging}
+            title='Add "Founder Call Attendee" tag in Shopify to everyone who attended a past call'
+          >
+            {tagging ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Tag attendees"}
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={fetchData} disabled={loading}>
             {loading ? (
