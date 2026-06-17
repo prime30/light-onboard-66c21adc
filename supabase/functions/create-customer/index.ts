@@ -1473,11 +1473,12 @@ Deno.serve(async (req: Request) => {
                     const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
                     if (errs.length === 0) {
                       console.log(
-                        "Soft-merge: sent password-reset email to already-enabled customer:",
+                        "Sent password-reset email as activation fallback:",
                         customer.email,
-                        "(activation status was",
-                        activationStatusForFallback + ")"
+                        "(soft-merge=" + (!!existingCustomerId) +
+                        ", activation status was " + activationStatusForFallback + ")"
                       );
+
                     } else {
                       console.warn(
                         "Soft-merge customerRecover returned userErrors (non-blocking):",
