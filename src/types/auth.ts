@@ -24,6 +24,7 @@ export type Step =
   | "wholesale-terms"
   | "tax-exemption"
   | "preferred-method"
+  | "monthly-order-volume"
   | "preferences"
   | "summary"
   | "assessing"

@@ -9,6 +9,7 @@ export { LicenseStep } from "./LicenseStep";
 export { OnboardingForm } from "./OnboardingForm";
 export { PreferencesStep } from "./PreferencesStep";
 export { PreferredMethodStep } from "./PreferredMethodStep";
+export { MonthlyOrderVolumeStep } from "./MonthlyOrderVolumeStep";
 export { SchoolInfoStep } from "./SchoolInfoStep";
 export { SignInForm } from "./SignInForm";
 export { SuccessForm } from "./SuccessForm";
