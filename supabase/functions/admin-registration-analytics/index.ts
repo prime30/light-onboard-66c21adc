@@ -47,10 +47,21 @@ Deno.serve(async (req: Request) => {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const graceCutoff = new Date(Date.now() - GRACE_MINUTES * 60 * 1000).toISOString();
 
+  // Read the founder-call gate so we can scope the take-rate denominator to
+  // users who would have actually seen the schedule CTA. When the gate is OFF,
+  // every completed lead is eligible. When ON, only pro/salon with monthly
+  // order volume in 6-10 / 10+ are eligible.
+  const { data: gateRow } = await supabase
+    .from("app_settings")
+    .select("founder_call_high_volume_only")
+    .eq("singleton", true)
+    .maybeSingle();
+  const founderGateOn = !!gateRow?.founder_call_high_volume_only;
+
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
