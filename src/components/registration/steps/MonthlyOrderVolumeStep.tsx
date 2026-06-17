@@ -129,7 +129,15 @@ export const MonthlyOrderVolumeStep = () => {
   const fieldError = errors.monthlyOrderVolume;
 
   const select = (value: MonthlyOrderVolume) => {
+    const isChange = selected !== value;
     setValue(fieldName, value, dirtyFieldOptions);
+    if (isChange) {
+      const copy = TIER_TOAST[value];
+      toast.success(copy.title, {
+        description: copy.description,
+        id: "monthly-order-volume-tier",
+      });
+    }
   };
 
   return (
