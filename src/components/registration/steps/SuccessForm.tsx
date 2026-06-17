@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar } from "lucide-react";
+import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, LockOpen, ArrowRight } from "lucide-react";
+import { useCloseIframe } from "@/hooks/messages";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
@@ -93,6 +94,7 @@ export const SuccessForm = () => {
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
+  const { closeIframe, isInIframe: isInIframeClose } = useCloseIframe();
 
   // Founder call eligibility: when admin gates it to high-volume,
   // only Stylists / Salon owners who selected 6-10 or 10+ extensions
@@ -586,7 +588,32 @@ export const SuccessForm = () => {
         </div>
       )}
 
+      {!showFounderCallNudge && !welcomeOfferEnabled && (
+        <div className="space-y-2.5 pt-1">
+          <Button
+            type="button"
+            onClick={() => {
+              if (isInIframeClose) {
+                closeIframe("registration_complete");
+              } else {
+                navigate("/");
+              }
+            }}
+            className="w-full h-12 min-h-12 touch-manipulation rounded-form group"
+          >
+            <span className="flex items-center justify-center gap-2">
+              Go to shop
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Button>
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/70">
+            <LockOpen className="w-3 h-3" />
+            <span className="text-[11px]">Pro pricing unlocked</span>
+          </div>
+        </div>
+      )}
 
     </div>
+
   );
 };
