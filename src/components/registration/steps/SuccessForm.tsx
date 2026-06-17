@@ -15,7 +15,7 @@ import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
-import { useAutoApproval, useWelcomeOffer } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
@@ -88,10 +88,21 @@ export const SuccessForm = () => {
   const { discountCode, discountExpiry } = useFormData();
   const { enabled: autoApproved } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
+  const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { watch } = useForm();
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
+
+  // Founder call eligibility: when admin gates it to high-volume,
+  // only Stylists / Salon owners who selected 6-10 or 10+ extensions
+  // per month see the nudge.
+  const accountType = watch("accountType") as string | undefined;
+  const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
+  const isHighVolumeAccount =
+    (accountType === "professional" || accountType === "salon") &&
+    (monthlyOrderVolume === "6-10" || monthlyOrderVolume === "10+");
+  const showFounderCallNudge = !welcomeOfferEnabled && (!founderHighVolumeOnly || isHighVolumeAccount);
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -321,7 +332,7 @@ export const SuccessForm = () => {
         </p>
       </div>
 
-      {!welcomeOfferEnabled && (
+      {showFounderCallNudge && (
         /* Founder Call — personal invitation */
         <div id="success-offer-section" className="space-y-3">
 

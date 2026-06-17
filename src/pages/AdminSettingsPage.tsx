@@ -30,6 +30,8 @@ const AdminSettingsPage = () => {
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
   const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
+  const [founderHighVolume, setFounderHighVolume] = useState<boolean | null>(null);
+  const [updatingFounderHighVolume, setUpdatingFounderHighVolume] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -117,6 +119,11 @@ const AdminSettingsPage = () => {
         // server-side column default and the user's intent of preserving theme
         // discount visibility.
         setMetafieldsEnabled(true);
+      }
+      if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
+        setFounderHighVolume(data.setting.founder_call_high_volume_only);
+      } else {
+        setFounderHighVolume(false);
       }
     } catch (err) {
       console.error(err);
@@ -226,6 +233,38 @@ const AdminSettingsPage = () => {
       toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
     } finally {
       setUpdatingMetafields(false);
+    }
+  };
+  const handleFounderHighVolumeToggle = async (next: boolean) => {
+    if (founderHighVolume === null) return;
+    const previous = founderHighVolume;
+    setFounderHighVolume(next);
+    setUpdatingFounderHighVolume(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { email, password, founderCallHighVolumeOnly: next },
+      });
+      if (error || !data?.success) {
+        setFounderHighVolume(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Founder call gating ON" : "Founder call gating OFF",
+        description: next
+          ? "Only stylists and salons who order 6-10 or 10+ extensions per month will see the founder call nudge."
+          : "All eligible accounts will see the founder call nudge.",
+      });
+    } catch (err) {
+      console.error(err);
+      setFounderHighVolume(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingFounderHighVolume(false);
     }
   };
 
@@ -568,7 +607,53 @@ const AdminSettingsPage = () => {
                 aria-label="Toggle discount metafield writes"
               />
             )}
+        </div>
+
+        {/* Founder call high-volume gating */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Founder call: high-volume only
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, the founder call nudge on the success screen only
+                shows to Stylists and Salon owners who selected{" "}
+                <strong>6–10</strong> or <strong>10+</strong> extensions per month.
+                When disabled, all eligible accounts see the nudge.
+              </p>
+            </div>
+            {founderHighVolume === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={founderHighVolume}
+                onCheckedChange={handleFounderHighVolumeToggle}
+                disabled={updatingFounderHighVolume}
+                aria-label="Toggle founder call high-volume gating"
+              />
+            )}
           </div>
+          {founderHighVolume !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  founderHighVolume
+                    ? "text-status-green font-medium"
+                    : "font-medium text-foreground"
+                }
+              >
+                {founderHighVolume
+                  ? "Gated to 6–10 / 10+ stylists & salons"
+                  : "Shown to all eligible accounts"}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+
           {metafieldsEnabled !== null && (
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
               Current state:{" "}

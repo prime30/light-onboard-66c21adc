@@ -14,6 +14,7 @@ interface RequestBody {
   autoApprovalEnabled?: boolean;
   welcomeOfferEnabled?: boolean;
   discountMetafieldsEnabled?: boolean;
+  founderCallHighVolumeOnly?: boolean;
   extraCustomerTags?: string[];
 }
 
@@ -79,14 +80,15 @@ Deno.serve(async (req: Request) => {
   const hasToggle = typeof body.autoApprovalEnabled === "boolean";
   const hasWelcomeToggle = typeof body.welcomeOfferEnabled === "boolean";
   const hasMetafieldsToggle = typeof body.discountMetafieldsEnabled === "boolean";
+  const hasFounderHighVolumeToggle = typeof body.founderCallHighVolumeOnly === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasTags) {
+  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasTags) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, extra_customer_tags")
+      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, extra_customer_tags")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -100,6 +102,7 @@ Deno.serve(async (req: Request) => {
   if (hasToggle) update.auto_approval_enabled = body.autoApprovalEnabled;
   if (hasWelcomeToggle) update.welcome_offer_enabled = body.welcomeOfferEnabled;
   if (hasMetafieldsToggle) update.discount_metafields_enabled = body.discountMetafieldsEnabled;
+  if (hasFounderHighVolumeToggle) update.founder_call_high_volume_only = body.founderCallHighVolumeOnly;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
 
   const { data, error } = await supabase

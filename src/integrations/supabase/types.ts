@@ -19,6 +19,7 @@ export type Database = {
           auto_approval_enabled: boolean
           discount_metafields_enabled: boolean
           extra_customer_tags: string[]
+          founder_call_high_volume_only: boolean
           id: string
           singleton: boolean
           updated_at: string
@@ -29,6 +30,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
+          founder_call_high_volume_only?: boolean
           id?: string
           singleton?: boolean
           updated_at?: string
@@ -39,6 +41,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
+          founder_call_high_volume_only?: boolean
           id?: string
           singleton?: boolean
           updated_at?: string
@@ -376,6 +379,7 @@ export type Database = {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
       get_discount_metafields_enabled: { Args: never; Returns: boolean }
       get_extra_customer_tags: { Args: never; Returns: string[] }
+      get_founder_call_high_volume_only: { Args: never; Returns: boolean }
       get_welcome_offer_enabled: { Args: never; Returns: boolean }
       increment_registration_validation_errors: {
         Args: { _email: string; _fields: string[] }
