@@ -143,7 +143,7 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
-              {/* Left visual — stacked wefts representing extension bundles */}
+              {/* Left visual — literal stack of extension packs that grows per tier */}
               <div
                 className={cn(
                   "flex-shrink-0 relative w-12 h-12 rounded-[12px] flex items-center justify-center overflow-hidden transition-all duration-500 ease-out",
@@ -152,7 +152,6 @@ export const MonthlyOrderVolumeStep = () => {
                     : "bg-muted/60 group-hover:bg-muted"
                 )}
               >
-                {/* subtle inner ring */}
                 <div
                   aria-hidden
                   className={cn(
@@ -160,34 +159,7 @@ export const MonthlyOrderVolumeStep = () => {
                     isSelected ? "ring-background/15" : "ring-border/60"
                   )}
                 />
-                <div className="relative flex flex-col items-start gap-[3px] w-7">
-                  {[0, 1, 2, 3].map((i) => {
-                    // Stack from bottom up — fewer bars = lower tier
-                    const idxFromBottom = 3 - i;
-                    const active = idxFromBottom < details.fill;
-                    // Each weft grows wider toward the bottom for left-weighted hierarchy
-                    const widths = ["w-3", "w-4", "w-5", "w-7"];
-                    return (
-                      <div
-                        key={i}
-                        className={cn(
-                          "h-[3px] rounded-full transition-all duration-500 ease-out",
-                          widths[idxFromBottom],
-                          active
-                            ? isSelected
-                              ? "bg-background"
-                              : "bg-foreground"
-                            : isSelected
-                              ? "bg-background/20"
-                              : "bg-foreground/15"
-                        )}
-                        style={{
-                          transitionDelay: active ? `${idxFromBottom * 40}ms` : "0ms",
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+                <PackStack packs={details.packs} selected={isSelected} />
               </div>
 
               <div className="flex-1 min-w-0">
