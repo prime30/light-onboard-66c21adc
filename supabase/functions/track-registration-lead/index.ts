@@ -133,10 +133,13 @@ Deno.serve(async (req: Request) => {
       email,
       account_type: accountType,
       last_step: lastStep,
-      completed_at: isCompleted ? new Date().toISOString() : null,
       user_agent: userAgent,
       ip_address: ip,
     };
+    // Only write completed_at on the explicit completion phase. Setting it
+    // (even to null) on step pings would clobber the timestamp because the
+    // success-step ping fires AFTER create-customer marks completion.
+    if (isCompleted) upsertBody.completed_at = new Date().toISOString();
     if (lastField) upsertBody.last_field = lastField;
     if (deviceType) upsertBody.device_type = deviceType;
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
