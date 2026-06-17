@@ -112,6 +112,20 @@ Deno.serve(async (req: Request) => {
         .slice(0, 10)
     : [];
   const primaryMethod = preferredMethods[0] ?? null;
+  const VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+  const monthlyOrderVolume =
+    typeof payload.monthlyOrderVolume === "string" &&
+    (VOLUME_OPTIONS as readonly string[]).includes(payload.monthlyOrderVolume)
+      ? payload.monthlyOrderVolume
+      : null;
+  const isHighVolume = monthlyOrderVolume === "6-10" || monthlyOrderVolume === "10+";
+  const volumeCohort = monthlyOrderVolume
+    ? isHighVolume
+      ? "high_volume"
+      : monthlyOrderVolume === "2-5"
+        ? "growing"
+        : "starter"
+    : null;
   const isCompleted = phase === "completed";
 
   // Capture lightweight request metadata for audit.
