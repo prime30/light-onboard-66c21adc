@@ -329,12 +329,14 @@ export const registrationSchema = z
       ...businessOperationValidators,
       ...businessLocationValidators,
       ...licenseValidators,
+      ...monthlyOrderVolumeValidators,
     }),
     z.object({ accountType: z.literal("salon") }).extend({
       ...baseValidators,
       ...businessLocationValidators,
       ...salonValidators,
       ...licenseValidators,
+      ...monthlyOrderVolumeValidators,
       // Salons must upload license proof (override the optional spread above).
       licenseProofFiles: fileUploadSchema(false),
     }),
