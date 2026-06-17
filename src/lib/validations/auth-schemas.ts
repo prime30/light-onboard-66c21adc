@@ -283,10 +283,9 @@ const preferencesValidators = {
     .max(100, "Handle must be less than 100 characters")
     .optional(),
   referralSource: z
-    .string()
+    .string({ error: "Please tell us how you heard about us" })
     .trim()
-    .optional()
-    .refine((value) => Boolean(value), "Please tell us how you heard about us"),
+    .min(1, "Please tell us how you heard about us"),
   subscribeOrderUpdates: z
     .boolean()
     .optional()
@@ -367,6 +366,7 @@ export const defaultValues: Partial<RegistrationFormData> = {
   subscribeOrderUpdates: true,
   acceptsMarketing: false,
   acceptsSmsMarketing: false,
+  referralSource: "",
 };
 
 // Generic type to extract specific account type data (supports single or multiple types)
