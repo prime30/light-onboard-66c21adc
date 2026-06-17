@@ -380,7 +380,7 @@ const Auth = () => {
         {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, scrolls with content */}
         {mode === "signup" && currentStep === "onboarding" && (
           <div
-            className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform w-full max-w-[38rem] mb-4"
+            className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform w-full max-w-[38rem] mb-1"
             onClick={() => {
               mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
               goToNextStep();
