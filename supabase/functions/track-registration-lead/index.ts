@@ -128,6 +128,7 @@ Deno.serve(async (req: Request) => {
         : "starter"
     : null;
   const isCompleted = phase === "completed";
+  const autoApproved = isCompleted && payload.autoApproved === true;
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
