@@ -92,9 +92,36 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
+              {/* Left-weighted bar visual — Lyft-style tier indicator */}
+              <div className="flex-shrink-0 flex items-end gap-[3px] h-10 w-10">
+                {[1, 2, 3, 4].map((i) => {
+                  const active = i <= details.fill;
+                  const heights = ["h-2", "h-4", "h-7", "h-10"];
+                  return (
+                    <div
+                      key={i}
+                      className={cn(
+                        "w-1.5 rounded-sm transition-all duration-300",
+                        heights[i - 1],
+                        active
+                          ? isSelected
+                            ? "bg-foreground"
+                            : "bg-foreground/70"
+                          : "bg-border"
+                      )}
+                    />
+                  );
+                })}
+              </div>
+
               <div className="flex-1 min-w-0">
-                <div className="font-termina font-medium text-lg sm:text-xl text-foreground leading-tight uppercase tracking-[-0.006em]">
-                  {details.label}
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <div className="font-termina font-medium text-lg sm:text-xl text-foreground leading-tight uppercase tracking-[-0.006em]">
+                    {details.label}
+                  </div>
+                  <span className="font-mono-eyebrow text-[10px] text-muted-foreground uppercase tracking-[0.12em]">
+                    {details.tier}
+                  </span>
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground/80 leading-snug mt-1">
                   {details.description}
