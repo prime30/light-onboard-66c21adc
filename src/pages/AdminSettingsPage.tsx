@@ -30,6 +30,8 @@ const AdminSettingsPage = () => {
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
   const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
+  const [founderHighVolume, setFounderHighVolume] = useState<boolean | null>(null);
+  const [updatingFounderHighVolume, setUpdatingFounderHighVolume] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -117,6 +119,11 @@ const AdminSettingsPage = () => {
         // server-side column default and the user's intent of preserving theme
         // discount visibility.
         setMetafieldsEnabled(true);
+      }
+      if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
+        setFounderHighVolume(data.setting.founder_call_high_volume_only);
+      } else {
+        setFounderHighVolume(false);
       }
     } catch (err) {
       console.error(err);
