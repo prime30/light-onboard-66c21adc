@@ -268,11 +268,11 @@ export const PreferencesStep = () => {
         </div>
 
         {/* How did you hear about us? */}
-        <div className="space-y-2.5 animate-stagger-6" data-field-wrapper="referralSource">
+        <div className="space-y-2.5 animate-stagger-6">
           <p className="text-sm font-medium text-foreground">
             How did you hear about us?
           </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2" data-field-wrapper="referralSource">
             {[
               { value: "instagram", label: "Instagram" },
               { value: "tiktok", label: "TikTok" },
