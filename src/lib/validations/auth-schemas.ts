@@ -273,6 +273,18 @@ const preferredMethodValidators = {
 export const preferredMethodSchema = z.object(preferredMethodValidators);
 export type PreferredMethodFormData = z.infer<typeof preferredMethodSchema>;
 
+// Monthly Order Volume Schema (professionals + salons only)
+export const MONTHLY_ORDER_VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+export type MonthlyOrderVolume = (typeof MONTHLY_ORDER_VOLUME_OPTIONS)[number];
+
+const monthlyOrderVolumeValidators = {
+  monthlyOrderVolume: z.enum(MONTHLY_ORDER_VOLUME_OPTIONS, {
+    error: "Please select how many extensions you order per month",
+  }),
+};
+export const monthlyOrderVolumeSchema = z.object(monthlyOrderVolumeValidators);
+export type MonthlyOrderVolumeFormData = z.infer<typeof monthlyOrderVolumeSchema>;
+
 // Preferences Schema
 const preferencesValidators = {
   birthdayMonth: z.string().optional(),
