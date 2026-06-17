@@ -588,7 +588,32 @@ export const SuccessForm = () => {
         </div>
       )}
 
+      {!showFounderCallNudge && !welcomeOfferEnabled && (
+        <div className="space-y-2.5 pt-1">
+          <Button
+            type="button"
+            onClick={() => {
+              if (isInIframeClose) {
+                closeIframe("registration_complete");
+              } else {
+                navigate("/");
+              }
+            }}
+            className="w-full h-12 min-h-12 touch-manipulation rounded-form group"
+          >
+            <span className="flex items-center justify-center gap-2">
+              Go to shop
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Button>
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground/70">
+            <LockOpen className="w-3 h-3" />
+            <span className="text-[11px]">Pro pricing unlocked</span>
+          </div>
+        </div>
+      )}
 
     </div>
+
   );
 };
