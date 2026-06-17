@@ -33,6 +33,16 @@ type RecentRow = {
   noShowAt: string | null;
 };
 type ByTypeRow = TypeRow & { noShow?: number };
+type PurchaseCohort = {
+  cohort: "attended" | "no_show" | "no_call";
+  size: number;
+  purchasers: number;
+  purchaseRate: number;
+  avgTimeToPurchaseHours: number;
+  medianTimeToPurchaseHours: number;
+  avgOrderValue: number;
+  totalRevenue: number;
+};
 
 type ApiResponse = {
   success: boolean;
@@ -48,6 +58,8 @@ type ApiResponse = {
     series: SeriesPoint[];
     byType: ByTypeRow[];
     recent: RecentRow[];
+    purchaseCohorts?: PurchaseCohort[];
+    attendedLiftPp?: number;
   };
   error?: string;
 };
