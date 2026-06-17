@@ -1574,6 +1574,15 @@ Deno.serve(async (req: Request) => {
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         if (!supabaseUrl) return;
+        // Resolve auto-approval flag so Klaviyo can target the welcome
+        // flow only at registrants who can actually shop immediately.
+        let autoApproved = false;
+        try {
+          const { autoApprovalEnabled } = await appSettingsPromise;
+          autoApproved = !!autoApprovalEnabled && !!submittedPassword;
+        } catch {
+          // best-effort; default false
+        }
         await fetch(`${supabaseUrl}/functions/v1/track-registration-lead`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1584,8 +1593,10 @@ Deno.serve(async (req: Request) => {
             lastStep: "submitted",
             firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
             lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
+            phoneE164: (parseResult.data as { phoneE164?: string }).phoneE164 ?? null,
             preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
             monthlyOrderVolume: (parseResult.data as { monthlyOrderVolume?: string }).monthlyOrderVolume ?? null,
+            autoApproved,
           }),
         });
       } catch (err) {

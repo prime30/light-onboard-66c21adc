@@ -44,6 +44,7 @@ interface Payload {
   phoneE164?: string | null;
   preferredMethods?: string[] | null;
   monthlyOrderVolume?: string | null;
+  autoApproved?: boolean | null;
 }
 
 
@@ -127,6 +128,7 @@ Deno.serve(async (req: Request) => {
         : "starter"
     : null;
   const isCompleted = phase === "completed";
+  const autoApproved = isCompleted && payload.autoApproved === true;
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -222,6 +224,8 @@ Deno.serve(async (req: Request) => {
       registration_account_type: accountType,
       registration_completed: isCompleted,
       registration_completed_at: isCompleted ? new Date().toISOString() : null,
+      registration_auto_approved: isCompleted ? autoApproved : null,
+      registration_status: isCompleted ? (autoApproved ? "approved" : "pending") : null,
       registration_source: "apply.dropdeadextensions.com",
       ...(preferredMethods.length > 0
         ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
@@ -256,6 +260,7 @@ Deno.serve(async (req: Request) => {
           account_type: accountType,
           last_step: lastStep,
           phase,
+          ...(isCompleted ? { auto_approved: autoApproved, status: autoApproved ? "approved" : "pending" } : {}),
           ...(preferredMethods.length > 0
             ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
             : {}),
