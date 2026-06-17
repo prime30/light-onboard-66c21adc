@@ -954,32 +954,58 @@ Deno.serve(async (req: Request) => {
     // Fallback: if Helium didn't return a shopify_id (race / async link),
     // resolve it via Shopify Admin search by email so we still get tags and
     // native fields written.
+    //
+    // Retry strategy: Helium → Shopify sync is async. A miss on the first
+    // search often clears on the second attempt 1-2s later. We try up to
+    // 3 times with exponential backoff (0ms, 1.2s, 2.5s) before giving up
+    // and falling through to the `shopify_enrichment_skipped` audit.
     if (!shopifyCustomerId && shopifyDomain && shopifyAdminToken) {
-      try {
-        const searchRes = await fetch(
-          `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(`email:${customer.email}`)}`,
-          {
-            method: "GET",
-            headers: {
-              "X-Shopify-Access-Token": shopifyAdminToken,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (searchRes.ok) {
-          const sjson = await searchRes.json();
-          const sid = sjson?.customers?.[0]?.id;
-          if (typeof sid === "number") {
-            shopifyCustomerId = sid;
-            console.log("Resolved shopify_id via email fallback:", sid);
-          }
-        } else {
-          console.warn("Shopify email-fallback search failed:", searchRes.status);
+      const delays = [0, 1200, 2500];
+      for (let attempt = 0; attempt < delays.length; attempt++) {
+        if (delays[attempt] > 0) {
+          await new Promise((r) => setTimeout(r, delays[attempt]));
         }
-      } catch (e) {
-        console.warn("Error in Shopify email-fallback search (non-blocking):", e);
+        try {
+          const searchRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(`email:${customer.email}`)}`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (searchRes.ok) {
+            const sjson = await searchRes.json();
+            const sid = sjson?.customers?.[0]?.id;
+            if (typeof sid === "number") {
+              shopifyCustomerId = sid;
+              console.log(
+                "Resolved shopify_id via email fallback:",
+                sid,
+                "(attempt " + (attempt + 1) + "/" + delays.length + ")"
+              );
+              break;
+            }
+            console.log(
+              "Shopify email-fallback miss (attempt " + (attempt + 1) + "/" + delays.length + "), retrying..."
+            );
+          } else {
+            console.warn(
+              "Shopify email-fallback search failed (attempt " + (attempt + 1) + "/" + delays.length + "):",
+              searchRes.status
+            );
+          }
+        } catch (e) {
+          console.warn(
+            "Error in Shopify email-fallback search (attempt " + (attempt + 1) + "/" + delays.length + ", non-blocking):",
+            e
+          );
+        }
       }
     }
+
 
     // Admin-configured extra tags come from the shared app_settings fetch
     // (kicked off in parallel with the Helium write at the top of the
