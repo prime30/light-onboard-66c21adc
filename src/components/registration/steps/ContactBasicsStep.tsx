@@ -114,29 +114,6 @@ export const ContactBasicsStep = () => {
     }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
 
-    // Fire-and-forget lead capture for Klaviyo abandonment flow.
-    // Dedupe per session so editing nearby fields doesn't re-fire.
-    if (lastTrackedLeadRef.current !== value) {
-      lastTrackedLeadRef.current = value;
-      window.setTimeout(() => {
-        // Re-check dedupe at fire time in case email changed during the delay.
-        if (lastTrackedLeadRef.current !== value) return;
-        supabase.functions
-          .invoke("track-registration-lead", {
-            body: {
-              email: value,
-              phase: "started",
-              accountType: watch("accountType") ?? null,
-              lastStep: "contact-basics",
-              firstName: watch("firstName") ?? null,
-              lastName: watch("lastName") ?? null,
-            },
-          })
-          .catch(() => {
-            // Non-blocking — never let lead capture interfere with UX.
-          });
-      }, 1200);
-    }
 
     if (lastCheckedRef.current === value) return;
 
@@ -353,8 +330,29 @@ export const ContactBasicsStep = () => {
             autoComplete="email"
             isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
             prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
+            onBlur={(event) => {
+              const value = (event.target.value ?? "").trim().toLowerCase();
+              if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+              if (lastTrackedLeadRef.current === value) return;
+              lastTrackedLeadRef.current = value;
+              supabase.functions
+                .invoke("track-registration-lead", {
+                  body: {
+                    email: value,
+                    phase: "started",
+                    accountType: watch("accountType") ?? null,
+                    lastStep: "contact-basics",
+                    firstName: watch("firstName") ?? null,
+                    lastName: watch("lastName") ?? null,
+                  },
+                })
+                .catch(() => {
+                  // Non-blocking
+                });
+            }}
           />
         </div>
+
 
         {/* Phone Number with Country Code */}
         <div className="space-y-2.5 animate-stagger-5 group">
