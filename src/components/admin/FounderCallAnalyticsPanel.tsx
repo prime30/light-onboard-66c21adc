@@ -288,8 +288,12 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <Tile
           icon={<CheckCircle2 className="w-3.5 h-3.5 text-status-green" />}
-          label="Completed"
-          value={fc?.completedCount ?? 0}
+          label={fc?.gateOn ? "Eligible / completed" : "Completed"}
+          value={
+            fc?.gateOn
+              ? `${fc?.eligibleCount ?? 0} / ${fc?.completedCount ?? 0}`
+              : (fc?.completedCount ?? 0)
+          }
           loading={loading && !data}
         />
         <Tile
@@ -300,7 +304,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
         />
         <Tile
           icon={<Percent className="w-3.5 h-3.5 text-foreground" />}
-          label="Take rate"
+          label={fc?.gateOn ? "Take rate (eligible)" : "Take rate"}
           value={fc?.takeRate ?? 0}
           suffix="%"
           loading={loading && !data}
