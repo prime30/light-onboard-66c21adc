@@ -94,6 +94,7 @@ export const SuccessForm = () => {
   const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
+  const { closeIframe, isInIframe: isInIframeClose } = useCloseIframe();
 
   // Founder call eligibility: when admin gates it to high-volume,
   // only Stylists / Salon owners who selected 6-10 or 10+ extensions
