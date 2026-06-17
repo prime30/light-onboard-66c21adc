@@ -235,6 +235,7 @@ export type Database = {
           klaviyo_synced_at: string | null
           last_field: string | null
           last_step: string | null
+          monthly_order_volume: string | null
           started_at: string
           updated_at: string
           user_agent: string | null
@@ -261,6 +262,7 @@ export type Database = {
           klaviyo_synced_at?: string | null
           last_field?: string | null
           last_step?: string | null
+          monthly_order_volume?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -287,6 +289,7 @@ export type Database = {
           klaviyo_synced_at?: string | null
           last_field?: string | null
           last_step?: string | null
+          monthly_order_volume?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
