@@ -291,7 +291,7 @@ export const PreferencesStep = () => {
                 onClick={() =>
                   setValue(
                     "referralSource",
-                    watch("referralSource") === option.value ? undefined : option.value,
+                    watch("referralSource") === option.value ? "" : option.value,
                     dirtyFieldOptions
                   )
                 }
