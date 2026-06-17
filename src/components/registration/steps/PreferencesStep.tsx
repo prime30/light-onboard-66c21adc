@@ -268,7 +268,7 @@ export const PreferencesStep = () => {
         </div>
 
         {/* How did you hear about us? */}
-        <div className="space-y-2.5 animate-stagger-6">
+        <div className="space-y-2.5 animate-stagger-6" data-field-wrapper="referralSource">
           <p className="text-sm font-medium text-foreground">
             How did you hear about us?
           </p>
