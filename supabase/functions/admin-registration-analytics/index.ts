@@ -402,6 +402,97 @@ Deno.serve(async (req: Request) => {
       noShowAt: r.founder_call_no_show_at,
     }));
 
+  // ---- Founder-call purchase cohorts ----
+  // Attended  = booked + start_time in past + no no_show_at stamp
+  // No-show   = booked + start_time in past + no_show_at present
+  // No call   = completed reg, never booked
+  // Upcoming  = booked + start_time in future (excluded from purchase math —
+  //             these users haven't had a chance to attend yet)
+  const nowMs = Date.now();
+  type CohortBucket = {
+    leads: Row[];
+    purchasers: Row[];
+    timeToPurchaseMs: number[];
+  };
+  const mkBucket = (): CohortBucket => ({ leads: [], purchasers: [], timeToPurchaseMs: [] });
+  const cohortBuckets: Record<"attended" | "no_show" | "no_call", CohortBucket> = {
+    attended: mkBucket(),
+    no_show: mkBucket(),
+    no_call: mkBucket(),
+  };
+
+  for (const r of completedLeads) {
+    let key: "attended" | "no_show" | "no_call" | null = null;
+    if (r.founder_call_booked_at && r.founder_call_start_time) {
+      const startMs = Date.parse(r.founder_call_start_time);
+      if (startMs > nowMs) {
+        // upcoming — skip purchase cohort math
+      } else if (r.founder_call_no_show_at) {
+        key = "no_show";
+      } else {
+        key = "attended";
+      }
+    } else {
+      key = "no_call";
+    }
+    if (!key) continue;
+    const b = cohortBuckets[key];
+    b.leads.push(r);
+    if (r.first_order_at && r.completed_at) {
+      const delta = Date.parse(r.first_order_at) - Date.parse(r.completed_at);
+      // Only count orders placed AT OR AFTER registration completion
+      // (negative delta means they ordered before completing — rare, ignore).
+      if (delta >= 0) {
+        b.purchasers.push(r);
+        b.timeToPurchaseMs.push(delta);
+      }
+    }
+  }
+
+  const median = (arr: number[]): number => {
+    if (arr.length === 0) return 0;
+    const s = arr.slice().sort((a, b) => a - b);
+    const mid = Math.floor(s.length / 2);
+    return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+  };
+  const avg = (arr: number[]): number =>
+    arr.length === 0 ? 0 : arr.reduce((s, n) => s + n, 0) / arr.length;
+  const sum = (arr: number[]): number => arr.reduce((s, n) => s + n, 0);
+
+  const buildCohort = (label: string, b: CohortBucket) => {
+    const size = b.leads.length;
+    const purchasers = b.purchasers.length;
+    const purchaseRate = size > 0 ? Math.round((purchasers / size) * 1000) / 10 : 0;
+    const HOUR = 60 * 60 * 1000;
+    const values = b.purchasers
+      .map((r) => Number(r.first_order_value))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return {
+      cohort: label,
+      size,
+      purchasers,
+      purchaseRate,
+      avgTimeToPurchaseHours:
+        purchasers > 0 ? Math.round((avg(b.timeToPurchaseMs) / HOUR) * 10) / 10 : 0,
+      medianTimeToPurchaseHours:
+        purchasers > 0 ? Math.round((median(b.timeToPurchaseMs) / HOUR) * 10) / 10 : 0,
+      avgOrderValue:
+        values.length > 0 ? Math.round((sum(values) / values.length) * 100) / 100 : 0,
+      totalRevenue: Math.round(sum(values) * 100) / 100,
+    };
+  };
+
+  const purchaseCohorts = [
+    buildCohort("attended", cohortBuckets.attended),
+    buildCohort("no_show", cohortBuckets.no_show),
+    buildCohort("no_call", cohortBuckets.no_call),
+  ];
+
+  // Lift = attended purchase rate vs no_call baseline (percentage points)
+  const attendedRate = purchaseCohorts[0].purchaseRate;
+  const noCallRate = purchaseCohorts[2].purchaseRate;
+  const attendedLiftPp = Math.round((attendedRate - noCallRate) * 10) / 10;
+
   return json({
     success: true,
     rangeDays: days,
@@ -434,6 +525,8 @@ Deno.serve(async (req: Request) => {
       series: founderCallSeries,
       byType: founderCallByType,
       recent: recentBookings,
+      purchaseCohorts,
+      attendedLiftPp,
     },
   });
 });
