@@ -140,6 +140,7 @@ export const SummaryForm = () => {
     acceptsMarketing,
     acceptsSmsMarketing,
     preferredMethods,
+    monthlyOrderVolume,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
     taxExemptFile = [],
@@ -353,6 +354,18 @@ export const SummaryForm = () => {
               stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}
             >
               <SummaryRow label="Selected" value={preferredMethods.join(", ")} />
+            </SummarySection>
+          </div>
+        )}
+
+        {/* Monthly Order Volume (professional + salon) */}
+        {(accountType === "professional" || accountType === "salon") && monthlyOrderVolume && (
+          <div className="animate-stagger-8">
+            <SummarySection
+              title="Monthly Order Volume"
+              stepNum={accountType === "professional" ? 9 : 8}
+            >
+              <SummaryRow label="Extensions / month" value={monthlyOrderVolume} />
             </SummarySection>
           </div>
         )}
