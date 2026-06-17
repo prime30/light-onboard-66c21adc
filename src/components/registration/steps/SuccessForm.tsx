@@ -122,6 +122,8 @@ export const SuccessForm = () => {
         email: values?.email,
         accountType: values?.accountType,
         autoApproved: !!autoApproved,
+        monthlyOrderVolume: monthlyOrderVolume ?? null,
+        founderCallEligible: showFounderCallNudge,
       });
     } catch (err) {
       console.error("[SuccessForm] Failed to post REGISTRATION_SUCCESS:", err);
@@ -594,7 +596,11 @@ export const SuccessForm = () => {
             type="button"
             onClick={() => {
               if (isInIframeClose) {
-                closeIframe("registration_complete");
+                closeIframe("registration_complete", {
+                  founderCallEligible: showFounderCallNudge,
+                  monthlyOrderVolume: monthlyOrderVolume ?? null,
+                  accountType: accountType ?? null,
+                });
               } else {
                 navigate("/");
               }

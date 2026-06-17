@@ -15,43 +15,47 @@ export function useCloseIframe() {
   // the parent origin against our allowlist and skip the post if it isn't
   // trusted — never broadcast credentials to "*", which would let any
   // embedding page capture them.
-  const closeIframe = useCallback((reason?: string) => {
-    try {
-      const targetOrigin = resolveParentOrigin();
-      if (!targetOrigin) {
-        console.warn("[useCloseIframe] Parent origin not allowlisted; skipping postMessage");
-        return;
-      }
-      const pending = takePendingLogin();
-      if (pending) {
+  const closeIframe = useCallback(
+    (reason?: string, extra?: Record<string, unknown>) => {
+      try {
+        const targetOrigin = resolveParentOrigin();
+        if (!targetOrigin) {
+          console.warn("[useCloseIframe] Parent origin not allowlisted; skipping postMessage");
+          return;
+        }
+        const pending = takePendingLogin();
+        if (pending) {
+          window.parent.postMessage(
+            {
+              type: IframeMessageTypes.USER_LOGIN,
+              data: pending,
+              timestamp: new Date().toISOString(),
+            },
+            targetOrigin
+          );
+          console.log("[useCloseIframe] Flushed pending USER_LOGIN before close");
+        }
         window.parent.postMessage(
           {
-            type: IframeMessageTypes.USER_LOGIN,
-            data: pending,
+            type: IframeMessageTypes.CLOSE_IFRAME,
+            data: {
+              reason: reason ?? "User requested closure",
+              url: window.location.href,
+              ...(extra ?? {}),
+            },
             timestamp: new Date().toISOString(),
           },
           targetOrigin
         );
-        console.log("[useCloseIframe] Flushed pending USER_LOGIN before close");
+        console.log(
+          `[useCloseIframe] Posted CLOSE_IFRAME to ${targetOrigin} (reason: ${reason ?? "User requested closure"})`
+        );
+      } catch (error) {
+        console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
       }
-      window.parent.postMessage(
-        {
-          type: IframeMessageTypes.CLOSE_IFRAME,
-          data: {
-            reason: reason ?? "User requested closure",
-            url: window.location.href,
-          },
-          timestamp: new Date().toISOString(),
-        },
-        targetOrigin
-      );
-      console.log(
-        `[useCloseIframe] Posted CLOSE_IFRAME to ${targetOrigin} (reason: ${reason ?? "User requested closure"})`
-      );
-    } catch (error) {
-      console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
-    }
-  }, []);
+    },
+    []
+  );
 
   return { closeIframe, isInIframe };
 }
