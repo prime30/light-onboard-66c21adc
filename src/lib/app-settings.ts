@@ -89,3 +89,48 @@ export function useWelcomeOffer(): { enabled: boolean; loading: boolean } {
 
   return { enabled, loading };
 }
+
+let cachedFounderHighVolume: boolean | null = null;
+let inFlightFounderHighVolume: Promise<boolean> | null = null;
+
+export async function fetchFounderCallHighVolumeOnly(): Promise<boolean> {
+  if (cachedFounderHighVolume !== null) return cachedFounderHighVolume;
+  if (inFlightFounderHighVolume) return inFlightFounderHighVolume;
+
+  inFlightFounderHighVolume = (async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)("get_founder_call_high_volume_only");
+    if (error) {
+      console.error("Failed to load founder_call_high_volume_only flag:", error);
+      cachedFounderHighVolume = false;
+      return false;
+    }
+    cachedFounderHighVolume = (data as boolean | null) ?? false;
+    return cachedFounderHighVolume;
+  })();
+
+  try {
+    return await inFlightFounderHighVolume;
+  } finally {
+    inFlightFounderHighVolume = null;
+  }
+}
+
+export function useFounderCallHighVolumeOnly(): { enabled: boolean; loading: boolean } {
+  const [enabled, setEnabled] = useState<boolean>(cachedFounderHighVolume ?? false);
+  const [loading, setLoading] = useState<boolean>(cachedFounderHighVolume === null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchFounderCallHighVolumeOnly().then((v) => {
+      if (cancelled) return;
+      setEnabled(v);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { enabled, loading };
+}
