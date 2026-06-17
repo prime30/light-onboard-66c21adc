@@ -48,7 +48,10 @@ type ApiResponse = {
   success: boolean;
   rangeDays: number;
   founderCall?: {
+    gateOn?: boolean;
     completedCount: number;
+    eligibleCount?: number;
+    eligibleBookedCount?: number;
     bookedCount: number;
     futureCount: number;
     noShowCount: number;
