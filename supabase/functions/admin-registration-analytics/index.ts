@@ -340,8 +340,23 @@ Deno.serve(async (req: Request) => {
   const futureCalls = booked.filter(
     (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) > Date.now(),
   ).length;
+  // Eligibility for the founder call. When the gate is OFF, everyone who
+  // completes is eligible. When ON, only pro/salon at the high-volume tiers
+  // would have ever seen the schedule CTA — so they're the only ones who
+  // belong in the take-rate denominator.
+  const isEligible = (r: typeof completedLeads[number]) => {
+    if (!founderGateOn) return true;
+    const v = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
+    const highVolume = v === "6-10" || v === "10+";
+    const proOrSalon = r.account_type === "professional" || r.account_type === "salon";
+    return proOrSalon && highVolume;
+  };
+  const eligibleLeads = completedLeads.filter(isEligible);
+  const eligibleBooked = eligibleLeads.filter((r) => !!r.founder_call_booked_at);
   const takeRate =
-    completedLeads.length > 0 ? Math.round((booked.length / completedLeads.length) * 1000) / 10 : 0;
+    eligibleLeads.length > 0
+      ? Math.round((eligibleBooked.length / eligibleLeads.length) * 1000) / 10
+      : 0;
 
   // No-shows: only count bookings whose start time is in the past.
   const pastBooked = booked.filter(
