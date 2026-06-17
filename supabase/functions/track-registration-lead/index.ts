@@ -224,6 +224,8 @@ Deno.serve(async (req: Request) => {
       registration_account_type: accountType,
       registration_completed: isCompleted,
       registration_completed_at: isCompleted ? new Date().toISOString() : null,
+      registration_auto_approved: isCompleted ? autoApproved : null,
+      registration_status: isCompleted ? (autoApproved ? "approved" : "pending") : null,
       registration_source: "apply.dropdeadextensions.com",
       ...(preferredMethods.length > 0
         ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
