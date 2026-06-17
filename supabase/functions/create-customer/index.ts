@@ -1530,6 +1530,7 @@ Deno.serve(async (req: Request) => {
             firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
             lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
             preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
+            monthlyOrderVolume: (parseResult.data as { monthlyOrderVolume?: string }).monthlyOrderVolume ?? null,
           }),
         });
       } catch (err) {
