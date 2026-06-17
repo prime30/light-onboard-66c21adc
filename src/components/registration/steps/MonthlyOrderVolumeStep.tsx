@@ -125,7 +125,7 @@ export const MonthlyOrderVolumeStep = () => {
           How many extensions do you order per month currently?
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          Choose the range that best reflects your current monthly volume.
+          No wrong answer — this just helps us stock your colors and tailor your account.
         </p>
       </div>
 
