@@ -330,8 +330,29 @@ export const ContactBasicsStep = () => {
             autoComplete="email"
             isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
             prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
+            onBlur={(event) => {
+              const value = (event.target.value ?? "").trim().toLowerCase();
+              if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+              if (lastTrackedLeadRef.current === value) return;
+              lastTrackedLeadRef.current = value;
+              supabase.functions
+                .invoke("track-registration-lead", {
+                  body: {
+                    email: value,
+                    phase: "started",
+                    accountType: watch("accountType") ?? null,
+                    lastStep: "contact-basics",
+                    firstName: watch("firstName") ?? null,
+                    lastName: watch("lastName") ?? null,
+                  },
+                })
+                .catch(() => {
+                  // Non-blocking
+                });
+            }}
           />
         </div>
+
 
         {/* Phone Number with Country Code */}
         <div className="space-y-2.5 animate-stagger-5 group">
