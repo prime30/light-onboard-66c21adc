@@ -54,6 +54,7 @@ const STEP_IMPORTS: Partial<Record<Step, () => Promise<unknown>>> = {
   "tax-exemption":      () => import("@/components/registration/steps/TaxExemptionStep"),
   "wholesale-terms":    () => import("@/components/registration/steps/WholesaleTermsStep"),
   "preferred-method":   () => import("@/components/registration/steps/PreferredMethodStep"),
+  "monthly-order-volume": () => import("@/components/registration/steps/MonthlyOrderVolumeStep"),
   "preferences":        () => import("@/components/registration/steps/PreferencesStep"),
   "summary":            () => import("@/components/registration/steps/SummaryForm"),
   "assessing":          () => import("@/components/registration/steps/AssessingStep"),
