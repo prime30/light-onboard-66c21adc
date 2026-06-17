@@ -25,7 +25,7 @@ const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: strin
   },
   "10+": {
     title: "Power user — we got you",
-    description: "An account manager and salon-level pricing will be lined up for you.",
+    description: "An account manager and founder level support will be lined up for you.",
   },
 };
 
