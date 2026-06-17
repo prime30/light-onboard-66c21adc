@@ -260,6 +260,7 @@ Deno.serve(async (req: Request) => {
           account_type: accountType,
           last_step: lastStep,
           phase,
+          ...(isCompleted ? { auto_approved: autoApproved, status: autoApproved ? "approved" : "pending" } : {}),
           ...(preferredMethods.length > 0
             ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
             : {}),
