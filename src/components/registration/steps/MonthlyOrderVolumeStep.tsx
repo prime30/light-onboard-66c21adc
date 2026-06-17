@@ -19,7 +19,7 @@ const OPTION_DETAILS: Record<
   "1": {
     label: "1",
     tier: "Starter",
-    description: "Just getting started or occasional installs.",
+    description: "Occasional install.",
     count: 1,
   },
   "2-5": {
