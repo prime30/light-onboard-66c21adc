@@ -199,6 +199,16 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
           >
             Backfill
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={syncFirstOrders}
+            disabled={syncing}
+            title="Pull Shopify orders and stamp each lead's first-order date / value"
+          >
+            {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Sync orders"}
+          </Button>
           <Button type="button" size="sm" variant="outline" onClick={fetchData} disabled={loading}>
             {loading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
