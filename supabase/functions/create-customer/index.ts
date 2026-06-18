@@ -732,6 +732,15 @@ Deno.serve(async (req: Request) => {
 
     if (alreadyApplied) {
       console.log("Existing customer has prior application — blocking:", requestBody.data.email);
+      await writeStandaloneAuditFailure({
+        email: parseResult.data.email,
+        accountType: parseResult.data.accountType,
+        step: "email_already_applied",
+        field: "email",
+        message: "Customer already has a prior application",
+        payload: parseResult.data as unknown as Record<string, unknown>,
+        req,
+      });
       return sendError(409, ["Customer already exists with this email address"], "Conflict", [
         {
           type: "LOGIN",
