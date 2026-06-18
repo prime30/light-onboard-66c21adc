@@ -1884,6 +1884,28 @@ Deno.serve(async (req: Request) => {
         },
       ],
     });
+    // Fire ops alert (best-effort, never blocks the response).
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supabaseUrl && serviceKey) {
+        void fetch(`${supabaseUrl}/functions/v1/notify-error`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${serviceKey}`,
+            apikey: serviceKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            source: "create-customer",
+            message: error instanceof Error ? error.message : String(error),
+            context: {
+              stack: error instanceof Error ? error.stack?.slice(0, 2000) : null,
+            },
+          }),
+        }).catch(() => { /* non-blocking */ });
+      }
+    } catch { /* never let reporter throw */ }
     return sendError(500, [
       error instanceof Error ? error.message : "Unknown internal server error",
     ]);
