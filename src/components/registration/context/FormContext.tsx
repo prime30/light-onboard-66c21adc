@@ -6,6 +6,7 @@ import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
 import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
 import { useBounceTelemetry } from "@/hooks/use-bounce-telemetry";
+import { useAutoApproval } from "@/lib/app-settings";
 
 
 export type AuthFormContextType = {
@@ -95,8 +96,15 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   // missing a field that became required in a newer build — without this,
   // they'd sail through to summary/password and hit a generic submit error.
   const hasSnappedRef = useRef(false);
+  // Gate snap-back on the auto-approval flag finishing its first fetch.
+  // `steps` depends on `autoApprove`; running snap-back before the RPC
+  // resolves can lock the user onto a step that gets re-ordered (e.g.
+  // create-password moving to after summary), and the one-shot
+  // hasSnappedRef would prevent recovery on the next re-render.
+  const { loading: autoApproveLoading } = useAutoApproval();
   useEffect(() => {
     if (hasSnappedRef.current) return;
+    if (autoApproveLoading) return;
     if (!accountType) return; // fresh visitor — leave them on onboarding
     if (currentStep !== "onboarding" && currentStep !== "account-type") return;
     if (!steps || steps.length === 0) return;
@@ -118,7 +126,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
       setCurrentStep("summary");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountType, steps]);
+  }, [accountType, steps, autoApproveLoading]);
 
 
 

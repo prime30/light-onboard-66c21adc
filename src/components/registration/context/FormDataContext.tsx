@@ -16,6 +16,7 @@ import {
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
 import { countries } from "@/data/locations";
+import { countryCodes } from "@/data/country-codes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FormState, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
@@ -488,6 +489,26 @@ export function FormDataProvider({
         }
       }
     }
+
+
+
+    // phoneCountryCode format drift: the select renders by `iso` ("us"),
+    // but older builds persisted the dial-code ("+1") or ISO-3166 country
+    // ("US"). A stale value leaves the country select visually blank on
+    // resume even though schema validation still passes. Normalize back
+    // to the lowercase iso key the select expects.
+    if (sanitizedStored) {
+      const phone = sanitizedStored as unknown as { phoneCountryCode?: string };
+      const stored = phone.phoneCountryCode;
+      if (stored && !countryCodes.some((c) => c.iso === stored)) {
+        const match = countryCodes.find(
+          (c) => c.code === stored || c.country === stored || c.iso === stored.toLowerCase()
+        );
+        if (match) phone.phoneCountryCode = match.iso;
+        else delete phone.phoneCountryCode;
+      }
+    }
+
 
     if (sanitizedStored) {
       Object.entries(sanitizedStored).forEach(([key, value]) => {
