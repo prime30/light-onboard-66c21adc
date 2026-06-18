@@ -176,8 +176,14 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const getStepForField = useCallback((fieldName: ValidFieldNames): Step | null => {
+    // Server-side Zod errors can carry dotted paths (e.g. "address.line1"
+    // or "licenseProofFiles.0"). The fieldsForStep map is keyed by
+    // top-level field names, so try an exact match first, then fall back
+    // to matching by the first path segment so auto-nav still lands the
+    // user on the correct step.
+    const top = (fieldName ?? "").toString().split(".")[0];
     for (const [step, fields] of Object.entries(fieldsForStep)) {
-      if (fields.includes(fieldName)) {
+      if (fields.includes(fieldName) || (top && fields.includes(top as ValidFieldNames))) {
         return step as Step;
       }
     }
