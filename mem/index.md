@@ -1,6 +1,7 @@
 # Project Memory
 
 ## Core
+Never use em dashes (—) in any written output. Use commas, periods, parens, or colons.
 Light, airy aesthetic (glassmorphism). NO warm/brown tones. Spacing divisible by 5. Form radius 15px.
 Fonts: Die Grotesk B primary, Termina Medium (500) secondary (-0.006em letter spacing). All text uses sentence casing.
 Stack: React, Supabase backend, Shopify embedded. Hosted on Vercel/Netlify.
