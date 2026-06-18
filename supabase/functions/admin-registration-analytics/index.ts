@@ -41,7 +41,9 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return json({ success: false, error: "Server misconfigured" }, 500);
 
-  const days = Math.min(Math.max(body.days ?? 30, 1), 180);
+  // Allow fractional days so the panel can request sub-day windows (1h = 1/24).
+  const rawDays = typeof body.days === "number" && isFinite(body.days) ? body.days : 30;
+  const days = Math.min(Math.max(rawDays, 1 / 24), 180);
   const supabase = createClient(supabaseUrl, serviceKey);
 
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
