@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, RefreshCw, ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { buildSupportReply } from "@/lib/admin/support-reply";
 
 type StatusFilter = "needs_attention" | "all" | "pending" | "helium_ok" | "shopify_ok" | "succeeded" | "failed";
 
@@ -14,7 +16,7 @@ type Submission = {
   status: string;
   helium_customer_id: string | null;
   shopify_customer_id: number | null;
-  error_log: Array<{ step: string; status: string; message: string; at: string }>;
+  error_log: Array<{ step: string; status: string; message: string; at: string; field?: string }>;
   ip_address: string | null;
   created_at: string;
   updated_at: string;
