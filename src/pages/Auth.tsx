@@ -446,6 +446,7 @@ const Auth = () => {
 
         <div
           key={`${mode}-${currentStep}`}
+          data-registration-form
           className={cn(
             "w-full max-w-[38rem]",
             currentStep === "onboarding" && "lg:flex-1 lg:flex lg:flex-col lg:min-h-0",
