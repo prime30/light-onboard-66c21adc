@@ -1571,14 +1571,14 @@ Deno.serve(async (req: Request) => {
     // ---- Chain C: Auto-approval Shopify activation -----------------
     // If a password was sent AND auto_approval_enabled = true, activate
     // the Shopify customer server-side so they can sign in immediately.
-    // Without this they stay in "invited" state. Failures are logged
-    // but do NOT block the success response.
+    // Without this they stay in "invited" state. Every failure mode is
+    // appended to the audit log so admin can see exactly what happened
+    // (otherwise the user gets a "success" screen but ends up stranded
+    // in Shopify's "invited" state with no password and no recovery).
     const submittedPassword = (parseResult.data as { password?: string }).password;
     if (submittedPassword && shopifyCustomerId) {
       tailTasks.push((async () => {
       try {
-        // Reuse the shared app_settings promise kicked off at the top of
-        // the handler — no extra round trip here.
         const { autoApprovalEnabled } = await appSettingsPromise;
 
         if (autoApprovalEnabled) {
@@ -1595,25 +1595,17 @@ Deno.serve(async (req: Request) => {
               }
             );
 
-            // Track whether activation succeeded; if not, on a soft-merge
-            // (where the customer may already be enabled with a prior
-            // password from support/Klaviyo) we fall back to a Storefront
-            // customerRecover so they get a reset link by email and can
-            // claim the account themselves.
             let activated = false;
             let activationStatusForFallback = 0;
+            let activationFailureDetail = "";
 
             if (urlRes.ok) {
               const json = await urlRes.json();
               const activationUrl: string | undefined = json?.account_activation_url;
               if (activationUrl) {
-                // Step 2: POST password to the activation URL exactly like
-                // the activate-account edge function does.
                 const activateRes = await fetch(activationUrl, {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                  },
+                  headers: { "Content-Type": "application/x-www-form-urlencoded" },
                   body: new URLSearchParams({
                     "customer[password]": submittedPassword,
                     "customer[password_confirmation]": submittedPassword,
@@ -1627,97 +1619,122 @@ Deno.serve(async (req: Request) => {
                 } else {
                   const txt = await activateRes.text();
                   activationStatusForFallback = activateRes.status;
-                  console.warn(
-                    "Auto-activation POST failed (non-blocking):",
-                    activateRes.status,
-                    txt.substring(0, 300)
-                  );
+                  activationFailureDetail = `activation POST returned ${activateRes.status}: ${txt.substring(0, 200)}`;
+                  recordAuditFailure("auto_activation", activationFailureDetail);
                 }
               } else {
-                console.warn("No account_activation_url returned for customer", shopifyCustomerId);
+                activationFailureDetail = "no account_activation_url returned by Shopify Admin API";
+                recordAuditFailure("auto_activation", activationFailureDetail);
               }
             } else {
               const txt = await urlRes.text();
               activationStatusForFallback = urlRes.status;
-              console.warn(
-                "Failed to fetch account_activation_url (non-blocking):",
-                urlRes.status,
-                txt.substring(0, 300)
-              );
+              activationFailureDetail = `account_activation_url fetch returned ${urlRes.status}: ${txt.substring(0, 200)}`;
+              recordAuditFailure("auto_activation", activationFailureDetail);
             }
 
-            // Fallback: if activation didn't succeed for any reason, send a
-            // Storefront password-reset email so the user always has a path
-            // to claim the account. Covers both:
-            //   - soft-merge where customer is already enabled (Admin
-            //     activation returns 422)
-            //   - brand-new customer whose activation POST failed mid-flow
-            //     (network blip, password edge case) — without this they'd
-            //     be stuck in "invited" with the one-time URL consumed.
+            // Fallback when activation didn't succeed. The correct fallback
+            // depends on the customer's post-state:
+            //   - Soft-merge into an existing ENABLED customer → Storefront
+            //     customerRecover sends a reset email (only works on enabled
+            //     customers; silently no-ops for invited).
+            //   - Brand-new customer left in INVITED state → Admin
+            //     send_invite re-issues the account invite email (this is
+            //     the only thing Shopify will actually deliver for an
+            //     invited customer).
+            // Picking the wrong one leaves the user with no email at all.
             if (!activated) {
-
+              const isSoftMerge = !!existingCustomerId;
               try {
-                const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-                if (storefrontToken) {
-                  const recoverRes = await fetch(
-                    `https://${shopifyDomain}/api/2024-10/graphql.json`,
+                if (isSoftMerge) {
+                  const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+                  if (!storefrontToken) {
+                    recordAuditFailure(
+                      "activation_fallback",
+                      "soft-merge fallback skipped: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing"
+                    );
+                  } else {
+                    const recoverRes = await fetch(
+                      `https://${shopifyDomain}/api/2024-10/graphql.json`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-Shopify-Storefront-Access-Token": storefrontToken,
+                        },
+                        body: JSON.stringify({
+                          query:
+                            "mutation customerRecover($email: String!) { customerRecover(email: $email) { customerUserErrors { code field message } } }",
+                          variables: { email: customer.email },
+                        }),
+                      }
+                    );
+                    if (recoverRes.ok) {
+                      const rJson = await recoverRes.json();
+                      const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
+                      if (errs.length === 0) {
+                        console.log("Sent customerRecover reset email (soft-merge):", customer.email);
+                      } else {
+                        recordAuditFailure(
+                          "activation_fallback",
+                          `customerRecover userErrors: ${JSON.stringify(errs).substring(0, 250)}`
+                        );
+                      }
+                    } else {
+                      recordAuditFailure(
+                        "activation_fallback",
+                        `customerRecover HTTP ${recoverRes.status}: ${(await recoverRes.text()).substring(0, 200)}`
+                      );
+                    }
+                  }
+                } else {
+                  // Brand-new customer left in "invited" state. Use the
+                  // Admin REST send_invite endpoint — customerRecover does
+                  // NOT work on invited customers and silently no-ops.
+                  const inviteRes = await shopifyFetch(
+                    `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/send_invite.json`,
                     {
                       method: "POST",
                       headers: {
+                        "X-Shopify-Access-Token": shopifyAdminToken,
                         "Content-Type": "application/json",
-                        "X-Shopify-Storefront-Access-Token": storefrontToken,
                       },
-                      body: JSON.stringify({
-                        query:
-                          "mutation customerRecover($email: String!) { customerRecover(email: $email) { customerUserErrors { code field message } } }",
-                        variables: { email: customer.email },
-                      }),
+                      body: JSON.stringify({ customer_invite: {} }),
                     }
                   );
-                  if (recoverRes.ok) {
-                    const rJson = await recoverRes.json();
-                    const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
-                    if (errs.length === 0) {
-                      console.log(
-                        "Sent password-reset email as activation fallback:",
-                        customer.email,
-                        "(soft-merge=" + (!!existingCustomerId) +
-                        ", activation status was " + activationStatusForFallback + ")"
-                      );
-
-                    } else {
-                      console.warn(
-                        "Soft-merge customerRecover returned userErrors (non-blocking):",
-                        JSON.stringify(errs)
-                      );
-                    }
+                  if (inviteRes.ok) {
+                    console.log(
+                      "Sent Shopify account invite as activation fallback:",
+                      customer.email,
+                      `(prior activation status: ${activationStatusForFallback})`
+                    );
                   } else {
-                    console.warn(
-                      "Soft-merge customerRecover HTTP failed (non-blocking):",
-                      recoverRes.status,
-                      (await recoverRes.text()).substring(0, 200)
+                    const txt = await inviteRes.text();
+                    recordAuditFailure(
+                      "activation_fallback",
+                      `send_invite HTTP ${inviteRes.status}: ${txt.substring(0, 200)}`
                     );
                   }
-                } else {
-                  console.warn(
-                    "Soft-merge fallback: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing, skipping reset email"
-                  );
                 }
               } catch (recoverErr) {
-                console.warn(
-                  "Soft-merge customerRecover threw (non-blocking):",
-                  recoverErr
+                recordAuditFailure(
+                  "activation_fallback",
+                  `fallback threw: ${recoverErr instanceof Error ? recoverErr.message : String(recoverErr)}`
                 );
               }
             }
           } else {
-            console.warn(
+            recordAuditFailure(
+              "auto_activation",
               "Auto-approval enabled but SHOPIFY_STORE_DOMAIN/SHOPIFY_ADMIN_ACCESS_TOKEN missing"
             );
           }
         }
       } catch (activationErr) {
-        console.warn("Auto-approval activation threw (non-blocking):", activationErr);
+        recordAuditFailure(
+          "auto_activation",
+          `activation chain threw: ${activationErr instanceof Error ? activationErr.message : String(activationErr)}`
+        );
       }
       })());
     }
