@@ -48,6 +48,14 @@ type CohortRow = {
   partial24h: boolean;
   partial7d: boolean;
 };
+type ConsentByType = {
+  type: string;
+  total: number;
+  sms: number;
+  email: number;
+  smsRate: number;
+  emailRate: number;
+};
 
 type ApiResponse = {
   success: boolean;
@@ -69,6 +77,15 @@ type ApiResponse = {
   devices?: DeviceRow[];
   deviceByStep?: DeviceByStepRow[];
   cohorts: CohortRow[];
+  consent?: {
+    total: number;
+    smsYes: number;
+    emailYes: number;
+    smsRate: number;
+    emailRate: number;
+    byType: ConsentByType[];
+    series: { date: string; total: number; sms: number; smsRate: number }[];
+  };
   error?: string;
 };
 
