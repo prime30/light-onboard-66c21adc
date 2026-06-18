@@ -608,6 +608,15 @@ Deno.serve(async (req: Request) => {
   // (client also enforces this, but never trust the client).
   if (isDisposableEmail(parseResult.data.email)) {
     console.log("Disposable email rejected:", parseResult.data.email);
+    await writeStandaloneAuditFailure({
+      email: parseResult.data.email,
+      accountType: parseResult.data.accountType,
+      step: "disposable_email",
+      field: "email",
+      message: "Disposable email domain blocked",
+      payload: parseResult.data as unknown as Record<string, unknown>,
+      req,
+    });
     // Prefix with `email:` so the client routes the error to the email
     // field on the contact-basics step instead of showing a generic banner.
     return sendError(400, [
