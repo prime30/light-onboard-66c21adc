@@ -137,6 +137,21 @@ Deno.serve(async (req: Request) => {
     }
   } catch (err) {
     console.error("check-email error:", err);
+    try {
+      const u = Deno.env.get("SUPABASE_URL");
+      const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (u && k) {
+        void fetch(`${u}/functions/v1/notify-error`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "check-email",
+            message: err instanceof Error ? err.message : String(err),
+            context: { stack: err instanceof Error ? err.stack?.slice(0, 2000) : null },
+          }),
+        }).catch(() => {});
+      }
+    } catch { /* never throw */ }
     return new Response(JSON.stringify({ exists: false }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

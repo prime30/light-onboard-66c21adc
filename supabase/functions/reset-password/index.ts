@@ -366,6 +366,21 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("Reset password error:", error);
+    try {
+      const u = Deno.env.get("SUPABASE_URL");
+      const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (u && k) {
+        void fetch(`${u}/functions/v1/notify-error`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "reset-password",
+            message: error instanceof Error ? error.message : String(error),
+            context: { stack: error instanceof Error ? error.stack?.slice(0, 2000) : null },
+          }),
+        }).catch(() => {});
+      }
+    } catch { /* never throw */ }
     if (error instanceof TypeError && error.message.includes("fetch")) {
       return sendError(503, ["Unable to connect to the store. Please try again in a moment."], "Connection error");
     }
