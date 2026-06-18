@@ -16,6 +16,7 @@ import {
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
 import { countries } from "@/data/locations";
+import { countryCodes } from "@/data/country-codes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FormState, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
