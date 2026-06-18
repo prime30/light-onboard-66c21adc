@@ -357,7 +357,7 @@ export const ContactBasicsStep = () => {
           {matchingEmailConflict && (
             <button
               type="button"
-              onClick={() => navigate(`/login?email=${encodeURIComponent(matchingEmailConflict.email)}`)}
+              onClick={() => navigate("/login")}
               className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors group/signin animate-fade-in"
             >
               <span>Sign in to your existing account instead</span>
