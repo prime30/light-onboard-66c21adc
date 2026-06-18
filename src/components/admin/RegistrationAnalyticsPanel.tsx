@@ -103,7 +103,14 @@ interface Props {
   adminPassword: string;
 }
 
-const RANGE_OPTIONS = [7, 14, 30, 90] as const;
+const RANGE_OPTIONS: { label: string; days: number }[] = [
+  { label: "24h", days: 1 },
+  { label: "72h", days: 3 },
+  { label: "Last 7d", days: 7 },
+  { label: "Last 14d", days: 14 },
+  { label: "Last 30d", days: 30 },
+  { label: "Last 90d", days: 90 },
+];
 
 export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => {
   const [days, setDays] = useState<number>(30);
@@ -155,19 +162,19 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
       </div>
 
       <div className="flex flex-wrap gap-1.5 text-[11px]">
-        {RANGE_OPTIONS.map((d) => (
+        {RANGE_OPTIONS.map((opt) => (
           <button
-            key={d}
+            key={opt.label}
             type="button"
-            onClick={() => setDays(d)}
+            onClick={() => setDays(opt.days)}
             className={cn(
               "px-2.5 py-1 rounded-full border transition-colors",
-              days === d
+              days === opt.days
                 ? "border-foreground/60 bg-foreground/[0.04] text-foreground"
                 : "border-border/50 text-muted-foreground hover:text-foreground",
             )}
           >
-            Last {d}d
+            {opt.label}
           </button>
         ))}
       </div>
