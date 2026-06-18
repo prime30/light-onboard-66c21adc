@@ -83,6 +83,8 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
 
+  try {
+
   let payload: Payload;
   try {
     payload = (await req.json()) as Payload;
