@@ -822,6 +822,15 @@ Deno.serve(async (req: Request) => {
               phone: submittedPhone,
               collidingId,
             });
+            await writeStandaloneAuditFailure({
+              email: parseResult.data.email,
+              accountType: parseResult.data.accountType,
+              step: "phone_in_use",
+              field: "phoneNumber",
+              message: `Phone already linked to Shopify customer ${collidingId}`,
+              payload: parseResult.data as unknown as Record<string, unknown>,
+              req,
+            });
             return sendError(
               409,
               ["This phone number is already linked to another account."],
