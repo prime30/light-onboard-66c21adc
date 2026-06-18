@@ -86,6 +86,14 @@ type ApiResponse = {
     byType: ConsentByType[];
     series: { date: string; total: number; sms: number; smsRate: number }[];
   };
+  recovery?: {
+    recoveredCount: number;
+    bouncedCount: number;
+    eligibleCount: number;
+    recoveryRate: number;
+    medianHoursToRecover: number;
+    windowHours: number;
+  };
   error?: string;
 };
 
@@ -199,6 +207,38 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
           loading={loading && !data}
         />
       </div>
+
+      {/* Abandoned-registration recovery */}
+      {data?.recovery && data.recovery.eligibleCount > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Abandoned-registration recovery
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            Users who completed more than {data.recovery.windowHours}h after first touch — the cohort the Klaviyo
+            abandoned-registration flow is designed to bring back. Recovery rate = recovered / (recovered + still-bounced).
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <Tile
+              icon={<CheckCircle2 className="w-3.5 h-3.5 text-status-green" />}
+              label="Recovered"
+              value={data.recovery.recoveredCount}
+              suffix={`${data.recovery.recoveryRate}%`}
+            />
+            <Tile
+              icon={<TrendingDown className="w-3.5 h-3.5 text-destructive" />}
+              label="Still bounced"
+              value={data.recovery.bouncedCount}
+            />
+            <Tile
+              icon={<Clock className="w-3.5 h-3.5 text-muted-foreground" />}
+              label="Median time-to-recover"
+              value={data.recovery.medianHoursToRecover}
+              suffix="hours"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Trend chart */}
       <div className="rounded-[10px] border border-border/50 p-3">
