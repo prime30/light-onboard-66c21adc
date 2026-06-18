@@ -158,10 +158,49 @@ export function FormDataProvider({
       if (result.success === false) {
         console.log("set error");
         setErrorActions(result.actions || []);
-        setSubmitErrorMessage(result.error);
+
+        // Server returns Zod errors as "fieldPath: message" strings (see
+        // create-customer index.ts). Parse them back into per-field errors
+        // so the user sees the problem inline on the right step instead of
+        // a generic "Invalid input: expected string, received null" toast.
+        const rawMsg = result.error || "";
+        const lines = rawMsg
+          .split("\n")
+          .map((l) => l.replace(/^\s*\d+\.\s*/, "").trim())
+          .filter(Boolean);
+        const fieldErrors: Array<{ field: string; message: string }> = [];
+        for (const line of lines) {
+          const m = line.match(/^([a-zA-Z][a-zA-Z0-9_.]*?):\s*(.+)$/);
+          if (m) fieldErrors.push({ field: m[1], message: m[2] });
+        }
+
+        if (fieldErrors.length > 0) {
+          for (const { field, message } of fieldErrors) {
+            // Strip array indexes ("licenseProofFiles.0" → "licenseProofFiles")
+            const top = field.split(".")[0] as ValidFieldNames;
+            try {
+              setError(top, { type: "server", message });
+            } catch {
+              /* unknown field — fall through to root error */
+            }
+          }
+          const friendlyList = fieldErrors
+            .map(({ field, message }) => {
+              const top = field.split(".")[0] as ValidFieldNames;
+              const display = FIELD_DISPLAY_NAMES[top] ?? top;
+              return `${display}: ${message}`;
+            })
+            .join("\n");
+          setSubmitErrorMessage(
+            `Some required information is missing or invalid:\n${friendlyList}`
+          );
+        } else {
+          setSubmitErrorMessage(result.error);
+        }
+
         // Map server-side phone errors back to the phone field so the user
         // sees the error inline on the Contact step (not just a root toast).
-        const errText = (result.error || "").toLowerCase();
+        const errText = rawMsg.toLowerCase();
         const isPhoneInvalid =
           result.statusCode === 400 && errText.includes("valid phone number");
         const isPhoneInUse =
