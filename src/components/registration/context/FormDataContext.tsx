@@ -446,8 +446,23 @@ export function FormDataProvider({
 
   // On mount, populate form with stored values and initial values
   useEffect(() => {
-    if (storedForm) {
-      Object.entries(storedForm).forEach(([key, value]) => {
+    // Allowed accountType values per the CURRENT schema. Older builds
+    // accepted additional values (e.g. "licensed_stylist") that have since
+    // been removed — leaving a stale value in localStorage would crash the
+    // zodResolver's discriminatedUnion lookup. Strip anything unknown so
+    // the user is dropped back on the account-type step.
+    const ALLOWED_ACCOUNT_TYPES = new Set(["professional", "salon", "student"]);
+    const sanitizedStored = storedForm ? { ...storedForm } : null;
+    if (
+      sanitizedStored &&
+      sanitizedStored.accountType !== undefined &&
+      !ALLOWED_ACCOUNT_TYPES.has(sanitizedStored.accountType as string)
+    ) {
+      delete sanitizedStored.accountType;
+    }
+
+    if (sanitizedStored) {
+      Object.entries(sanitizedStored).forEach(([key, value]) => {
         setValue(key as ValidFieldNames, value, dirtyFieldOptions);
       });
     }
