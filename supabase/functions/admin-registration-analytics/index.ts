@@ -121,6 +121,42 @@ Deno.serve(async (req: Request) => {
   const bounceRate = eligible.length > 0 ? bounced / eligible.length : 0;
   const completionRate = eligible.length > 0 ? completed / eligible.length : 0;
 
+  // ---- recovery tracking ----
+  // A "recovered" lead = completed registration where the gap between first
+  // touch (started_at) and completion (completed_at) is > 1 hour. That's the
+  // window after which Klaviyo's abandoned-registration flow has (or would
+  // have) fired, so completions past that point are the cohort the recovery
+  // email is designed to bring back. Without per-message click attribution
+  // this is the best proxy we have.
+  const HOUR_MS = 60 * 60 * 1000;
+  const recoveryWindowMs = 1 * HOUR_MS;
+  const recoveredLeads = leads.filter(
+    (r) => r.completed_at && Date.parse(r.completed_at) - Date.parse(r.started_at) > recoveryWindowMs,
+  );
+  // Denominator: anyone eligible for recovery = bounced OR recovered
+  // (i.e., everyone who didn't finish in the first hour).
+  const recoveryEligible = recoveredLeads.length + bounced;
+  const recoveryRate =
+    recoveryEligible > 0 ? Math.round((recoveredLeads.length / recoveryEligible) * 1000) / 10 : 0;
+  // Median time-to-recover in hours.
+  const recoveryDeltas = recoveredLeads
+    .map((r) => Date.parse(r.completed_at!) - Date.parse(r.started_at))
+    .sort((a, b) => a - b);
+  const medianRecoveryHours =
+    recoveryDeltas.length > 0
+      ? Math.round(
+          (recoveryDeltas[Math.floor(recoveryDeltas.length / 2)] / HOUR_MS) * 10,
+        ) / 10
+      : 0;
+  const recovery = {
+    recoveredCount: recoveredLeads.length,
+    bouncedCount: bounced,
+    eligibleCount: recoveryEligible,
+    recoveryRate,
+    medianHoursToRecover: medianRecoveryHours,
+    windowHours: 1,
+  };
+
   // ---- daily buckets (UTC date) ----
   const dayMap = new Map<string, { started: number; completed: number }>();
   for (let i = days - 1; i >= 0; i--) {
@@ -644,6 +680,7 @@ Deno.serve(async (req: Request) => {
       attendedLiftPp,
     },
     consent,
+    recovery,
   });
 });
 
