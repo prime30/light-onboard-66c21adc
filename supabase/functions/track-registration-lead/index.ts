@@ -371,4 +371,23 @@ Deno.serve(async (req: Request) => {
     phase,
     klaviyoSynced: profileRes.ok && eventRes.ok,
   });
+  } catch (error) {
+    console.error("track-registration-lead unhandled:", error);
+    try {
+      const u = Deno.env.get("SUPABASE_URL");
+      const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (u && k) {
+        void fetch(`${u}/functions/v1/notify-error`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "track-registration-lead",
+            message: error instanceof Error ? error.message : String(error),
+            context: { stack: error instanceof Error ? error.stack?.slice(0, 2000) : null },
+          }),
+        }).catch(() => {});
+      }
+    } catch { /* never throw */ }
+    return json(200, { ok: false, error: "internal_error" });
+  }
 });
