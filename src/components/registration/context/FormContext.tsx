@@ -60,7 +60,8 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
     useFormData();
-  const { setCurrentStep, currentStep, ...stepContext } = useStepContext();
+  const { setCurrentStep, currentStep, goToStep, getStepForField, ...stepContext } =
+    useStepContext();
   const { setEmail } = useGlobalApp();
 
   const email = watch("email");
@@ -73,6 +74,19 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     errors: formDataContext.errors,
     accountType: accountType ?? null,
   });
+
+  // Auto-navigate to the step that owns the first server-returned field error
+  // so the user lands on the page where they can actually fix it.
+  const serverErrorField = formDataContext.serverErrorField;
+  useEffect(() => {
+    if (!serverErrorField) return;
+    const targetStep = getStepForField(serverErrorField.field);
+    if (targetStep && targetStep !== currentStep) {
+      goToStep(targetStep);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverErrorField?.bump]);
+
 
 
   // Reset form and move to success step on successful submission
