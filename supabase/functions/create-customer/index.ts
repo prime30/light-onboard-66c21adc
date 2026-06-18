@@ -480,8 +480,65 @@ Deno.serve(async (req: Request) => {
   // Validate the request body against the schema
   const parseResult = registrationSchema.safeParse(requestBody.data);
   if (!parseResult.success) {
-    const validationErrors = parseResult.error.issues.map((e: { message: string }) => e.message);
+    // Prefix each error with the field path so the client can map it back
+    // to a specific form field / step. "schoolName: School name is required"
+    // is infinitely more useful than "Invalid input: expected string, received null".
+    const issues = parseResult.error.issues.map(
+      (e: { message: string; path?: Array<string | number> }) => {
+        const path = Array.isArray(e.path) ? e.path.filter((p) => p !== undefined) : [];
+        const fieldPath = path.length > 0 ? path.join(".") : "form";
+        return { field: fieldPath, message: e.message };
+      }
+    );
+    const validationErrors = issues.map((i) =>
+      i.field === "form" ? i.message : `${i.field}: ${i.message}`
+    );
     console.log("Request body validation failed:", validationErrors);
+
+    // Best-effort audit-row write so we have a persistent record of WHICH
+    // field failed for this user. Mirrors the audit insert that happens
+    // post-validation but flagged `failed` and with the issue list inlined.
+    try {
+      const _url = Deno.env.get("SUPABASE_URL");
+      const _key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw = (requestBody.data ?? {}) as Record<string, any>;
+      const auditEmail = typeof raw.email === "string" ? raw.email.toLowerCase().trim() : null;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _pw, confirmPassword: _cpw, ...payloadForLog } = raw;
+      if (_url && _key && auditEmail) {
+        await fetch(`${_url}/rest/v1/registration_submissions`, {
+          method: "POST",
+          headers: {
+            apikey: _key,
+            Authorization: `Bearer ${_key}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({
+            email: auditEmail,
+            account_type: typeof raw.accountType === "string" ? raw.accountType : null,
+            status: "failed",
+            payload: payloadForLog,
+            error_log: issues.map((i) => ({
+              step: "zod_validation",
+              status: "error",
+              field: i.field,
+              message: i.message,
+              at: new Date().toISOString(),
+            })),
+            ip_address:
+              req.headers.get("cf-connecting-ip") ??
+              req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+              null,
+            user_agent: req.headers.get("user-agent") ?? null,
+          }),
+        });
+      }
+    } catch (e) {
+      console.warn("Zod-failure audit write threw (non-blocking):", e);
+    }
+
     return sendError(400, validationErrors);
   }
 
