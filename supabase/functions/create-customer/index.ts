@@ -775,6 +775,15 @@ Deno.serve(async (req: Request) => {
     }
     if (!phoneIsValid) {
       console.log("Phone failed validation:", submittedPhone);
+      await writeStandaloneAuditFailure({
+        email: parseResult.data.email,
+        accountType: parseResult.data.accountType,
+        step: "phone_invalid",
+        field: "phoneNumber",
+        message: `Invalid phone format: ${submittedPhone}`,
+        payload: parseResult.data as unknown as Record<string, unknown>,
+        req,
+      });
       return sendError(
         400,
         ["Please enter a valid phone number."],
