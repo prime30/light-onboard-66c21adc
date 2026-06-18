@@ -21,6 +21,7 @@ const LABELS: Record<string, string> = {
   friend: "Friend or colleague",
   salon: "My salon",
   event: "Industry event",
+  reddit: "Reddit",
   other: "Other",
 };
 
