@@ -108,7 +108,13 @@ const AdminSettingsPage = () => {
       }
       setAuthed(true);
       setAdminMode(true);
+      try {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ email, password }));
+      } catch {
+        /* ignore quota/availability */
+      }
       // Hydrate tags + welcome offer from verify response if present
+
       const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
       setExtraTags(Array.isArray(tags) ? tags : []);
       if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
