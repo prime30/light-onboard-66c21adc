@@ -89,6 +89,54 @@ Deno.serve(async (req) => {
   if (!parsed.success) return sendError(400, parsed.error.issues.map((i) => i.message), "Validation failed");
   const { email } = parsed.data;
 
+  // Step 1: look up the customer's Shopify state. If they're "invited"
+  // (account created but activation URL never consumed), Storefront
+  // customerRecover silently no-ops — Shopify will not send a reset
+  // email to an unactivated account. We have to use the Admin
+  // send_invite endpoint instead, which re-issues the original account
+  // invite email. This is the exact failure mode that left
+  // saraannfox97@yahoo.com stranded with no way to set a password.
+  try {
+    const lookupRes = await fetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}`,
+      { headers: { "X-Shopify-Access-Token": ADMIN_TOKEN } }
+    );
+    if (lookupRes.ok) {
+      const lookupJson = await lookupRes.json();
+      const cust = lookupJson?.customers?.[0];
+      if (cust?.state === "invited" && cust?.id) {
+        const inviteRes = await fetch(
+          `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/${cust.id}/send_invite.json`,
+          {
+            method: "POST",
+            headers: {
+              "X-Shopify-Access-Token": ADMIN_TOKEN,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ customer_invite: {} }),
+          }
+        );
+        if (inviteRes.ok) {
+          console.log("Re-sent account invite for invited customer:", email);
+          return sendSuccess({ sent: true, channel: "invite" }, "We've sent you a fresh account-setup email.");
+        }
+        const inviteTxt = await inviteRes.text();
+        console.error(
+          "send_invite failed for invited customer:",
+          email,
+          inviteRes.status,
+          inviteTxt.substring(0, 300)
+        );
+        // Fall through to customerRecover attempt below — better than nothing.
+      }
+    } else {
+      console.warn("Admin customer lookup failed (non-blocking):", lookupRes.status);
+    }
+  } catch (lookupErr) {
+    console.warn("Admin customer lookup threw (non-blocking):", lookupErr);
+  }
+
+  // Step 2: enabled / unknown customers → Storefront customerRecover.
   const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
   if (!storefrontToken) return sendError(500, ["Server configuration error"]);
 
@@ -106,7 +154,6 @@ Deno.serve(async (req) => {
       const text = await response.text();
       console.error("Storefront API HTTP error:", response.status, text.substring(0, 500));
       if (response.status === 401 || response.status === 403) {
-        // Token may have been revoked; invalidate cache so the next call re-mints.
         cachedStorefrontToken = null;
       }
       if (response.status === 429) return sendError(429, ["Too many requests. Please wait a moment."], "Rate limited");
@@ -115,7 +162,7 @@ Deno.serve(async (req) => {
 
     const json = await response.json();
     if (json.errors?.length) {
-      console.error("Storefront GraphQL errors:", JSON.stringify(json.errors));
+      console.error("Storefront GraphQL errors for", email, ":", JSON.stringify(json.errors));
       return sendSuccess({ sent: true }, "If an account exists, a reset email has been sent.");
     }
 
@@ -125,7 +172,13 @@ Deno.serve(async (req) => {
     );
     if (throttled) return sendError(429, ["Too many requests. Please wait a moment before trying again."], "Rate limited");
 
-    return sendSuccess({ sent: true }, "Reset email sent if an account exists.");
+    if (userErrors.length > 0) {
+      // Log per-email so support can correlate "I never got the reset"
+      // complaints with what Shopify actually returned.
+      console.error("customerRecover userErrors for", email, ":", JSON.stringify(userErrors));
+    }
+
+    return sendSuccess({ sent: true, channel: "recover" }, "Reset email sent if an account exists.");
   } catch (error) {
     console.error("Recover password error:", error);
     if (error instanceof TypeError && error.message.includes("fetch")) {
