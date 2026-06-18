@@ -135,6 +135,8 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     errorActions,
     goToStep,
     getStepForField,
+    steps,
+    getStepValidationStatus,
     ...formDataContext,
     ...stepContext,
   };
