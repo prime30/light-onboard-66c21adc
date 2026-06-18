@@ -163,25 +163,85 @@ Deno.serve(async (req: Request) => {
     if (viewportHeight) upsertBody.viewport_height = viewportHeight;
     if (monthlyOrderVolume) upsertBody.monthly_order_volume = monthlyOrderVolume;
 
-    const upsertRes = await fetch(
-      `${supabaseUrl}/rest/v1/registration_leads?on_conflict=email`,
-      {
-        method: "POST",
-        headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
-          "Content-Type": "application/json",
-          Prefer: "resolution=merge-duplicates,return=minimal",
+    // ---- Prefix-typing dedupe ----
+    // Users typing their email blur the field mid-type ("@yahoo.c", "@yahoo.co",
+    // "@yahoo.com") and each variant matches our loose regex, creating phantom
+    // "started/bounced" rows. If the same IP produced a lead in the last 15 min
+    // whose email is a prefix of this one (or vice versa), treat them as the
+    // same lead: rename the existing row to the longer email and merge fields,
+    // instead of inserting a new row.
+    let renamedFromEmail: string | null = null;
+    if (ip && !isCompleted) {
+      try {
+        const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+        const listRes = await fetch(
+          `${supabaseUrl}/rest/v1/registration_leads?ip_address=eq.${encodeURIComponent(ip)}&created_at=gte.${encodeURIComponent(since)}&completed_at=is.null&select=email,created_at&order=created_at.desc&limit=20`,
+          { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+        );
+        if (listRes.ok) {
+          const rows = (await listRes.json()) as Array<{ email: string }>;
+          // Find the longest existing email that has a prefix relationship with `email`.
+          let match: string | null = null;
+          for (const r of rows) {
+            const e = (r.email ?? "").toLowerCase();
+            if (!e || e === email) continue;
+            if (email.startsWith(e) || e.startsWith(email)) {
+              if (!match || e.length > match.length) match = e;
+            }
+          }
+          if (match) {
+            // Rename the existing row to the longer email (the more complete one wins).
+            const winnerEmail = match.length >= email.length ? match : email;
+            const loserEmail = winnerEmail === match ? email : match;
+            renamedFromEmail = match;
+            const patchBody: Record<string, unknown> = { ...upsertBody, email: winnerEmail };
+            const patchRes = await fetch(
+              `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(match)}`,
+              {
+                method: "PATCH",
+                headers: {
+                  apikey: serviceKey,
+                  Authorization: `Bearer ${serviceKey}`,
+                  "Content-Type": "application/json",
+                  Prefer: "return=minimal",
+                },
+                body: JSON.stringify(patchBody),
+              },
+            );
+            if (!patchRes.ok) {
+              console.warn("track-registration-lead: prefix-merge patch failed", patchRes.status, await patchRes.text());
+              renamedFromEmail = null; // fall through to normal upsert
+            } else if (winnerEmail !== loserEmail && winnerEmail === email) {
+              // We renamed the prefix row up to the new email; nothing else to do.
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("track-registration-lead: prefix-merge lookup threw", err);
+      }
+    }
+
+    if (!renamedFromEmail) {
+      const upsertRes = await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?on_conflict=email`,
+        {
+          method: "POST",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "resolution=merge-duplicates,return=minimal",
+          },
+          body: JSON.stringify(upsertBody),
         },
-        body: JSON.stringify(upsertBody),
-      },
-    );
-    if (!upsertRes.ok) {
-      console.warn(
-        "track-registration-lead: upsert failed",
-        upsertRes.status,
-        await upsertRes.text(),
       );
+      if (!upsertRes.ok) {
+        console.warn(
+          "track-registration-lead: upsert failed",
+          upsertRes.status,
+          await upsertRes.text(),
+        );
+      }
     }
 
     // Increment per-field validation error counters (best-effort, post-upsert so row exists).
