@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
