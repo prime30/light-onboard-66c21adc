@@ -246,8 +246,29 @@ export function FormDataProvider({
           type: "server",
           message: result.error,
         });
+
+        // Ping ops on real submit failures (5xx / network) — skip validation
+        // errors the user can fix themselves.
+        const isServerFailure =
+          !result.statusCode || result.statusCode >= 500 || result.statusCode === 0;
+        if (isServerFailure) {
+          try {
+            void supabase.functions.invoke("notify-error", {
+              body: {
+                source: "create-customer-submit",
+                message: result.error || "create-customer failed",
+                context: {
+                  statusCode: result.statusCode ?? null,
+                  email: values?.email ?? null,
+                  accountType: values?.accountType ?? null,
+                },
+              },
+            }).catch(() => { /* non-blocking */ });
+          } catch { /* never let reporter throw */ }
+        }
         throw new Error(result.error);
       }
+
 
 
       // Auto-login: hand the parent Shopify theme the credentials so the
