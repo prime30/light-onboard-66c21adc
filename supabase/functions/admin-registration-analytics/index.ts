@@ -628,6 +628,7 @@ Deno.serve(async (req: Request) => {
       purchaseCohorts,
       attendedLiftPp,
     },
+    consent,
   });
 });
 
