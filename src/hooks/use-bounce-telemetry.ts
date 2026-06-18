@@ -87,6 +87,10 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
   // Detect new validation error field names and batch-flush.
   useEffect(() => {
     if (!hasEmail) return;
+    // Skip terminal steps — RHF runs a final validation pass on submit that
+    // briefly flashes errors for any field not yet touched, inflating per-field
+    // error counts in analytics with noise that never affected the user.
+    if (currentStep === "success" || currentStep === "assessing") return;
     const currentKeys = Object.keys(errors || {});
     const seen = lastErrorKeysRef.current;
     const newKeys: string[] = [];
