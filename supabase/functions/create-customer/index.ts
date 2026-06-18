@@ -483,10 +483,22 @@ Deno.serve(async (req: Request) => {
     // Prefix each error with the field path so the client can map it back
     // to a specific form field / step. "schoolName: School name is required"
     // is infinitely more useful than "Invalid input: expected string, received null".
+    //
+    // discriminatedUnion failures arrive with an empty path (`code:
+    // "invalid_union_discriminator"`) because the discriminator itself is
+    // what failed. Attribute those to `accountType` so the client can
+    // auto-navigate the user to the account-type step instead of showing
+    // an unactionable generic banner on the final submit.
     const issues = parseResult.error.issues.map(
-      (e: { message: string; path?: Array<string | number> }) => {
+      (e: { code?: string; message: string; path?: Array<string | number> }) => {
         const path = Array.isArray(e.path) ? e.path.filter((p) => p !== undefined) : [];
-        const fieldPath = path.length > 0 ? path.join(".") : "form";
+        let fieldPath = path.length > 0 ? path.join(".") : "form";
+        if (
+          fieldPath === "form" &&
+          (e.code === "invalid_union_discriminator" || e.code === "invalid_union")
+        ) {
+          fieldPath = "accountType";
+        }
         return { field: fieldPath, message: e.message };
       }
     );
