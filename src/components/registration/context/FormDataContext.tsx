@@ -467,28 +467,26 @@ export function FormDataProvider({
     // provinceCode is no longer one of its subdivisions, drop just the
     // province. Without this, the Select renders blank but the regex-light
     // schema still passes — Shopify then rejects the address at submit with
-    // a generic failure. Re-importing `countries` here to avoid a top-level
-    // dep change in this file.
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const { countries } = require("@/data/locations") as {
-        countries: Array<{ code: string; subdivisions: Array<{ code: string }> }>;
+    // a generic failure.
+    if (sanitizedStored) {
+      // Cast through unknown to drop the per-branch discriminated-union
+      // narrowing — address fields only live on the salon branch, but we
+      // want to defensively scrub regardless of which branch was stored.
+      const geo = sanitizedStored as unknown as {
+        countryCode?: string;
+        provinceCode?: string;
       };
-      if (sanitizedStored) {
-        const cc = sanitizedStored.countryCode as string | undefined;
-        const country = cc ? countries.find((c) => c.code === cc) : undefined;
-        if (cc && !country) {
-          delete sanitizedStored.countryCode;
-          delete sanitizedStored.provinceCode;
-        } else if (country) {
-          const pc = sanitizedStored.provinceCode as string | undefined;
-          if (pc && !country.subdivisions.some((s) => s.code === pc)) {
-            delete sanitizedStored.provinceCode;
-          }
+      const cc = geo.countryCode;
+      const country = cc ? countries.find((c) => c.code === cc) : undefined;
+      if (cc && !country) {
+        delete geo.countryCode;
+        delete geo.provinceCode;
+      } else if (country) {
+        const pc = geo.provinceCode;
+        if (pc && !country.subdivisions.some((s) => s.code === pc)) {
+          delete geo.provinceCode;
         }
       }
-    } catch {
-      /* locations module unavailable — ignore */
     }
 
     if (sanitizedStored) {
