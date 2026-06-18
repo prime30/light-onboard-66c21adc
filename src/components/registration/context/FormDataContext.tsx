@@ -201,6 +201,12 @@ export function FormDataProvider({
           setSubmitErrorMessage(
             `Some required information is missing or invalid:\n${friendlyList}`
           );
+          // Signal FormContext to navigate to the first offending field.
+          const firstTop = fieldErrors[0].field.split(".")[0] as ValidFieldNames;
+          setServerErrorField((prev) => ({
+            field: firstTop,
+            bump: (prev?.bump ?? 0) + 1,
+          }));
         } else {
           setSubmitErrorMessage(result.error);
         }
