@@ -6,6 +6,7 @@ import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
 import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
 import { useBounceTelemetry } from "@/hooks/use-bounce-telemetry";
+import { useAutoApproval } from "@/lib/app-settings";
 
 
 export type AuthFormContextType = {
