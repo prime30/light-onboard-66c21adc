@@ -23,6 +23,7 @@ import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { useAtom } from "jotai/react";
 import z from "zod";
 import { useApiClient } from "@/hooks/use-api-client";
+import { supabase } from "@/integrations/supabase/client";
 import { readHoneypotValue, readFormStartedAt } from "@/components/registration/HoneypotField";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
