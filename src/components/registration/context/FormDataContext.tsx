@@ -461,6 +461,35 @@ export function FormDataProvider({
       delete sanitizedStored.accountType;
     }
 
+    // Geography drift: if persisted countryCode is no longer in our country
+    // list, drop both country and province. If country is still valid but
+    // provinceCode is no longer one of its subdivisions, drop just the
+    // province. Without this, the Select renders blank but the regex-light
+    // schema still passes — Shopify then rejects the address at submit with
+    // a generic failure. Re-importing `countries` here to avoid a top-level
+    // dep change in this file.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const { countries } = require("@/data/locations") as {
+        countries: Array<{ code: string; subdivisions: Array<{ code: string }> }>;
+      };
+      if (sanitizedStored) {
+        const cc = sanitizedStored.countryCode as string | undefined;
+        const country = cc ? countries.find((c) => c.code === cc) : undefined;
+        if (cc && !country) {
+          delete sanitizedStored.countryCode;
+          delete sanitizedStored.provinceCode;
+        } else if (country) {
+          const pc = sanitizedStored.provinceCode as string | undefined;
+          if (pc && !country.subdivisions.some((s) => s.code === pc)) {
+            delete sanitizedStored.provinceCode;
+          }
+        }
+      }
+    } catch {
+      /* locations module unavailable — ignore */
+    }
+
     if (sanitizedStored) {
       Object.entries(sanitizedStored).forEach(([key, value]) => {
         setValue(key as ValidFieldNames, value, dirtyFieldOptions);
