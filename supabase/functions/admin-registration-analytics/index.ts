@@ -102,9 +102,16 @@ Deno.serve(async (req: Request) => {
       .filter(Boolean),
   );
 
-  const leads = ((rows ?? []) as Row[]).filter(
-    (r) => !excludedEmails.has((r.email ?? "").trim().toLowerCase()),
-  );
+  // Disposable / test inbox domains used for QA — always exclude.
+  const TEST_DOMAINS = ["spamok.com", "mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com"];
+  const isTestEmail = (email: string) => {
+    const e = email.trim().toLowerCase();
+    if (excludedEmails.has(e)) return true;
+    const domain = e.split("@")[1] ?? "";
+    return TEST_DOMAINS.some((d) => domain === d || domain.endsWith("." + d));
+  };
+
+  const leads = ((rows ?? []) as Row[]).filter((r) => !isTestEmail(r.email ?? ""));
 
   // ---- totals (apply grace window for bounce) ----
   const eligible = leads.filter((r) => r.completed_at || r.started_at < graceCutoff);
@@ -193,9 +200,17 @@ Deno.serve(async (req: Request) => {
     const errs = r.validation_errors;
     if (!errs || typeof errs !== "object") continue;
     const bounced = !r.completed_at && r.started_at < graceCutoff;
+    // Collapse password + confirmPassword into a single bucket. They almost
+    // always co-fire (mismatch + rule violations) so counting separately
+    // double-counts the same user friction.
+    const collapsedEntries = new Map<string, number>();
     for (const [field, raw] of Object.entries(errs)) {
       const n = typeof raw === "number" ? raw : Number(raw);
       if (!Number.isFinite(n) || n <= 0) continue;
+      const key = field === "password" || field === "confirmPassword" ? "password" : field;
+      collapsedEntries.set(key, (collapsedEntries.get(key) ?? 0) + n);
+    }
+    for (const [field, n] of collapsedEntries) {
       const cur = valMap.get(field) ?? { totalErrors: 0, usersAffected: 0, bouncedAffected: 0 };
       cur.totalErrors += n;
       cur.usersAffected += 1;
