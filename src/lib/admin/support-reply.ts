@@ -125,6 +125,10 @@ function diagnose(f: ErrorEntry): string {
     case "helium_create":
     case "helium_parse":
       return "We hit a temporary error syncing your account on our end. Please try submitting once more — if it fails again, reply to this email and we'll finish it manually.";
+    case "auto_activation":
+      return "Your account was created in our store but the automatic password setup didn't complete on Shopify's side, so you ended up in an 'invited' state with no working password. We've re-sent your account-setup email — check your inbox (and spam) for a message from Drop Dead Extensions with a 'Activate your account' link. If you don't see it within 10 minutes, reply here and we'll trigger a fresh invite manually.";
+    case "activation_fallback":
+      return "Your password setup didn't go through, and our automatic recovery email also failed to send. We've manually re-issued your account invite — check your inbox (and spam) for a 'Activate your account' message from Drop Dead Extensions. If nothing arrives in 10 minutes, reply here so we can resend it from a different sender.";
     case "zod_validation":
       // Field-specific templates first, then generic.
       if (f.field === "accountType") {
