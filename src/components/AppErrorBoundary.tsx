@@ -1,4 +1,5 @@
 import React from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type AppErrorBoundaryProps = {
   children: React.ReactNode;
@@ -17,8 +18,27 @@ export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, App
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown) {
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
     console.error("[AppErrorBoundary] Unhandled render error", error);
+    try {
+      const err = error as { message?: string; stack?: string } | null;
+      void supabase.functions
+        .invoke("notify-error", {
+          body: {
+            source: "client-error-boundary",
+            message: err?.message ?? String(error),
+            context: {
+              stack: err?.stack?.slice(0, 2000) ?? null,
+              componentStack: info?.componentStack?.slice(0, 2000) ?? null,
+              url: typeof window !== "undefined" ? window.location.href : null,
+              userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+            },
+          },
+        })
+        .catch(() => { /* non-blocking */ });
+    } catch {
+      /* never let the reporter throw */
+    }
   }
 
   private handleReload = () => {
