@@ -74,6 +74,56 @@ function sendError(
   );
 }
 
+// Standalone audit-row write for early-reject paths that fail BEFORE the
+// per-request audit pipeline (lines ~780+) is initialised — disposable
+// email, pre-check email collision, phone validation, phone uniqueness.
+// Without this, admin's Submissions Log can't see those rejections.
+// Best-effort: never throw, never block the user-facing response.
+async function writeStandaloneAuditFailure(args: {
+  email: string | null | undefined;
+  accountType: string | null | undefined;
+  step: string;
+  field: string;
+  message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: Record<string, any> | null;
+  req: Request;
+}): Promise<void> {
+  try {
+    const _url = Deno.env.get("SUPABASE_URL");
+    const _key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const email = (args.email ?? "").toString().toLowerCase().trim() || null;
+    if (!_url || !_key || !email) return;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, confirmPassword: _cpw, ...payloadForLog } = (args.payload ?? {}) as Record<string, unknown>;
+    await fetch(`${_url}/rest/v1/registration_submissions`, {
+      method: "POST",
+      headers: {
+        apikey: _key,
+        Authorization: `Bearer ${_key}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        email,
+        account_type: args.accountType ?? null,
+        status: "failed",
+        payload: payloadForLog,
+        error_log: [
+          { step: args.step, status: "error", field: args.field, message: args.message, at: new Date().toISOString() },
+        ],
+        ip_address:
+          args.req.headers.get("cf-connecting-ip") ??
+          args.req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          null,
+        user_agent: args.req.headers.get("user-agent") ?? null,
+      }),
+    });
+  } catch (e) {
+    console.warn("Standalone audit-failure write threw (non-blocking):", e);
+  }
+}
+
 // ------------------------------------------------------------------
 // 429-aware Shopify Admin API fetch. One retry honoring Retry-After
 // (capped so a wedged upstream can't blow the function timeout).
