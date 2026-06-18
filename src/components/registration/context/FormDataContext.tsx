@@ -465,6 +465,67 @@ export function FormDataProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // After restore, HEAD-check any persisted file-upload URLs and drop dead
+  // ones. Files live in the private `registration-documents` bucket and are
+  // served through the `get-image` edge function — bucket lifecycle, manual
+  // deletion, or a re-upload elsewhere can leave a populated array of URLs
+  // that pass the per-step gate (length > 0) but 404 at submit, which used
+  // to surface as a generic "registration failure". Removing dead entries
+  // here forces the user back through the file step with an inline error.
+  useEffect(() => {
+    const FILE_FIELDS: ValidFieldNames[] = [
+      "licenseProofFiles",
+      "enrollmentProofFiles",
+      "taxExemptFile",
+    ];
+    let cancelled = false;
+
+    const checkUrl = async (url: string): Promise<boolean> => {
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          headers: { Range: "bytes=0-0" },
+          cache: "no-store",
+        });
+        return res.ok || res.status === 206;
+      } catch {
+        return false;
+      }
+    };
+
+    (async () => {
+      for (const field of FILE_FIELDS) {
+        const current = storedForm?.[field as keyof typeof storedForm] as unknown;
+        if (!Array.isArray(current) || current.length === 0) continue;
+        // Only check plain string URLs — in-progress UploadFileItem objects
+        // aren't persisted, but guard just in case.
+        const urls = current.filter((v): v is string => typeof v === "string");
+        if (urls.length === 0) continue;
+
+        const liveness = await Promise.all(urls.map(checkUrl));
+        if (cancelled) return;
+
+        const surviving = urls.filter((_, i) => liveness[i]);
+        if (surviving.length === urls.length) continue;
+
+        // Some (or all) entries are dead — replace with survivors.
+        setValue(field, surviving as never, dirtyFieldOptions);
+        if (surviving.length === 0) {
+          setError(field, {
+            type: "server",
+            message:
+              "Previously uploaded file is no longer available — please re-upload.",
+          });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const setStoredFormValues = useCallback(
     ({ values }: FormStateWithValues) => {
       type ValueType = (typeof values)[keyof typeof values];
