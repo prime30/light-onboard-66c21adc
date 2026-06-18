@@ -102,9 +102,16 @@ Deno.serve(async (req: Request) => {
       .filter(Boolean),
   );
 
-  const leads = ((rows ?? []) as Row[]).filter(
-    (r) => !excludedEmails.has((r.email ?? "").trim().toLowerCase()),
-  );
+  // Disposable / test inbox domains used for QA — always exclude.
+  const TEST_DOMAINS = ["spamok.com", "mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com"];
+  const isTestEmail = (email: string) => {
+    const e = email.trim().toLowerCase();
+    if (excludedEmails.has(e)) return true;
+    const domain = e.split("@")[1] ?? "";
+    return TEST_DOMAINS.some((d) => domain === d || domain.endsWith("." + d));
+  };
+
+  const leads = ((rows ?? []) as Row[]).filter((r) => !isTestEmail(r.email ?? ""));
 
   // ---- totals (apply grace window for bounce) ----
   const eligible = leads.filter((r) => r.completed_at || r.started_at < graceCutoff);
