@@ -17,6 +17,8 @@ import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyti
 const MAX_TAGS = 50;
 const MAX_TAG_LENGTH = 80;
 
+const ADMIN_SESSION_KEY = "dd_admin_session_v1";
+
 const AdminSettingsPage = () => {
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(false);
@@ -88,6 +90,63 @@ const AdminSettingsPage = () => {
     };
   }, []);
 
+  // Rehydrate admin session from sessionStorage so preview HMR / iframe reloads
+  // don't kick the admin back to the login screen. Credentials are re-verified
+  // server-side; sessionStorage alone is never trusted.
+  useEffect(() => {
+    let cancelled = false;
+    let raw: string | null = null;
+    try {
+      raw = sessionStorage.getItem(ADMIN_SESSION_KEY);
+    } catch {
+      return;
+    }
+    if (!raw) return;
+    let creds: { email?: string; password?: string } | null = null;
+    try {
+      creds = JSON.parse(raw);
+    } catch {
+      try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+      return;
+    }
+    if (!creds?.email || !creds?.password) return;
+    setEmail(creds.email);
+    setPassword(creds.password);
+    void supabase.functions
+      .invoke("admin-toggle-setting", { body: { email: creds.email, password: creds.password } })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.success) {
+          try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+          return;
+        }
+        setAuthed(true);
+        setAdminMode(true);
+        const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
+        setExtraTags(Array.isArray(tags) ? tags : []);
+        if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
+          setWelcomeOffer(data.setting.welcome_offer_enabled);
+        }
+        if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
+          setMetafieldsEnabled(data.setting.discount_metafields_enabled);
+        } else {
+          setMetafieldsEnabled(true);
+        }
+        if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
+          setFounderHighVolume(data.setting.founder_call_high_volume_only);
+        } else {
+          setFounderHighVolume(false);
+        }
+      })
+      .catch(() => {
+        /* keep on login screen if verification fails */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerifying(true);
@@ -106,7 +165,13 @@ const AdminSettingsPage = () => {
       }
       setAuthed(true);
       setAdminMode(true);
+      try {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ email, password }));
+      } catch {
+        /* ignore quota/availability */
+      }
       // Hydrate tags + welcome offer from verify response if present
+
       const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
       setExtraTags(Array.isArray(tags) ? tags : []);
       if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
@@ -967,6 +1032,7 @@ const AdminSettingsPage = () => {
             setAuthed(false);
             setPassword("");
             setAdminMode(false);
+            try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
