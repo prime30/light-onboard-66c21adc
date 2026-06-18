@@ -519,6 +519,77 @@ Deno.serve(async (req: Request) => {
   const noCallRate = purchaseCohorts[2].purchaseRate;
   const attendedLiftPp = Math.round((attendedRate - noCallRate) * 10) / 10;
 
+  // ---- marketing consent (SMS / email opt-in) ----
+  // Source of truth = the submitted payload booleans. We also cross-check
+  // against marketing_consent_log to surface a "logged but not in payload"
+  // delta, which usually means a Shopify sync issue.
+  const { data: subRows } = await supabase
+    .from("registration_submissions")
+    .select("email, payload, account_type, created_at")
+    .gte("created_at", since);
+  const subs = (subRows ?? []).filter(
+    (s: { email?: string }) => !excludedEmails.has((s.email ?? "").trim().toLowerCase()),
+  ) as Array<{
+    email: string;
+    payload: Record<string, unknown> | null;
+    account_type: string | null;
+    created_at: string;
+  }>;
+
+  let smsYes = 0;
+  let emailYes = 0;
+  const consentByType = new Map<string, { total: number; sms: number; email: number }>();
+  const consentDayMap = new Map<string, { total: number; sms: number }>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    consentDayMap.set(d, { total: 0, sms: 0 });
+  }
+  for (const s of subs) {
+    const p = s.payload ?? {};
+    const sms = !!(p as Record<string, unknown>).accepts_sms_marketing;
+    const em = !!(p as Record<string, unknown>).accepts_marketing;
+    if (sms) smsYes += 1;
+    if (em) emailYes += 1;
+    const k = s.account_type ?? "unknown";
+    const cur = consentByType.get(k) ?? { total: 0, sms: 0, email: 0 };
+    cur.total += 1;
+    if (sms) cur.sms += 1;
+    if (em) cur.email += 1;
+    consentByType.set(k, cur);
+    const day = s.created_at.slice(0, 10);
+    const bucket = consentDayMap.get(day);
+    if (bucket) {
+      bucket.total += 1;
+      if (sms) bucket.sms += 1;
+    }
+  }
+  const consentTotal = subs.length;
+  const pct = (n: number, d: number) =>
+    d > 0 ? Math.round((n / d) * 1000) / 10 : 0;
+  const consent = {
+    total: consentTotal,
+    smsYes,
+    emailYes,
+    smsRate: pct(smsYes, consentTotal),
+    emailRate: pct(emailYes, consentTotal),
+    byType: Array.from(consentByType.entries())
+      .map(([type, v]) => ({
+        type,
+        total: v.total,
+        sms: v.sms,
+        email: v.email,
+        smsRate: pct(v.sms, v.total),
+        emailRate: pct(v.email, v.total),
+      }))
+      .sort((a, b) => b.total - a.total),
+    series: Array.from(consentDayMap.entries()).map(([date, v]) => ({
+      date,
+      total: v.total,
+      sms: v.sms,
+      smsRate: pct(v.sms, v.total),
+    })),
+  };
+
   return json({
     success: true,
     rangeDays: days,
@@ -557,6 +628,7 @@ Deno.serve(async (req: Request) => {
       purchaseCohorts,
       attendedLiftPp,
     },
+    consent,
   });
 });
 

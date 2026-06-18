@@ -48,6 +48,14 @@ type CohortRow = {
   partial24h: boolean;
   partial7d: boolean;
 };
+type ConsentByType = {
+  type: string;
+  total: number;
+  sms: number;
+  email: number;
+  smsRate: number;
+  emailRate: number;
+};
 
 type ApiResponse = {
   success: boolean;
@@ -69,6 +77,15 @@ type ApiResponse = {
   devices?: DeviceRow[];
   deviceByStep?: DeviceByStepRow[];
   cohorts: CohortRow[];
+  consent?: {
+    total: number;
+    smsYes: number;
+    emailYes: number;
+    smsRate: number;
+    emailRate: number;
+    byType: ConsentByType[];
+    series: { date: string; total: number; sms: number; smsRate: number }[];
+  };
   error?: string;
 };
 
@@ -432,6 +449,47 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
       )}
 
 
+
+      {/* Marketing consent (SMS / email opt-in rates) */}
+      {data?.consent && data.consent.total > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Marketing consent
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            % of completed registrations that opted in to each channel. Source: submitted
+            payload (mirrors what we send to Shopify / Klaviyo).
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <Tile
+              icon={<TrendingUp className="w-3.5 h-3.5 text-status-green" />}
+              label="SMS opt-in"
+              value={data.consent.smsYes}
+              suffix={`${data.consent.smsRate}% of ${data.consent.total}`}
+            />
+            <Tile
+              icon={<TrendingUp className="w-3.5 h-3.5 text-status-green" />}
+              label="Email opt-in"
+              value={data.consent.emailYes}
+              suffix={`${data.consent.emailRate}% of ${data.consent.total}`}
+            />
+          </div>
+          <div className="divide-y divide-border/50">
+            {data.consent.byType.map((row) => (
+              <div key={row.type} className="flex items-center justify-between py-1.5 text-xs gap-3">
+                <span className="font-medium capitalize">{row.type.replace(/_/g, " ")}</span>
+                <span className="text-muted-foreground tabular-nums whitespace-nowrap">
+                  SMS <span className={cn("ml-1", row.smsRate >= 50 ? "text-status-green" : "text-foreground")}>{row.smsRate}%</span>
+                  <span className="text-[10px] opacity-70 ml-1">({row.sms}/{row.total})</span>
+                  <span className="mx-2 opacity-30">·</span>
+                  Email <span className={cn("ml-1", row.emailRate >= 50 ? "text-status-green" : "text-foreground")}>{row.emailRate}%</span>
+                  <span className="text-[10px] opacity-70 ml-1">({row.email}/{row.total})</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Cohort retention */}
       {(data?.cohorts?.length ?? 0) > 0 && (
