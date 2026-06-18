@@ -15,6 +15,7 @@ import {
   registrationSchema,
   ValidFieldNames,
 } from "@/lib/validations/auth-schemas";
+import { countries } from "@/data/locations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FormState, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
@@ -459,6 +460,33 @@ export function FormDataProvider({
       !ALLOWED_ACCOUNT_TYPES.has(sanitizedStored.accountType as string)
     ) {
       delete sanitizedStored.accountType;
+    }
+
+    // Geography drift: if persisted countryCode is no longer in our country
+    // list, drop both country and province. If country is still valid but
+    // provinceCode is no longer one of its subdivisions, drop just the
+    // province. Without this, the Select renders blank but the regex-light
+    // schema still passes — Shopify then rejects the address at submit with
+    // a generic failure.
+    if (sanitizedStored) {
+      // Cast through unknown to drop the per-branch discriminated-union
+      // narrowing — address fields only live on the salon branch, but we
+      // want to defensively scrub regardless of which branch was stored.
+      const geo = sanitizedStored as unknown as {
+        countryCode?: string;
+        provinceCode?: string;
+      };
+      const cc = geo.countryCode;
+      const country = cc ? countries.find((c) => c.code === cc) : undefined;
+      if (cc && !country) {
+        delete geo.countryCode;
+        delete geo.provinceCode;
+      } else if (country) {
+        const pc = geo.provinceCode;
+        if (pc && !country.subdivisions.some((s) => s.code === pc)) {
+          delete geo.provinceCode;
+        }
+      }
     }
 
     if (sanitizedStored) {
