@@ -58,6 +58,7 @@ export type FormDataContextType = {
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
   submitErrorMessage: string | null;
+  serverErrorField: { field: ValidFieldNames; bump: number } | null;
   emailConflict: EmailConflict;
   setEmailConflict: (conflict: EmailConflict) => void;
   setSubmitError: (input: {
