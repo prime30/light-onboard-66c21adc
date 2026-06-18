@@ -240,6 +240,21 @@ Deno.serve(async (req) => {
   return fail("shopify_error", 400, adminRes.status === 401 || adminRes.status === 403 ? "admin_scope_or_auth" : undefined);
  } catch (e) {
   console.error("[change-password] Unhandled exception:", e);
+  try {
+    const u = Deno.env.get("SUPABASE_URL");
+    const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (u && k) {
+      void fetch(`${u}/functions/v1/notify-error`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "change-password",
+          message: e instanceof Error ? e.message : String(e),
+          context: { stack: e instanceof Error ? e.stack?.slice(0, 2000) : null },
+        }),
+      }).catch(() => {});
+    }
+  } catch { /* never throw */ }
   return jsonResponse(
     { ok: false, error: "shopify_error", message: "internal_error" },
     400,
