@@ -107,6 +107,13 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  // Tracks the first field returned by a server-side validation error so
+  // FormContext can auto-navigate to the step that owns it. Bumped on every
+  // failed submit (even when the field repeats) via a monotonic counter.
+  const [serverErrorField, setServerErrorField] = useState<{
+    field: ValidFieldNames;
+    bump: number;
+  } | null>(null);
   const [emailConflict, setEmailConflict] = useState<EmailConflict>(null);
   const lastSubscribedValuesSignature = useRef<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
