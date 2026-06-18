@@ -200,9 +200,17 @@ Deno.serve(async (req: Request) => {
     const errs = r.validation_errors;
     if (!errs || typeof errs !== "object") continue;
     const bounced = !r.completed_at && r.started_at < graceCutoff;
+    // Collapse password + confirmPassword into a single bucket. They almost
+    // always co-fire (mismatch + rule violations) so counting separately
+    // double-counts the same user friction.
+    const collapsedEntries = new Map<string, number>();
     for (const [field, raw] of Object.entries(errs)) {
       const n = typeof raw === "number" ? raw : Number(raw);
       if (!Number.isFinite(n) || n <= 0) continue;
+      const key = field === "password" || field === "confirmPassword" ? "password" : field;
+      collapsedEntries.set(key, (collapsedEntries.get(key) ?? 0) + n);
+    }
+    for (const [field, n] of collapsedEntries) {
       const cur = valMap.get(field) ?? { totalErrors: 0, usersAffected: 0, bouncedAffected: 0 };
       cur.totalErrors += n;
       cur.usersAffected += 1;
