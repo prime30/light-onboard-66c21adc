@@ -60,7 +60,7 @@ const FormContext = createContext<AuthFormContextType | null>(null);
 function FormContextProvider({ children }: { children: ReactNode }) {
   const { isSubmitSuccessful, watch, reset, setFocus, errorActions, ...formDataContext } =
     useFormData();
-  const { setCurrentStep, currentStep, goToStep, getStepForField, ...stepContext } =
+  const { setCurrentStep, currentStep, goToStep, getStepForField, steps, getStepValidationStatus, ...stepContext } =
     useStepContext();
   const { setEmail } = useGlobalApp();
 
