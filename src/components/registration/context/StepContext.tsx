@@ -94,6 +94,23 @@ export function StepProvider({ children }: StepProviderProps) {
     });
   }, [currentStep, steps]);
 
+  // Guard for mid-session auto-approval flips (and any other future setting
+  // that mutates the step ordering). When auto-approval turns OFF, the
+  // post-summary `assessing` and `create-password` steps disappear from
+  // `steps`. If the user happened to be parked on one of them when the
+  // setting changed, currentStepNumber becomes -1 and the next/prev
+  // handlers send them back to onboarding. Snap them forward to `summary`
+  // (the natural recovery point) instead. POST_FLOW steps live outside
+  // `steps` by design — leave those alone.
+  useEffect(() => {
+    const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
+    if (POST_FLOW.includes(currentStep)) return;
+    if (steps.length === 0) return;
+    if (steps.includes(currentStep)) return;
+    setCurrentStep("summary");
+  }, [steps, currentStep]);
+
+
   const getStepValidationStatus = useCallback(
     (step: Step): ValidationStatus => {
       const schema = getStepSchema(step, accountType);
