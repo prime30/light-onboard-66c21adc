@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      error_alerts: {
+        Row: {
+          alert_key: string
+          first_seen_at: string
+          last_context: Json | null
+          last_message: string | null
+          last_notified_at: string | null
+          last_seen_at: string
+          occurrence_count: number
+          source: string
+        }
+        Insert: {
+          alert_key: string
+          first_seen_at?: string
+          last_context?: Json | null
+          last_message?: string | null
+          last_notified_at?: string | null
+          last_seen_at?: string
+          occurrence_count?: number
+          source: string
+        }
+        Update: {
+          alert_key?: string
+          first_seen_at?: string
+          last_context?: Json | null
+          last_message?: string | null
+          last_notified_at?: string | null
+          last_seen_at?: string
+          occurrence_count?: number
+          source?: string
+        }
+        Relationships: []
+      }
       marketing_consent_log: {
         Row: {
           channel: string
