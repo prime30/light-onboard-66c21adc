@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +61,7 @@ function PhonePrefixIcon({ error }: { error: boolean }) {
 }
 
 export const ContactBasicsStep = () => {
+  const navigate = useNavigate();
   const {
     register,
     control,
@@ -351,6 +354,16 @@ export const ContactBasicsStep = () => {
                 });
             }}
           />
+          {matchingEmailConflict && (
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors group/signin animate-fade-in"
+            >
+              <span>Sign in to your existing account instead</span>
+              <ArrowRight className="w-3 h-3 transition-transform group-hover/signin:translate-x-0.5" />
+            </button>
+          )}
         </div>
 
 
