@@ -87,6 +87,39 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverErrorField?.bump]);
 
+  // Schema-drift snap-back: once the form rehydrates from localStorage, if
+  // the user already had real progress (accountType selected) but is still
+  // parked on the onboarding/account-type intro, walk the current step
+  // order and jump to the earliest step that isn't fully valid. This covers
+  // returning users (Klaviyo abandoned-form link) whose saved data is
+  // missing a field that became required in a newer build — without this,
+  // they'd sail through to summary/password and hit a generic submit error.
+  const hasSnappedRef = useRef(false);
+  useEffect(() => {
+    if (hasSnappedRef.current) return;
+    if (!accountType) return; // fresh visitor — leave them on onboarding
+    if (currentStep !== "onboarding" && currentStep !== "account-type") return;
+    if (!steps || steps.length === 0) return;
+
+    // Find the first non-complete step after onboarding/account-type.
+    const target = steps.find(
+      (s) =>
+        s !== "onboarding" &&
+        s !== "account-type" &&
+        s !== "success" &&
+        s !== "assessing" &&
+        getStepValidationStatus(s) !== "complete"
+    );
+    hasSnappedRef.current = true;
+    if (target && target !== currentStep) {
+      setCurrentStep(target);
+    } else if (!target) {
+      // Everything is complete — drop them on the summary step.
+      setCurrentStep("summary");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountType, steps]);
+
 
 
   // Reset form and move to success step on successful submission
