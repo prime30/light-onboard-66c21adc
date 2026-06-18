@@ -225,6 +225,7 @@ export const PreferencesStep = () => {
               { value: "friend", label: "Friend or Colleague" },
               { value: "salon", label: "My Salon" },
               { value: "event", label: "Industry Event" },
+              { value: "reddit", label: "Reddit" },
               { value: "other", label: "Other" },
             ].map((option) => (
               <button
