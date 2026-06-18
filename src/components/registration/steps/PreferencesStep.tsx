@@ -133,14 +133,14 @@ export const PreferencesStep = () => {
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">
-                    Text me when I'm approved to shop & with pro-only deals
+                    It's okay to text me occasionally about my account and from the Drop Dead team
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                     Recommended
                   </span>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed">
-                  Approval notification, restock alerts, early drops & pro-only deals. ~2–4 texts/month.
+                  Account updates, a personal welcome from our founder, restocks & occasional pro-only drops. ~2–4 texts/month.
                 </p>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">
                   By checking this box, you agree to receive recurring automated marketing texts from
