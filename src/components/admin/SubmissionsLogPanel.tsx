@@ -37,13 +37,34 @@ interface Props {
 }
 
 export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [status, setStatus] = useState<StatusFilter>("needs_attention");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const copySupportReply = useCallback(
+    async (s: Submission) => {
+      const reply = buildSupportReply(s);
+      if (!reply) {
+        toast({ title: "Nothing to send", description: "This submission succeeded — no support reply needed." });
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(reply);
+        setCopiedId(s.id);
+        setTimeout(() => setCopiedId((id) => (id === s.id ? null : id)), 2000);
+        toast({ title: "Support reply copied", description: "Paste into your helpdesk reply." });
+      } catch {
+        toast({ title: "Couldn't copy", description: "Clipboard access was blocked.", variant: "destructive" });
+      }
+    },
+    [toast]
+  );
 
   const fetchSubmissions = useCallback(async () => {
     setLoading(true);
