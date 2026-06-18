@@ -58,6 +58,7 @@ export type FormDataContextType = {
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
   submitErrorMessage: string | null;
+  serverErrorField: { field: ValidFieldNames; bump: number } | null;
   emailConflict: EmailConflict;
   setEmailConflict: (conflict: EmailConflict) => void;
   setSubmitError: (input: {
@@ -107,6 +108,13 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  // Tracks the first field returned by a server-side validation error so
+  // FormContext can auto-navigate to the step that owns it. Bumped on every
+  // failed submit (even when the field repeats) via a monotonic counter.
+  const [serverErrorField, setServerErrorField] = useState<{
+    field: ValidFieldNames;
+    bump: number;
+  } | null>(null);
   const [emailConflict, setEmailConflict] = useState<EmailConflict>(null);
   const lastSubscribedValuesSignature = useRef<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
@@ -194,6 +202,12 @@ export function FormDataProvider({
           setSubmitErrorMessage(
             `Some required information is missing or invalid:\n${friendlyList}`
           );
+          // Signal FormContext to navigate to the first offending field.
+          const firstTop = fieldErrors[0].field.split(".")[0] as ValidFieldNames;
+          setServerErrorField((prev) => ({
+            field: firstTop,
+            bump: (prev?.bump ?? 0) + 1,
+          }));
         } else {
           setSubmitErrorMessage(result.error);
         }
@@ -542,6 +556,7 @@ export function FormDataProvider({
     isSubmitting,
     errorActions,
     submitErrorMessage,
+    serverErrorField,
     emailConflict,
     setEmailConflict,
     setSubmitError,
