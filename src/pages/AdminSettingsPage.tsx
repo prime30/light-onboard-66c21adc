@@ -17,6 +17,8 @@ import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyti
 const MAX_TAGS = 50;
 const MAX_TAG_LENGTH = 80;
 
+const ADMIN_SESSION_KEY = "dd_admin_session_v1";
+
 const AdminSettingsPage = () => {
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(false);
