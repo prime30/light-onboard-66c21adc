@@ -235,11 +235,32 @@ export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
                         </div>
                         {s.error_log.map((err, i) => (
                           <div key={i} className="text-[11px] text-foreground/80">
-                            <span className="font-medium">{err.step}</span>: {err.message}
+                            <span className="font-medium">{err.step}</span>
+                            {err.field ? <span className="text-muted-foreground"> · {err.field}</span> : null}
+                            : {err.message}
                           </div>
                         ))}
                       </div>
                     )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copySupportReply(s)}
+                        className="h-7 text-[11px] gap-1.5"
+                      >
+                        {copiedId === s.id ? (
+                          <>
+                            <Check className="w-3 h-3" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" /> Copy support reply
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     <details className="rounded-[8px] bg-muted/40 p-2.5">
                       <summary className="text-[10px] uppercase tracking-wide text-muted-foreground cursor-pointer">
                         Full payload
