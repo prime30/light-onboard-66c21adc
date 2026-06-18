@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, RefreshCw, ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, RefreshCw, ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Clock, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { buildSupportReply } from "@/lib/admin/support-reply";
 
 type StatusFilter = "needs_attention" | "all" | "pending" | "helium_ok" | "shopify_ok" | "succeeded" | "failed";
 
@@ -14,7 +16,7 @@ type Submission = {
   status: string;
   helium_customer_id: string | null;
   shopify_customer_id: number | null;
-  error_log: Array<{ step: string; status: string; message: string; at: string }>;
+  error_log: Array<{ step: string; status: string; message: string; at: string; field?: string }>;
   ip_address: string | null;
   created_at: string;
   updated_at: string;
@@ -35,13 +37,34 @@ interface Props {
 }
 
 export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [status, setStatus] = useState<StatusFilter>("needs_attention");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const copySupportReply = useCallback(
+    async (s: Submission) => {
+      const reply = buildSupportReply(s);
+      if (!reply) {
+        toast({ title: "Nothing to send", description: "This submission succeeded — no support reply needed." });
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(reply);
+        setCopiedId(s.id);
+        setTimeout(() => setCopiedId((id) => (id === s.id ? null : id)), 2000);
+        toast({ title: "Support reply copied", description: "Paste into your helpdesk reply." });
+      } catch {
+        toast({ title: "Couldn't copy", description: "Clipboard access was blocked.", variant: "destructive" });
+      }
+    },
+    [toast]
+  );
 
   const fetchSubmissions = useCallback(async () => {
     setLoading(true);
@@ -212,11 +235,32 @@ export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
                         </div>
                         {s.error_log.map((err, i) => (
                           <div key={i} className="text-[11px] text-foreground/80">
-                            <span className="font-medium">{err.step}</span>: {err.message}
+                            <span className="font-medium">{err.step}</span>
+                            {err.field ? <span className="text-muted-foreground"> · {err.field}</span> : null}
+                            : {err.message}
                           </div>
                         ))}
                       </div>
                     )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copySupportReply(s)}
+                        className="h-7 text-[11px] gap-1.5"
+                      >
+                        {copiedId === s.id ? (
+                          <>
+                            <Check className="w-3 h-3" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" /> Copy support reply
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     <details className="rounded-[8px] bg-muted/40 p-2.5">
                       <summary className="text-[10px] uppercase tracking-wide text-muted-foreground cursor-pointer">
                         Full payload
