@@ -133,6 +133,8 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     setCurrentStep,
     currentStep,
     errorActions,
+    goToStep,
+    getStepForField,
     ...formDataContext,
     ...stepContext,
   };
