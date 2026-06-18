@@ -83,10 +83,25 @@ export const dirtyFieldOptions = {
 const FormDataContext = createContext<FormDataContextType | null>(null);
 
 // Storage
-const storage = createJSONStorage(() => sessionStorage);
-// Bumped key to "_registration_form_v2" to invalidate any cached sessionStorage
-// from older builds that pre-selected accountType: "professional" by default.
-const formAtom = atomWithStorage("_registration_form_v2", defaultValues, storage, {
+// Moved from sessionStorage → localStorage so users returning via a Klaviyo
+// abandoned-form email actually resume their progress. sessionStorage is
+// per-tab, which meant any new tab/window/device started from scratch even
+// though we'd been tracking them as a "lead". One-time migration below
+// copies any in-flight session value into localStorage on first load.
+const storage = createJSONStorage<Partial<RegistrationFormData>>(() => localStorage);
+const FORM_STORAGE_KEY = "_registration_form_v2";
+try {
+  if (typeof window !== "undefined" && !localStorage.getItem(FORM_STORAGE_KEY)) {
+    const legacy = sessionStorage.getItem(FORM_STORAGE_KEY);
+    if (legacy) {
+      localStorage.setItem(FORM_STORAGE_KEY, legacy);
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
+    }
+  }
+} catch {
+  /* storage unavailable (private mode, quota) — ignore */
+}
+const formAtom = atomWithStorage(FORM_STORAGE_KEY, defaultValues, storage, {
   getOnInit: true,
 });
 
@@ -454,7 +469,7 @@ export function FormDataProvider({
     ({ values }: FormStateWithValues) => {
       type ValueType = (typeof values)[keyof typeof values];
       const newStore = Object.entries(values).reduce((acc, [key, value]: [string, ValueType]) => {
-        // SECURITY: never persist password / confirmPassword to sessionStorage.
+        // SECURITY: never persist password / confirmPassword to storage.
         // We collect them on the create-password step but only keep them in
         // react-hook-form memory until submit, then they're cleared.
         if (key === "password" || key === "confirmPassword") {
