@@ -61,6 +61,7 @@ function PhonePrefixIcon({ error }: { error: boolean }) {
 }
 
 export const ContactBasicsStep = () => {
+  const navigate = useNavigate();
   const {
     register,
     control,
