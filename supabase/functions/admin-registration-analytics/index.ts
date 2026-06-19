@@ -91,18 +91,34 @@ Deno.serve(async (req: Request) => {
   };
 
 
-  // Exclude internal test users: any email whose submission payload first
-  // name is "Test" (case-insensitive). Pulled from registration_submissions
-  // since registration_leads doesn't store first_name.
-  const { data: testRows } = await supabase
+  // Exclude internal test users. We collect emails from registration_submissions
+  // whose payload matches any known test signal:
+  //   - first_name = "Test"
+  //   - business_address contains the owner's home address ("5813 S Feliz")
+  //   - phone_number (digits only) matches the owner's test number (4804157613)
+  // registration_leads doesn't store these fields, so we resolve via submissions.
+  const { data: allSubs } = await supabase
     .from("registration_submissions")
-    .select("email, payload")
-    .ilike("payload->>first_name", "test");
-  const excludedEmails = new Set(
-    (testRows ?? [])
-      .map((r: { email?: string }) => (r.email ?? "").trim().toLowerCase())
-      .filter(Boolean),
-  );
+    .select("email, payload");
+  const TEST_ADDRESS_FRAGMENT = "5813 s feliz";
+  const TEST_PHONE_DIGITS = "4804157613";
+  const digitsOnly = (s: unknown) => String(s ?? "").replace(/\D+/g, "");
+  const excludedEmails = new Set<string>();
+  for (const r of (allSubs ?? []) as { email?: string; payload?: Record<string, unknown> }[]) {
+    const email = (r.email ?? "").trim().toLowerCase();
+    if (!email) continue;
+    const p = r.payload ?? {};
+    const firstName = String((p.first_name ?? "")).trim().toLowerCase();
+    const address = String((p.business_address ?? "")).trim().toLowerCase();
+    const phone = digitsOnly(p.phone_number);
+    if (
+      firstName === "test" ||
+      address.includes(TEST_ADDRESS_FRAGMENT) ||
+      phone.endsWith(TEST_PHONE_DIGITS)
+    ) {
+      excludedEmails.add(email);
+    }
+  }
 
   // Disposable / test inbox domains used for QA — always exclude.
   const TEST_DOMAINS = ["spamok.com", "mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com"];
