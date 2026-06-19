@@ -39,29 +39,46 @@ function ok(body: Record<string, unknown>) {
 }
 
 // Tiny in-memory LRU cache (per-isolate). Dedupes Shopify search calls
-// across users hitting the same E.164 within the TTL window. Cuts upstream
-// load during traffic bursts; safe because results are stable for minutes.
+// across users hitting the same E.164 within the TTL window.
 const CACHE_TTL_MS = 60_000;
 const CACHE_MAX = 500;
-const phoneCache = new Map<string, { at: number; inUse: boolean }>();
-function cacheGet(key: string): boolean | undefined {
+type CacheEntry = { at: number; inUse: boolean; maskedEmail?: string };
+const phoneCache = new Map<string, CacheEntry>();
+function cacheGet(key: string): CacheEntry | undefined {
   const hit = phoneCache.get(key);
   if (!hit) return undefined;
   if (Date.now() - hit.at > CACHE_TTL_MS) {
     phoneCache.delete(key);
     return undefined;
   }
-  // Refresh recency (LRU): re-insert.
   phoneCache.delete(key);
   phoneCache.set(key, hit);
-  return hit.inUse;
+  return hit;
 }
-function cacheSet(key: string, inUse: boolean) {
+function cacheSet(key: string, entry: Omit<CacheEntry, "at">) {
   if (phoneCache.size >= CACHE_MAX) {
     const oldest = phoneCache.keys().next().value;
     if (oldest) phoneCache.delete(oldest);
   }
-  phoneCache.set(key, { at: Date.now(), inUse });
+  phoneCache.set(key, { at: Date.now(), ...entry });
+}
+
+// Mask "jane.doe@salon.com" -> "j••••@s•••.com". Keeps first char of local
+// and first char of domain plus TLD so the user can recognize their own
+// address without leaking the full identity to a phone-number prober.
+function maskEmail(email: string): string | undefined {
+  if (!email || typeof email !== "string") return undefined;
+  const at = email.indexOf("@");
+  if (at <= 0 || at === email.length - 1) return undefined;
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  const lastDot = domain.lastIndexOf(".");
+  if (lastDot <= 0) return undefined;
+  const domainName = domain.slice(0, lastDot);
+  const tld = domain.slice(lastDot);
+  const maskedLocal = local[0] + "•".repeat(Math.max(3, Math.min(local.length - 1, 5)));
+  const maskedDomain = domainName[0] + "•".repeat(Math.max(3, Math.min(domainName.length - 1, 4)));
+  return `${maskedLocal}@${maskedDomain}${tld}`;
 }
 
 Deno.serve(async (req: Request) => {
