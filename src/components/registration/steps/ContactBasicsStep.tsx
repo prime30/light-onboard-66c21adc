@@ -42,6 +42,29 @@ function EmailPrefixIcon({ emailError: error }: { emailError: boolean }) {
   );
 }
 
+function ConflictPills({ navigate }: { navigate: (to: string) => void }) {
+  return (
+    <div className="mt-2.5 flex items-center gap-[5px] animate-fade-in">
+      <button
+        type="button"
+        onClick={() => navigate("/login")}
+        className="group/signin inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-muted/60 hover:bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors"
+      >
+        <span>Sign in</span>
+        <ArrowRight className="w-3 h-3 transition-transform group-hover/signin:translate-x-0.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => navigate("/reset-password")}
+        className="group/reset inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-muted/60 hover:bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors"
+      >
+        <span>Forgot password?</span>
+        <ArrowRight className="w-3 h-3 transition-transform group-hover/reset:translate-x-0.5" />
+      </button>
+    </div>
+  );
+}
+
 function PhonePrefixIcon({ error }: { error: boolean }) {
   return (
     <div
