@@ -236,7 +236,7 @@ export const ContactBasicsStep = () => {
       }
     };
 
-    const cacheKey = `dde:check-phone:${key}`;
+    const cacheKey = `dde:check-phone:v2:${key}`;
     const cached = cacheGet(cacheKey) as
       | { valid?: boolean; inUse?: boolean; maskedEmail?: string }
       | undefined;
