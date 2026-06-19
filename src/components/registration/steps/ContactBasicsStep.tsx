@@ -209,7 +209,7 @@ export const ContactBasicsStep = () => {
     if (lastCheckedPhoneRef.current === key) return;
 
     const applyResult = (
-      data: { valid?: boolean; inUse?: boolean } | undefined
+      data: { valid?: boolean; inUse?: boolean; maskedEmail?: string } | undefined
     ) => {
       if (data?.valid === false) {
         setError("phoneNumber", {
@@ -217,15 +217,18 @@ export const ContactBasicsStep = () => {
           message: "Please enter a valid phone number.",
         });
       } else if (data?.inUse) {
+        const masked = data.maskedEmail;
         setError("phoneNumber", {
           type: "manual",
-          message:
-            "This phone number is already linked to another account.",
+          message: masked
+            ? `This phone already has an account under ${masked}.`
+            : "This phone number is already linked to another account.",
         });
         toast.error("This phone number is already in use", {
           id: `phone-in-use:${key}`,
-          description:
-            "Please use a different number or sign in to the existing account.",
+          description: masked
+            ? `An account already exists under ${masked}. Please sign in or use a different number.`
+            : "Please use a different number or sign in to the existing account.",
           duration: 6000,
         });
       } else if (errors.phoneNumber?.type === "manual") {
@@ -235,7 +238,7 @@ export const ContactBasicsStep = () => {
 
     const cacheKey = `dde:check-phone:${key}`;
     const cached = cacheGet(cacheKey) as
-      | { valid?: boolean; inUse?: boolean }
+      | { valid?: boolean; inUse?: boolean; maskedEmail?: string }
       | undefined;
     if (cached) {
       lastCheckedPhoneRef.current = key;
@@ -254,7 +257,7 @@ export const ContactBasicsStep = () => {
         const currentCode = watch("phoneCountryCode") ?? "";
         if (`${currentCode}|${currentRaw}` !== key) return;
         cacheSet(cacheKey, data ?? {});
-        applyResult(data as { valid?: boolean; inUse?: boolean } | undefined);
+        applyResult(data as { valid?: boolean; inUse?: boolean; maskedEmail?: string } | undefined);
       } catch {
         // Fail silently — submit will still catch the conflict server-side.
       }
