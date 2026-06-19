@@ -39,29 +39,46 @@ function ok(body: Record<string, unknown>) {
 }
 
 // Tiny in-memory LRU cache (per-isolate). Dedupes Shopify search calls
-// across users hitting the same E.164 within the TTL window. Cuts upstream
-// load during traffic bursts; safe because results are stable for minutes.
+// across users hitting the same E.164 within the TTL window.
 const CACHE_TTL_MS = 60_000;
 const CACHE_MAX = 500;
-const phoneCache = new Map<string, { at: number; inUse: boolean }>();
-function cacheGet(key: string): boolean | undefined {
+type CacheEntry = { at: number; inUse: boolean; maskedEmail?: string };
+const phoneCache = new Map<string, CacheEntry>();
+function cacheGet(key: string): CacheEntry | undefined {
   const hit = phoneCache.get(key);
   if (!hit) return undefined;
   if (Date.now() - hit.at > CACHE_TTL_MS) {
     phoneCache.delete(key);
     return undefined;
   }
-  // Refresh recency (LRU): re-insert.
   phoneCache.delete(key);
   phoneCache.set(key, hit);
-  return hit.inUse;
+  return hit;
 }
-function cacheSet(key: string, inUse: boolean) {
+function cacheSet(key: string, entry: Omit<CacheEntry, "at">) {
   if (phoneCache.size >= CACHE_MAX) {
     const oldest = phoneCache.keys().next().value;
     if (oldest) phoneCache.delete(oldest);
   }
-  phoneCache.set(key, { at: Date.now(), inUse });
+  phoneCache.set(key, { at: Date.now(), ...entry });
+}
+
+// Mask "jane.doe@salon.com" -> "j••••@s•••.com". Keeps first char of local
+// and first char of domain plus TLD so the user can recognize their own
+// address without leaking the full identity to a phone-number prober.
+function maskEmail(email: string): string | undefined {
+  if (!email || typeof email !== "string") return undefined;
+  const at = email.indexOf("@");
+  if (at <= 0 || at === email.length - 1) return undefined;
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  const lastDot = domain.lastIndexOf(".");
+  if (lastDot <= 0) return undefined;
+  const domainName = domain.slice(0, lastDot);
+  const tld = domain.slice(lastDot);
+  const maskedLocal = local[0] + "•".repeat(Math.max(3, Math.min(local.length - 1, 5)));
+  const maskedDomain = domainName[0] + "•".repeat(Math.max(3, Math.min(domainName.length - 1, 4)));
+  return `${maskedLocal}@${maskedDomain}${tld}`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -99,13 +116,13 @@ Deno.serve(async (req: Request) => {
 
   // Cache hit short-circuits the Shopify search.
   const cached = cacheGet(e164);
-  if (cached !== undefined) return ok({ valid: true, inUse: cached });
+  if (cached !== undefined)
+    return ok({ valid: true, inUse: cached.inUse, maskedEmail: cached.maskedEmail });
 
   // Uniqueness check via Shopify Admin search.
   const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
   const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   if (!shopifyDomain || !shopifyAdminToken) {
-    // Fail open on infra hiccup — server-side backstop on submit still applies.
     return ok({ valid: true, inUse: false });
   }
 
@@ -126,10 +143,14 @@ Deno.serve(async (req: Request) => {
       console.warn("check-phone: Shopify search failed:", res.status);
       return ok({ valid: true, inUse: false });
     }
-    const json = (await res.json()) as { customers?: Array<{ id?: number }> };
-    const inUse = Array.isArray(json.customers) && json.customers.length > 0;
-    cacheSet(e164, inUse);
-    return ok({ valid: true, inUse });
+    const json = (await res.json()) as {
+      customers?: Array<{ id?: number; email?: string }>;
+    };
+    const first = Array.isArray(json.customers) ? json.customers[0] : undefined;
+    const inUse = !!first;
+    const maskedEmail = first?.email ? maskEmail(first.email) : undefined;
+    cacheSet(e164, { inUse, maskedEmail });
+    return ok({ valid: true, inUse, maskedEmail });
   } catch (e) {
     console.warn("check-phone: search threw:", e);
     return ok({ valid: true, inUse: false });
