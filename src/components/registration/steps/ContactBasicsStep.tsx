@@ -422,6 +422,11 @@ export const ContactBasicsStep = () => {
               />
             </div>
           </div>
+          {errors.phoneNumber?.type === "manual" &&
+            typeof errors.phoneNumber?.message === "string" &&
+            errors.phoneNumber.message.toLowerCase().includes("already linked") && (
+              <ConflictPills navigate={navigate} />
+            )}
         </div>
       </div>
     </div>
