@@ -116,13 +116,13 @@ Deno.serve(async (req: Request) => {
 
   // Cache hit short-circuits the Shopify search.
   const cached = cacheGet(e164);
-  if (cached !== undefined) return ok({ valid: true, inUse: cached });
+  if (cached !== undefined)
+    return ok({ valid: true, inUse: cached.inUse, maskedEmail: cached.maskedEmail });
 
   // Uniqueness check via Shopify Admin search.
   const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
   const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   if (!shopifyDomain || !shopifyAdminToken) {
-    // Fail open on infra hiccup — server-side backstop on submit still applies.
     return ok({ valid: true, inUse: false });
   }
 
@@ -143,10 +143,14 @@ Deno.serve(async (req: Request) => {
       console.warn("check-phone: Shopify search failed:", res.status);
       return ok({ valid: true, inUse: false });
     }
-    const json = (await res.json()) as { customers?: Array<{ id?: number }> };
-    const inUse = Array.isArray(json.customers) && json.customers.length > 0;
-    cacheSet(e164, inUse);
-    return ok({ valid: true, inUse });
+    const json = (await res.json()) as {
+      customers?: Array<{ id?: number; email?: string }>;
+    };
+    const first = Array.isArray(json.customers) ? json.customers[0] : undefined;
+    const inUse = !!first;
+    const maskedEmail = first?.email ? maskEmail(first.email) : undefined;
+    cacheSet(e164, { inUse, maskedEmail });
+    return ok({ valid: true, inUse, maskedEmail });
   } catch (e) {
     console.warn("check-phone: search threw:", e);
     return ok({ valid: true, inUse: false });
