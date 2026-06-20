@@ -1025,6 +1025,8 @@ const AdminSettingsPage = () => {
 
         <ReferralAnalyticsPanel adminEmail={email} adminPassword={password} />
 
+        <FakeAccountAnalyticsPanel adminEmail={email} adminPassword={password} />
+
         <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
 
         <button
