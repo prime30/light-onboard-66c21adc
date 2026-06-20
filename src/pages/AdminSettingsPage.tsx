@@ -12,6 +12,7 @@ import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
 import { RegistrationAnalyticsPanel } from "@/components/admin/RegistrationAnalyticsPanel";
 import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
+import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
 
 
 const MAX_TAGS = 50;
