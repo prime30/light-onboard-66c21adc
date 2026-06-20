@@ -392,3 +392,10 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     </div>
   );
 };
+
+const Field = ({ label, value }: { label: string; value: string | null | undefined }) => (
+  <div>
+    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+    <div className="text-xs mt-0.5 truncate">{value ? value : <span className="text-muted-foreground">—</span>}</div>
+  </div>
+);
