@@ -83,6 +83,33 @@ export type Database = {
         }
         Relationships: []
       }
+      helium_customers_backfill: {
+        Row: {
+          created_at: string
+          email: string | null
+          fetched_at: string
+          helium_id: string
+          raw: Json
+          shopify_id: number | null
+        }
+        Insert: {
+          created_at: string
+          email?: string | null
+          fetched_at?: string
+          helium_id: string
+          raw: Json
+          shopify_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          fetched_at?: string
+          helium_id?: string
+          raw?: Json
+          shopify_id?: number | null
+        }
+        Relationships: []
+      }
       marketing_consent_log: {
         Row: {
           channel: string

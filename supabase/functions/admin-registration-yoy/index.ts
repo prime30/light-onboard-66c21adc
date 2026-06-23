@@ -108,20 +108,79 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Query failed" }, 500);
   }
 
+  // Also pull historical signups previously backfilled from the Helium
+  // Customer Fields API. registration_leads only goes back as far as our
+  // own onboarding SPA — Helium has the full Shopify customer history.
+  // We page through the table to avoid PostgREST's default row cap.
+  type HeliumRow = { email: string | null; created_at: string };
+  const heliumRows: HeliumRow[] = [];
+  {
+    const PAGE = 1000;
+    let from = 0;
+    while (true) {
+      const { data: page, error: hErr } = await supabase
+        .from("helium_customers_backfill")
+        .select("email, created_at")
+        .gte("created_at", sinceIso)
+        .order("created_at", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (hErr) {
+        console.error("helium_customers_backfill query failed", hErr);
+        break;
+      }
+      const batch = (page ?? []) as HeliumRow[];
+      heliumRows.push(...batch);
+      if (batch.length < PAGE) break;
+      from += PAGE;
+    }
+  }
+
   // Seed every month in the window so the chart never has gaps.
   const counts = new Map<string, number>();
   for (let i = 0; i < 24; i++) {
     counts.set(monthKey(addMonths(windowStart, i)), 0);
   }
 
+  // Dedupe by email across sources. registration_leads is the source of truth
+  // for any account that completed via the SPA; Helium fills in the rest.
+  const seenEmails = new Set<string>();
+  const monthEmailKeys = new Set<string>();
+
+  let liveCount = 0;
+  let backfillCount = 0;
+
   for (const r of rows ?? []) {
-    const e = (r as { email?: string | null }).email?.toLowerCase();
+    const e = (r as { email?: string | null }).email?.toLowerCase() ?? null;
     if (e && testEmails.has(e)) continue;
     const c = (r as { completed_at?: string | null }).completed_at;
     if (!c) continue;
     const key = monthKey(new Date(c));
-    if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
+    if (!counts.has(key)) continue;
+    // Guard against duplicate rows in registration_leads for the same email.
+    const dedupeKey = e ? `live:${e}:${key}` : `live:row:${Math.random()}:${key}`;
+    if (monthEmailKeys.has(dedupeKey)) continue;
+    monthEmailKeys.add(dedupeKey);
+    if (e) seenEmails.add(e);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    liveCount += 1;
   }
+
+  for (const r of heliumRows) {
+    const e = r.email?.toLowerCase() ?? null;
+    if (e && testEmails.has(e)) continue;
+    if (e && seenEmails.has(e)) continue; // already counted via registration_leads
+    const c = r.created_at;
+    if (!c) continue;
+    const key = monthKey(new Date(c));
+    if (!counts.has(key)) continue;
+    const dedupeKey = e ? `helium:${e}` : `helium:row:${Math.random()}`;
+    if (monthEmailKeys.has(dedupeKey)) continue;
+    monthEmailKeys.add(dedupeKey);
+    if (e) seenEmails.add(e);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+    backfillCount += 1;
+  }
+
 
   // Build the 12 paired month rows the UI consumes.
   const currentWindowStart = addMonths(currentMonthStart, -11);
@@ -163,6 +222,18 @@ Deno.serve(async (req: Request) => {
   const totalDeltaPct =
     totalPrior === 0 ? (totalCurrent === 0 ? 0 : null) : ((totalCurrent - totalPrior) / totalPrior) * 100;
 
+  // Surface backfill freshness so the UI can prompt for a refresh if Helium
+  // has never been pulled (or hasn't been pulled in a while).
+  const { count: backfillTotal } = await supabase
+    .from("helium_customers_backfill")
+    .select("helium_id", { count: "exact", head: true });
+  const { data: latestFetched } = await supabase
+    .from("helium_customers_backfill")
+    .select("fetched_at")
+    .order("fetched_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return json({
     success: true,
     generatedAt: new Date().toISOString(),
@@ -175,5 +246,12 @@ Deno.serve(async (req: Request) => {
       delta: totalCurrent - totalPrior,
       deltaPct: totalDeltaPct,
     },
+    sources: {
+      liveCount,
+      backfillCount,
+      backfillTotal: backfillTotal ?? 0,
+      backfillLastFetchedAt: latestFetched?.fetched_at ?? null,
+    },
   });
 });
+

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Loader2, RefreshCw, TrendingDown, TrendingUp, Minus, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ResponsiveContainer,
@@ -31,6 +31,12 @@ type ApiResponse = {
   currentMonth?: string;
   series?: MonthRow[];
   totals?: { current: number; prior: number; delta: number; deltaPct: number | null };
+  sources?: {
+    liveCount: number;
+    backfillCount: number;
+    backfillTotal: number;
+    backfillLastFetchedAt: string | null;
+  };
   error?: string;
 };
 
@@ -38,6 +44,8 @@ interface Props {
   adminEmail: string;
   adminPassword: string;
 }
+
+
 
 function fmtPct(pct: number | null): string {
   if (pct === null) return "—";
@@ -55,6 +63,8 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillStatus, setBackfillStatus] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!adminEmail || !adminPassword) return;
@@ -76,12 +86,60 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
     }
   }, [adminEmail, adminPassword]);
 
+  const runBackfill = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setBackfilling(true);
+    setBackfillStatus("Starting Helium backfill…");
+    let page = 1;
+    let totalFetched = 0;
+    let totalUpserted = 0;
+    try {
+      // Iterate until the edge function reports done. Each invocation processes
+      // up to ~3,000 customers; we keep calling until Helium returns no more.
+      // Hard cap of 50 round-trips so a runaway never spins forever.
+      for (let i = 0; i < 50; i++) {
+        const { data: res, error: invokeError } = await supabase.functions.invoke(
+          "admin-backfill-helium-customers",
+          { body: { email: adminEmail, password: adminPassword, startPage: page } },
+        );
+        if (invokeError) throw invokeError;
+        const typed = res as {
+          success: boolean;
+          error?: string;
+          fetched: number;
+          upserted: number;
+          done: boolean;
+          nextPage: number | null;
+        };
+        if (!typed?.success) throw new Error(typed?.error ?? "Backfill failed");
+        totalFetched += typed.fetched;
+        totalUpserted += typed.upserted;
+        setBackfillStatus(
+          `Pulled ${totalFetched.toLocaleString()} customers from Helium (${totalUpserted.toLocaleString()} stored)…`,
+        );
+        if (typed.done || !typed.nextPage) break;
+        page = typed.nextPage;
+      }
+      setBackfillStatus(
+        `Done. ${totalFetched.toLocaleString()} fetched, ${totalUpserted.toLocaleString()} stored.`,
+      );
+      await load();
+    } catch (err) {
+      setBackfillStatus(
+        `Backfill failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
+    } finally {
+      setBackfilling(false);
+    }
+  }, [adminEmail, adminPassword, load]);
+
   useEffect(() => {
     void load();
   }, [load]);
 
   const series = data?.series ?? [];
   const totals = data?.totals;
+  const sources = data?.sources;
 
   const chartData = series.map((row) => ({
     month: row.monthLabel,
@@ -91,32 +149,93 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
 
   return (
     <section className="bg-card border border-border rounded-[15px] p-6 space-y-5">
-      <header className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="space-y-1 min-w-[240px] flex-1">
           <h2 className="text-base font-medium text-foreground">
             Year over year: completed registrations
           </h2>
           <p className="text-sm text-muted-foreground">
             Rolling 12-month window vs the matching 12 months from a year ago.
-            Anchored to completed signups, test accounts excluded.
+            Merges this app's completed signups with the Helium customer
+            history, deduped by email. Test accounts excluded.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => void load()}
-          disabled={loading}
-          className="shrink-0"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4" />
-          )}
-          <span className="ml-2 text-xs">Refresh</span>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void runBackfill()}
+            disabled={loading || backfilling}
+            title="Pull every customer from the Helium Customer Fields API and store their signup date"
+          >
+            {backfilling ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            <span className="ml-2 text-xs">Backfill from Helium</span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void load()}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            <span className="ml-2 text-xs">Refresh</span>
+          </Button>
+        </div>
       </header>
+
+      {backfillStatus && (
+        <div className="text-xs text-muted-foreground border border-border/60 rounded-[10px] px-3 py-2">
+          {backfillStatus}
+        </div>
+      )}
+
+      {sources && (
+        <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>
+            Live signups counted:{" "}
+            <span className="text-foreground tabular-nums">{sources.liveCount.toLocaleString()}</span>
+          </span>
+          <span>·</span>
+          <span>
+            From Helium backfill:{" "}
+            <span className="text-foreground tabular-nums">{sources.backfillCount.toLocaleString()}</span>
+          </span>
+          <span>·</span>
+          <span>
+            Backfill stored total:{" "}
+            <span className="text-foreground tabular-nums">{sources.backfillTotal.toLocaleString()}</span>
+          </span>
+          {sources.backfillLastFetchedAt && (
+            <>
+              <span>·</span>
+              <span>
+                Last pulled{" "}
+                {new Date(sources.backfillLastFetchedAt).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </>
+          )}
+          {sources.backfillTotal === 0 && (
+            <span className="text-status-amber">
+              · Click "Backfill from Helium" to populate historical data.
+            </span>
+          )}
+        </div>
+      )}
+
 
       {error && (
         <div className="text-sm text-status-red bg-status-red/5 border border-status-red/20 rounded-[10px] p-3">
