@@ -322,7 +322,7 @@ const AdminSettingsPage = () => {
       toast({
         title: next ? "Founder call gating ON" : "Founder call gating OFF",
         description: next
-          ? "Only stylists and salons who order 6-10 or 10+ extensions per month will see the founder call nudge."
+          ? "Only stylists and salons with more than 2 orders/mo will see the founder call nudge."
           : "All eligible accounts will see the founder call nudge.",
       });
     } catch (err) {
