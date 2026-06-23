@@ -85,8 +85,9 @@ Deno.serve(async (req: Request) => {
     url.searchParams.set("limit", String(PAGE_LIMIT));
     url.searchParams.set("sort_by", "created_at");
     url.searchParams.set("sort_order", "asc");
+    if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
+    if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
-    let res: Response;
     try {
       res = await fetch(url.toString(), {
         method: "GET",
