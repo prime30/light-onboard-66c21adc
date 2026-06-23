@@ -739,10 +739,10 @@ export const SignInForm = () => {
             className="[&>div.input-glow]:input-ultra"
           />
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="w-[13px] h-[13px]" aria-hidden="true" />
-              <span>Secure, we never share your information</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+              <Lock className="w-[13px] h-[13px] shrink-0" aria-hidden="true" />
+              <span className="whitespace-nowrap truncate">Secure, we never share your information</span>
             </div>
 
             <button
