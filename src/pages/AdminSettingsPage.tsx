@@ -1021,6 +1021,8 @@ const AdminSettingsPage = () => {
 
         <RegistrationAnalyticsPanel adminEmail={email} adminPassword={password} />
 
+        <RegistrationYoYPanel adminEmail={email} adminPassword={password} />
+
         <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
 
 
