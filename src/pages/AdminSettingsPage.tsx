@@ -11,6 +11,7 @@ import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
 import { RegistrationAnalyticsPanel } from "@/components/admin/RegistrationAnalyticsPanel";
+import { RegistrationYoYPanel } from "@/components/admin/RegistrationYoYPanel";
 import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
 import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
 
