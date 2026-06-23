@@ -1024,6 +1024,8 @@ const AdminSettingsPage = () => {
 
         <RegistrationYoYPanel adminEmail={email} adminPassword={password} />
 
+        <HeliumSpikeInspectorPanel adminEmail={email} adminPassword={password} />
+
         <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
 
 
