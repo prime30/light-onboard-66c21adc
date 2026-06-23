@@ -31,13 +31,14 @@ type ApiResponse = {
   currentMonth?: string;
   series?: MonthRow[];
   totals?: { current: number; prior: number; delta: number; deltaPct: number | null };
+  sources?: {
+    liveCount: number;
+    backfillCount: number;
+    backfillTotal: number;
+    backfillLastFetchedAt: string | null;
+  };
   error?: string;
 };
-
-interface Props {
-  adminEmail: string;
-  adminPassword: string;
-}
 
 function fmtPct(pct: number | null): string {
   if (pct === null) return "—";
