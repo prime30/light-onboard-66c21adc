@@ -88,8 +88,10 @@ Deno.serve(async (req: Request) => {
     if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
+    let res: Response;
     try {
       res = await fetch(url.toString(), {
+
         method: "GET",
         headers: {
           Accept: "application/json",
