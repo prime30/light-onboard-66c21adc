@@ -322,7 +322,7 @@ const AdminSettingsPage = () => {
       toast({
         title: next ? "Founder call gating ON" : "Founder call gating OFF",
         description: next
-          ? "Only stylists and salons who order 6-10 or 10+ extensions per month will see the founder call nudge."
+          ? "Only stylists and salons with more than 2 orders/mo will see the founder call nudge."
           : "All eligible accounts will see the founder call nudge.",
       });
     } catch (err) {
@@ -680,12 +680,12 @@ const AdminSettingsPage = () => {
           <div className="flex items-start justify-between gap-6">
             <div className="space-y-1">
               <h2 className="text-base font-medium text-foreground">
-                Founder call: high-volume only
+                Founder call: higher-volume only
               </h2>
               <p className="text-sm text-muted-foreground">
                 When enabled, the founder call nudge on the success screen only
-                shows to Stylists and Salon owners who selected{" "}
-                <strong>6–10</strong> or <strong>10+</strong> extensions per month.
+                shows to Stylists and Salon owners who order{" "}
+                <strong>more than 2 extensions per month</strong> (2–5, 6–10, or 10+).
                 When disabled, all eligible accounts see the nudge.
               </p>
             </div>
@@ -711,7 +711,7 @@ const AdminSettingsPage = () => {
                 }
               >
                 {founderHighVolume
-                  ? "Gated to 6–10 / 10+ stylists & salons"
+                  ? "Gated to stylists & salons with >2 orders/mo"
                   : "Shown to all eligible accounts"}
               </span>
             </div>
