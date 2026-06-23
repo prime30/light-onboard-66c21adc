@@ -38,7 +38,14 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
 
-  let body: { email?: string; password?: string; startPage?: number; maxPages?: number };
+  let body: {
+    email?: string;
+    password?: string;
+    startPage?: number;
+    maxPages?: number;
+    createdAtMin?: string;
+    createdAtMax?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -60,6 +67,9 @@ Deno.serve(async (req: Request) => {
 
   const startPage = Math.max(1, Math.floor(body.startPage ?? 1));
   const maxPages = Math.min(50, Math.max(1, Math.floor(body.maxPages ?? DEFAULT_MAX_PAGES)));
+  const createdAtMin = typeof body.createdAtMin === "string" ? body.createdAtMin : null;
+  const createdAtMax = typeof body.createdAtMax === "string" ? body.createdAtMax : null;
+
   const supabase = createClient(supabaseUrl, serviceKey);
 
   let page = startPage;
