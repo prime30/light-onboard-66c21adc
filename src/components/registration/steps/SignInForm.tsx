@@ -751,7 +751,7 @@ export const SignInForm = () => {
             <button
               onClick={switchToForgotPassword}
               type="button"
-              className="group inline-flex items-center gap-[5px] text-sm text-muted-foreground hover:text-foreground transition-all duration-300"
+              className="group inline-flex items-center gap-[5px] text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-all duration-300 whitespace-nowrap shrink-0"
             >
               <span className="relative">
                 Forgot password?
