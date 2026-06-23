@@ -40,6 +40,13 @@ type ApiResponse = {
   error?: string;
 };
 
+interface Props {
+  adminEmail: string;
+  adminPassword: string;
+}
+
+
+
 function fmtPct(pct: number | null): string {
   if (pct === null) return "—";
   const rounded = Math.round(pct * 10) / 10;
