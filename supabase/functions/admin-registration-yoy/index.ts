@@ -222,6 +222,18 @@ Deno.serve(async (req: Request) => {
   const totalDeltaPct =
     totalPrior === 0 ? (totalCurrent === 0 ? 0 : null) : ((totalCurrent - totalPrior) / totalPrior) * 100;
 
+  // Surface backfill freshness so the UI can prompt for a refresh if Helium
+  // has never been pulled (or hasn't been pulled in a while).
+  const { count: backfillTotal } = await supabase
+    .from("helium_customers_backfill")
+    .select("helium_id", { count: "exact", head: true });
+  const { data: latestFetched } = await supabase
+    .from("helium_customers_backfill")
+    .select("fetched_at")
+    .order("fetched_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return json({
     success: true,
     generatedAt: new Date().toISOString(),
@@ -234,5 +246,12 @@ Deno.serve(async (req: Request) => {
       delta: totalCurrent - totalPrior,
       deltaPct: totalDeltaPct,
     },
+    sources: {
+      liveCount,
+      backfillCount,
+      backfillTotal: backfillTotal ?? 0,
+      backfillLastFetchedAt: latestFetched?.fetched_at ?? null,
+    },
   });
 });
+
