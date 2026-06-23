@@ -86,52 +86,84 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
     }
   }, [adminEmail, adminPassword]);
 
-  const runBackfill = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
-    setBackfilling(true);
-    setBackfillStatus("Starting Helium backfill…");
-    let page = 1;
-    let totalFetched = 0;
-    let totalUpserted = 0;
-    try {
-      // Iterate until the edge function reports done. Each invocation processes
-      // up to ~3,000 customers; we keep calling until Helium returns no more.
-      // Hard cap of 50 round-trips so a runaway never spins forever.
-      for (let i = 0; i < 50; i++) {
-        const { data: res, error: invokeError } = await supabase.functions.invoke(
-          "admin-backfill-helium-customers",
-          { body: { email: adminEmail, password: adminPassword, startPage: page } },
-        );
-        if (invokeError) throw invokeError;
-        const typed = res as {
-          success: boolean;
-          error?: string;
-          fetched: number;
-          upserted: number;
-          done: boolean;
-          nextPage: number | null;
-        };
-        if (!typed?.success) throw new Error(typed?.error ?? "Backfill failed");
-        totalFetched += typed.fetched;
-        totalUpserted += typed.upserted;
+  const runBackfill = useCallback(
+    async (range?: { createdAtMin: string; createdAtMax: string; label?: string }) => {
+      if (!adminEmail || !adminPassword) return;
+      setBackfilling(true);
+      setBackfillStatus(
+        range
+          ? `Refilling Helium range ${range.label ?? `${range.createdAtMin} → ${range.createdAtMax}`}…`
+          : "Starting Helium backfill…",
+      );
+      let page = 1;
+      let totalFetched = 0;
+      let totalUpserted = 0;
+      try {
+        for (let i = 0; i < 50; i++) {
+          const { data: res, error: invokeError } = await supabase.functions.invoke(
+            "admin-backfill-helium-customers",
+            {
+              body: {
+                email: adminEmail,
+                password: adminPassword,
+                startPage: page,
+                ...(range
+                  ? { createdAtMin: range.createdAtMin, createdAtMax: range.createdAtMax }
+                  : {}),
+              },
+            },
+          );
+          if (invokeError) throw invokeError;
+          const typed = res as {
+            success: boolean;
+            error?: string;
+            fetched: number;
+            upserted: number;
+            done: boolean;
+            nextPage: number | null;
+          };
+          if (!typed?.success) throw new Error(typed?.error ?? "Backfill failed");
+          totalFetched += typed.fetched;
+          totalUpserted += typed.upserted;
+          setBackfillStatus(
+            `Pulled ${totalFetched.toLocaleString()} customers from Helium (${totalUpserted.toLocaleString()} stored)…`,
+          );
+          if (typed.done || !typed.nextPage) break;
+          page = typed.nextPage;
+        }
         setBackfillStatus(
-          `Pulled ${totalFetched.toLocaleString()} customers from Helium (${totalUpserted.toLocaleString()} stored)…`,
+          `Done. ${totalFetched.toLocaleString()} fetched, ${totalUpserted.toLocaleString()} stored.`,
         );
-        if (typed.done || !typed.nextPage) break;
-        page = typed.nextPage;
+        await load();
+      } catch (err) {
+        setBackfillStatus(
+          `Backfill failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+        );
+      } finally {
+        setBackfilling(false);
       }
-      setBackfillStatus(
-        `Done. ${totalFetched.toLocaleString()} fetched, ${totalUpserted.toLocaleString()} stored.`,
-      );
-      await load();
-    } catch (err) {
-      setBackfillStatus(
-        `Backfill failed: ${err instanceof Error ? err.message : "Unknown error"}`,
-      );
-    } finally {
-      setBackfilling(false);
-    }
-  }, [adminEmail, adminPassword, load]);
+    },
+    [adminEmail, adminPassword, load],
+  );
+
+  const refillRange = useCallback(() => {
+    const min = window.prompt(
+      "Refill Helium customers created on/after (YYYY-MM-DD):",
+      "2026-03-06",
+    );
+    if (!min) return;
+    const max = window.prompt(
+      "Refill Helium customers created before (YYYY-MM-DD, exclusive):",
+      "2026-04-13",
+    );
+    if (!max) return;
+    void runBackfill({
+      createdAtMin: `${min}T00:00:00Z`,
+      createdAtMax: `${max}T00:00:00Z`,
+      label: `${min} → ${max}`,
+    });
+  }, [runBackfill]);
+
 
   useEffect(() => {
     void load();
