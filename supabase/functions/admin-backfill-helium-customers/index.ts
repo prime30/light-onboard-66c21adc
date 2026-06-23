@@ -1,0 +1,172 @@
+// Paginates the Helium Customer Fields API and upserts every customer's
+// signup record into public.helium_customers_backfill. Designed to be
+// called repeatedly: each call resumes from `startPage` and stops after
+// `maxPages` pages so we never blow past the Supabase edge-function
+// timeout. The response tells the client whether to call again with
+// `nextPage` until `done: true`.
+//
+// Auth: same email + ADMIN_PANEL_PASSWORD pattern as the other admin EFs.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const ADMIN_EMAIL = "alex@dropdeadhair.com";
+const PAGE_LIMIT = 250;          // Helium search.json caps appear well above this in practice
+const DEFAULT_MAX_PAGES = 12;    // ~3,000 customers per invocation; stays within EF timeout
+const HARD_PAGE_CEILING = 5000;  // safety net to prevent runaway loops
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+type HeliumCustomer = {
+  id: string;
+  email?: string | null;
+  shopify_id?: number | string | null;
+  created_at?: string | null;
+  [k: string]: unknown;
+};
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
+
+  let body: { email?: string; password?: string; startPage?: number; maxPages?: number };
+  try {
+    body = await req.json();
+  } catch {
+    return json({ success: false, error: "Invalid JSON" }, 400);
+  }
+
+  const email = (body.email ?? "").trim().toLowerCase();
+  const password = body.password ?? "";
+  const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
+  if (!adminPassword) return json({ success: false, error: "Server misconfigured" }, 500);
+  if (email !== ADMIN_EMAIL || password !== adminPassword)
+    return json({ success: false, error: "Invalid credentials" }, 401);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const heliumToken = Deno.env.get("HELIUM_PRIVATE_ACCESS_TOKEN");
+  if (!supabaseUrl || !serviceKey || !heliumToken)
+    return json({ success: false, error: "Server misconfigured" }, 500);
+
+  const startPage = Math.max(1, Math.floor(body.startPage ?? 1));
+  const maxPages = Math.min(50, Math.max(1, Math.floor(body.maxPages ?? DEFAULT_MAX_PAGES)));
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  let page = startPage;
+  let fetched = 0;
+  let upserted = 0;
+  let skipped = 0;
+  let done = false;
+  let lastCreatedAt: string | null = null;
+
+  while (page < startPage + maxPages && page <= HARD_PAGE_CEILING) {
+    const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("limit", String(PAGE_LIMIT));
+    url.searchParams.set("sort_by", "created_at");
+    url.searchParams.set("sort_order", "asc");
+
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${heliumToken}`,
+        },
+      });
+    } catch (err) {
+      console.error("Helium fetch failed", err);
+      return json(
+        { success: false, error: "Helium request failed", page, fetched, upserted },
+        502,
+      );
+    }
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("Helium responded non-200", res.status, text.slice(0, 300));
+      return json(
+        { success: false, error: `Helium ${res.status}`, page, fetched, upserted },
+        502,
+      );
+    }
+
+    const data = (await res.json()) as { customers?: HeliumCustomer[] };
+    const customers = Array.isArray(data.customers) ? data.customers : [];
+    fetched += customers.length;
+
+    if (customers.length === 0) {
+      done = true;
+      break;
+    }
+
+    const rows = customers
+      .filter((c) => typeof c.id === "string" && c.created_at)
+      .map((c) => {
+        const sid =
+          typeof c.shopify_id === "number"
+            ? c.shopify_id
+            : typeof c.shopify_id === "string" && /^\d+$/.test(c.shopify_id)
+              ? Number(c.shopify_id)
+              : null;
+        return {
+          helium_id: c.id,
+          email: typeof c.email === "string" ? c.email.toLowerCase() : null,
+          shopify_id: sid,
+          created_at: c.created_at as string,
+          raw: c as unknown as Record<string, unknown>,
+          fetched_at: new Date().toISOString(),
+        };
+      });
+
+    skipped += customers.length - rows.length;
+
+    if (rows.length > 0) {
+      const { error: upsertError } = await supabase
+        .from("helium_customers_backfill")
+        .upsert(rows, { onConflict: "helium_id" });
+      if (upsertError) {
+        console.error("upsert failed", upsertError);
+        return json(
+          { success: false, error: "Upsert failed", page, fetched, upserted, detail: upsertError.message },
+          500,
+        );
+      }
+      upserted += rows.length;
+      lastCreatedAt = rows[rows.length - 1].created_at;
+    }
+
+    // Short page → end of dataset.
+    if (customers.length < PAGE_LIMIT) {
+      done = true;
+      break;
+    }
+
+    page += 1;
+  }
+
+  const nextPage = done ? null : page + 1;
+
+  return json({
+    success: true,
+    startPage,
+    pagesProcessed: page - startPage + (done ? 0 : 1),
+    fetched,
+    upserted,
+    skipped,
+    lastCreatedAt,
+    done,
+    nextPage,
+  });
+});
