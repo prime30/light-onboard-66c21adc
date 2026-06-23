@@ -212,6 +212,18 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
             type="button"
             variant="ghost"
             size="sm"
+            onClick={refillRange}
+            disabled={loading || backfilling}
+            title="Re-pull a specific date range from Helium (use to fill gaps)"
+          >
+            <Download className="w-4 h-4" />
+            <span className="ml-2 text-xs">Refill date range…</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => void load()}
             disabled={loading}
           >
