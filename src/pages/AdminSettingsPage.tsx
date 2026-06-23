@@ -711,7 +711,7 @@ const AdminSettingsPage = () => {
                 }
               >
                 {founderHighVolume
-                  ? "Gated to 6–10 / 10+ stylists & salons"
+                  ? "Gated to stylists & salons with >2 orders/mo"
                   : "Shown to all eligible accounts"}
               </span>
             </div>
