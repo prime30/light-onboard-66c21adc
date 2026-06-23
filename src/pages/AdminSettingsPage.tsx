@@ -12,6 +12,7 @@ import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
 import { RegistrationAnalyticsPanel } from "@/components/admin/RegistrationAnalyticsPanel";
 import { RegistrationYoYPanel } from "@/components/admin/RegistrationYoYPanel";
+import { HeliumSpikeInspectorPanel } from "@/components/admin/HeliumSpikeInspectorPanel";
 import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
 import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
 
@@ -1022,6 +1023,8 @@ const AdminSettingsPage = () => {
         <RegistrationAnalyticsPanel adminEmail={email} adminPassword={password} />
 
         <RegistrationYoYPanel adminEmail={email} adminPassword={password} />
+
+        <HeliumSpikeInspectorPanel adminEmail={email} adminPassword={password} />
 
         <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
 
