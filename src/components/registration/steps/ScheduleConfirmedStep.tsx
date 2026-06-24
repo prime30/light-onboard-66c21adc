@@ -47,7 +47,11 @@ export const ScheduleConfirmedStep = () => {
 
   const handleGoToShop = () => {
     if (isInIframe) {
-      closeIframe("registration_complete");
+      const extras = buildRegistrationCloseExtras({
+        founderHighVolumeOnly,
+        welcomeOfferEnabled,
+      });
+      closeIframe("registration_complete", extras);
     } else {
       window.location.href = "/";
     }
