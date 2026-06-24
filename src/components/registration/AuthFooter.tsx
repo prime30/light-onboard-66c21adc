@@ -227,15 +227,26 @@ export function AuthFooter({
 
   const handleContinue = useCallback(() => {
     // Schedule-confirmed: button is "Go to shop" — close the iframe (Shopify
-    // embed) or navigate to the shop home.
+    // embed) or navigate to the shop home. Include qualified-candidate
+    // metadata so the parent theme can route consistently (this user already
+    // booked, so founderCallEligible should resolve to false post-booking
+    // when welcome-offer mode is on, but we send the snapshot regardless).
     if (isScheduleConfirmedStep) {
       if (isInIframe) {
-        closeIframe("registration_complete");
+        const extras = buildRegistrationCloseExtras(
+          { founderHighVolumeOnly, welcomeOfferEnabled },
+          {
+            accountType: (watch("accountType") as string | undefined) ?? null,
+            monthlyOrderVolume: (watch("monthlyOrderVolume") as string | undefined) ?? null,
+          }
+        );
+        closeIframe("registration_complete", extras);
       } else {
         window.location.href = "/";
       }
       return;
     }
+
 
     const shouldRunDuplicateEmailCheck = isFauxSubmitStep || (!autoApprove && isSummaryStep);
     const blockingSteps = shouldRunDuplicateEmailCheck
