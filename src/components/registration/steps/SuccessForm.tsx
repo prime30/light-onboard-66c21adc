@@ -20,6 +20,7 @@ import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "
 import { cn } from "@/lib/utils";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
+import { isHighVolumeAccount, computeFounderCallEligible } from "@/lib/founder-call-eligibility";
 
 
 
