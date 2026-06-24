@@ -8,7 +8,8 @@ import { customerAtom } from "@/contexts/store";
 import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
 import { StepContext } from "./context/StepContext";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
+import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
 import {
   AlertDialog,
   AlertDialogAction,
