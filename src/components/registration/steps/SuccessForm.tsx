@@ -102,7 +102,7 @@ export const SuccessForm = () => {
   // (2-5, 6-10, 10+) see the nudge.
   const accountType = watch("accountType") as string | undefined;
   const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
-  const isHighVolume = isHighVolumeAccount(accountType, monthlyOrderVolume);
+  // (high-volume status is encoded inside computeFounderCallEligible)
   const showFounderCallNudge = computeFounderCallEligible({
     accountType,
     monthlyOrderVolume,
