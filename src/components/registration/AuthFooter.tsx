@@ -7,9 +7,10 @@ import type { AuthMode, Step } from "@/types/auth";
 import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
 import { useCloseIframe } from "@/hooks/messages";
 import { supabase } from "@/integrations/supabase/client";
+import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
 
 interface AuthFooterProps {
   mode: AuthMode;
@@ -55,6 +56,8 @@ export function AuthFooter({
   const [preflightChecking, setPreflightChecking] = useState(false);
   const navigate = useNavigate();
   const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
+  const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { closeIframe, isInIframe } = useCloseIframe();
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
@@ -224,15 +227,26 @@ export function AuthFooter({
 
   const handleContinue = useCallback(() => {
     // Schedule-confirmed: button is "Go to shop" — close the iframe (Shopify
-    // embed) or navigate to the shop home.
+    // embed) or navigate to the shop home. Include qualified-candidate
+    // metadata so the parent theme can route consistently (this user already
+    // booked, so founderCallEligible should resolve to false post-booking
+    // when welcome-offer mode is on, but we send the snapshot regardless).
     if (isScheduleConfirmedStep) {
       if (isInIframe) {
-        closeIframe("registration_complete");
+        const extras = buildRegistrationCloseExtras(
+          { founderHighVolumeOnly, welcomeOfferEnabled },
+          {
+            accountType: (watch("accountType") as string | undefined) ?? null,
+            monthlyOrderVolume: (watch("monthlyOrderVolume") as string | undefined) ?? null,
+          }
+        );
+        closeIframe("registration_complete", extras);
       } else {
         window.location.href = "/";
       }
       return;
     }
+
 
     const shouldRunDuplicateEmailCheck = isFauxSubmitStep || (!autoApprove && isSummaryStep);
     const blockingSteps = shouldRunDuplicateEmailCheck

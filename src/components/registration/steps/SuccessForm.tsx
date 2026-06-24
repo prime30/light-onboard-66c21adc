@@ -20,6 +20,7 @@ import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "
 import { cn } from "@/lib/utils";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
+import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
 
 
 
@@ -97,14 +98,17 @@ export const SuccessForm = () => {
   const { closeIframe, isInIframe: isInIframeClose } = useCloseIframe();
 
   // Founder call eligibility: when admin gates it to high-volume,
-  // Stylists / Salon owners with more than 2 orders/mo (2-5, 6-10, 10+)
-  // see the nudge.
+  // Stylists / Salon owners / Licensed stylists with more than 2 orders/mo
+  // (2-5, 6-10, 10+) see the nudge.
   const accountType = watch("accountType") as string | undefined;
   const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
-  const isHighVolumeAccount =
-    (accountType === "professional" || accountType === "salon") &&
-    (monthlyOrderVolume === "2-5" || monthlyOrderVolume === "6-10" || monthlyOrderVolume === "10+");
-  const showFounderCallNudge = !welcomeOfferEnabled && (!founderHighVolumeOnly || isHighVolumeAccount);
+  // (high-volume status is encoded inside computeFounderCallEligible)
+  const showFounderCallNudge = computeFounderCallEligible({
+    accountType,
+    monthlyOrderVolume,
+    founderHighVolumeOnly: founderHighVolumeOnly,
+    welcomeOfferEnabled: welcomeOfferEnabled,
+  });
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -598,8 +602,8 @@ export const SuccessForm = () => {
               if (isInIframeClose) {
                 closeIframe("registration_complete", {
                   founderCallEligible: showFounderCallNudge,
-                  monthlyOrderVolume: monthlyOrderVolume ?? null,
                   accountType: accountType ?? null,
+                  monthlyOrderVolume: monthlyOrderVolume ?? null,
                 });
               } else {
                 navigate("/");

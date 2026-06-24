@@ -8,7 +8,8 @@ import { customerAtom } from "@/contexts/store";
 import { useContext } from "react";
 import { useModeContext } from "./context/ModeContext";
 import { StepContext } from "./context/StepContext";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
+import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,8 @@ export function CloseButton() {
   const { closeIframe, isInIframe } = useCloseIframe();
   const [customer] = useAtom(customerAtom);
   const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
+  const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
 
   // On the late create-password step (auto-approval flow), the user has
   // already "approved" their application. Closing here would discard a
@@ -46,9 +49,18 @@ export function CloseButton() {
   const handleCloseModal = useCallback(() => {
     const close = () => {
       if (isInIframe) {
-        const reason =
-          currentStep === "success" ? "registration_complete" : undefined;
-        closeIframe(reason);
+        if (currentStep === "success") {
+          // Qualified-candidate payload so the parent theme can route to the
+          // founder call page. Read the form snapshot from persisted state
+          // because CloseButton sits outside the FormProvider tree.
+          const extras = buildRegistrationCloseExtras({
+            founderHighVolumeOnly,
+            welcomeOfferEnabled,
+          });
+          closeIframe("registration_complete", extras);
+        } else {
+          closeIframe();
+        }
       } else {
         navigate("/");
       }
@@ -92,7 +104,7 @@ export function CloseButton() {
     } else if (!isSavingProgress) {
       close();
     }
-  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber, founderHighVolumeOnly, welcomeOfferEnabled]);
 
   const requestClose = useCallback(() => {
     if (needsCloseConfirm) {
