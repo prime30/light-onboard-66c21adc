@@ -104,7 +104,7 @@ export function CloseButton() {
     } else if (!isSavingProgress) {
       close();
     }
-  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber]);
+  }, [navigate, isSavingProgress, isInIframe, closeIframe, customer?.isLoggedIn, mode, currentStep, getStepNumber, founderHighVolumeOnly, welcomeOfferEnabled]);
 
   const requestClose = useCallback(() => {
     if (needsCloseConfirm) {
