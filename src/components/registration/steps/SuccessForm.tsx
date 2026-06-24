@@ -602,8 +602,8 @@ export const SuccessForm = () => {
               if (isInIframeClose) {
                 closeIframe("registration_complete", {
                   founderCallEligible: showFounderCallNudge,
-                  monthlyOrderVolume: monthlyOrderVolume ?? null,
                   accountType: accountType ?? null,
+                  monthlyOrderVolume: monthlyOrderVolume ?? null,
                 });
               } else {
                 navigate("/");
