@@ -18,6 +18,8 @@ type Booking = {
 
 export const ScheduleConfirmedStep = () => {
   const { closeIframe, isInIframe } = useCloseIframe();
+  const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
+  const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const [booking, setBooking] = useState<Booking>({});
 
   useEffect(() => {
