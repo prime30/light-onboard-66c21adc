@@ -1,7 +1,5 @@
 // Audits helium_customers_backfill vs the live Helium API by walking every
-// customer via cursor pagination and comparing per-month counts. The same
-// cursor approach used by admin-backfill-helium-customers protects against
-// short-page exits that previously caused silent gaps.
+// customer via deterministic page chunks and comparing per-month counts.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -51,7 +49,7 @@ Deno.serve(async (req: Request) => {
   const createdAtMin = typeof body.createdAtMin === "string" ? body.createdAtMin : null;
   const createdAtMax = typeof body.createdAtMax === "string" ? body.createdAtMax : null;
 
-  // 1) Walk the Helium API end-to-end with cursor pagination
+  // 1) Walk the Helium API end-to-end with deterministic page pagination
   const heliumByMonth = new Map<string, number>();
   const heliumIds = new Set<string>();
   let page = 1;

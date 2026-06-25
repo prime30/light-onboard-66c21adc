@@ -45,7 +45,6 @@ Deno.serve(async (req: Request) => {
     maxPages?: number;
     createdAtMin?: string;
     createdAtMax?: string;
-    cursor?: string;
   };
   try {
     body = await req.json();
@@ -70,7 +69,6 @@ Deno.serve(async (req: Request) => {
   const maxPages = Math.min(50, Math.max(1, Math.floor(body.maxPages ?? DEFAULT_MAX_PAGES)));
   const createdAtMin = typeof body.createdAtMin === "string" ? body.createdAtMin : null;
   const createdAtMax = typeof body.createdAtMax === "string" ? body.createdAtMax : null;
-  const resumeCursor = typeof body.cursor === "string" ? body.cursor : null;
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
@@ -81,10 +79,6 @@ Deno.serve(async (req: Request) => {
   let skipped = 0;
   let done = false;
   let lastCreatedAt: string | null = null;
-
-  if (resumeCursor) {
-    console.warn("Ignoring deprecated cursor parameter; using startPage pagination instead.");
-  }
 
   while (pagesProcessed < maxPages && page <= HARD_PAGE_CEILING) {
     const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
@@ -180,7 +174,6 @@ Deno.serve(async (req: Request) => {
     upserted,
     skipped,
     lastCreatedAt,
-    cursor: null,
     done,
     nextPage: done ? null : page,
   });
