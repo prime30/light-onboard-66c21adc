@@ -95,16 +95,110 @@ Deno.serve(async (req: Request) => {
     if (cursor) url.searchParams.set("created_at_min", cursor);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), {
+        method: "GET",
+        headers: { Accept: "application/json", Authorization: `Bearer ${heliumToken}` },
+      });
+    } catch (err) {
+      console.error("Helium fetch failed", err);
+      return json(
+        { success: false, error: "Helium request failed", iter, fetched, upserted },
+        502,
+      );
+    }
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("Helium responded non-200", res.status, text.slice(0, 300));
+      return json(
+        { success: false, error: `Helium ${res.status}`, iter, fetched, upserted },
+        502,
+      );
+    }
+
+    const data = (await res.json()) as { customers?: HeliumCustomer[] };
+    const customers = Array.isArray(data.customers) ? data.customers : [];
+    fetched += customers.length;
+
+    if (customers.length === 0) {
+      done = true;
+      break;
+    }
+
+    const rows = customers
+      .filter((c) => typeof c.id === "string" && c.created_at)
+      .map((c) => {
+        const sid =
+          typeof c.shopify_id === "number"
+            ? c.shopify_id
+            : typeof c.shopify_id === "string" && /^\d+$/.test(c.shopify_id)
+              ? Number(c.shopify_id)
+              : null;
+        return {
+          helium_id: c.id,
+          email: typeof c.email === "string" ? c.email.toLowerCase() : null,
+          shopify_id: sid,
+          created_at: c.created_at as string,
+          raw: c as unknown as Record<string, unknown>,
+          fetched_at: new Date().toISOString(),
+        };
+      });
+
+    skipped += customers.length - rows.length;
+
+    if (rows.length > 0) {
+      const { error: upsertError } = await supabase
+        .from("helium_customers_backfill")
+        .upsert(rows, { onConflict: "helium_id" });
+      if (upsertError) {
+        console.error("upsert failed", upsertError);
+        return json(
+          { success: false, error: "Upsert failed", iter, fetched, upserted, detail: upsertError.message },
+          500,
+        );
+      }
+      upserted += rows.length;
+      lastCreatedAt = rows[rows.length - 1].created_at;
+    }
+
+    // Cursor advancement with same-timestamp collision guard
+    const currentIds = new Set(rows.map((r) => r.helium_id));
+    const allOverlap =
+      currentIds.size > 0 &&
+      [...currentIds].every((id) => lastBatchIds.has(id));
+    const newCursor = lastCreatedAt ?? cursor;
+
+    if (allOverlap && newCursor) {
+      // Same boundary timestamp keeps returning the same records — bump 1s
+      cursor = new Date(Date.parse(newCursor) + 1000).toISOString();
+      lastBatchIds = new Set();
+    } else {
+      cursor = newCursor;
+      lastBatchIds = currentIds;
+    }
+
+    // Short page = end of dataset within (cursor, createdAtMax]
+    if (customers.length < PAGE_LIMIT) {
+      done = true;
+      break;
+    }
+
+    iter += 1;
+  }
 
   return json({
     success: true,
     startPage,
-    pagesProcessed: page - startPage + (done ? 0 : 1),
+    pagesProcessed: iter + (done ? 0 : 1),
     fetched,
     upserted,
     skipped,
     lastCreatedAt,
+    cursor,
     done,
-    nextPage,
+    nextPage: done ? null : iter + 1,
   });
 });
+
