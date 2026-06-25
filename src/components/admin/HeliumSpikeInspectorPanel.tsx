@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Search, Download } from "lucide-react";
+import { Loader2, Search, Download, RefreshCw, Stethoscope } from "lucide-react";
+
 
 type Record = {
   helium_id: string;
@@ -66,12 +67,39 @@ function toCsv(records: Record[]): string {
   return [headers.join(","), ...rows].join("\n");
 }
 
+type RefillState = {
+  running: boolean;
+  iterations: number;
+  fetched: number;
+  upserted: number;
+  done: boolean;
+  error: string | null;
+};
+
+type AuditRow = { month: string; helium: number; local: number; missing: number };
+type AuditResponse = {
+  success: boolean;
+  heliumTotal?: number;
+  localTotal?: number;
+  missingTotal?: number;
+  surplusTotal?: number;
+  iterations?: number;
+  comparison?: AuditRow[];
+  error?: string;
+};
+
 export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) {
   const [from, setFrom] = useState("2025-01-21");
   const [to, setTo] = useState("2025-01-28");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ApiResponse | null>(null);
+  const [refill, setRefill] = useState<RefillState>({
+    running: false, iterations: 0, fetched: 0, upserted: 0, done: false, error: null,
+  });
+  const [audit, setAudit] = useState<AuditResponse | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!adminEmail || !adminPassword) return;
@@ -101,6 +129,79 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     }
   }, [adminEmail, adminPassword, from, to]);
 
+  const refillRange = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
+    try {
+      let cursor: string | null = null;
+      let totalFetched = 0;
+      let totalUpserted = 0;
+      let iterations = 0;
+      const createdAtMin = `${from}T00:00:00Z`;
+      const createdAtMax = `${to}T00:00:00Z`;
+      // Loop EF calls until done (each call processes up to 12 pages ≈ 3000 rows)
+      for (let safety = 0; safety < 30; safety += 1) {
+        const { data: res, error: invokeError } = await supabase.functions.invoke(
+          "admin-backfill-helium-customers",
+          {
+            body: {
+              email: adminEmail,
+              password: adminPassword,
+              createdAtMin,
+              createdAtMax,
+              cursor,
+              maxPages: 12,
+            },
+          },
+        );
+        if (invokeError) throw invokeError;
+        const r = res as {
+          success: boolean; fetched: number; upserted: number; cursor: string | null;
+          done: boolean; error?: string;
+        };
+        if (!r.success) throw new Error(r.error ?? "Backfill failed");
+        totalFetched += r.fetched;
+        totalUpserted += r.upserted;
+        iterations += 1;
+        setRefill({
+          running: true, iterations, fetched: totalFetched, upserted: totalUpserted,
+          done: r.done, error: null,
+        });
+        if (r.done) break;
+        cursor = r.cursor;
+        if (!cursor) break;
+      }
+      setRefill((s) => ({ ...s, running: false, done: true }));
+      // Auto-reload the inspector view
+      await load();
+    } catch (err) {
+      setRefill((s) => ({
+        ...s, running: false, error: err instanceof Error ? err.message : "Refill failed",
+      }));
+    }
+  }, [adminEmail, adminPassword, from, to, load]);
+
+  const runAudit = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setAuditLoading(true);
+    setAuditError(null);
+    setAudit(null);
+    try {
+      const { data: res, error: invokeError } = await supabase.functions.invoke(
+        "admin-helium-audit",
+        { body: { email: adminEmail, password: adminPassword } },
+      );
+      if (invokeError) throw invokeError;
+      const typed = res as AuditResponse;
+      if (!typed?.success) throw new Error(typed?.error ?? "Audit failed");
+      setAudit(typed);
+    } catch (err) {
+      setAuditError(err instanceof Error ? err.message : "Audit failed");
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [adminEmail, adminPassword]);
+
   const downloadCsv = useCallback(() => {
     if (!data?.records) return;
     const csv = toCsv(data.records);
@@ -112,6 +213,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     a.click();
     URL.revokeObjectURL(url);
   }, [data, from, to]);
+
 
   return (
     <section className="bg-card border border-border rounded-[15px] p-6 space-y-5">
@@ -138,6 +240,32 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           <span className="ml-2 text-xs">Load records</span>
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void refillRange()}
+          disabled={refill.running}
+          title="Re-fetch this range from Helium and upsert into the backfill table"
+        >
+          {refill.running
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <RefreshCw className="w-4 h-4" />}
+          <span className="ml-2 text-xs">Refill this range</span>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void runAudit()}
+          disabled={auditLoading}
+          title="Walk all of Helium and compare per-month counts vs our backfill table"
+        >
+          {auditLoading
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <Stethoscope className="w-4 h-4" />}
+          <span className="ml-2 text-xs">Run full audit</span>
+        </Button>
         {data?.records && data.records.length > 0 && (
           <Button type="button" size="sm" variant="ghost" onClick={downloadCsv}>
             <Download className="w-4 h-4" />
@@ -145,6 +273,37 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           </Button>
         )}
       </div>
+
+      {(refill.running || refill.done || refill.error) && (
+        <div className="text-xs rounded-[10px] border border-border/60 bg-muted/20 p-3 space-y-1">
+          <div className="font-medium text-foreground">
+            Refill {from} → {to}
+            {refill.running ? " (running…)" : refill.done ? " ✓ complete" : ""}
+          </div>
+          <div className="text-muted-foreground tabular-nums">
+            iterations: {refill.iterations} · fetched: {refill.fetched} · upserted: {refill.upserted}
+          </div>
+          {refill.error && <div className="text-status-red">{refill.error}</div>}
+        </div>
+      )}
+
+      {auditError && (
+        <div className="text-sm text-status-red bg-status-red/5 border border-status-red/20 rounded-[10px] p-3">
+          Audit: {auditError}
+        </div>
+      )}
+
+      {audit?.comparison && (
+        <AuditTable
+          audit={audit}
+          onPickMonth={(month) => {
+            const [y, m] = month.split("-").map(Number);
+            const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+            setFrom(`${month}-01`);
+            setTo(`${nextMonth}-01`);
+          }}
+        />
+      )}
 
       {error && (
         <div className="text-sm text-status-red bg-status-red/5 border border-status-red/20 rounded-[10px] p-3">
@@ -231,3 +390,76 @@ function BreakdownCard({ title, items, max }: { title: string; items: Breakdown[
     </div>
   );
 }
+
+function AuditTable({
+  audit,
+  onPickMonth,
+}: {
+  audit: AuditResponse;
+  onPickMonth: (month: string) => void;
+}) {
+  const rows = audit.comparison ?? [];
+  return (
+    <div className="border border-border/60 rounded-[10px] overflow-hidden">
+      <div className="px-3 py-2 bg-muted/30 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+        <span>Helium total: <span className="text-foreground tabular-nums">{audit.heliumTotal}</span></span>
+        <span>Local total: <span className="text-foreground tabular-nums">{audit.localTotal}</span></span>
+        <span>
+          Missing locally:{" "}
+          <span className={`tabular-nums ${audit.missingTotal ? "text-status-red" : "text-foreground"}`}>
+            {audit.missingTotal}
+          </span>
+        </span>
+        {audit.surplusTotal ? (
+          <span>
+            Surplus locally:{" "}
+            <span className="tabular-nums text-status-amber">{audit.surplusTotal}</span>
+          </span>
+        ) : null}
+      </div>
+      <div className="max-h-[420px] overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="text-[11px] text-muted-foreground bg-muted/20 sticky top-0">
+            <tr>
+              <th className="text-left font-normal py-2 px-3">Month</th>
+              <th className="text-right font-normal py-2 px-3">Helium</th>
+              <th className="text-right font-normal py-2 px-3">Local</th>
+              <th className="text-right font-normal py-2 px-3">Missing</th>
+              <th className="text-right font-normal py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const bad = r.missing > 0;
+              return (
+                <tr
+                  key={r.month}
+                  className={`border-t border-border/40 ${bad ? "bg-status-red/5" : ""}`}
+                >
+                  <td className="py-2 px-3 tabular-nums">{r.month}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-foreground">{r.helium}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{r.local}</td>
+                  <td className={`py-2 px-3 text-right tabular-nums ${bad ? "text-status-red font-medium" : "text-muted-foreground"}`}>
+                    {r.missing > 0 ? `+${r.missing}` : r.missing}
+                  </td>
+                  <td className="py-2 px-3 text-right">
+                    {bad && (
+                      <button
+                        type="button"
+                        className="text-[11px] underline text-foreground hover:opacity-70"
+                        onClick={() => onPickMonth(r.month)}
+                      >
+                        select range
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
