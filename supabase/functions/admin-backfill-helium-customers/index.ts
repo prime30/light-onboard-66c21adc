@@ -72,104 +72,29 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  let page = startPage;
+  // Cursor-based pagination: advance `created_at_min` to the last seen
+  // record's created_at after each page. This avoids the classic offset bug
+  // where a short page mid-stream (or a mid-run insert) caused the loop to
+  // exit early and silently skip a chunk of customers. Page numbers are
+  // tracked only as a soft progress counter so the client can resume.
+  let iter = 0;
   let fetched = 0;
   let upserted = 0;
   let skipped = 0;
   let done = false;
+  let cursor: string | null = createdAtMin;
+  let lastBatchIds = new Set<string>();
   let lastCreatedAt: string | null = null;
 
-  while (page < startPage + maxPages && page <= HARD_PAGE_CEILING) {
+  while (iter < maxPages && iter < HARD_PAGE_CEILING) {
     const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
-    url.searchParams.set("page", String(page));
+    url.searchParams.set("page", "1");
     url.searchParams.set("limit", String(PAGE_LIMIT));
     url.searchParams.set("sort_by", "created_at");
     url.searchParams.set("sort_order", "asc");
-    if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
+    if (cursor) url.searchParams.set("created_at_min", cursor);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
-    let res: Response;
-    try {
-      res = await fetch(url.toString(), {
-
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${heliumToken}`,
-        },
-      });
-    } catch (err) {
-      console.error("Helium fetch failed", err);
-      return json(
-        { success: false, error: "Helium request failed", page, fetched, upserted },
-        502,
-      );
-    }
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      console.error("Helium responded non-200", res.status, text.slice(0, 300));
-      return json(
-        { success: false, error: `Helium ${res.status}`, page, fetched, upserted },
-        502,
-      );
-    }
-
-    const data = (await res.json()) as { customers?: HeliumCustomer[] };
-    const customers = Array.isArray(data.customers) ? data.customers : [];
-    fetched += customers.length;
-
-    if (customers.length === 0) {
-      done = true;
-      break;
-    }
-
-    const rows = customers
-      .filter((c) => typeof c.id === "string" && c.created_at)
-      .map((c) => {
-        const sid =
-          typeof c.shopify_id === "number"
-            ? c.shopify_id
-            : typeof c.shopify_id === "string" && /^\d+$/.test(c.shopify_id)
-              ? Number(c.shopify_id)
-              : null;
-        return {
-          helium_id: c.id,
-          email: typeof c.email === "string" ? c.email.toLowerCase() : null,
-          shopify_id: sid,
-          created_at: c.created_at as string,
-          raw: c as unknown as Record<string, unknown>,
-          fetched_at: new Date().toISOString(),
-        };
-      });
-
-    skipped += customers.length - rows.length;
-
-    if (rows.length > 0) {
-      const { error: upsertError } = await supabase
-        .from("helium_customers_backfill")
-        .upsert(rows, { onConflict: "helium_id" });
-      if (upsertError) {
-        console.error("upsert failed", upsertError);
-        return json(
-          { success: false, error: "Upsert failed", page, fetched, upserted, detail: upsertError.message },
-          500,
-        );
-      }
-      upserted += rows.length;
-      lastCreatedAt = rows[rows.length - 1].created_at;
-    }
-
-    // Short page → end of dataset.
-    if (customers.length < PAGE_LIMIT) {
-      done = true;
-      break;
-    }
-
-    page += 1;
-  }
-
-  const nextPage = done ? null : page + 1;
 
   return json({
     success: true,
