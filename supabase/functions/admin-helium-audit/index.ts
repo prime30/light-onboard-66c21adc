@@ -1,0 +1,154 @@
+// Audits helium_customers_backfill vs the live Helium API by walking every
+// customer via cursor pagination and comparing per-month counts. The same
+// cursor approach used by admin-backfill-helium-customers protects against
+// short-page exits that previously caused silent gaps.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const ADMIN_EMAIL = "alex@dropdeadhair.com";
+const PAGE_LIMIT = 250;
+const HARD_ITER_CEILING = 200; // 200 * 250 = 50k customers, plenty of headroom
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+type HeliumCustomer = { id: string; created_at?: string | null };
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
+
+  let body: { email?: string; password?: string; createdAtMin?: string; createdAtMax?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return json({ success: false, error: "Invalid JSON" }, 400);
+  }
+
+  const email = (body.email ?? "").trim().toLowerCase();
+  const password = body.password ?? "";
+  const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
+  if (!adminPassword) return json({ success: false, error: "Server misconfigured" }, 500);
+  if (email !== ADMIN_EMAIL || password !== adminPassword)
+    return json({ success: false, error: "Invalid credentials" }, 401);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const heliumToken = Deno.env.get("HELIUM_PRIVATE_ACCESS_TOKEN");
+  if (!supabaseUrl || !serviceKey || !heliumToken)
+    return json({ success: false, error: "Server misconfigured" }, 500);
+
+  const createdAtMin = typeof body.createdAtMin === "string" ? body.createdAtMin : null;
+  const createdAtMax = typeof body.createdAtMax === "string" ? body.createdAtMax : null;
+
+  // 1) Walk the Helium API end-to-end with cursor pagination
+  const heliumByMonth = new Map<string, number>();
+  const heliumIds = new Set<string>();
+  let cursor: string | null = createdAtMin;
+  let lastBatchIds = new Set<string>();
+  let lastCreatedAt: string | null = null;
+  let iter = 0;
+  let heliumTotal = 0;
+
+  while (iter < HARD_ITER_CEILING) {
+    const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
+    url.searchParams.set("page", "1");
+    url.searchParams.set("limit", String(PAGE_LIMIT));
+    url.searchParams.set("sort_by", "created_at");
+    url.searchParams.set("sort_order", "asc");
+    if (cursor) url.searchParams.set("created_at_min", cursor);
+    if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: { Accept: "application/json", Authorization: `Bearer ${heliumToken}` },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return json(
+        { success: false, error: `Helium ${res.status}`, iter, heliumTotal, detail: text.slice(0, 200) },
+        502,
+      );
+    }
+    const data = (await res.json()) as { customers?: HeliumCustomer[] };
+    const customers = Array.isArray(data.customers) ? data.customers : [];
+    if (customers.length === 0) break;
+
+    const currentIds = new Set<string>();
+    for (const c of customers) {
+      if (!c.id || !c.created_at) continue;
+      if (heliumIds.has(c.id)) {
+        currentIds.add(c.id);
+        continue;
+      }
+      heliumIds.add(c.id);
+      currentIds.add(c.id);
+      heliumTotal += 1;
+      const month = c.created_at.slice(0, 7); // YYYY-MM
+      heliumByMonth.set(month, (heliumByMonth.get(month) ?? 0) + 1);
+      lastCreatedAt = c.created_at;
+    }
+
+    const allOverlap =
+      currentIds.size > 0 && [...currentIds].every((id) => lastBatchIds.has(id));
+    if (allOverlap && lastCreatedAt) {
+      cursor = new Date(Date.parse(lastCreatedAt) + 1000).toISOString();
+      lastBatchIds = new Set();
+    } else {
+      cursor = lastCreatedAt ?? cursor;
+      lastBatchIds = currentIds;
+    }
+
+    if (customers.length < PAGE_LIMIT) break;
+    iter += 1;
+  }
+
+  // 2) Per-month counts from local backfill
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const localQuery = supabase
+    .from("helium_customers_backfill")
+    .select("created_at", { count: "exact" });
+  const { data: localRows, error: localErr } = createdAtMin && createdAtMax
+    ? await localQuery.gte("created_at", createdAtMin).lt("created_at", createdAtMax)
+    : await localQuery;
+  if (localErr) return json({ success: false, error: localErr.message }, 500);
+
+  const localByMonth = new Map<string, number>();
+  for (const row of localRows ?? []) {
+    const month = (row.created_at as string).slice(0, 7);
+    localByMonth.set(month, (localByMonth.get(month) ?? 0) + 1);
+  }
+
+  // 3) Build comparison
+  const allMonths = new Set<string>([...heliumByMonth.keys(), ...localByMonth.keys()]);
+  const comparison = [...allMonths]
+    .sort()
+    .map((month) => {
+      const helium = heliumByMonth.get(month) ?? 0;
+      const local = localByMonth.get(month) ?? 0;
+      return { month, helium, local, missing: helium - local };
+    });
+
+  const localTotal = [...localByMonth.values()].reduce((a, b) => a + b, 0);
+  const missingTotal = comparison.reduce((a, r) => a + Math.max(0, r.missing), 0);
+  const surplusTotal = comparison.reduce((a, r) => a + Math.max(0, -r.missing), 0);
+
+  return json({
+    success: true,
+    heliumTotal,
+    localTotal,
+    missingTotal,
+    surplusTotal,
+    iterations: iter,
+    comparison,
+  });
+});
