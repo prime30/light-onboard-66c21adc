@@ -202,6 +202,55 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     }
   }, [adminEmail, adminPassword]);
 
+  const repairAll = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
+    try {
+      let cursor: string | null = null;
+      let totalFetched = 0;
+      let totalUpserted = 0;
+      let iterations = 0;
+      // No date range = walk all of Helium. Cursor-based, idempotent upsert.
+      for (let safety = 0; safety < 60; safety += 1) {
+        const { data: res, error: invokeError } = await supabase.functions.invoke(
+          "admin-backfill-helium-customers",
+          {
+            body: {
+              email: adminEmail,
+              password: adminPassword,
+              cursor,
+              maxPages: 12,
+            },
+          },
+        );
+        if (invokeError) throw invokeError;
+        const r = res as {
+          success: boolean; fetched: number; upserted: number; cursor: string | null;
+          done: boolean; error?: string;
+        };
+        if (!r.success) throw new Error(r.error ?? "Repair failed");
+        totalFetched += r.fetched;
+        totalUpserted += r.upserted;
+        iterations += 1;
+        setRefill({
+          running: true, iterations, fetched: totalFetched, upserted: totalUpserted,
+          done: r.done, error: null,
+        });
+        if (r.done) break;
+        cursor = r.cursor;
+        if (!cursor) break;
+      }
+      setRefill((s) => ({ ...s, running: false, done: true }));
+      // Re-run the audit so the user sees the clean state
+      await runAudit();
+    } catch (err) {
+      setRefill((s) => ({
+        ...s, running: false, error: err instanceof Error ? err.message : "Repair failed",
+      }));
+    }
+  }, [adminEmail, adminPassword, runAudit]);
+
+
   const downloadCsv = useCallback(() => {
     if (!data?.records) return;
     const csv = toCsv(data.records);
