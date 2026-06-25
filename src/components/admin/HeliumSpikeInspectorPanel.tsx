@@ -133,7 +133,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     if (!adminEmail || !adminPassword) return;
     setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
     try {
-      let cursor: string | null = null;
+      let page = 1;
       let totalFetched = 0;
       let totalUpserted = 0;
       let iterations = 0;
@@ -149,14 +149,14 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
               password: adminPassword,
               createdAtMin,
               createdAtMax,
-              cursor,
-              maxPages: 12,
+              startPage: page,
+              maxPages: 3,
             },
           },
         );
         if (invokeError) throw invokeError;
         const r = res as {
-          success: boolean; fetched: number; upserted: number; cursor: string | null;
+          success: boolean; fetched: number; upserted: number; nextPage: number | null;
           done: boolean; error?: string;
         };
         if (!r.success) throw new Error(r.error ?? "Backfill failed");
@@ -168,8 +168,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           done: r.done, error: null,
         });
         if (r.done) break;
-        cursor = r.cursor;
-        if (!cursor) break;
+        page = r.nextPage ?? page + 1;
       }
       setRefill((s) => ({ ...s, running: false, done: true }));
       // Auto-reload the inspector view
@@ -206,7 +205,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     if (!adminEmail || !adminPassword) return;
     setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
     try {
-      let cursor: string | null = null;
+      let page = 1;
       let totalFetched = 0;
       let totalUpserted = 0;
       let iterations = 0;
@@ -218,14 +217,14 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
             body: {
               email: adminEmail,
               password: adminPassword,
-              cursor,
-              maxPages: 12,
+              startPage: page,
+              maxPages: 3,
             },
           },
         );
         if (invokeError) throw invokeError;
         const r = res as {
-          success: boolean; fetched: number; upserted: number; cursor: string | null;
+          success: boolean; fetched: number; upserted: number; nextPage: number | null;
           done: boolean; error?: string;
         };
         if (!r.success) throw new Error(r.error ?? "Repair failed");
@@ -237,8 +236,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           done: r.done, error: null,
         });
         if (r.done) break;
-        cursor = r.cursor;
-        if (!cursor) break;
+        page = r.nextPage ?? page + 1;
       }
       setRefill((s) => ({ ...s, running: false, done: true }));
       // Re-run the audit so the user sees the clean state

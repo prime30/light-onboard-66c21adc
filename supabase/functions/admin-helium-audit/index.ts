@@ -1,7 +1,5 @@
 // Audits helium_customers_backfill vs the live Helium API by walking every
-// customer via cursor pagination and comparing per-month counts. The same
-// cursor approach used by admin-backfill-helium-customers protects against
-// short-page exits that previously caused silent gaps.
+// customer via deterministic page chunks and comparing per-month counts.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -13,6 +11,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const PAGE_LIMIT = 250;
 const HARD_ITER_CEILING = 200; // 200 * 250 = 50k customers, plenty of headroom
+const LOCAL_PAGE_SIZE = 1000;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -50,22 +49,20 @@ Deno.serve(async (req: Request) => {
   const createdAtMin = typeof body.createdAtMin === "string" ? body.createdAtMin : null;
   const createdAtMax = typeof body.createdAtMax === "string" ? body.createdAtMax : null;
 
-  // 1) Walk the Helium API end-to-end with cursor pagination
+  // 1) Walk the Helium API end-to-end with deterministic page pagination
   const heliumByMonth = new Map<string, number>();
   const heliumIds = new Set<string>();
-  let cursor: string | null = createdAtMin;
-  let lastBatchIds = new Set<string>();
-  let lastCreatedAt: string | null = null;
-  let iter = 0;
+  let page = 1;
+  let pagesProcessed = 0;
   let heliumTotal = 0;
 
-  while (iter < HARD_ITER_CEILING) {
+  while (pagesProcessed < HARD_ITER_CEILING) {
     const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
-    url.searchParams.set("page", "1");
+    url.searchParams.set("page", String(page));
     url.searchParams.set("limit", String(PAGE_LIMIT));
     url.searchParams.set("sort_by", "created_at");
     url.searchParams.set("sort_order", "asc");
-    if (cursor) url.searchParams.set("created_at_min", cursor);
+    if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
     const res = await fetch(url.toString(), {
@@ -75,57 +72,51 @@ Deno.serve(async (req: Request) => {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       return json(
-        { success: false, error: `Helium ${res.status}`, iter, heliumTotal, detail: text.slice(0, 200) },
+        { success: false, error: `Helium ${res.status}`, page, heliumTotal, detail: text.slice(0, 200) },
         502,
       );
     }
     const data = (await res.json()) as { customers?: HeliumCustomer[] };
     const customers = Array.isArray(data.customers) ? data.customers : [];
+    pagesProcessed += 1;
     if (customers.length === 0) break;
 
-    const currentIds = new Set<string>();
     for (const c of customers) {
       if (!c.id || !c.created_at) continue;
-      if (heliumIds.has(c.id)) {
-        currentIds.add(c.id);
-        continue;
-      }
+      if (heliumIds.has(c.id)) continue;
       heliumIds.add(c.id);
-      currentIds.add(c.id);
       heliumTotal += 1;
       const month = c.created_at.slice(0, 7); // YYYY-MM
       heliumByMonth.set(month, (heliumByMonth.get(month) ?? 0) + 1);
-      lastCreatedAt = c.created_at;
-    }
-
-    const allOverlap =
-      currentIds.size > 0 && [...currentIds].every((id) => lastBatchIds.has(id));
-    if (allOverlap && lastCreatedAt) {
-      cursor = new Date(Date.parse(lastCreatedAt) + 1000).toISOString();
-      lastBatchIds = new Set();
-    } else {
-      cursor = lastCreatedAt ?? cursor;
-      lastBatchIds = currentIds;
     }
 
     if (customers.length < PAGE_LIMIT) break;
-    iter += 1;
+    page += 1;
   }
 
   // 2) Per-month counts from local backfill
   const supabase = createClient(supabaseUrl, serviceKey);
-  const localQuery = supabase
-    .from("helium_customers_backfill")
-    .select("created_at", { count: "exact" });
-  const { data: localRows, error: localErr } = createdAtMin && createdAtMax
-    ? await localQuery.gte("created_at", createdAtMin).lt("created_at", createdAtMax)
-    : await localQuery;
-  if (localErr) return json({ success: false, error: localErr.message }, 500);
-
   const localByMonth = new Map<string, number>();
-  for (const row of localRows ?? []) {
-    const month = (row.created_at as string).slice(0, 7);
-    localByMonth.set(month, (localByMonth.get(month) ?? 0) + 1);
+  let localOffset = 0;
+  while (true) {
+    let localQuery = supabase
+      .from("helium_customers_backfill")
+      .select("created_at")
+      .order("created_at", { ascending: true })
+      .range(localOffset, localOffset + LOCAL_PAGE_SIZE - 1);
+    if (createdAtMin && createdAtMax) {
+      localQuery = localQuery.gte("created_at", createdAtMin).lt("created_at", createdAtMax);
+    }
+    const { data: localRows, error: localErr } = await localQuery;
+    if (localErr) return json({ success: false, error: localErr.message }, 500);
+
+    for (const row of localRows ?? []) {
+      const month = (row.created_at as string).slice(0, 7);
+      localByMonth.set(month, (localByMonth.get(month) ?? 0) + 1);
+    }
+
+    if (!localRows || localRows.length < LOCAL_PAGE_SIZE) break;
+    localOffset += LOCAL_PAGE_SIZE;
   }
 
   // 3) Build comparison
@@ -148,7 +139,7 @@ Deno.serve(async (req: Request) => {
     localTotal,
     missingTotal,
     surplusTotal,
-    iterations: iter,
+    iterations: pagesProcessed,
     comparison,
   });
 });
