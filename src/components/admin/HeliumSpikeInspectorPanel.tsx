@@ -67,12 +67,39 @@ function toCsv(records: Record[]): string {
   return [headers.join(","), ...rows].join("\n");
 }
 
+type RefillState = {
+  running: boolean;
+  iterations: number;
+  fetched: number;
+  upserted: number;
+  done: boolean;
+  error: string | null;
+};
+
+type AuditRow = { month: string; helium: number; local: number; missing: number };
+type AuditResponse = {
+  success: boolean;
+  heliumTotal?: number;
+  localTotal?: number;
+  missingTotal?: number;
+  surplusTotal?: number;
+  iterations?: number;
+  comparison?: AuditRow[];
+  error?: string;
+};
+
 export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) {
   const [from, setFrom] = useState("2025-01-21");
   const [to, setTo] = useState("2025-01-28");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ApiResponse | null>(null);
+  const [refill, setRefill] = useState<RefillState>({
+    running: false, iterations: 0, fetched: 0, upserted: 0, done: false, error: null,
+  });
+  const [audit, setAudit] = useState<AuditResponse | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!adminEmail || !adminPassword) return;
@@ -102,6 +129,79 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     }
   }, [adminEmail, adminPassword, from, to]);
 
+  const refillRange = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
+    try {
+      let cursor: string | null = null;
+      let totalFetched = 0;
+      let totalUpserted = 0;
+      let iterations = 0;
+      const createdAtMin = `${from}T00:00:00Z`;
+      const createdAtMax = `${to}T00:00:00Z`;
+      // Loop EF calls until done (each call processes up to 12 pages ≈ 3000 rows)
+      for (let safety = 0; safety < 30; safety += 1) {
+        const { data: res, error: invokeError } = await supabase.functions.invoke(
+          "admin-backfill-helium-customers",
+          {
+            body: {
+              email: adminEmail,
+              password: adminPassword,
+              createdAtMin,
+              createdAtMax,
+              cursor,
+              maxPages: 12,
+            },
+          },
+        );
+        if (invokeError) throw invokeError;
+        const r = res as {
+          success: boolean; fetched: number; upserted: number; cursor: string | null;
+          done: boolean; error?: string;
+        };
+        if (!r.success) throw new Error(r.error ?? "Backfill failed");
+        totalFetched += r.fetched;
+        totalUpserted += r.upserted;
+        iterations += 1;
+        setRefill({
+          running: true, iterations, fetched: totalFetched, upserted: totalUpserted,
+          done: r.done, error: null,
+        });
+        if (r.done) break;
+        cursor = r.cursor;
+        if (!cursor) break;
+      }
+      setRefill((s) => ({ ...s, running: false, done: true }));
+      // Auto-reload the inspector view
+      await load();
+    } catch (err) {
+      setRefill((s) => ({
+        ...s, running: false, error: err instanceof Error ? err.message : "Refill failed",
+      }));
+    }
+  }, [adminEmail, adminPassword, from, to, load]);
+
+  const runAudit = useCallback(async () => {
+    if (!adminEmail || !adminPassword) return;
+    setAuditLoading(true);
+    setAuditError(null);
+    setAudit(null);
+    try {
+      const { data: res, error: invokeError } = await supabase.functions.invoke(
+        "admin-helium-audit",
+        { body: { email: adminEmail, password: adminPassword } },
+      );
+      if (invokeError) throw invokeError;
+      const typed = res as AuditResponse;
+      if (!typed?.success) throw new Error(typed?.error ?? "Audit failed");
+      setAudit(typed);
+    } catch (err) {
+      setAuditError(err instanceof Error ? err.message : "Audit failed");
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [adminEmail, adminPassword]);
+
   const downloadCsv = useCallback(() => {
     if (!data?.records) return;
     const csv = toCsv(data.records);
@@ -113,6 +213,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     a.click();
     URL.revokeObjectURL(url);
   }, [data, from, to]);
+
 
   return (
     <section className="bg-card border border-border rounded-[15px] p-6 space-y-5">
