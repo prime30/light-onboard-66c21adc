@@ -13,12 +13,24 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const PAGE_LIMIT = 250;
 const HARD_ITER_CEILING = 200; // 200 * 250 = 50k customers, plenty of headroom
+const LOCAL_PAGE_SIZE = 1000;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function addOneSecondPreservingOffset(value: string) {
+  const match = value.match(/^(\d{4}-\d{2}-\d{2}T)(\d{2}):(\d{2}):(\d{2})(.*)$/);
+  if (!match) return new Date(Date.parse(value) + 1000).toISOString();
+  const [, date, hh, mm, ss, suffix] = match;
+  const nextSecond = Number(ss) + 1;
+  if (nextSecond < 60) {
+    return `${date}${hh}:${mm}:${String(nextSecond).padStart(2, "0")}${suffix}`;
+  }
+  return new Date(Date.parse(value) + 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 type HeliumCustomer = { id: string; created_at?: string | null };
@@ -101,7 +113,7 @@ Deno.serve(async (req: Request) => {
     const allOverlap =
       currentIds.size > 0 && [...currentIds].every((id) => lastBatchIds.has(id));
     if (allOverlap && lastCreatedAt) {
-      cursor = new Date(Date.parse(lastCreatedAt) + 1000).toISOString();
+      cursor = addOneSecondPreservingOffset(lastCreatedAt);
       lastBatchIds = new Set();
     } else {
       cursor = lastCreatedAt ?? cursor;
@@ -114,18 +126,27 @@ Deno.serve(async (req: Request) => {
 
   // 2) Per-month counts from local backfill
   const supabase = createClient(supabaseUrl, serviceKey);
-  const localQuery = supabase
-    .from("helium_customers_backfill")
-    .select("created_at", { count: "exact" });
-  const { data: localRows, error: localErr } = createdAtMin && createdAtMax
-    ? await localQuery.gte("created_at", createdAtMin).lt("created_at", createdAtMax)
-    : await localQuery;
-  if (localErr) return json({ success: false, error: localErr.message }, 500);
-
   const localByMonth = new Map<string, number>();
-  for (const row of localRows ?? []) {
-    const month = (row.created_at as string).slice(0, 7);
-    localByMonth.set(month, (localByMonth.get(month) ?? 0) + 1);
+  let localOffset = 0;
+  while (true) {
+    let localQuery = supabase
+      .from("helium_customers_backfill")
+      .select("created_at")
+      .order("created_at", { ascending: true })
+      .range(localOffset, localOffset + LOCAL_PAGE_SIZE - 1);
+    if (createdAtMin && createdAtMax) {
+      localQuery = localQuery.gte("created_at", createdAtMin).lt("created_at", createdAtMax);
+    }
+    const { data: localRows, error: localErr } = await localQuery;
+    if (localErr) return json({ success: false, error: localErr.message }, 500);
+
+    for (const row of localRows ?? []) {
+      const month = (row.created_at as string).slice(0, 7);
+      localByMonth.set(month, (localByMonth.get(month) ?? 0) + 1);
+    }
+
+    if (!localRows || localRows.length < LOCAL_PAGE_SIZE) break;
+    localOffset += LOCAL_PAGE_SIZE;
   }
 
   // 3) Build comparison

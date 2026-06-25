@@ -26,6 +26,17 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function addOneSecondPreservingOffset(value: string) {
+  const match = value.match(/^(\d{4}-\d{2}-\d{2}T)(\d{2}):(\d{2}):(\d{2})(.*)$/);
+  if (!match) return new Date(Date.parse(value) + 1000).toISOString();
+  const [, date, hh, mm, ss, suffix] = match;
+  const nextSecond = Number(ss) + 1;
+  if (nextSecond < 60) {
+    return `${date}${hh}:${mm}:${String(nextSecond).padStart(2, "0")}${suffix}`;
+  }
+  return new Date(Date.parse(value) + 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 type HeliumCustomer = {
   id: string;
   email?: string | null;
@@ -170,7 +181,7 @@ Deno.serve(async (req: Request) => {
 
     if (allOverlap && newCursor) {
       // Same boundary timestamp keeps returning the same records — bump 1s
-      cursor = new Date(Date.parse(newCursor) + 1000).toISOString();
+      cursor = addOneSecondPreservingOffset(newCursor);
       lastBatchIds = new Set();
     } else {
       cursor = newCursor;
