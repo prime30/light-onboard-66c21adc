@@ -315,6 +315,18 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
             : <Stethoscope className="w-4 h-4" />}
           <span className="ml-2 text-xs">Run full audit</span>
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => void repairAll()}
+          disabled={refill.running}
+          title="Walk all of Helium and upsert every record. Idempotent — safe to re-run."
+        >
+          {refill.running
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <RefreshCw className="w-4 h-4" />}
+          <span className="ml-2 text-xs">Repair all data</span>
+        </Button>
         {data?.records && data.records.length > 0 && (
           <Button type="button" size="sm" variant="ghost" onClick={downloadCsv}>
             <Download className="w-4 h-4" />
