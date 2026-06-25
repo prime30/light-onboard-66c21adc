@@ -26,17 +26,6 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function addOneSecondPreservingOffset(value: string) {
-  const match = value.match(/^(\d{4}-\d{2}-\d{2}T)(\d{2}):(\d{2}):(\d{2})(.*)$/);
-  if (!match) return new Date(Date.parse(value) + 1000).toISOString();
-  const [, date, hh, mm, ss, suffix] = match;
-  const nextSecond = Number(ss) + 1;
-  if (nextSecond < 60) {
-    return `${date}${hh}:${mm}:${String(nextSecond).padStart(2, "0")}${suffix}`;
-  }
-  return new Date(Date.parse(value) + 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
-}
-
 type HeliumCustomer = {
   id: string;
   email?: string | null;
@@ -85,23 +74,25 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  let iter = 0;
+  let page = startPage;
+  let pagesProcessed = 0;
   let fetched = 0;
   let upserted = 0;
   let skipped = 0;
   let done = false;
-  let cursor: string | null = resumeCursor ?? createdAtMin;
-
-  let lastBatchIds = new Set<string>();
   let lastCreatedAt: string | null = null;
 
-  while (iter < maxPages && iter < HARD_PAGE_CEILING) {
+  if (resumeCursor) {
+    console.warn("Ignoring deprecated cursor parameter; using startPage pagination instead.");
+  }
+
+  while (pagesProcessed < maxPages && page <= HARD_PAGE_CEILING) {
     const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
-    url.searchParams.set("page", "1");
+    url.searchParams.set("page", String(page));
     url.searchParams.set("limit", String(PAGE_LIMIT));
     url.searchParams.set("sort_by", "created_at");
     url.searchParams.set("sort_order", "asc");
-    if (cursor) url.searchParams.set("created_at_min", cursor);
+    if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
     let res: Response;
@@ -113,7 +104,7 @@ Deno.serve(async (req: Request) => {
     } catch (err) {
       console.error("Helium fetch failed", err);
       return json(
-        { success: false, error: "Helium request failed", iter, fetched, upserted },
+        { success: false, error: "Helium request failed", page, fetched, upserted },
         502,
       );
     }
@@ -122,7 +113,7 @@ Deno.serve(async (req: Request) => {
       const text = await res.text().catch(() => "");
       console.error("Helium responded non-200", res.status, text.slice(0, 300));
       return json(
-        { success: false, error: `Helium ${res.status}`, iter, fetched, upserted },
+        { success: false, error: `Helium ${res.status}`, page, fetched, upserted },
         502,
       );
     }
@@ -130,6 +121,7 @@ Deno.serve(async (req: Request) => {
     const data = (await res.json()) as { customers?: HeliumCustomer[] };
     const customers = Array.isArray(data.customers) ? data.customers : [];
     fetched += customers.length;
+    pagesProcessed += 1;
 
     if (customers.length === 0) {
       done = true;
@@ -164,7 +156,7 @@ Deno.serve(async (req: Request) => {
       if (upsertError) {
         console.error("upsert failed", upsertError);
         return json(
-          { success: false, error: "Upsert failed", iter, fetched, upserted, detail: upsertError.message },
+          { success: false, error: "Upsert failed", page, fetched, upserted, detail: upsertError.message },
           500,
         );
       }
@@ -172,42 +164,25 @@ Deno.serve(async (req: Request) => {
       lastCreatedAt = rows[rows.length - 1].created_at;
     }
 
-    // Cursor advancement with same-timestamp collision guard
-    const currentIds = new Set(rows.map((r) => r.helium_id));
-    const allOverlap =
-      currentIds.size > 0 &&
-      [...currentIds].every((id) => lastBatchIds.has(id));
-    const newCursor = lastCreatedAt ?? cursor;
-
-    if (allOverlap && newCursor) {
-      // Same boundary timestamp keeps returning the same records — bump 1s
-      cursor = addOneSecondPreservingOffset(newCursor);
-      lastBatchIds = new Set();
-    } else {
-      cursor = newCursor;
-      lastBatchIds = currentIds;
-    }
-
-    // Short page = end of dataset within (cursor, createdAtMax]
     if (customers.length < PAGE_LIMIT) {
       done = true;
       break;
     }
 
-    iter += 1;
+    page += 1;
   }
 
   return json({
     success: true,
     startPage,
-    pagesProcessed: iter + (done ? 0 : 1),
+    pagesProcessed,
     fetched,
     upserted,
     skipped,
     lastCreatedAt,
-    cursor,
+    cursor: null,
     done,
-    nextPage: done ? null : iter + 1,
+    nextPage: done ? null : page + 1,
   });
 });
 

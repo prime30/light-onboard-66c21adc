@@ -22,17 +22,6 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function addOneSecondPreservingOffset(value: string) {
-  const match = value.match(/^(\d{4}-\d{2}-\d{2}T)(\d{2}):(\d{2}):(\d{2})(.*)$/);
-  if (!match) return new Date(Date.parse(value) + 1000).toISOString();
-  const [, date, hh, mm, ss, suffix] = match;
-  const nextSecond = Number(ss) + 1;
-  if (nextSecond < 60) {
-    return `${date}${hh}:${mm}:${String(nextSecond).padStart(2, "0")}${suffix}`;
-  }
-  return new Date(Date.parse(value) + 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
-}
-
 type HeliumCustomer = { id: string; created_at?: string | null };
 
 Deno.serve(async (req: Request) => {
@@ -65,19 +54,17 @@ Deno.serve(async (req: Request) => {
   // 1) Walk the Helium API end-to-end with cursor pagination
   const heliumByMonth = new Map<string, number>();
   const heliumIds = new Set<string>();
-  let cursor: string | null = createdAtMin;
-  let lastBatchIds = new Set<string>();
-  let lastCreatedAt: string | null = null;
-  let iter = 0;
+  let page = 1;
+  let pagesProcessed = 0;
   let heliumTotal = 0;
 
-  while (iter < HARD_ITER_CEILING) {
+  while (pagesProcessed < HARD_ITER_CEILING) {
     const url = new URL("https://app.customerfields.com/api/v2/customers/search.json");
-    url.searchParams.set("page", "1");
+    url.searchParams.set("page", String(page));
     url.searchParams.set("limit", String(PAGE_LIMIT));
     url.searchParams.set("sort_by", "created_at");
     url.searchParams.set("sort_order", "asc");
-    if (cursor) url.searchParams.set("created_at_min", cursor);
+    if (createdAtMin) url.searchParams.set("created_at_min", createdAtMin);
     if (createdAtMax) url.searchParams.set("created_at_max", createdAtMax);
 
     const res = await fetch(url.toString(), {
@@ -87,41 +74,26 @@ Deno.serve(async (req: Request) => {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       return json(
-        { success: false, error: `Helium ${res.status}`, iter, heliumTotal, detail: text.slice(0, 200) },
+        { success: false, error: `Helium ${res.status}`, page, heliumTotal, detail: text.slice(0, 200) },
         502,
       );
     }
     const data = (await res.json()) as { customers?: HeliumCustomer[] };
     const customers = Array.isArray(data.customers) ? data.customers : [];
+    pagesProcessed += 1;
     if (customers.length === 0) break;
 
-    const currentIds = new Set<string>();
     for (const c of customers) {
       if (!c.id || !c.created_at) continue;
-      if (heliumIds.has(c.id)) {
-        currentIds.add(c.id);
-        continue;
-      }
+      if (heliumIds.has(c.id)) continue;
       heliumIds.add(c.id);
-      currentIds.add(c.id);
       heliumTotal += 1;
       const month = c.created_at.slice(0, 7); // YYYY-MM
       heliumByMonth.set(month, (heliumByMonth.get(month) ?? 0) + 1);
-      lastCreatedAt = c.created_at;
-    }
-
-    const allOverlap =
-      currentIds.size > 0 && [...currentIds].every((id) => lastBatchIds.has(id));
-    if (allOverlap && lastCreatedAt) {
-      cursor = addOneSecondPreservingOffset(lastCreatedAt);
-      lastBatchIds = new Set();
-    } else {
-      cursor = lastCreatedAt ?? cursor;
-      lastBatchIds = currentIds;
     }
 
     if (customers.length < PAGE_LIMIT) break;
-    iter += 1;
+    page += 1;
   }
 
   // 2) Per-month counts from local backfill
@@ -169,7 +141,7 @@ Deno.serve(async (req: Request) => {
     localTotal,
     missingTotal,
     surplusTotal,
-    iterations: iter,
+    iterations: pagesProcessed,
     comparison,
   });
 });
