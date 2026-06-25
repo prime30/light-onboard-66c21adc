@@ -390,3 +390,76 @@ function BreakdownCard({ title, items, max }: { title: string; items: Breakdown[
     </div>
   );
 }
+
+function AuditTable({
+  audit,
+  onPickMonth,
+}: {
+  audit: AuditResponse;
+  onPickMonth: (month: string) => void;
+}) {
+  const rows = audit.comparison ?? [];
+  return (
+    <div className="border border-border/60 rounded-[10px] overflow-hidden">
+      <div className="px-3 py-2 bg-muted/30 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+        <span>Helium total: <span className="text-foreground tabular-nums">{audit.heliumTotal}</span></span>
+        <span>Local total: <span className="text-foreground tabular-nums">{audit.localTotal}</span></span>
+        <span>
+          Missing locally:{" "}
+          <span className={`tabular-nums ${audit.missingTotal ? "text-status-red" : "text-foreground"}`}>
+            {audit.missingTotal}
+          </span>
+        </span>
+        {audit.surplusTotal ? (
+          <span>
+            Surplus locally:{" "}
+            <span className="tabular-nums text-status-amber">{audit.surplusTotal}</span>
+          </span>
+        ) : null}
+      </div>
+      <div className="max-h-[420px] overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="text-[11px] text-muted-foreground bg-muted/20 sticky top-0">
+            <tr>
+              <th className="text-left font-normal py-2 px-3">Month</th>
+              <th className="text-right font-normal py-2 px-3">Helium</th>
+              <th className="text-right font-normal py-2 px-3">Local</th>
+              <th className="text-right font-normal py-2 px-3">Missing</th>
+              <th className="text-right font-normal py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const bad = r.missing > 0;
+              return (
+                <tr
+                  key={r.month}
+                  className={`border-t border-border/40 ${bad ? "bg-status-red/5" : ""}`}
+                >
+                  <td className="py-2 px-3 tabular-nums">{r.month}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-foreground">{r.helium}</td>
+                  <td className="py-2 px-3 text-right tabular-nums text-muted-foreground">{r.local}</td>
+                  <td className={`py-2 px-3 text-right tabular-nums ${bad ? "text-status-red font-medium" : "text-muted-foreground"}`}>
+                    {r.missing > 0 ? `+${r.missing}` : r.missing}
+                  </td>
+                  <td className="py-2 px-3 text-right">
+                    {bad && (
+                      <button
+                        type="button"
+                        className="text-[11px] underline text-foreground hover:opacity-70"
+                        onClick={() => onPickMonth(r.month)}
+                      >
+                        select range
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
