@@ -182,7 +182,7 @@ Deno.serve(async (req: Request) => {
     lastCreatedAt,
     cursor: null,
     done,
-    nextPage: done ? null : page + 1,
+    nextPage: done ? null : page,
   });
 });
 
