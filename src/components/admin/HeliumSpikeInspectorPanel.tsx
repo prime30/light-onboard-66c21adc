@@ -240,6 +240,32 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           <span className="ml-2 text-xs">Load records</span>
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void refillRange()}
+          disabled={refill.running}
+          title="Re-fetch this range from Helium and upsert into the backfill table"
+        >
+          {refill.running
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <RefreshCw className="w-4 h-4" />}
+          <span className="ml-2 text-xs">Refill this range</span>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void runAudit()}
+          disabled={auditLoading}
+          title="Walk all of Helium and compare per-month counts vs our backfill table"
+        >
+          {auditLoading
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <Stethoscope className="w-4 h-4" />}
+          <span className="ml-2 text-xs">Run full audit</span>
+        </Button>
         {data?.records && data.records.length > 0 && (
           <Button type="button" size="sm" variant="ghost" onClick={downloadCsv}>
             <Download className="w-4 h-4" />
@@ -247,6 +273,37 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           </Button>
         )}
       </div>
+
+      {(refill.running || refill.done || refill.error) && (
+        <div className="text-xs rounded-[10px] border border-border/60 bg-muted/20 p-3 space-y-1">
+          <div className="font-medium text-foreground">
+            Refill {from} → {to}
+            {refill.running ? " (running…)" : refill.done ? " ✓ complete" : ""}
+          </div>
+          <div className="text-muted-foreground tabular-nums">
+            iterations: {refill.iterations} · fetched: {refill.fetched} · upserted: {refill.upserted}
+          </div>
+          {refill.error && <div className="text-status-red">{refill.error}</div>}
+        </div>
+      )}
+
+      {auditError && (
+        <div className="text-sm text-status-red bg-status-red/5 border border-status-red/20 rounded-[10px] p-3">
+          Audit: {auditError}
+        </div>
+      )}
+
+      {audit?.comparison && (
+        <AuditTable
+          audit={audit}
+          onPickMonth={(month) => {
+            const [y, m] = month.split("-").map(Number);
+            const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+            setFrom(`${month}-01`);
+            setTo(`${nextMonth}-01`);
+          }}
+        />
+      )}
 
       {error && (
         <div className="text-sm text-status-red bg-status-red/5 border border-status-red/20 rounded-[10px] p-3">
