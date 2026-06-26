@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
         .slice(0, 10)
     : [];
   const primaryMethod = preferredMethods[0] ?? null;
-  const VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+  const VOLUME_OPTIONS = ["None", "1-5", "6-10", "10+"] as const;
   const monthlyOrderVolume =
     typeof payload.monthlyOrderVolume === "string" &&
     (VOLUME_OPTIONS as readonly string[]).includes(payload.monthlyOrderVolume)
@@ -125,7 +125,7 @@ Deno.serve(async (req: Request) => {
   const volumeCohort = monthlyOrderVolume
     ? isHighVolume
       ? "high_volume"
-      : monthlyOrderVolume === "2-5"
+      : monthlyOrderVolume === "1-5"
         ? "growing"
         : "starter"
     : null;

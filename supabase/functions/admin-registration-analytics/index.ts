@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
   // Read the founder-call gate so we can scope the take-rate denominator to
   // users who would have actually seen the schedule CTA. When the gate is OFF,
   // every completed lead is eligible. When ON, only pro/salon with monthly
-  // order volume in 6-10 / 10+ are eligible.
+  // order volume in 1-5 / 6-10 / 10+ are eligible.
   const { data: gateRow } = await supabase
     .from("app_settings")
     .select("founder_call_high_volume_only")
@@ -405,12 +405,12 @@ Deno.serve(async (req: Request) => {
   // Every tile here is scoped to the *eligible* cohort so historical, pre-gate
   // leads (who never had monthly_order_volume captured and never went through
   // the gated CTA) don't pollute the funnel. With the gate OFF, every completed
-  // lead is eligible; with the gate ON, only pro/salon at 2-5 / 6-10 / 10+ are.
+  // lead is eligible; with the gate ON, only pro/salon at 1-5 / 6-10 / 10+ are.
   const completedLeads = leads.filter((r) => !!r.completed_at);
   const isEligible = (r: typeof completedLeads[number]) => {
     if (!founderGateOn) return true;
     const v = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
-    const highVolume = v === "2-5" || v === "6-10" || v === "10+";
+    const highVolume = v === "1-5" || v === "6-10" || v === "10+";
     const proOrSalon = r.account_type === "professional" || r.account_type === "salon";
     return proOrSalon && highVolume;
   };

@@ -97,9 +97,9 @@ export const SuccessForm = () => {
   const { setCurrentStep } = useStepContext();
   const { closeIframe, isInIframe: isInIframeClose } = useCloseIframe();
 
-  // Founder call eligibility: when admin gates it to high-volume,
-  // Stylists / Salon owners / Licensed stylists with more than 2 orders/mo
-  // (2-5, 6-10, 10+) see the nudge.
+  // Founder call eligibility: when admin gates it to ordering customers,
+  // Stylists / Salon owners / Licensed stylists with at least 1 order/mo
+  // (1-5, 6-10, 10+) see the nudge.
   const accountType = watch("accountType") as string | undefined;
   const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
   // (high-volume status is encoded inside computeFounderCallEligible)

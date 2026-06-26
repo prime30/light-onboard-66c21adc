@@ -274,7 +274,7 @@ export const preferredMethodSchema = z.object(preferredMethodValidators);
 export type PreferredMethodFormData = z.infer<typeof preferredMethodSchema>;
 
 // Monthly Order Volume Schema (professionals + salons only)
-export const MONTHLY_ORDER_VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+export const MONTHLY_ORDER_VOLUME_OPTIONS = ["None", "1-5", "6-10", "10+"] as const;
 export type MonthlyOrderVolume = (typeof MONTHLY_ORDER_VOLUME_OPTIONS)[number];
 
 const monthlyOrderVolumeValidators = {
