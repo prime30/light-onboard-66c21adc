@@ -682,12 +682,12 @@ const AdminSettingsPage = () => {
           <div className="flex items-start justify-between gap-6">
             <div className="space-y-1">
               <h2 className="text-base font-medium text-foreground">
-                Founder call: higher-volume only
+                Founder call: ordering customers only
               </h2>
               <p className="text-sm text-muted-foreground">
                 When enabled, the founder call nudge on the success screen only
                 shows to Stylists and Salon owners who order{" "}
-                <strong>more than 2 extensions per month</strong> (2–5, 6–10, or 10+).
+                <strong>at least 1 extension per month</strong> (1–5, 6–10, or 10+).
                 When disabled, all eligible accounts see the nudge.
               </p>
             </div>
