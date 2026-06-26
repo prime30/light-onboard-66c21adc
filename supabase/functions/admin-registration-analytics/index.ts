@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
   // Read the founder-call gate so we can scope the take-rate denominator to
   // users who would have actually seen the schedule CTA. When the gate is OFF,
   // every completed lead is eligible. When ON, only pro/salon with monthly
-  // order volume in 6-10 / 10+ are eligible.
+  // order volume in 1-5 / 6-10 / 10+ are eligible.
   const { data: gateRow } = await supabase
     .from("app_settings")
     .select("founder_call_high_volume_only")
