@@ -67,3 +67,4 @@ Support email is **hello@dropdeadextensions.com** (NOT support@…).
 - [Cold start build optimizations](mem://performance/cold-start-build-optimizations) — manualChunks, fetchpriority on entry, Supabase preconnect
 - [Parent theme bundle prefetch](mem://integrations/parent-theme-bundle-prefetch) — Vite emits /prefetch.js for theme to warm SPA bundle into HTTP cache
 - [NAVIGATE postMessage handler](mem://features/navigate-postmessage-handler) — Parent → SPA route changes via postMessage (no iframe reload); fires NAVIGATE_COMPLETE on commit
+- [Ghost-shell detection](mem://features/ghost-shell-detection) — Detect Smile/Klaviyo disabled shells (state=disabled + orders_count=0 + no Account type tag); Chain C activation sets password directly, no invite email needed
