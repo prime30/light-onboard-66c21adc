@@ -11,7 +11,7 @@ export const HIGH_VOLUME_ACCOUNT_TYPES = new Set<string>([
   "licensed_stylist",
 ]);
 
-export const HIGH_VOLUME_ORDER_VOLUMES = new Set<string>(["2-5", "6-10", "10+"]);
+export const HIGH_VOLUME_ORDER_VOLUMES = new Set<string>(["1-5", "6-10", "10+"]);
 
 export function isHighVolumeAccount(
   accountType: string | null | undefined,
