@@ -249,7 +249,7 @@ const PREFERRED_METHOD_OPTIONS = [
   "Volume Weft",
 ] as const;
 const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
-const MONTHLY_ORDER_VOLUME_OPTIONS = ["1", "2-5", "6-10", "10+"] as const;
+const MONTHLY_ORDER_VOLUME_OPTIONS = ["None", "1-5", "6-10", "10+"] as const;
 const monthlyOrderVolumeSchema = z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish();
 
 const registrationSchema = z.discriminatedUnion("accountType", [
