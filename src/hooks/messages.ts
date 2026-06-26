@@ -132,13 +132,18 @@ export function useCustomerLogin({
           // before the iframe tears down.
           setTimeout(() => {
             try {
+              const targetOrigin = resolveParentOrigin();
+              if (!targetOrigin) {
+                console.warn("[customerHandler] Parent origin not allowlisted; skipping postMessage");
+                return;
+              }
               window.parent.postMessage(
                 {
                   type: IframeMessageTypes.CLOSE_IFRAME,
                   data: { reason: "Login success", url: window.location.href },
                   timestamp: new Date().toISOString(),
                 },
-                "*"
+                targetOrigin
               );
             } catch (err) {
               console.error("[customerHandler] Failed to post CLOSE_IFRAME:", err);
