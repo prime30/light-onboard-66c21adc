@@ -93,7 +93,7 @@ export const SuccessForm = () => {
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { watch } = useForm();
-  const { sendMessage, isInIframe: isInIframeApp } = useGlobalApp();
+  const { isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
   const { closeIframe, isInIframe: isInIframeClose } = useCloseIframe();
@@ -122,14 +122,26 @@ export const SuccessForm = () => {
   useEffect(() => {
     if (!isInIframeApp) return;
     try {
+      const targetOrigin = resolveParentOrigin();
+      if (!targetOrigin) {
+        console.warn("[SuccessForm] Parent origin not allowlisted; skipping REGISTRATION_SUCCESS");
+        return;
+      }
       const values = watch() as { email?: string; accountType?: string };
-      sendMessage(IframeMessageTypes.REGISTRATION_SUCCESS, {
-        email: values?.email,
-        accountType: values?.accountType,
-        autoApproved: !!autoApproved,
-        monthlyOrderVolume: monthlyOrderVolume ?? null,
-        founderCallEligible: showFounderCallNudge,
-      });
+      window.parent.postMessage(
+        {
+          type: IframeMessageTypes.REGISTRATION_SUCCESS,
+          data: {
+            email: values?.email,
+            accountType: values?.accountType,
+            autoApproved: !!autoApproved,
+            monthlyOrderVolume: monthlyOrderVolume ?? null,
+            founderCallEligible: showFounderCallNudge,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        targetOrigin
+      );
     } catch (err) {
       console.error("[SuccessForm] Failed to post REGISTRATION_SUCCESS:", err);
     }
