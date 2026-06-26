@@ -402,17 +402,11 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   // ---- founder call funnel ----
-  // Denominator = completed registrations (only they see the schedule CTA).
-  // Take rate = booked / completed.
+  // Every tile here is scoped to the *eligible* cohort so historical, pre-gate
+  // leads (who never had monthly_order_volume captured and never went through
+  // the gated CTA) don't pollute the funnel. With the gate OFF, every completed
+  // lead is eligible; with the gate ON, only pro/salon at 2-5 / 6-10 / 10+ are.
   const completedLeads = leads.filter((r) => !!r.completed_at);
-  const booked = completedLeads.filter((r) => !!r.founder_call_booked_at);
-  const futureCalls = booked.filter(
-    (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) > Date.now(),
-  ).length;
-  // Eligibility for the founder call. When the gate is OFF, everyone who
-  // completes is eligible. When ON, only pro/salon at the high-volume tiers
-  // would have ever seen the schedule CTA — so they're the only ones who
-  // belong in the take-rate denominator.
   const isEligible = (r: typeof completedLeads[number]) => {
     if (!founderGateOn) return true;
     const v = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
@@ -422,12 +416,16 @@ Deno.serve(async (req: Request) => {
   };
   const eligibleLeads = completedLeads.filter(isEligible);
   const eligibleBooked = eligibleLeads.filter((r) => !!r.founder_call_booked_at);
+  const booked = eligibleBooked;
+  const futureCalls = booked.filter(
+    (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) > Date.now(),
+  ).length;
   const takeRate =
     eligibleLeads.length > 0
       ? Math.round((eligibleBooked.length / eligibleLeads.length) * 1000) / 10
       : 0;
 
-  // No-shows: only count bookings whose start time is in the past.
+  // No-shows: only count bookings whose start time is in the past (eligible cohort only).
   const pastBooked = booked.filter(
     (r) => r.founder_call_start_time && Date.parse(r.founder_call_start_time) <= Date.now(),
   );
