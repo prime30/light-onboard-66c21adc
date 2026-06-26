@@ -405,7 +405,7 @@ Deno.serve(async (req: Request) => {
   // Every tile here is scoped to the *eligible* cohort so historical, pre-gate
   // leads (who never had monthly_order_volume captured and never went through
   // the gated CTA) don't pollute the funnel. With the gate OFF, every completed
-  // lead is eligible; with the gate ON, only pro/salon at 2-5 / 6-10 / 10+ are.
+  // lead is eligible; with the gate ON, only pro/salon at 1-5 / 6-10 / 10+ are.
   const completedLeads = leads.filter((r) => !!r.completed_at);
   const isEligible = (r: typeof completedLeads[number]) => {
     if (!founderGateOn) return true;
