@@ -410,7 +410,7 @@ Deno.serve(async (req: Request) => {
   const isEligible = (r: typeof completedLeads[number]) => {
     if (!founderGateOn) return true;
     const v = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
-    const highVolume = v === "2-5" || v === "6-10" || v === "10+";
+    const highVolume = v === "1-5" || v === "6-10" || v === "10+";
     const proOrSalon = r.account_type === "professional" || r.account_type === "salon";
     return proOrSalon && highVolume;
   };
