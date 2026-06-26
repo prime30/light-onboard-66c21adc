@@ -1646,12 +1646,54 @@ Deno.serve(async (req: Request) => {
             if (!activated) {
               const isSoftMerge = !!existingCustomerId;
               try {
-                if (isSoftMerge) {
+                // Look up the customer's current Shopify state. The right
+                // fallback depends on it, NOT on whether this was a
+                // soft-merge:
+                //   - enabled  → Storefront customerRecover (reset email)
+                //   - invited  → Admin send_invite (customerRecover no-ops)
+                //   - disabled → Admin send_invite (customerRecover also
+                //                no-ops on disabled — this is the
+                //                Smile/Klaviyo auto-provisioned-shell case)
+                let customerState: string | null = null;
+                try {
+                  const stateRes = await shopifyFetch(
+                    `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=state`,
+                    {
+                      method: "GET",
+                      headers: {
+                        "X-Shopify-Access-Token": shopifyAdminToken,
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  );
+                  if (stateRes.ok) {
+                    const sJson = await stateRes.json();
+                    customerState = sJson?.customer?.state ?? null;
+                  } else {
+                    recordAuditFailure(
+                      "activation_fallback",
+                      `state lookup HTTP ${stateRes.status}: ${(await stateRes.text()).substring(0, 150)}`
+                    );
+                  }
+                } catch (stateErr) {
+                  recordAuditFailure(
+                    "activation_fallback",
+                    `state lookup threw: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`
+                  );
+                }
+
+                // Default routing: if state is unknown, preserve the prior
+                // behavior (soft-merge → customerRecover, brand-new → invite).
+                const useRecover =
+                  customerState === "enabled" ||
+                  (customerState === null && isSoftMerge);
+
+                if (useRecover) {
                   const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
                   if (!storefrontToken) {
                     recordAuditFailure(
                       "activation_fallback",
-                      "soft-merge fallback skipped: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing"
+                      "customerRecover fallback skipped: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing"
                     );
                   } else {
                     const recoverRes = await fetch(
@@ -1673,7 +1715,10 @@ Deno.serve(async (req: Request) => {
                       const rJson = await recoverRes.json();
                       const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
                       if (errs.length === 0) {
-                        console.log("Sent customerRecover reset email (soft-merge):", customer.email);
+                        console.log(
+                          `Sent customerRecover reset email (state=${customerState ?? "unknown"}):`,
+                          customer.email
+                        );
                       } else {
                         recordAuditFailure(
                           "activation_fallback",
@@ -1688,9 +1733,10 @@ Deno.serve(async (req: Request) => {
                     }
                   }
                 } else {
-                  // Brand-new customer left in "invited" state. Use the
-                  // Admin REST send_invite endpoint — customerRecover does
-                  // NOT work on invited customers and silently no-ops.
+                  // invited / disabled / unknown-on-brand-new — use Admin
+                  // send_invite. customerRecover silently no-ops on both
+                  // invited and disabled states, leaving the user stranded
+                  // with no email (the Smile.io auto-provisioned-shell bug).
                   const inviteRes = await shopifyFetch(
                     `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/send_invite.json`,
                     {
@@ -1704,7 +1750,7 @@ Deno.serve(async (req: Request) => {
                   );
                   if (inviteRes.ok) {
                     console.log(
-                      "Sent Shopify account invite as activation fallback:",
+                      `Sent Shopify account invite as activation fallback (state=${customerState ?? "unknown"}):`,
                       customer.email,
                       `(prior activation status: ${activationStatusForFallback})`
                     );
