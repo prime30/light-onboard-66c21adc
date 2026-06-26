@@ -695,6 +695,9 @@ Deno.serve(async (req: Request) => {
   // (e.g. an order-only customer, or a Klaviyo-synced support contact)
   // is fair game to soft-merge: we PUT the new application data onto
   // the existing record instead of creating a duplicate.
+  // `isGhostShell` is hoisted so the enrichment block below can append a
+  // marker tag ("ghost-shell-recovered") to the Shopify customer.
+  let isGhostShell = false;
   if (existingCustomerId) {
     let alreadyApplied = false;
     if (existingShopifyId && shopifyDomain && shopifyAdminToken) {
@@ -712,10 +715,36 @@ Deno.serve(async (req: Request) => {
         if (tagRes.ok) {
           const json = await tagRes.json();
           const tagStr: string = json?.customer?.tags ?? "";
-          alreadyApplied = tagStr
-            .split(",")
-            .map((t: string) => t.trim())
-            .some((t: string) => /^account type:/i.test(t));
+          const tagList = tagStr.split(",").map((t: string) => t.trim());
+          alreadyApplied = tagList.some((t: string) => /^account type:/i.test(t));
+
+          // Ghost-shell detection: third-party apps (Smile.io, Klaviyo,
+          // Yotpo, Loox) auto-provision Shopify customers in state=disabled
+          // when an email enters their funnel — BEFORE the person has ever
+          // registered with us. These shells have:
+          //   - state=disabled (no password ever set, no invite consumed)
+          //   - orders_count=0 (never bought anything)
+          //   - no "Account type:" tag (never completed our application)
+          // Treat them as brand-new applicants: Chain C activation below
+          // already targets account_activation_url on the resolved
+          // shopifyCustomerId, which works on disabled shells and sets the
+          // user's chosen password directly — no invite email needed when
+          // auto-approval is on. We just need to surface that this happened.
+          const custState: string | null = json?.customer?.state ?? null;
+          const ordersCount: number = Number(json?.customer?.orders_count ?? 0);
+          if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
+            isGhostShell = true;
+            console.log(
+              "Detected ghost-shell (third-party auto-provisioned Shopify customer) — treating as brand-new applicant:",
+              {
+                email: requestBody.data.email,
+                shopify_customer_id: existingShopifyId,
+                state: custState,
+                orders_count: ordersCount,
+                existing_tags: tagStr.substring(0, 200),
+              }
+            );
+          }
         } else {
           console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
           // Fail OPEN — Klaviyo / storefront-synced contacts (no prior
@@ -751,7 +780,7 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(
-      "Existing un-applied customer found — soft-merging application onto:",
+      `Existing un-applied customer found — ${isGhostShell ? "ghost-shell recovery" : "soft-merging"} onto:`,
       existingCustomerId
     );
   }
@@ -1210,7 +1239,8 @@ Deno.serve(async (req: Request) => {
       accountTypeTags.push("Tax exempt");
     }
 
-    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
+    const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags];
 
     // Marketing consent — email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
