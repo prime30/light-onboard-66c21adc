@@ -11,11 +11,11 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { Step } from "@/types/auth";
 
 const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: string }> = {
-  "1": {
+  "None": {
     title: "Welcome in",
-    description: "We're excited to partner with you and take you further.",
+    description: "We're excited to help you get started — no order history required.",
   },
-  "2-5": {
+  "1-5": {
     title: "You're building something",
     description: "Expect restock reminders and early access to new lengths in your top shades.",
   },
@@ -36,14 +36,14 @@ const OPTION_DETAILS: Record<
   MonthlyOrderVolume,
   { label: string; tier: string; description: string; count: number }
 > = {
-  "1": {
-    label: "1",
-    tier: "Starter",
-    description: "Occasional install",
-    count: 1,
+  "None": {
+    label: "None yet",
+    tier: "Just starting",
+    description: "No extensions ordered recently",
+    count: 0,
   },
-  "2-5": {
-    label: "2–5",
+  "1-5": {
+    label: "1–5",
     tier: "Growing",
     description: "Building a steady client base",
     count: 5,
