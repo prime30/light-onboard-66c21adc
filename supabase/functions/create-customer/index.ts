@@ -1239,7 +1239,8 @@ Deno.serve(async (req: Request) => {
       accountTypeTags.push("Tax exempt");
     }
 
-    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags];
+    const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags];
 
     // Marketing consent — email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
