@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Bell, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,13 @@ import {
 } from "@/lib/calendly-proxy";
 import { toE164 } from "@/lib/phone-e164";
 import { useStepContext, useForm } from "@/components/registration/context";
+import { supabase } from "@/integrations/supabase/client";
+
+// Cap how far forward we'll auto-skip empty weeks before giving up and
+// showing the waitlist CTA. 8 weeks ≈ 2 months — enough to absorb most
+// Calendly date-range gaps without spinning forever.
+const MAX_AUTO_SKIP_WEEKS = 8;
+
 
 type SubStep = "date" | "time" | "confirm";
 
