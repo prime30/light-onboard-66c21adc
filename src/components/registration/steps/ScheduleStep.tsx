@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bell, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Bell, Calendar as CalendarIcon, Check, Clock, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -322,39 +322,8 @@ export const ScheduleStep = () => {
 
       {subStep === "date" && (
         <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5 animate-stagger-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground">Pick a date</p>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  userNavigatedRef.current = true;
-                  const d = new Date(windowStart);
-                  d.setDate(d.getDate() - 7);
-                  if (d < startOfDayLocal(new Date())) return;
-                  setWindowStart(d);
-                }}
-                aria-label="Previous week"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  userNavigatedRef.current = true;
-                  const d = new Date(windowStart);
-                  d.setDate(d.getDate() + 7);
-                  setWindowStart(d);
-                }}
-                aria-label="Next week"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+          <p className="text-sm font-medium text-foreground">Pick a date</p>
 
-            </div>
-          </div>
 
           <div className="relative flex justify-center">
             <Calendar
@@ -368,7 +337,11 @@ export const ScheduleStep = () => {
               }}
               disabled={isDayDisabled}
               month={windowStart}
-              onMonthChange={(m) => setWindowStart(m)}
+              onMonthChange={(m) => {
+                userNavigatedRef.current = true;
+                setWindowStart(m);
+              }}
+
               className="pointer-events-auto"
             />
             {loadingWindow && (
