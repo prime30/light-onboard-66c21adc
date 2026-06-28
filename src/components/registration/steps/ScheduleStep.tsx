@@ -380,7 +380,45 @@ export const ScheduleStep = () => {
 
           {windowError && <p className="text-xs text-destructive text-center">{windowError}</p>}
           <p className="text-[11px] text-muted-foreground text-center">Times shown in {userTimezone}</p>
+
+          {exhaustedAutoSkip && availableDays.size === 0 && (
+            <div className="mt-2 pt-5 border-t border-dashed border-border/70 space-y-3 text-center">
+              <p className="text-[13px] text-foreground leading-relaxed">
+                Eric's calendar is fully booked for the next few weeks.
+              </p>
+              {waitlistState === "done" ? (
+                <p className="inline-flex items-center justify-center gap-1.5 text-[12px] text-status-green">
+                  <Check className="w-3.5 h-3.5" /> You're on the list — we'll email you when new slots open.
+                </p>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={submitWaitlist}
+                    disabled={waitlistState === "sending"}
+                    className="rounded-form"
+                  >
+                    {waitlistState === "sending" ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding you…
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="w-3.5 h-3.5" /> Notify me when slots open
+                      </>
+                    )}
+                  </Button>
+                  {waitlistState === "error" && (
+                    <p className="text-[11px] text-destructive">Couldn't sign you up. Try again.</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
+
       )}
 
       {subStep === "time" && selectedDate && (
