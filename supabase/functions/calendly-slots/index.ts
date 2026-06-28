@@ -55,13 +55,20 @@ Deno.serve(async (req) => {
   const now = new Date();
   let startTime = new Date(`${startDate}T00:00:00.000Z`);
   if (startTime <= now) startTime = new Date(now.getTime() + 60_000);
-  const endTime = `${endDate}T23:59:59.999Z`;
+  const endTime = new Date(`${endDate}T23:59:59.999Z`);
 
+  // If the requested window is entirely in the past (or otherwise inverted
+  // after the start_time bump), Calendly 400s with
+  // "start_time must be before end_time". Just return no slots.
+  if (startTime >= endTime) {
+    return json({ slots: [] });
+  }
 
   const cUrl = new URL(`${CALENDLY_API}/event_type_available_times`);
   cUrl.searchParams.set("event_type", eventTypeUri);
   cUrl.searchParams.set("start_time", startTime.toISOString());
-  cUrl.searchParams.set("end_time", endTime);
+  cUrl.searchParams.set("end_time", endTime.toISOString());
+
 
   try {
     const res = await fetch(cUrl.toString(), {
