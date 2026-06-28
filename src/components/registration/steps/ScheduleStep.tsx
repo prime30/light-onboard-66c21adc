@@ -329,6 +329,7 @@ export const ScheduleStep = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => {
+                  userNavigatedRef.current = true;
                   const d = new Date(windowStart);
                   d.setDate(d.getDate() - 7);
                   if (d < startOfDayLocal(new Date())) return;
@@ -342,6 +343,7 @@ export const ScheduleStep = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => {
+                  userNavigatedRef.current = true;
                   const d = new Date(windowStart);
                   d.setDate(d.getDate() + 7);
                   setWindowStart(d);
@@ -350,6 +352,7 @@ export const ScheduleStep = () => {
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
+
             </div>
           </div>
 
