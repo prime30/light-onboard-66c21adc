@@ -214,6 +214,18 @@ export const ScheduleStep = () => {
     }
   }, [values?.email]);
 
+  const isDayDisabled = useCallback(
+    (d: Date) => {
+      const key = d.toLocaleDateString("en-CA");
+      const today = startOfDayLocal(new Date());
+      if (d < today) return true;
+      return !availableDays.has(key);
+    },
+    [availableDays],
+  );
+
+
+
 
   const canBook =
     !!selectedSlot &&
