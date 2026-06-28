@@ -337,7 +337,11 @@ export const ScheduleStep = () => {
               }}
               disabled={isDayDisabled}
               month={windowStart}
-              onMonthChange={(m) => setWindowStart(m)}
+              onMonthChange={(m) => {
+                userNavigatedRef.current = true;
+                setWindowStart(m);
+              }}
+
               className="pointer-events-auto"
             />
             {loadingWindow && (
