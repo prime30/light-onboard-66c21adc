@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Bell, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,13 @@ import {
 } from "@/lib/calendly-proxy";
 import { toE164 } from "@/lib/phone-e164";
 import { useStepContext, useForm } from "@/components/registration/context";
+import { supabase } from "@/integrations/supabase/client";
+
+// Cap how far forward we'll auto-skip empty weeks before giving up and
+// showing the waitlist CTA. 8 weeks ≈ 2 months — enough to absorb most
+// Calendly date-range gaps without spinning forever.
+const MAX_AUTO_SKIP_WEEKS = 8;
+
 
 type SubStep = "date" | "time" | "confirm";
 
@@ -138,6 +145,75 @@ export const ScheduleStep = () => {
     return s;
   }, [slotsByDay]);
 
+  // Has the current visible week + its prefetched +7 sibling both come back
+  // with zero slots? Used to decide whether to auto-skip forward.
+  const userNavigatedRef = useRef(false);
+  const autoSkipCountRef = useRef(0);
+  const [exhaustedAutoSkip, setExhaustedAutoSkip] = useState(false);
+
+  const weekHasAnySlots = useCallback(
+    (start: Date) => {
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        if (availableDays.has(d.toLocaleDateString("en-CA"))) return true;
+      }
+      return false;
+    },
+    [availableDays],
+  );
+
+  // After every fetch settles, if the user hasn't touched the chevrons and
+  // both the visible week AND the +7 prefetched week have zero slots, jump
+  // forward by 7 days. Repeat up to MAX_AUTO_SKIP_WEEKS.
+  useEffect(() => {
+    if (loadingWindow || userNavigatedRef.current || exhaustedAutoSkip) return;
+    const nextStart = new Date(windowStart);
+    nextStart.setDate(nextStart.getDate() + 7);
+    const visibleKey = toYmdUtc(windowStart);
+    const nextKey = toYmdUtc(nextStart);
+    // Only act once both windows have finished a fetch attempt.
+    if (!fetchedWindows.current.has(visibleKey) || !fetchedWindows.current.has(nextKey)) return;
+    if (weekHasAnySlots(windowStart) || weekHasAnySlots(nextStart)) return;
+    if (autoSkipCountRef.current >= MAX_AUTO_SKIP_WEEKS) {
+      setExhaustedAutoSkip(true);
+      return;
+    }
+    autoSkipCountRef.current += 1;
+    setWindowStart(nextStart);
+  }, [loadingWindow, slotsByDay, windowStart, weekHasAnySlots, exhaustedAutoSkip]);
+
+  const slotsForSelected = useMemo(() => {
+    if (!selectedDate) return [];
+    const key = selectedDate.toLocaleDateString("en-CA");
+    return slotsByDay[key] ?? [];
+  }, [selectedDate, slotsByDay]);
+
+  // Waitlist fallback — when calendar is exhausted, let user opt into a
+  // notify-me ping instead of bouncing.
+  const [waitlistState, setWaitlistState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const submitWaitlist = useCallback(async () => {
+    if (!values?.email) {
+      setWaitlistState("error");
+      return;
+    }
+    setWaitlistState("sending");
+    try {
+      await supabase.functions.invoke("track-registration-lead", {
+        method: "POST",
+        body: {
+          email: values.email,
+          phase: "step",
+          lastStep: "schedule-waitlist",
+          lastField: null,
+        },
+      });
+      setWaitlistState("done");
+    } catch {
+      setWaitlistState("error");
+    }
+  }, [values?.email]);
+
   const isDayDisabled = useCallback(
     (d: Date) => {
       const key = d.toLocaleDateString("en-CA");
@@ -148,11 +224,8 @@ export const ScheduleStep = () => {
     [availableDays],
   );
 
-  const slotsForSelected = useMemo(() => {
-    if (!selectedDate) return [];
-    const key = selectedDate.toLocaleDateString("en-CA");
-    return slotsByDay[key] ?? [];
-  }, [selectedDate, slotsByDay]);
+
+
 
   const canBook =
     !!selectedSlot &&
@@ -256,6 +329,7 @@ export const ScheduleStep = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => {
+                  userNavigatedRef.current = true;
                   const d = new Date(windowStart);
                   d.setDate(d.getDate() - 7);
                   if (d < startOfDayLocal(new Date())) return;
@@ -269,6 +343,7 @@ export const ScheduleStep = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => {
+                  userNavigatedRef.current = true;
                   const d = new Date(windowStart);
                   d.setDate(d.getDate() + 7);
                   setWindowStart(d);
@@ -277,6 +352,7 @@ export const ScheduleStep = () => {
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
+
             </div>
           </div>
 
@@ -304,7 +380,45 @@ export const ScheduleStep = () => {
 
           {windowError && <p className="text-xs text-destructive text-center">{windowError}</p>}
           <p className="text-[11px] text-muted-foreground text-center">Times shown in {userTimezone}</p>
+
+          {exhaustedAutoSkip && availableDays.size === 0 && (
+            <div className="mt-2 pt-5 border-t border-dashed border-border/70 space-y-3 text-center">
+              <p className="text-[13px] text-foreground leading-relaxed">
+                Eric's calendar is fully booked for the next few weeks.
+              </p>
+              {waitlistState === "done" ? (
+                <p className="inline-flex items-center justify-center gap-1.5 text-[12px] text-status-green">
+                  <Check className="w-3.5 h-3.5" /> You're on the list — we'll email you when new slots open.
+                </p>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={submitWaitlist}
+                    disabled={waitlistState === "sending"}
+                    className="rounded-form"
+                  >
+                    {waitlistState === "sending" ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding you…
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="w-3.5 h-3.5" /> Notify me when slots open
+                      </>
+                    )}
+                  </Button>
+                  {waitlistState === "error" && (
+                    <p className="text-[11px] text-destructive">Couldn't sign you up. Try again.</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
+
       )}
 
       {subStep === "time" && selectedDate && (
