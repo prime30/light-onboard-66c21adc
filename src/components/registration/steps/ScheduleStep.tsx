@@ -341,9 +341,12 @@ export const ScheduleStep = () => {
                 userNavigatedRef.current = true;
                 setWindowStart(m);
               }}
-
+              classNames={{
+                caption_label: "text-sm font-medium text-foreground",
+              }}
               className="pointer-events-auto"
             />
+
             {loadingWindow && (
               <div className="absolute inset-0 flex items-center justify-center bg-card/60 backdrop-blur-sm rounded-form">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
