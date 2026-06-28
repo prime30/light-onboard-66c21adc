@@ -145,21 +145,75 @@ export const ScheduleStep = () => {
     return s;
   }, [slotsByDay]);
 
-  const isDayDisabled = useCallback(
-    (d: Date) => {
-      const key = d.toLocaleDateString("en-CA");
-      const today = startOfDayLocal(new Date());
-      if (d < today) return true;
-      return !availableDays.has(key);
+  // Has the current visible week + its prefetched +7 sibling both come back
+  // with zero slots? Used to decide whether to auto-skip forward.
+  const userNavigatedRef = useRef(false);
+  const autoSkipCountRef = useRef(0);
+  const [exhaustedAutoSkip, setExhaustedAutoSkip] = useState(false);
+
+  const weekHasAnySlots = useCallback(
+    (start: Date) => {
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        if (availableDays.has(d.toLocaleDateString("en-CA"))) return true;
+      }
+      return false;
     },
     [availableDays],
   );
+
+  // After every fetch settles, if the user hasn't touched the chevrons and
+  // both the visible week AND the +7 prefetched week have zero slots, jump
+  // forward by 7 days. Repeat up to MAX_AUTO_SKIP_WEEKS.
+  useEffect(() => {
+    if (loadingWindow || userNavigatedRef.current || exhaustedAutoSkip) return;
+    const nextStart = new Date(windowStart);
+    nextStart.setDate(nextStart.getDate() + 7);
+    const visibleKey = toYmdUtc(windowStart);
+    const nextKey = toYmdUtc(nextStart);
+    // Only act once both windows have finished a fetch attempt.
+    if (!fetchedWindows.current.has(visibleKey) || !fetchedWindows.current.has(nextKey)) return;
+    if (weekHasAnySlots(windowStart) || weekHasAnySlots(nextStart)) return;
+    if (autoSkipCountRef.current >= MAX_AUTO_SKIP_WEEKS) {
+      setExhaustedAutoSkip(true);
+      return;
+    }
+    autoSkipCountRef.current += 1;
+    setWindowStart(nextStart);
+  }, [loadingWindow, slotsByDay, windowStart, weekHasAnySlots, exhaustedAutoSkip]);
 
   const slotsForSelected = useMemo(() => {
     if (!selectedDate) return [];
     const key = selectedDate.toLocaleDateString("en-CA");
     return slotsByDay[key] ?? [];
   }, [selectedDate, slotsByDay]);
+
+  // Waitlist fallback — when calendar is exhausted, let user opt into a
+  // notify-me ping instead of bouncing.
+  const [waitlistState, setWaitlistState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const submitWaitlist = useCallback(async () => {
+    if (!values?.email) {
+      setWaitlistState("error");
+      return;
+    }
+    setWaitlistState("sending");
+    try {
+      await supabase.functions.invoke("track-registration-lead", {
+        method: "POST",
+        body: {
+          email: values.email,
+          phase: "step",
+          lastStep: "schedule-waitlist",
+          lastField: null,
+        },
+      });
+      setWaitlistState("done");
+    } catch {
+      setWaitlistState("error");
+    }
+  }, [values?.email]);
+
 
   const canBook =
     !!selectedSlot &&
