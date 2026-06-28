@@ -437,8 +437,9 @@ export const SuccessForm = () => {
               </Button>
 
               <p className="mt-3 text-center font-mono-eyebrow text-[10px] text-muted-foreground/80">
-                Reserved availability (4 slots left)
+                Reserved for new pros · limited weekly slots
               </p>
+
 
             </div>
           </div>
