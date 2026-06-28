@@ -127,15 +127,17 @@ export const ScheduleStep = () => {
     }
   }, []);
 
+  // Calendly's available_times endpoint caps each request at a 7-day window,
+  // so to populate the entire visible month we fan out 6 week-chunks
+  // (covers the calendar grid which can span up to 6 weeks).
   useEffect(() => {
-    fetchWindow(windowStart);
+    for (let i = 0; i < 6; i++) {
+      const chunk = new Date(windowStart);
+      chunk.setDate(chunk.getDate() + i * 7);
+      fetchWindow(chunk);
+    }
   }, [windowStart, fetchWindow]);
 
-  useEffect(() => {
-    const next = new Date(windowStart);
-    next.setDate(next.getDate() + 7);
-    fetchWindow(next);
-  }, [windowStart, fetchWindow]);
 
   const availableDays = useMemo(() => {
     const s = new Set<string>();
