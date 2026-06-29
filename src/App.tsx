@@ -62,10 +62,12 @@ const App = () => (
 const IndexRoute = () => {
   if (typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
-    const activate = params.get("activate");
-    if (activate) {
-      const qs = new URLSearchParams({ activation_url: activate }).toString();
-      return <Navigate to={`/activate-account?${qs}`} replace />;
+    const activationUrl = params.get("activation_url") || params.get("activate");
+    if (activationUrl) {
+      const next = new URLSearchParams({ activation_url: activationUrl });
+      const emailHint = params.get("email_hint");
+      if (emailHint) next.set("email_hint", emailHint);
+      return <Navigate to={`/activate-account?${next.toString()}`} replace />;
     }
     if (params.has("dev")) {
       return (
