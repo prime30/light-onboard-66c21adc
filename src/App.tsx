@@ -57,13 +57,23 @@ const App = () => (
 
 // Gate the dev-only landing page behind ?dev=1 so customers embedded in
 // the Shopify iframe never see it. Default "/" sends them straight to /auth.
+// If a Shopify account-activation URL is forwarded via ?activate=<url>,
+// hand off to /activate-account with the full URL preserved.
 const IndexRoute = () => {
-  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("dev")) {
-    return (
-      <Suspense fallback={<GenericBootFallback />}>
-        <Index />
-      </Suspense>
-    );
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const activate = params.get("activate");
+    if (activate) {
+      const qs = new URLSearchParams({ activation_url: activate }).toString();
+      return <Navigate to={`/activate-account?${qs}`} replace />;
+    }
+    if (params.has("dev")) {
+      return (
+        <Suspense fallback={<GenericBootFallback />}>
+          <Index />
+        </Suspense>
+      );
+    }
   }
   return <Navigate to="/auth" replace />;
 };
