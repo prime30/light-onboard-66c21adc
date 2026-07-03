@@ -22,6 +22,7 @@ import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
 import { useAutoApproval } from "@/lib/app-settings";
+import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
   totalSteps: number;
@@ -139,6 +140,19 @@ export function StepProvider({ children }: StepProviderProps) {
             confirmPassword?: string;
           };
           if (password && confirmPassword && password !== confirmPassword) {
+            return false;
+          }
+        }
+        // Preferences: if the SMS opt-in is checked, we require a valid
+        // phone number on file — otherwise the consent has nothing to send
+        // to. Gate Continue on the same rule so users can't advance with
+        // a checked SMS box and an empty/invalid number.
+        if (step === "preferences") {
+          const { acceptsSmsMarketing, phoneNumber } = values as {
+            acceptsSmsMarketing?: boolean;
+            phoneNumber?: string;
+          };
+          if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
             return false;
           }
         }
@@ -265,6 +279,22 @@ export function StepProvider({ children }: StepProviderProps) {
         setShowValidationErrors(true);
         toast({
           title: "Passwords do not match",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (currentStep === "preferences") {
+      const { acceptsSmsMarketing, phoneNumber } = watch() as {
+        acceptsSmsMarketing?: boolean;
+        phoneNumber?: string;
+      };
+      if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please add a valid phone number for SMS updates",
+          description: "Or uncheck the SMS opt-in to continue.",
           variant: "destructive",
         });
         return;
