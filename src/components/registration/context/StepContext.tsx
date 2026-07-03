@@ -143,6 +143,19 @@ export function StepProvider({ children }: StepProviderProps) {
             return false;
           }
         }
+        // Preferences: if the SMS opt-in is checked, we require a valid
+        // phone number on file — otherwise the consent has nothing to send
+        // to. Gate Continue on the same rule so users can't advance with
+        // a checked SMS box and an empty/invalid number.
+        if (step === "preferences") {
+          const { acceptsSmsMarketing, phoneNumber } = values as {
+            acceptsSmsMarketing?: boolean;
+            phoneNumber?: string;
+          };
+          if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+            return false;
+          }
+        }
         return true;
       })();
 
