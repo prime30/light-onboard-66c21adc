@@ -627,13 +627,15 @@ export const MultiFileUpload = ({
               )}
             </div>
             <div className="space-y-2">
-              {files.map((item, index) => (
-                <div key={`${item.file.name}-${item.file.lastModified}-${index}`}>
+              {displayedFiles.map((item, index) => (
+                <div key={`${item.id}-${index}`}>
                   <FileItem
                     item={item}
                     index={index}
                     onRemove={() => handleRemoveFile(index)}
+                    onRetry={() => retryFile(item.id)}
                     onPreview={() => openLightbox(item)}
+
                     onDragStart={(e, idx) => {
                       e.dataTransfer.effectAllowed = "move";
                       setDraggedIndex(idx);
