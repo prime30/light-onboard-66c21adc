@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Info } from "lucide-react";
+import { Info, Pencil } from "lucide-react";
+import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { countryCodes } from "@/data/country-codes";
+import { CountryFlag } from "./ContactBasicsStep";
 import { cn } from "@/lib/utils";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { TextInput } from "@/components/TextInput";
@@ -23,15 +26,18 @@ export const PreferencesStep = () => {
 
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
 
   // Watch form values
   const watchedValues = watch([
     "acceptsMarketing",
     "acceptsSmsMarketing",
     "phoneNumber",
+    "phoneCountryCode",
   ]);
 
-  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber] = watchedValues;
+  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber, phoneCountryCode] =
+    watchedValues;
 
 
   const validationStatus = getStepValidationStatus(currentStep);
@@ -81,6 +87,23 @@ export const PreferencesStep = () => {
       label: day.toString(),
     };
   });
+
+  const countryCodeOptions = countryCodes.map((country) => ({
+    value: country.iso,
+    label: (
+      <span className="flex items-center gap-2">
+        <CountryFlag iso={country.iso} />
+        <span>{country.code}</span>
+        <span className="text-muted-foreground text-xs">({country.name})</span>
+      </span>
+    ),
+    triggerContent: (
+      <span className="flex items-center gap-2">
+        <CountryFlag iso={country.iso} />
+        <span>{country.code}</span>
+      </span>
+    ),
+  }));
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
