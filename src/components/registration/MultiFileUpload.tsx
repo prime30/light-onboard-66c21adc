@@ -251,7 +251,18 @@ export const MultiFileUpload = ({
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
 
-  const { addFiles, queue, isUploading } = useUploadFile();
+  const { addFiles, queue, isUploading, retryFile } = useUploadFile();
+
+  // Merge live queue state into the rendered files so uploading/errored items
+  // show their real status (spinner, error message, retry button). Without
+  // this the FileItem would render pending items as "already uploaded" and
+  // errored items would silently disappear when they get filtered out of
+  // form state on completion.
+  const displayedFiles = files.map((f) => {
+    const live = queue.find((q) => q.id === f.id);
+    return live ? { ...f, status: live.status, progress: live.progress, error: live.error, url: live.url ?? f.url } : f;
+  });
+
 
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
