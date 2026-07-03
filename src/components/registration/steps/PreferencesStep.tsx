@@ -43,7 +43,8 @@ export const PreferencesStep = () => {
   const validationStatus = getStepValidationStatus(currentStep);
 
   // SMS checkbox is only available when a phone number was provided earlier.
-  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
+  // While actively editing, keep it enabled so the user doesn't lose the toggle.
+  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7) || isEditingPhone;
 
   // Footer notice visibility (only relevant when SMS is opted-in)
   const [showSmsNotice, setShowSmsNotice] = useState(acceptsSmsMarketing);
