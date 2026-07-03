@@ -633,7 +633,13 @@ export const MultiFileUpload = ({
                     item={item}
                     index={index}
                     onRemove={() => handleRemoveFile(index)}
-                    onRetry={() => retryFile(item.id)}
+                    onRetry={() => {
+                      retryFile(item.id);
+                      setPendingFileIds((prev) =>
+                        prev.includes(item.id) ? prev : [...prev, item.id]
+                      );
+                    }}
+
                     onPreview={() => openLightbox(item)}
 
                     onDragStart={(e, idx) => {
