@@ -191,6 +191,54 @@ export const PreferencesStep = () => {
                     Add a phone number in the previous step to enable SMS.
                   </p>
                 )}
+                {hasPhone && !isEditingPhone && (
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-xs text-foreground/70">
+                      SMS will be sent to {formatPhoneNumber(phoneNumber)}.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(true)}
+                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Edit number
+                    </button>
+                  </div>
+                )}
+                {hasPhone && isEditingPhone && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex gap-2">
+                      <div className="w-[110px]">
+                        <SelectInput
+                          name="phoneCountryCode"
+                          control={control}
+                          options={countryCodeOptions}
+                          placeholder="Select"
+                          className="w-full"
+                        />
+                      </div>
+                      <TextInput
+                        name="phoneNumber"
+                        type="tel"
+                        register={register}
+                        placeholder="(555) 123-4567"
+                        autoComplete="tel-national"
+                        autoFocus
+                        onBlur={(event) => {
+                          setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(false)}
+                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Done editing
+                    </button>
+                  </div>
+                )}
               </div>
             </label>
 
