@@ -42,9 +42,11 @@ export const PreferencesStep = () => {
 
   const validationStatus = getStepValidationStatus(currentStep);
 
-  // SMS checkbox is only available when a phone number was provided earlier.
-  // While actively editing, keep it enabled so the user doesn't lose the toggle.
-  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7) || isEditingPhone;
+  // Whether a usable phone number is already on file. We no longer use this
+  // to *disable* the SMS checkbox — the checkbox is always selectable so the
+  // user can never get stuck. Instead, if they opt in without a valid number
+  // we auto-open the inline phone editor so they can add/fix it right here.
+  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
 
   // Footer notice visibility (only relevant when SMS is opted-in)
   const [showSmsNotice, setShowSmsNotice] = useState(acceptsSmsMarketing);
@@ -139,18 +141,19 @@ export const PreferencesStep = () => {
                 the applicant actually cares about right now. */}
             <label
               className={cn(
-                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors",
-                hasPhone
-                  ? "cursor-pointer border-border hover:border-foreground/30"
-                  : "cursor-not-allowed opacity-60 border-border"
+                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer border-border hover:border-foreground/30"
               )}
             >
               <Checkbox
-                checked={hasPhone ? acceptsSmsMarketing || false : false}
-                disabled={!hasPhone}
+                checked={acceptsSmsMarketing || false}
                 onCheckedChange={(checked) => {
-                  if (!hasPhone) return;
-                  setValue("acceptsSmsMarketing", !!checked, dirtyFieldOptions);
+                  const next = !!checked;
+                  setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
+                  // If opting in without a valid number on file, open the
+                  // inline editor immediately so they can supply it here.
+                  if (next && !hasPhone) {
+                    setIsEditingPhone(true);
+                  }
                 }}
                 className="rounded-full mt-1.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
@@ -187,11 +190,6 @@ export const PreferencesStep = () => {
                   </button>
                   .
                 </p>
-                {!hasPhone && (
-                  <p className="text-[11px] text-foreground/60 italic">
-                    Add a phone number in the previous step to enable SMS.
-                  </p>
-                )}
                 {hasPhone && !isEditingPhone && (
                   <div className="flex items-center gap-1.5 pt-1">
                     <Pencil className="w-3 h-3 text-muted-foreground" />
@@ -200,15 +198,29 @@ export const PreferencesStep = () => {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setIsEditingPhone(true)}
+                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
                       className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
                     >
                       Edit number
                     </button>
                   </div>
                 )}
-                {hasPhone && isEditingPhone && (
-                  <div className="space-y-2 pt-1">
+                {!hasPhone && !isEditingPhone && (
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="text-xs text-foreground/70">
+                      No phone number on file.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
+                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Add number
+                    </button>
+                  </div>
+                )}
+                {isEditingPhone && (
+                  <div className="space-y-2 pt-1" onClick={(e) => e.preventDefault()}>
                     <div className="flex gap-2">
                       <div className="w-[110px]">
                         <SelectInput
@@ -235,7 +247,7 @@ export const PreferencesStep = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsEditingPhone(false)}
+                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(false); }}
                       className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
                     >
                       Done editing
