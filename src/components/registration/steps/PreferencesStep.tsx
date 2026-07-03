@@ -213,6 +213,7 @@ export const PreferencesStep = () => {
                         <SelectInput
                           name="phoneCountryCode"
                           control={control}
+                          error={errors.phoneCountryCode}
                           options={countryCodeOptions}
                           placeholder="Select"
                           className="w-full"
