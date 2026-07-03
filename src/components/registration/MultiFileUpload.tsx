@@ -10,6 +10,8 @@ import {
   AlertCircle,
   ZoomIn,
   GripVertical,
+  RotateCcw,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
