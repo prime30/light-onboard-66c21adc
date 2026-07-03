@@ -223,6 +223,7 @@ export const PreferencesStep = () => {
                         name="phoneNumber"
                         type="tel"
                         register={register}
+                        error={errors.phoneNumber}
                         placeholder="(555) 123-4567"
                         autoComplete="tel-national"
                         autoFocus
