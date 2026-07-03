@@ -332,20 +332,23 @@ export const MultiFileUpload = ({
     [files, onFilesChange]
   );
 
-  // Handle completed uploads
+  // Handle completed uploads — merge BOTH completed and errored items back
+  // into the form state. Errored items need to stay so the user sees the
+  // failure and can retry; the schema refine blocks submission until they
+  // reach `status: "completed"` with a url.
   useEffect(() => {
     if (pendingFileIds.length === 0) return;
 
-    const allCompleted = pendingFiles.every(
+    const allSettled = pendingFiles.every(
       (file) => file.status === "completed" || file.status === "error"
     );
-    const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
-    if (allCompleted && completedItems.length > 0) {
-      updateFiles(completedItems);
+    if (allSettled && pendingFiles.length > 0) {
+      updateFiles(pendingFiles);
       setPendingFileIds([]);
     }
   }, [pendingFiles, pendingFileIds.length, updateFiles]);
+
 
   const validateFileType = useCallback(
     (file: File): boolean => {
