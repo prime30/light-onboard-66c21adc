@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, Check, Mail, Sparkles, MessageCircle, ListChecks } from "lucide-react";
+import { Calendar, Check, Mail, Sparkles, MessageCircle, ListChecks, AlertTriangle, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCloseIframe } from "@/hooks/messages";
 import { useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
@@ -7,6 +7,7 @@ import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
 
 type Booking = {
   start_time?: string;
+  end_time?: string;
   timezone?: string;
   cancel_url?: string;
   reschedule_url?: string;
@@ -14,6 +15,7 @@ type Booking = {
   email?: string;
   eventName?: string;
   duration?: number;
+  join_url?: string;
 };
 
 export const ScheduleConfirmedStep = () => {
@@ -44,6 +46,64 @@ export const ScheduleConfirmedStep = () => {
       time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
     };
   }, [booking.start_time]);
+
+  const calendarLinks = useMemo(() => {
+    if (!booking.start_time) return null;
+    const start = new Date(booking.start_time);
+    const durationMin = booking.duration ?? 30;
+    const end = booking.end_time
+      ? new Date(booking.end_time)
+      : new Date(start.getTime() + durationMin * 60_000);
+
+    const toIcsStamp = (d: Date) =>
+      d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+    const title = booking.eventName ?? "Founder call with Eric";
+    const details = [
+      "Founder call with Eric from Drop Dead Extensions.",
+      booking.join_url ? `Join: ${booking.join_url}` : "",
+      booking.reschedule_url ? `Reschedule: ${booking.reschedule_url}` : "",
+      booking.cancel_url ? `Cancel: ${booking.cancel_url}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const location = booking.join_url ?? "Zoom";
+
+    const google = new URL("https://calendar.google.com/calendar/render");
+    google.searchParams.set("action", "TEMPLATE");
+    google.searchParams.set("text", title);
+    google.searchParams.set("dates", `${toIcsStamp(start)}/${toIcsStamp(end)}`);
+    google.searchParams.set("details", details);
+    google.searchParams.set("location", location);
+
+    const outlook = new URL("https://outlook.live.com/calendar/0/deeplink/compose");
+    outlook.searchParams.set("path", "/calendar/action/compose");
+    outlook.searchParams.set("rru", "addevent");
+    outlook.searchParams.set("subject", title);
+    outlook.searchParams.set("startdt", start.toISOString());
+    outlook.searchParams.set("enddt", end.toISOString());
+    outlook.searchParams.set("body", details);
+    outlook.searchParams.set("location", location);
+
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Drop Dead Extensions//Founder Call//EN",
+      "BEGIN:VEVENT",
+      `UID:${toIcsStamp(start)}-dde-founder-call@dropdeadextensions.com`,
+      `DTSTAMP:${toIcsStamp(new Date())}`,
+      `DTSTART:${toIcsStamp(start)}`,
+      `DTEND:${toIcsStamp(end)}`,
+      `SUMMARY:${title}`,
+      `DESCRIPTION:${details.replace(/\n/g, "\\n")}`,
+      `LOCATION:${location}`,
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n");
+    const icsUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+
+    return { google: google.toString(), outlook: outlook.toString(), ics: icsUrl };
+  }, [booking]);
 
   const handleGoToShop = () => {
     if (isInIframe) {
@@ -124,8 +184,86 @@ export const ScheduleConfirmedStep = () => {
               </div>
             </div>
           )}
+
+          {calendarLinks && (
+            <div className="pt-5 border-t border-border space-y-[10px]">
+              <div className="flex items-center gap-2">
+                <CalendarPlus className="w-4 h-4 text-foreground" strokeWidth={1.75} />
+                <p className="text-sm font-medium text-foreground">Add to your calendar</p>
+              </div>
+              <div className="grid grid-cols-3 gap-[10px]">
+                <a
+                  href={calendarLinks.google}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-foreground text-center px-3 py-2.5 rounded-form border border-border bg-background hover:bg-muted transition-colors"
+                >
+                  Google
+                </a>
+                <a
+                  href={calendarLinks.outlook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-foreground text-center px-3 py-2.5 rounded-form border border-border bg-background hover:bg-muted transition-colors"
+                >
+                  Outlook
+                </a>
+                <a
+                  href={calendarLinks.ics}
+                  download="founder-call.ics"
+                  className="text-xs font-medium text-foreground text-center px-3 py-2.5 rounded-form border border-border bg-background hover:bg-muted transition-colors"
+                >
+                  Apple / .ics
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      {/* No-show notice */}
+      <div
+        role="alert"
+        className="rounded-form border border-[hsl(var(--status-red)/0.3)] bg-[hsl(var(--status-red)/0.08)] p-5 md:p-6 text-left flex items-start gap-3 animate-stagger-2"
+      >
+        <div className="w-9 h-9 rounded-form bg-[hsl(var(--status-red)/0.12)] flex items-center justify-center shrink-0">
+          <AlertTriangle className="w-4 h-4 text-[hsl(var(--status-red))]" strokeWidth={2} />
+        </div>
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-semibold text-[hsl(var(--status-red))] leading-tight">
+            Please don't no-show
+          </p>
+          <p className="text-[12px] text-foreground/80 leading-relaxed">
+            Eric blocks this time off just for you — the same way you'd block a chair for a client.
+            If something comes up, use the reschedule or cancel link in your confirmation email so
+            the slot opens back up for someone else.
+          </p>
+          {(booking.reschedule_url || booking.cancel_url) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+              {booking.reschedule_url && (
+                <a
+                  href={booking.reschedule_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[12px] font-medium text-[hsl(var(--status-red))] underline underline-offset-2"
+                >
+                  Reschedule
+                </a>
+              )}
+              {booking.cancel_url && (
+                <a
+                  href={booking.cancel_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[12px] font-medium text-[hsl(var(--status-red))] underline underline-offset-2"
+                >
+                  Cancel
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* What to expect & how to prepare */}
       <div className="rounded-form border border-border bg-muted/30 p-5 md:p-[30px] text-left space-y-5 animate-stagger-3">
