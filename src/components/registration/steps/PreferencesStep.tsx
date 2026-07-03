@@ -11,6 +11,7 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { dirtyFieldOptions, useForm } from "../context";
+import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 
 export const PreferencesStep = () => {
   const {
