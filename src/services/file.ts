@@ -1,3 +1,21 @@
+// Upload timeout — abort silently-hanging requests so the queue can either
+// surface an error to the user or be retried. Without this a stalled edge
+// function or dropped connection leaves the item spinning forever and the
+// user submits `[null]` for the file field.
+const UPLOAD_TIMEOUT_MS = 90_000;
+
+function extractServerError(responseText: string, status: number): string {
+  try {
+    const parsed = JSON.parse(responseText);
+    if (parsed && typeof parsed.error === "string" && parsed.error.trim()) {
+      return parsed.error;
+    }
+  } catch {
+    // fall through — response wasn't JSON
+  }
+  return `Upload failed (${status})`;
+}
+
 export async function uploadFile(
   file: File,
   email: string,
@@ -9,52 +27,72 @@ export async function uploadFile(
     formData.append("email", email);
 
     const xhr = new XMLHttpRequest();
+    let didFinish = false;
 
-    // Set up progress tracking
+    const timeoutId = window.setTimeout(() => {
+      if (didFinish) return;
+      didFinish = true;
+      try {
+        xhr.abort();
+      } catch {
+        // ignore
+      }
+      reject(new Error("Upload timed out — please check your connection and try again"));
+    }, UPLOAD_TIMEOUT_MS);
+
+    const finish = () => {
+      didFinish = true;
+      window.clearTimeout(timeoutId);
+    };
+
     if (onProgress) {
       xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          onProgress(progress);
+          onProgress(Math.round((event.loaded / event.total) * 100));
         }
       });
     }
 
-    // Set up response handlers
     xhr.addEventListener("load", () => {
+      if (didFinish) return;
+      finish();
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
-          console.log("file finished");
+          if (!data?.publicUrl || typeof data.publicUrl !== "string") {
+            reject(new Error("Upload succeeded but no URL returned"));
+            return;
+          }
           resolve(data.publicUrl);
         } catch (error) {
-          console.error("Error parsing response:", error);
-          reject(new Error("Failed to parse response"));
+          console.error("Error parsing upload response:", error);
+          reject(new Error("Upload failed — invalid server response"));
         }
       } else {
-        console.error("Upload failed with status:", xhr.status);
-        reject(new Error(`Upload failed with status: ${xhr.status}`));
+        const message = extractServerError(xhr.responseText, xhr.status);
+        console.error("Upload failed:", xhr.status, message);
+        reject(new Error(message));
       }
     });
 
     xhr.addEventListener("error", () => {
-      console.error("Error uploading file:", xhr.statusText);
-      reject(new Error("Upload failed"));
+      if (didFinish) return;
+      finish();
+      console.error("Network error uploading file");
+      reject(new Error("Upload failed — network error"));
     });
 
     xhr.addEventListener("abort", () => {
-      console.error("Upload was aborted");
-      reject(new Error("Upload was aborted"));
+      if (didFinish) return;
+      finish();
+      reject(new Error("Upload was cancelled"));
     });
 
-    // Set up request
     xhr.open("POST", `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-file`);
     xhr.setRequestHeader(
       "Authorization",
       `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
     );
-
-    // Start the upload
     xhr.send(formData);
   });
 }

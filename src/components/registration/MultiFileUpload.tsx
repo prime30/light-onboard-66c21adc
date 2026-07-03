@@ -10,6 +10,8 @@ import {
   AlertCircle,
   ZoomIn,
   GripVertical,
+  RotateCcw,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compressImages } from "@/lib/imageCompression";
@@ -96,6 +98,7 @@ const FileItem = ({
   item,
   index,
   onRemove,
+  onRetry,
   onPreview,
   onDragStart,
   onDragOver,
@@ -106,6 +109,7 @@ const FileItem = ({
   item: UploadFileItem;
   index: number;
   onRemove: () => void;
+  onRetry?: () => void;
   onPreview: () => void;
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
@@ -123,23 +127,36 @@ const FileItem = ({
     }
   }, [item.file]);
 
+  const isUploading = item.status === "uploading" || item.status === "pending";
+  const hasError = item.status === "error";
+  const draggable = !isUploading && !hasError;
+
   return (
     <div
-      draggable
-      onDragStart={(e) => onDragStart(e, index)}
-      onDragOver={(e) => onDragOver(e, index)}
-      onDragEnd={onDragEnd}
+      draggable={draggable}
+      onDragStart={draggable ? (e) => onDragStart(e, index) : undefined}
+      onDragOver={draggable ? (e) => onDragOver(e, index) : undefined}
+      onDragEnd={draggable ? onDragEnd : undefined}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border/50 transition-all duration-200",
+        "flex items-center gap-2 p-3 rounded-md border transition-all duration-200",
+        hasError
+          ? "bg-destructive/5 border-destructive/40"
+          : isUploading
+            ? "bg-muted/40 border-border/40"
+            : "bg-muted/50 border-border/50",
         isDragging && "opacity-50 scale-95",
         isDragOver && "border-foreground/50 bg-foreground/5 scale-[1.02]",
         !isDragging && "animate-in fade-in slide-in-from-bottom-2"
       )}
     >
-      {/* Drag handle */}
-      <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-foreground/10 transition-colors">
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
+      {/* Drag handle (hidden while uploading/errored — it can't be reordered) */}
+      {draggable ? (
+        <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-foreground/10 transition-colors">
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="w-6 -ml-1" />
+      )}
 
       {previewUrl ? (
         <button
@@ -157,18 +174,53 @@ const FileItem = ({
           </div>
         </button>
       ) : (
-        <div className="w-10 h-10 rounded-md bg-foreground/10 flex items-center justify-center flex-shrink-0">
-          {item.file.type === "application/pdf" ? (
-            <FileText className="w-4 h-4 text-foreground" />
+        <div
+          className={cn(
+            "w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0",
+            hasError ? "bg-destructive/10 text-destructive" : "bg-foreground/10 text-foreground"
+          )}
+        >
+          {hasError ? (
+            <AlertCircle className="w-4 h-4" />
+          ) : isUploading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : item.file.type === "application/pdf" ? (
+            <FileText className="w-4 h-4" />
           ) : (
-            <FileCheck className="w-4 h-4 text-foreground" />
+            <FileCheck className="w-4 h-4" />
           )}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">{item.file.name}</p>
-        <p className="text-xs text-muted-foreground">{formatFileSize(item.file.size)}</p>
+        <p
+          className={cn(
+            "text-sm font-medium truncate",
+            hasError ? "text-destructive" : "text-foreground"
+          )}
+        >
+          {item.file.name}
+        </p>
+        {hasError ? (
+          <p className="text-xs text-destructive truncate">
+            {item.error || "Upload failed"} — click retry
+          </p>
+        ) : isUploading ? (
+          <p className="text-xs text-muted-foreground">Uploading… {item.progress}%</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">{formatFileSize(item.file.size)}</p>
+        )}
       </div>
+      {hasError && onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors flex-shrink-0"
+          aria-label="Retry upload"
+          title="Retry upload"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      )}
       <button
         type="button"
         onClick={onRemove}
@@ -179,6 +231,7 @@ const FileItem = ({
     </div>
   );
 };
+
 
 export const MultiFileUpload = ({
   files,
@@ -198,7 +251,18 @@ export const MultiFileUpload = ({
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxFile, setLightboxFile] = useState<UploadFileItem | null>(null);
 
-  const { addFiles, queue, isUploading } = useUploadFile();
+  const { addFiles, queue, isUploading, retryFile } = useUploadFile();
+
+  // Merge live queue state into the rendered files so uploading/errored items
+  // show their real status (spinner, error message, retry button). Without
+  // this the FileItem would render pending items as "already uploaded" and
+  // errored items would silently disappear when they get filtered out of
+  // form state on completion.
+  const displayedFiles = files.map((f) => {
+    const live = queue.find((q) => q.id === f.id);
+    return live ? { ...f, status: live.status, progress: live.progress, error: live.error, url: live.url ?? f.url } : f;
+  });
+
 
   // Drag-and-drop reordering state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -268,20 +332,23 @@ export const MultiFileUpload = ({
     [files, onFilesChange]
   );
 
-  // Handle completed uploads
+  // Handle completed uploads — merge BOTH completed and errored items back
+  // into the form state. Errored items need to stay so the user sees the
+  // failure and can retry; the schema refine blocks submission until they
+  // reach `status: "completed"` with a url.
   useEffect(() => {
     if (pendingFileIds.length === 0) return;
 
-    const allCompleted = pendingFiles.every(
+    const allSettled = pendingFiles.every(
       (file) => file.status === "completed" || file.status === "error"
     );
-    const completedItems = pendingFiles.filter((file) => file.status === "completed");
 
-    if (allCompleted && completedItems.length > 0) {
-      updateFiles(completedItems);
+    if (allSettled && pendingFiles.length > 0) {
+      updateFiles(pendingFiles);
       setPendingFileIds([]);
     }
   }, [pendingFiles, pendingFileIds.length, updateFiles]);
+
 
   const validateFileType = useCallback(
     (file: File): boolean => {
@@ -560,13 +627,21 @@ export const MultiFileUpload = ({
               )}
             </div>
             <div className="space-y-2">
-              {files.map((item, index) => (
-                <div key={`${item.file.name}-${item.file.lastModified}-${index}`}>
+              {displayedFiles.map((item, index) => (
+                <div key={`${item.id}-${index}`}>
                   <FileItem
                     item={item}
                     index={index}
                     onRemove={() => handleRemoveFile(index)}
+                    onRetry={() => {
+                      retryFile(item.id);
+                      setPendingFileIds((prev) =>
+                        prev.includes(item.id) ? prev : [...prev, item.id]
+                      );
+                    }}
+
                     onPreview={() => openLightbox(item)}
+
                     onDragStart={(e, idx) => {
                       e.dataTransfer.effectAllowed = "move";
                       setDraggedIndex(idx);
