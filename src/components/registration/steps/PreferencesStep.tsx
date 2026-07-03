@@ -140,10 +140,10 @@ export const PreferencesStep = () => {
                   </span>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed">
-                  Occasional texts from the Drop Dead team about your pro account, sales, and early releases.
+                  Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases.
                 </p>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">
-                  By checking this box, you agree to receive recurring automated marketing texts from
+                  By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
                   Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
                   Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
                   <button
