@@ -10,20 +10,37 @@ const DISPOSABLE_EMAIL_MESSAGE =
 function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
   if (!value) return undefined;
 
-  const converted: string[] = value.map((item: UploadFileItem | string) => {
-    if (typeof item === "string") return item;
-    return item.url;
-  });
+  const converted: string[] = [];
+  for (const item of value as (UploadFileItem | string)[]) {
+    if (typeof item === "string") {
+      if (item) converted.push(item);
+      continue;
+    }
+    // Drop items that haven't finished uploading — they have no url yet and
+    // would serialize to `null` over the wire, tripping the server-side
+    // `z.array(z.string())` re-validation with a useless "expected string,
+    // received null" error. Better to fail the client-side `.min(1)` check
+    // with a clear message than to submit a broken payload.
+    if (item && item.status === "completed" && typeof item.url === "string" && item.url) {
+      converted.push(item.url);
+    }
+  }
 
   return converted;
 }
 
 function fileUploadSchema(optional: boolean) {
-  let fileArraySchema = z.array(uploadFileItemSchema);
-  let stringArraySchema = z.array(z.string());
+  let fileArraySchema = z
+    .array(uploadFileItemSchema)
+    .refine((items) => items.every((i) => i.status === "completed" && !!i.url), {
+      message: "Please wait for your upload to finish, or re-attach the file",
+    });
+  let stringArraySchema = z.array(z.string().min(1));
 
   if (!optional) {
-    fileArraySchema = fileArraySchema.min(1, "At least one file is required");
+    fileArraySchema = fileArraySchema.refine((items) => items.length >= 1, {
+      message: "At least one file is required",
+    }) as typeof fileArraySchema;
     stringArraySchema = stringArraySchema.min(1, "At least one file is required");
   }
 
@@ -34,6 +51,7 @@ function fileUploadSchema(optional: boolean) {
   }
   return filesSchema.overwrite(convertFileUploadToUrl);
 }
+
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
 // Phone number validation — allow common separators and an optional leading "+".
