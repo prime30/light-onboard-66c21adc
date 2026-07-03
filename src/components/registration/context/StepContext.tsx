@@ -285,6 +285,22 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
+    if (currentStep === "preferences") {
+      const { acceptsSmsMarketing, phoneNumber } = watch() as {
+        acceptsSmsMarketing?: boolean;
+        phoneNumber?: string;
+      };
+      if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please add a valid phone number for SMS updates",
+          description: "Or uncheck the SMS opt-in to continue.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const nextStep = steps[currentStepNumber + 1] || currentStep;
     goToStep(nextStep);
   };
