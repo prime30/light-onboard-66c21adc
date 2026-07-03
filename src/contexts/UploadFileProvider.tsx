@@ -26,6 +26,27 @@ interface UploadFileProviderProps {
   children: React.ReactNode;
 }
 
+const UPLOAD_SESSION_STORAGE_KEY = "ddx.upload-session-id";
+
+// A stable per-browser-session identifier used as an upload folder key when
+// the user hasn't entered their email yet. Without this, students could pick
+// a file on the school step before the global `email` state was populated,
+// and the queue would silently no-op forever — the file would sit in
+// `pending` and the form would submit `[null]` for enrollmentProofFiles.
+function getUploadSessionId(): string {
+  if (typeof window === "undefined") return "anon-ssr";
+  try {
+    let id = window.sessionStorage.getItem(UPLOAD_SESSION_STORAGE_KEY);
+    if (!id) {
+      id = `anon-${crypto.randomUUID()}`;
+      window.sessionStorage.setItem(UPLOAD_SESSION_STORAGE_KEY, id);
+    }
+    return id;
+  } catch {
+    return `anon-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
 export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children }) => {
   const { email } = useGlobalApp();
   const [queue, setQueue] = useState<UploadFileItem[]>([]);
@@ -63,10 +84,14 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
 
   const processQueue = useCallback(async () => {
     if (isUploadingRef.current) return;
-    if (!email) return;
 
     const hasPendingFiles = queueRef.current.some((item) => item.status === "pending");
     if (!hasPendingFiles) return;
+
+    // Fall back to a stable per-session id if email isn't set yet. The server
+    // just uses this string as a folder key — real association happens later
+    // when the submission payload carries the URLs alongside the real email.
+    const uploadKey = email && email.trim() ? email.trim() : getUploadSessionId();
 
     isUploadingRef.current = true;
     setIsUploading(true);
@@ -80,7 +105,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
         updateFileStatus(item.id, "uploading");
 
         try {
-          const url = await uploadFile(item.file, email, (progress) => {
+          const url = await uploadFile(item.file, uploadKey, (progress) => {
             updateFileProgress(item.id, progress);
           });
 
@@ -100,12 +125,12 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
 
   useEffect(() => {
     if (isUploadingRef.current) return;
-    if (!email) return;
     if (!queue.some((item) => item.status === "pending")) return;
 
-    // Auto-start upload
+    // Auto-start upload — no longer gated on email; we use a session id fallback
     void processQueue();
-  }, [queue, processQueue, email]);
+  }, [queue, processQueue]);
+
 
   const addFiles = useCallback((files: File[]) => {
     const newItems: UploadFileItem[] = files.map((file) => ({
