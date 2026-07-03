@@ -22,6 +22,7 @@ import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
 import { useAutoApproval } from "@/lib/app-settings";
+import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
   totalSteps: number;
