@@ -42,9 +42,11 @@ export const PreferencesStep = () => {
 
   const validationStatus = getStepValidationStatus(currentStep);
 
-  // SMS checkbox is only available when a phone number was provided earlier.
-  // While actively editing, keep it enabled so the user doesn't lose the toggle.
-  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7) || isEditingPhone;
+  // Whether a usable phone number is already on file. We no longer use this
+  // to *disable* the SMS checkbox — the checkbox is always selectable so the
+  // user can never get stuck. Instead, if they opt in without a valid number
+  // we auto-open the inline phone editor so they can add/fix it right here.
+  const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
 
   // Footer notice visibility (only relevant when SMS is opted-in)
   const [showSmsNotice, setShowSmsNotice] = useState(acceptsSmsMarketing);
