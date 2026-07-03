@@ -11,6 +11,8 @@ import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "
 import { useCloseIframe } from "@/hooks/messages";
 import { supabase } from "@/integrations/supabase/client";
 import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
+import { isValidPhoneNumber } from "@/lib/validations/form-utils";
+import { toast } from "sonner";
 
 interface AuthFooterProps {
   mode: AuthMode;
