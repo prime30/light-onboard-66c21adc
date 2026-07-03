@@ -260,6 +260,23 @@ export function AuthFooter({
       // popover on final-gate steps (summary / late password) — on regular
       // steps the inline field errors are enough.
       const missing = blockingSteps.flatMap((s) => s.missingFields);
+
+      // Preferences: the SMS opt-in + phone-number pair is a cross-field
+      // rule that doesn't map to a single "missing field" the schema knows
+      // about. Explicitly explain why Continue is refusing to advance so
+      // users aren't left staring at a shake with no message.
+      if (currentStep === "preferences") {
+        const sms = watch("acceptsSmsMarketing") as boolean | undefined;
+        const phone = watch("phoneNumber") as string | undefined;
+        if (sms && !isValidPhoneNumber(phone ?? "")) {
+          toast.error("Please add a valid phone number for SMS updates", {
+            description: "Or uncheck the SMS opt-in to continue.",
+          });
+          shakeMissingFields(["phoneNumber", "acceptsSmsMarketing"]);
+          return;
+        }
+      }
+
       if (isFinalGateStep) setSubmitTooltipOpen(true);
       shakeMissingFields(missing);
       return;
