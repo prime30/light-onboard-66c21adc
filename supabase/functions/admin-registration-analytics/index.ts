@@ -260,6 +260,40 @@ Deno.serve(async (req: Request) => {
     }))
     .sort((a, b) => b.started - a.started);
 
+  // ---- monthly order volume cohorts ----
+  // Classification tiers users select in the MonthlyOrderVolumeStep.
+  const VOLUME_ORDER = ["None", "1-5", "6-10", "10+", "unknown"] as const;
+  const VOLUME_TIER: Record<string, string> = {
+    "None": "Just starting",
+    "1-5": "Growing",
+    "6-10": "Established",
+    "10+": "High volume",
+    "unknown": "Not captured",
+  };
+  const byVolume = new Map<string, { started: number; completed: number; purchasers: number }>();
+  for (const r of leads) {
+    const raw = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
+    const k = raw && (VOLUME_ORDER as readonly string[]).includes(raw) ? raw : "unknown";
+    const cur = byVolume.get(k) ?? { started: 0, completed: 0, purchasers: 0 };
+    cur.started += 1;
+    if (r.completed_at) cur.completed += 1;
+    if (r.first_order_at) cur.purchasers += 1;
+    byVolume.set(k, cur);
+  }
+  const volumeCohorts = VOLUME_ORDER.filter((k) => byVolume.has(k)).map((k) => {
+    const v = byVolume.get(k)!;
+    return {
+      volume: k,
+      tier: VOLUME_TIER[k],
+      started: v.started,
+      completed: v.completed,
+      purchasers: v.purchasers,
+      bounceRate: v.started > 0 ? Math.round(((v.started - v.completed) / v.started) * 1000) / 10 : 0,
+      completionRate: v.started > 0 ? Math.round((v.completed / v.started) * 1000) / 10 : 0,
+      purchaseRate: v.completed > 0 ? Math.round((v.purchasers / v.completed) * 1000) / 10 : 0,
+    };
+  });
+
   // ---- last step distribution for bounced leads ----
   const stepMap = new Map<string, number>();
   for (const r of leads) {
