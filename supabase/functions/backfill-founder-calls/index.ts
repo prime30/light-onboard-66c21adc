@@ -99,8 +99,6 @@ Deno.serve(async (req) => {
   }
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
-  return json({ success: false, error: "Invalid credentials" }, 401);
-  }
 
   const token = Deno.env.get("CALENDLY_API_TOKEN");
   const eventTypeUri = Deno.env.get("CALENDLY_EVENT_TYPE_URI");
