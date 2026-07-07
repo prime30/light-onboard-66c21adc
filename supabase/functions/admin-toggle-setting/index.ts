@@ -106,12 +106,12 @@ Deno.serve(async (req: Request) => {
       .single();
     if (readErr) {
       console.error("Failed to read app_settings:", readErr);
-      return json({ success: true, verified: true });
+      return json({ success: true, verified: true, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
     }
-    return json({ success: true, verified: true, setting: current });
+    return json({ success: true, verified: true, setting: current, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
   }
 
-  const update: Record<string, unknown> = { updated_by: email };
+  const update: Record<string, unknown> = { updated_by: _adminEmail };
   if (hasToggle) update.auto_approval_enabled = body.autoApprovalEnabled;
   if (hasWelcomeToggle) update.welcome_offer_enabled = body.welcomeOfferEnabled;
   if (hasMetafieldsToggle) update.discount_metafields_enabled = body.discountMetafieldsEnabled;
@@ -130,7 +130,8 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Failed to update setting" }, 500);
   }
 
-  return json({ success: true, setting: data });
+  return json({ success: true, setting: data, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
+
 });
 
 function json(body: unknown, status = 200) {
