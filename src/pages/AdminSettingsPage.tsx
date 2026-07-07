@@ -1052,9 +1052,11 @@ const AdminSettingsPage = () => {
           onClick={() => {
             setAuthed(false);
             setPassword("");
+            setToken("");
             setAdminMode(false);
             try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
           }}
+
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign out
