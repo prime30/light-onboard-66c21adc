@@ -73,7 +73,7 @@ export function RegistrationYoYPanel({ adminEmail, adminToken }: Props) {
     try {
       const { data: res, error: invokeError } = await supabase.functions.invoke(
         "admin-registration-yoy",
-        { body: { email: adminEmail, password: adminToken } },
+        { body: { token: adminToken } },
       );
       if (invokeError) throw invokeError;
       const typed = res as ApiResponse;
@@ -105,7 +105,7 @@ export function RegistrationYoYPanel({ adminEmail, adminToken }: Props) {
             {
               body: {
                 email: adminEmail,
-                password: adminToken,
+                token: adminToken,
                 startPage: page,
                 ...(range
                   ? { createdAtMin: range.createdAtMin, createdAtMax: range.createdAtMax }

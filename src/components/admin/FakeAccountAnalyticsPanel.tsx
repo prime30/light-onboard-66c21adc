@@ -78,7 +78,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data, error: invokeErr } = await supabase.functions.invoke(
         "admin-fake-account-analysis",
-        { body: { email: adminEmail, password: adminToken, days, minScore, limit: 200 } },
+        { body: { token: adminToken, days, minScore, limit: 200 } },
       );
       if (invokeErr || !data?.success) {
         setError(data?.error ?? invokeErr?.message ?? "Failed to load");
@@ -129,7 +129,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
       const { data, error: invokeErr } = await supabase.functions.invoke("admin-revoke-account", {
         body: {
           email: adminEmail,
-          password: adminToken,
+          token: adminToken,
           profileId: row.id,
           shopifyCustomerId: row.shopify_customer_id,
         },

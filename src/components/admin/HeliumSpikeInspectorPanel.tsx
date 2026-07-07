@@ -111,7 +111,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
         {
           body: {
             email: adminEmail,
-            password: adminToken,
+            token: adminToken,
             createdAtMin: `${from}T00:00:00Z`,
             createdAtMax: `${to}T00:00:00Z`,
             limit: 2000,
@@ -146,7 +146,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
           {
             body: {
               email: adminEmail,
-              password: adminToken,
+              token: adminToken,
               createdAtMin,
               createdAtMax,
               startPage: page,
@@ -188,7 +188,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
     try {
       const { data: res, error: invokeError } = await supabase.functions.invoke(
         "admin-helium-audit",
-        { body: { email: adminEmail, password: adminToken } },
+        { body: { token: adminToken } },
       );
       if (invokeError) throw invokeError;
       const typed = res as AuditResponse;
@@ -216,7 +216,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
           {
             body: {
               email: adminEmail,
-              password: adminToken,
+              token: adminToken,
               startPage: page,
               maxPages: 3,
             },

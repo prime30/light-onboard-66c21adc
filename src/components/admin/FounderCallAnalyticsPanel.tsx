@@ -92,7 +92,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
           {
             body: {
               email: adminEmail,
-              password: adminToken,
+              token: adminToken,
               dryRun,
               daysBack: 365,
               daysForward: 90,
@@ -123,7 +123,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "backfill-first-orders",
-        { body: { email: adminEmail, password: adminToken, daysBack: 365 } },
+        { body: { token: adminToken, daysBack: 365 } },
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
@@ -147,7 +147,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "tag-founder-call-attendees",
-        { body: { email: adminEmail, password: adminToken } },
+        { body: { token: adminToken } },
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Tag error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
@@ -171,7 +171,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-registration-analytics",
-        { body: { email: adminEmail, password: adminToken, days } },
+        { body: { token: adminToken, days } },
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");

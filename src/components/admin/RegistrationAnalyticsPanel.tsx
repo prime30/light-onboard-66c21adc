@@ -124,7 +124,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-registration-analytics",
-        { body: { email: adminEmail, password: adminToken, days } },
+        { body: { token: adminToken, days } },
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");

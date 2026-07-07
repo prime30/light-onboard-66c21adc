@@ -37,7 +37,7 @@ export const ReferralAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-referral-analytics",
-        { body: { email: adminEmail, password: adminToken, sinceDays } }
+        { body: { token: adminToken, sinceDays } }
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");
