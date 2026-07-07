@@ -71,10 +71,10 @@ const RANGE_OPTIONS = [7, 14, 30, 90] as const;
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
-export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => {
+export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
   const [days, setDays] = useState<number>(30);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -91,8 +91,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
           "backfill-founder-calls",
           {
             body: {
-              email: adminEmail,
-              password: adminPassword,
+              token: adminToken,
               dryRun,
               daysBack: 365,
               daysForward: 90,
@@ -113,7 +112,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
         setBackfilling(false);
       }
     },
-    [adminEmail, adminPassword],
+    [adminEmail, adminToken],
   );
 
   const [syncing, setSyncing] = useState(false);
@@ -123,7 +122,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "backfill-first-orders",
-        { body: { email: adminEmail, password: adminPassword, daysBack: 365 } },
+        { body: { token: adminToken, daysBack: 365 } },
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
@@ -138,7 +137,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     } finally {
       setSyncing(false);
     }
-  }, [adminEmail, adminPassword]);
+  }, [adminEmail, adminToken]);
 
   const [tagging, setTagging] = useState(false);
   const tagAttendees = useCallback(async () => {
@@ -147,7 +146,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "tag-founder-call-attendees",
-        { body: { email: adminEmail, password: adminPassword } },
+        { body: { token: adminToken } },
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Tag error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
@@ -161,7 +160,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     } finally {
       setTagging(false);
     }
-  }, [adminEmail, adminPassword]);
+  }, [adminEmail, adminToken]);
 
   const fetchDataRef = useRef<(() => void) | null>(null);
 
@@ -171,7 +170,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-registration-analytics",
-        { body: { email: adminEmail, password: adminPassword, days } },
+        { body: { token: adminToken, days } },
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");
@@ -184,7 +183,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, days]);
+  }, [adminEmail, adminToken, days]);
 
   useEffect(() => {
     fetchDataRef.current = fetchData;

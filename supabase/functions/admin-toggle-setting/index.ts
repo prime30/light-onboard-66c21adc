@@ -39,7 +39,40 @@ function sanitizeTags(input: unknown): string[] | null {
   return out;
 }
 
+// --- Admin auth (token or password) -----------------------------------------
+async function _hmacB64u(key: string, msg: string): Promise<string> {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", k, enc.encode(msg));
+  return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+async function verifyAdminToken(token: string, secret: string): Promise<boolean> {
+  if (!token || typeof token !== "string" || !token.includes(".")) return false;
+  const [payload, sig] = token.split(".");
+  const expected = await _hmacB64u(secret, payload);
+  if (expected.length !== sig.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+  if (diff !== 0) return false;
+  try {
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = "===".slice((b64.length + 3) % 4);
+    const j = JSON.parse(atob(b64 + pad));
+    if (j.email !== ADMIN_EMAIL) return false;
+    if (typeof j.exp !== "number" || j.exp < Math.floor(Date.now() / 1000)) return false;
+    return true;
+  } catch { return false; }
+}
+async function issueAdminToken(email: string, secret: string, ttlSeconds = 60 * 60 * 8): Promise<{ token: string; expiresAt: number }> {
+  const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
+  const b = btoa(JSON.stringify({ email, exp: expiresAt })).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const s = await _hmacB64u(secret, b);
+  return { token: `${b}.${s}`, expiresAt };
+}
+// ---------------------------------------------------------------------------
+
 Deno.serve(async (req: Request) => {
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -56,17 +89,30 @@ Deno.serve(async (req: Request) => {
   }
 
   const email = (body.email ?? "").trim().toLowerCase();
-  const password = body.password ?? "";
+  const providedToken = typeof (body as { token?: unknown }).token === "string" ? (body as { token?: string }).token! : "";
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
-
   if (!adminPassword) {
     console.error("ADMIN_PANEL_PASSWORD is not configured");
     return json({ success: false, error: "Server configuration error" }, 500);
   }
-
-  if (email !== ADMIN_EMAIL || password !== adminPassword) {
+  let _authed = false;
+  let _authedEmail = email;
+  let _issuedToken: { token: string; expiresAt: number } | null = null;
+  if (providedToken) {
+    _authed = await verifyAdminToken(providedToken, adminPassword);
+    if (_authed) _authedEmail = ADMIN_EMAIL;
+  } else {
+    const password = body.password ?? "";
+    _authed = email === ADMIN_EMAIL && password === adminPassword;
+    if (_authed) {
+      _issuedToken = await issueAdminToken(ADMIN_EMAIL, adminPassword);
+    }
+  }
+  if (!_authed) {
     return json({ success: false, error: "Invalid credentials" }, 401);
   }
+  const _adminEmail = _authedEmail;
+
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -93,12 +139,12 @@ Deno.serve(async (req: Request) => {
       .single();
     if (readErr) {
       console.error("Failed to read app_settings:", readErr);
-      return json({ success: true, verified: true });
+      return json({ success: true, verified: true, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
     }
-    return json({ success: true, verified: true, setting: current });
+    return json({ success: true, verified: true, setting: current, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
   }
 
-  const update: Record<string, unknown> = { updated_by: email };
+  const update: Record<string, unknown> = { updated_by: _adminEmail };
   if (hasToggle) update.auto_approval_enabled = body.autoApprovalEnabled;
   if (hasWelcomeToggle) update.welcome_offer_enabled = body.welcomeOfferEnabled;
   if (hasMetafieldsToggle) update.discount_metafields_enabled = body.discountMetafieldsEnabled;
@@ -117,7 +163,8 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Failed to update setting" }, 500);
   }
 
-  return json({ success: true, setting: data });
+  return json({ success: true, setting: data, token: _issuedToken?.token, expiresAt: _issuedToken?.expiresAt });
+
 });
 
 function json(body: unknown, status = 200) {

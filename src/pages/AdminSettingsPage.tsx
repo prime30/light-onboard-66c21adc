@@ -27,7 +27,9 @@ const AdminSettingsPage = () => {
   const [authed, setAuthed] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [token, setToken] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
+
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
   const [loadingSetting, setLoadingSetting] = useState(true);
@@ -76,26 +78,22 @@ const AdminSettingsPage = () => {
   // Load current settings on mount
   useEffect(() => {
     let cancelled = false;
-    supabase.rpc("get_auto_approval_enabled").then(({ data, error }) => {
+    supabase.functions.invoke("public-app-flags", { body: {} }).then(({ data }) => {
       if (cancelled) return;
-      if (error) console.error("Failed to load setting:", error);
-      setAutoApproval((data as boolean | null) ?? false);
+      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean };
+      setAutoApproval(!!flags.autoApprovalEnabled);
       setLoadingSetting(false);
-    });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.rpc as any)("get_welcome_offer_enabled").then(({ data, error }: { data: unknown; error: unknown }) => {
-      if (cancelled) return;
-      if (error) console.error("Failed to load welcome_offer flag:", error);
-      setWelcomeOffer((data as boolean | null) ?? false);
+      setWelcomeOffer(!!flags.welcomeOfferEnabled);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Rehydrate admin session from sessionStorage so preview HMR / iframe reloads
-  // don't kick the admin back to the login screen. Credentials are re-verified
-  // server-side; sessionStorage alone is never trusted.
+
+  // Rehydrate admin session from sessionStorage using a short-lived token so
+  // preview HMR / iframe reloads don't kick the admin back to the login screen.
+  // Only the session token (not the raw password) is stored client-side.
   useEffect(() => {
     let cancelled = false;
     let raw: string | null = null;
@@ -105,18 +103,22 @@ const AdminSettingsPage = () => {
       return;
     }
     if (!raw) return;
-    let creds: { email?: string; password?: string } | null = null;
+    let session: { email?: string; token?: string; expiresAt?: number } | null = null;
     try {
-      creds = JSON.parse(raw);
+      session = JSON.parse(raw);
     } catch {
       try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
       return;
     }
-    if (!creds?.email || !creds?.password) return;
-    setEmail(creds.email);
-    setPassword(creds.password);
+    if (!session?.email || !session?.token) return;
+    if (session.expiresAt && session.expiresAt * 1000 < Date.now()) {
+      try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+      return;
+    }
+    setEmail(session.email);
+    setToken(session.token);
     void supabase.functions
-      .invoke("admin-toggle-setting", { body: { email: creds.email, password: creds.password } })
+      .invoke("admin-toggle-setting", { body: { token: session.token } })
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error || !data?.success) {
@@ -150,6 +152,7 @@ const AdminSettingsPage = () => {
   }, []);
 
 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerifying(true);
@@ -157,7 +160,7 @@ const AdminSettingsPage = () => {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
         body: { email, password },
       });
-      if (error || !data?.success) {
+      if (error || !data?.success || !data?.token) {
         toast({
           title: "Access denied",
           description: "Invalid credentials.",
@@ -166,10 +169,17 @@ const AdminSettingsPage = () => {
         setPassword("");
         return;
       }
+      const issuedToken: string = data.token;
+      const expiresAt: number | undefined = data.expiresAt;
+      setToken(issuedToken);
+      setPassword(""); // never keep the raw password in memory after login
       setAuthed(true);
       setAdminMode(true);
       try {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ email, password }));
+        sessionStorage.setItem(
+          ADMIN_SESSION_KEY,
+          JSON.stringify({ email, token: issuedToken, expiresAt })
+        );
       } catch {
         /* ignore quota/availability */
       }
@@ -183,9 +193,6 @@ const AdminSettingsPage = () => {
       if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
         setMetafieldsEnabled(data.setting.discount_metafields_enabled);
       } else {
-        // Default to ON when the column hasn't been hydrated yet — matches the
-        // server-side column default and the user's intent of preserving theme
-        // discount visibility.
         setMetafieldsEnabled(true);
       }
       if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
@@ -205,6 +212,7 @@ const AdminSettingsPage = () => {
     }
   };
 
+
   const handleToggle = async (next: boolean) => {
     if (autoApproval === null) return;
     const previous = autoApproval;
@@ -212,7 +220,7 @@ const AdminSettingsPage = () => {
     setUpdating(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, autoApprovalEnabled: next },
+        body: { token, autoApprovalEnabled: next },
       });
       if (error || !data?.success) {
         setAutoApproval(previous);
@@ -245,7 +253,7 @@ const AdminSettingsPage = () => {
     setUpdatingWelcome(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, welcomeOfferEnabled: next },
+        body: { token, welcomeOfferEnabled: next },
       });
       if (error || !data?.success) {
         setWelcomeOffer(previous);
@@ -278,7 +286,7 @@ const AdminSettingsPage = () => {
     setUpdatingMetafields(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, discountMetafieldsEnabled: next },
+        body: { token, discountMetafieldsEnabled: next },
       });
       if (error || !data?.success) {
         setMetafieldsEnabled(previous);
@@ -310,7 +318,7 @@ const AdminSettingsPage = () => {
     setUpdatingFounderHighVolume(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, founderCallHighVolumeOnly: next },
+        body: { token, founderCallHighVolumeOnly: next },
       });
       if (error || !data?.success) {
         setFounderHighVolume(previous);
@@ -392,7 +400,7 @@ const AdminSettingsPage = () => {
     }
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, extraCustomerTags: payload },
+        body: { token, extraCustomerTags: payload },
       });
       if (error || !data?.success) {
         toast({
@@ -425,13 +433,13 @@ const AdminSettingsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
         body: {
-          email,
-          password,
+          token,
           mode: "list",
           createdDays: backfillCreatedDays,
           updatedHours: backfillUpdatedHours,
         },
       });
+
       if (error || !data?.success) {
         toast({
           title: "Failed to load matches",
@@ -468,12 +476,12 @@ const AdminSettingsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
         body: {
-          email,
-          password,
+          token,
           mode: "apply",
           customerIds: Array.from(selectedIds),
         },
       });
+
       if (error || !data?.success) {
         toast({
           title: "Backfill failed",
@@ -1020,29 +1028,31 @@ const AdminSettingsPage = () => {
           })()}
         </div>
 
-        <RegistrationAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <RegistrationYoYPanel adminEmail={email} adminPassword={password} />
+        <RegistrationYoYPanel adminEmail={email} adminToken={token} />
 
-        <HeliumSpikeInspectorPanel adminEmail={email} adminPassword={password} />
+        <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
 
-        <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
 
 
-        <ReferralAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <FakeAccountAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
+        <SubmissionsLogPanel adminEmail={email} adminToken={token} />
 
         <button
           type="button"
           onClick={() => {
             setAuthed(false);
             setPassword("");
+            setToken("");
             setAdminMode(false);
             try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
           }}
+
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign out

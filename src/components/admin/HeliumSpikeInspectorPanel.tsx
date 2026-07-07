@@ -46,7 +46,7 @@ type ApiResponse = {
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
 function toCsv(records: Record[]): string {
@@ -88,7 +88,7 @@ type AuditResponse = {
   error?: string;
 };
 
-export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) {
+export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
   const [from, setFrom] = useState("2025-01-21");
   const [to, setTo] = useState("2025-01-28");
   const [loading, setLoading] = useState(false);
@@ -102,7 +102,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
   const [auditError, setAuditError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
+    if (!adminEmail || !adminToken) return;
     setLoading(true);
     setError(null);
     try {
@@ -110,8 +110,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
         "admin-helium-customers-range",
         {
           body: {
-            email: adminEmail,
-            password: adminPassword,
+            token: adminToken,
             createdAtMin: `${from}T00:00:00Z`,
             createdAtMax: `${to}T00:00:00Z`,
             limit: 2000,
@@ -127,10 +126,10 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, from, to]);
+  }, [adminEmail, adminToken, from, to]);
 
   const refillRange = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
+    if (!adminEmail || !adminToken) return;
     setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
     try {
       let page = 1;
@@ -145,8 +144,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           "admin-backfill-helium-customers",
           {
             body: {
-              email: adminEmail,
-              password: adminPassword,
+              token: adminToken,
               createdAtMin,
               createdAtMax,
               startPage: page,
@@ -178,17 +176,17 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
         ...s, running: false, error: err instanceof Error ? err.message : "Refill failed",
       }));
     }
-  }, [adminEmail, adminPassword, from, to, load]);
+  }, [adminEmail, adminToken, from, to, load]);
 
   const runAudit = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
+    if (!adminEmail || !adminToken) return;
     setAuditLoading(true);
     setAuditError(null);
     setAudit(null);
     try {
       const { data: res, error: invokeError } = await supabase.functions.invoke(
         "admin-helium-audit",
-        { body: { email: adminEmail, password: adminPassword } },
+        { body: { token: adminToken } },
       );
       if (invokeError) throw invokeError;
       const typed = res as AuditResponse;
@@ -199,10 +197,10 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
     } finally {
       setAuditLoading(false);
     }
-  }, [adminEmail, adminPassword]);
+  }, [adminEmail, adminToken]);
 
   const repairAll = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
+    if (!adminEmail || !adminToken) return;
     setRefill({ running: true, iterations: 0, fetched: 0, upserted: 0, done: false, error: null });
     try {
       let page = 1;
@@ -215,8 +213,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
           "admin-backfill-helium-customers",
           {
             body: {
-              email: adminEmail,
-              password: adminPassword,
+              token: adminToken,
               startPage: page,
               maxPages: 3,
             },
@@ -246,7 +243,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminPassword }: Props) 
         ...s, running: false, error: err instanceof Error ? err.message : "Repair failed",
       }));
     }
-  }, [adminEmail, adminPassword, runAudit]);
+  }, [adminEmail, adminToken, runAudit]);
 
 
   const downloadCsv = useCallback(() => {

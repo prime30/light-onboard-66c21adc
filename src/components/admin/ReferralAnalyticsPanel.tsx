@@ -8,7 +8,7 @@ type SourceRow = { key: string; label: string; count: number; pct: number };
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
 const RANGES: { label: string; days: number }[] = [
@@ -19,7 +19,7 @@ const RANGES: { label: string; days: number }[] = [
   { label: "All", days: 3650 },
 ];
 
-export const ReferralAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => {
+export const ReferralAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
   const [loading, setLoading] = useState(false);
   const [sinceDays, setSinceDays] = useState(90);
   const [data, setData] = useState<{
@@ -37,7 +37,7 @@ export const ReferralAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-referral-analytics",
-        { body: { email: adminEmail, password: adminPassword, sinceDays } }
+        { body: { token: adminToken, sinceDays } }
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");
@@ -57,7 +57,7 @@ export const ReferralAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => 
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, sinceDays]);
+  }, [adminEmail, adminToken, sinceDays]);
 
   useEffect(() => {
     fetchData();

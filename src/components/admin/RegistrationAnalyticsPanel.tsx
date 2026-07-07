@@ -100,7 +100,7 @@ type ApiResponse = {
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
 const RANGE_OPTIONS: { label: string; days: number }[] = [
@@ -112,7 +112,7 @@ const RANGE_OPTIONS: { label: string; days: number }[] = [
   { label: "Last 90d", days: 90 },
 ];
 
-export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => {
+export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
   const [days, setDays] = useState<number>(30);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -124,7 +124,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "admin-registration-analytics",
-        { body: { email: adminEmail, password: adminPassword, days } },
+        { body: { token: adminToken, days } },
       );
       if (invokeErr || !res?.success) {
         setError(res?.error ?? invokeErr?.message ?? "Failed to load analytics");
@@ -137,7 +137,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminPassword }: Props)
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, days]);
+  }, [adminEmail, adminToken, days]);
 
   useEffect(() => {
     fetchData();
