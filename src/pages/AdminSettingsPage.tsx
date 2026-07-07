@@ -1032,20 +1032,20 @@ const AdminSettingsPage = () => {
           })()}
         </div>
 
-        <RegistrationAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <RegistrationYoYPanel adminEmail={email} adminPassword={password} />
+        <RegistrationYoYPanel adminEmail={email} adminToken={token} />
 
-        <HeliumSpikeInspectorPanel adminEmail={email} adminPassword={password} />
+        <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
 
-        <FounderCallAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
 
 
-        <ReferralAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <FakeAccountAnalyticsPanel adminEmail={email} adminPassword={password} />
+        <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
 
-        <SubmissionsLogPanel adminEmail={email} adminPassword={password} />
+        <SubmissionsLogPanel adminEmail={email} adminToken={token} />
 
         <button
           type="button"
