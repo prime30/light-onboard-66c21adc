@@ -221,6 +221,48 @@ export const AccountTypeForm = () => {
     },
   ];
 
+  if (showNotStylist) {
+    return (
+      <div className="space-y-[clamp(15px,2.5vh,30px)]">
+        <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+            <UserX className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+              Trade only
+            </span>
+          </div>
+          <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+            We only sell to licensed stylists
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
+            Drop Dead is a trade-only brand. Ask your stylist about Drop Dead pricing. If you
+            don't have a stylist who offers extensions, search your area for extensionists.
+          </p>
+        </div>
+
+        <div className="space-y-2.5 sm:space-y-[15px] max-w-md mx-auto w-full">
+          <a
+            href="https://www.google.com/search?q=hair+extensionists+near+me"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-sm sm:text-base transition-colors"
+          >
+            <Search className="w-4 h-4" />
+            Find an extensionist near you
+          </a>
+          <button
+            type="button"
+            onClick={() => setShowNotStylist(false)}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
       <AccountTypeConfirmationOverlay
