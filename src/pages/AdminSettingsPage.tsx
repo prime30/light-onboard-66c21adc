@@ -437,13 +437,13 @@ const AdminSettingsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
         body: {
-          email,
-          password,
+          token,
           mode: "list",
           createdDays: backfillCreatedDays,
           updatedHours: backfillUpdatedHours,
         },
       });
+
       if (error || !data?.success) {
         toast({
           title: "Failed to load matches",
