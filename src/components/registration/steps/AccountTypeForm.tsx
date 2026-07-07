@@ -405,6 +405,30 @@ export const AccountTypeForm = () => {
             </div>
           </button>
         ))}
+
+        <button
+          type="button"
+          onClick={() => setShowNotStylist(true)}
+          className={cn(
+            "relative w-full p-[15px] sm:p-4 rounded-form sm:rounded-[20px] border-2 border-dashed border-border text-left group",
+            "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+            "hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-foreground/[0.04] active:scale-[0.98]"
+          )}
+        >
+          <div className="flex items-center gap-[15px] sm:gap-5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 bg-muted group-hover:bg-muted/60 transition-all duration-300">
+              <UserX className="w-5 h-5 text-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm sm:text-base font-medium text-foreground">
+                I am not a stylist
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Looking for Drop Dead as a customer
+              </p>
+            </div>
+          </div>
+        </button>
       </div>
 
       {/* Non-professional link — hidden for now */}
