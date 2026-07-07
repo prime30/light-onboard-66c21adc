@@ -8,6 +8,9 @@ import {
   ShieldCheck,
   FileCheck,
   Check,
+  UserX,
+  ArrowLeft,
+  Search,
 } from "lucide-react";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
@@ -102,6 +105,7 @@ export const AccountTypeForm = () => {
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
+  const [showNotStylist, setShowNotStylist] = useState(false);
 
   const accountType = watch("accountType");
 
@@ -216,6 +220,48 @@ export const AccountTypeForm = () => {
       ],
     },
   ];
+
+  if (showNotStylist) {
+    return (
+      <div className="space-y-[clamp(15px,2.5vh,30px)]">
+        <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
+            <UserX className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+              Trade only
+            </span>
+          </div>
+          <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+            We only sell to licensed stylists
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
+            Drop Dead is a trade-only brand. Ask your stylist about Drop Dead pricing. If you
+            don't have a stylist who offers extensions, search your area for extensionists.
+          </p>
+        </div>
+
+        <div className="space-y-2.5 sm:space-y-[15px] max-w-md mx-auto w-full">
+          <a
+            href="https://www.google.com/search?q=hair+extensionists+near+me"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-sm sm:text-base transition-colors"
+          >
+            <Search className="w-4 h-4" />
+            Find an extensionist near you
+          </a>
+          <button
+            type="button"
+            onClick={() => setShowNotStylist(false)}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
@@ -359,6 +405,30 @@ export const AccountTypeForm = () => {
             </div>
           </button>
         ))}
+
+        <button
+          type="button"
+          onClick={() => setShowNotStylist(true)}
+          className={cn(
+            "relative w-full p-[15px] sm:p-4 rounded-form sm:rounded-[20px] border-2 border-dashed border-border text-left group",
+            "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+            "hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-foreground/[0.04] active:scale-[0.98]"
+          )}
+        >
+          <div className="flex items-center gap-[15px] sm:gap-5">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 bg-muted group-hover:bg-muted/60 transition-all duration-300">
+              <UserX className="w-5 h-5 text-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm sm:text-base font-medium text-foreground">
+                I am not a stylist
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Looking for Drop Dead as a customer
+              </p>
+            </div>
+          </div>
+        </button>
       </div>
 
       {/* Non-professional link — hidden for now */}
