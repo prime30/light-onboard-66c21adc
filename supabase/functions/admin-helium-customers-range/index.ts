@@ -82,7 +82,6 @@ Deno.serve(async (req: Request) => {
   }
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
-  return json({ success: false, error: "Invalid credentials" }, 401);
 
   if (!body.createdAtMin || !body.createdAtMax)
     return json({ success: false, error: "createdAtMin and createdAtMax required" }, 400);

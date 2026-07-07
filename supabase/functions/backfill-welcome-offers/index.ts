@@ -382,8 +382,6 @@ Deno.serve(async (req: Request) => {
   }
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
-  return json({ success: false, error: "Invalid credentials" }, 401);
-  }
 
   const mode = body.mode ?? "list";
   const createdDays = Number.isFinite(body.createdDays) && (body.createdDays as number) > 0

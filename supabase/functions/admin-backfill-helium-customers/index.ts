@@ -100,7 +100,6 @@ Deno.serve(async (req: Request) => {
   }
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
-  return json({ success: false, error: "Invalid credentials" }, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
