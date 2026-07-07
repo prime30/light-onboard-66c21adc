@@ -122,7 +122,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data: res, error: invokeErr } = await supabase.functions.invoke(
         "backfill-first-orders",
-        { body: { token: adminToken, daysBack: 365 } },
+        { body: { token: adminToken, daysBack: 1095 } },
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
