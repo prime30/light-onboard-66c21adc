@@ -104,7 +104,6 @@ export function RegistrationYoYPanel({ adminEmail, adminToken }: Props) {
             "admin-backfill-helium-customers",
             {
               body: {
-                email: adminEmail,
                 token: adminToken,
                 startPage: page,
                 ...(range

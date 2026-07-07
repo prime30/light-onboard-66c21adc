@@ -74,7 +74,6 @@ export const SubmissionsLogPanel = ({ adminEmail, adminToken }: Props) => {
         "admin-list-submissions",
         {
           body: {
-            email: adminEmail,
             token: adminToken,
             status,
             search: search.trim() || undefined,

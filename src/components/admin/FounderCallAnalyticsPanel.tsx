@@ -91,7 +91,6 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
           "backfill-founder-calls",
           {
             body: {
-              email: adminEmail,
               token: adminToken,
               dryRun,
               daysBack: 365,

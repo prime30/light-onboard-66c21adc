@@ -128,7 +128,6 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
     try {
       const { data, error: invokeErr } = await supabase.functions.invoke("admin-revoke-account", {
         body: {
-          email: adminEmail,
           token: adminToken,
           profileId: row.id,
           shopifyCustomerId: row.shopify_customer_id,

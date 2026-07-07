@@ -110,7 +110,6 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
         "admin-helium-customers-range",
         {
           body: {
-            email: adminEmail,
             token: adminToken,
             createdAtMin: `${from}T00:00:00Z`,
             createdAtMax: `${to}T00:00:00Z`,
@@ -145,7 +144,6 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
           "admin-backfill-helium-customers",
           {
             body: {
-              email: adminEmail,
               token: adminToken,
               createdAtMin,
               createdAtMax,
@@ -215,7 +213,6 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
           "admin-backfill-helium-customers",
           {
             body: {
-              email: adminEmail,
               token: adminToken,
               startPage: page,
               maxPages: 3,
