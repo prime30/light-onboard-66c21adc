@@ -56,17 +56,30 @@ Deno.serve(async (req: Request) => {
   }
 
   const email = (body.email ?? "").trim().toLowerCase();
-  const password = body.password ?? "";
+  const providedToken = typeof (body as { token?: unknown }).token === "string" ? (body as { token?: string }).token! : "";
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
-
   if (!adminPassword) {
     console.error("ADMIN_PANEL_PASSWORD is not configured");
     return json({ success: false, error: "Server configuration error" }, 500);
   }
-
-  if (email !== ADMIN_EMAIL || password !== adminPassword) {
+  let _authed = false;
+  let _authedEmail = email;
+  let _issuedToken: { token: string; expiresAt: number } | null = null;
+  if (providedToken) {
+    _authed = await verifyAdminToken(providedToken, adminPassword);
+    if (_authed) _authedEmail = ADMIN_EMAIL;
+  } else {
+    const password = body.password ?? "";
+    _authed = email === ADMIN_EMAIL && password === adminPassword;
+    if (_authed) {
+      _issuedToken = await issueAdminToken(ADMIN_EMAIL, adminPassword);
+    }
+  }
+  if (!_authed) {
     return json({ success: false, error: "Invalid credentials" }, 401);
   }
+  const _adminEmail = _authedEmail;
+
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
