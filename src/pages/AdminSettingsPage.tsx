@@ -27,7 +27,9 @@ const AdminSettingsPage = () => {
   const [authed, setAuthed] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [token, setToken] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
+
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
   const [loadingSetting, setLoadingSetting] = useState(true);
