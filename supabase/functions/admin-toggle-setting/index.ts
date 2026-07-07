@@ -39,7 +39,40 @@ function sanitizeTags(input: unknown): string[] | null {
   return out;
 }
 
+// --- Admin auth (token or password) -----------------------------------------
+async function _hmacB64u(key: string, msg: string): Promise<string> {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", k, enc.encode(msg));
+  return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+async function verifyAdminToken(token: string, secret: string): Promise<boolean> {
+  if (!token || typeof token !== "string" || !token.includes(".")) return false;
+  const [payload, sig] = token.split(".");
+  const expected = await _hmacB64u(secret, payload);
+  if (expected.length !== sig.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+  if (diff !== 0) return false;
+  try {
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = "===".slice((b64.length + 3) % 4);
+    const j = JSON.parse(atob(b64 + pad));
+    if (j.email !== ADMIN_EMAIL) return false;
+    if (typeof j.exp !== "number" || j.exp < Math.floor(Date.now() / 1000)) return false;
+    return true;
+  } catch { return false; }
+}
+async function issueAdminToken(email: string, secret: string, ttlSeconds = 60 * 60 * 8): Promise<{ token: string; expiresAt: number }> {
+  const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
+  const b = btoa(JSON.stringify({ email, exp: expiresAt })).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const s = await _hmacB64u(secret, b);
+  return { token: `${b}.${s}`, expiresAt };
+}
+// ---------------------------------------------------------------------------
+
 Deno.serve(async (req: Request) => {
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
