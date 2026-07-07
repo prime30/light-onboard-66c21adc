@@ -71,6 +71,16 @@ type ApiResponse = {
   };
   series: SeriesPoint[];
   accountTypes: AccountTypeRow[];
+  volumeCohorts?: {
+    volume: string;
+    tier: string;
+    started: number;
+    completed: number;
+    purchasers: number;
+    bounceRate: number;
+    completionRate: number;
+    purchaseRate: number;
+  }[];
   dropOffSteps: DropOffRow[];
   dropOffFields?: DropOffFieldRow[];
   validationErrors?: ValidationErrorRow[];
