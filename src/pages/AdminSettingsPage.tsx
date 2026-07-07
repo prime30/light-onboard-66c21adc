@@ -95,9 +95,9 @@ const AdminSettingsPage = () => {
     };
   }, []);
 
-  // Rehydrate admin session from sessionStorage so preview HMR / iframe reloads
-  // don't kick the admin back to the login screen. Credentials are re-verified
-  // server-side; sessionStorage alone is never trusted.
+  // Rehydrate admin session from sessionStorage using a short-lived token so
+  // preview HMR / iframe reloads don't kick the admin back to the login screen.
+  // Only the session token (not the raw password) is stored client-side.
   useEffect(() => {
     let cancelled = false;
     let raw: string | null = null;
@@ -107,18 +107,22 @@ const AdminSettingsPage = () => {
       return;
     }
     if (!raw) return;
-    let creds: { email?: string; password?: string } | null = null;
+    let session: { email?: string; token?: string; expiresAt?: number } | null = null;
     try {
-      creds = JSON.parse(raw);
+      session = JSON.parse(raw);
     } catch {
       try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
       return;
     }
-    if (!creds?.email || !creds?.password) return;
-    setEmail(creds.email);
-    setPassword(creds.password);
+    if (!session?.email || !session?.token) return;
+    if (session.expiresAt && session.expiresAt * 1000 < Date.now()) {
+      try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+      return;
+    }
+    setEmail(session.email);
+    setToken(session.token);
     void supabase.functions
-      .invoke("admin-toggle-setting", { body: { email: creds.email, password: creds.password } })
+      .invoke("admin-toggle-setting", { body: { token: session.token } })
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error || !data?.success) {
@@ -150,6 +154,7 @@ const AdminSettingsPage = () => {
       cancelled = true;
     };
   }, []);
+
 
 
   const handleLogin = async (e: React.FormEvent) => {
