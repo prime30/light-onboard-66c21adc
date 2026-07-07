@@ -105,6 +105,7 @@ export const AccountTypeForm = () => {
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
+  const [showNotStylist, setShowNotStylist] = useState(false);
 
   const accountType = watch("accountType");
 
