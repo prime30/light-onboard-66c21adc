@@ -520,40 +520,65 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
       {(data?.deviceByStep?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
-            Mobile vs desktop bounce by step
+            Where abandons happen, by device
           </div>
           <p className="text-[10px] text-muted-foreground mb-2">
-            A step where mobile bounce far exceeds desktop usually has a mobile-specific UX issue (upload, autocomplete, keyboard).
+            Share of all abandoned registrations that occurred at each step. Columns sum to 100% per device. Steps concentrating the most abandons are the highest-leverage places to fix UX.
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <th className="text-left py-1.5 pr-3 font-medium">Step</th>
-                  <th className="text-right py-1.5 px-2 font-medium">Mobile n</th>
-                  <th className="text-right py-1.5 px-2 font-medium">Mobile %</th>
-                  <th className="text-right py-1.5 px-2 font-medium">Desktop n</th>
-                  <th className="text-right py-1.5 pl-2 font-medium">Desktop %</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {data!.deviceByStep!.map((row) => {
-                  const gap = row.mobileBounceRate - row.desktopBounceRate;
-                  return (
-                    <tr key={row.step}>
-                      <td className="py-1.5 pr-3 font-medium truncate max-w-[200px]">{row.step}</td>
-                      <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.mobileStarted}</td>
-                      <td className={cn("py-1.5 px-2 text-right tabular-nums", gap > 15 ? "text-destructive" : "")}>
-                        {row.mobileBounceRate}%
-                      </td>
-                      <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.desktopStarted}</td>
-                      <td className="py-1.5 pl-2 text-right tabular-nums">{row.desktopBounceRate}%</td>
+          {(() => {
+            const rows = data!.deviceByStep!.map((row) => ({
+              step: row.step,
+              mobileBounces: Math.round((row.mobileStarted * row.mobileBounceRate) / 100),
+              desktopBounces: Math.round((row.desktopStarted * row.desktopBounceRate) / 100),
+              mobileRate: row.mobileBounceRate,
+              desktopRate: row.desktopBounceRate,
+            }));
+            const mobileTotal = rows.reduce((s, r) => s + r.mobileBounces, 0) || 1;
+            const desktopTotal = rows.reduce((s, r) => s + r.desktopBounces, 0) || 1;
+            const sorted = [...rows].sort(
+              (a, b) => b.mobileBounces / mobileTotal - a.mobileBounces / mobileTotal,
+            );
+            return (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      <th className="text-left py-1.5 pr-3 font-medium">Step</th>
+                      <th className="text-right py-1.5 px-2 font-medium">Mobile abandons</th>
+                      <th className="text-right py-1.5 px-2 font-medium">Mobile share</th>
+                      <th className="text-right py-1.5 px-2 font-medium">Desktop abandons</th>
+                      <th className="text-right py-1.5 pl-2 font-medium">Desktop share</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {sorted.map((row) => {
+                      const mShare = (row.mobileBounces / mobileTotal) * 100;
+                      const dShare = (row.desktopBounces / desktopTotal) * 100;
+                      const gap = mShare - dShare;
+                      return (
+                        <tr key={row.step}>
+                          <td className="py-1.5 pr-3 font-medium truncate max-w-[200px]">{row.step}</td>
+                          <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.mobileBounces}</td>
+                          <td className={cn("py-1.5 px-2 text-right tabular-nums", gap > 15 ? "text-destructive" : "")}>
+                            {mShare.toFixed(1)}%
+                          </td>
+                          <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.desktopBounces}</td>
+                          <td className="py-1.5 pl-2 text-right tabular-nums">{dShare.toFixed(1)}%</td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="text-[10px] text-muted-foreground">
+                      <td className="py-1.5 pr-3 uppercase tracking-wide">Total</td>
+                      <td className="py-1.5 px-2 text-right tabular-nums">{mobileTotal}</td>
+                      <td className="py-1.5 px-2 text-right tabular-nums">100%</td>
+                      <td className="py-1.5 px-2 text-right tabular-nums">{desktopTotal}</td>
+                      <td className="py-1.5 pl-2 text-right tabular-nums">100%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </div>
       )}
 
