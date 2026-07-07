@@ -164,7 +164,7 @@ const AdminSettingsPage = () => {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
         body: { email, password },
       });
-      if (error || !data?.success) {
+      if (error || !data?.success || !data?.token) {
         toast({
           title: "Access denied",
           description: "Invalid credentials.",
@@ -173,10 +173,17 @@ const AdminSettingsPage = () => {
         setPassword("");
         return;
       }
+      const issuedToken: string = data.token;
+      const expiresAt: number | undefined = data.expiresAt;
+      setToken(issuedToken);
+      setPassword(""); // never keep the raw password in memory after login
       setAuthed(true);
       setAdminMode(true);
       try {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ email, password }));
+        sessionStorage.setItem(
+          ADMIN_SESSION_KEY,
+          JSON.stringify({ email, token: issuedToken, expiresAt })
+        );
       } catch {
         /* ignore quota/availability */
       }
@@ -190,9 +197,6 @@ const AdminSettingsPage = () => {
       if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
         setMetafieldsEnabled(data.setting.discount_metafields_enabled);
       } else {
-        // Default to ON when the column hasn't been hydrated yet — matches the
-        // server-side column default and the user's intent of preserving theme
-        // discount visibility.
         setMetafieldsEnabled(true);
       }
       if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
@@ -211,6 +215,7 @@ const AdminSettingsPage = () => {
       setVerifying(false);
     }
   };
+
 
   const handleToggle = async (next: boolean) => {
     if (autoApproval === null) return;
