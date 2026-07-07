@@ -71,6 +71,16 @@ type ApiResponse = {
   };
   series: SeriesPoint[];
   accountTypes: AccountTypeRow[];
+  volumeCohorts?: {
+    volume: string;
+    tier: string;
+    started: number;
+    completed: number;
+    purchasers: number;
+    bounceRate: number;
+    completionRate: number;
+    purchaseRate: number;
+  }[];
   dropOffSteps: DropOffRow[];
   dropOffFields?: DropOffFieldRow[];
   validationErrors?: ValidationErrorRow[];
@@ -343,6 +353,57 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Monthly order volume cohorts */}
+      {(data?.volumeCohorts?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            By monthly order volume
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            Classifications from the order-volume step. Purchase % = first order placed / completed registrations.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Volume</th>
+                  <th className="text-left py-1.5 px-2 font-medium">Tier</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Started</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Completed</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Bounce %</th>
+                  <th className="text-right py-1.5 pl-2 font-medium">Purchase %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.volumeCohorts!.map((row) => (
+                  <tr key={row.volume}>
+                    <td className="py-1.5 pr-3 font-medium">{row.volume === "unknown" ? "—" : row.volume}</td>
+                    <td className="py-1.5 px-2 text-muted-foreground">{row.tier}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.started}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {row.completed}
+                      <span className="text-[10px] opacity-70 ml-1">({row.completionRate}%)</span>
+                    </td>
+                    <td
+                      className={cn(
+                        "py-1.5 px-2 text-right tabular-nums",
+                        row.bounceRate > 50 ? "text-destructive" : "text-status-green",
+                      )}
+                    >
+                      {row.bounceRate}%
+                    </td>
+                    <td className="py-1.5 pl-2 text-right tabular-nums">
+                      {row.purchaseRate}%
+                      <span className="text-[10px] opacity-70 ml-1">({row.purchasers})</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
