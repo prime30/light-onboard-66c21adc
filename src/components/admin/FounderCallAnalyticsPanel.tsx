@@ -67,7 +67,7 @@ type ApiResponse = {
   error?: string;
 };
 
-const RANGE_OPTIONS = [7, 14, 30, 90] as const;
+const RANGE_OPTIONS = [7, 14, 30, 90, 120] as const;
 
 interface Props {
   adminEmail: string;

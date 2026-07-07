@@ -120,6 +120,7 @@ const RANGE_OPTIONS: { label: string; days: number }[] = [
   { label: "Last 14d", days: 14 },
   { label: "Last 30d", days: 30 },
   { label: "Last 90d", days: 90 },
+  { label: "Last 120d", days: 120 },
 ];
 
 export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
