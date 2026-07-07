@@ -747,6 +747,7 @@ Deno.serve(async (req: Request) => {
     },
     series,
     accountTypes,
+    volumeCohorts,
     dropOffSteps,
     dropOffFields,
     validationErrors,
