@@ -33,10 +33,10 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
-export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
+export const SubmissionsLogPanel = ({ adminEmail, adminToken }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
@@ -75,7 +75,7 @@ export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
         {
           body: {
             email: adminEmail,
-            password: adminPassword,
+            password: adminToken,
             status,
             search: search.trim() || undefined,
             limit: 100,
@@ -95,7 +95,7 @@ export const SubmissionsLogPanel = ({ adminEmail, adminPassword }: Props) => {
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, status, search]);
+  }, [adminEmail, adminToken, status, search]);
 
   useEffect(() => {
     fetchSubmissions();

@@ -42,7 +42,7 @@ type ApiResponse = {
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
 
@@ -59,7 +59,7 @@ function pctTone(pct: number | null): string {
   return pct > 0 ? "text-status-green" : "text-status-red";
 }
 
-export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
+export function RegistrationYoYPanel({ adminEmail, adminToken }: Props) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,13 +67,13 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
   const [backfillStatus, setBackfillStatus] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!adminEmail || !adminPassword) return;
+    if (!adminEmail || !adminToken) return;
     setLoading(true);
     setError(null);
     try {
       const { data: res, error: invokeError } = await supabase.functions.invoke(
         "admin-registration-yoy",
-        { body: { email: adminEmail, password: adminPassword } },
+        { body: { email: adminEmail, password: adminToken } },
       );
       if (invokeError) throw invokeError;
       const typed = res as ApiResponse;
@@ -84,11 +84,11 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword]);
+  }, [adminEmail, adminToken]);
 
   const runBackfill = useCallback(
     async (range?: { createdAtMin: string; createdAtMax: string; label?: string }) => {
-      if (!adminEmail || !adminPassword) return;
+      if (!adminEmail || !adminToken) return;
       setBackfilling(true);
       setBackfillStatus(
         range
@@ -105,7 +105,7 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
             {
               body: {
                 email: adminEmail,
-                password: adminPassword,
+                password: adminToken,
                 startPage: page,
                 ...(range
                   ? { createdAtMin: range.createdAtMin, createdAtMax: range.createdAtMax }
@@ -143,7 +143,7 @@ export function RegistrationYoYPanel({ adminEmail, adminPassword }: Props) {
         setBackfilling(false);
       }
     },
-    [adminEmail, adminPassword, load],
+    [adminEmail, adminToken, load],
   );
 
   const refillRange = useCallback(() => {

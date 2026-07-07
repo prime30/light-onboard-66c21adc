@@ -39,7 +39,7 @@ type FakeRow = {
 
 interface Props {
   adminEmail: string;
-  adminPassword: string;
+  adminToken: string;
 }
 
 const DAY_OPTIONS = [7, 14, 30, 60, 90];
@@ -59,7 +59,7 @@ const likelihoodLabel = (score: number) => {
   return "Very low";
 };
 
-export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) => {
+export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<FakeRow[] | null>(null);
@@ -78,7 +78,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     try {
       const { data, error: invokeErr } = await supabase.functions.invoke(
         "admin-fake-account-analysis",
-        { body: { email: adminEmail, password: adminPassword, days, minScore, limit: 200 } },
+        { body: { email: adminEmail, password: adminToken, days, minScore, limit: 200 } },
       );
       if (invokeErr || !data?.success) {
         setError(data?.error ?? invokeErr?.message ?? "Failed to load");
@@ -93,7 +93,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [adminEmail, adminPassword, days, minScore]);
+  }, [adminEmail, adminToken, days, minScore]);
 
   useEffect(() => { void fetchRows(); }, [fetchRows]);
 
@@ -129,7 +129,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
       const { data, error: invokeErr } = await supabase.functions.invoke("admin-revoke-account", {
         body: {
           email: adminEmail,
-          password: adminPassword,
+          password: adminToken,
           profileId: row.id,
           shopifyCustomerId: row.shopify_customer_id,
         },
@@ -161,7 +161,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminPassword }: Props) 
     } finally {
       setRevokingId(null);
     }
-  }, [adminEmail, adminPassword, toast]);
+  }, [adminEmail, adminToken, toast]);
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
