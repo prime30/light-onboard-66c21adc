@@ -224,7 +224,7 @@ const AdminSettingsPage = () => {
     setUpdating(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, autoApprovalEnabled: next },
+        body: { token, autoApprovalEnabled: next },
       });
       if (error || !data?.success) {
         setAutoApproval(previous);
@@ -257,7 +257,7 @@ const AdminSettingsPage = () => {
     setUpdatingWelcome(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, welcomeOfferEnabled: next },
+        body: { token, welcomeOfferEnabled: next },
       });
       if (error || !data?.success) {
         setWelcomeOffer(previous);
@@ -290,7 +290,7 @@ const AdminSettingsPage = () => {
     setUpdatingMetafields(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, discountMetafieldsEnabled: next },
+        body: { token, discountMetafieldsEnabled: next },
       });
       if (error || !data?.success) {
         setMetafieldsEnabled(previous);
@@ -322,7 +322,7 @@ const AdminSettingsPage = () => {
     setUpdatingFounderHighVolume(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, founderCallHighVolumeOnly: next },
+        body: { token, founderCallHighVolumeOnly: next },
       });
       if (error || !data?.success) {
         setFounderHighVolume(previous);
@@ -404,7 +404,7 @@ const AdminSettingsPage = () => {
     }
     try {
       const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
-        body: { email, password, extraCustomerTags: payload },
+        body: { token, extraCustomerTags: payload },
       });
       if (error || !data?.success) {
         toast({
