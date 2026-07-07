@@ -78,22 +78,18 @@ const AdminSettingsPage = () => {
   // Load current settings on mount
   useEffect(() => {
     let cancelled = false;
-    supabase.rpc("get_auto_approval_enabled").then(({ data, error }) => {
+    supabase.functions.invoke("public-app-flags", { body: {} }).then(({ data }) => {
       if (cancelled) return;
-      if (error) console.error("Failed to load setting:", error);
-      setAutoApproval((data as boolean | null) ?? false);
+      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean };
+      setAutoApproval(!!flags.autoApprovalEnabled);
       setLoadingSetting(false);
-    });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.rpc as any)("get_welcome_offer_enabled").then(({ data, error }: { data: unknown; error: unknown }) => {
-      if (cancelled) return;
-      if (error) console.error("Failed to load welcome_offer flag:", error);
-      setWelcomeOffer((data as boolean | null) ?? false);
+      setWelcomeOffer(!!flags.welcomeOfferEnabled);
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
 
   // Rehydrate admin session from sessionStorage using a short-lived token so
   // preview HMR / iframe reloads don't kick the admin back to the login screen.
