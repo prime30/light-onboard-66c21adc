@@ -480,12 +480,12 @@ const AdminSettingsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
         body: {
-          email,
-          password,
+          token,
           mode: "apply",
           customerIds: Array.from(selectedIds),
         },
       });
+
       if (error || !data?.success) {
         toast({
           title: "Backfill failed",
