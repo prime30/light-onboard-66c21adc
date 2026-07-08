@@ -102,8 +102,6 @@ const initialUIState: RegistrationUIState = {
   displayTotalSteps: 7,
   completedSteps: new Set(),
   highlightFields: [],
-  highlightWholesaleTerms: false,
-  highlightWholesaleFade: false,
   modalDragOffset: 0,
   isClosing: false,
   isBouncingBack: false,
@@ -162,8 +160,6 @@ type RegistrationAction =
   | { type: "ADD_COMPLETED_STEP"; stepNumber: number }
   | { type: "SET_COMPLETED_STEPS"; steps: Set<number> }
   | { type: "SET_HIGHLIGHT_FIELDS"; fields: string[] }
-  | { type: "SET_HIGHLIGHT_WHOLESALE_TERMS"; value: boolean }
-  | { type: "SET_HIGHLIGHT_WHOLESALE_FADE"; value: boolean }
 
   // Modal actions
   | { type: "SET_MODAL_DRAG_OFFSET"; offset: number }
@@ -282,16 +278,6 @@ function registrationReducer(
       return {
         ...state,
         ui: { ...state.ui, highlightFields: action.fields },
-      };
-    case "SET_HIGHLIGHT_WHOLESALE_TERMS":
-      return {
-        ...state,
-        ui: { ...state.ui, highlightWholesaleTerms: action.value },
-      };
-    case "SET_HIGHLIGHT_WHOLESALE_FADE":
-      return {
-        ...state,
-        ui: { ...state.ui, highlightWholesaleFade: action.value },
       };
 
     // Modal actions
