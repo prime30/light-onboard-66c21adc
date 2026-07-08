@@ -59,8 +59,6 @@ export interface RegistrationUIState {
 
   // Highlight states
   highlightFields: string[];
-  highlightWholesaleTerms: boolean;
-  highlightWholesaleFade: boolean;
 
   // Modal states
   modalDragOffset: number;
