@@ -165,6 +165,202 @@ export const PreferencesStep = () => {
       </div>
 
       <div className="space-y-5">
+        {/* Tax exemption — moved into preferences to shorten the flow. */}
+        <div className="space-y-[15px] animate-stagger-2">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">
+              Do you have a tax exemption?
+            </p>
+            <p className="text-xs text-muted-foreground/80 leading-relaxed">
+              A tax exemption certificate isn't required to register. If you have one,
+              upload it to avoid sales tax on your orders.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-[15px]">
+            <button
+              type="button"
+              onClick={handleTaxYes}
+              className={cn(
+                "p-[18px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]",
+                taxExempt === true
+                  ? "border-foreground bg-foreground/8"
+                  : taxSelectionError
+                    ? "border-destructive/50 bg-destructive/5"
+                    : "border-border hover:border-foreground/30 hover:bg-muted/60"
+              )}
+            >
+              <div
+                data-field="tax-exemption-yes"
+                className={cn(
+                  "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+                  taxExempt === true
+                    ? "border-foreground bg-foreground"
+                    : taxSelectionError
+                      ? "border-destructive/50"
+                      : "border-muted-foreground/50"
+                )}
+              >
+                {taxExempt === true && (
+                  <Check className="w-4 h-4 text-background" strokeWidth={3} />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  taxSelectionError ? "text-destructive" : "text-foreground"
+                )}
+              >
+                Yes
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={handleTaxNo}
+              className={cn(
+                "p-[18px] rounded-form border-2 text-left transition-all duration-300 flex items-center gap-4 hover:-translate-y-0.5 active:scale-[0.99]",
+                taxExempt === false
+                  ? "border-foreground bg-foreground/8"
+                  : taxSelectionError
+                    ? "border-destructive/50 bg-destructive/5"
+                    : "border-border hover:border-foreground/30 hover:bg-muted/60"
+              )}
+            >
+              <div
+                data-field="tax-exemption-no"
+                className={cn(
+                  "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 flex-shrink-0",
+                  taxExempt === false
+                    ? "border-foreground bg-foreground"
+                    : taxSelectionError
+                      ? "border-destructive/50"
+                      : "border-muted-foreground/50"
+                )}
+              >
+                {taxExempt === false && (
+                  <Check className="w-4 h-4 text-background" strokeWidth={3} />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  taxSelectionError ? "text-destructive" : "text-foreground"
+                )}
+              >
+                No
+              </span>
+            </button>
+          </div>
+          {taxSelectionError && (
+            <p className="text-xs text-destructive text-center">Please select an option</p>
+          )}
+
+          {/* Info card when No is selected */}
+          <div
+            className={cn(
+              "grid transition-all duration-400",
+              showTaxNoInfo && taxExempt === false
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0"
+            )}
+            style={{
+              transitionTimingFunction: showTaxNoInfo
+                ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
+                : "ease-out",
+            }}
+          >
+            <div className="overflow-hidden space-y-[15px] px-2 -mx-2 pb-[15px] -mb-[15px]">
+              <p
+                key={`intro-${taxNoKey}`}
+                className="text-xs text-muted-foreground text-center animate-fade-in"
+              >
+                That's ok! You can add it to your account later.
+              </p>
+              <div
+                key={`card-${taxNoKey}`}
+                className="rounded-xl border border-border/50 p-4 pb-5 bg-background hover:shadow-card-hover transition-shadow duration-300 animate-[slideUpFade_0.5s_cubic-bezier(0.34,1.56,0.64,1)_0.15s_both]"
+              >
+                <Link
+                  to="/blog/resale-license"
+                  className="relative block rounded-md bg-background hover:opacity-90 transition-all duration-300 group"
+                >
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-md">
+                    <img
+                      src={blogResaleLicense}
+                      alt="Professional reviewing business documents"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3 flex gap-1.5">
+                      <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium uppercase tracking-wider">
+                        Licensing
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pt-4">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>Dec 15, 2024</span>
+                      </div>
+                      <span>·</span>
+                      <span>5 min read</span>
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1.5 group-hover:text-primary transition-colors">
+                      Here's how to save from paying sales tax
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                      Understanding the importance of a resale license can save you money
+                      and keep your business compliant.
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      Read more
+                      <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* File upload when Yes selected */}
+          <div
+            ref={taxFileRef}
+            className={cn(
+              "grid transition-all duration-400",
+              taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}
+            style={{
+              transitionTimingFunction:
+                taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+            }}
+          >
+            <div className="overflow-hidden">
+              <div
+                className={cn(taxExempt === true && "animate-haptic-pop")}
+                data-field="tax-document"
+              >
+                <MultiFileUpload
+                  files={
+                    Array.isArray(taxExemptFile) &&
+                    taxExemptFile.every((item) => typeof item === "object")
+                      ? (taxExemptFile as UploadFileItem[])
+                      : []
+                  }
+                  onFilesChange={(files: UploadFileItem[]) =>
+                    setValue("taxExemptFile", files, dirtyFieldOptions)
+                  }
+                  placeholder="Upload your state tax-exempt license"
+                  error={!!errors.taxExemptFile}
+                  errorMessage="Please upload your tax exemption document"
+                  maxFiles={1}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50 animate-stagger-2" />
+
         {/* Communication preferences — promoted above birthday because the
             approval-notification SMS is the single highest-value action a
             new applicant can take here. SMS is intentionally the top
