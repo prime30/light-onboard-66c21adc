@@ -15,7 +15,7 @@ const MILESTONES: Milestone[] = [
   { label: "Setting up account", at: 100 },
 ];
 
-const TOTAL_DURATION_MS = 3600;
+const TOTAL_DURATION_MS = 8000;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
