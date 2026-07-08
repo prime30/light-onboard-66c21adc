@@ -33,6 +33,14 @@ type DeviceByStepRow = {
   mobileBounceRate: number;
   desktopBounceRate: number;
 };
+type DeviceByStepByFlowRow = {
+  flowType: string;
+  step: string;
+  mobileStarted: number;
+  desktopStarted: number;
+  mobileBounceRate: number;
+  desktopBounceRate: number;
+};
 type CohortRow = {
   date: string;
   size: number;
