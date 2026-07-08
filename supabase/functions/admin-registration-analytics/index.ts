@@ -877,6 +877,7 @@ Deno.serve(async (req: Request) => {
     },
     consent,
     recovery,
+    accountTypeGate,
   });
 });
 
