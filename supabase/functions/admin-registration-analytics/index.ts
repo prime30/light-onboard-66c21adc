@@ -828,6 +828,7 @@ Deno.serve(async (req: Request) => {
     validationErrors,
     devices,
     deviceByStep,
+    deviceByStepByFlow,
     cohorts,
 
     founderCall: {
