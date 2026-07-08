@@ -18,7 +18,7 @@ const MonthlyOrderVolumeStep = lazy(() => import("@/components/registration/step
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
 const SchoolInfoStep = lazy(() => import("@/components/registration/steps/SchoolInfoStep").then(m => ({ default: m.SchoolInfoStep })));
 const LicenseStep = lazy(() => import("@/components/registration/steps/LicenseStep").then(m => ({ default: m.LicenseStep })));
-const WholesaleTermsStep = lazy(() => import("@/components/registration/steps/WholesaleTermsStep").then(m => ({ default: m.WholesaleTermsStep })));
+
 const TaxExemptionStep = lazy(() => import("@/components/registration/steps/TaxExemptionStep").then(m => ({ default: m.TaxExemptionStep })));
 const BusinessOperationStep = lazy(() => import("@/components/registration/steps/BusinessOperationStep").then(m => ({ default: m.BusinessOperationStep })));
 const SummaryForm = lazy(() => import("@/components/registration/steps/SummaryForm").then(m => ({ default: m.SummaryForm })));
@@ -42,7 +42,6 @@ type FormSkeletonVariant =
   | "account-type"
   | "license"
   | "location"
-  | "terms"
   | "contact"
   | "business-operation";
 
@@ -54,8 +53,6 @@ function getSkeletonVariant(step: Step): FormSkeletonVariant {
       return "license";
     case "business-location":
       return "location";
-    case "wholesale-terms":
-      return "terms";
     case "contact-basics":
       return "contact";
     case "business-operation":
@@ -241,8 +238,6 @@ const Auth = () => {
       // Tax exemption
       "Exemption status": "[data-field='tax-exemption-yes'], [data-field='tax-exemption-no']",
       "Tax document": "[data-field='tax-document']",
-      // Wholesale terms
-      "Terms agreement": "[data-field='wholesale-terms']",
       // Business operation
       "Business type": "[data-field='business-type']",
       "Years in business": "[data-field='years-in-business']",
@@ -482,7 +477,7 @@ const Auth = () => {
               {currentStep === "school-info" && <SchoolInfoStep />}
               {currentStep === "contact-basics" && <ContactBasicsStep />}
               {currentStep === "create-password" && <CreatePasswordStep />}
-              {currentStep === "wholesale-terms" && <WholesaleTermsStep />}
+              
               {currentStep === "tax-exemption" && <TaxExemptionStep />}
               {currentStep === "preferred-method" && <PreferredMethodStep />}
               {currentStep === "monthly-order-volume" && <MonthlyOrderVolumeStep />}
