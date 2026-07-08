@@ -117,17 +117,17 @@ registration-documents/
 
 Three account types with different step sequences:
 
-### Professional (Stylist) - 10 steps
+### Professional (Stylist) - 9 steps
 
-1. Onboarding → 2. Account Type → 3. Business Operation → 4. Contact Basics → 5. License → 6. Business Location → 7. Tax Exemption → 8. Wholesale Terms → 9. Preferences → 10. Summary
+1. Onboarding → 2. Account Type → 3. Business Operation → 4. Contact Basics → 5. License → 6. Business Location → 7. Tax Exemption → 8. Preferences → 9. Summary
 
-### Salon Owner - 9 steps
+### Salon Owner - 8 steps
 
-1. Onboarding → 2. Account Type → 3. Business Location → 4. Contact Basics → 5. License → 6. Tax Exemption → 7. Wholesale Terms → 8. Preferences → 9. Summary
+1. Onboarding → 2. Account Type → 3. Business Location → 4. Contact Basics → 5. License → 6. Tax Exemption → 7. Preferences → 8. Summary
 
-### Student - 8 steps
+### Student - 7 steps
 
-1. Onboarding → 2. Account Type → 3. School Info → 4. Contact Basics → 5. Tax Exemption → 6. Wholesale Terms → 7. Preferences → 8. Summary
+1. Onboarding → 2. Account Type → 3. School Info → 4. Contact Basics → 5. Tax Exemption → 6. Preferences → 7. Summary
 
 ## What's Complete
 

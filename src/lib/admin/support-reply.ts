@@ -45,7 +45,7 @@ const FIELD_LABEL: Record<string, string> = {
   yearsInBusiness: "years in business",
   numberOfStylists: "number of stylists",
   preferredMethods: "preferred contact method",
-  termsAccepted: "wholesale terms acknowledgment",
+  
   password: "password",
 };
 
@@ -133,9 +133,6 @@ function diagnose(f: ErrorEntry): string {
       // Field-specific templates first, then generic.
       if (f.field === "accountType") {
         return "Please pick an account type on the first step (Professional, Salon, or Student).";
-      }
-      if (f.field === "termsAccepted") {
-        return "Please tick the wholesale terms acknowledgment on the final review step.";
       }
       if (f.field === "licenseProofFiles" || f.field === "studentIdFiles") {
         return `Your ${field} didn't upload successfully. Re-upload a clear photo or PDF (under 10MB) and resubmit.`;

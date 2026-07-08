@@ -61,7 +61,7 @@
 | `BusinessOperationStep.tsx` | Salon type selection |
 | `PreferencesStep.tsx` | Birthday, social handle |
 | `TaxExemptionStep.tsx` | Tax exempt document |
-| `WholesaleTermsStep.tsx` | Terms agreement |
+
 | `SummaryForm.tsx` | Review all info before submit |
 | `SuccessForm.tsx` | Post-submission confirmation |
 | `SignInForm.tsx` | Login form |
