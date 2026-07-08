@@ -158,6 +158,30 @@ export type Database = {
         }
         Relationships: []
       }
+      not_stylist_events: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
