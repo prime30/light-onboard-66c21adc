@@ -52,7 +52,6 @@ export const FIELD_DISPLAY_NAMES: Partial<Record<ValidFieldNames, string>> = {
   salonStructure: "Salon structure",
   taxExempt: "Tax exemption choice",
   taxExemptFile: "Tax exemption document",
-  wholesaleAgreed: "Wholesale terms agreement",
   preferredMethods: "Preferred methods",
   monthlyOrderVolume: "Monthly order volume",
   birthdayMonth: "Birthday month",
