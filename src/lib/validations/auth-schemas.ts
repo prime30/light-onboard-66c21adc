@@ -243,9 +243,7 @@ export const salonLicenseStepSchema = z.object({
 
 // Tax Exemption Schema
 const taxExemptionValidators = {
-  taxExempt: z.boolean({
-    error: "Please select an option",
-  }),
+  taxExempt: z.boolean().optional(),
   taxExemptFile: fileUploadSchema(true),
 };
 export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
