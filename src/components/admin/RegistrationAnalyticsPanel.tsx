@@ -94,6 +94,7 @@ type ApiResponse = {
   validationErrors?: ValidationErrorRow[];
   devices?: DeviceRow[];
   deviceByStep?: DeviceByStepRow[];
+  deviceByStepByFlow?: DeviceByStepByFlowRow[];
   cohorts: CohortRow[];
   consent?: {
     total: number;
