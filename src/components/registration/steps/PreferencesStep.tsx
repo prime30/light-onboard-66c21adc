@@ -32,6 +32,9 @@ export const PreferencesStep = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [showTaxNoInfo, setShowTaxNoInfo] = useState(false);
+  const [taxNoKey, setTaxNoKey] = useState(0);
+  const taxFileRef = useRef<HTMLDivElement>(null);
 
   // Watch form values
   const watchedValues = watch([
@@ -39,13 +42,47 @@ export const PreferencesStep = () => {
     "acceptsSmsMarketing",
     "phoneNumber",
     "phoneCountryCode",
+    "taxExempt",
+    "taxExemptFile",
   ]);
 
-  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber, phoneCountryCode] =
-    watchedValues;
+  const [
+    acceptsMarketing,
+    acceptsSmsMarketing,
+    phoneNumber,
+    phoneCountryCode,
+    taxExempt,
+    taxExemptFile,
+  ] = watchedValues;
 
 
   const validationStatus = getStepValidationStatus(currentStep);
+  const taxSelectionError = !!errors.taxExempt;
+
+  const handleTaxYes = () => {
+    if (taxExempt === true) {
+      setValue("taxExempt", null as unknown as boolean, dirtyFieldOptions);
+      setValue("taxExemptFile", [], dirtyFieldOptions);
+      return;
+    }
+    setValue("taxExempt", true, dirtyFieldOptions);
+    setShowTaxNoInfo(false);
+    setTimeout(() => {
+      taxFileRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  };
+
+  const handleTaxNo = () => {
+    if (taxExempt === false) {
+      setValue("taxExempt", null as unknown as boolean, dirtyFieldOptions);
+      setShowTaxNoInfo(false);
+      return;
+    }
+    setValue("taxExempt", false, dirtyFieldOptions);
+    setValue("taxExemptFile", [], dirtyFieldOptions);
+    setShowTaxNoInfo(true);
+    setTaxNoKey((prev) => prev + 1);
+  };
 
   // Whether a usable phone number is already on file. We no longer use this
   // to *disable* the SMS checkbox — the checkbox is always selectable so the
