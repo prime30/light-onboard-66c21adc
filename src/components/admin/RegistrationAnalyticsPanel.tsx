@@ -525,66 +525,73 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
         </div>
       )}
 
-      {/* Mobile vs desktop bounce per step */}
-      {(data?.deviceByStep?.length ?? 0) > 0 && (
+      {/* Mobile vs desktop bounce per step, by flow type */}
+      {(data?.deviceByStepByFlow?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
             Where abandons happen, by device
           </div>
           <p className="text-[10px] text-muted-foreground mb-2">
-            Share of all abandoned registrations that occurred at each step. Columns sum to 100% per device. Steps concentrating the most abandons are the highest-leverage places to fix UX.
+            Share of all abandoned registrations that occurred at each step, ordered by step number within each flow. Columns sum to 100% per device per flow type.
           </p>
           {(() => {
-            const rows = data!.deviceByStep!.map((row) => ({
-              step: row.step,
-              mobileBounces: Math.round((row.mobileStarted * row.mobileBounceRate) / 100),
-              desktopBounces: Math.round((row.desktopStarted * row.desktopBounceRate) / 100),
-              mobileRate: row.mobileBounceRate,
-              desktopRate: row.desktopBounceRate,
-            }));
-            const mobileTotal = rows.reduce((s, r) => s + r.mobileBounces, 0) || 1;
-            const desktopTotal = rows.reduce((s, r) => s + r.desktopBounces, 0) || 1;
-            const sorted = [...rows].sort(
-              (a, b) => b.mobileBounces / mobileTotal - a.mobileBounces / mobileTotal,
-            );
+            const allRows = data!.deviceByStepByFlow!;
+            const flows = ["professional", "salon", "student"] as const;
             return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      <th className="text-left py-1.5 pr-3 font-medium">Step</th>
-                      <th className="text-right py-1.5 px-2 font-medium">Mobile abandons</th>
-                      <th className="text-right py-1.5 px-2 font-medium">Mobile share</th>
-                      <th className="text-right py-1.5 px-2 font-medium">Desktop abandons</th>
-                      <th className="text-right py-1.5 pl-2 font-medium">Desktop share</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {sorted.map((row) => {
-                      const mShare = (row.mobileBounces / mobileTotal) * 100;
-                      const dShare = (row.desktopBounces / desktopTotal) * 100;
-                      const gap = mShare - dShare;
-                      return (
-                        <tr key={row.step}>
-                          <td className="py-1.5 pr-3 font-medium truncate max-w-[200px]">{row.step}</td>
-                          <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.mobileBounces}</td>
-                          <td className={cn("py-1.5 px-2 text-right tabular-nums", gap > 15 ? "text-destructive" : "")}>
-                            {mShare.toFixed(1)}%
-                          </td>
-                          <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.desktopBounces}</td>
-                          <td className="py-1.5 pl-2 text-right tabular-nums">{dShare.toFixed(1)}%</td>
-                        </tr>
-                      );
-                    })}
-                    <tr className="text-[10px] text-muted-foreground">
-                      <td className="py-1.5 pr-3 uppercase tracking-wide">Total</td>
-                      <td className="py-1.5 px-2 text-right tabular-nums">{mobileTotal}</td>
-                      <td className="py-1.5 px-2 text-right tabular-nums">100%</td>
-                      <td className="py-1.5 px-2 text-right tabular-nums">{desktopTotal}</td>
-                      <td className="py-1.5 pl-2 text-right tabular-nums">100%</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                {flows.map((flow) => {
+                  const rows = allRows.filter((r) => r.flowType === flow);
+                  if (rows.length === 0) return null;
+                  const mobileTotal = rows.reduce((s, r) => s + Math.round((r.mobileStarted * r.mobileBounceRate) / 100), 0) || 1;
+                  const desktopTotal = rows.reduce((s, r) => s + Math.round((r.desktopStarted * r.desktopBounceRate) / 100), 0) || 1;
+                  return (
+                    <div key={flow}>
+                      <div className="text-[10px] font-medium uppercase tracking-wide text-foreground mb-1.5">
+                        {flow}
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                              <th className="text-left py-1.5 pr-3 font-medium">Step</th>
+                              <th className="text-right py-1.5 px-2 font-medium">Mobile abandons</th>
+                              <th className="text-right py-1.5 px-2 font-medium">Mobile share</th>
+                              <th className="text-right py-1.5 px-2 font-medium">Desktop abandons</th>
+                              <th className="text-right py-1.5 pl-2 font-medium">Desktop share</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/50">
+                            {rows.map((row) => {
+                              const mobileBounces = Math.round((row.mobileStarted * row.mobileBounceRate) / 100);
+                              const desktopBounces = Math.round((row.desktopStarted * row.desktopBounceRate) / 100);
+                              const mShare = (mobileBounces / mobileTotal) * 100;
+                              const dShare = (desktopBounces / desktopTotal) * 100;
+                              const gap = mShare - dShare;
+                              return (
+                                <tr key={`${flow}-${row.step}`}>
+                                  <td className="py-1.5 pr-3 font-medium truncate max-w-[200px]">{row.step}</td>
+                                  <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{mobileBounces}</td>
+                                  <td className={cn("py-1.5 px-2 text-right tabular-nums", gap > 15 ? "text-destructive" : "")}>
+                                    {mShare.toFixed(1)}%
+                                  </td>
+                                  <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{desktopBounces}</td>
+                                  <td className="py-1.5 pl-2 text-right tabular-nums">{dShare.toFixed(1)}%</td>
+                                </tr>
+                              );
+                            })}
+                            <tr className="text-[10px] text-muted-foreground">
+                              <td className="py-1.5 pr-3 uppercase tracking-wide">Total</td>
+                              <td className="py-1.5 px-2 text-right tabular-nums">{mobileTotal}</td>
+                              <td className="py-1.5 px-2 text-right tabular-nums">100%</td>
+                              <td className="py-1.5 px-2 text-right tabular-nums">{desktopTotal}</td>
+                              <td className="py-1.5 pl-2 text-right tabular-nums">100%</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
           })()}
