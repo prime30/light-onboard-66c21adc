@@ -113,6 +113,14 @@ type ApiResponse = {
     medianHoursToRecover: number;
     windowHours: number;
   };
+  accountTypeGate?: {
+    bouncedTotal: number;
+    bouncedSelected: number;
+    bouncedNoSelection: number;
+    selectionRate: number;
+    noSelectionRate: number;
+    notStylistClicks: number;
+  };
   error?: string;
 };
 
