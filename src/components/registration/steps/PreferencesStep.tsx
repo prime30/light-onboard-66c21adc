@@ -145,69 +145,6 @@ export const PreferencesStep = () => {
       </div>
 
       <div className="space-y-5">
-        {/* Tax exemption — optional, collapsed by default. */}
-        <div className="space-y-[15px] animate-stagger-2">
-          <label
-            className={cn(
-              "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer",
-              taxExempt === true
-                ? "border-foreground/40 hover:border-foreground/60"
-                : "border-border hover:border-foreground/30"
-            )}
-          >
-            <Checkbox
-              checked={taxExempt === true}
-              onCheckedChange={(checked) => handleTaxToggle(!!checked)}
-              className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-            />
-            <div className="space-y-0.5 flex-1">
-              <span className="text-sm font-medium text-foreground">
-                I have a tax exemption certificate
-              </span>
-              <p className="text-xs text-muted-foreground">
-                Upload it to avoid sales tax on your orders. Not required to register.
-              </p>
-            </div>
-          </label>
-
-          {/* File upload when checked */}
-          <div
-            ref={taxFileRef}
-            className={cn(
-              "grid transition-all duration-400",
-              taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-            )}
-            style={{
-              transitionTimingFunction:
-                taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
-            }}
-          >
-            <div className="overflow-hidden">
-              <div
-                className={cn(taxExempt === true && "animate-haptic-pop")}
-                data-field="tax-document"
-              >
-                <MultiFileUpload
-                  files={
-                    Array.isArray(taxExemptFile) &&
-                    taxExemptFile.every((item) => typeof item === "object")
-                      ? (taxExemptFile as UploadFileItem[])
-                      : []
-                  }
-                  onFilesChange={(files: UploadFileItem[]) =>
-                    setValue("taxExemptFile", files, dirtyFieldOptions)
-                  }
-                  placeholder="Upload your state tax-exempt license"
-                  error={!!errors.taxExemptFile}
-                  errorMessage="Please upload your tax exemption document"
-                  maxFiles={1}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="h-px bg-border/50 animate-stagger-2" />
 
         {/* Communication preferences — promoted above birthday because the
             approval-notification SMS is the single highest-value action a
@@ -382,6 +319,70 @@ export const PreferencesStep = () => {
             </p>
           </div>
         )}
+
+        <div className="h-px bg-border/50 animate-stagger-2" />
+
+        {/* Tax exemption — optional, collapsed by default. */}
+        <div className="space-y-[15px] animate-stagger-2">
+          <label
+            className={cn(
+              "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer",
+              taxExempt === true
+                ? "border-foreground/40 hover:border-foreground/60"
+                : "border-border hover:border-foreground/30"
+            )}
+          >
+            <Checkbox
+              checked={taxExempt === true}
+              onCheckedChange={(checked) => handleTaxToggle(!!checked)}
+              className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+            />
+            <div className="space-y-0.5 flex-1">
+              <span className="text-sm font-medium text-foreground">
+                I have a tax exemption certificate
+              </span>
+              <p className="text-xs text-muted-foreground">
+                Upload it to avoid sales tax on your orders. Not required to register.
+              </p>
+            </div>
+          </label>
+
+          {/* File upload when checked */}
+          <div
+            ref={taxFileRef}
+            className={cn(
+              "grid transition-all duration-400",
+              taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}
+            style={{
+              transitionTimingFunction:
+                taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+            }}
+          >
+            <div className="overflow-hidden">
+              <div
+                className={cn(taxExempt === true && "animate-haptic-pop")}
+                data-field="tax-document"
+              >
+                <MultiFileUpload
+                  files={
+                    Array.isArray(taxExemptFile) &&
+                    taxExemptFile.every((item) => typeof item === "object")
+                      ? (taxExemptFile as UploadFileItem[])
+                      : []
+                  }
+                  onFilesChange={(files: UploadFileItem[]) =>
+                    setValue("taxExemptFile", files, dirtyFieldOptions)
+                  }
+                  placeholder="Upload your state tax-exempt license"
+                  error={!!errors.taxExemptFile}
+                  errorMessage="Please upload your tax exemption document"
+                  maxFiles={1}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* How did you hear about us? */}
         <div className="space-y-2.5 animate-stagger-2">
