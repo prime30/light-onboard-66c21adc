@@ -6,13 +6,13 @@
 
 ## PSL-001: Competing Skeletons (Double Loading UI)
 
-**Symptom**: Two overlapping loading skeletons visible during route transitions — one from `index.html` boot shell, one from React.
+**Symptom**: Two overlapping loading skeletons visible during route transitions - one from `index.html` boot shell, one from React.
 
 **Root Cause**: `AuthBootFallback` was rendering a full-page skeleton (including its own dark left panel and `100vh` wrapper) but was used as a `<Suspense>` fallback *inside* `RegistrationLayout`, which already renders the real `LeftPanel`. Result: two left panels stacking.
 
 **Fix**: `AuthBootFallback` now renders **only the right-panel content skeleton** (form blocks + footer). A separate `GenericBootFallback` exists for non-layout routes. The boot shell in `index.html` is CSS-only and replaced on React mount.
 
-**Key Rule**: Any Suspense fallback used inside `RegistrationLayout` must NOT include a left panel or full-page wrapper — the layout already provides those.
+**Key Rule**: Any Suspense fallback used inside `RegistrationLayout` must NOT include a left panel or full-page wrapper - the layout already provides those.
 
 **Files**: `AuthBootFallback.tsx`, `index.html`, `App.tsx`
 
@@ -43,15 +43,15 @@
 
 **Root Cause (architectural)**: Three compounding issues:
 1. **Mount/unmount architecture**: Only the active slide's `<img>` existed in the DOM. On slide change, a new layer was mounted with a CSS `translateX` slide-in animation. The browser had to fetch, decode, and composite a new image during the 600ms transition.
-2. **SVG noise filter**: Each slide layer included an inline SVG `feTurbulence` noise texture overlay — expensive to rasterize on every mount.
-3. **Text opacity-0 entrance animations**: Carousel text content used `opacity-0 animate-fade-in` with staggered delays, starting invisible then fading in — creating a flash where text was invisible for 100-400ms.
+2. **SVG noise filter**: Each slide layer included an inline SVG `feTurbulence` noise texture overlay - expensive to rasterize on every mount.
+3. **Text opacity-0 entrance animations**: Carousel text content used `opacity-0 animate-fade-in` with staggered delays, starting invisible then fading in - creating a flash where text was invisible for 100-400ms.
 
 **Fix (architecture change)**:
 - **Pre-mounted crossfade**: All three slide `<img>` elements are permanently in the DOM. Active slide gets `opacity-100`, inactive get `opacity-0` via `transition-opacity duration-500`. No mounting/unmounting.
 - **Removed SVG noise**: Replaced `feTurbulence` filter with a lightweight CSS radial-gradient texture overlay.
-- **Removed text entrance animations**: Text content renders immediately — the background crossfade provides sufficient visual transition.
+- **Removed text entrance animations**: Text content renders immediately - the background crossfade provides sufficient visual transition.
 
-**Key Rule**: Carousels must pre-mount all slide images and transition via opacity/transform — never mount/unmount slide layers. Avoid SVG filters in animated contexts.
+**Key Rule**: Carousels must pre-mount all slide images and transition via opacity/transform - never mount/unmount slide layers. Avoid SVG filters in animated contexts.
 
 **Files**: `LeftPanel.tsx`, `src/index.css`
 
@@ -86,7 +86,7 @@
 
 ## PSL-006: Password Reset / Account Activation Token Handling
 
-**Symptom**: Shopify sends users to `/account/reset/<id>/<token>` and `/account/activate/<id>/<token>` — these need to be intercepted.
+**Symptom**: Shopify sends users to `/account/reset/<id>/<token>` and `/account/activate/<id>/<token>` - these need to be intercepted.
 
 **Architecture**: 
 - Shopify Liquid templates extract `customer_id` and `token` from the URL path and redirect to this app's `/reset-password` or `/activate-account` routes with query params.
@@ -134,10 +134,10 @@
 
 ## Anti-Patterns to Avoid
 
-1. **Never use `opacity-0 animate-fade-in` for initial renders** — causes FOUC. Use it only for elements entering *after* user interaction.
-2. **Never mount/unmount heavy visual layers during transitions** — pre-mount and toggle visibility.
-3. **Never use SVG `feTurbulence` in animated contexts** — use CSS gradients instead.
-4. **Never hardcode HSL color values in components** — use CSS variable tokens.
-5. **Never render full-page skeletons inside `RegistrationLayout`** — layout already provides the shell.
-6. **Never store roles on the profile table** — use a separate `user_roles` table.
-7. **Never edit `src/integrations/supabase/client.ts` or `types.ts`** — auto-generated.
+1. **Never use `opacity-0 animate-fade-in` for initial renders** - causes FOUC. Use it only for elements entering *after* user interaction.
+2. **Never mount/unmount heavy visual layers during transitions** - pre-mount and toggle visibility.
+3. **Never use SVG `feTurbulence` in animated contexts** - use CSS gradients instead.
+4. **Never hardcode HSL color values in components** - use CSS variable tokens.
+5. **Never render full-page skeletons inside `RegistrationLayout`** - layout already provides the shell.
+6. **Never store roles on the profile table** - use a separate `user_roles` table.
+7. **Never edit `src/integrations/supabase/client.ts` or `types.ts`** - auto-generated.

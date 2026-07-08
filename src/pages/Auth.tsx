@@ -73,7 +73,7 @@ const Auth = () => {
   const { currentStep, setCurrentStep, goToNextStep } = useStepContext();
 
   // Eagerly preload ALL step chunks once on mount (deferred via requestIdleCallback).
-  // This eliminates the Suspense fallback flash between steps — by the time the user
+  // This eliminates the Suspense fallback flash between steps - by the time the user
   // navigates, the chunk is already in the browser cache and React renders it synchronously.
   useEffect(() => {
     prefetchAllSteps();

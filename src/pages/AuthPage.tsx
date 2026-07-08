@@ -18,7 +18,7 @@ const AuthPage = () => {
   }, [setMode]);
 
   // Prefetch sibling auth-flow chunks during idle time so cross-route
-  // navigation (NAVIGATE postMessage or in-app links) is instant — no
+  // navigation (NAVIGATE postMessage or in-app links) is instant - no
   // skeleton → network → paint flash. Fire-and-forget; failures are silent.
   useEffect(() => {
     const prefetch = () => {

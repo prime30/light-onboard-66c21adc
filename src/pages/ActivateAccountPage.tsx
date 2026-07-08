@@ -19,7 +19,7 @@ export function ActivateAccountPage() {
     setMode("signin");
   }, [setMode]);
 
-  // Redirect already-logged-in users — but ONLY if they were already logged
+  // Redirect already-logged-in users - but ONLY if they were already logged
   // in when this page mounted. Otherwise activation's own auto-login flow
   // would flip customer.isLoggedIn mid-flow and trigger a second success
   // screen on /already-logged-in, stacked on top of the form's own success

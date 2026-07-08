@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     // Bias results to the user's state/province when supplied. Without this,
-    // Google falls back to the caller's IP — which is the Supabase edge
+    // Google falls back to the caller's IP - which is the Supabase edge
     // datacenter (us-west) and skews everything toward California.
     const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {
       AL: { lat: 32.806671, lng: -86.79113 }, AK: { lat: 61.370716, lng: -152.404419 },

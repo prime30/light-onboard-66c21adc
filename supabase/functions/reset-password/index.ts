@@ -38,7 +38,7 @@ function sendSuccess<T>(data: T, message?: string) {
 }
 
 // Accept either:
-//   - resetUrl: full Shopify reset URL (preferred — matches `customer.reset_password_url`)
+//   - resetUrl: full Shopify reset URL (preferred - matches `customer.reset_password_url`)
 //   - customerId + token: legacy shape, reconstructed below
 const bodySchema = z
   .object({
@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
       if (code === "TOO_SHORT" || msg.includes("too short")) {
         return sendError(400, ["Password must be at least 8 characters."], "Invalid password");
       }
-      // Fallback — surface Shopify's message but keep it short.
+      // Fallback - surface Shopify's message but keep it short.
       return sendError(400, [first.message || "Unable to reset password."], "Reset failed");
     }
 
@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
     // Without an email the SPA can't auto-sign-in (it bails before sending
     // USER_LOGIN to the parent storefront and the user has to log in again
     // manually). Best-effort Admin API lookup mirrors what activate-account
-    // already does — fail-open, the reset itself already succeeded.
+    // already does - fail-open, the reset itself already succeeded.
     if (!email) {
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken) {
@@ -349,7 +349,7 @@ Deno.serve(async (req) => {
         }
       } else {
         console.warn(
-          "Admin access token unset — cannot recover customer email; auto-sign-in will be skipped on the client."
+          "Admin access token unset - cannot recover customer email; auto-sign-in will be skipped on the client."
         );
       }
     }

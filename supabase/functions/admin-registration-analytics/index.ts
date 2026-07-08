@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
-// Leads younger than this are still "in progress" — exclude from bounce math.
+// Leads younger than this are still "in progress" - exclude from bounce math.
 const GRACE_MINUTES = 30;
 
 function json(body: unknown, status = 200) {
@@ -162,7 +162,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Disposable / test inbox domains used for QA — always exclude.
+  // Disposable / test inbox domains used for QA - always exclude.
   const TEST_DOMAINS = ["spamok.com", "mailinator.com", "tempmail.com", "guerrillamail.com", "10minutemail.com"];
   const isTestEmail = (email: string) => {
     const e = email.trim().toLowerCase();
@@ -221,7 +221,7 @@ Deno.serve(async (req: Request) => {
   // Denominator: bounced leads (email captured, no completion, past grace).
   //   selectedCount   = bounced with account_type set (got past step 1)
   //   noSelection     = bounced with no account_type (stuck on account-type)
-  // Plus anonymous "I am not a stylist" clicks (no email — never hit ln).
+  // Plus anonymous "I am not a stylist" clicks (no email - never hit ln).
   const bouncedLeads = leads.filter(
     (r) => !r.completed_at && r.started_at < graceCutoff,
   );
@@ -637,7 +637,7 @@ Deno.serve(async (req: Request) => {
       v.completed > 0 ? Math.round((v.booked / v.completed) * 1000) / 10 : 0,
   }));
 
-  // Take rate by account type — only eligible cohort counts in the denominator.
+  // Take rate by account type - only eligible cohort counts in the denominator.
   const fcByType = new Map<string, { completed: number; booked: number; noShow: number }>();
   for (const r of eligibleLeads) {
     const k = r.account_type ?? "unknown";
@@ -677,7 +677,7 @@ Deno.serve(async (req: Request) => {
   // Attended  = booked + start_time in past + no no_show_at stamp
   // No-show   = booked + start_time in past + no_show_at present
   // No call   = completed reg, never booked
-  // Upcoming  = booked + start_time in future (excluded from purchase math —
+  // Upcoming  = booked + start_time in future (excluded from purchase math  - 
   //             these users haven't had a chance to attend yet)
   const nowMs = Date.now();
   type CohortBucket = {
@@ -697,7 +697,7 @@ Deno.serve(async (req: Request) => {
     if (r.founder_call_booked_at && r.founder_call_start_time) {
       const startMs = Date.parse(r.founder_call_start_time);
       if (startMs > nowMs) {
-        // upcoming — skip purchase cohort math
+        // upcoming - skip purchase cohort math
       } else if (r.founder_call_no_show_at) {
         key = "no_show";
       } else {
@@ -712,7 +712,7 @@ Deno.serve(async (req: Request) => {
     if (r.first_order_at && r.completed_at) {
       const delta = Date.parse(r.first_order_at) - Date.parse(r.completed_at);
       // Only count orders placed AT OR AFTER registration completion
-      // (negative delta means they ordered before completing — rare, ignore).
+      // (negative delta means they ordered before completing - rare, ignore).
       if (delta >= 0) {
         b.purchasers.push(r);
         b.timeToPurchaseMs.push(delta);

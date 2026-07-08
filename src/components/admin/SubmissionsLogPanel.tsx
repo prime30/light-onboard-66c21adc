@@ -51,7 +51,7 @@ export const SubmissionsLogPanel = ({ adminEmail, adminToken }: Props) => {
     async (s: Submission) => {
       const reply = buildSupportReply(s);
       if (!reply) {
-        toast({ title: "Nothing to send", description: "This submission succeeded — no support reply needed." });
+        toast({ title: "Nothing to send", description: "This submission succeeded - no support reply needed." });
         return;
       }
       try {

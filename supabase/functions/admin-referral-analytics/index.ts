@@ -28,7 +28,7 @@ const LABELS: Record<string, string> = {
 interface RequestBody {
   email?: string;
   password?: string;
-  // Optional ISO date filter — default = last 90 days.
+  // Optional ISO date filter - default = last 90 days.
   sinceDays?: number;
 }
 

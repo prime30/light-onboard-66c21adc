@@ -48,7 +48,7 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   });
 
   // Late-binding channel: parent may push (or update) context via postMessage.
-  // Origin is enforced here in addition to use-iframe-comm's allowlist —
+  // Origin is enforced here in addition to use-iframe-comm's allowlist  - 
   // SSO context is ONLY accepted from the canonical theme origin.
   const { subscribeToType, sendMessage } = iframeComm;
   useEffect(() => {

@@ -123,7 +123,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
  *
  * When `autoApprove` is true we move the create-password step OUT of its
  * normal mid-flow position and the StepProvider will append it after the
- * faux "assessing" screen — so the user submits an "application" at the
+ * faux "assessing" screen - so the user submits an "application" at the
  * summary, watches a 100% review animation, then sets a password to
  * actually create the account.
  */
@@ -163,7 +163,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
  * Returns the schema that gates a given step for a given account type.
  *
  * Some steps (currently only "license") require different validation per
- * account type — e.g. salons must also fill salon size + structure AND must
+ * account type - e.g. salons must also fill salon size + structure AND must
  * upload a license proof, while individual professionals can skip the upload.
  * Use this everywhere you would otherwise read `stepValidations[step]`.
  */

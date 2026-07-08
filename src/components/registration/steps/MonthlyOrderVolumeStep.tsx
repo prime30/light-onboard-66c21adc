@@ -13,7 +13,7 @@ import { Step } from "@/types/auth";
 const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: string }> = {
   "None": {
     title: "Welcome in",
-    description: "We're excited to help you get started — no order history required.",
+    description: "We're excited to help you get started - no order history required.",
   },
   "1-5": {
     title: "You're building something",
@@ -24,7 +24,7 @@ const TIER_TOAST: Record<MonthlyOrderVolume, { title: string; description: strin
     description: "You'll likely qualify for huge savings and education opportunities.",
   },
   "10+": {
-    title: "Power user — we got you",
+    title: "Power user - we got you",
     description: "An account manager and founder level support will be lined up for you.",
   },
 };
@@ -62,7 +62,7 @@ const OPTION_DETAILS: Record<
   },
 };
 
-// Pictogram: a 5×4 grid (20 cells) — fills 1 / 5 / 10 / 20 from bottom-left
+// Pictogram: a 5×4 grid (20 cells) - fills 1 / 5 / 10 / 20 from bottom-left
 // so the visual itself reads as "how much" at a glance.
 const BoxGrid = ({
   count,
@@ -153,7 +153,7 @@ export const MonthlyOrderVolumeStep = () => {
           How many extensions do you order per month currently?
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          No wrong answer — this just helps us stock your colors and tailor your account.
+          No wrong answer - this just helps us stock your colors and tailor your account.
         </p>
       </div>
 
@@ -179,7 +179,7 @@ export const MonthlyOrderVolumeStep = () => {
                   : "border-border/60 bg-background hover:border-foreground/30"
               )}
             >
-              {/* Left visual — bare grid, no tile background */}
+              {/* Left visual - bare grid, no tile background */}
               <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                 <BoxGrid count={details.count} selected={isSelected} />
               </div>

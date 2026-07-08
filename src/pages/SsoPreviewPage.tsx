@@ -7,7 +7,7 @@ import { PARTNER_PRESENTATION } from "@/lib/sso-context";
  * preview + copyable URL. Use this to design and tweak partner copy without
  * editing query params by hand.
  *
- * Not linked from the app — visit /sso-preview directly.
+ * Not linked from the app - visit /sso-preview directly.
  */
 
 type Variant = {
@@ -27,7 +27,7 @@ const BUILT_IN_VARIANTS: Variant[] = Object.entries(PARTNER_PRESENTATION).map(
 const GENERIC_VARIANT: Variant = {
   slug: "",
   displayName: "",
-  description: "Default shell — no ?sso= param, no branding.",
+  description: "Default shell - no ?sso= param, no branding.",
 };
 
 const UNKNOWN_VARIANT: Variant = {
@@ -66,7 +66,7 @@ function VariantCard({ variant }: { variant: Variant }) {
   };
 
   const title = variant.slug
-    ? `${variant.slug} — ${variant.displayName || "(no display name)"}`
+    ? `${variant.slug} - ${variant.displayName || "(no display name)"}`
     : "generic (no SSO)";
 
   return (
@@ -133,7 +133,7 @@ function CustomTester() {
   const variant: Variant = {
     slug: slug.trim().toLowerCase(),
     displayName: displayName.trim(),
-    description: "Live custom variant — change the slug or display name to test.",
+    description: "Live custom variant - change the slug or display name to test.",
   };
 
   return (

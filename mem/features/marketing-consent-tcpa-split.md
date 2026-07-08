@@ -22,4 +22,4 @@ Email and SMS marketing consent are tracked separately for TCPA / GDPR complianc
 - Each granted channel writes one row to `marketing_consent_log` with disclosure text, IP, UA, source URL, Shopify customer id
 - Consent logging is best-effort (non-blocking on failure)
 
-**Table:** `marketing_consent_log` — `user_id` and `shopify_customer_id` both nullable so consent can be recorded at sign-up before a Supabase session exists.
+**Table:** `marketing_consent_log` - `user_id` and `shopify_customer_id` both nullable so consent can be recorded at sign-up before a Supabase session exists.

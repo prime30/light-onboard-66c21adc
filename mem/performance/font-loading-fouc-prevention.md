@@ -3,7 +3,7 @@ name: Font loading FOUC prevention
 description: FOUC mitigated at network/CSS layer (preload + font-display:block); React mounts immediately, no JS-side font wait
 type: feature
 ---
-React mounts immediately in `src/main.tsx` — do NOT re-add a
+React mounts immediately in `src/main.tsx` - do NOT re-add a
 `document.fonts.ready` gate. FOUC is handled at the network/CSS layer:
 
 - `index.html` preloads `die-grotesk-b-regular.woff2` and

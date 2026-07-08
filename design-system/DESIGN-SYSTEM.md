@@ -54,7 +54,7 @@ Only medium (500) is loaded. Use `font-medium` with `font-termina`.
   Display Headline
 </h1>
 
-// Body (Die Grotesk B — applied globally, no class needed)
+// Body (Die Grotesk B - applied globally, no class needed)
 <p className="text-base leading-relaxed">
   Body text content...
 </p>

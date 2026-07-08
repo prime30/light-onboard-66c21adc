@@ -111,7 +111,7 @@ Deno.serve(async (req: Request) => {
   const windowStart = addMonths(currentMonthStart, -23); // 24 months back, inclusive
   const sinceIso = windowStart.toISOString();
 
-  // Filter test users the same way the main analytics function does — by
+  // Filter test users the same way the main analytics function does - by
   // looking them up in registration_submissions. Kept minimal here since we
   // only need a set of emails to exclude.
   const TEST_FIRST_NAME = "Test";
@@ -152,7 +152,7 @@ Deno.serve(async (req: Request) => {
 
   // Also pull historical signups previously backfilled from the Helium
   // Customer Fields API. registration_leads only goes back as far as our
-  // own onboarding SPA — Helium has the full Shopify customer history.
+  // own onboarding SPA - Helium has the full Shopify customer history.
   // We page through the table to avoid PostgREST's default row cap.
   type HeliumRow = { email: string | null; created_at: string };
   const heliumRows: HeliumRow[] = [];

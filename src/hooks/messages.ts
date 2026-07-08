@@ -13,7 +13,7 @@ export function useCloseIframe() {
 
   // Post CLOSE_IFRAME (and any queued USER_LOGIN) to the parent. We resolve
   // the parent origin against our allowlist and skip the post if it isn't
-  // trusted — never broadcast credentials to "*", which would let any
+  // trusted - never broadcast credentials to "*", which would let any
   // embedding page capture them.
   const closeIframe = useCallback(
     (reason?: string, extra?: Record<string, unknown>) => {
@@ -100,11 +100,11 @@ export function useCustomerLogin({
       const customer = message.data as Customer;
       setCustomer(message.data as Customer);
 
-      // Redirect to already logged in page if logged in — UNLESS:
+      // Redirect to already logged in page if logged in - UNLESS:
       //  1. The user is on the registration success/welcome-offer screen
       //     (CUSTOMER_DATA may land late after auto-approval activation; we
       //     don't want to yank them off that screen), OR
-      //  2. The user just signed in via the login form — in that case the
+      //  2. The user just signed in via the login form - in that case the
       //     SignInForm is already showing its own button success state, so
       //     we skip the success page entirely and close the iframe so the
       //     parent storefront reloads in its logged-in state.

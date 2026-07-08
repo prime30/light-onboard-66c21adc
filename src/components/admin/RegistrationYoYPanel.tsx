@@ -48,7 +48,7 @@ interface Props {
 
 
 function fmtPct(pct: number | null): string {
-  if (pct === null) return "—";
+  if (pct === null) return " - ";
   const rounded = Math.round(pct * 10) / 10;
   const sign = rounded > 0 ? "+" : "";
   return `${sign}${rounded}%`;

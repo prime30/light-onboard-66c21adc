@@ -117,7 +117,7 @@ export const SuccessForm = () => {
 
   // Fire REGISTRATION_SUCCESS once on mount so the parent theme can flag the
   // session as a brand-new approved registration. The CLOSE_IFRAME message
-  // sent later carries reason: "registration_complete" — together the theme
+  // sent later carries reason: "registration_complete" - together the theme
   // can route the user to its own welcome/success page after the modal closes.
   useEffect(() => {
     if (!isInIframeApp) return;
@@ -145,7 +145,7 @@ export const SuccessForm = () => {
     } catch (err) {
       console.error("[SuccessForm] Failed to post REGISTRATION_SUCCESS:", err);
     }
-    // Intentionally fire once on mount — re-renders should not re-emit.
+    // Intentionally fire once on mount - re-renders should not re-emit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -157,7 +157,7 @@ export const SuccessForm = () => {
     prefetchStep("schedule-confirmed");
     const { start, end } = defaultScheduleWindow();
     prefetchSlots(start, end);
-    // Also warm the following week — ScheduleStep eagerly fetches it too.
+    // Also warm the following week - ScheduleStep eagerly fetches it too.
     const nextStart = new Date(start);
     nextStart.setUTCDate(nextStart.getUTCDate() + 7);
     const nextEnd = new Date(nextStart);
@@ -171,9 +171,9 @@ export const SuccessForm = () => {
   const [atcState, dispatch] = useReducer(atcReducer, initialAtcState);
 
   // Mark that the user is on the welcome-offer/success screen so that any
-  // late-arriving CUSTOMER_DATA (isLoggedIn=true) from the parent — which
+  // late-arriving CUSTOMER_DATA (isLoggedIn=true) from the parent - which
   // happens a few seconds after auto-approval activates the Shopify customer
-  // — does NOT navigate the user away to the "already logged in" page. They
+  // - does NOT navigate the user away to the "already logged in" page. They
   // should be free to stay on this screen as long as they want.
   useEffect(() => {
     try {
@@ -354,7 +354,7 @@ export const SuccessForm = () => {
       </div>
 
       {showFounderCallNudge && (
-        /* Founder Call — personal invitation */
+        /* Founder Call - personal invitation */
         <div id="success-offer-section" className="space-y-3">
 
           <div className="relative rounded-form border border-border/60 bg-muted/30 overflow-hidden text-left">
@@ -381,11 +381,11 @@ export const SuccessForm = () => {
 
               <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
                 Eric, our co-founder, sets aside a handful of slots each week
-                for new pros. Samples in hand, no script — your questions, his
+                for new pros. Samples in hand, no script - your questions, his
                 answers.
               </p>
 
-              {/* Eric — signature row */}
+              {/* Eric - signature row */}
               <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
                 <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
                   <img
@@ -396,7 +396,7 @@ export const SuccessForm = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-foreground leading-tight">
-                    Eric — co-founder
+                    Eric - co-founder
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                     30 min · video call · complimentary
@@ -404,7 +404,7 @@ export const SuccessForm = () => {
                 </div>
               </div>
 
-              {/* what's covered — refined inline list */}
+              {/* what's covered - refined inline list */}
               <ul className="mt-5 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
                 {[
                   "Pro benefits",
@@ -487,7 +487,7 @@ export const SuccessForm = () => {
       </div>
 
       {welcomeOfferEnabled && (
-        /* First Purchase Upsell — Color Ring discount */
+        /* First Purchase Upsell - Color Ring discount */
         <div id="success-offer-section" className="space-y-3">
           {/* Title and Timer */}
           <div className="flex items-center justify-between gap-2">

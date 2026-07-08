@@ -135,7 +135,7 @@ const Reviews = () => {
           </div>
         )}
 
-        {/* Social proof — fake stylist avatars */}
+        {/* Social proof - fake stylist avatars */}
         <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
           <div className="flex -space-x-2">
             {SOCIAL_PROOF_AVATARS.map((src, i) => (

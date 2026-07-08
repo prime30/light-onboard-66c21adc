@@ -1,4 +1,4 @@
-// POST /change-password — invoked via Shopify App Proxy at
+// POST /change-password - invoked via Shopify App Proxy at
 // https://dropdeadextensions.com/apps/apply/change-password
 //
 // Trust chain (see docs/contracts/account-change-password.md):
@@ -76,7 +76,7 @@ async function hmacSha256Hex(secret: string, message: string): Promise<string> {
 }
 
 /**
- * App Proxy HMAC verification — Shopify's documented format:
+ * App Proxy HMAC verification - Shopify's documented format:
  *   - Sort all params (except `signature`) alphabetically by key
  *   - Concatenate as `key=value` with NO separator (differs from
  *     webhook HMAC and OAuth HMAC, which join with `&`)
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // 1. HMAC verification — anything before this point is untrusted.
+  // 1. HMAC verification - anything before this point is untrusted.
   const verified = await verifyAppProxySignature(url, APP_SECRET);
   if (!verified.ok) {
     return fail("unauthenticated", 401);
@@ -155,13 +155,13 @@ Deno.serve(async (req) => {
     return fail("unauthenticated", 401);
   }
 
-  // 3. Shop allowlist — defends against a copy of the proxy on a different shop.
+  // 3. Shop allowlist - defends against a copy of the proxy on a different shop.
   const shop = params["shop"];
   if (shop !== STORE_DOMAIN) {
     return fail("unauthenticated", 401);
   }
 
-  // 4. Timestamp window (±60s) — defeats replay of a captured signed query.
+  // 4. Timestamp window (±60s) - defeats replay of a captured signed query.
   const tsRaw = params["timestamp"];
   const ts = tsRaw ? Number(tsRaw) : NaN;
   if (!Number.isFinite(ts)) {
@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
     return fail("unauthenticated", 401);
   }
 
-  // 5. Body validation — server-side is source of truth on length.
+  // 5. Body validation - server-side is source of truth on length.
   let body: unknown;
   try {
     body = await req.json();
@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
     return fail("shopify_error", 400);
   }
 
-  // 401/403/5xx — log status only (no body echo) for debugging.
+  // 401/403/5xx - log status only (no body echo) for debugging.
   console.error(
     `[change-password] Admin API returned ${adminRes.status} for customer ${customerId}`
   );

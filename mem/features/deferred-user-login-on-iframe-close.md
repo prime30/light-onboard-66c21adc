@@ -18,11 +18,11 @@ This is a safety net for races where the parent dropped/ignored the first
 message (e.g. handler not yet bound, route gating, transient).
 
 Files:
-- `src/lib/pending-login.ts` — set/take/clear
-- `src/hooks/messages.ts` — `useCloseIframe()` flushes before close
-- `src/components/registration/context/FormDataContext.tsx` — queues on registration success
-- `src/components/registration/ResetPasswordForm.tsx` — queues on reset success (iframe path)
-- `src/components/registration/ActivateAccountForm.tsx` — queues on activate success (iframe path)
+- `src/lib/pending-login.ts` - set/take/clear
+- `src/hooks/messages.ts` - `useCloseIframe()` flushes before close
+- `src/components/registration/context/FormDataContext.tsx` - queues on registration success
+- `src/components/registration/ResetPasswordForm.tsx` - queues on reset success (iframe path)
+- `src/components/registration/ActivateAccountForm.tsx` - queues on activate success (iframe path)
 
 The parent theme's USER_LOGIN handler must NOT be route-gated (treat the
 message as the trigger, regardless of which SPA route is mounted).

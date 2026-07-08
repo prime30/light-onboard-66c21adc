@@ -341,7 +341,7 @@ function scoreProfile(
     }
   }
 
-  // Lowest volume bucket — not damning, but a soft signal in aggregate
+  // Lowest volume bucket - not damning, but a soft signal in aggregate
   if (lead?.monthly_order_volume === "1-2" && isProBuyer && !p.license_number) {
     out.push({ code: "low_volume_no_license", label: "Lowest volume bucket and no license", weight: 5 });
   }

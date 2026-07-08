@@ -2,7 +2,7 @@
 // (booked + start_time in the past + no no_show_at stamp) and adds the
 // "Founder Call Attendee" tag to their Shopify customer.
 //
-// Safe to re-run — tag is merged with existing tags, never overwrites.
+// Safe to re-run - tag is merged with existing tags, never overwrites.
 //
 // Body: { email, password, dryRun? (default false) }
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";

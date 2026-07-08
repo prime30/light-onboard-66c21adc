@@ -75,7 +75,7 @@ function sendError(
 }
 
 // Standalone audit-row write for early-reject paths that fail BEFORE the
-// per-request audit pipeline (lines ~780+) is initialised — disposable
+// per-request audit pipeline (lines ~780+) is initialised - disposable
 // email, pre-check email collision, phone validation, phone uniqueness.
 // Without this, admin's Submissions Log can't see those rejections.
 // Best-effort: never throw, never block the user-facing response.
@@ -128,7 +128,7 @@ async function writeStandaloneAuditFailure(args: {
 // 429-aware Shopify Admin API fetch. One retry honoring Retry-After
 // (capped so a wedged upstream can't blow the function timeout).
 // Shopify's leaky bucket rarely fires for this app's volume, but when it
-// does it returns 429 with Retry-After — surviving that gracefully is
+// does it returns 429 with Retry-After - surviving that gracefully is
 // the difference between a clean re-submit and a failed registration.
 // ------------------------------------------------------------------
 async function shopifyFetch(input: string | URL, init?: RequestInit): Promise<Response> {
@@ -136,7 +136,7 @@ async function shopifyFetch(input: string | URL, init?: RequestInit): Promise<Re
   if (res.status !== 429) return res;
   const retryAfter = Number(res.headers.get("Retry-After") ?? "1");
   const waitMs = Math.min(Math.max(retryAfter, 1), 4) * 1000;
-  console.warn(`Shopify 429 — retrying after ${waitMs}ms`);
+  console.warn(`Shopify 429 - retrying after ${waitMs}ms`);
   await new Promise((r) => setTimeout(r, waitMs));
   return fetch(input, init);
 }
@@ -154,7 +154,7 @@ function runInBackground(promise: Promise<unknown>): void {
   }
 }
 
-// Combined app_settings fetch — one RTT for both auto_approval_enabled
+// Combined app_settings fetch - one RTT for both auto_approval_enabled
 // and extra_customer_tags. Previously the enrichment and activation tails
 // each did their own RTT. Returns safe defaults if anything fails.
 async function loadAppSettings(): Promise<{
@@ -511,7 +511,7 @@ Deno.serve(async (req: Request) => {
   // silently reject with a generic 400 (don't tip off the bot).
   const honeypotValue = (requestBody as { honeypot?: unknown }).honeypot;
   if (typeof honeypotValue === "string" && honeypotValue.trim() !== "") {
-    console.log("Honeypot triggered — rejecting request");
+    console.log("Honeypot triggered - rejecting request");
     return sendError(400, ["Submission blocked"]);
   }
 
@@ -523,7 +523,7 @@ Deno.serve(async (req: Request) => {
   const formStartedAt = typeof formStartedAtRaw === "number" ? formStartedAtRaw : NaN;
   const elapsed = Date.now() - formStartedAt;
   if (!Number.isFinite(formStartedAt) || elapsed < MIN_FORM_FILL_MS || elapsed < 0) {
-    console.log("Form-fill timing check failed — rejecting request", { elapsed, formStartedAt });
+    console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt });
     return sendError(400, ["Submission blocked"]);
   }
 
@@ -620,14 +620,14 @@ Deno.serve(async (req: Request) => {
     // Prefix with `email:` so the client routes the error to the email
     // field on the contact-basics step instead of showing a generic banner.
     return sendError(400, [
-      "email: Please use a permanent email address — disposable inboxes aren't accepted",
+      "email: Please use a permanent email address - disposable inboxes aren't accepted",
     ]);
   }
 
   console.log("Processing customer sync for:", requestBody.data.email);
 
   // Kick off app_settings (auto_approval_enabled + extra_customer_tags) in
-  // parallel with the Helium write — both the enrichment and activation
+  // parallel with the Helium write - both the enrichment and activation
   // tails need it later, but we don't want to block on it sequentially.
   const appSettingsPromise = loadAppSettings();
 
@@ -674,7 +674,7 @@ Deno.serve(async (req: Request) => {
         const sCust = sjson?.customers?.[0];
         if (sCust?.id) {
           console.log(
-            "Helium search missed but Shopify has a customer — using shopify_id for soft-merge:",
+            "Helium search missed but Shopify has a customer - using shopify_id for soft-merge:",
             sCust.id
           );
           existingShopifyId = sCust.id;
@@ -720,7 +720,7 @@ Deno.serve(async (req: Request) => {
 
           // Ghost-shell detection: third-party apps (Smile.io, Klaviyo,
           // Yotpo, Loox) auto-provision Shopify customers in state=disabled
-          // when an email enters their funnel — BEFORE the person has ever
+          // when an email enters their funnel - BEFORE the person has ever
           // registered with us. These shells have:
           //   - state=disabled (no password ever set, no invite consumed)
           //   - orders_count=0 (never bought anything)
@@ -728,14 +728,14 @@ Deno.serve(async (req: Request) => {
           // Treat them as brand-new applicants: Chain C activation below
           // already targets account_activation_url on the resolved
           // shopifyCustomerId, which works on disabled shells and sets the
-          // user's chosen password directly — no invite email needed when
+          // user's chosen password directly - no invite email needed when
           // auto-approval is on. We just need to surface that this happened.
           const custState: string | null = json?.customer?.state ?? null;
           const ordersCount: number = Number(json?.customer?.orders_count ?? 0);
           if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
             isGhostShell = true;
             console.log(
-              "Detected ghost-shell (third-party auto-provisioned Shopify customer) — treating as brand-new applicant:",
+              "Detected ghost-shell (third-party auto-provisioned Shopify customer) - treating as brand-new applicant:",
               {
                 email: requestBody.data.email,
                 shopify_customer_id: existingShopifyId,
@@ -747,7 +747,7 @@ Deno.serve(async (req: Request) => {
           }
         } else {
           console.warn("Could not fetch Shopify tags for soft-merge check:", tagRes.status);
-          // Fail OPEN — Klaviyo / storefront-synced contacts (no prior
+          // Fail OPEN - Klaviyo / storefront-synced contacts (no prior
           // application) are far more common than legit duplicate
           // applications. A transient Shopify API hiccup should not block
           // a legit recovery; we'd rather soft-merge than 409.
@@ -760,7 +760,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (alreadyApplied) {
-      console.log("Existing customer has prior application — blocking:", requestBody.data.email);
+      console.log("Existing customer has prior application - blocking:", requestBody.data.email);
       await writeStandaloneAuditFailure({
         email: parseResult.data.email,
         accountType: parseResult.data.accountType,
@@ -780,13 +780,13 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(
-      `Existing un-applied customer found — ${isGhostShell ? "ghost-shell recovery" : "soft-merging"} onto:`,
+      `Existing un-applied customer found - ${isGhostShell ? "ghost-shell recovery" : "soft-merging"} onto:`,
       existingCustomerId
     );
   }
 
   // ----------------------------------------------------------------
-  // Phone validation + uniqueness — block early, BEFORE any writes.
+  // Phone validation + uniqueness - block early, BEFORE any writes.
   // We require every applicant to have a valid, unique phone (real
   // contact channel for B2B verification). Mirrors check-phone EF.
   // ----------------------------------------------------------------
@@ -880,7 +880,7 @@ Deno.serve(async (req: Request) => {
   const customer = objectKeysToSnake(parseResult.data) as any;
 
   // ----------------------------------------------------------------
-  // Audit log — write a `pending` row to public.registration_submissions
+  // Audit log - write a `pending` row to public.registration_submissions
   // BEFORE we hit Helium/Shopify so we can replay failures even if the
   // EF crashes mid-flight. Best-effort: never block on a log write.
   // Password is stripped from the stored payload (PII / hashed elsewhere).
@@ -1152,7 +1152,7 @@ Deno.serve(async (req: Request) => {
     });
 
     // Tag Shopify customer with "Preferred method: X" for each selected method,
-    // plus any admin-configured extra tags from app_settings. Fire-and-forget —
+    // plus any admin-configured extra tags from app_settings. Fire-and-forget  - 
     // failures here must not block account creation.
     let shopifyCustomerId: number | undefined = customerFieldsData.customer.shopify_id;
     const preferredMethods = (parseResult.data as { preferredMethods?: string[] }).preferredMethods;
@@ -1242,7 +1242,7 @@ Deno.serve(async (req: Request) => {
     const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
     const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags];
 
-    // Marketing consent — email and SMS are tracked separately for TCPA / GDPR
+    // Marketing consent - email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
     // we never derive one from the other.
     const acceptsEmailMarketingFlag = customer.accepts_marketing === true;
@@ -1277,7 +1277,7 @@ Deno.serve(async (req: Request) => {
 
     const consentTimestamp = new Date().toISOString();
 
-    // Build a human-readable note summarizing the application — lands in
+    // Build a human-readable note summarizing the application - lands in
     // the native Shopify customer `note` field so support can see context
     // without opening Helium.
     const noteLines: string[] = [];
@@ -1322,7 +1322,7 @@ Deno.serve(async (req: Request) => {
 
     // Defensive log: catch the case where a soft-merge produced no
     // shopify_id (or no tags were generated) and the whole Shopify
-    // enrichment block — including tags — gets skipped silently.
+    // enrichment block - including tags - gets skipped silently.
     if (!needsShopifyUpdate) {
       const skipReason = !shopifyCustomerId
         ? "no shopify_customer_id resolved (Helium PUT returned none AND email-fallback failed)"
@@ -1344,12 +1344,12 @@ Deno.serve(async (req: Request) => {
     // Post-Helium tail: three independent chains that previously ran
     // strictly serially (~600-1200ms wall time). They share no mutable
     // state, so we run them concurrently and Promise.allSettled the
-    // group — one failure can't poison the others, and `recordAuditFailure`
+    // group - one failure can't poison the others, and `recordAuditFailure`
     // is already idempotent.
     //
-    //   A) Shopify enrichment  — GET customer → PUT merged update
-    //   B) Marketing consent   — POST marketing_consent_log
-    //   C) Auto-approval       — POST activation URL → POST password
+    //   A) Shopify enrichment  - GET customer → PUT merged update
+    //   B) Marketing consent   - POST marketing_consent_log
+    //   C) Auto-approval       - POST activation URL → POST password
     //                           (with soft-merge Storefront customerRecover fallback)
     // ----------------------------------------------------------------
     const tailTasks: Promise<unknown>[] = [];
@@ -1396,7 +1396,7 @@ Deno.serve(async (req: Request) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const customerUpdate: Record<string, any> = { id: shopifyCustomerId };
 
-          // Native identity fields — always mirror so the Shopify record
+          // Native identity fields - always mirror so the Shopify record
           // isn't blank regardless of Helium field-mapping config.
           if (customer.first_name) customerUpdate.first_name = customer.first_name;
           if (customer.last_name) customerUpdate.last_name = customer.last_name;
@@ -1407,7 +1407,7 @@ Deno.serve(async (req: Request) => {
           if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
 
-          // Native default address — only set if the customer doesn't
+          // Native default address - only set if the customer doesn't
           // already have one (don't overwrite a customer-edited address).
           if (hasNativeAddress && !existingHasDefaultAddress) {
             customerUpdate.addresses = [
@@ -1428,7 +1428,7 @@ Deno.serve(async (req: Request) => {
             ];
           }
 
-          // Email marketing — independent of SMS
+          // Email marketing - independent of SMS
           if (acceptsEmailMarketingFlag) {
             customerUpdate.email_marketing_consent = {
               state: "subscribed",
@@ -1437,7 +1437,7 @@ Deno.serve(async (req: Request) => {
             };
           }
 
-          // SMS marketing — requires its own opt-in AND a valid E.164 phone.
+          // SMS marketing - requires its own opt-in AND a valid E.164 phone.
           if (canCollectSms) {
             customerUpdate.phone = customerPhone;
             customerUpdate.sms_marketing_consent = {
@@ -1467,7 +1467,7 @@ Deno.serve(async (req: Request) => {
           if (!updRes.ok) {
             updResBodyText = await updRes.text();
             // Shopify rejects the whole PUT if any single field is invalid
-            // (commonly `phone` — bad NANP area code, duplicate, etc.). Retry
+            // (commonly `phone` - bad NANP area code, duplicate, etc.). Retry
             // without phone/SMS so tags/note/tax_exempt/address still land.
             const phoneRejected =
               updRes.status === 422 && /"phone"/i.test(updResBodyText);
@@ -1530,7 +1530,7 @@ Deno.serve(async (req: Request) => {
         const sourceUrl = req.headers.get("origin") ?? req.headers.get("referer") ?? null;
 
         const EMAIL_DISCLOSURE =
-          "Email me about promotions, new products & deals — Marketing emails from Drop Dead Extensions. Unsubscribe anytime.";
+          "Email me about promotions, new products & deals - Marketing emails from Drop Dead Extensions. Unsubscribe anytime.";
         const SMS_DISCLOSURE =
           "By checking this box, you agree to receive recurring automated marketing text messages (cart reminders, new drops, restocks) from Drop Dead Extensions at the phone number you provided. Consent is not a condition of purchase. Msg frequency varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help.";
 
@@ -1682,7 +1682,7 @@ Deno.serve(async (req: Request) => {
                 //   - enabled  → Storefront customerRecover (reset email)
                 //   - invited  → Admin send_invite (customerRecover no-ops)
                 //   - disabled → Admin send_invite (customerRecover also
-                //                no-ops on disabled — this is the
+                //                no-ops on disabled - this is the
                 //                Smile/Klaviyo auto-provisioned-shell case)
                 let customerState: string | null = null;
                 try {
@@ -1763,7 +1763,7 @@ Deno.serve(async (req: Request) => {
                     }
                   }
                 } else {
-                  // invited / disabled / unknown-on-brand-new — use Admin
+                  // invited / disabled / unknown-on-brand-new - use Admin
                   // send_invite. customerRecover silently no-ops on both
                   // invited and disabled states, leaving the user stranded
                   // with no email (the Smile.io auto-provisioned-shell bug).
@@ -1855,7 +1855,7 @@ Deno.serve(async (req: Request) => {
     })());
 
     // Wait for all independent tails to complete before finalizing
-    // the audit row. allSettled — one failure mustn't poison the others.
+    // the audit row. allSettled - one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
 
     // Welcome-offer minting moved server-side: generate-discount is now an
@@ -1865,8 +1865,8 @@ Deno.serve(async (req: Request) => {
     // create-customer response and never needs to call generate-discount.
     //
     // Two independent toggles drive this:
-    //   - welcome_offer_enabled — SPA success screen shows the code
-    //   - discount_metafields_enabled — write code to customer metafields so
+    //   - welcome_offer_enabled - SPA success screen shows the code
+    //   - discount_metafields_enabled - write code to customer metafields so
     //     the Shopify theme can keep surfacing the discount elsewhere even
     //     when the SPA welcome-offer screen is off.
     // If either is true we mint, but we only return `welcomeOffer` on the
@@ -1932,9 +1932,9 @@ Deno.serve(async (req: Request) => {
 
 
     // Audit: finalize. `succeeded` even if some non-blocking soft failures
-    // were recorded (Shopify-side enrichments) — the applicant has a Helium
+    // were recorded (Shopify-side enrichments) - the applicant has a Helium
     // record and the error_log lets us replay just the failed pieces.
-    // Run in the background — the user doesn't need to wait on the audit
+    // Run in the background - the user doesn't need to wait on the audit
     // PATCH (~80-150ms) to see their success screen.
     runInBackground(updateAuditRow({
       status: auditErrors.length > 0 ? "shopify_ok" : "succeeded",

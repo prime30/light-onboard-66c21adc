@@ -1,7 +1,7 @@
 // Admin-gated backfill: walk historical Calendly bookings for the configured
 // event type and stamp matching public.registration_leads rows with
 // founder_call_booked_at / founder_call_start_time / founder_call_invitee_uri.
-// Safe to re-run — only updates rows that don't already have a booking stamped
+// Safe to re-run - only updates rows that don't already have a booking stamped
 // (unless `force: true`).
 //
 // Body:
@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
         no_show_at: noShowAt,
       });
     }
-    // Light pacing — Calendly is ~10 req/s soft.
+    // Light pacing - Calendly is ~10 req/s soft.
     await new Promise((r) => setTimeout(r, 60));
   }
 

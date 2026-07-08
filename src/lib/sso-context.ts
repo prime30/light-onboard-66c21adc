@@ -101,7 +101,7 @@ export function resolveSsoPresentation(ctx: SsoContext | null): {
 }
 
 /**
- * Read SSO context from URL query params. Primary channel — arrives with the
+ * Read SSO context from URL query params. Primary channel - arrives with the
  * HTTP request so first paint can already be branded (no FOUC).
  */
 export function readSsoContextFromUrl(): SsoContext | null {

@@ -669,7 +669,7 @@ const AdminSettingsPage = () => {
               <p className="text-sm text-muted-foreground">
                 When enabled, every new approved customer still gets a unique discount code
                 minted and written to their Shopify customer metafields, so the theme can
-                surface it elsewhere — even when the SPA welcome-offer screen above is OFF.
+                surface it elsewhere - even when the SPA welcome-offer screen above is OFF.
                 Turn this OFF to stop minting codes entirely.
               </p>
             </div>
@@ -990,7 +990,7 @@ const AdminSettingsPage = () => {
                               )}
                             </div>
                             <div className="text-xs text-muted-foreground truncate">
-                              {c.email ?? "—"}
+                              {c.email ?? " - "}
                             </div>
                             <div className="text-[11px] text-muted-foreground mt-0.5">
                               Created {new Date(c.createdAt).toLocaleDateString()} · Updated{" "}

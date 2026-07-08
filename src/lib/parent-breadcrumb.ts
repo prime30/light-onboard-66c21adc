@@ -34,13 +34,13 @@ let alreadyEmitted = false;
 
 /**
  * Emit the APPLICATION_SUBMITTED breadcrumb exactly once per page lifetime.
- * Safe to call from a React effect — re-renders will not double-fire.
+ * Safe to call from a React effect - re-renders will not double-fire.
  */
 export function emitApplicationSubmitted(): void {
   if (alreadyEmitted) return;
   alreadyEmitted = true;
 
-  // Standalone visit (not iframed) — nothing to do.
+  // Standalone visit (not iframed) - nothing to do.
   if (typeof window === "undefined" || window.parent === window) {
     return;
   }
@@ -50,7 +50,7 @@ export function emitApplicationSubmitted(): void {
     try {
       window.parent.postMessage({ type: "APPLICATION_SUBMITTED" }, origin);
     } catch {
-      // Origin mismatch or cross-origin restriction — browser drops silently.
+      // Origin mismatch or cross-origin restriction - browser drops silently.
       // Intentional: only the matching origin's message is delivered.
     }
   }

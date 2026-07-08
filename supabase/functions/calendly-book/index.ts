@@ -63,7 +63,7 @@ function validate(input: any): { ok: true; value: BookInput } | { ok: false; err
   };
 }
 
-// Module-scoped 1h memo for the event type (location, slug, etc.) — survives
+// Module-scoped 1h memo for the event type (location, slug, etc.) - survives
 // across warm invocations of the same isolate.
 let eventTypeCache: { fetchedAt: number; data: any } | null = null;
 async function getEventType(uri: string, token: string): Promise<any> {
@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
   if (!parsed.ok) return json({ error: { code: "bad_request", message: parsed.error } }, 400);
   const { start_time, name, email, timezone, phone } = parsed.value;
 
-  // Refuse past start_time early — Calendly will 422 with an opaque error.
+  // Refuse past start_time early - Calendly will 422 with an opaque error.
   if (new Date(start_time).getTime() <= Date.now()) {
     return json({ error: { code: "bad_request", message: "start_time is in the past" } }, 400);
   }
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Normalise booking response — Calendly returns slightly different shapes
+    // Normalise booking response - Calendly returns slightly different shapes
     // depending on event_type config.
     const ev = data?.resource?.event ?? data?.event ?? data?.scheduled_event ?? {};
     const inv = data?.resource ?? data?.invitee ?? {};

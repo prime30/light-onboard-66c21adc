@@ -250,7 +250,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
             Abandoned-registration recovery
           </div>
           <p className="text-[10px] text-muted-foreground mb-3">
-            Users who completed more than {data.recovery.windowHours}h after first touch — the cohort the Klaviyo
+            Users who completed more than {data.recovery.windowHours}h after first touch - the cohort the Klaviyo
             abandoned-registration flow is designed to bring back. Recovery rate = recovered / (recovered + still-bounced).
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -449,7 +449,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
               <tbody className="divide-y divide-border/50">
                 {data!.volumeCohorts!.map((row) => (
                   <tr key={row.volume}>
-                    <td className="py-1.5 pr-3 font-medium">{row.volume === "unknown" ? "—" : row.volume}</td>
+                    <td className="py-1.5 pr-3 font-medium">{row.volume === "unknown" ? " - " : row.volume}</td>
                     <td className="py-1.5 px-2 text-muted-foreground">{row.tier}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.started}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums">

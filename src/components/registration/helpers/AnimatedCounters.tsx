@@ -112,7 +112,7 @@ export const OdometerCounter = ({
 
   // Use CSS grid to layer a hidden anchor digit (which establishes the natural text
   // baseline) with the visible rolling reel. Because both occupy the exact same grid
-  // cell, the reel inherits the anchor's baseline precisely — no manual nudges,
+  // cell, the reel inherits the anchor's baseline precisely - no manual nudges,
   // no flexbox centering quirks, works identically across fonts and devices.
   const DigitSlot = ({
     current,
@@ -129,11 +129,11 @@ export const OdometerCounter = ({
       className={cn("inline-grid text-center align-baseline", extraClass)}
       style={{ width: "0.62em", gridTemplateAreas: '"cell"' }}
     >
-      {/* Invisible anchor — establishes the baseline for this inline box */}
+      {/* Invisible anchor - establishes the baseline for this inline box */}
       <span style={{ gridArea: "cell", visibility: "hidden" }} aria-hidden="true">
         0
       </span>
-      {/* Visible rolling reel — clipped, shares the exact same box as the anchor */}
+      {/* Visible rolling reel - clipped, shares the exact same box as the anchor */}
       <span
         className="overflow-hidden"
         style={{ gridArea: "cell", height: "1em", lineHeight: 1 }}

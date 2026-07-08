@@ -12,4 +12,4 @@ Every signup writes to `public.registration_submissions` from inside `create-cus
 
 Admin UI: `SubmissionsLogPanel` on `AdminSettingsPage` calls `admin-list-submissions` EF (same email+ADMIN_PANEL_PASSWORD auth pattern as `admin-toggle-setting`). Status filters: needs_attention (default), succeeded, failed, shopify_ok, helium_ok, pending, all. Each row expands to show errors + full JSON payload for manual replay.
 
-**Why:** Helium + Shopify writes can fail/timeout. This is the only persistent record we control — files are URLs to `registration-documents` bucket, so as long as that bucket is intact we can fully replay any failed submission.
+**Why:** Helium + Shopify writes can fail/timeout. This is the only persistent record we control - files are URLs to `registration-documents` bucket, so as long as that bucket is intact we can fully replay any failed submission.

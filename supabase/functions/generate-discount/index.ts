@@ -141,9 +141,9 @@ async function shopifyGraphQL<T>(
 /**
  * Best-effort: write the welcome offer to the customer's metafields so the
  * storefront announcement bar can render the marquee slide for any logged-in
- * device. Accepts a numeric Shopify customer ID (preferred — no lookup race)
+ * device. Accepts a numeric Shopify customer ID (preferred - no lookup race)
  * or falls back to an email lookup. Failures are logged but never block the
- * user-facing response — the discount code itself is already created and
+ * user-facing response - the discount code itself is already created and
  * shown on the success screen.
  */
 async function writeCustomerMetafields(
@@ -239,7 +239,7 @@ Deno.serve(async (req: Request) => {
 
   // Internal-only endpoint. Only the trusted create-customer / activate-account
   // edge functions (which run with the service-role key) are allowed to mint
-  // discount codes — otherwise anyone on the internet could loop this
+  // discount codes - otherwise anyone on the internet could loop this
   // endpoint to generate unlimited single-use 30% codes.
   const INTERNAL_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const provided = req.headers.get("x-internal-key") ?? "";
@@ -258,7 +258,7 @@ Deno.serve(async (req: Request) => {
   }
 
 
-  // Optional email + shopifyCustomerId — used to write customer metafields
+  // Optional email + shopifyCustomerId - used to write customer metafields
   // for cross-device marquee. shopifyCustomerId (numeric) is preferred since
   // it skips the email-based customer lookup (which can race against
   // Shopify's search index for brand-new customers).
@@ -293,7 +293,7 @@ Deno.serve(async (req: Request) => {
       const code = generateUniqueCode();
       const variables = {
         basicCodeDiscount: {
-          title: `Welcome Ring Offer — ${code}`,
+          title: `Welcome Ring Offer - ${code}`,
           code,
           startsAt: now.toISOString(),
           endsAt: endsAt.toISOString(),
@@ -371,7 +371,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Audit log — best-effort, never blocks response.
+    // Audit log - best-effort, never blocks response.
     if (supabaseAdmin) {
       supabaseAdmin
         .from("welcome_offer_codes")
@@ -387,7 +387,7 @@ Deno.serve(async (req: Request) => {
         });
     }
 
-    // Best-effort metafield write — runs sequentially after the discount exists,
+    // Best-effort metafield write - runs sequentially after the discount exists,
     // so any failure here cannot affect the user-facing response.
     await writeCustomerMetafields(shopifyCustomerId, email, confirmedCode, confirmedEndsAt);
 

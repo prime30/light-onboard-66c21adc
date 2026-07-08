@@ -68,7 +68,7 @@ export function CloseButton() {
 
     // Only show the saving animation once the user has progressed past the
     // entry screens. Onboarding, account-type, and the first step after
-    // account-type should all dismiss instantly — there is nothing
+    // account-type should all dismiss instantly - there is nothing
     // meaningful to "save" yet. If StepContext isn't available (e.g. on
     // /login or /reset-password), treat as no progress.
     const ENTRY_STEPS = new Set(["onboarding", "account-type"]);
@@ -190,7 +190,7 @@ export function CloseButton() {
             <AlertDialogTitle>Leave without finishing?</AlertDialogTitle>
             <AlertDialogDescription>
               Your application has been approved. Set a password to activate
-              your wholesale account — it only takes a few seconds. If you
+              your wholesale account - it only takes a few seconds. If you
               leave now, you'll need to start over.
             </AlertDialogDescription>
           </AlertDialogHeader>

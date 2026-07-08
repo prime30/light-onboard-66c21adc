@@ -129,12 +129,12 @@ export const ScheduleConfirmedStep = () => {
     {
       icon: Sparkles,
       title: "Samples in hand",
-      body: "He'll have product on the table — SuperWefts, Keratin Tips, Color Ring, and Tapes — to walk through texture, weight, and finish.",
+      body: "He'll have product on the table - SuperWefts, Keratin Tips, Color Ring, and Tapes - to walk through texture, weight, and finish.",
     },
     {
       icon: ListChecks,
       title: "Come with questions",
-      body: "Pricing, application, replacements, troubleshooting — jot down anything you want covered.",
+      body: "Pricing, application, replacements, troubleshooting - jot down anything you want covered.",
     },
   ];
 
@@ -234,7 +234,7 @@ export const ScheduleConfirmedStep = () => {
             Please don't no-show
           </p>
           <p className="text-[12px] text-foreground/80 leading-relaxed">
-            Eric blocks this time off just for you — the same way you'd block a chair for a client.
+            Eric blocks this time off just for you - the same way you'd block a chair for a client.
             If something comes up, use the reschedule or cancel link in your confirmation email so
             the slot opens back up for someone else.
           </p>

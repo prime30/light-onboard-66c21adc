@@ -1,4 +1,4 @@
-/* Termina Font Family — only medium (500) is used */
+/* Termina Font Family - only medium (500) is used */
 @font-face {
   font-family: "Termina";
   src: url("/fonts/termina-medium.woff2") format("woff2");
@@ -19,7 +19,7 @@
  * around the iframe. This eliminates a second network fetch on boot
  * and prevents the font-swap FOUC inside the embedded app.
  *
- * The local /fonts/* copies are intentionally no longer referenced —
+ * The local /fonts/* copies are intentionally no longer referenced  - 
  * Shopify CDN is the single source of truth.
  */
 @font-face {

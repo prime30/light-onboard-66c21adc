@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
   // Step 1: look up the customer's Shopify state. If they're "invited"
   // (account created but activation URL never consumed), Storefront
-  // customerRecover silently no-ops — Shopify will not send a reset
+  // customerRecover silently no-ops - Shopify will not send a reset
   // email to an unactivated account. We have to use the Admin
   // send_invite endpoint instead, which re-issues the original account
   // invite email. This is the exact failure mode that left
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
           inviteRes.status,
           inviteTxt.substring(0, 300)
         );
-        // Fall through to customerRecover attempt below — better than nothing.
+        // Fall through to customerRecover attempt below - better than nothing.
       }
     } else {
       console.warn("Admin customer lookup failed (non-blocking):", lookupRes.status);

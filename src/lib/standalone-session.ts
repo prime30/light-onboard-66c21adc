@@ -3,7 +3,7 @@
  *
  * In iframe mode, the parent Shopify theme owns the customer session and
  * pushes CUSTOMER_DATA to us via postMessage. In standalone mode there's no
- * parent — we hold the Storefront access token in localStorage ourselves and
+ * parent - we hold the Storefront access token in localStorage ourselves and
  * hydrate `customerAtom` from it on boot.
  */
 
@@ -48,7 +48,7 @@ export function saveStoredSession(session: StoredSession): void {
   try {
     localStorage.setItem(STOREFRONT_TOKEN_KEY, JSON.stringify(session));
   } catch {
-    // localStorage unavailable — session is still useful in-memory.
+    // localStorage unavailable - session is still useful in-memory.
   }
 }
 

@@ -236,7 +236,7 @@ async function issueOfferForCustomer(
       CREATE_DISCOUNT_MUTATION,
       {
         basicCodeDiscount: {
-          title: `Welcome Ring Offer — ${code}`,
+          title: `Welcome Ring Offer - ${code}`,
           code,
           startsAt: now.toISOString(),
           endsAt: endsAt.toISOString(),
@@ -296,7 +296,7 @@ async function issueOfferForCustomer(
 
     const mfErrors = setRes.data?.metafieldsSet?.userErrors ?? [];
     if (mfErrors.length > 0) {
-      // Discount was created but metafield write failed — still report success
+      // Discount was created but metafield write failed - still report success
       // for the discount itself; the marquee just won't show on other devices.
       console.warn(
         `[backfill] metafieldsSet errors for ${customerGid}:`,

@@ -174,7 +174,7 @@ export function useAddressAutocomplete(
     });
   }, [showPredictions, predictions]);
 
-  // Reusable AddressDropdown component — rendered into a portal so it
+  // Reusable AddressDropdown component - rendered into a portal so it
   // escapes any stacking context created by the form's animated siblings.
   const AddressDropdown = useCallback(
     ({ className }: AddressDropdownProps) => {
