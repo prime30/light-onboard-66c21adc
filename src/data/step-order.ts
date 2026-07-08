@@ -74,7 +74,6 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "business-operation": "Business Operations",
   "business-location": "Business Location",
   "school-info": "School Information",
-  "wholesale-terms": "Wholesale Terms",
   "tax-exemption": "Tax Exemption",
   "preferred-method": "Preferred Method",
   "monthly-order-volume": "Monthly Order Volume",

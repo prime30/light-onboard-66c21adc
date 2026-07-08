@@ -46,7 +46,7 @@ type InternalFormData = {
   licenseProofFiles?: string[];
   taxExempt: boolean | null;
   taxExemptFile?: string[];
-  wholesaleAgreed: boolean;
+  
   birthdayMonth?: string;
   birthdayDay?: string;
   socialMediaHandle?: string;
@@ -82,7 +82,7 @@ const initialFormData: InternalFormData = {
   licenseProofFiles: [],
   taxExempt: null,
   taxExemptFile: [],
-  wholesaleAgreed: false,
+  
   birthdayMonth: "",
   birthdayDay: "",
   socialMediaHandle: "",
