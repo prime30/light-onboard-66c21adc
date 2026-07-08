@@ -303,8 +303,10 @@ const monthlyOrderVolumeValidators = {
 export const monthlyOrderVolumeSchema = z.object(monthlyOrderVolumeValidators);
 export type MonthlyOrderVolumeFormData = z.infer<typeof monthlyOrderVolumeSchema>;
 
-// Preferences Schema
+// Preferences Schema (now also includes tax exemption fields, which used to
+// live in their own step but were merged into Preferences).
 const preferencesValidators = {
+  ...taxExemptionValidators,
   birthdayMonth: z.string().optional(),
   birthdayDay: z.string().optional(),
   socialMediaHandle: z
@@ -329,7 +331,17 @@ const preferencesValidators = {
     .optional()
     .transform((val) => val ?? false),
 };
-export const preferencesSchema = z.object(preferencesValidators);
+export const preferencesSchema = z.object(preferencesValidators).refine(
+  (data) => {
+    if (!data.taxExempt) return true;
+    if (!data.taxExemptFile || !Array.isArray(data.taxExemptFile)) return false;
+    return data.taxExemptFile.length > 0;
+  },
+  {
+    message: "Tax exemption document is required when claiming tax exemption",
+    path: ["taxExemptFile"],
+  }
+);
 
 const baseValidators = {
   ...contactBasicsValidators,
