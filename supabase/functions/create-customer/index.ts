@@ -273,7 +273,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     licenseProofFiles: z.array(z.string()).nullish().default([]),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
-    wholesaleAgreed: z.literal(true),
+    wholesaleAgreed: z.boolean().optional().default(true),
     preferredMethods: preferredMethodsSchema,
     monthlyOrderVolume: monthlyOrderVolumeSchema,
     birthdayMonth: z.string().nullish(),
