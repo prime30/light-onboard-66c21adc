@@ -217,6 +217,33 @@ Deno.serve(async (req: Request) => {
     windowHours: 1,
   };
 
+  // ---- account-type gate (are the right people in the flow?) ----
+  // Denominator: bounced leads (email captured, no completion, past grace).
+  //   selectedCount   = bounced with account_type set (got past step 1)
+  //   noSelection     = bounced with no account_type (stuck on account-type)
+  // Plus anonymous "I am not a stylist" clicks (no email — never hit ln).
+  const bouncedLeads = leads.filter(
+    (r) => !r.completed_at && r.started_at < graceCutoff,
+  );
+  const bouncedSelected = bouncedLeads.filter((r) => !!r.account_type).length;
+  const bouncedNoSelection = bouncedLeads.length - bouncedSelected;
+  const pctB = (n: number, d: number) =>
+    d > 0 ? Math.round((n / d) * 1000) / 10 : 0;
+
+  const { count: notStylistCount } = await supabase
+    .from("not_stylist_events")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", since);
+
+  const accountTypeGate = {
+    bouncedTotal: bouncedLeads.length,
+    bouncedSelected,
+    bouncedNoSelection,
+    selectionRate: pctB(bouncedSelected, bouncedLeads.length),
+    noSelectionRate: pctB(bouncedNoSelection, bouncedLeads.length),
+    notStylistClicks: notStylistCount ?? 0,
+  };
+
   // ---- daily buckets (UTC date) ----
   const dayMap = new Map<string, { started: number; completed: number }>();
   for (let i = days - 1; i >= 0; i--) {
