@@ -30,8 +30,6 @@ export const PreferencesStep = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [showTaxNoInfo, setShowTaxNoInfo] = useState(false);
-  const [taxNoKey, setTaxNoKey] = useState(0);
   const taxFileRef = useRef<HTMLDivElement>(null);
 
   // Watch form values
@@ -53,33 +51,17 @@ export const PreferencesStep = () => {
     taxExemptFile,
   ] = watchedValues;
 
-
   const validationStatus = getStepValidationStatus(currentStep);
-  const taxSelectionError = !!errors.taxExempt;
 
-  const handleTaxYes = () => {
-    if (taxExempt === true) {
-      setValue("taxExempt", null as unknown as boolean, dirtyFieldOptions);
+  const handleTaxToggle = (checked: boolean) => {
+    setValue("taxExempt", checked, dirtyFieldOptions);
+    if (!checked) {
       setValue("taxExemptFile", [], dirtyFieldOptions);
-      return;
+    } else {
+      setTimeout(() => {
+        taxFileRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
     }
-    setValue("taxExempt", true, dirtyFieldOptions);
-    setShowTaxNoInfo(false);
-    setTimeout(() => {
-      taxFileRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 150);
-  };
-
-  const handleTaxNo = () => {
-    if (taxExempt === false) {
-      setValue("taxExempt", null as unknown as boolean, dirtyFieldOptions);
-      setShowTaxNoInfo(false);
-      return;
-    }
-    setValue("taxExempt", false, dirtyFieldOptions);
-    setValue("taxExemptFile", [], dirtyFieldOptions);
-    setShowTaxNoInfo(true);
-    setTaxNoKey((prev) => prev + 1);
   };
 
   // Whether a usable phone number is already on file. We no longer use this
