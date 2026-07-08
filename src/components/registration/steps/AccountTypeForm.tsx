@@ -18,6 +18,7 @@ import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
 import { useModeContext } from "../context/ModeContext";
 
@@ -408,7 +409,15 @@ export const AccountTypeForm = () => {
 
         <button
           type="button"
-          onClick={() => setShowNotStylist(true)}
+          onClick={() => {
+            setShowNotStylist(true);
+            const w = typeof window !== "undefined" ? window.innerWidth : 0;
+            const h = typeof window !== "undefined" ? window.innerHeight : 0;
+            const device_type = w < 640 ? "mobile" : w < 1024 ? "tablet" : "desktop";
+            void supabase
+              .from("not_stylist_events")
+              .insert({ device_type, viewport_width: w, viewport_height: h });
+          }}
           className={cn(
             "relative w-full p-[15px] sm:p-4 rounded-form sm:rounded-[20px] border-2 border-dashed border-border text-left group",
             "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
