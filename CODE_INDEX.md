@@ -12,7 +12,7 @@
 
 ## Directory Map
 
-### `src/pages/` — Route entry points
+### `src/pages/` - Route entry points
 | File | Route | Purpose |
 |------|-------|---------|
 | `Auth.tsx` | `/auth` | Main registration wizard (multi-step form) |
@@ -26,7 +26,7 @@
 | `Reviews.tsx` | `/reviews` | Reviews page |
 | `NotFound.tsx` | `*` | 404 |
 
-### `src/components/registration/` — Core registration UI
+### `src/components/registration/` - Core registration UI
 | File | Purpose |
 |------|---------|
 | `RegistrationLayout.tsx` | Shared layout: LeftPanel + RightPanel + Outlet |
@@ -36,7 +36,7 @@
 | `StepIndicatorBar.tsx` | Step progress dots in header |
 | `CloseButton.tsx` | Close modal button |
 | `FadeText.tsx` | Thin wrapper for semantic tags (forwardRef) |
-| `AuthBootFallback.tsx` | Suspense fallback — right panel skeleton only |
+| `AuthBootFallback.tsx` | Suspense fallback - right panel skeleton only |
 | `FormSkeleton.tsx` | Per-step loading skeletons (variant-based) |
 | `TextSkeleton.tsx` | Inline shimmer placeholder |
 | `FileUpload.tsx` | Single file upload with preview |
@@ -49,7 +49,7 @@
 | `ActivateAccountForm.tsx` | Account activation form component |
 | `ResetPasswordForm.tsx` | Password reset form component |
 
-### `src/components/registration/steps/` — Form steps (rendered inside Auth.tsx)
+### `src/components/registration/steps/` - Form steps (rendered inside Auth.tsx)
 | File | Step |
 |------|------|
 | `OnboardingForm.tsx` | Landing / get-started screen |
@@ -66,7 +66,7 @@
 | `SuccessForm.tsx` | Post-submission confirmation |
 | `SignInForm.tsx` | Login form |
 
-### `src/components/registration/helpers/` — Left panel sub-components
+### `src/components/registration/helpers/` - Left panel sub-components
 | File | Purpose |
 |------|---------|
 | `AnimatedCounters.tsx` | OdometerCounter + RotatingStylistAvatars |
@@ -75,7 +75,7 @@
 | `MarqueeBadges.tsx` | Scrolling badge strip (unused?) |
 | `TestimonialCarousel.tsx` | Auto-rotating testimonial quotes |
 
-### `src/components/registration/context/` — State management
+### `src/components/registration/context/` - State management
 | File | Purpose |
 |------|---------|
 | `FormContext.tsx` | react-hook-form provider + field persistence |
@@ -84,7 +84,7 @@
 | `StepContext.tsx` | Current step + navigation |
 | `RegistrationContext.tsx` | Combined registration state |
 
-### `src/hooks/` — Custom hooks
+### `src/hooks/` - Custom hooks
 | File | Purpose |
 |------|---------|
 | `use-iframe-comm.ts` | PostMessage communication with Shopify parent |
@@ -99,7 +99,7 @@
 | `use-scroll.ts` | Scroll position tracking |
 | `messages.ts` | PostMessage type definitions |
 
-### `src/lib/` — Utilities
+### `src/lib/` - Utilities
 | File | Purpose |
 |------|---------|
 | `utils.ts` | `cn()` class merger |
@@ -111,7 +111,7 @@
 | `validations/file-schema.ts` | File upload validation |
 | `validations/form-utils.ts` | Shared form validation helpers |
 
-### `src/data/` — Static data
+### `src/data/` - Static data
 | File | Purpose |
 |------|---------|
 | `auth-constants.ts` | Carousel slide content + feature pills data |
@@ -120,20 +120,20 @@
 | `locations.ts` | US states list |
 | `allowed-origins.ts` | Allowed iframe parent origins |
 
-### `src/services/` — API service layer
+### `src/services/` - API service layer
 | File | Purpose |
 |------|---------|
 | `address.ts` | Address autocomplete + details API calls |
 | `file.ts` | File upload to edge function |
 
-### `src/contexts/` — Global providers
+### `src/contexts/` - Global providers
 | File | Purpose |
 |------|---------|
 | `GlobalAppProvider.tsx` | QueryClient + Tooltip + Jotai provider |
 | `UploadFileProvider.tsx` | File upload state management |
 | `store.ts` | Jotai atoms (global state) |
 
-### `supabase/functions/` — Edge functions
+### `supabase/functions/` - Edge functions
 | Function | Purpose |
 |----------|---------|
 | `create-customer/` | Creates Shopify customer + Supabase profile |
@@ -144,7 +144,7 @@
 | `address-autocomplete/` | Google Places autocomplete proxy |
 | `address-details/` | Google Places details proxy |
 
-### `supabase/lib/` — Shared edge function utilities
+### `supabase/lib/` - Shared edge function utilities
 | File | Purpose |
 |------|---------|
 | `corsHeaders.ts` | CORS headers for edge functions |
@@ -160,22 +160,22 @@
 ## Key Files by Concern
 
 ### Styling
-- `src/index.css` — All CSS variables, design tokens, animations, keyframes
-- `tailwind.config.ts` — Tailwind theme extensions
-- `design-system/` — Portable design system (reference only)
+- `src/index.css` - All CSS variables, design tokens, animations, keyframes
+- `tailwind.config.ts` - Tailwind theme extensions
+- `design-system/` - Portable design system (reference only)
 
 ### Boot / Loading
-- `index.html` — Static boot skeleton (CSS-only, pre-React)
-- `AuthBootFallback.tsx` — React Suspense fallback (right panel only)
-- `FormSkeleton.tsx` — Per-step skeletons
+- `index.html` - Static boot skeleton (CSS-only, pre-React)
+- `AuthBootFallback.tsx` - React Suspense fallback (right panel only)
+- `FormSkeleton.tsx` - Per-step skeletons
 
 ### Iframe Communication
-- `use-iframe-comm.ts` — All postMessage logic
-- `messages.ts` — Message type definitions
-- `allowed-origins.ts` — Security whitelist
+- `use-iframe-comm.ts` - All postMessage logic
+- `messages.ts` - Message type definitions
+- `allowed-origins.ts` - Security whitelist
 
 ### Image Assets
-- `src/assets/salon-hero.jpg` — Left panel hero (49KB, 576×1024)
-- `src/assets/slide-products.jpg` — Carousel slide 2 (89KB, 1024×1024)
-- `src/assets/slide-community.jpg` — Carousel slide 3 (100KB, 1024×1024)
-- `src/assets/avatars/` — Stylist avatar thumbnails
+- `src/assets/salon-hero.jpg` - Left panel hero (49KB, 576×1024)
+- `src/assets/slide-products.jpg` - Carousel slide 2 (89KB, 1024×1024)
+- `src/assets/slide-community.jpg` - Carousel slide 3 (100KB, 1024×1024)
+- `src/assets/avatars/` - Stylist avatar thumbnails

@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Server configuration error" }, 500);
   }
 
-  const dryRun = body.dryRun !== false; // default TRUE — explicit opt-in to write
+  const dryRun = body.dryRun !== false; // default TRUE - explicit opt-in to write
   const limit = Math.min(Math.max(body.limit ?? 250, 1), 250);
   const onlyEmail = body.onlyEmail?.trim().toLowerCase();
   const pageInfo = body.pageInfo?.trim();
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
     "Content-Type": "application/json",
   };
 
-  // Build customer list — either single email or paged list
+  // Build customer list - either single email or paged list
   let customers: ShopifyCustomer[] = [];
   let nextPageInfo: string | null = null;
 
@@ -240,7 +240,7 @@ Deno.serve(async (req: Request) => {
           id: c.id,
           email: c.email,
           action: "skipped",
-          reason: "no Helium account_type — not an applicant",
+          reason: "no Helium account_type - not an applicant",
         });
         continue;
       }
@@ -332,7 +332,7 @@ Deno.serve(async (req: Request) => {
         setTaxExempt: needsTaxExempt,
       });
 
-      // Gentle pacing — Shopify REST is 40 req/s/store. Mf + PUT = 2/customer.
+      // Gentle pacing - Shopify REST is 40 req/s/store. Mf + PUT = 2/customer.
       await new Promise((r) => setTimeout(r, 80));
     } catch (e) {
       results.push({

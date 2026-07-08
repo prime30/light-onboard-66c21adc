@@ -47,7 +47,7 @@ export function useSafariViewportFix() {
     if (vp) {
       vp.addEventListener("resize", handleViewportResize);
       // scroll fires when the viewport pans (iOS pans the visual viewport
-      // over fixed/sticky elements) — keep height in sync
+      // over fixed/sticky elements) - keep height in sync
       vp.addEventListener("scroll", updateHeight);
     }
 

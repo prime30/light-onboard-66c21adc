@@ -1,5 +1,5 @@
 // Curated list of common disposable / temporary / throwaway email providers.
-// Used as a lightweight spam filter on signup. Not exhaustive — focuses on
+// Used as a lightweight spam filter on signup. Not exhaustive - focuses on
 // the most-abused providers. Catches the bulk of low-effort spam without
 // blocking real B2B users.
 //

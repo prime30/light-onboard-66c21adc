@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
 
   const email = (body.email ?? "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) {
-    // Don't error — just say "not exists" so the client UX doesn't block on
+    // Don't error - just say "not exists" so the client UX doesn't block on
     // mid-typing values. Schema validation handles the real format error.
     return new Response(JSON.stringify({ exists: false }), {
       status: 200,
@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
   const apiKey = Deno.env.get("HELIUM_PRIVATE_ACCESS_TOKEN");
   if (!apiKey) {
     console.error("HELIUM_PRIVATE_ACCESS_TOKEN missing");
-    // Fail open — don't block registration on infra hiccup.
+    // Fail open - don't block registration on infra hiccup.
     return new Response(JSON.stringify({ exists: false }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,14 +84,14 @@ Deno.serve(async (req: Request) => {
 
     // Soft-merge: a Shopify customer may already exist because support/Klaviyo
     // created one. We only block registration when the customer has already
-    // completed a B2B application — detected by an "Account type:" Shopify tag
+    // completed a B2B application - detected by an "Account type:" Shopify tag
     // (written by create-customer on every successful submission).
     const shopifyId = customer.shopify_id;
     const shopifyDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
     const shopifyAdminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
 
     if (!shopifyId || !shopifyDomain || !shopifyAdminToken) {
-      // Can't determine tag state — preserve prior behavior (block) so we
+      // Can't determine tag state - preserve prior behavior (block) so we
       // don't silently let a duplicate application through.
       return new Response(JSON.stringify({ exists: true }), {
         status: 200,

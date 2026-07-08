@@ -2,7 +2,7 @@
 // activation-related flow so the reset/activate page can recover it
 // when Shopify's Storefront API returns `customer.email = null`
 // (a known quirk for legacy customer accounts and certain access
-// scopes — see ResetPasswordForm/ActivateAccountForm fallback paths).
+// scopes - see ResetPasswordForm/ActivateAccountForm fallback paths).
 //
 // sessionStorage scope is intentional: same-browser, same-session only,
 // auto-cleared on tab close. The reset link the user clicks lands in the
@@ -15,7 +15,7 @@ export function setResetEmailHint(email: string): void {
   try {
     sessionStorage.setItem(KEY, email);
   } catch {
-    // Private mode / disabled storage — fall through, callers handle null.
+    // Private mode / disabled storage - fall through, callers handle null.
   }
 }
 

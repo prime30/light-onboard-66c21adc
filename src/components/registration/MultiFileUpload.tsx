@@ -149,7 +149,7 @@ const FileItem = ({
         !isDragging && "animate-in fade-in slide-in-from-bottom-2"
       )}
     >
-      {/* Drag handle (hidden while uploading/errored — it can't be reordered) */}
+      {/* Drag handle (hidden while uploading/errored - it can't be reordered) */}
       {draggable ? (
         <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-foreground/10 transition-colors">
           <GripVertical className="w-4 h-4 text-muted-foreground" />
@@ -202,7 +202,7 @@ const FileItem = ({
         </p>
         {hasError ? (
           <p className="text-xs text-destructive truncate">
-            {item.error || "Upload failed"} — click retry
+            {item.error || "Upload failed"} - click retry
           </p>
         ) : isUploading ? (
           <p className="text-xs text-muted-foreground">Uploading… {item.progress}%</p>
@@ -332,7 +332,7 @@ export const MultiFileUpload = ({
     [files, onFilesChange]
   );
 
-  // Handle completed uploads — merge BOTH completed and errored items back
+  // Handle completed uploads - merge BOTH completed and errored items back
   // into the form state. Errored items need to stay so the user sees the
   // failure and can retry; the schema refine blocks submission until they
   // reach `status: "completed"` with a url.

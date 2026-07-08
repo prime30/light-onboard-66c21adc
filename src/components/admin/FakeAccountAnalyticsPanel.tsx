@@ -242,7 +242,7 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div className="rounded-lg border border-border p-3">
           <div className="text-muted-foreground">Accounts in window</div>
-          <div className="text-xl font-medium mt-1">{totalInWindow ?? "—"}</div>
+          <div className="text-xl font-medium mt-1">{totalInWindow ?? " - "}</div>
         </div>
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
           <div className="text-destructive">High likelihood</div>
@@ -313,11 +313,11 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground truncate ml-5">
-                      {[row.name, row.business_name].filter(Boolean).join(" · ") || "—"}
+                      {[row.name, row.business_name].filter(Boolean).join(" · ") || " - "}
                       {" · "}{likelihoodLabel(row.score)} likelihood
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{row.account_type ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground truncate">{row.account_type ?? " - "}</div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(row.created_at).toLocaleDateString()}
                   </div>
@@ -395,6 +395,6 @@ export const FakeAccountAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
 const Field = ({ label, value }: { label: string; value: string | null | undefined }) => (
   <div>
     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-    <div className="text-xs mt-0.5 truncate">{value ? value : <span className="text-muted-foreground">—</span>}</div>
+    <div className="text-xs mt-0.5 truncate">{value ? value : <span className="text-muted-foreground"> - </span>}</div>
   </div>
 );

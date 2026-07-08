@@ -13,7 +13,7 @@
  * subpath without configuration.
  */
 
-// Top-level route paths declared in src/App.tsx — kept in sync manually.
+// Top-level route paths declared in src/App.tsx - kept in sync manually.
 // If you add a new top-level route, add its first segment here.
 const KNOWN_ROUTE_SEGMENTS = new Set<string>([
   "auth",

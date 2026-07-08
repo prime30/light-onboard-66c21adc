@@ -4,7 +4,7 @@ import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 
 // Map first path segment → dynamic import of its lazy chunk. Triggering the
 // import warms the module cache so React.lazy's Suspense fence resolves
-// synchronously when navigate() commits — no skeleton flash.
+// synchronously when navigate() commits - no skeleton flash.
 const ROUTE_PREFETCHERS: Record<string, () => Promise<unknown>> = {
   login: () => import("@/pages/LoginPage"),
   "reset-password": () => import("@/pages/ResetPasswordPage"),
@@ -59,7 +59,7 @@ export const IframeNavigationBridge = () => {
         return;
       }
 
-      // Already on the requested path — confirm immediately, no nav needed.
+      // Already on the requested path - confirm immediately, no nav needed.
       const current = location.pathname + location.search + location.hash;
       if (current === path) {
         sendMessage("NAVIGATE_COMPLETE", { path, alreadyThere: true });
@@ -67,7 +67,7 @@ export const IframeNavigationBridge = () => {
       }
 
       // Kick off the chunk fetch in parallel with navigate(). If it lands
-      // before Suspense fences, the route mounts synchronously — no skeleton.
+      // before Suspense fences, the route mounts synchronously - no skeleton.
       prefetchRoute(path);
       pendingPathRef.current = path;
       navigate(path);

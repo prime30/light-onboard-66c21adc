@@ -73,7 +73,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const [loginError, setLoginError] = useState<LoginErrorState>(null);
   const [forgotPasswordError, setForgotPasswordError] = useState<LoginErrorState>(null);
   // Tracks whether the user has actually clicked Log In since the last edit.
-  // Drives the destructive button state — we only want to show "Login failed"
+  // Drives the destructive button state - we only want to show "Login failed"
   // styling after a real submission attempt, not from background prechecks.
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
@@ -93,7 +93,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   // Mid-SSO chokepoint: only gate logins that originated from a Circle/Syndicate
   // SSO redirect. Everything else (direct login, account management, etc.) is
-  // unaffected — the gate predicate must be false in those cases.
+  // unaffected - the gate predicate must be false in those cases.
   const isMidSso =
     !!ssoContext &&
     (ssoContext.source === "syndicate" || ssoContext.source === "circle") &&
@@ -103,7 +103,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   // Shopify's customer login typically returns generic "Unidentified customer"
   // for both unknown email and wrong password. We pre-flight existence via
   // the customer-gate edge function, so by the time we get here the account
-  // is known to exist (or the gate was degraded) — treat as wrong password.
+  // is known to exist (or the gate was degraded) - treat as wrong password.
   const classifyLoginError = useCallback((raw: string): LoginErrorState => {
     const msg = (raw || "").toLowerCase();
     if (!msg) {
@@ -179,7 +179,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         clearSuccessWatchdog();
 
         // Auto-close the iframe after a brief delay so the user sees the
-        // "Logged In!" success state. We don't wait for CUSTOMER_DATA — the
+        // "Logged In!" success state. We don't wait for CUSTOMER_DATA - the
         // parent will reload in its logged-in state once we close. We also
         // re-flush USER_LOGIN as a safety net in case the parent's first
         // login attempt was dropped.
@@ -218,7 +218,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         }
 
         // Standalone fallback: keep watchdog so we surface a real failure if
-        // CUSTOMER_DATA never arrives (shouldn't happen — useCustomerLogin
+        // CUSTOMER_DATA never arrives (shouldn't happen - useCustomerLogin
         // already navigates on the standalone path, but defensive).
         successWatchdogRef.current = setTimeout(() => {
           setIsLoginSuccessful(false);
@@ -318,7 +318,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         setValue("email", remembered, dirtyFieldOptions);
       }
     } catch {
-      // localStorage may be unavailable (e.g. iframe partitioning) — silently ignore
+      // localStorage may be unavailable (e.g. iframe partitioning) - silently ignore
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -439,7 +439,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const precheckEmailExists = useCallback(
     (rawEmail: string) => {
       const normalized = (rawEmail || "").trim().toLowerCase();
-      // Skip empty / obviously invalid emails — let zod handle that path.
+      // Skip empty / obviously invalid emails - let zod handle that path.
       if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
         return;
       }
@@ -464,7 +464,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       setIsPrecheckingEmail(true);
       checkCustomerGate(normalized)
         .then((gate) => {
-          // Stale response — a newer precheck has started or email changed.
+          // Stale response - a newer precheck has started or email changed.
           if (token !== precheckTokenRef.current) return;
           // Don't cache degraded results so we'll retry next time.
           if (!gate.degraded) {

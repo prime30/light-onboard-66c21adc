@@ -1,4 +1,4 @@
-// POST /orders/<id>/note — invoked via Shopify App Proxy at
+// POST /orders/<id>/note - invoked via Shopify App Proxy at
 // https://dropdeadextensions.com/apps/account/orders/<id>/note
 //
 // Mirrors the change-password function pattern:
@@ -11,7 +11,7 @@
 // Forbidden behaviors enforced here:
 //   - Never trust logged_in_customer_id without HMAC verification.
 //   - Never skip the order-ownership re-check after HMAC verifies.
-//   - Never accept order id from the request body — only from the path.
+//   - Never accept order id from the request body - only from the path.
 //   - Never echo Admin API error bodies verbatim to the client.
 //   - Never log full note contents at INFO (PII).
 
@@ -117,7 +117,7 @@ function rateLimited(customerId: string): boolean {
   const prev = lastSaveByCustomer.get(customerId) ?? 0;
   if (now - prev < RATE_LIMIT_WINDOW_MS) return true;
   lastSaveByCustomer.set(customerId, now);
-  // Opportunistic GC — drop entries older than the window.
+  // Opportunistic GC - drop entries older than the window.
   if (lastSaveByCustomer.size > 1000) {
     for (const [k, t] of lastSaveByCustomer) {
       if (now - t > RATE_LIMIT_WINDOW_MS) lastSaveByCustomer.delete(k);
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // Path routing — must match /orders/<numeric>/note exactly.
+  // Path routing - must match /orders/<numeric>/note exactly.
   const match = url.pathname.match(ORDER_NOTE_PATH);
   if (!match) {
     return fail("not_found", 404);
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
     return fail("shopify_error", 400, "Server configuration error");
   }
 
-  // 1. HMAC verification — anything before this point is untrusted.
+  // 1. HMAC verification - anything before this point is untrusted.
   const verified = await verifyAppProxySignature(url, APP_SECRET);
   if (!verified.ok) {
     return fail("unauthenticated", 401);

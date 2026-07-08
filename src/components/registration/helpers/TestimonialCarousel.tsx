@@ -11,7 +11,7 @@ import stylistElectric1 from "@/assets/avatars/stylist-electric-1.jpg";
 // Preload + decode ALL avatar bitmaps the moment this module is imported.
 // Because the carousel is part of the auth hero panel (loaded on first paint),
 // this guarantees every possible avatar is fully decoded in the browser cache
-// before the carousel ever rotates — eliminating the "image loads in" flash.
+// before the carousel ever rotates - eliminating the "image loads in" flash.
 const ALL_AVATARS = [
   stylistPink1,
   stylistPurple1,

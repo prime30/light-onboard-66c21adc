@@ -3,7 +3,7 @@ import { STEP_ORDER } from "@/data/step-order";
 
 // Asset URLs referenced inside lazy step components. Importing them here
 // (top-level) lets Vite resolve the hashed URL at build time so we can warm
-// the browser image cache before the step mounts — eliminating image FOUC.
+// the browser image cache before the step mounts - eliminating image FOUC.
 import methodSuperweft from "@/assets/method-superweft.webp?url";
 import methodKeratinTips from "@/assets/method-keratin-tips.webp?url";
 import methodSecretapes from "@/assets/method-secretapes.webp?url";
@@ -136,7 +136,7 @@ export function prefetchNextStep(current: Step, accountType: AccountType | undef
     prefetchStep(order[idx + 2]);
   }
 
-  // Always warm summary + success — they're always the last two
+  // Always warm summary + success - they're always the last two
   prefetchStep("summary");
   prefetchStep("success");
 }

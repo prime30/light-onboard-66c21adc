@@ -4,7 +4,7 @@ import { CircularProgress, MagneticFeatureBox } from "./helpers";
 import { slides, features } from "@/data/auth-constants";
 import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 
-// Lazy-load below-the-fold panel children — they don't need to block first paint
+// Lazy-load below-the-fold panel children - they don't need to block first paint
 // of the hero copy / progress / logo.
 const RotatingStylistAvatars = lazy(() =>
   import("./helpers/AnimatedCounters").then((m) => ({ default: m.RotatingStylistAvatars }))
@@ -321,7 +321,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
           <div />
         )}
 
-        {/* Trust Badge - visible on all sizes — gated on fontsLoaded to prevent FOUC */}
+        {/* Trust Badge - visible on all sizes - gated on fontsLoaded to prevent FOUC */}
         <div style={{ minHeight: "28px", display: "flex", alignItems: "center" }}>
           {fontsLoaded && (
             <Suspense fallback={null}>

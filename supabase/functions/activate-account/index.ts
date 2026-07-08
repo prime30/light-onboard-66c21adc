@@ -37,7 +37,7 @@ function sendSuccess<T>(data: T, message?: string) {
 }
 
 // Accept either:
-//   - activationUrl: full Shopify activation URL (preferred — matches
+//   - activationUrl: full Shopify activation URL (preferred - matches
 //     `customer.account_activation_url` in the invite email Liquid)
 //   - customerId + token: legacy shape, reconstructed below
 const bodySchema = z
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         derivedCustomerId = parts[activateIdx + 1];
       }
     } catch {
-      // Ignored — falls back to no email lookup.
+      // Ignored - falls back to no email lookup.
     }
   } else {
     const numericId = customerId!.includes("/") ? customerId!.split("/").pop()! : customerId!;
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     // Shopify returns a 302 redirect on success
     if (activateResponse.status === 302 || activateResponse.status === 200) {
       // Best-effort email lookup so the SPA can auto-sign-in afterwards.
-      // Failure here is non-fatal — activation already succeeded.
+      // Failure here is non-fatal - activation already succeeded.
       let email: string | null = null;
       let firstName: string | null = null;
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -172,11 +172,11 @@ Deno.serve(async (req) => {
       // internal-only edge function gated by service-role bearer header so the
       // public can no longer mint unlimited discount codes by calling it
       // directly). Two independent toggles drive this:
-      //   - welcome_offer_enabled — SPA surfaces the code on success
-      //   - discount_metafields_enabled — write code to customer metafields
+      //   - welcome_offer_enabled - SPA surfaces the code on success
+      //   - discount_metafields_enabled - write code to customer metafields
       //     so the Shopify theme can keep surfacing the discount elsewhere
       //     even when the SPA welcome-offer screen is off.
-      // Failures here are non-blocking — activation already succeeded.
+      // Failures here are non-blocking - activation already succeeded.
       let welcomeOffer: { code: string; endsAt: string | null } | null = null;
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");

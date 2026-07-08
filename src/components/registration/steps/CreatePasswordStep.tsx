@@ -28,7 +28,7 @@ function PasswordPrefixIcon({ error }: { error: boolean }) {
 }
 
 /**
- * Password requirements — these mirror the zod schema in
+ * Password requirements - these mirror the zod schema in
  * `auth-schemas.ts → createPasswordValidators`. Keep both in sync so the
  * visual checklist always matches what blocks the user from continuing.
  */
@@ -96,7 +96,7 @@ export const CreatePasswordStep = () => {
   const confirmMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
 
-  // Keep confirmPassword error in sync when EITHER field changes — RHF only
+  // Keep confirmPassword error in sync when EITHER field changes - RHF only
   // re-validates the field being typed in, so editing the password field
   // after a mismatch would leave a stale "Passwords do not match" error
   // attached to confirmPassword until the user re-touched it.
@@ -180,7 +180,7 @@ export const CreatePasswordStep = () => {
             <CheckMarkIcon show={passwordValid} />
           </div>
 
-          {/* Requirements checklist — always visible until every rule is
+          {/* Requirements checklist - always visible until every rule is
               satisfied, so the user sees exactly what's still wrong instead
               of relying on a single generic error message. */}
           {!allChecksPassed ? (

@@ -30,7 +30,7 @@ export const NotEligiblePage = () => {
             as="p"
             className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance"
           >
-            Your first order unlocks full access to the community — techniques,
+            Your first order unlocks full access to the community - techniques,
             behind-the-brand content, and direct access to the team.
           </FadeText>
         </div>

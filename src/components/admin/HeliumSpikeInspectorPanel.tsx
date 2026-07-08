@@ -315,7 +315,7 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
           size="sm"
           onClick={() => void repairAll()}
           disabled={refill.running}
-          title="Walk all of Helium and upsert every record. Idempotent — safe to re-run."
+          title="Walk all of Helium and upsert every record. Idempotent - safe to re-run."
         >
           {refill.running
             ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -398,12 +398,12 @@ export function HeliumSpikeInspectorPanel({ adminEmail, adminToken }: Props) {
                     <td className="py-2 px-3 tabular-nums whitespace-nowrap">
                       {r.created_at.replace("T", " ").slice(0, 16)}
                     </td>
-                    <td className="py-2 px-3 text-foreground">{r.email ?? "—"}</td>
+                    <td className="py-2 px-3 text-foreground">{r.email ?? " - "}</td>
                     <td className="py-2 px-3 text-muted-foreground">
-                      {[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}
+                      {[r.first_name, r.last_name].filter(Boolean).join(" ") || " - "}
                     </td>
-                    <td className="py-2 px-3 text-muted-foreground">{r.i_am_a ?? "—"}</td>
-                    <td className="py-2 px-3 text-muted-foreground">{r.state ?? "—"}</td>
+                    <td className="py-2 px-3 text-muted-foreground">{r.i_am_a ?? " - "}</td>
+                    <td className="py-2 px-3 text-muted-foreground">{r.state ?? " - "}</td>
                     <td className="py-2 px-3 text-muted-foreground max-w-[260px] truncate">
                       {r.tags.join(", ")}
                     </td>

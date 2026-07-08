@@ -7,7 +7,7 @@
 // Signature verification: Calendly sends `Calendly-Webhook-Signature: t=<ts>,v1=<hmac>`.
 // We compute HMAC-SHA256(`${t}.${rawBody}`, CALENDLY_WEBHOOK_SIGNING_KEY) and
 // compare in constant time. If the signing key is missing we refuse the
-// request (fail-closed) — never accept unauthenticated webhook traffic.
+// request (fail-closed) - never accept unauthenticated webhook traffic.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     }
 
     if (eventType === "invitee_no_show.deleted") {
-      // payload: { uri, invitee: <invitee_uri> } — user un-marked no-show.
+      // payload: { uri, invitee: <invitee_uri> } - user un-marked no-show.
       const inviteeUri = (payload?.invitee as string | undefined) ?? null;
       const leadEmail = await findLead(inviteeUri, null);
       if (!leadEmail) return json({ ok: true, matched: false });

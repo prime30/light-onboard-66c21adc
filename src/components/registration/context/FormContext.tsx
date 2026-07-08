@@ -93,7 +93,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   // parked on the onboarding/account-type intro, walk the current step
   // order and jump to the earliest step that isn't fully valid. This covers
   // returning users (Klaviyo abandoned-form link) whose saved data is
-  // missing a field that became required in a newer build — without this,
+  // missing a field that became required in a newer build - without this,
   // they'd sail through to summary/password and hit a generic submit error.
   const hasSnappedRef = useRef(false);
   // Gate snap-back on the auto-approval flag finishing its first fetch.
@@ -105,7 +105,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hasSnappedRef.current) return;
     if (autoApproveLoading) return;
-    if (!accountType) return; // fresh visitor — leave them on onboarding
+    if (!accountType) return; // fresh visitor - leave them on onboarding
     if (currentStep !== "onboarding" && currentStep !== "account-type") return;
     if (!steps || steps.length === 0) return;
 
@@ -122,7 +122,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     if (target && target !== currentStep) {
       setCurrentStep(target);
     } else if (!target) {
-      // Everything is complete — drop them on the summary step.
+      // Everything is complete - drop them on the summary step.
       setCurrentStep("summary");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

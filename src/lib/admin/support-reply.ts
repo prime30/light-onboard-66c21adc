@@ -1,6 +1,6 @@
 // Generates a copy-pasteable support reply from a failed registration
 // submission's error_log. Keeps the wording short, specific and actionable
-// so support never needs to ask the user to "open dev tools" — every
+// so support never needs to ask the user to "open dev tools" - every
 // known failure maps to a templated fix + recovery link.
 
 const RECOVERY_BASE = "https://apply.dropdeadextensions.com/apps/apply";
@@ -11,7 +11,7 @@ type ErrorEntry = {
   message: string;
   at: string;
   // `field` is present on rows written via writeStandaloneAuditFailure and
-  // the zod-issue audit block. Older rows may not carry it — fall back to
+  // the zod-issue audit block. Older rows may not carry it - fall back to
   // a step-based template.
   field?: string;
 };
@@ -51,7 +51,7 @@ const FIELD_LABEL: Record<string, string> = {
 
 function labelFor(field: string | undefined): string {
   if (!field) return "the highlighted field";
-  // Nested paths like address.line1 / licenseProofFiles.0 — surface the
+  // Nested paths like address.line1 / licenseProofFiles.0 - surface the
   // top-level field name (the form renders one input per top-level field).
   const top = field.split(".")[0];
   return FIELD_LABEL[top] ?? top;
@@ -76,7 +76,7 @@ export function buildSupportReply(s: SubmissionForReply): string | null {
   lines.push("Hi there,");
   lines.push("");
   lines.push(
-    "Thanks for applying to Drop Dead Extensions — your last submission didn't go through. Here's what we saw and how to fix it:"
+    "Thanks for applying to Drop Dead Extensions - your last submission didn't go through. Here's what we saw and how to fix it:"
   );
   lines.push("");
 
@@ -89,11 +89,11 @@ export function buildSupportReply(s: SubmissionForReply): string | null {
   }
 
   if (failures.length === 0) {
-    // Upstream succeeded only partially — surface that to the user as a
+    // Upstream succeeded only partially - surface that to the user as a
     // "we'll fix on our end" reply instead of asking them to redo work.
     if (s.status === "helium_ok" || s.status === "shopify_ok") {
       lines.push(
-        "• Your application was received but didn't finish syncing to our store. We're processing it on our end — no action needed."
+        "• Your application was received but didn't finish syncing to our store. We're processing it on our end - no action needed."
       );
     } else {
       lines.push("• Your application hit a temporary error during processing. Please try submitting once more.");
@@ -101,12 +101,12 @@ export function buildSupportReply(s: SubmissionForReply): string | null {
   }
 
   lines.push("");
-  lines.push("Pick up where you left off here — your details are still saved:");
+  lines.push("Pick up where you left off here - your details are still saved:");
   lines.push(recoveryLink(s.email));
   lines.push("");
   lines.push("Reply to this email if you'd like us to walk through it with you.");
   lines.push("");
-  lines.push("— Drop Dead Extensions");
+  lines.push(" -  Drop Dead Extensions");
 
   return lines.join("\n");
 }
@@ -117,18 +117,18 @@ function diagnose(f: ErrorEntry): string {
     case "disposable_email":
       return "We can't accept disposable / temporary email addresses (mailinator, tempmail, etc). Please re-apply with your business email.";
     case "email_already_applied":
-      return "You've already applied with this email. Sign in instead at apply.dropdeadextensions.com/login — no need to re-apply.";
+      return "You've already applied with this email. Sign in instead at apply.dropdeadextensions.com/login - no need to re-apply.";
     case "phone_invalid":
       return `Your ${field} didn't match a valid format for the country you selected. Double-check the digits and country code.`;
     case "phone_in_use":
       return `Your ${field} is already linked to another customer account. Use a different number, or reply to this email and we can merge the accounts.`;
     case "helium_create":
     case "helium_parse":
-      return "We hit a temporary error syncing your account on our end. Please try submitting once more — if it fails again, reply to this email and we'll finish it manually.";
+      return "We hit a temporary error syncing your account on our end. Please try submitting once more - if it fails again, reply to this email and we'll finish it manually.";
     case "auto_activation":
-      return "Your account was created in our store but the automatic password setup didn't complete on Shopify's side, so you ended up in an 'invited' state with no working password. We've re-sent your account-setup email — check your inbox (and spam) for a message from Drop Dead Extensions with a 'Activate your account' link. If you don't see it within 10 minutes, reply here and we'll trigger a fresh invite manually.";
+      return "Your account was created in our store but the automatic password setup didn't complete on Shopify's side, so you ended up in an 'invited' state with no working password. We've re-sent your account-setup email - check your inbox (and spam) for a message from Drop Dead Extensions with a 'Activate your account' link. If you don't see it within 10 minutes, reply here and we'll trigger a fresh invite manually.";
     case "activation_fallback":
-      return "Your password setup didn't go through, and our automatic recovery email also failed to send. We've manually re-issued your account invite — check your inbox (and spam) for a 'Activate your account' message from Drop Dead Extensions. If nothing arrives in 10 minutes, reply here so we can resend it from a different sender.";
+      return "Your password setup didn't go through, and our automatic recovery email also failed to send. We've manually re-issued your account invite - check your inbox (and spam) for a 'Activate your account' message from Drop Dead Extensions. If nothing arrives in 10 minutes, reply here so we can resend it from a different sender.";
     case "zod_validation":
       // Field-specific templates first, then generic.
       if (f.field === "accountType") {
@@ -137,7 +137,7 @@ function diagnose(f: ErrorEntry): string {
       if (f.field === "licenseProofFiles" || f.field === "studentIdFiles") {
         return `Your ${field} didn't upload successfully. Re-upload a clear photo or PDF (under 10MB) and resubmit.`;
       }
-      return `Your ${field} is missing or invalid — go back to that step and complete it.`;
+      return `Your ${field} is missing or invalid - go back to that step and complete it.`;
     default:
       return `There was an issue with your ${field}. Please go back to that step and update it.`;
   }

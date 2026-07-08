@@ -45,7 +45,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   const [, setCustomer] = useAtom(customerAtom);
 
   // Valid if either a trusted full reset URL is present, or both legacy params.
-  // Reject reset_url values that don't point at one of our known Shopify hosts —
+  // Reject reset_url values that don't point at one of our known Shopify hosts  - 
   // prevents the iframe from POSTing the user's new password to an attacker-
   // controlled origin if the link was tampered with.
   const resetUrlIsTrusted = !resetUrl || isTrustedShopifyUrl(resetUrl);
@@ -112,7 +112,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       // captured by SignInForm via setResetEmailHint().
       const customerEmail =
         result.data?.email ?? emailHint ?? getResetEmailHint() ?? null;
-      // Hint is single-use — clear regardless of which path resolved it
+      // Hint is single-use - clear regardless of which path resolved it
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
       clearResetEmailHint();
@@ -148,7 +148,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           // ignore storage failures
         }
         // Iframe: parent Shopify theme owns the storefront session. Fire
-        // USER_LOGIN immediately and jump straight to the success screen —
+        // USER_LOGIN immediately and jump straight to the success screen  - 
         // mirroring the registration flow (FormDataContext.submitForm).
         // The parent reloads in the background while our success scrim
         // stays on top; CLOSE_IFRAME (on "Close" click) reveals an
@@ -159,7 +159,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           email: customerEmail,
           password: data.password,
         });
-        // Queue same creds for re-flush on closeIframe() — safety net
+        // Queue same creds for re-flush on closeIframe() - safety net
         // covering races where the parent dropped/ignored the first message.
         setPendingLogin({ email: customerEmail, password: data.password });
         setAutoLoginStatus("succeeded");
@@ -211,7 +211,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         } else {
           setAutoLoginStatus(loginFailedCode === 429 ? "rate_limited" : "failed");
         }
-        // Always reach the success screen — password IS reset; the inline
+        // Always reach the success screen - password IS reset; the inline
         // note explains the auto-login outcome if it didn't take.
         setFormState("success");
       }
@@ -245,7 +245,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   }, [isInIframe, closeIframe]);
 
   // Sends the user back to the sign-in screen where the "Forgot password?"
-  // flow lives. Works identically inside the iframe and standalone — the
+  // flow lives. Works identically inside the iframe and standalone - the
   // /login route is the canonical entry point for requesting a fresh link.
   const handleRequestNewLink = useCallback(() => {
     window.location.assign(withBasename("/login?forgot=1"));
@@ -256,9 +256,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   if (formState === "success") {
     const autoLoginNote =
       autoLoginStatus === "rate_limited"
-        ? "Too many sign-in attempts — please log in manually in a moment."
+        ? "Too many sign-in attempts - please log in manually in a moment."
         : autoLoginStatus === "failed"
-          ? "Couldn't sign you in automatically — please log in with your new password."
+          ? "Couldn't sign you in automatically - please log in with your new password."
           : null;
 
     const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"

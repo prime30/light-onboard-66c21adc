@@ -1,5 +1,5 @@
 /**
- * AuthBootFallback — lightweight right-panel-only skeleton used as
+ * AuthBootFallback - lightweight right-panel-only skeleton used as
  * a Suspense fallback for lazy routes inside RegistrationLayout.
  *
  * RegistrationLayout already renders the real LeftPanel + header,
@@ -34,7 +34,7 @@ function DarkBlock({ width, height, radius = "999px", opacity = 1 }: BlockProps)
 }
 
 /**
- * Right-panel content skeleton only — no left panel, no full-page wrapper.
+ * Right-panel content skeleton only - no left panel, no full-page wrapper.
  * Sits inside RegistrationLayout's <Outlet />.
  */
 export function AuthBootFallback() {

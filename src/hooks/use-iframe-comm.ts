@@ -294,7 +294,7 @@ export const useIframeComm = (options: UseIframeCommOptions = {}): UseIframeComm
   // Use double-requestAnimationFrame so the message fires AFTER the browser
   // commits the first paint of the React tree. The first rAF queues for the
   // next frame; the second rAF runs after that frame is painted. This is the
-  // signal the parent theme should use to hide its own overlay — by then the
+  // signal the parent theme should use to hide its own overlay - by then the
   // iframe definitely has visible content (either the React skeleton or
   // hydrated form), so there is no blank intermediate state.
   //

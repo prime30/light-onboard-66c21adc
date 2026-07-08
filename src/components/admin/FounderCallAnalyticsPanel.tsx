@@ -102,7 +102,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
           setBackfillResult(`Error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
         } else {
           setBackfillResult(
-            `${dryRun ? "Dry run" : "Backfilled"} — ${res.bookingsFound} Calendly bookings, ${res.updated} leads ${dryRun ? "would be" : ""} updated, ${res.skipped} already stamped, ${res.noLead} with no matching lead.`,
+            `${dryRun ? "Dry run" : "Backfilled"} - ${res.bookingsFound} Calendly bookings, ${res.updated} leads ${dryRun ? "would be" : ""} updated, ${res.skipped} already stamped, ${res.noLead} with no matching lead.`,
           );
           if (!dryRun) fetchDataRef.current?.();
         }
@@ -128,7 +128,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
         setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
       } else {
         setBackfillResult(
-          `Synced first orders — scanned ${res.totalOrdersSeen} orders across ${res.pages} pages, ${res.uniqueEmails} unique emails, ${res.matchedLeads} matched leads, ${res.updated} updated, ${res.skipped} already current.`,
+          `Synced first orders - scanned ${res.totalOrdersSeen} orders across ${res.pages} pages, ${res.uniqueEmails} unique emails, ${res.matchedLeads} matched leads, ${res.updated} updated, ${res.skipped} already current.`,
         );
         fetchDataRef.current?.();
       }
@@ -152,7 +152,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
         setBackfillResult(`Tag error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
       } else {
         setBackfillResult(
-          `Tagged Shopify attendees — ${res.candidates} attendees, ${res.tagged} newly tagged "${res.tag}", ${res.alreadyTagged} already tagged, ${res.notFound} no Shopify customer, ${res.failed} failed.`,
+          `Tagged Shopify attendees - ${res.candidates} attendees, ${res.tagged} newly tagged "${res.tag}", ${res.alreadyTagged} already tagged, ${res.notFound} no Shopify customer, ${res.failed} failed.`,
         );
       }
     } catch (e) {
@@ -491,7 +491,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
                         ? "No-show"
                         : "No call booked";
                   const fmtHours = (h: number) => {
-                    if (h <= 0) return "—";
+                    if (h <= 0) return " - ";
                     if (h < 24) return `${h}h`;
                     const d = h / 24;
                     return `${Math.round(d * 10) / 10}d`;
@@ -522,10 +522,10 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
                         {fmtHours(c.avgTimeToPurchaseHours)}
                       </td>
                       <td className="py-1.5 pr-3 text-right tabular-nums text-muted-foreground">
-                        {c.avgOrderValue > 0 ? `$${c.avgOrderValue.toFixed(2)}` : "—"}
+                        {c.avgOrderValue > 0 ? `$${c.avgOrderValue.toFixed(2)}` : " - "}
                       </td>
                       <td className="py-1.5 text-right tabular-nums text-muted-foreground">
-                        {c.totalRevenue > 0 ? `$${c.totalRevenue.toFixed(2)}` : "—"}
+                        {c.totalRevenue > 0 ? `$${c.totalRevenue.toFixed(2)}` : " - "}
                       </td>
                     </tr>
                   );
@@ -562,9 +562,9 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
                   </div>
                 </div>
                 <div className="text-right tabular-nums text-muted-foreground shrink-0">
-                  {r.startTime ? new Date(r.startTime).toLocaleString() : "—"}
+                  {r.startTime ? new Date(r.startTime).toLocaleString() : " - "}
                   <div className="text-[10px]">
-                    booked {r.bookedAt ? new Date(r.bookedAt).toLocaleDateString() : "—"}
+                    booked {r.bookedAt ? new Date(r.bookedAt).toLocaleDateString() : " - "}
                   </div>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 // Resolve a safe target origin for window.parent.postMessage calls.
 // Returns the parent origin if it matches our allowlist; null otherwise.
 // Callers MUST skip posting (rather than fall back to "*") when this
-// returns null — broadcasting credentials to "*" allows any embedding
+// returns null - broadcasting credentials to "*" allows any embedding
 // page to capture them.
 import { allowedMessageOrigins } from "@/data/allowed-origins";
 

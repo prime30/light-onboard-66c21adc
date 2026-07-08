@@ -162,7 +162,7 @@ export const ContactBasicsStep = () => {
       }
     };
 
-    // Cache hit — skip the network round trip entirely.
+    // Cache hit - skip the network round trip entirely.
     const cacheKey = `dde:check-email:${value}`;
     const cached = cacheGet(cacheKey) as { exists?: boolean } | undefined;
     if (cached) {
@@ -183,7 +183,7 @@ export const ContactBasicsStep = () => {
         cacheSet(cacheKey, data ?? {});
         applyResult(data as { exists?: boolean } | undefined);
       } catch {
-        // Fail silently — submit will still catch the conflict server-side.
+        // Fail silently - submit will still catch the conflict server-side.
       }
     }, 600);
     return () => window.clearTimeout(handle);
@@ -259,7 +259,7 @@ export const ContactBasicsStep = () => {
         cacheSet(cacheKey, data ?? {});
         applyResult(data as { valid?: boolean; inUse?: boolean; maskedEmail?: string } | undefined);
       } catch {
-        // Fail silently — submit will still catch the conflict server-side.
+        // Fail silently - submit will still catch the conflict server-side.
       }
     }, 600);
     return () => window.clearTimeout(handle);

@@ -16,7 +16,7 @@ import { useStepContext, useForm } from "@/components/registration/context";
 import { supabase } from "@/integrations/supabase/client";
 
 // Cap how far forward we'll auto-skip empty weeks before giving up and
-// showing the waitlist CTA. 8 weeks ≈ 2 months — enough to absorb most
+// showing the waitlist CTA. 8 weeks ≈ 2 months - enough to absorb most
 // Calendly date-range gaps without spinning forever.
 const MAX_AUTO_SKIP_WEEKS = 8;
 
@@ -191,7 +191,7 @@ export const ScheduleStep = () => {
     return slotsByDay[key] ?? [];
   }, [selectedDate, slotsByDay]);
 
-  // Waitlist fallback — when calendar is exhausted, let user opt into a
+  // Waitlist fallback - when calendar is exhausted, let user opt into a
   // notify-me ping instead of bouncing.
   const [waitlistState, setWaitlistState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const submitWaitlist = useCallback(async () => {
@@ -264,7 +264,7 @@ export const ScheduleStep = () => {
           }),
         );
       } catch {
-        // sessionStorage may be unavailable — confirmed step has fallbacks
+        // sessionStorage may be unavailable - confirmed step has fallbacks
       }
       setCurrentStep("schedule-confirmed");
     } catch (err) {
@@ -366,7 +366,7 @@ export const ScheduleStep = () => {
               </p>
               {waitlistState === "done" ? (
                 <p className="inline-flex items-center justify-center gap-1.5 text-[12px] text-status-green">
-                  <Check className="w-3.5 h-3.5" /> You're on the list — we'll email you when new slots open.
+                  <Check className="w-3.5 h-3.5" /> You're on the list - we'll email you when new slots open.
                 </p>
               ) : (
                 <>
@@ -508,7 +508,7 @@ export const ScheduleStep = () => {
               </div>
             ) : (
               <p className="text-xs text-destructive">
-                We can't text your reminder — {(phoneError ?? "phone is missing").toLowerCase()}. Update your phone number on the contact step.
+                We can't text your reminder - {(phoneError ?? "phone is missing").toLowerCase()}. Update your phone number on the contact step.
               </p>
             )}
           </div>

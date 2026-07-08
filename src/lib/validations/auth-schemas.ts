@@ -5,7 +5,7 @@ import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
-  "Please use a permanent email address — disposable inboxes aren't accepted";
+  "Please use a permanent email address - disposable inboxes aren't accepted";
 
 function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) {
   if (!value) return undefined;
@@ -16,7 +16,7 @@ function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) 
       if (item) converted.push(item);
       continue;
     }
-    // Drop items that haven't finished uploading — they have no url yet and
+    // Drop items that haven't finished uploading - they have no url yet and
     // would serialize to `null` over the wire, tripping the server-side
     // `z.array(z.string())` re-validation with a useless "expected string,
     // received null" error. Better to fail the client-side `.min(1)` check
@@ -54,7 +54,7 @@ function fileUploadSchema(optional: boolean) {
 
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
-// Phone number validation — allow common separators and an optional leading "+".
+// Phone number validation - allow common separators and an optional leading "+".
 // Pasting "+1 (415) 555-1212" or "+44 20 7946 0958" should pass.
 const phoneRegex = /^\+?[\d\s\-().]+$/;
 const isValidPhoneNumber = (phone: string): boolean => {

@@ -31,7 +31,7 @@ const UPLOAD_SESSION_STORAGE_KEY = "ddx.upload-session-id";
 // A stable per-browser-session identifier used as an upload folder key when
 // the user hasn't entered their email yet. Without this, students could pick
 // a file on the school step before the global `email` state was populated,
-// and the queue would silently no-op forever — the file would sit in
+// and the queue would silently no-op forever - the file would sit in
 // `pending` and the form would submit `[null]` for enrollmentProofFiles.
 function getUploadSessionId(): string {
   if (typeof window === "undefined") return "anon-ssr";
@@ -89,7 +89,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
     if (!hasPendingFiles) return;
 
     // Fall back to a stable per-session id if email isn't set yet. The server
-    // just uses this string as a folder key — real association happens later
+    // just uses this string as a folder key - real association happens later
     // when the submission payload carries the URLs alongside the real email.
     const uploadKey = email && email.trim() ? email.trim() : getUploadSessionId();
 
@@ -127,7 +127,7 @@ export const UploadFileProvider: React.FC<UploadFileProviderProps> = ({ children
     if (isUploadingRef.current) return;
     if (!queue.some((item) => item.status === "pending")) return;
 
-    // Auto-start upload — no longer gated on email; we use a session id fallback
+    // Auto-start upload - no longer gated on email; we use a session id fallback
     void processQueue();
   }, [queue, processQueue]);
 

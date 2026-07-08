@@ -65,7 +65,7 @@ export const PreferencesStep = () => {
   };
 
   // Whether a usable phone number is already on file. We no longer use this
-  // to *disable* the SMS checkbox — the checkbox is always selectable so the
+  // to *disable* the SMS checkbox - the checkbox is always selectable so the
   // user can never get stuck. Instead, if they opt in without a valid number
   // we auto-open the inline phone editor so they can add/fix it right here.
   const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
@@ -146,7 +146,7 @@ export const PreferencesStep = () => {
 
       <div className="space-y-5">
 
-        {/* Communication preferences — promoted above birthday because the
+        {/* Communication preferences - promoted above birthday because the
             approval-notification SMS is the single highest-value action a
             new applicant can take here. SMS is intentionally the top
             option in the stack. */}
@@ -159,7 +159,7 @@ export const PreferencesStep = () => {
           <p className="text-sm font-medium text-foreground">Communication preferences</p>
           <div className="space-y-[15px]">
 
-            {/* SMS marketing — Shopify sms_marketing_consent (TCPA). Top of
+            {/* SMS marketing - Shopify sms_marketing_consent (TCPA). Top of
                 the stack: framed around the approval moment, which is what
                 the applicant actually cares about right now. */}
             <label
@@ -280,7 +280,7 @@ export const PreferencesStep = () => {
               </div>
             </label>
 
-            {/* Email marketing — Shopify email_marketing_consent */}
+            {/* Email marketing - Shopify email_marketing_consent */}
             <label className="flex items-start gap-[15px] cursor-pointer group">
               <Checkbox
                 checked={acceptsMarketing || false}
@@ -301,7 +301,7 @@ export const PreferencesStep = () => {
           </div>
         </div>
 
-        {/* SMS opt-in confirmation strip — only after SMS is selected */}
+        {/* SMS opt-in confirmation strip - only after SMS is selected */}
         {showSmsNotice && (
           <div
             className={cn(
@@ -322,7 +322,7 @@ export const PreferencesStep = () => {
 
         <div className="h-px bg-border/50 animate-stagger-2" />
 
-        {/* Tax exemption — optional, collapsed by default. */}
+        {/* Tax exemption - optional, collapsed by default. */}
         <div className="space-y-[15px] animate-stagger-2">
           <label
             className={cn(

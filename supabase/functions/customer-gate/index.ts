@@ -105,7 +105,7 @@ async function lookupCustomer(email: string): Promise<GateResult> {
 
     const node = json.data?.customers?.edges?.[0]?.node;
     if (!node) {
-      // Customer not found in Shopify — they cannot have placed any orders.
+      // Customer not found in Shopify - they cannot have placed any orders.
       // This is NOT a degraded state; gate them.
       return { eligible: false, numberOfOrders: 0, found: false };
     }

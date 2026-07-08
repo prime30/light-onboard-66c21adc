@@ -3,7 +3,7 @@ import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { FadeText } from "../FadeText";
 
 // Lazy-load below-the-fold heavy children. They're not on the critical path
-// for the email/password form interactivity — let them hydrate after first paint.
+// for the email/password form interactivity - let them hydrate after first paint.
 const MarqueeBadges = lazy(() =>
   import("@/components/registration/helpers/MarqueeBadges").then((m) => ({
     default: m.MarqueeBadges,
@@ -202,7 +202,7 @@ export const OnboardingForm = ({
         ))}
       </div>
 
-      {/* Benefits highlight with animated counters — desktop only */}
+      {/* Benefits highlight with animated counters - desktop only */}
       <div
         className="hidden lg:flex justify-center gap-6 text-center animate-stagger-3"
         style={{ minHeight: "52px" }}
@@ -239,7 +239,7 @@ export const OnboardingForm = ({
         )}
       </div>
 
-      {/* Loved by pros - with avatars (mobile/tablet only) — gated on fontsLoaded, lazy chunk */}
+      {/* Loved by pros - with avatars (mobile/tablet only) - gated on fontsLoaded, lazy chunk */}
       <div className="lg:hidden pt-3" style={{ minHeight: "28px" }}>
         {fontsLoaded && (
           <Suspense fallback={null}>

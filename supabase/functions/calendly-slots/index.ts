@@ -1,5 +1,5 @@
 // Fetch available Calendly slots for an event type within a date window.
-// Public endpoint (no JWT) — only reads availability for one preconfigured event type.
+// Public endpoint (no JWT) - only reads availability for one preconfigured event type.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

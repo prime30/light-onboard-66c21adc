@@ -102,7 +102,7 @@ export function StepProvider({ children }: StepProviderProps) {
   // setting changed, currentStepNumber becomes -1 and the next/prev
   // handlers send them back to onboarding. Snap them forward to `summary`
   // (the natural recovery point) instead. POST_FLOW steps live outside
-  // `steps` by design — leave those alone.
+  // `steps` by design - leave those alone.
   useEffect(() => {
     const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
     if (POST_FLOW.includes(currentStep)) return;
@@ -130,7 +130,7 @@ export function StepProvider({ children }: StepProviderProps) {
       const isValid = schema.safeParse(values);
 
       // Cross-field refinements not encoded in the per-step ZodObject must
-      // also gate completion — otherwise the submit button stays enabled
+      // also gate completion - otherwise the submit button stays enabled
       // and the user sees a generic "fix errors" toast with nothing
       // highlighted. Add each such rule here.
       const passesExtraRefinements = (() => {
@@ -144,7 +144,7 @@ export function StepProvider({ children }: StepProviderProps) {
           }
         }
         // Preferences: if the SMS opt-in is checked, we require a valid
-        // phone number on file — otherwise the consent has nothing to send
+        // phone number on file - otherwise the consent has nothing to send
         // to. Gate Continue on the same rule so users can't advance with
         // a checked SMS box and an empty/invalid number.
         if (step === "preferences") {

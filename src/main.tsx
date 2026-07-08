@@ -12,7 +12,7 @@ import { RouterProvider } from "react-router";
  *
  * Previously we blocked React mount on document.fonts.ready (capped at 400ms).
  * That was up to 400ms of pure stall on cold start when fonts came in slightly
- * after the JS — pure waste since the boot skeleton uses system fonts anyway.
+ * after the JS - pure waste since the boot skeleton uses system fonts anyway.
  */
 createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);
 

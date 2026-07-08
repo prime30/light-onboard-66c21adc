@@ -1,4 +1,4 @@
-// POST /update-tax-exempt — invoked via Shopify App Proxy at
+// POST /update-tax-exempt - invoked via Shopify App Proxy at
 // https://dropdeadextensions.com/apps/account/update-tax-exempt
 //
 // Pivot 1: storage moved from Supabase Storage to Shopify Files.

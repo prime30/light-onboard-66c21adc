@@ -4,7 +4,7 @@ description: Parent theme can route inside the SPA without iframe reload via NAV
 type: feature
 ---
 The SPA exposes a NAVIGATE postMessage handler so the parent Shopify theme can
-switch routes (e.g. /login → /auth) without reloading the iframe document —
+switch routes (e.g. /login → /auth) without reloading the iframe document  - 
 eliminating the boot-shell flash on cross-path opens.
 
 **Contract**

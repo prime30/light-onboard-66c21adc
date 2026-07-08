@@ -440,7 +440,7 @@ export const AccountTypeForm = () => {
         </button>
       </div>
 
-      {/* Non-professional link — hidden for now */}
+      {/* Non-professional link - hidden for now */}
     </div>
   );
 };

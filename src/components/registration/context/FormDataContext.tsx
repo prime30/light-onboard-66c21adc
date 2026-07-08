@@ -31,7 +31,7 @@ import { setPendingLogin } from "@/lib/pending-login";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
-// fetchWelcomeOfferEnabled is no longer called from the client — welcome-offer
+// fetchWelcomeOfferEnabled is no longer called from the client - welcome-offer
 // minting moved server-side into the create-customer edge function.
 
 
@@ -102,7 +102,7 @@ try {
     }
   }
 } catch {
-  /* storage unavailable (private mode, quota) — ignore */
+  /* storage unavailable (private mode, quota) - ignore */
 }
 const formAtom = atomWithStorage(FORM_STORAGE_KEY, defaultValues, storage, {
   getOnInit: true,
@@ -207,7 +207,7 @@ export function FormDataProvider({
             try {
               setError(top, { type: "server", message });
             } catch {
-              /* unknown field — fall through to root error */
+              /* unknown field - fall through to root error */
             }
           }
           const friendlyList = fieldErrors
@@ -248,7 +248,7 @@ export function FormDataProvider({
           message: result.error,
         });
 
-        // Ping ops on real submit failures (5xx / network) — skip validation
+        // Ping ops on real submit failures (5xx / network) - skip validation
         // errors the user can fix themselves.
         const isServerFailure =
           !result.statusCode || result.statusCode >= 500 || result.statusCode === 0;
@@ -274,7 +274,7 @@ export function FormDataProvider({
 
       // Auto-login: hand the parent Shopify theme the credentials so the
       // user lands logged-in on the storefront. In iframe mode we fire
-      // USER_LOGIN IMMEDIATELY on success — the parent theme reloads in
+      // USER_LOGIN IMMEDIATELY on success - the parent theme reloads in
       // the background while our success screen + scrim stay mounted on
       // top. When the user clicks "Done", CLOSE_IFRAME reveals an
       // already-logged-in storefront with no flash. CLOSE_IFRAME stays
@@ -286,7 +286,7 @@ export function FormDataProvider({
         if (isInIframe) {
           // Set the success-screen flag SYNCHRONOUSLY before USER_LOGIN
           // fires. The parent's CUSTOMER_DATA(isLoggedIn=true) reply can
-          // arrive before SuccessForm mounts and sets it via useEffect —
+          // arrive before SuccessForm mounts and sets it via useEffect  - 
           // without this guard, customerHandler in messages.ts would
           // navigate to /already-logged-in and stack a second success
           // screen on top of the welcome-offer screen.
@@ -299,7 +299,7 @@ export function FormDataProvider({
             email: values.email,
             password,
           });
-          // Queue same creds for re-flush on closeIframe() — safety net
+          // Queue same creds for re-flush on closeIframe() - safety net
           // covering races where the parent dropped the first message.
           setPendingLogin({ email: values.email, password });
         } else {
@@ -338,7 +338,7 @@ export function FormDataProvider({
       }
 
       // Welcome-offer code is now minted server-side inside create-customer
-      // (generate-discount is internal-only — anyone could previously hit it
+      // (generate-discount is internal-only - anyone could previously hit it
       // anonymously to mint unlimited single-use 30% codes). Read it from the
       // same response and surface it the same way as before.
       try {
@@ -410,7 +410,7 @@ export function FormDataProvider({
         const firstField = collected[0]?.field.split(".")[0] as ValidFieldNames | undefined;
         if (firstField) setFocus(firstField);
       } catch {
-        /* non-focusable field — ignore */
+        /* non-focusable field - ignore */
       }
 
       let message = "Please fix the field errors and try again.";
@@ -421,7 +421,7 @@ export function FormDataProvider({
         };
         const lines = collected
           .slice(0, 6)
-          .map((e) => `• ${labelFor(e.field)} — ${e.message}`);
+          .map((e) => `• ${labelFor(e.field)} - ${e.message}`);
         const extra = collected.length > 6 ? `\n…and ${collected.length - 6} more.` : "";
         message = `Please correct the following:\n${lines.join("\n")}${extra}`;
       }
@@ -472,7 +472,7 @@ export function FormDataProvider({
   useEffect(() => {
     // Allowed accountType values per the CURRENT schema. Older builds
     // accepted additional values (e.g. "licensed_stylist") that have since
-    // been removed — leaving a stale value in localStorage would crash the
+    // been removed - leaving a stale value in localStorage would crash the
     // zodResolver's discriminatedUnion lookup. Strip anything unknown so
     // the user is dropped back on the account-type step.
     const ALLOWED_ACCOUNT_TYPES = new Set(["professional", "salon", "student"]);
@@ -489,11 +489,11 @@ export function FormDataProvider({
     // list, drop both country and province. If country is still valid but
     // provinceCode is no longer one of its subdivisions, drop just the
     // province. Without this, the Select renders blank but the regex-light
-    // schema still passes — Shopify then rejects the address at submit with
+    // schema still passes - Shopify then rejects the address at submit with
     // a generic failure.
     if (sanitizedStored) {
       // Cast through unknown to drop the per-branch discriminated-union
-      // narrowing — address fields only live on the salon branch, but we
+      // narrowing - address fields only live on the salon branch, but we
       // want to defensively scrub regardless of which branch was stored.
       const geo = sanitizedStored as unknown as {
         countryCode?: string;
@@ -553,7 +553,7 @@ export function FormDataProvider({
 
   // After restore, HEAD-check any persisted file-upload URLs and drop dead
   // ones. Files live in the private `registration-documents` bucket and are
-  // served through the `get-image` edge function — bucket lifecycle, manual
+  // served through the `get-image` edge function - bucket lifecycle, manual
   // deletion, or a re-upload elsewhere can leave a populated array of URLs
   // that pass the per-step gate (length > 0) but 404 at submit, which used
   // to surface as a generic "registration failure". Removing dead entries
@@ -583,7 +583,7 @@ export function FormDataProvider({
       for (const field of FILE_FIELDS) {
         const current = storedForm?.[field as keyof typeof storedForm] as unknown;
         if (!Array.isArray(current) || current.length === 0) continue;
-        // Only check plain string URLs — in-progress UploadFileItem objects
+        // Only check plain string URLs - in-progress UploadFileItem objects
         // aren't persisted, but guard just in case.
         const urls = current.filter((v): v is string => typeof v === "string");
         if (urls.length === 0) continue;
@@ -594,13 +594,13 @@ export function FormDataProvider({
         const surviving = urls.filter((_, i) => liveness[i]);
         if (surviving.length === urls.length) continue;
 
-        // Some (or all) entries are dead — replace with survivors.
+        // Some (or all) entries are dead - replace with survivors.
         setValue(field, surviving as never, dirtyFieldOptions);
         if (surviving.length === 0) {
           setError(field, {
             type: "server",
             message:
-              "Previously uploaded file is no longer available — please re-upload.",
+              "Previously uploaded file is no longer available - please re-upload.",
           });
         }
       }

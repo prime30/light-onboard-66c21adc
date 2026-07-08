@@ -19,7 +19,7 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
-// fetchWelcomeOfferEnabled is no longer used — welcome-offer minting moved
+// fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
 // server-side into the activate-account edge function.
 
 
@@ -49,7 +49,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const { apiCall } = useApiClient();
   const [, setCustomer] = useAtom(customerAtom);
 
-  // Reject activation URLs that don't point to a trusted Shopify host —
+  // Reject activation URLs that don't point to a trusted Shopify host  - 
   // mirrors the reset flow's URL-origin guard.
   const activationUrlIsTrusted = !activationUrl || isTrustedShopifyUrl(activationUrl);
   const safeActivationUrl = activationUrlIsTrusted ? activationUrl : null;
@@ -109,7 +109,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
 
       // Welcome-offer code is now minted server-side inside activate-account
-      // (generate-discount is internal-only — anyone could previously hit it
+      // (generate-discount is internal-only - anyone could previously hit it
       // anonymously to mint unlimited single-use 30% codes). Read it off the
       // same response and broadcast it the same way as before. Failures are
       // already non-blocking on the server side.
@@ -148,7 +148,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
 
       if (isInIframe) {
         // Iframe: parent theme owns the storefront session. Fire USER_LOGIN
-        // and jump straight to the success screen — mirroring registration
+        // and jump straight to the success screen - mirroring registration
         // (FormDataContext.submitForm) and ResetPasswordForm. The parent
         // reloads in the background while our success scrim stays on top;
         // CLOSE_IFRAME on the user's "Close" click reveals an
@@ -169,7 +169,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           email: customerEmail,
           password: data.password,
         });
-        // Queue same creds for re-flush on closeIframe() — safety net
+        // Queue same creds for re-flush on closeIframe() - safety net
         // covering races where the parent dropped/ignored the first message.
         setPendingLogin({ email: customerEmail, password: data.password });
         setAutoLoginStatus("succeeded");
@@ -279,9 +279,9 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   if (formState === "success") {
     const autoLoginNote =
       autoLoginStatus === "rate_limited"
-        ? "Too many sign-in attempts — please log in manually in a moment."
+        ? "Too many sign-in attempts - please log in manually in a moment."
         : autoLoginStatus === "failed"
-          ? "Couldn't sign you in automatically — please log in with your new password."
+          ? "Couldn't sign you in automatically - please log in with your new password."
           : null;
 
     const ctaLabel = autoLoginStatus === "failed" || autoLoginStatus === "rate_limited"
@@ -295,7 +295,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         if (isInIframe) {
           // Ask the parent theme to re-point the iframe at the SPA login
           // route. The parent's NAVIGATE handler updates iframe.src (or posts
-          // back to our IframeNavigationBridge for in-place routing) — using
+          // back to our IframeNavigationBridge for in-place routing) - using
           // window.location here would resolve "/login" against the parent
           // origin (apps/apply proxy) and load the storefront login page.
           sendMessage("NAVIGATE", { path: "/login" });

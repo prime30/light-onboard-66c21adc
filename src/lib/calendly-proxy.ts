@@ -1,4 +1,4 @@
-// Calendly client — both slots and booking go through Lovable Cloud edge
+// Calendly client - both slots and booking go through Lovable Cloud edge
 // functions (calendly-slots, calendly-book). The Vercel proxy is no longer
 // used; Calendly secrets (CALENDLY_API_TOKEN, CALENDLY_EVENT_TYPE_URI) live in
 // Cloud and Calendly errors surface verbatim in edge-function logs.

@@ -8,7 +8,7 @@ import { MobileDragHandle } from "./MobileDragHandle";
 import { useCustomerLogin } from "@/hooks/messages";
 import { HoneypotField } from "./HoneypotField";
 import { useState as useReactState } from "react";
-// LeftPanel is eager — it's the desktop critical-path layout half. Lazy-loading it
+// LeftPanel is eager - it's the desktop critical-path layout half. Lazy-loading it
 // caused a "wrong layout" flash on hard reload (boot skeleton → right-only flash →
 // final two-column paint). Heavy children inside LeftPanel (carousel, avatars) are
 // still individually lazy.
@@ -44,7 +44,7 @@ function RightPanel({ outletContext }: RightPanelProps) {
   return (
     <div className="relative flex-1 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       <MobileDragHandle modalDragOffset={0} />
-      {/* Header — flex on mobile (so toggle height doesn't drive row height
+      {/* Header - flex on mobile (so toggle height doesn't drive row height
           via grid stretching), grid on >=sm. */}
       <header className="relative flex sm:grid sm:grid-cols-3 items-center justify-between gap-2 px-3 py-2.5 sm:p-5 lg:px-[25px] lg:py-[clamp(10px,1.8vh,20px)] pt-[max(2.25rem,env(safe-area-inset-top))] sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:pt-[max(clamp(10px,1.8vh,20px),env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pl-[max(1.5625rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] lg:pr-[max(1.5625rem,env(safe-area-inset-right))]">
         {/* Left side - Auth Toggle + Step Indicator */}

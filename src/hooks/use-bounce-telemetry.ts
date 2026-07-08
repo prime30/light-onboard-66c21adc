@@ -87,7 +87,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
   // Detect new validation error field names and batch-flush.
   useEffect(() => {
     if (!hasEmail) return;
-    // Skip terminal steps — RHF runs a final validation pass on submit that
+    // Skip terminal steps - RHF runs a final validation pass on submit that
     // briefly flashes errors for any field not yet touched, inflating per-field
     // error counts in analytics with noise that never affected the user.
     if (currentStep === "success" || currentStep === "assessing") return;
@@ -131,7 +131,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
   }, [errors, hasEmail, normalizedEmail, accountType, currentStep]);
 
   // On step change, send a step ping including the last focused field (the
-  // field they were on right before navigating away — strong drop-off signal).
+  // field they were on right before navigating away - strong drop-off signal).
   useEffect(() => {
     if (!hasEmail) return;
     void supabase.functions

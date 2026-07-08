@@ -76,7 +76,7 @@ export function AuthFooter({
 
   // Popover content rules:
   //   • Summary + late create-password (in auto-approval mode) are the final
-  //     submit gates — list every incomplete step across the whole form.
+  //     submit gates - list every incomplete step across the whole form.
   //   • The faux "Submit application" in auto-approval mode hides the
   //     password step (it's collected AFTER summary), but still lists every
   //     other incomplete step.
@@ -182,7 +182,7 @@ export function AuthFooter({
         // a class like `.field-flash-error` (which sets its own `animation`
         // shorthand), the cascade would REPLACE the stagger animation,
         // causing the field to snap back to its declared `opacity: 0`
-        // ground state — i.e. the field appears to vanish.
+        // ground state - i.e. the field appears to vanish.
         const el = target as HTMLElement & { _shakeAnims?: Animation[] };
         if (el._shakeAnims) {
           el._shakeAnims.forEach((a) => a.cancel());
@@ -207,7 +207,7 @@ export function AuthFooter({
           ],
           { duration: 1200, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
         );
-        // Border-color hint on inner inputs — applied via a marker class
+        // Border-color hint on inner inputs - applied via a marker class
         // that ONLY toggles `border-color`, never `animation`.
         el.classList.add("field-flash-border");
         el._shakeAnims = [shake, flash];
@@ -223,12 +223,12 @@ export function AuthFooter({
     try {
       setFocus(fields[0] as ValidFieldNames);
     } catch {
-      /* field may not be focusable (e.g. file upload / checkbox group) — ignore */
+      /* field may not be focusable (e.g. file upload / checkbox group) - ignore */
     }
   }, [setFocus]);
 
   const handleContinue = useCallback(() => {
-    // Schedule-confirmed: button is "Go to shop" — close the iframe (Shopify
+    // Schedule-confirmed: button is "Go to shop" - close the iframe (Shopify
     // embed) or navigate to the shop home. Include qualified-candidate
     // metadata so the parent theme can route consistently (this user already
     // booked, so founderCallEligible should resolve to false post-booking
@@ -257,7 +257,7 @@ export function AuthFooter({
 
     if (continueBlocked && blockingSteps.length > 0) {
       // Disabled-but-clickable path: shake the missing fields. Only open the
-      // popover on final-gate steps (summary / late password) — on regular
+      // popover on final-gate steps (summary / late password) - on regular
       // steps the inline field errors are enough.
       const missing = blockingSteps.flatMap((s) => s.missingFields);
 
@@ -311,7 +311,7 @@ export function AuthFooter({
     }
 
 
-    // Auto-approval flow: summary "Submit application" is a faux submit —
+    // Auto-approval flow: summary "Submit application" is a faux submit  - 
     // pre-flight check for duplicate email so we surface "Go to Login"
     // BEFORE the user lands on the late password step. Phone duplicates are
     // already caught on the Contact step.
@@ -330,7 +330,7 @@ export function AuthFooter({
         .invoke("check-email", { body: { email } })
         .then(({ data, error }) => {
           if (error) {
-            // Fail open — server-side submit will still catch it.
+            // Fail open - server-side submit will still catch it.
             continueAfterCheck();
             return;
           }

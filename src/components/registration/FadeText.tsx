@@ -2,10 +2,10 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * FadeText — thin wrapper that applies semantic tag + className.
+ * FadeText - thin wrapper that applies semantic tag + className.
  *
  * With `font-display: block` on all @font-face rules, the browser
- * natively hides text until fonts load — no shimmer overlay needed.
+ * natively hides text until fonts load - no shimmer overlay needed.
  */
 type FadeTextProps = {
   children: React.ReactNode;

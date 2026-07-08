@@ -1,4 +1,4 @@
-// Upload timeout — abort silently-hanging requests so the queue can either
+// Upload timeout - abort silently-hanging requests so the queue can either
 // surface an error to the user or be retried. Without this a stalled edge
 // function or dropped connection leaves the item spinning forever and the
 // user submits `[null]` for the file field.
@@ -11,7 +11,7 @@ function extractServerError(responseText: string, status: number): string {
       return parsed.error;
     }
   } catch {
-    // fall through — response wasn't JSON
+    // fall through - response wasn't JSON
   }
   return `Upload failed (${status})`;
 }
@@ -37,7 +37,7 @@ export async function uploadFile(
       } catch {
         // ignore
       }
-      reject(new Error("Upload timed out — please check your connection and try again"));
+      reject(new Error("Upload timed out - please check your connection and try again"));
     }, UPLOAD_TIMEOUT_MS);
 
     const finish = () => {
@@ -66,7 +66,7 @@ export async function uploadFile(
           resolve(data.publicUrl);
         } catch (error) {
           console.error("Error parsing upload response:", error);
-          reject(new Error("Upload failed — invalid server response"));
+          reject(new Error("Upload failed - invalid server response"));
         }
       } else {
         const message = extractServerError(xhr.responseText, xhr.status);
@@ -79,7 +79,7 @@ export async function uploadFile(
       if (didFinish) return;
       finish();
       console.error("Network error uploading file");
-      reject(new Error("Upload failed — network error"));
+      reject(new Error("Upload failed - network error"));
     });
 
     xhr.addEventListener("abort", () => {

@@ -2,8 +2,8 @@
  * Honeypot field for bot detection.
  *
  * Two anti-bot signals:
- *  1. Hidden text input — naive bots auto-fill every input. Non-empty = spam.
- *  2. Form-start timestamp — bots typically POST in <1s. Real users take >3s
+ *  1. Hidden text input - naive bots auto-fill every input. Non-empty = spam.
+ *  2. Form-start timestamp - bots typically POST in <1s. Real users take >3s
  *     to fill out a multi-step registration. Server enforces the threshold.
  *
  * The timestamp is captured once at module load (close enough to "page load"
