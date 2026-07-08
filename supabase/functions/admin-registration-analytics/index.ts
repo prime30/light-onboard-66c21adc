@@ -382,12 +382,46 @@ Deno.serve(async (req: Request) => {
     }))
     .sort((a, b) => b.started - a.started);
 
-  // Mobile vs desktop bounce per step (only for mobile + desktop with last_step).
+  // Mobile vs desktop bounce per step, split by flow type.
+  const FLOW_STEP_ORDER: Record<string, string[]> = {
+    professional: [
+      "account-type",
+      "business-operation",
+      "contact-basics",
+      "create-password",
+      "business-location",
+      "license",
+      "preferred-method",
+      "monthly-order-volume",
+      "preferences",
+    ],
+    salon: [
+      "account-type",
+      "business-location",
+      "contact-basics",
+      "create-password",
+      "license",
+      "preferred-method",
+      "monthly-order-volume",
+      "preferences",
+    ],
+    student: [
+      "account-type",
+      "school-info",
+      "contact-basics",
+      "create-password",
+      "preferred-method",
+      "preferences",
+    ],
+  };
+
   const deviceStepMap = new Map<string, { mobileStarted: number; mobileBounced: number; desktopStarted: number; desktopBounced: number }>();
   for (const r of leads) {
     if (!r.last_step) continue;
     if (r.device_type !== "mobile" && r.device_type !== "desktop") continue;
-    const cur = deviceStepMap.get(r.last_step) ?? {
+    const flowType = r.account_type ?? "unknown";
+    const key = `${flowType}::${r.last_step}`;
+    const cur = deviceStepMap.get(key) ?? {
       mobileStarted: 0, mobileBounced: 0, desktopStarted: 0, desktopBounced: 0,
     };
     const bounced = !r.completed_at && r.started_at < graceCutoff;
@@ -398,18 +432,59 @@ Deno.serve(async (req: Request) => {
       cur.desktopStarted += 1;
       if (bounced) cur.desktopBounced += 1;
     }
-    deviceStepMap.set(r.last_step, cur);
+    deviceStepMap.set(key, cur);
   }
+
+  // Build deviceByStepByFlow: steps ordered by flow position within each flow type.
+  const deviceByStepByFlow: {
+    flowType: string;
+    step: string;
+    mobileStarted: number;
+    desktopStarted: number;
+    mobileBounceRate: number;
+    desktopBounceRate: number;
+  }[] = [];
+
+  for (const flowType of ["professional", "salon", "student"]) {
+    const order = FLOW_STEP_ORDER[flowType] ?? [];
+    const stepIndex = new Map<string, number>();
+    order.forEach((s, i) => stepIndex.set(s, i));
+
+    const entries = Array.from(deviceStepMap.entries())
+      .filter(([key]) => key.startsWith(`${flowType}::`))
+      .map(([key, v]) => {
+        const step = key.slice(flowType.length + 2);
+        return {
+          flowType,
+          step,
+          mobileStarted: v.mobileStarted,
+          desktopStarted: v.desktopStarted,
+          mobileBounceRate:
+            v.mobileStarted > 0 ? Math.round((v.mobileBounced / v.mobileStarted) * 1000) / 10 : 0,
+          desktopBounceRate:
+            v.desktopStarted > 0 ? Math.round((v.desktopBounced / v.desktopStarted) * 1000) / 10 : 0,
+          sortIndex: stepIndex.has(step) ? stepIndex.get(step)! : 999,
+        };
+      })
+      .sort((a, b) => a.sortIndex - b.sortIndex);
+
+    deviceByStepByFlow.push(...entries);
+  }
+
+  // Keep legacy deviceByStep for backward compat (still sorted by volume).
   const deviceByStep = Array.from(deviceStepMap.entries())
-    .map(([step, v]) => ({
-      step,
-      mobileStarted: v.mobileStarted,
-      desktopStarted: v.desktopStarted,
-      mobileBounceRate:
-        v.mobileStarted > 0 ? Math.round((v.mobileBounced / v.mobileStarted) * 1000) / 10 : 0,
-      desktopBounceRate:
-        v.desktopStarted > 0 ? Math.round((v.desktopBounced / v.desktopStarted) * 1000) / 10 : 0,
-    }))
+    .map(([key, v]) => {
+      const [step] = key.split("::").slice(1);
+      return {
+        step: step ?? key,
+        mobileStarted: v.mobileStarted,
+        desktopStarted: v.desktopStarted,
+        mobileBounceRate:
+          v.mobileStarted > 0 ? Math.round((v.mobileBounced / v.mobileStarted) * 1000) / 10 : 0,
+        desktopBounceRate:
+          v.desktopStarted > 0 ? Math.round((v.desktopBounced / v.desktopStarted) * 1000) / 10 : 0,
+      };
+    })
     .sort((a, b) => (b.mobileStarted + b.desktopStarted) - (a.mobileStarted + a.desktopStarted))
     .slice(0, 12);
 
@@ -753,6 +828,7 @@ Deno.serve(async (req: Request) => {
     validationErrors,
     devices,
     deviceByStep,
+    deviceByStepByFlow,
     cohorts,
 
     founderCall: {
