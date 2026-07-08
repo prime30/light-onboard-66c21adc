@@ -12,7 +12,6 @@ import {
   salonLicenseStepSchema,
   schoolInfoSchema,
   taxExemptionSchema,
-  wholesaleTermsSchema,
 } from "@/lib/validations/auth-schemas";
 import type { Step, AccountType } from "@/types/auth";
 import { ZodObject } from "zod";
@@ -95,7 +94,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "create-password",
     "business-location",
     "license",
-    "wholesale-terms",
     "preferred-method",
     "monthly-order-volume",
     "preferences",
@@ -106,7 +104,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "contact-basics",
     "create-password",
     "license",
-    "wholesale-terms",
     "preferred-method",
     "monthly-order-volume",
     "preferences",
@@ -116,7 +113,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "school-info",
     "contact-basics",
     "create-password",
-    "wholesale-terms",
     "preferred-method",
     "preferences",
   ],
@@ -152,7 +148,6 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "business-operation": businessOperationSchema,
   "business-location": businessLocationSchema,
   "school-info": schoolInfoSchema,
-  "wholesale-terms": wholesaleTermsSchema,
   "tax-exemption": taxExemptionSchema,
   "preferred-method": preferredMethodSchema,
   "monthly-order-volume": monthlyOrderVolumeSchema,
@@ -267,13 +262,6 @@ export const STEPS: Record<Step, StepInfo> = {
     fields: fieldsForStep["school-info"],
     schema: stepValidations["school-info"],
     accountTypes: ["student"],
-  },
-  "wholesale-terms": {
-    name: "wholesale-terms",
-    displayName: STEP_DISPLAY_NAMES["wholesale-terms"],
-    fields: fieldsForStep["wholesale-terms"],
-    schema: stepValidations["wholesale-terms"],
-    accountTypes: ["professional", "salon", "student"],
   },
   "tax-exemption": {
     name: "tax-exemption",
