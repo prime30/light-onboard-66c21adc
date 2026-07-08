@@ -21,7 +21,6 @@ export type Step =
   | "business-operation"
   | "business-location"
   | "school-info"
-  | "wholesale-terms"
   | "tax-exemption"
   | "preferred-method"
   | "monthly-order-volume"
@@ -60,8 +59,6 @@ export interface RegistrationUIState {
 
   // Highlight states
   highlightFields: string[];
-  highlightWholesaleTerms: boolean;
-  highlightWholesaleFade: boolean;
 
   // Modal states
   modalDragOffset: number;

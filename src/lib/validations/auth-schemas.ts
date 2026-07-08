@@ -264,13 +264,6 @@ export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
   }
 );
 
-// Wholesale Terms Schema
-const wholesaleValidators = {
-  wholesaleAgreed: z.literal(true, {
-    error: "Please agree to the wholesale terms to continue",
-  }),
-};
-export const wholesaleTermsSchema = z.object(wholesaleValidators);
 
 // Preferred Method Schema
 export const PREFERRED_METHOD_OPTIONS = [
@@ -345,7 +338,6 @@ const baseValidators = {
   ...contactBasicsValidators,
   ...createPasswordValidators,
   ...taxExemptionValidators,
-  ...wholesaleValidators,
   ...preferredMethodValidators,
   ...preferencesValidators,
 };
@@ -439,7 +431,7 @@ export type BusinessLocationFormData = z.infer<typeof businessLocationSchema>;
 export type LicenseFormData = z.infer<typeof licenseSchema>;
 export type SalonLicenseFormData = z.infer<typeof salonSchema>;
 export type TaxExemptionFormData = z.infer<typeof taxExemptionSchema>;
-export type WholesaleTermsFormData = z.infer<typeof wholesaleTermsSchema>;
+
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;
 
 type LoginFormType = "login" | "forgot_password";

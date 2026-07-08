@@ -15,6 +15,6 @@ export { SignInForm } from "./SignInForm";
 export { SuccessForm } from "./SuccessForm";
 export { SummaryForm } from "./SummaryForm";
 export { TaxExemptionStep } from "./TaxExemptionStep";
-export { WholesaleTermsStep } from "./WholesaleTermsStep";
+
 export { ScheduleStep } from "./ScheduleStep";
 export { ScheduleConfirmedStep } from "./ScheduleConfirmedStep";
