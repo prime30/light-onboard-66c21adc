@@ -348,6 +348,56 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
         )}
       </div>
 
+      {/* Account-type gate: are the right people in the flow? */}
+      {data?.accountTypeGate && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+            Account-type gate
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            Of tracked bounces, how many picked an account type vs. abandoned on
+            step 1. "Not a stylist" clicks are anonymous (no email captured) and
+            show whether the wrong audience is reaching the flow.
+          </p>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="rounded-[8px] bg-muted/40 p-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Bounced w/ selection
+              </div>
+              <div className="mt-1 font-medium tabular-nums">
+                {data.accountTypeGate.bouncedSelected}
+                <span className="ml-1 text-[10px] text-status-green">
+                  {data.accountTypeGate.selectionRate}%
+                </span>
+              </div>
+            </div>
+            <div className="rounded-[8px] bg-muted/40 p-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Bounced, no selection
+              </div>
+              <div className="mt-1 font-medium tabular-nums">
+                {data.accountTypeGate.bouncedNoSelection}
+                <span className="ml-1 text-[10px] text-destructive">
+                  {data.accountTypeGate.noSelectionRate}%
+                </span>
+              </div>
+            </div>
+            <div className="rounded-[8px] bg-muted/40 p-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                "Not a stylist" clicks
+              </div>
+              <div className="mt-1 font-medium tabular-nums">
+                {data.accountTypeGate.notStylistClicks}
+              </div>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Denominator: {data.accountTypeGate.bouncedTotal} bounced leads in
+            this window.
+          </p>
+        </div>
+      )}
+
       {/* Account type breakdown */}
       {(data?.accountTypes?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
