@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Info, Pencil, Check, ArrowUpRight, Calendar } from "lucide-react";
+import { Info, Pencil } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { countryCodes } from "@/data/country-codes";
 import { CountryFlag } from "./ContactBasicsStep";
@@ -15,7 +14,6 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { MultiFileUpload } from "../MultiFileUpload";
 import { UploadFileItem } from "@/contexts";
-import blogResaleLicense from "@/assets/blog-resale-license.jpg";
 
 export const PreferencesStep = () => {
   const {
