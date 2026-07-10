@@ -1061,21 +1061,26 @@ const AdminSettingsPage = () => {
             );
           })()}
         </div>
+        {/* /Settings tab */}
 
-        <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
+        {/* Analytics tab */}
+        <div className={cn("space-y-8", activeTab !== "analytics" && "hidden")}>
+          <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
+          <RegistrationYoYPanel adminEmail={email} adminToken={token} />
+          <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
+          <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
 
-        <RegistrationYoYPanel adminEmail={email} adminToken={token} />
+        {/* Integrity tab */}
+        <div className={cn("space-y-8", activeTab !== "integrity" && "hidden")}>
+          <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
+          <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
 
-        <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
-
-        <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
-
-
-        <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
-
-        <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
-
-        <SubmissionsLogPanel adminEmail={email} adminToken={token} />
+        {/* Submissions tab */}
+        <div className={cn("space-y-8", activeTab !== "submissions" && "hidden")}>
+          <SubmissionsLogPanel adminEmail={email} adminToken={token} />
+        </div>
 
         <button
           type="button"
@@ -1086,11 +1091,11 @@ const AdminSettingsPage = () => {
             setAdminMode(false);
             try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
           }}
-
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign out
         </button>
+
       </div>
     </div>
   );
