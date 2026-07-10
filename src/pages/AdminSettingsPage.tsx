@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check } from "lucide-react";
+import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check, BarChart3, ShieldAlert, Inbox } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
@@ -29,6 +30,8 @@ const AdminSettingsPage = () => {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
+  type AdminTab = "analytics" | "integrity" | "submissions" | "settings";
+  const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
 
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -576,19 +579,50 @@ const AdminSettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto space-y-8 pt-12">
+      <div className="max-w-5xl mx-auto space-y-6 pt-12">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
             <SettingsIcon className="w-5 h-5 text-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">App settings</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Admin</h1>
             <p className="text-sm text-muted-foreground">Signed in as {email}</p>
           </div>
         </div>
 
+        {/* Sticky top nav */}
+        <nav className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-background/85 backdrop-blur border-b border-border/50">
+          <div className="flex flex-wrap gap-1">
+            {([
+              ["analytics", "Analytics", BarChart3],
+              ["integrity", "Integrity", ShieldAlert],
+              ["submissions", "Submissions", Inbox],
+              ["settings", "Settings", SettingsIcon],
+            ] as const).map(([key, label, Icon]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveTab(key)}
+                className={cn(
+                  "inline-flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-sm transition-colors",
+                  activeTab === key
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Settings tab */}
+        <div className={cn("space-y-8", activeTab !== "settings" && "hidden")}>
+
         {/* Auto-approval */}
         <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+
           <div className="flex items-start justify-between gap-6">
             <div className="space-y-1">
               <h2 className="text-base font-medium text-foreground">Auto-approve new accounts</h2>
@@ -1027,21 +1061,28 @@ const AdminSettingsPage = () => {
             );
           })()}
         </div>
-
-        <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
-
-        <RegistrationYoYPanel adminEmail={email} adminToken={token} />
-
-        <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
-
-        <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
+        {/* /Settings tab */}
 
 
-        <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
+        {/* Analytics tab */}
+        <div className={cn("space-y-8", activeTab !== "analytics" && "hidden")}>
+          <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
+          <RegistrationYoYPanel adminEmail={email} adminToken={token} />
+          <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
+          <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
 
-        <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
+        {/* Integrity tab */}
+        <div className={cn("space-y-8", activeTab !== "integrity" && "hidden")}>
+          <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
+          <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
 
-        <SubmissionsLogPanel adminEmail={email} adminToken={token} />
+        {/* Submissions tab */}
+        <div className={cn("space-y-8", activeTab !== "submissions" && "hidden")}>
+          <SubmissionsLogPanel adminEmail={email} adminToken={token} />
+        </div>
 
         <button
           type="button"
@@ -1052,11 +1093,11 @@ const AdminSettingsPage = () => {
             setAdminMode(false);
             try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
           }}
-
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign out
         </button>
+
       </div>
     </div>
   );
