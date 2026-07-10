@@ -1061,7 +1061,9 @@ const AdminSettingsPage = () => {
             );
           })()}
         </div>
+        </div>
         {/* /Settings tab */}
+
 
         {/* Analytics tab */}
         <div className={cn("space-y-8", activeTab !== "analytics" && "hidden")}>
