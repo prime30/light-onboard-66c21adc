@@ -426,6 +426,10 @@ export const PreferencesStep = () => {
               </button>
             ))}
           </div>
+          {/* Hidden registered field so RHF always includes referralSource in
+              submitted values and validates it (buttons only setValue, which
+              doesn't guarantee registration/inclusion in submit payloads). */}
+          <input type="hidden" {...register("referralSource")} />
           {errors.referralSource && (
             <p className="text-xs text-destructive">
               {errors.referralSource.message as string}
