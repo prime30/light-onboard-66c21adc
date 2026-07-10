@@ -401,6 +401,7 @@ export const PreferencesStep = () => {
               { value: "reddit", label: "Reddit" },
               { value: "other", label: "Other" },
             ].map((option) => (
+              <React.Fragment key={`${option.value}-frag`}>
               <button
                 key={option.value}
                 type="button"
