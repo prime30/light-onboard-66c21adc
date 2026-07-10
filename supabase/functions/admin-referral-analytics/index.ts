@@ -133,7 +133,13 @@ Deno.serve(async (req: Request) => {
       .toLowerCase();
     if (firstName === "test") continue;
     total += 1;
-    const rawSource = (payload.referralSource as string | undefined) ?? "";
+    // Audit payload is snake_cased before insert (create-customer runs
+    // objectKeysToSnake before logging), so `referral_source` is the real
+    // key. Keep the camelCase fallback for any historical rows.
+    const rawSource =
+      ((payload.referral_source as string | undefined) ??
+        (payload.referralSource as string | undefined) ??
+        "");
     const source = rawSource.trim().toLowerCase();
     const key = source && LABELS[source] ? source : source ? "other" : "unspecified";
     sourceTally[key] = (sourceTally[key] ?? 0) + 1;
