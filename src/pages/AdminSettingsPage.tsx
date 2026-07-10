@@ -30,6 +30,8 @@ const AdminSettingsPage = () => {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
+  type AdminTab = "analytics" | "integrity" | "submissions" | "settings";
+  const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
 
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
   const [updating, setUpdating] = useState(false);
