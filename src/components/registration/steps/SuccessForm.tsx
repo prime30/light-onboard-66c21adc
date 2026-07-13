@@ -375,14 +375,18 @@ export const SuccessForm = () => {
 
 
               <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
-                Thirty minutes with the founder,{" "}
-                <span className="font-accent text-[26px] leading-[1.05]">just for you.</span>
+                Strategy session: make extensions a winning business model{" "}
+                <span className="font-accent text-[26px] leading-[1.05]">
+                  {accountType === "salon" ? "in your salon." : "behind the chair."}
+                </span>
               </h3>
 
               <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
-                Kristi, our co-founder, sets aside a handful of slots each week
-                for new pros. Samples in hand, no script - your questions, her
-                answers.
+                Book a free 30-minute call with Kristi to map out how extensions
+                can become a real revenue driver{" "}
+                {accountType === "salon"
+                  ? "inside your salon."
+                  : "behind your chair."}
               </p>
 
               {/* Kristi - signature row */}
