@@ -386,8 +386,8 @@ export const SuccessForm = () => {
               </p>
 
               {/* Kristi - signature row */}
-              <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
-                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
+              <div className="mt-5 flex items-center gap-4 pb-5 border-b border-dashed border-border/70">
+                <div className="relative w-14 h-14 rounded-full overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_hsl(var(--foreground)/0.5)]">
                   <img
                     src={kristiAvatar.url}
                     alt="Kristi, co-founder"
