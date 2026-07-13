@@ -1,5 +1,20 @@
 /// <reference types="vite/client" />
 
+declare module "*.asset.json" {
+  const asset: {
+    version: number;
+    asset_id: string;
+    project_id: string;
+    url: string;
+    r2_key: string;
+    original_filename: string;
+    size: number;
+    content_type: string;
+    created_at: string;
+  };
+  export default asset;
+}
+
 interface ViteTypeOptions {
   // By adding this line, you can make the type of ImportMetaEnv strict
   // to disallow unknown keys.
