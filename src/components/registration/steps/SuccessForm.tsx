@@ -450,8 +450,6 @@ export const SuccessForm = () => {
                 ))}
               </ul>
 
-
-
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button
                   type="button"
