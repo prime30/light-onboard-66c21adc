@@ -370,24 +370,24 @@ export const SuccessForm = () => {
 
             <div className="relative px-5 pt-6 pb-5">
               <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
-                Founder Strategy Session{" "}
                 <span className="line-through decoration-foreground/30">
-                  (valued at $299)
+                  $299
                 </span>{" "}
-                <span className="ml-1 inline-flex items-center rounded-full bg-foreground px-2 py-0.5 text-[9px] font-medium text-background uppercase tracking-wide">
+                <span className="inline-flex items-center rounded-full bg-foreground px-2 py-0.5 text-[9px] font-medium text-background uppercase tracking-wide">
                   Free
                 </span>
               </p>
 
-
               <h3 className="mt-2 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
-                Strategy session: make extensions a winning business model{" "}
-                <span className="font-accent text-[26px] leading-[1.05]">
-                  {accountType === "salon" ? "in your salon." : "behind the chair."}
-                </span>
+                You're invited: Strategy Session with the Founder
               </h3>
 
-              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
+              <p className="mt-3 text-[13px] font-medium text-foreground leading-relaxed">
+                Make extensions a winning business model{" "}
+                {accountType === "salon" ? "in your salon." : "behind the chair."}
+              </p>
+
+              <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed">
                 Book a free 30-minute call with Kristi to map out how extensions
                 can become a real revenue driver{" "}
                 {accountType === "salon"
