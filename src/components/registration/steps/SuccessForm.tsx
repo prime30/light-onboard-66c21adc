@@ -440,6 +440,25 @@ export const SuccessForm = () => {
                 Reserved for new pros · limited weekly slots
               </p>
 
+              <button
+                type="button"
+                onClick={() => {
+                  if (isInIframeClose) {
+                    closeIframe("registration_complete", {
+                      founderCallEligible: showFounderCallNudge,
+                      accountType: accountType ?? null,
+                      monthlyOrderVolume: monthlyOrderVolume ?? null,
+                      declinedFounderCall: true,
+                    });
+                  } else {
+                    navigate("/");
+                  }
+                }}
+                className="mt-2 w-full text-center text-[11px] text-muted-foreground/70 hover:text-foreground underline underline-offset-4 decoration-muted-foreground/30 hover:decoration-foreground/60 transition-colors py-1"
+              >
+                No thanks, go to shop
+              </button>
+
 
             </div>
           </div>
