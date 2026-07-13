@@ -289,18 +289,57 @@ Deno.serve(async (req: Request) => {
 
   // ---- monthly order volume cohorts ----
   // Classification tiers users select in the MonthlyOrderVolumeStep.
-  const VOLUME_ORDER = ["None", "1-5", "6-10", "10+", "unknown"] as const;
+  // The step launched on 2026-06-17, so pre-launch leads never had the chance
+  // to answer. We split "Not captured" into 3 sub-rows to make that obvious.
+  const VOLUME_STEP_LAUNCH = "2026-06-17T00:00:00.000Z";
+  // Flows that include monthly-order-volume, and the step's index within that flow.
+  const VOLUME_STEP_INDEX_BY_FLOW: Record<string, number> = {
+    professional: 7, // account-type,business-operation,contact-basics,create-password,business-location,license,preferred-method,monthly-order-volume,preferences
+    salon: 6,
+    licensed_stylist: 7,
+  };
+  const VOLUME_ORDER = [
+    "None",
+    "1-5",
+    "6-10",
+    "10+",
+    "legacy",
+    "student",
+    "pre_step",
+  ] as const;
   const VOLUME_TIER: Record<string, string> = {
     "None": "Just starting",
     "1-5": "Growing",
     "6-10": "Established",
     "10+": "High volume",
-    "unknown": "Not captured",
+    "legacy": "Legacy (pre-launch)",
+    "student": "Student flow (N/A)",
+    "pre_step": "Abandoned before step",
+  };
+  const VOLUME_LABEL: Record<string, string> = {
+    "None": "None",
+    "1-5": "1-5",
+    "6-10": "6-10",
+    "10+": "10+",
+    "legacy": " - ",
+    "student": " - ",
+    "pre_step": " - ",
   };
   const byVolume = new Map<string, { started: number; completed: number; purchasers: number }>();
+  const TIER_KEYS = ["None", "1-5", "6-10", "10+"] as const;
   for (const r of leads) {
     const raw = (r as { monthly_order_volume?: string | null }).monthly_order_volume;
-    const k = raw && (VOLUME_ORDER as readonly string[]).includes(raw) ? raw : "unknown";
+    let k: string;
+    if (raw && (TIER_KEYS as readonly string[]).includes(raw)) {
+      k = raw;
+    } else if (r.started_at && r.started_at < VOLUME_STEP_LAUNCH) {
+      k = "legacy";
+    } else if ((r.account_type ?? "") === "student") {
+      k = "student";
+    } else {
+      // Reached the flow post-launch but never captured a value: abandoned earlier.
+      k = "pre_step";
+    }
     const cur = byVolume.get(k) ?? { started: 0, completed: 0, purchasers: 0 };
     cur.started += 1;
     if (r.completed_at) cur.completed += 1;
@@ -310,7 +349,7 @@ Deno.serve(async (req: Request) => {
   const volumeCohorts = VOLUME_ORDER.filter((k) => byVolume.has(k)).map((k) => {
     const v = byVolume.get(k)!;
     return {
-      volume: k,
+      volume: VOLUME_LABEL[k],
       tier: VOLUME_TIER[k],
       started: v.started,
       completed: v.completed,
@@ -320,6 +359,8 @@ Deno.serve(async (req: Request) => {
       purchaseRate: v.completed > 0 ? Math.round((v.purchasers / v.completed) * 1000) / 10 : 0,
     };
   });
+  // Silence unused-var warnings in flows where the index isn't referenced.
+  void VOLUME_STEP_INDEX_BY_FLOW;
 
   // ---- last step distribution for bounced leads ----
   const stepMap = new Map<string, number>();
