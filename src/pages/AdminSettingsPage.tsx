@@ -665,7 +665,7 @@ const AdminSettingsPage = () => {
               </h2>
               <p className="text-sm text-muted-foreground">
                 When enabled, the success screen shows the 30% off Color Ring discount.
-                When disabled, users are invited to schedule a founder call with Eric instead.
+                When disabled, users are invited to schedule a founder call with Kristi instead.
               </p>
             </div>
             {welcomeOffer === null ? (

@@ -58,9 +58,9 @@ export const ScheduleConfirmedStep = () => {
     const toIcsStamp = (d: Date) =>
       d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
-    const title = booking.eventName ?? "Founder call with Eric";
+    const title = booking.eventName ?? "Founder call with Kristi";
     const details = [
-      "Founder call with Eric from Drop Dead Extensions.",
+      "Founder call with Kristi from Drop Dead Extensions.",
       booking.join_url ? `Join: ${booking.join_url}` : "",
       booking.reschedule_url ? `Reschedule: ${booking.reschedule_url}` : "",
       booking.cancel_url ? `Cancel: ${booking.cancel_url}` : "",
@@ -124,7 +124,7 @@ export const ScheduleConfirmedStep = () => {
     {
       icon: MessageCircle,
       title: "A real conversation",
-      body: "No pitch deck. Eric will ask what you're working on and answer whatever's on your mind.",
+      body: "No pitch deck. Kristi will ask what you're working on and answer whatever's on your mind.",
     },
     {
       icon: Sparkles,
@@ -234,7 +234,7 @@ export const ScheduleConfirmedStep = () => {
             Please don't no-show
           </p>
           <p className="text-[12px] text-foreground/80 leading-relaxed">
-            Eric blocks this time off just for you - the same way you'd block a chair for a client.
+            Kristi blocks this time off just for you - the same way you'd block a chair for a client.
             If something comes up, use the reschedule or cancel link in your confirmation email so
             the slot opens back up for someone else.
           </p>
