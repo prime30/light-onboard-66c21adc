@@ -370,7 +370,7 @@ export const SuccessForm = () => {
 
             <div className="relative px-5 pt-6 pb-5">
               <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
-                A personal invitation
+                Before you shop, you have an invite from the founder
               </p>
 
 
