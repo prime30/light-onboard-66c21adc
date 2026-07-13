@@ -450,23 +450,6 @@ export const SuccessForm = () => {
                 </div>
               </div>
 
-              {/* what's covered - refined inline list */}
-              <ul className="mt-5 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
-                {[
-                  "Pro benefits",
-                  "Product walkthrough",
-                  "Ethical standards",
-                  "Pricing",
-                  "Replacement & troubleshooting",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button
