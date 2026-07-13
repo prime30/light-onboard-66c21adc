@@ -370,7 +370,13 @@ export const SuccessForm = () => {
 
             <div className="relative px-5 pt-6 pb-5">
               <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
-                Before you shop, you have an invite from the founder
+                Optional Founder Session{" "}
+                <span className="line-through decoration-foreground/30">
+                  (valued at $299)
+                </span>{" "}
+                <span className="ml-1 inline-flex items-center rounded-full bg-foreground px-2 py-0.5 text-[9px] font-medium text-background uppercase tracking-wide">
+                  Free
+                </span>
               </p>
 
 
