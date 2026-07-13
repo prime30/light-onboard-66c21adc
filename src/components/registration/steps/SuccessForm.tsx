@@ -422,42 +422,45 @@ export const SuccessForm = () => {
                 ))}
               </ul>
 
-              <Button
-                type="button"
-                onClick={() => setCurrentStep("schedule")}
-                className="w-full mt-6 h-12 min-h-12 touch-manipulation rounded-form group relative overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  Accept the invitation
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-background/15 to-transparent"
-                />
-              </Button>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (isInIframeClose) {
+                      closeIframe("registration_complete", {
+                        founderCallEligible: showFounderCallNudge,
+                        accountType: accountType ?? null,
+                        monthlyOrderVolume: monthlyOrderVolume ?? null,
+                        declinedFounderCall: true,
+                      });
+                    } else {
+                      navigate("/");
+                    }
+                  }}
+                  className="h-12 min-h-12 touch-manipulation rounded-form"
+                >
+                  No thanks
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => setCurrentStep("schedule")}
+                  className="h-12 min-h-12 touch-manipulation rounded-form group relative overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Accept the invitation
+                  </span>
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-background/15 to-transparent"
+                  />
+                </Button>
+              </div>
 
               <p className="mt-3 text-center font-mono-eyebrow text-[10px] text-muted-foreground/80">
                 Reserved for new pros · limited weekly slots
               </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInIframeClose) {
-                    closeIframe("registration_complete", {
-                      founderCallEligible: showFounderCallNudge,
-                      accountType: accountType ?? null,
-                      monthlyOrderVolume: monthlyOrderVolume ?? null,
-                      declinedFounderCall: true,
-                    });
-                  } else {
-                    navigate("/");
-                  }
-                }}
-                className="mt-2 w-full text-center text-[11px] text-muted-foreground/70 hover:text-foreground underline underline-offset-4 decoration-muted-foreground/30 hover:decoration-foreground/60 transition-colors py-1"
-              >
-                No thanks, go to shop
-              </button>
 
 
             </div>
