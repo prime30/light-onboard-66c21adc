@@ -387,17 +387,31 @@ export const SuccessForm = () => {
 
               {/* Kristi - signature row */}
               <div className="mt-5 flex items-center gap-4 pb-5 border-b border-dashed border-border/70">
-                <div className="relative w-14 h-14 rounded-full overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_hsl(var(--foreground)/0.5)]">
+                <a
+                  href="https://www.instagram.com/dropdeadkristi/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Kristi on Instagram"
+                  className="block relative w-14 h-14 rounded-full overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_hsl(var(--foreground)/0.5)]"
+                >
                   <img
                     src={kristiAvatar.url}
-                    alt="Kristi, co-founder"
+                    alt="Kristi, founder"
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </a>
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-foreground leading-tight">
-                    Kristi - co-founder
+                    Kristi, Founder
                   </p>
+                  <a
+                    href="https://www.instagram.com/dropdeadkristi/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-[12px] text-foreground/80 hover:text-foreground underline decoration-foreground/30 underline-offset-2 leading-tight mt-0.5"
+                  >
+                    @dropdeadkristi
+                  </a>
                   <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                     30 min · video call · complimentary
                   </p>
