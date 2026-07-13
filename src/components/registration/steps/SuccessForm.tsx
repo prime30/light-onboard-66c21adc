@@ -370,7 +370,7 @@ export const SuccessForm = () => {
 
             <div className="relative px-5 pt-6 pb-5">
               <p className="font-mono-eyebrow text-[10px] text-muted-foreground">
-                Optional Founder Session{" "}
+                Founder Strategy Session{" "}
                 <span className="line-through decoration-foreground/30">
                   (valued at $299)
                 </span>{" "}
