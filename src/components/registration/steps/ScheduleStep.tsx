@@ -362,7 +362,7 @@ export const ScheduleStep = () => {
           {exhaustedAutoSkip && availableDays.size === 0 && (
             <div className="mt-2 pt-5 border-t border-dashed border-border/70 space-y-3 text-center">
               <p className="text-[13px] text-foreground leading-relaxed">
-                Eric's calendar is fully booked for the next few weeks.
+                Kristi's calendar is fully booked for the next few weeks.
               </p>
               {waitlistState === "done" ? (
                 <p className="inline-flex items-center justify-center gap-1.5 text-[12px] text-status-green">

@@ -10,7 +10,7 @@ import {
   useIframeCartBridge,
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
-import ericAvatar from "@/assets/avatars/eric.jpg";
+import kristiAvatar from "@/assets/avatars/kristi.png.asset.json";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
@@ -380,23 +380,23 @@ export const SuccessForm = () => {
               </h3>
 
               <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
-                Eric, our co-founder, sets aside a handful of slots each week
-                for new pros. Samples in hand, no script - your questions, his
+                Kristi, our co-founder, sets aside a handful of slots each week
+                for new pros. Samples in hand, no script - your questions, her
                 answers.
               </p>
 
-              {/* Eric - signature row */}
+              {/* Kristi - signature row */}
               <div className="mt-5 flex items-center gap-3 pb-5 border-b border-dashed border-border/70">
                 <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--foreground)/0.5)]">
                   <img
-                    src={ericAvatar}
-                    alt="Eric, co-founder"
+                    src={kristiAvatar.url}
+                    alt="Kristi, co-founder"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium text-foreground leading-tight">
-                    Eric - co-founder
+                    Kristi - co-founder
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                     30 min · video call · complimentary

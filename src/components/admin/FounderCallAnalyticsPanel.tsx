@@ -199,7 +199,7 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
         <div>
           <h3 className="text-sm font-medium">Founder call take rate</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Of users who completed registration, how many opted into a 30-min call with Eric.
+            Of users who completed registration, how many opted into a 30-min call with Kristi.
             Bookings are stamped when Calendly accepts the invitee.
           </p>
         </div>

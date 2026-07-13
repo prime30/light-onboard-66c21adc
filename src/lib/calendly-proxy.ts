@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Hardcoded event-type metadata. Mirrors the founder-call event configured in
 // CALENDLY_EVENT_TYPE_URI.
 export const FOUNDER_CALL = {
-  name: "Founder call with Eric",
+  name: "Founder call with Kristi",
   duration: 30,
   locationLabel: "Zoom",
 };
