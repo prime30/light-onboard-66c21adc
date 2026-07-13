@@ -382,7 +382,7 @@ export const SuccessForm = () => {
                 You're invited: Strategy Session with the Founder
               </h3>
 
-              <p className="mt-3 text-[13px] font-medium text-foreground leading-relaxed">
+              <p className="mt-3 text-[15px] font-medium text-foreground leading-relaxed">
                 Make extensions a winning business model{" "}
                 {accountType === "salon" ? "in your salon." : "behind the chair."}
               </p>
