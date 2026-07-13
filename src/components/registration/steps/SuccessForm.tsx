@@ -439,6 +439,8 @@ export const SuccessForm = () => {
                   "Product walkthrough",
                   "Ethical standards",
                   "Pricing",
+                  "Shipping & fulfillment times",
+                  "Education & classes",
                   "Replacement & troubleshooting",
                 ].map((item) => (
                   <li
