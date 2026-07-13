@@ -18,11 +18,11 @@ import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import salonHero from "@/assets/salon-hero.jpg";
 import slideProducts from "@/assets/slide-products.jpg";
-import slideCommunity from "@/assets/slide-community.jpg";
+import slideCommunityAsset from "@/assets/slide-community.jpg.asset.json";
 import { useModeContext } from "./context/ModeContext";
 import { resolveSsoPresentation } from "@/lib/sso-context";
 
-const slideImages = [salonHero, slideProducts, slideCommunity];
+const slideImages = [salonHero, slideProducts, slideCommunityAsset.url];
 
 function SignInBackground() {
   const { ssoContext } = useGlobalApp();
