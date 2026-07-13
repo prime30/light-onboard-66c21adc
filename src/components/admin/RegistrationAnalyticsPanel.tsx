@@ -432,7 +432,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
             By monthly order volume
           </div>
           <p className="text-[10px] text-muted-foreground mb-2">
-            Classifications from the order-volume step. Purchase % = first order placed / completed registrations.
+            Classifications from the order-volume step (launched 2026-06-17). "Not captured" is split into legacy pre-launch leads, students (step is N/A), and users who abandoned before reaching the step. Purchase % = first order placed / completed registrations.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -449,7 +449,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
               <tbody className="divide-y divide-border/50">
                 {data!.volumeCohorts!.map((row) => (
                   <tr key={row.volume}>
-                    <td className="py-1.5 pr-3 font-medium">{row.volume === "unknown" ? " - " : row.volume}</td>
+                    <td className="py-1.5 pr-3 font-medium">{row.volume}</td>
                     <td className="py-1.5 px-2 text-muted-foreground">{row.tier}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.started}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums">
