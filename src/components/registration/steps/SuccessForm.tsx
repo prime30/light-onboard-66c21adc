@@ -395,28 +395,6 @@ export const SuccessForm = () => {
                   : "behind your chair."}
               </p>
 
-              <p className="mt-4 text-[13px] text-muted-foreground leading-relaxed">
-                Plus get your questions answered about:
-              </p>
-
-              {/* what's covered - refined inline list */}
-              <ul className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
-                {[
-                  "Pro benefits",
-                  "Product walkthrough",
-                  "Ethical standards",
-                  "Pricing",
-                  "Replacement & troubleshooting",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
               {/* Kristi - signature row */}
               <div className="mt-5 flex items-center gap-4 pb-5 border-b border-dashed border-border/70">
                 <a
@@ -450,6 +428,27 @@ export const SuccessForm = () => {
                 </div>
               </div>
 
+              <p className="mt-5 text-[13px] text-muted-foreground leading-relaxed">
+                Plus get your questions answered about:
+              </p>
+
+              {/* what's covered - refined inline list */}
+              <ul className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-foreground/80">
+                {[
+                  "Pro benefits",
+                  "Product walkthrough",
+                  "Ethical standards",
+                  "Pricing",
+                  "Replacement & troubleshooting",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    className="px-2.5 py-1 rounded-full bg-muted/50 border border-border/60"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button
