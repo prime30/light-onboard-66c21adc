@@ -443,7 +443,7 @@ export const SuccessForm = () => {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => {
                     if (isInIframeClose) {
                       closeIframe("registration_complete", {
@@ -456,7 +456,7 @@ export const SuccessForm = () => {
                       navigate("/");
                     }
                   }}
-                  className="h-12 min-h-12 touch-manipulation rounded-form"
+                  className="h-12 min-h-12 touch-manipulation rounded-form bg-background border-foreground"
                 >
                   No thanks
                 </Button>
