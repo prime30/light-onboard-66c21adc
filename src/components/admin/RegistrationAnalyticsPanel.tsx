@@ -449,7 +449,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
               <tbody className="divide-y divide-border/50">
                 {data!.volumeCohorts!.map((row) => (
                   <tr key={row.volume}>
-                    <td className="py-1.5 pr-3 font-medium">{row.volume === "unknown" ? " - " : row.volume}</td>
+                    <td className="py-1.5 pr-3 font-medium">{row.volume}</td>
                     <td className="py-1.5 px-2 text-muted-foreground">{row.tier}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.started}</td>
                     <td className="py-1.5 px-2 text-right tabular-nums">
