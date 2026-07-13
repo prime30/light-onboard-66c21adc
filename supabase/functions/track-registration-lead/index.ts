@@ -277,63 +277,111 @@ Deno.serve(async (req: Request) => {
     return json(200, { ok: true, klaviyoSynced: false });
   }
 
+  // Klaviyo is stricter than our loose regex. Reject obviously malformed emails
+  // (double dots, leading/trailing dots in the local part, no dot in domain,
+  // TLDs shorter than 2 chars, non-ASCII) before spending a request that would
+  // 400. Klaviyo dashboard was showing ~7% 400 rate on /profile-import and
+  // /events for exactly these bad-email cases.
+  const KLAVIYO_EMAIL_RE = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
+  const localPart = email.split("@")[0] ?? "";
+  const domainPart = email.split("@")[1] ?? "";
+  const emailAcceptable =
+    KLAVIYO_EMAIL_RE.test(email) &&
+    !email.includes("..") &&
+    !localPart.startsWith(".") &&
+    !localPart.endsWith(".") &&
+    !domainPart.startsWith("-") &&
+    !domainPart.endsWith("-");
+  if (!emailAcceptable) {
+    return json(200, { ok: true, klaviyoSynced: false, skipped: "email_rejected_by_prevalidation" });
+  }
+
+  // Klaviyo profile-import will 400 if `phone_number` is present but not a
+  // valid E.164 string. Guard here even though upstream should already pass
+  // E.164 - defensive because callers vary.
+  const E164_RE = /^\+[1-9]\d{7,14}$/;
+  const phoneAcceptable = !!phoneE164 && E164_RE.test(phoneE164);
+
+  // Strip null/undefined from properties. Some Klaviyo tenants with typed
+  // custom properties will 400 if a datetime property arrives as `null`.
+  const rawProfileProps: Record<string, unknown> = {
+    registration_started_at: new Date().toISOString(),
+    registration_last_step: lastStep,
+    registration_account_type: accountType,
+    registration_completed: isCompleted,
+    registration_completed_at: isCompleted ? new Date().toISOString() : null,
+    registration_auto_approved: isCompleted ? autoApproved : null,
+    registration_status: isCompleted ? (autoApproved ? "approved" : "pending") : null,
+    registration_source: "apply.dropdeadextensions.com",
+    ...(preferredMethods.length > 0
+      ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
+      : {}),
+    ...(monthlyOrderVolume
+      ? {
+          monthly_order_volume: monthlyOrderVolume,
+          volume_cohort: volumeCohort,
+          is_high_volume: isHighVolume,
+        }
+      : {}),
+  };
+  const profileProps: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawProfileProps)) {
+    if (v !== null && v !== undefined && v !== "") profileProps[k] = v;
+  }
+
   // 1) Upsert profile with the latest known properties.
   const profileAttrs: Record<string, unknown> = {
     email,
-    properties: {
-      registration_started_at: new Date().toISOString(),
-      registration_last_step: lastStep,
-      registration_account_type: accountType,
-      registration_completed: isCompleted,
-      registration_completed_at: isCompleted ? new Date().toISOString() : null,
-      registration_auto_approved: isCompleted ? autoApproved : null,
-      registration_status: isCompleted ? (autoApproved ? "approved" : "pending") : null,
-      registration_source: "apply.dropdeadextensions.com",
-      ...(preferredMethods.length > 0
-        ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
-        : {}),
-      ...(monthlyOrderVolume
-        ? {
-            monthly_order_volume: monthlyOrderVolume,
-            volume_cohort: volumeCohort,
-            is_high_volume: isHighVolume,
-          }
-        : {}),
-    },
+    properties: profileProps,
   };
   if (firstName) profileAttrs.first_name = firstName;
   if (lastName) profileAttrs.last_name = lastName;
-  if (phoneE164) profileAttrs.phone_number = phoneE164;
+  if (phoneAcceptable) profileAttrs.phone_number = phoneE164;
 
   const profileRes = await klaviyo("/profile-import", klaviyoKey, {
     data: { type: "profile", attributes: profileAttrs },
   });
   if (!profileRes.ok) {
-    console.warn("Klaviyo profile-import failed", profileRes.status, profileRes.body);
+    console.error("Klaviyo profile-import failed", profileRes.status, JSON.stringify(profileRes.body));
+    // Best-effort: surface first 400 body so we can see the actual reason.
+    void fetch(`${supabaseUrl}/functions/v1/notify-error`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        source: "track-registration-lead:profile-import",
+        message: `Klaviyo ${profileRes.status}`,
+        context: { email, phase, status: profileRes.status, body: profileRes.body, hadPhone: phoneAcceptable },
+      }),
+    }).catch(() => {});
   }
 
   // 2) Fire the appropriate event.
   const metricName = isCompleted ? "Completed Registration" : "Started Registration";
+  const rawEventProps: Record<string, unknown> = {
+    account_type: accountType,
+    last_step: lastStep,
+    phase,
+    ...(isCompleted ? { auto_approved: autoApproved, status: autoApproved ? "approved" : "pending" } : {}),
+    ...(preferredMethods.length > 0
+      ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
+      : {}),
+    ...(monthlyOrderVolume
+      ? {
+          monthly_order_volume: monthlyOrderVolume,
+          volume_cohort: volumeCohort,
+          is_high_volume: isHighVolume,
+        }
+      : {}),
+  };
+  const eventProps: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawEventProps)) {
+    if (v !== null && v !== undefined && v !== "") eventProps[k] = v;
+  }
   const eventRes = await klaviyo("/events", klaviyoKey, {
     data: {
       type: "event",
       attributes: {
-        properties: {
-          account_type: accountType,
-          last_step: lastStep,
-          phase,
-          ...(isCompleted ? { auto_approved: autoApproved, status: autoApproved ? "approved" : "pending" } : {}),
-          ...(preferredMethods.length > 0
-            ? { preferred_methods: preferredMethods, primary_method: primaryMethod }
-            : {}),
-          ...(monthlyOrderVolume
-            ? {
-                monthly_order_volume: monthlyOrderVolume,
-                volume_cohort: volumeCohort,
-                is_high_volume: isHighVolume,
-              }
-            : {}),
-        },
+        properties: eventProps,
         metric: {
           data: { type: "metric", attributes: { name: metricName } },
         },
@@ -344,7 +392,16 @@ Deno.serve(async (req: Request) => {
     },
   });
   if (!eventRes.ok) {
-    console.warn("Klaviyo event create failed", eventRes.status, eventRes.body);
+    console.error("Klaviyo event create failed", eventRes.status, JSON.stringify(eventRes.body));
+    void fetch(`${supabaseUrl}/functions/v1/notify-error`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        source: "track-registration-lead:events",
+        message: `Klaviyo ${eventRes.status}`,
+        context: { email, phase, metric: metricName, status: eventRes.status, body: eventRes.body },
+      }),
+    }).catch(() => {});
   }
 
   // Mark sync time (best-effort).
