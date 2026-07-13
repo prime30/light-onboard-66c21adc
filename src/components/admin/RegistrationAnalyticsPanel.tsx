@@ -432,7 +432,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
             By monthly order volume
           </div>
           <p className="text-[10px] text-muted-foreground mb-2">
-            Classifications from the order-volume step. Purchase % = first order placed / completed registrations.
+            Classifications from the order-volume step (launched 2026-06-17). "Not captured" is split into legacy pre-launch leads, students (step is N/A), and users who abandoned before reaching the step. Purchase % = first order placed / completed registrations.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
