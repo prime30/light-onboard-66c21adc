@@ -359,6 +359,39 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const handleFounderCallOnToggle = async (next: boolean) => {
+    if (founderCallOn === null) return;
+    const previous = founderCallOn;
+    setFounderCallOn(next);
+    setUpdatingFounderCallOn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { token, founderCallEnabled: next },
+      });
+      if (error || !data?.success) {
+        setFounderCallOn(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Founder call invite ON" : "Founder call invite OFF",
+        description: next
+          ? "Success screen will show the founder call invitation."
+          : "Success screen will show the WELCOME10 first-order nudge instead.",
+      });
+    } catch (err) {
+      console.error(err);
+      setFounderCallOn(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingFounderCallOn(false);
+    }
+  };
+
 
 
 
