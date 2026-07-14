@@ -5,6 +5,7 @@ type Flags = {
   autoApprovalEnabled: boolean;
   welcomeOfferEnabled: boolean;
   founderCallHighVolumeOnly: boolean;
+  founderCallEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
