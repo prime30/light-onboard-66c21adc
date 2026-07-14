@@ -23,20 +23,21 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true }, 200);
   }
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data, error } = await supabase
     .from("app_settings")
-    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only")
+    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled")
     .eq("singleton", true)
     .maybeSingle();
   if (error || !data) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true }, 200);
   }
   return json({
     autoApprovalEnabled: !!data.auto_approval_enabled,
     welcomeOfferEnabled: !!data.welcome_offer_enabled,
     founderCallHighVolumeOnly: !!data.founder_call_high_volume_only,
+    founderCallEnabled: data.founder_call_enabled !== false,
   });
 });
