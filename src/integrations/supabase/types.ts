@@ -19,6 +19,7 @@ export type Database = {
           auto_approval_enabled: boolean
           discount_metafields_enabled: boolean
           extra_customer_tags: string[]
+          founder_call_enabled: boolean
           founder_call_high_volume_only: boolean
           id: string
           singleton: boolean
@@ -30,6 +31,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
+          founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
           id?: string
           singleton?: boolean
@@ -41,6 +43,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
+          founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
           id?: string
           singleton?: boolean

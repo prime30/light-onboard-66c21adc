@@ -1,0 +1,1 @@
+ALTER TABLE public.app_settings ADD COLUMN IF NOT EXISTS founder_call_enabled boolean NOT NULL DEFAULT true;
