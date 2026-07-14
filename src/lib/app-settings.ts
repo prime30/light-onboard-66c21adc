@@ -17,13 +17,14 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
       autoApprovalEnabled: !!(data as Flags).autoApprovalEnabled,
       welcomeOfferEnabled: !!(data as Flags).welcomeOfferEnabled,
       founderCallHighVolumeOnly: !!(data as Flags).founderCallHighVolumeOnly,
+      founderCallEnabled: (data as Flags).founderCallEnabled !== false,
     };
     return cachedFlags;
   })();
