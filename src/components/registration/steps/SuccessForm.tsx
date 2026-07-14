@@ -92,6 +92,7 @@ export const SuccessForm = () => {
   const { enabled: autoApproved } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
+  const { enabled: founderCallEnabled } = useFounderCallEnabled();
   const { watch } = useForm();
   const { isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
@@ -104,12 +105,16 @@ export const SuccessForm = () => {
   const accountType = watch("accountType") as string | undefined;
   const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
   // (high-volume status is encoded inside computeFounderCallEligible)
-  const showFounderCallNudge = computeFounderCallEligible({
+  const showFounderCallNudge = founderCallEnabled && computeFounderCallEligible({
     accountType,
     monthlyOrderVolume,
     founderHighVolumeOnly: founderHighVolumeOnly,
     welcomeOfferEnabled: welcomeOfferEnabled,
   });
+
+  // Fallback nudge when founder call is globally disabled and the welcome
+  // offer flow is off: promote WELCOME10 for their first order.
+  const showWelcome10Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
