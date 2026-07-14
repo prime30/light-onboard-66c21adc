@@ -42,6 +42,8 @@ const AdminSettingsPage = () => {
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
   const [founderHighVolume, setFounderHighVolume] = useState<boolean | null>(null);
   const [updatingFounderHighVolume, setUpdatingFounderHighVolume] = useState(false);
+  const [founderCallOn, setFounderCallOn] = useState<boolean | null>(null);
+  const [updatingFounderCallOn, setUpdatingFounderCallOn] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -145,6 +147,11 @@ const AdminSettingsPage = () => {
         } else {
           setFounderHighVolume(false);
         }
+        if (typeof data?.setting?.founder_call_enabled === "boolean") {
+          setFounderCallOn(data.setting.founder_call_enabled);
+        } else {
+          setFounderCallOn(true);
+        }
       })
       .catch(() => {
         /* keep on login screen if verification fails */
@@ -202,6 +209,11 @@ const AdminSettingsPage = () => {
         setFounderHighVolume(data.setting.founder_call_high_volume_only);
       } else {
         setFounderHighVolume(false);
+      }
+      if (typeof data?.setting?.founder_call_enabled === "boolean") {
+        setFounderCallOn(data.setting.founder_call_enabled);
+      } else {
+        setFounderCallOn(true);
       }
     } catch (err) {
       console.error(err);
@@ -344,6 +356,39 @@ const AdminSettingsPage = () => {
       toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
     } finally {
       setUpdatingFounderHighVolume(false);
+    }
+  };
+
+  const handleFounderCallOnToggle = async (next: boolean) => {
+    if (founderCallOn === null) return;
+    const previous = founderCallOn;
+    setFounderCallOn(next);
+    setUpdatingFounderCallOn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { token, founderCallEnabled: next },
+      });
+      if (error || !data?.success) {
+        setFounderCallOn(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Founder call invite ON" : "Founder call invite OFF",
+        description: next
+          ? "Success screen will show the founder call invitation."
+          : "Success screen will show the WELCOME10 first-order nudge instead.",
+      });
+    } catch (err) {
+      console.error(err);
+      setFounderCallOn(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingFounderCallOn(false);
     }
   };
 
@@ -743,7 +788,41 @@ const AdminSettingsPage = () => {
                 aria-label="Toggle founder call high-volume gating"
               />
             )}
+        </div>
+
+        {/* Founder call: master enable */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                Founder call invite on success screen
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, eligible new pros see the "Strategy Session with the Founder"
+                invitation on the success screen. When disabled, they see a
+                <strong> WELCOME10</strong> first-order code nudge instead.
+              </p>
+            </div>
+            {founderCallOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={founderCallOn}
+                onCheckedChange={handleFounderCallOnToggle}
+                disabled={updatingFounderCallOn}
+                aria-label="Toggle founder call invite"
+              />
+            )}
           </div>
+          {founderCallOn !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span className={founderCallOn ? "text-status-green font-medium" : "font-medium text-foreground"}>
+                {founderCallOn ? "Founder call invite visible" : "Showing WELCOME10 nudge instead"}
+              </span>
+            </div>
+          )}
+        </div>
           {founderHighVolume !== null && (
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
               Current state:{" "}

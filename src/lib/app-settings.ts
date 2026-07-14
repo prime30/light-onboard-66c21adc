@@ -5,6 +5,7 @@ type Flags = {
   autoApprovalEnabled: boolean;
   welcomeOfferEnabled: boolean;
   founderCallHighVolumeOnly: boolean;
+  founderCallEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
@@ -16,13 +17,14 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
       autoApprovalEnabled: !!(data as Flags).autoApprovalEnabled,
       welcomeOfferEnabled: !!(data as Flags).welcomeOfferEnabled,
       founderCallHighVolumeOnly: !!(data as Flags).founderCallHighVolumeOnly,
+      founderCallEnabled: (data as Flags).founderCallEnabled !== false,
     };
     return cachedFlags;
   })();
@@ -70,4 +72,21 @@ export function useWelcomeOffer() {
 }
 export function useFounderCallHighVolumeOnly() {
   return useFlag((f) => f.founderCallHighVolumeOnly);
+}
+export function useFounderCallEnabled() {
+  // Default true so the invite still shows during the flag's first fetch.
+  const [enabled, setEnabled] = useState<boolean>(cachedFlags ? cachedFlags.founderCallEnabled : true);
+  const [loading, setLoading] = useState<boolean>(cachedFlags === null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchFlags().then((f) => {
+      if (cancelled) return;
+      setEnabled(f.founderCallEnabled);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return { enabled, loading };
 }

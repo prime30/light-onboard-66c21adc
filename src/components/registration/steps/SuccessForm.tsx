@@ -16,7 +16,7 @@ import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
-import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly, useFounderCallEnabled } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
@@ -92,6 +92,7 @@ export const SuccessForm = () => {
   const { enabled: autoApproved } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
+  const { enabled: founderCallEnabled } = useFounderCallEnabled();
   const { watch } = useForm();
   const { isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
@@ -104,12 +105,16 @@ export const SuccessForm = () => {
   const accountType = watch("accountType") as string | undefined;
   const monthlyOrderVolume = watch("monthlyOrderVolume") as string | undefined;
   // (high-volume status is encoded inside computeFounderCallEligible)
-  const showFounderCallNudge = computeFounderCallEligible({
+  const showFounderCallNudge = founderCallEnabled && computeFounderCallEligible({
     accountType,
     monthlyOrderVolume,
     founderHighVolumeOnly: founderHighVolumeOnly,
     welcomeOfferEnabled: welcomeOfferEnabled,
   });
+
+  // Fallback nudge when founder call is globally disabled and the welcome
+  // offer flow is off: promote WELCOME10 for their first order.
+  const showWelcome10Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -661,7 +666,52 @@ export const SuccessForm = () => {
       )}
 
       {!showFounderCallNudge && !welcomeOfferEnabled && (
-        <div className="space-y-2.5 pt-1">
+        <div className="space-y-3 pt-1">
+          {showWelcome10Nudge && (
+            <div className="p-5 rounded-[20px] border border-accent-red/25 bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 text-left">
+              <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider">
+                First order bonus
+              </p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                Use code WELCOME10 on your first order
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                Enter it at checkout to save 10% on your first wholesale purchase.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText("WELCOME10").then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  });
+                }}
+                style={{ touchAction: "manipulation" }}
+                className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
+                aria-label="Copy WELCOME10 code"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                  <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
+                    WELCOME10
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                  {copied ? (
+                    <>
+                      <CheckCheck className="w-3.5 h-3.5 text-status-green" />
+                      <span className="text-status-green">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </div>
+              </button>
+            </div>
+          )}
           <Button
             type="button"
             onClick={() => {
