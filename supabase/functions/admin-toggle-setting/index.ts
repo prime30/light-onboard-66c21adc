@@ -15,6 +15,7 @@ interface RequestBody {
   welcomeOfferEnabled?: boolean;
   discountMetafieldsEnabled?: boolean;
   founderCallHighVolumeOnly?: boolean;
+  founderCallEnabled?: boolean;
   extraCustomerTags?: string[];
 }
 
