@@ -42,6 +42,8 @@ const AdminSettingsPage = () => {
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
   const [founderHighVolume, setFounderHighVolume] = useState<boolean | null>(null);
   const [updatingFounderHighVolume, setUpdatingFounderHighVolume] = useState(false);
+  const [founderCallOn, setFounderCallOn] = useState<boolean | null>(null);
+  const [updatingFounderCallOn, setUpdatingFounderCallOn] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
