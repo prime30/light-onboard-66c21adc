@@ -147,6 +147,11 @@ const AdminSettingsPage = () => {
         } else {
           setFounderHighVolume(false);
         }
+        if (typeof data?.setting?.founder_call_enabled === "boolean") {
+          setFounderCallOn(data.setting.founder_call_enabled);
+        } else {
+          setFounderCallOn(true);
+        }
       })
       .catch(() => {
         /* keep on login screen if verification fails */
