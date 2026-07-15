@@ -381,7 +381,7 @@ const AdminSettingsPage = () => {
         title: next ? "Founder call invite ON" : "Founder call invite OFF",
         description: next
           ? "Success screen will show the founder call invitation."
-          : "Success screen will show the WELCOME10 first-order nudge instead.",
+          : "Success screen will show the SALONTRIAL20 first-order nudge instead.",
       });
     } catch (err) {
       console.error(err);
