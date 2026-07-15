@@ -681,19 +681,19 @@ export const SuccessForm = () => {
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText("WELCOME10").then(() => {
+                  navigator.clipboard.writeText("SALONTRIAL20").then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   });
                 }}
                 style={{ touchAction: "manipulation" }}
                 className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-                aria-label="Copy WELCOME10 code"
+                aria-label="Copy SALONTRIAL20 code"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
                   <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
-                    WELCOME10
+                    SALONTRIAL20
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
