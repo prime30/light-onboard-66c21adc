@@ -673,10 +673,10 @@ export const SuccessForm = () => {
                 First order bonus
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                Use code WELCOME10 on your first order
+                Use code SALONTRIAL20 on your first order
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Enter it at checkout to save 10% on your first wholesale purchase.
+                Enter it at checkout to save 20% on your first wholesale purchase.
               </p>
               <button
                 type="button"
