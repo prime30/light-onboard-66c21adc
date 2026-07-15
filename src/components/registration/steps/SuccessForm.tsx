@@ -670,13 +670,13 @@ export const SuccessForm = () => {
           {showSalonTrial20Nudge && (
             <div className="p-5 rounded-[20px] border border-accent-red/25 bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 text-left">
               <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider">
-                First order bonus
+                Pro trial
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                Use code SALONTRIAL20 on your first order
+                Test our products before offering them to clients
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Enter it at checkout to save 20% on your first wholesale purchase.
+                Use code SALONTRIAL20 for 20% off your first order. We don't give away free samples — as a premium, small-batch business, every unit matters. This is a way to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients.
               </p>
               <button
                 type="button"
