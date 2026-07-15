@@ -113,8 +113,8 @@ export const SuccessForm = () => {
   });
 
   // Fallback nudge when founder call is globally disabled and the welcome
-  // offer flow is off: promote WELCOME10 for their first order.
-  const showWelcome10Nudge = !founderCallEnabled && !welcomeOfferEnabled;
+  // offer flow is off: promote SALONTRIAL20 for their first order.
+  const showSalonTrial20Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
