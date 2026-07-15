@@ -113,8 +113,8 @@ export const SuccessForm = () => {
   });
 
   // Fallback nudge when founder call is globally disabled and the welcome
-  // offer flow is off: promote WELCOME10 for their first order.
-  const showWelcome10Nudge = !founderCallEnabled && !welcomeOfferEnabled;
+  // offer flow is off: promote SALONTRIAL20 for their first order.
+  const showSalonTrial20Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -667,33 +667,33 @@ export const SuccessForm = () => {
 
       {!showFounderCallNudge && !welcomeOfferEnabled && (
         <div className="space-y-3 pt-1">
-          {showWelcome10Nudge && (
+          {showSalonTrial20Nudge && (
             <div className="p-5 rounded-[20px] border border-accent-red/25 bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 text-left">
               <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider">
                 First order bonus
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                Use code WELCOME10 on your first order
+                Use code SALONTRIAL20 on your first order
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Enter it at checkout to save 10% on your first wholesale purchase.
+                Enter it at checkout to save 20% on your first wholesale purchase.
               </p>
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText("WELCOME10").then(() => {
+                  navigator.clipboard.writeText("SALONTRIAL20").then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   });
                 }}
                 style={{ touchAction: "manipulation" }}
                 className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-                aria-label="Copy WELCOME10 code"
+                aria-label="Copy SALONTRIAL20 code"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
                   <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
-                    WELCOME10
+                    SALONTRIAL20
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
