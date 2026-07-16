@@ -55,8 +55,6 @@ export default {
           red: "hsl(var(--accent-red))",
           "red-soft": "hsl(var(--accent-red-soft))",
         },
-
-
         status: {
           amber: "hsl(var(--status-amber))",
           green: "hsl(var(--status-green))",
