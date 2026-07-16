@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, LockOpen, ArrowRight } from "lucide-react";
+import { Check, ShoppingBag, Heart, Sparkles, Clock, Copy, CheckCheck, Tag, Calendar, ArrowRight } from "lucide-react";
 import { useCloseIframe } from "@/hooks/messages";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hooks/use-countdown";
