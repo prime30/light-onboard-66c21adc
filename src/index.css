@@ -246,7 +246,15 @@
     --status-green: 142 71% 45%;
     --status-red: 0 72% 50%;
 
+    /* First-order perk / pro-trial mint green - dark mode */
+    --promo-mint: 140 25% 18%;
+    --promo-mint-tag: 140 25% 24%;
+    --promo-green: 140 45% 55%;
+    --promo-green-soft: 140 40% 48%;
+    --promo-green-muted: 140 25% 55%;
+
     --border: 0 0% 15%;
+
     --input: 0 0% 15%;
     --ring: 0 0% 98%;
 
