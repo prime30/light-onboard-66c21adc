@@ -665,105 +665,100 @@ export const SuccessForm = () => {
         </div>
       )}
 
-      {!showFounderCallNudge && !welcomeOfferEnabled && (
-        <div className="space-y-3 pt-1">
-          {showSalonTrial20Nudge && (
-            <div className="p-5 rounded-[20px] border border-promo-green/10 bg-promo-mint text-left">
-              {/* Perk tag */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-mint-tag border border-promo-green/10">
-                <Tag className="w-3.5 h-3.5 text-promo-green-soft" />
-                <span className="text-[10px] font-medium text-promo-green uppercase tracking-wider">
-                  First-order perk
-                </span>
+      {showSalonTrial20Nudge && (
+        <div className="p-5 rounded-[20px] border border-promo-green/10 bg-promo-mint text-left">
+          {/* Perk tag */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-mint-tag border border-promo-green/10">
+            <Tag className="w-3.5 h-3.5 text-promo-green-soft" />
+            <span className="text-[10px] font-medium text-promo-green uppercase tracking-wider">
+              First-order perk
+            </span>
+          </div>
+
+          <p className="mt-3 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
+            20% off your first order
+          </p>
+
+          <p className="mt-1.5 text-[15px] font-medium text-promo-green leading-relaxed">
+            That's about $47.20 back on this product alone.
+          </p>
+
+          <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
+            We do not do samples. Your first order is 20% off instead, so you can test real product in real hands: feel the hair, install it, and see how it holds up behind the chair.
+          </p>
+
+          {/* CTA row */}
+          <div className="mt-5 flex items-stretch gap-3">
+            <Button
+              type="button"
+              onClick={() => {
+                if (isInIframeClose) {
+                  closeIframe("registration_complete", {
+                    founderCallEligible: showFounderCallNudge,
+                    accountType: accountType ?? null,
+                    monthlyOrderVolume: monthlyOrderVolume ?? null,
+                  });
+                } else {
+                  navigate("/");
+                }
+              }}
+              className="flex-1 h-12 min-h-12 touch-manipulation rounded-full bg-foreground text-background hover:bg-foreground/90 group"
+            >
+              <span className="flex items-center justify-center gap-2">
+                Apply my 20% off
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText("SALONTRIAL20").then(() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                });
+              }}
+              style={{ touchAction: "manipulation" }}
+              className="shrink-0 flex items-center gap-3 px-4 h-12 rounded-full border border-dashed border-promo-green/30 bg-background hover:bg-background/80 transition-colors"
+              aria-label="Copy SALONTRIAL20 code"
+            >
+              <span className="text-sm font-mono font-semibold text-foreground tracking-wider">
+                SALONTRIAL20
+              </span>
+              <span className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-1 text-[11px] text-promo-green-soft shrink-0">
+                {copied ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-status-green" />
+                    <span className="text-status-green">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
               </div>
+            </button>
+          </div>
 
-              <p className="mt-3 text-[22px] leading-[1.15] font-medium text-foreground tracking-[-0.01em]">
-                20% off your first order
-              </p>
-
-              <p className="mt-1.5 text-[15px] font-medium text-promo-green leading-relaxed">
-                That's about $47.20 back on this product alone.
-              </p>
-
-              <p className="mt-3 text-[13px] text-muted-foreground leading-relaxed">
-                We do not do samples. Your first order is 20% off instead, so you can test real product in real hands: feel the hair, install it, and see how it holds up behind the chair.
-              </p>
-
-              {/* CTA row */}
-              <div className="mt-5 flex items-stretch gap-3">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (isInIframeClose) {
-                      closeIframe("registration_complete", {
-                        founderCallEligible: showFounderCallNudge,
-                        accountType: accountType ?? null,
-                        monthlyOrderVolume: monthlyOrderVolume ?? null,
-                      });
-                    } else {
-                      navigate("/");
-                    }
-                  }}
-                  className="flex-1 h-12 min-h-12 touch-manipulation rounded-full bg-foreground text-background hover:bg-foreground/90 group"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    Apply my 20% off
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText("SALONTRIAL20").then(() => {
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    });
-                  }}
-                  style={{ touchAction: "manipulation" }}
-                  className="shrink-0 flex items-center gap-3 px-4 h-12 rounded-full border border-dashed border-promo-green/30 bg-background hover:bg-background/80 transition-colors"
-                  aria-label="Copy SALONTRIAL20 code"
-                >
-                  <span className="text-sm font-mono font-semibold text-foreground tracking-wider">
-                    SALONTRIAL20
-                  </span>
-                  <span className="w-px h-4 bg-border" />
-                  <div className="flex items-center gap-1 text-[11px] text-promo-green-soft shrink-0">
-                    {copied ? (
-                      <>
-                        <CheckCheck className="w-3.5 h-3.5 text-status-green" />
-                        <span className="text-status-green">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </div>
-                </button>
-              </div>
-
-              {/* Risk-free guarantee */}
-              <div className="mt-4 p-4 rounded-[14px] border border-promo-green/10 bg-background flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-status-green flex items-center justify-center shrink-0">
-                  <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-foreground leading-tight">
-                    <span className="inline-flex items-center rounded-full bg-accent-mint-tag px-2 py-0.5 text-[9px] font-medium text-promo-green uppercase tracking-wide mr-2">
-                      Risk-free
-                    </span>
-                    Full refund guarantee
-                  </p>
-                  <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
-                    Not the right fit? Get a full refund when the bundle, cord, and product are returned intact and unaltered.
-                  </p>
-                </div>
-              </div>
+          {/* Risk-free guarantee */}
+          <div className="mt-4 p-4 rounded-[14px] border border-promo-green/10 bg-background flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-status-green flex items-center justify-center shrink-0">
+              <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-          )}
-
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground leading-tight">
+                <span className="inline-flex items-center rounded-full bg-accent-mint-tag px-2 py-0.5 text-[9px] font-medium text-promo-green uppercase tracking-wide mr-2">
+                  Risk-free
+                </span>
+                Full refund guarantee
+              </p>
+              <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
+                Not the right fit? Get a full refund when the bundle, cord, and product are returned intact and unaltered.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
