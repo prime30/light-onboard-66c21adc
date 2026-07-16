@@ -148,6 +148,14 @@
     --accent-red: 0 72% 51%;
     --accent-red-soft: 0 60% 60%;
 
+    /* First-order perk / pro-trial mint green */
+    --promo-mint: 135 40% 94%;
+    --promo-mint-tag: 135 35% 89%;
+    --promo-green: 140 60% 25%;
+    --promo-green-soft: 140 45% 38%;
+    --promo-green-muted: 140 30% 45%;
+
+
     /* Validation status colors */
     --status-amber: 38 92% 50%;
     --status-green: 142 71% 45%;
@@ -238,7 +246,15 @@
     --status-green: 142 71% 45%;
     --status-red: 0 72% 50%;
 
+    /* First-order perk / pro-trial mint green - dark mode */
+    --promo-mint: 140 25% 18%;
+    --promo-mint-tag: 140 25% 24%;
+    --promo-green: 140 45% 55%;
+    --promo-green-soft: 140 40% 48%;
+    --promo-green-muted: 140 25% 55%;
+
     --border: 0 0% 15%;
+
     --input: 0 0% 15%;
     --ring: 0 0% 98%;
 

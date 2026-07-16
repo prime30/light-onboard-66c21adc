@@ -54,7 +54,17 @@ export default {
           foreground: "hsl(var(--accent-foreground))",
           red: "hsl(var(--accent-red))",
           "red-soft": "hsl(var(--accent-red-soft))",
+          mint: "hsl(var(--promo-mint))",
+          "mint-tag": "hsl(var(--promo-mint-tag))",
         },
+        promo: {
+          mint: "hsl(var(--promo-mint))",
+          "mint-tag": "hsl(var(--promo-mint-tag))",
+          green: "hsl(var(--promo-green))",
+          "green-soft": "hsl(var(--promo-green-soft))",
+          "green-muted": "hsl(var(--promo-green-muted))",
+        },
+
         status: {
           amber: "hsl(var(--status-amber))",
           green: "hsl(var(--status-green))",
