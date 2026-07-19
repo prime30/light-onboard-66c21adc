@@ -111,12 +111,12 @@ export const schoolInfoSchema = z.object(schoolInfoValidators);
 // Contact Basics Schema
 const contactBasicsValidators = {
   firstName: z
-    .string()
+    .string({ error: "First name is required" })
     .trim()
     .min(1, "First name is required")
     .max(100, "First name must be less than 100 characters"),
   lastName: z
-    .string()
+    .string({ error: "Last name is required" })
     .trim()
     .min(1, "Last name is required")
     .max(100, "Last name must be less than 100 characters"),
@@ -126,19 +126,20 @@ const contactBasicsValidators = {
     .max(100, "Preferred name must be less than 100 characters")
     .optional(),
   email: z
+    .string({ error: "Please enter a valid email address" })
     .email("Please enter a valid email address")
     .trim()
     .max(255, "Email must be less than 255 characters")
     .transform((val) => val.toLowerCase())
     .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
   phoneNumber: z
-    .string()
+    .string({ error: "Phone number is required" })
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
     .refine((val) => isValidPhoneNumber(val), "Please enter a valid phone number")
     .transform((val) => formatPhoneNumber(val)),
   phoneCountryCode: z
-    .string()
+    .string({ error: "Country code is required" })
     .min(1, "Country code is required")
     .refine(
       (value) => countryCodes.some((country) => country.iso === value || country.code === value),
