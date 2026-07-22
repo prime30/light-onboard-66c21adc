@@ -55,6 +55,7 @@ const bodySchema = z
 const STOREFRONT_API_VERSION = "2024-10";
 
 let cachedStorefrontToken: string | null = null;
+let inflightStorefrontToken: Promise<string | null> | null = null;
 
 async function listExistingStorefrontToken(domain: string, adminToken: string, adminVersion: string): Promise<string | null> {
   try {
