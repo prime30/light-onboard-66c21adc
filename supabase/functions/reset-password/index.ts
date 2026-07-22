@@ -56,6 +56,30 @@ const STOREFRONT_API_VERSION = "2024-10";
 
 let cachedStorefrontToken: string | null = null;
 
+async function listExistingStorefrontToken(domain: string, adminToken: string, adminVersion: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://${domain}/admin/api/${adminVersion}/storefront_access_tokens.json`, {
+      headers: {
+        "X-Shopify-Access-Token": adminToken,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      console.error("Failed to list storefront tokens:", res.status, (await res.text()).slice(0, 300));
+      return null;
+    }
+    const json = await res.json();
+    const tokens: Array<{ access_token: string; title?: string }> = json?.storefront_access_tokens ?? [];
+    if (!tokens.length) return null;
+    // Prefer one we previously created; otherwise any.
+    const preferred = tokens.find((t) => (t.title || "").startsWith("lovable-")) ?? tokens[0];
+    return preferred?.access_token ?? null;
+  } catch (e) {
+    console.error("List storefront tokens threw:", e);
+    return null;
+  }
+}
+
 async function getStorefrontToken(domain: string, adminToken: string, adminVersion: string): Promise<string | null> {
   if (cachedStorefrontToken) return cachedStorefrontToken;
 
@@ -63,6 +87,15 @@ async function getStorefrontToken(domain: string, adminToken: string, adminVersi
   if (envToken && envToken.length === 32 && /^[a-f0-9]+$/i.test(envToken)) {
     cachedStorefrontToken = envToken;
     return envToken;
+  }
+
+  // Reuse an existing storefront access token when possible - Shopify caps
+  // stores at 100 storefront tokens and minting a new one per cold start
+  // will eventually 500 with "Reached storefront access token limit of 100."
+  const existing = await listExistingStorefrontToken(domain, adminToken, adminVersion);
+  if (existing) {
+    cachedStorefrontToken = existing;
+    return existing;
   }
 
   const res = await fetch(`https://${domain}/admin/api/${adminVersion}/graphql.json`, {
