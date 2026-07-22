@@ -16,6 +16,7 @@ import { RegistrationYoYPanel } from "@/components/admin/RegistrationYoYPanel";
 import { HeliumSpikeInspectorPanel } from "@/components/admin/HeliumSpikeInspectorPanel";
 import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
 import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
+import { StorefrontTokensPanel } from "@/components/admin/StorefrontTokensPanel";
 
 
 const MAX_TAGS = 50;
@@ -1156,6 +1157,7 @@ const AdminSettingsPage = () => {
         <div className={cn("space-y-8", activeTab !== "integrity" && "hidden")}>
           <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
           <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
+          <StorefrontTokensPanel adminEmail={email} adminToken={token} />
         </div>
 
         {/* Submissions tab */}
