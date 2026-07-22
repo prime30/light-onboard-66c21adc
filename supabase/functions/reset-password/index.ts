@@ -55,6 +55,7 @@ const bodySchema = z
 const STOREFRONT_API_VERSION = "2024-10";
 
 let cachedStorefrontToken: string | null = null;
+let inflightStorefrontToken: Promise<string | null> | null = null;
 
 async function listExistingStorefrontToken(domain: string, adminToken: string, adminVersion: string): Promise<string | null> {
   try {
@@ -89,46 +90,58 @@ async function getStorefrontToken(domain: string, adminToken: string, adminVersi
     return envToken;
   }
 
-  // Reuse an existing storefront access token when possible - Shopify caps
-  // stores at 100 storefront tokens and minting a new one per cold start
-  // will eventually 500 with "Reached storefront access token limit of 100."
-  const existing = await listExistingStorefrontToken(domain, adminToken, adminVersion);
-  if (existing) {
-    cachedStorefrontToken = existing;
-    return existing;
+  // Single-flight: prevent concurrent cold-start invocations on the same
+  // isolate from each minting their own token and orphaning duplicates.
+  if (inflightStorefrontToken) return inflightStorefrontToken;
+
+  inflightStorefrontToken = (async () => {
+    // Reuse an existing storefront access token when possible - Shopify caps
+    // stores at 100 storefront tokens and minting a new one per cold start
+    // will eventually 500 with "Reached storefront access token limit of 100."
+    const existing = await listExistingStorefrontToken(domain, adminToken, adminVersion);
+    if (existing) {
+      cachedStorefrontToken = existing;
+      return existing;
+    }
+
+    const res = await fetch(`https://${domain}/admin/api/${adminVersion}/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": adminToken,
+      },
+      body: JSON.stringify({
+        query: `mutation StorefrontTokenCreate($title: String!) {
+          storefrontAccessTokenCreate(input: { title: $title }) {
+            storefrontAccessToken { accessToken }
+            userErrors { field message }
+          }
+        }`,
+        variables: { title: `lovable-storefront-${Date.now()}` },
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to mint storefront token:", res.status, await res.text());
+      return null;
+    }
+
+    const json = await res.json();
+    const token = json?.data?.storefrontAccessTokenCreate?.storefrontAccessToken?.accessToken;
+    if (!token) {
+      console.error("No storefront token returned:", JSON.stringify(json));
+      return null;
+    }
+
+    cachedStorefrontToken = token;
+    return token;
+  })();
+
+  try {
+    return await inflightStorefrontToken;
+  } finally {
+    inflightStorefrontToken = null;
   }
-
-  const res = await fetch(`https://${domain}/admin/api/${adminVersion}/graphql.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Access-Token": adminToken,
-    },
-    body: JSON.stringify({
-      query: `mutation StorefrontTokenCreate($title: String!) {
-        storefrontAccessTokenCreate(input: { title: $title }) {
-          storefrontAccessToken { accessToken }
-          userErrors { field message }
-        }
-      }`,
-      variables: { title: `lovable-reset-${Date.now()}` },
-    }),
-  });
-
-  if (!res.ok) {
-    console.error("Failed to mint storefront token:", res.status, await res.text());
-    return null;
-  }
-
-  const json = await res.json();
-  const token = json?.data?.storefrontAccessTokenCreate?.storefrontAccessToken?.accessToken;
-  if (!token) {
-    console.error("No storefront token returned:", JSON.stringify(json));
-    return null;
-  }
-
-  cachedStorefrontToken = token;
-  return token;
 }
 
 function parseShopifyCustomerId(value: string | null | undefined): string | null {
