@@ -382,7 +382,7 @@ const AdminSettingsPage = () => {
         title: next ? "Founder call invite ON" : "Founder call invite OFF",
         description: next
           ? "Success screen will show the founder call invitation."
-          : "Success screen will show the SALONTRIAL20 pro-trial nudge instead.",
+          : "Success screen will show the SALONTRIAL15 pro-trial nudge instead.",
       });
     } catch (err) {
       console.error(err);
@@ -801,7 +801,7 @@ const AdminSettingsPage = () => {
               <p className="text-sm text-muted-foreground">
                 When enabled, eligible new pros see the "Strategy Session with the Founder"
                 invitation on the success screen. When disabled, they see a
-                <strong> SALONTRIAL20</strong> pro-trial nudge instead.
+                <strong> SALONTRIAL15</strong> pro-trial nudge instead.
               </p>
             </div>
             {founderCallOn === null ? (
@@ -819,7 +819,7 @@ const AdminSettingsPage = () => {
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
               Current state:{" "}
               <span className={founderCallOn ? "text-status-green font-medium" : "font-medium text-foreground"}>
-                {founderCallOn ? "Founder call invite visible" : "Showing SALONTRIAL20 pro-trial nudge instead"}
+                {founderCallOn ? "Founder call invite visible" : "Showing SALONTRIAL15 pro-trial nudge instead"}
               </span>
             </div>
           )}
