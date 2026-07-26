@@ -17,6 +17,7 @@ import { HeliumSpikeInspectorPanel } from "@/components/admin/HeliumSpikeInspect
 import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyticsPanel";
 import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
 import { StorefrontTokensPanel } from "@/components/admin/StorefrontTokensPanel";
+import { KlaviyoBackfillPanel } from "@/components/admin/KlaviyoBackfillPanel";
 
 
 const MAX_TAGS = 50;
@@ -1158,6 +1159,7 @@ const AdminSettingsPage = () => {
           <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
           <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
           <StorefrontTokensPanel adminEmail={email} adminToken={token} />
+          <KlaviyoBackfillPanel adminEmail={email} adminToken={token} />
         </div>
 
         {/* Submissions tab */}
