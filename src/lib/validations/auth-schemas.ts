@@ -261,22 +261,26 @@ export const businessLocationSchema = z
 // UI relabels the field to "ABN*" when countryCode === "AU". Country-specific
 // qualification rules are validated by registrationSchema.superRefine below.
 const licenseValidators = {
+  // Optional in the union so AU (which requires no licence) can submit
+  // without a value; enforced as required for other countries by
+  // registrationSchema.superRefine below.
   licenseNumber: z
     .string()
     .trim()
-    .min(1, "License number is required")
-    .max(100, "License number must be less than 100 characters"),
+    .max(100, "License number must be less than 100 characters")
+    .optional(),
   licenseProofFiles: fileUploadSchema(true),
   qualification: z.enum(ALL_QUALIFICATION_VALUES).optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
 // License Schema for salons (includes additional fields).
-// Salons MUST upload a license proof (vs. optional for individual professionals)
-// AND must provide salon size + structure on the same step.
+// Fields are optional in the union so AU salons - which have no salon
+// licensing requirement - can submit; non-AU countries have them enforced
+// as required by registrationSchema.superRefine.
 const salonValidators = {
-  salonSize: z.string().min(1, "Salon size is required"),
-  salonStructure: z.string().min(1, "Salon structure is required"),
+  salonSize: z.string().optional(),
+  salonStructure: z.string().optional(),
 };
 export const salonSchema = z.object(salonValidators);
 
