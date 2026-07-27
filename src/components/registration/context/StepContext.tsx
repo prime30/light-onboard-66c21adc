@@ -156,27 +156,15 @@ export function StepProvider({ children }: StepProviderProps) {
             return false;
           }
         }
-        // License step: country-aware credential gate. The per-step Zod
-        // schema keeps qualification/nswLicenseNumber optional (fields are
-        // conditionally rendered), so mirror the top-level superRefine rules
-        // here to block Continue until they're filled for AU/UK/IE/NZ/ZA
-        // (and NSW-specific licence within AU).
+        // License step: country-aware credential gate. Mirror the top-level
+        // superRefine rule that requires qualification for AU/UK/IE/NZ/ZA.
         if (step === "license") {
           const v = values as {
             countryCode?: string;
-            provinceCode?: string;
             qualification?: string;
-            nswLicenseNumber?: string;
           };
           const country = (v.countryCode ?? "").toUpperCase();
           if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
-            return false;
-          }
-          if (
-            country === "AU" &&
-            (v.provinceCode ?? "").toUpperCase() === "NSW" &&
-            !v.nswLicenseNumber?.trim()
-          ) {
             return false;
           }
         }
