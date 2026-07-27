@@ -30,7 +30,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
     { value: "diploma3", label: "Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
     { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
     { value: "tlevel", label: "T Level in Hairdressing, Barbering & Beauty (DfE, 2023+)", tag: "qualification-tlevel" },
-    { value: "apprentice_std", label: "Hair Professional Apprenticeship Standard (Level 2)", tag: "qualification-apprentice-standard" },
+    { value: "apprentice_std", label: "Hairdressing Professional (Level 2 Apprenticeship, ST0213)", tag: "qualification-apprentice-standard" },
     { value: "srh", label: "State Registered Hairdresser (SRH, voluntary)", tag: "qualification-srh" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
