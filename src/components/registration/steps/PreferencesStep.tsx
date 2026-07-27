@@ -496,40 +496,8 @@ export const PreferencesStep = () => {
           </p>
         </div>
 
-        {/* Social Media Handle - required for AU pro/salon (portfolio proof) */}
-        <div className="animate-stagger-6">
-          <TextInput
-            name="socialMediaHandle"
-            type="text"
-            register={register}
-            error={errors.socialMediaHandle}
-            placeholder={requireInstagramHandle ? "yourhairportfolio" : "yourusername"}
-            label={
-              requireInstagramHandle ? (
-                <>
-                  Instagram handle{" "}
-                  <span className="text-destructive font-normal">*</span>
-                </>
-              ) : (
-                <>
-                  Social media handle{" "}
-                  <span className="text-muted-foreground font-normal">(optional)</span>
-                </>
-              )
-            }
-            prefixIcon={
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">
-                @
-              </span>
-            }
-            className="[&_input]:pl-9"
-          />
-          <p className="text-xs text-muted-foreground mt-2.5">
-            {requireInstagramHandle
-              ? "Share the Instagram where you post your hair work. We review portfolios before approving Australian applications."
-              : "Instagram, TikTok, or your primary platform"}
-          </p>
-        </div>
+        {/* Social handle moved to Contact Information step. */}
+
       </div>
 
 
