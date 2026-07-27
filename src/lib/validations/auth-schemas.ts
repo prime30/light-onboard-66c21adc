@@ -101,7 +101,7 @@ const isValidZipForCountry = (zip: string, country: string | undefined): true | 
 };
 
 // Countries that require the qualification dropdown on the license step.
-const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["AU", "UK", "IE", "NZ", "ZA"]);
+export const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["AU", "UK", "IE", "NZ", "ZA"]);
 
 // Account Type Schema
 export const accountTypeSchema = z.object({
