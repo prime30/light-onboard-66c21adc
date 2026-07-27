@@ -364,11 +364,8 @@ const preferencesValidators = {
   ...taxExemptionValidators,
   birthdayMonth: z.string().optional(),
   birthdayDay: z.string().optional(),
-  socialMediaHandle: z
-    .string()
-    .trim()
-    .max(100, "Handle must be less than 100 characters")
-    .optional(),
+  // socialMediaHandle now lives on Contact Basics (required for everyone).
+
   referralSource: z
     .string({ error: "Please tell us how you heard about us" })
     .trim()
