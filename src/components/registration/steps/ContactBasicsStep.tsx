@@ -565,67 +565,6 @@ export const ContactBasicsStep = () => {
               <ConflictPills navigate={navigate} />
             )}
         </div>
-
-        {/* Instagram handle - required for every registration */}
-        <div className="space-y-2 animate-stagger-6 group">
-          <TextInput
-            name="socialMediaHandle"
-            type="text"
-            register={register}
-            error={errors.socialMediaHandle}
-            placeholder="yourhairhandle"
-            autoComplete="off"
-            label={
-              <>
-                Instagram handle<span className="text-destructive">*</span>
-              </>
-            }
-            prefixIcon={
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base font-medium">
-                @
-              </span>
-            }
-            className="[&_input]:pl-9"
-          />
-          {/* Live verification status */}
-          {igStatus.state === "checking" && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1.5">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Verifying instagram.com/{socialMediaHandle?.toString().trim().replace(/^@+/, "")}...
-            </p>
-          )}
-          {igStatus.state === "exists" && (
-            <a
-              href={igStatus.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 mt-1.5 group/link"
-            >
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Profile found:</span>
-              <span className="underline underline-offset-2">
-                instagram.com/{igStatus.normalized}
-              </span>
-              <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-            </a>
-          )}
-          {igStatus.state === "missing" && (
-            <p className="text-xs text-destructive flex items-center gap-1.5 mt-1.5">
-              <XCircle className="w-3 h-3" />
-              We couldn't find that profile on Instagram. Check the spelling.
-            </p>
-          )}
-          {igStatus.state === "unknown" && (
-            <p className="text-xs text-muted-foreground mt-1.5">
-              We couldn't reach Instagram to confirm this handle. It'll be reviewed manually.
-            </p>
-          )}
-          {igStatus.state === "idle" && (
-            <p className="text-xs text-muted-foreground mt-1.5">
-              Enter your handle only. We'll confirm the profile link automatically.
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
