@@ -14,26 +14,42 @@ export type QualificationOption = { value: string; label: string; tag: string };
 //   current national qualification; National Certificate: Hairdressing and the
 //   legacy City & Guilds International Diploma are still widely held.
 export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = {
+  // AU: training.gov.au SHB Training Package. NSW Hairdressers Act 2003
+  // requires SHB30416 (Cert III) - it does NOT issue a separate licence #.
   AU: [
     { value: "cert3", label: "Certificate III in Hairdressing (SHB30416)", tag: "qualification-cert3" },
+    { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30216)", tag: "qualification-cert3-barbering" },
     { value: "cert4", label: "Certificate IV in Hairdressing (SHB40216)", tag: "qualification-cert4" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
+  // UK: Ofqual RQF Diplomas (VTCT / City & Guilds) replaced the legacy NVQ
+  // branding in England. SVQ is the Scottish equivalent (SQA). Hair Council
+  // SRH registration is VOLUNTARY - flagged in the label.
   UK: [
-    { value: "nvq2", label: "NVQ Level 2 Diploma in Hairdressing (RQF)", tag: "qualification-nvq2" },
-    { value: "nvq3", label: "NVQ Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-nvq3" },
+    { value: "diploma2", label: "Level 2 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l2" },
+    { value: "diploma3", label: "Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
     { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
-    { value: "srh", label: "State Registered Hairdresser (SRH / SRB)", tag: "qualification-srh" },
-    { value: "apprentice", label: "Hairdressing apprenticeship (in training)", tag: "qualification-apprentice" },
-  ],
-  IE: [
-    { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
-    { value: "qqi6", label: "QQI Level 6 in Hairdressing", tag: "qualification-qqi6" },
-    { value: "nha", label: "National Hairdressing Apprenticeship (SOLAS)", tag: "qualification-nha" },
+    { value: "tlevel", label: "T Level in Hairdressing, Barbering & Beauty (DfE, 2023+)", tag: "qualification-tlevel" },
+    { value: "apprentice_std", label: "Hair Professional Apprenticeship Standard (Level 2)", tag: "qualification-apprentice-standard" },
+    { value: "srh", label: "State Registered Hairdresser (SRH, voluntary)", tag: "qualification-srh" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
+  // IE: QQI Level 5 is the standalone major award. The new SOLAS National
+  // Hairdressing Apprenticeship (2024) is a Level 6, 3-year employer-based
+  // programme - it replaces the standalone "QQI Level 6" listing.
+  IE: [
+    { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
+    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, SOLAS)", tag: "qualification-nha" },
+    { value: "apprentice", label: "Apprentice / in training (legacy)", tag: "qualification-apprentice" },
+  ],
+  // NZ: NZQA Ringa Hora WDC. Level 3 is "Salon Support" - Level 4 is
+  // "Professional Stylist" (NZQA ID 2413).
   NZ: [
-    { value: "nzcert3", label: "NZ Certificate in Hairdressing (Level 3)", tag: "qualification-nzcert3" },
+    {
+      value: "nzcert3",
+      label: "NZ Certificate in Hairdressing - Salon Support (Level 3)",
+      tag: "qualification-nzcert3",
+    },
     {
       value: "nzcert4",
       label: "NZ Certificate in Hairdressing - Professional Stylist (Level 4)",
@@ -41,23 +57,26 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
     },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
+  // ZA: QCTO Occupational Cert (SAQA 102497) is the current national
+  // qualification. NC:Hairdressing is legacy SETA. C&G is a non-SAQA
+  // international diploma. Local term for in-training is "learnership".
   ZA: [
     {
       value: "qcto_hairdresser",
-      label: "QCTO Occupational Certificate: Hairdresser (NQF 4)",
+      label: "QCTO Occupational Certificate: Hairdresser (NQF 4, SAQA 102497)",
       tag: "qualification-qcto-hairdresser",
     },
     {
       value: "nc_hairdressing",
-      label: "National Certificate: Hairdressing (NQF 3/4)",
+      label: "National Certificate: Hairdressing (NQF 3/4, legacy)",
       tag: "qualification-nc-hairdressing",
     },
     {
       value: "cg_diploma",
-      label: "City & Guilds International Diploma in Hairdressing",
+      label: "City & Guilds International Diploma (non-SAQA)",
       tag: "qualification-cg-diploma",
     },
-    { value: "apprentice", label: "Learner / apprentice", tag: "qualification-apprentice" },
+    { value: "apprentice", label: "Learnership (in training)", tag: "qualification-apprentice" },
   ],
 };
 
