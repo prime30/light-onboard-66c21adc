@@ -142,6 +142,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
           email: normalizedEmail,
           phase: "step",
           accountType: accountType ?? null,
+          countryCode: countryCode ?? null,
           lastStep: currentStep,
           lastField: lastFocusedRef.current,
         },
@@ -149,5 +150,5 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .catch(() => {
         /* non-blocking */
       });
-  }, [currentStep, hasEmail, normalizedEmail, accountType]);
+  }, [currentStep, hasEmail, normalizedEmail, accountType, countryCode]);
 }
