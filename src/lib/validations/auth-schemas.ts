@@ -109,7 +109,7 @@ const isValidZipForCountry = (zip: string, country: string | undefined): true | 
   const trimmed = zip.trim();
   const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
   if (pattern) return pattern.regex.test(trimmed) || pattern.message;
-  // Generic fallback: 3–10 alphanumeric (allowing space/dash).
+  // Generic fallback: 3-10 alphanumeric (allowing space/dash).
   return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed) || "Please enter a valid postal code";
 };
 
