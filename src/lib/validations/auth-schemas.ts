@@ -264,11 +264,6 @@ const licenseValidators = {
     .max(100, "License number must be less than 100 characters"),
   licenseProofFiles: fileUploadSchema(true),
   qualification: z.enum(ALL_QUALIFICATION_VALUES).optional(),
-  nswLicenseNumber: z
-    .string()
-    .trim()
-    .max(100, "NSW licence number must be less than 100 characters")
-    .optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
@@ -287,7 +282,6 @@ export const salonLicenseStepSchema = z.object({
   licenseNumber: licenseValidators.licenseNumber,
   licenseProofFiles: fileUploadSchema(false),
   qualification: licenseValidators.qualification,
-  nswLicenseNumber: licenseValidators.nswLicenseNumber,
   ...salonValidators,
 });
 
@@ -427,7 +421,6 @@ export const registrationSchema = z
       accountType?: string;
       licenseNumber?: string;
       qualification?: string;
-      nswLicenseNumber?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({

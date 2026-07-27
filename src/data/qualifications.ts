@@ -17,14 +17,14 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   ],
   // UK: current regulated routes still include NVQ Diplomas (e.g. City &
   // Guilds 6008) and other RQF Diplomas. SVQ is the Scottish equivalent.
-  // Hair Council SRH registration is voluntary. The proposed Hairdressing,
+  // Hair Council State Registration is voluntary. The proposed Hairdressing,
   // Barbering and Beauty T Level was cancelled, so it is not offered here.
   UK: [
     { value: "diploma2", label: "Level 2 NVQ Diploma / Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l2" },
     { value: "diploma3", label: "Level 3 NVQ Diploma / Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
-    { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
+    { value: "svq", label: "SVQ in Hairdressing (Scotland, SCQF Level 6, GV3V 23)", tag: "qualification-svq" },
     { value: "apprentice_std", label: "Diploma for Hair Professionals (Level 2 apprenticeship, ST0213)", tag: "qualification-apprentice-standard" },
-    { value: "srh", label: "State Registered Hairdresser (SRH, voluntary)", tag: "qualification-srh" },
+    { value: "srh", label: "Hair Council State Registration (voluntary)", tag: "qualification-srh" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
   // IE: QQI Level 5 Hairdressing (5M3351) remains a common standalone award.
@@ -70,7 +70,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
       label: "City & Guilds International Diploma (non-SAQA)",
       tag: "qualification-cg-diploma",
     },
-    { value: "apprentice", label: "Learnership (in training)", tag: "qualification-apprentice" },
+    { value: "apprentice", label: "In training via learnership", tag: "qualification-apprentice" },
   ],
 };
 
@@ -160,11 +160,11 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
     h1: "Provide your credentials",
     sub: "Enter your salon business ID and qualification",
     wholesaleCopy:
-      "Wholesale pricing is exclusive to verified UK salon professionals. Hair Council SRH registration is voluntary in the UK.",
+      "Wholesale pricing is exclusive to verified UK salon professionals. Hair Council State Registration is voluntary in the UK.",
     licenseFieldLabel: (s) =>
-      s ? "Companies House / VAT / UTR*" : "Diploma cert #, SRH #, VAT or UTR*",
+      s ? "Companies House / VAT / UTR*" : "Diploma cert #, Hair Council #, VAT or UTR*",
     licenseFieldPlaceholder: (s) =>
-      s ? "e.g. 8-digit Companies House #, VAT or UTR" : "e.g. Diploma cert #, SRH00000, UTR",
+      s ? "e.g. 8-digit Companies House #, VAT or UTR" : "e.g. Diploma cert #, Hair Council #, UTR",
     uploadCopy: (s) =>
       s
         ? "Upload your Diploma or salon registration certificate*"
