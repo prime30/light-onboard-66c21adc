@@ -101,17 +101,22 @@ export const BusinessLocationStep = () => {
       countryCode: selectedCountry?.code,
       regionCode: provinceCode,
       onAddressSelect: (details: AddressDetails) => {
-        // Auto-fill form fields with address details
-        if (details.streetAddress) setValue("businessAddress", details.streetAddress);
-        if (details.city) setValue("city", details.city);
-        if (details.postalCode) setValue("zipCode", details.postalCode);
+        // Autofill must run RHF validation so any stale "expected string,
+        // received undefined" errors on these fields clear immediately.
+        // Programmatic setValue defaults to shouldValidate:false, which
+        // leaves prior errors on-screen even though the fields now hold
+        // valid values.
+        const opts = { shouldValidate: true, shouldDirty: true, shouldTouch: true } as const;
+        if (details.streetAddress) setValue("businessAddress", details.streetAddress, opts);
+        if (details.city) setValue("city", details.city, opts);
+        if (details.postalCode) setValue("zipCode", details.postalCode, opts);
 
         // Set country
         if (details.country) {
           const matchedCountry = countries.find((c) => [c.name, c.code].includes(details.country));
 
           if (matchedCountry) {
-            setValue("countryCode", matchedCountry.code);
+            setValue("countryCode", matchedCountry.code, opts);
 
             // Set state/province for the matched country
             if (details.state || details.stateShort) {
@@ -121,7 +126,7 @@ export const BusinessLocationStep = () => {
               );
 
               if (matchedSubdivision) {
-                setValue("provinceCode", matchedSubdivision.code);
+                setValue("provinceCode", matchedSubdivision.code, opts);
               }
             }
           }
