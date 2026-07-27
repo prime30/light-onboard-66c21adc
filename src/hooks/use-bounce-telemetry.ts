@@ -25,9 +25,10 @@ type Args = {
   currentStep: string;
   errors: Record<string, unknown>;
   accountType?: string | null;
+  countryCode?: string | null;
 };
 
-export function useBounceTelemetry({ email, currentStep, errors, accountType }: Args) {
+export function useBounceTelemetry({ email, currentStep, errors, accountType, countryCode }: Args) {
   const lastFocusedRef = useRef<string | null>(null);
   const sentDeviceRef = useRef(false);
   const lastErrorKeysRef = useRef<Set<string>>(new Set());
