@@ -69,6 +69,18 @@ export const provinces = [
   { code: "YT", name: "Yukon" },
 ];
 
+// Australian States and Territories
+export const australianStates = [
+  { code: "ACT", name: "Australian Capital Territory" },
+  { code: "NSW", name: "New South Wales" },
+  { code: "NT", name: "Northern Territory" },
+  { code: "QLD", name: "Queensland" },
+  { code: "SA", name: "South Australia" },
+  { code: "TAS", name: "Tasmania" },
+  { code: "VIC", name: "Victoria" },
+  { code: "WA", name: "Western Australia" },
+];
+
 // Countries with additional metadata
 export const countries = [
   {
@@ -86,6 +98,14 @@ export const countries = [
     subdivisionLabel: "Province/Territory",
     postalCodeLabel: "Postal Code",
     subdivisions: provinces,
+  },
+  {
+    code: "AU",
+    name: "Australia",
+    subdivisionType: "state",
+    subdivisionLabel: "State/Territory",
+    postalCodeLabel: "Postcode",
+    subdivisions: australianStates,
   },
 ];
 

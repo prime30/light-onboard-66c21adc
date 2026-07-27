@@ -70,7 +70,11 @@ const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
     regex: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
     message: "Enter a valid Canadian postal code (A1A 1A1)",
   },
+  AU: { regex: /^\d{4}$/, message: "Enter a valid Australian postcode (4 digits)" },
 };
+
+// ABN: 11 digits, spaces allowed as separators (e.g. "12 345 678 901").
+const isValidABN = (abn: string): boolean => abn.replace(/\s+/g, "").length === 11 && /^\d+$/.test(abn.replace(/\s+/g, ""));
 const isValidZipForCountry = (zip: string, country: string | undefined): true | string => {
   const trimmed = zip.trim();
   const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
