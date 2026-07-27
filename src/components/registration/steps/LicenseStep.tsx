@@ -6,6 +6,7 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
+import { QUALIFICATION_OPTIONS } from "@/data/qualifications";
 
 const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
 const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-operated"];
@@ -28,13 +29,27 @@ export const LicenseStep = () => {
   const errors = rawErrors as any;
 
   // Watch form values used in this step.
-  const watchedValues = watch(["accountType", "licenseNumber", "licenseProofFiles"]);
-  const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
+  const watchedValues = watch([
+    "accountType",
+    "licenseNumber",
+    "licenseProofFiles",
+    "countryCode",
+    "provinceCode",
+    "qualification",
+  ]);
+  const [accountType, licenseNumber, licenseProofFiles, countryCode, provinceCode] = watchedValues;
 
   const isSalon = accountType === "salon";
-  const label = isSalon
-    ? "Upload your salon license*"
-    : "For quicker account verification process upload your license";
+  const isAU = (countryCode ?? "").toUpperCase() === "AU";
+  const isNSW = isAU && (provinceCode ?? "").toUpperCase() === "NSW";
+
+  const label = isAU
+    ? isSalon
+      ? "Upload your salon Certificate III or business registration*"
+      : "Upload your Certificate III (or state licence)"
+    : isSalon
+      ? "Upload your salon license*"
+      : "For quicker account verification process upload your license";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Create options for selects
@@ -48,6 +63,11 @@ export const LicenseStep = () => {
     label: structure,
   }));
 
+  const qualificationOptions = QUALIFICATION_OPTIONS.map((q) => ({
+    value: q.value,
+    label: q.label,
+  }));
+
   return (
     <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
@@ -58,38 +78,77 @@ export const LicenseStep = () => {
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Provide your license number
+          {isAU ? "Provide your credentials" : "Provide your license number"}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          {isSalon
-            ? "Let us make sure you are a salon manager"
-            : "Enter your cosmetology license details"}
+          {isAU
+            ? "Enter your ABN and hairdressing qualification"
+            : isSalon
+              ? "Let us make sure you are a salon manager"
+              : "Enter your cosmetology license details"}
         </p>
       </div>
 
       <div className="flex gap-[15px] pl-5 border-l-2 border-border animate-stagger-2">
         <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground/70 leading-relaxed">
-          {isSalon
-            ? "Wholesale pricing shown is exclusive to verified professionals."
-            : "Please enter your license exactly as it appears from the state."}
+          {isAU
+            ? "Wholesale pricing is exclusive to verified Australian salon professionals."
+            : isSalon
+              ? "Wholesale pricing shown is exclusive to verified professionals."
+              : "Please enter your license exactly as it appears from the state."}
         </p>
       </div>
 
       <div className="space-y-5">
-        {/* License Number */}
+        {/* License Number / ABN */}
         <div className="animate-stagger-3 space-y-2">
           <TextInput
             name="licenseNumber"
             type="text"
             register={register}
             error={errors.licenseNumber}
-            placeholder={isSalon ? "Salon License #" : "Enter your license number"}
-            label={isSalon ? "Salon License #*" : "License number*"}
+            placeholder={
+              isAU
+                ? "e.g. 12 345 678 901"
+                : isSalon
+                  ? "Salon License #"
+                  : "Enter your license number"
+            }
+            label={isAU ? "ABN*" : isSalon ? "Salon License #*" : "License number*"}
             isValid={getValidationStatus("licenseNumber") === "complete"}
           />
         </div>
 
+        {/* AU: Qualification */}
+        {isAU && (
+          <div className="animate-stagger-4">
+            <SelectInput
+              name="qualification"
+              control={control}
+              error={errors.qualification}
+              options={qualificationOptions}
+              label="Hairdressing qualification*"
+              placeholder="Select your qualification"
+              isValid={getValidationStatus("qualification" as never) === "complete"}
+            />
+          </div>
+        )}
+
+        {/* AU + NSW: NSW hairdresser licence */}
+        {isNSW && (
+          <div className="animate-stagger-4 space-y-2">
+            <TextInput
+              name="nswLicenseNumber"
+              type="text"
+              register={register}
+              error={errors.nswLicenseNumber}
+              placeholder="Enter your NSW hairdresser licence number"
+              label="NSW hairdresser licence number*"
+              isValid={getValidationStatus("nswLicenseNumber" as never) === "complete"}
+            />
+          </div>
+        )}
 
         {/* Salon-specific fields */}
         {isSalon && (

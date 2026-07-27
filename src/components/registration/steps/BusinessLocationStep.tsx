@@ -90,6 +90,7 @@ export const BusinessLocationStep = () => {
     if (cc === "US") return /^\d{5}(-\d{4})?$/.test(trimmed);
     if (cc === "CA")
       return /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i.test(trimmed);
+    if (cc === "AU") return /^\d{4}$/.test(trimmed);
     return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed);
   })();
 
@@ -114,7 +115,7 @@ export const BusinessLocationStep = () => {
 
             // Set state/province for the matched country
             if (details.state || details.stateShort) {
-              const subdivisionList = matchedCountry.code === "US" ? states : provinces;
+              const subdivisionList = matchedCountry.subdivisions;
               const matchedSubdivision = subdivisionList.find(
                 (s) => [s.name, s.code].includes(details.state) || s.code === details.stateShort
               );
@@ -135,7 +136,7 @@ export const BusinessLocationStep = () => {
   }));
 
   // Get subdivisions based on selected country
-  const subdivisions = selectedCountry?.code === "US" ? states : provinces;
+  const subdivisions = selectedCountry?.subdivisions ?? states;
   const subdivisionOptions = subdivisions.map((s) => ({
     value: s.code,
     label: s.name,

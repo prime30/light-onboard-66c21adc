@@ -10,8 +10,10 @@ import { useForm } from "../context";
 import { UploadFileItem } from "@/contexts";
 import { states, provinces } from "@/data/locations";
 
-// Combine and sort US states and Canadian provinces alphabetically
-const allLocations = [...states, ...provinces].map((location) => location.name).sort();
+import { australianStates } from "@/data/locations";
+
+// Combine and sort US states, Canadian provinces, and Australian states/territories alphabetically
+const allLocations = [...states, ...provinces, ...australianStates].map((location) => location.name).sort();
 
 function SchoolNamePrefixIcon({ error }: { error: boolean }) {
   return (
@@ -52,7 +54,8 @@ export const SchoolInfoStep = () => {
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Watch form values
-  const [enrollmentProofFiles] = watch(["enrollmentProofFiles"]);
+  const [enrollmentProofFiles, countryCode] = watch(["enrollmentProofFiles", "countryCode"]);
+  const isAU = (countryCode ?? "").toUpperCase() === "AU";
 
   // Create location options with icons
   const locationOptions = allLocations.map((location) => ({
@@ -84,34 +87,38 @@ export const SchoolInfoStep = () => {
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          What cosmetology school do you attend?
+          {isAU ? "Which TAFE or RTO do you attend?" : "What cosmetology school do you attend?"}
         </h1>
       </div>
 
       <div className="space-y-5 animate-stagger-2">
-        {/* School/Apprenticeship Name */}
+        {/* School / TAFE / RTO Name */}
         <div className="animate-stagger-2">
           <TextInput
             name="schoolName"
             type="text"
             register={register}
             error={errors.schoolName}
-            placeholder="Enter your school or apprenticeship name"
-            label="School/Apprenticeship Name*"
+            placeholder={
+              isAU ? "Enter your TAFE or RTO name" : "Enter your school or apprenticeship name"
+            }
+            label={isAU ? "TAFE / RTO name*" : "School/Apprenticeship Name*"}
             isValid={getValidationStatus("schoolName") === "complete"}
             prefixIcon={<SchoolNamePrefixIcon error={!!errors.schoolName} />}
           />
         </div>
 
-        {/* State/Province */}
+        {/* State/Province/Territory */}
         <div className="animate-stagger-3">
           <SelectInput
             name="schoolState"
             control={control}
             error={errors.schoolState}
             options={locationOptions}
-            label="State/Province*"
-            placeholder="Select your state/province"
+            label={isAU ? "State/Territory*" : "State/Province*"}
+            placeholder={
+              isAU ? "Select your state/territory" : "Select your state/province"
+            }
             isValid={getValidationStatus("schoolState") === "complete"}
           />
         </div>
@@ -119,10 +126,14 @@ export const SchoolInfoStep = () => {
         {/* Multi-File Upload */}
         <div className="space-y-2.5 animate-stagger-4">
           <Label className="text-sm font-medium">
-            Upload proof of enrollment or apprenticeship*
+            {isAU
+              ? "Upload proof of enrollment*"
+              : "Upload proof of enrollment or apprenticeship*"}
           </Label>
           <p className="text-xs text-muted-foreground">
-            Upload school ID, apprenticeship license, enrollment letter, etc.
+            {isAU
+              ? "Upload your TAFE/RTO student ID, enrollment letter, or apprenticeship agreement."
+              : "Upload school ID, apprenticeship license, enrollment letter, etc."}
           </p>
           <div data-field="enrollment-proof">
             <MultiFileUpload

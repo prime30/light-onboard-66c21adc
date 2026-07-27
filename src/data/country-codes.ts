@@ -2,8 +2,8 @@
 export const countryCodes = [
   { code: "+1", country: "US", iso: "us", name: "United States" },
   { code: "+1", country: "CA", iso: "ca", name: "Canada" },
-  { code: "+44", country: "UK", iso: "gb", name: "United Kingdom" },
   { code: "+61", country: "AU", iso: "au", name: "Australia" },
+  { code: "+44", country: "UK", iso: "gb", name: "United Kingdom" },
   { code: "+33", country: "FR", iso: "fr", name: "France" },
   { code: "+49", country: "DE", iso: "de", name: "Germany" },
   { code: "+39", country: "IT", iso: "it", name: "Italy" },

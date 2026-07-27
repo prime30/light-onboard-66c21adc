@@ -70,7 +70,11 @@ const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
     regex: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
     message: "Enter a valid Canadian postal code (A1A 1A1)",
   },
+  AU: { regex: /^\d{4}$/, message: "Enter a valid Australian postcode (4 digits)" },
 };
+
+// ABN: 11 digits, spaces allowed as separators (e.g. "12 345 678 901").
+const isValidABN = (abn: string): boolean => abn.replace(/\s+/g, "").length === 11 && /^\d+$/.test(abn.replace(/\s+/g, ""));
 const isValidZipForCountry = (zip: string, country: string | undefined): true | string => {
   const trimmed = zip.trim();
   const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
@@ -214,7 +218,12 @@ export const businessLocationSchema = z
     }
   });
 
-// License Schema (for professionals)
+// License Schema (for professionals).
+// On US/CA the licenseNumber holds a cosmetology license.
+// On AU the licenseNumber holds the practitioner's ABN (11 digits) - the
+// UI relabels the field to "ABN*" when countryCode === "AU". Additional
+// AU-only fields (qualification, nswLicenseNumber) are validated by the
+// registrationSchema.superRefine below.
 const licenseValidators = {
   licenseNumber: z
     .string()
@@ -222,6 +231,12 @@ const licenseValidators = {
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
   licenseProofFiles: fileUploadSchema(true),
+  qualification: z.enum(["cert3", "cert4", "apprentice"]).optional(),
+  nswLicenseNumber: z
+    .string()
+    .trim()
+    .max(100, "NSW licence number must be less than 100 characters")
+    .optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
@@ -239,6 +254,8 @@ export const salonSchema = z.object(salonValidators);
 export const salonLicenseStepSchema = z.object({
   licenseNumber: licenseValidators.licenseNumber,
   licenseProofFiles: fileUploadSchema(false),
+  qualification: licenseValidators.qualification,
+  nswLicenseNumber: licenseValidators.nswLicenseNumber,
   ...salonValidators,
 });
 
@@ -374,6 +391,11 @@ export const registrationSchema = z
       confirmPassword?: string;
       zipCode?: string;
       countryCode?: string;
+      provinceCode?: string;
+      accountType?: string;
+      licenseNumber?: string;
+      qualification?: string;
+      nswLicenseNumber?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
@@ -386,6 +408,34 @@ export const registrationSchema = z
       const result = isValidZipForCountry(d.zipCode, d.countryCode);
       if (result !== true) {
         ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+      }
+    }
+
+    // AU branch: ABN + qualification (+ NSW licence for NSW).
+    // Applies to professional and salon flows only.
+    const isAU = (d.countryCode ?? "").toUpperCase() === "AU";
+    const isCredentialFlow = d.accountType === "professional" || d.accountType === "salon";
+    if (isAU && isCredentialFlow) {
+      if (d.licenseNumber && !isValidABN(d.licenseNumber)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a valid ABN (11 digits)",
+          path: ["licenseNumber"],
+        });
+      }
+      if (!d.qualification) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Please select your qualification",
+          path: ["qualification"],
+        });
+      }
+      if ((d.provinceCode ?? "").toUpperCase() === "NSW" && !d.nswLicenseNumber?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          message: "NSW hairdresser licence number is required",
+          path: ["nswLicenseNumber"],
+        });
       }
     }
   });

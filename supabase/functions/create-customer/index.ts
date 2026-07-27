@@ -271,6 +271,8 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     zipCode: z.string().min(1),
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
+    qualification: z.enum(["cert3", "cert4", "apprentice"]).nullish(),
+    nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.boolean().optional().default(true),
@@ -304,6 +306,8 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     salonStructure: z.string().min(1),
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
+    qualification: z.enum(["cert3", "cert4", "apprentice"]).nullish(),
+    nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.boolean().optional().default(true),
@@ -1240,7 +1244,24 @@ Deno.serve(async (req: Request) => {
     }
 
     const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
-    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags];
+
+    // AU-specific tags (country + qualification + optional NSW licence marker).
+    const auTags: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cust = customer as any;
+    const custCountry = (cust.country_code ?? "").toString().toUpperCase();
+    if (custCountry === "AU") {
+      auTags.push("country-au");
+      const qual = cust.qualification;
+      if (qual === "cert3") auTags.push("qualification-cert3");
+      else if (qual === "cert4") auTags.push("qualification-cert4");
+      else if (qual === "apprentice") auTags.push("qualification-apprentice");
+      if (cust.nsw_license_number && String(cust.nsw_license_number).trim()) {
+        auTags.push("nsw-licensed");
+      }
+    }
+
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...auTags];
 
     // Marketing consent - email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
