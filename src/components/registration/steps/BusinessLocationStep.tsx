@@ -90,6 +90,7 @@ export const BusinessLocationStep = () => {
     if (cc === "US") return /^\d{5}(-\d{4})?$/.test(trimmed);
     if (cc === "CA")
       return /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i.test(trimmed);
+    if (cc === "AU") return /^\d{4}$/.test(trimmed);
     return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed);
   })();
 
