@@ -89,6 +89,16 @@ type ApiResponse = {
     completionRate: number;
     purchaseRate: number;
   }[];
+  countryCohorts?: {
+    code: string;
+    country: string;
+    started: number;
+    completed: number;
+    purchasers: number;
+    bounceRate: number;
+    completionRate: number;
+    purchaseRate: number;
+  }[];
   dropOffSteps: DropOffRow[];
   dropOffFields?: DropOffFieldRow[];
   validationErrors?: ValidationErrorRow[];
