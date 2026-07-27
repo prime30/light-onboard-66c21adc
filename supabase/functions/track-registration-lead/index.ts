@@ -132,6 +132,8 @@ Deno.serve(async (req: Request) => {
     : null;
   const isCompleted = phase === "completed";
   const autoApproved = isCompleted && payload.autoApproved === true;
+  const rawCountry = typeof payload.countryCode === "string" ? payload.countryCode.trim().toUpperCase() : "";
+  const countryCode = /^[A-Z]{2,3}$/.test(rawCountry) ? rawCountry : null;
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
