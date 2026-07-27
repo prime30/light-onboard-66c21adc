@@ -429,6 +429,9 @@ export const registrationSchema = z
       accountType?: string;
       licenseNumber?: string;
       qualification?: string;
+      licenseProofFiles?: unknown;
+      salonSize?: string;
+      salonStructure?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
