@@ -293,8 +293,8 @@ export const SummaryForm = () => {
           </div>
         )}
 
-        {/* License Information */}
-        {accountType !== "student" && (
+        {/* License Information (hidden for AU - no licensing requirements) */}
+        {accountType !== "student" && country !== "AU" && (
           <div className="animate-stagger-5">
             <SummarySection
               title="License Information"
@@ -310,8 +310,6 @@ export const SummaryForm = () => {
                   value={QUALIFICATION_LABEL[qualification]}
                 />
               )}
-              {/* NSW: no separate licence number is issued - Cert III
-                  (captured via qualification above) is the legal requirement. */}
               {provinceCode && <SummaryRow label="State" value={provinceCode} />}
               {accountType === "salon" && (
                 <>
@@ -319,6 +317,16 @@ export const SummaryForm = () => {
                   <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />
                 </>
               )}
+            </SummarySection>
+          </div>
+        )}
+
+        {/* Salon details for AU (no license section, but keep size/structure if provided) */}
+        {accountType === "salon" && country === "AU" && (salonSize || salonStructure) && (
+          <div className="animate-stagger-5">
+            <SummarySection title="Salon Details" stepNum={4}>
+              {salonSize && <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />}
+              {salonStructure && <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />}
             </SummarySection>
           </div>
         )}
