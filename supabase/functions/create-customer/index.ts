@@ -30,6 +30,52 @@ const DISPOSABLE_EMAIL_DOMAINS = new Set<string>([
   "temporaryinbox.com", "temporarymailaddress.com", "throwawaymail.com",
 ]);
 
+// ------------------------------------------------------------------
+// AU geo-verification token (minted by verify-au-geo edge function).
+// Validates the applicant is physically in Australia, not spoofing via
+// VPN. Token format: base64url(payload) + "." + base64url(HMAC(payload))
+// Payload: "AU|<email>|<method>|<expMs>"
+// ------------------------------------------------------------------
+async function validateAuGeoToken(
+  token: string,
+  email: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!secret) return { ok: false, reason: "no_secret" };
+  if (!token || typeof token !== "string" || !token.includes(".")) {
+    return { ok: false, reason: "malformed" };
+  }
+  const [payloadB64, sig] = token.split(".");
+  try {
+    const payloadBytes = Uint8Array.from(
+      atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")),
+      (c) => c.charCodeAt(0),
+    );
+    const payload = new TextDecoder().decode(payloadBytes);
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sigBytes = new Uint8Array(
+      await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload)),
+    );
+    const expected = btoa(String.fromCharCode(...sigBytes))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    if (expected !== sig) return { ok: false, reason: "bad_signature" };
+    const parts = payload.split("|");
+    if (parts.length !== 4 || parts[0] !== "AU") return { ok: false, reason: "bad_payload" };
+    if (parts[1] !== email.toLowerCase()) return { ok: false, reason: "email_mismatch" };
+    const exp = Number(parts[3]);
+    if (!Number.isFinite(exp) || Date.now() > exp) return { ok: false, reason: "expired" };
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "decode_error" };
+  }
+}
+
 function isDisposableEmail(email: string | undefined | null): boolean {
   if (!email) return false;
   const at = email.lastIndexOf("@");
