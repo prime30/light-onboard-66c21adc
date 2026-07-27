@@ -167,6 +167,7 @@ Deno.serve(async (req: Request) => {
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
     if (viewportHeight) upsertBody.viewport_height = viewportHeight;
     if (monthlyOrderVolume) upsertBody.monthly_order_volume = monthlyOrderVolume;
+    if (countryCode) upsertBody.country_code = countryCode;
 
     // ---- Prefix-typing dedupe ----
     // Users typing their email blur the field mid-type ("@yahoo.c", "@yahoo.co",
