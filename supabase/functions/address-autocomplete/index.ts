@@ -130,6 +130,31 @@ serve(async (req) => {
       ON: { lat: 51.253775, lng: -85.323213 }, PE: { lat: 46.510712, lng: -63.416813 },
       QC: { lat: 52.939916, lng: -73.549136 }, SK: { lat: 52.939916, lng: -106.450857 },
       YT: { lat: 64.282315, lng: -135.0 },
+      // Australia states/territories
+      "AU-NSW": { lat: -32.163333, lng: 147.016667 }, "AU-VIC": { lat: -37.020, lng: 144.964 },
+      "AU-QLD": { lat: -22.575, lng: 144.085 }, "AU-WA": { lat: -25.042, lng: 117.793 },
+      "AU-SA": { lat: -30.000, lng: 136.209 }, "AU-TAS": { lat: -42.035, lng: 146.637 },
+      "AU-ACT": { lat: -35.474, lng: 149.012 }, "AU-NT": { lat: -19.491, lng: 132.551 },
+      // UK nations
+      "GB-ENG": { lat: 52.355, lng: -1.174 }, "GB-SCT": { lat: 56.490, lng: -4.203 },
+      "GB-WLS": { lat: 52.130, lng: -3.783 }, "GB-NIR": { lat: 54.787, lng: -6.492 },
+      // New Zealand island fallbacks
+      "NZ-N": { lat: -38.500, lng: 175.500 }, "NZ-S": { lat: -43.995, lng: 170.500 },
+      // South Africa provinces
+      "ZA-GT": { lat: -26.271, lng: 28.112 }, "ZA-WC": { lat: -33.226, lng: 21.856 },
+      "ZA-EC": { lat: -32.271, lng: 27.028 }, "ZA-KZN": { lat: -28.531, lng: 30.895 },
+      "ZA-LP": { lat: -23.401, lng: 29.417 }, "ZA-MP": { lat: -25.566, lng: 30.526 },
+      "ZA-NW": { lat: -26.686, lng: 25.284 }, "ZA-FS": { lat: -28.454, lng: 26.795 },
+      "ZA-NC": { lat: -29.046, lng: 21.858 },
+    };
+    // Country-level centroids used when we have a country but no state pick.
+    const COUNTRY_CENTROIDS: Record<string, { lat: number; lng: number }> = {
+      AU: { lat: -25.274, lng: 133.775 },
+      GB: { lat: 54.093, lng: -2.895 },
+      IE: { lat: 53.412, lng: -8.244 },
+      NZ: { lat: -40.900, lng: 174.886 },
+      ZA: { lat: -28.816, lng: 24.992 },
+    };
     };
     const centroid =
       typeof regionCode === "string"
