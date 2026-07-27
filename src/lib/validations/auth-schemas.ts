@@ -218,7 +218,12 @@ export const businessLocationSchema = z
     }
   });
 
-// License Schema (for professionals)
+// License Schema (for professionals).
+// On US/CA the licenseNumber holds a cosmetology license.
+// On AU the licenseNumber holds the practitioner's ABN (11 digits) - the
+// UI relabels the field to "ABN*" when countryCode === "AU". Additional
+// AU-only fields (qualification, nswLicenseNumber) are validated by the
+// registrationSchema.superRefine below.
 const licenseValidators = {
   licenseNumber: z
     .string()
@@ -226,6 +231,12 @@ const licenseValidators = {
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
   licenseProofFiles: fileUploadSchema(true),
+  qualification: z.enum(["cert3", "cert4", "apprentice"]).optional(),
+  nswLicenseNumber: z
+    .string()
+    .trim()
+    .max(100, "NSW licence number must be less than 100 characters")
+    .optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
@@ -243,6 +254,8 @@ export const salonSchema = z.object(salonValidators);
 export const salonLicenseStepSchema = z.object({
   licenseNumber: licenseValidators.licenseNumber,
   licenseProofFiles: fileUploadSchema(false),
+  qualification: licenseValidators.qualification,
+  nswLicenseNumber: licenseValidators.nswLicenseNumber,
   ...salonValidators,
 });
 
