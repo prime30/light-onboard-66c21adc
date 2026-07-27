@@ -164,6 +164,22 @@ export function FormDataProvider({
     async (values) => {
       console.log("submit values:", values);
 
+      // AU guard: block submit if the applicant claims Australia but hasn't
+      // been geo-verified. Prevents a wasted round-trip and shows the user
+      // an actionable inline error on the summary step.
+      const isAu =
+        ((values as { countryCode?: string }).countryCode || "").toUpperCase() === "AU";
+      const submitterEmail = (values as { email?: string }).email;
+      const auToken = isAu && submitterEmail ? readAuGeoToken(submitterEmail) : null;
+      if (isAu && !auToken) {
+        setSubmitErrorMessage(
+          "We couldn't verify you're located in Australia. Please allow location access on the summary step, or disable any VPN and refresh."
+        );
+        return;
+      }
+
+
+
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-customer`;
       const result = await apiCall(
         url,
