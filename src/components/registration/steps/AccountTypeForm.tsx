@@ -248,7 +248,7 @@ export const AccountTypeForm = () => {
             </span>
           </div>
           <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-            We only sell to licensed stylists
+            {isAU ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
             Drop Dead is a trade-only brand. Ask your stylist about Drop Dead pricing. If you
