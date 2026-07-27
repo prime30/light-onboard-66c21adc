@@ -306,6 +306,7 @@ export type Database = {
         Row: {
           account_type: string | null
           completed_at: string | null
+          country_code: string | null
           created_at: string
           device_type: string | null
           email: string
@@ -333,6 +334,7 @@ export type Database = {
         Insert: {
           account_type?: string | null
           completed_at?: string | null
+          country_code?: string | null
           created_at?: string
           device_type?: string | null
           email: string
@@ -360,6 +362,7 @@ export type Database = {
         Update: {
           account_type?: string | null
           completed_at?: string | null
+          country_code?: string | null
           created_at?: string
           device_type?: string | null
           email?: string

@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume, country_code",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
@@ -361,6 +361,43 @@ Deno.serve(async (req: Request) => {
   });
   // Silence unused-var warnings in flows where the index isn't referenced.
   void VOLUME_STEP_INDEX_BY_FLOW;
+
+  // ---- Country cohorts ----
+  // Groups leads by their captured country_code (US/CA/AU/UK/IE/NZ/ZA).
+  // Rows with no captured country (pre-country-capture launch, or bounced
+  // before ContactBasics) collapse into an "Unknown" bucket.
+  const COUNTRY_LABEL: Record<string, string> = {
+    US: "United States",
+    CA: "Canada",
+    AU: "Australia",
+    UK: "United Kingdom",
+    GB: "United Kingdom",
+    IE: "Ireland",
+    NZ: "New Zealand",
+    ZA: "South Africa",
+  };
+  const byCountry = new Map<string, { started: number; completed: number; purchasers: number }>();
+  for (const r of leads) {
+    const raw = (r as { country_code?: string | null }).country_code;
+    const k = raw ? (raw === "GB" ? "UK" : raw.toUpperCase()) : "Unknown";
+    const cur = byCountry.get(k) ?? { started: 0, completed: 0, purchasers: 0 };
+    cur.started += 1;
+    if (r.completed_at) cur.completed += 1;
+    if (r.first_order_at) cur.purchasers += 1;
+    byCountry.set(k, cur);
+  }
+  const countryCohorts = Array.from(byCountry.entries())
+    .map(([k, v]) => ({
+      code: k,
+      country: COUNTRY_LABEL[k] ?? k,
+      started: v.started,
+      completed: v.completed,
+      purchasers: v.purchasers,
+      bounceRate: v.started > 0 ? Math.round(((v.started - v.completed) / v.started) * 1000) / 10 : 0,
+      completionRate: v.started > 0 ? Math.round((v.completed / v.started) * 1000) / 10 : 0,
+      purchaseRate: v.completed > 0 ? Math.round((v.purchasers / v.completed) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.started - a.started);
 
   // ---- last step distribution for bounced leads ----
   const stepMap = new Map<string, number>();
@@ -891,6 +928,7 @@ Deno.serve(async (req: Request) => {
     series,
     accountTypes,
     volumeCohorts,
+    countryCohorts,
     dropOffSteps,
     dropOffFields,
     validationErrors,

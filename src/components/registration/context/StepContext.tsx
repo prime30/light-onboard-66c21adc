@@ -16,7 +16,7 @@ import {
 } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
 import { Step, IncompleteStepInfo } from "@/types/auth";
-import { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { QUALIFICATION_REQUIRED_COUNTRIES, ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
@@ -153,6 +153,30 @@ export function StepProvider({ children }: StepProviderProps) {
             phoneNumber?: string;
           };
           if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+            return false;
+          }
+        }
+        // License step: country-aware credential gate. The per-step Zod
+        // schema keeps qualification/nswLicenseNumber optional (fields are
+        // conditionally rendered), so mirror the top-level superRefine rules
+        // here to block Continue until they're filled for AU/UK/IE/NZ/ZA
+        // (and NSW-specific licence within AU).
+        if (step === "license") {
+          const v = values as {
+            countryCode?: string;
+            provinceCode?: string;
+            qualification?: string;
+            nswLicenseNumber?: string;
+          };
+          const country = (v.countryCode ?? "").toUpperCase();
+          if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
+            return false;
+          }
+          if (
+            country === "AU" &&
+            (v.provinceCode ?? "").toUpperCase() === "NSW" &&
+            !v.nswLicenseNumber?.trim()
+          ) {
             return false;
           }
         }
@@ -295,6 +319,36 @@ export function StepProvider({ children }: StepProviderProps) {
         toast({
           title: "Please add a valid phone number for SMS updates",
           description: "Or uncheck the SMS opt-in to continue.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (currentStep === "license") {
+      const v = watch() as {
+        countryCode?: string;
+        provinceCode?: string;
+        qualification?: string;
+        nswLicenseNumber?: string;
+      };
+      const country = (v.countryCode ?? "").toUpperCase();
+      if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please select your qualification",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (
+        country === "AU" &&
+        (v.provinceCode ?? "").toUpperCase() === "NSW" &&
+        !v.nswLicenseNumber?.trim()
+      ) {
+        setShowValidationErrors(true);
+        toast({
+          title: "NSW hairdresser licence number is required",
           variant: "destructive",
         });
         return;

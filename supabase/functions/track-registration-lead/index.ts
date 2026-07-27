@@ -45,6 +45,7 @@ interface Payload {
   preferredMethods?: string[] | null;
   monthlyOrderVolume?: string | null;
   autoApproved?: boolean | null;
+  countryCode?: string | null;
 }
 
 
@@ -131,6 +132,8 @@ Deno.serve(async (req: Request) => {
     : null;
   const isCompleted = phase === "completed";
   const autoApproved = isCompleted && payload.autoApproved === true;
+  const rawCountry = typeof payload.countryCode === "string" ? payload.countryCode.trim().toUpperCase() : "";
+  const countryCode = /^[A-Z]{2,3}$/.test(rawCountry) ? rawCountry : null;
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -164,6 +167,7 @@ Deno.serve(async (req: Request) => {
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
     if (viewportHeight) upsertBody.viewport_height = viewportHeight;
     if (monthlyOrderVolume) upsertBody.monthly_order_volume = monthlyOrderVolume;
+    if (countryCode) upsertBody.country_code = countryCode;
 
     // ---- Prefix-typing dedupe ----
     // Users typing their email blur the field mid-type ("@yahoo.c", "@yahoo.co",

@@ -25,9 +25,10 @@ type Args = {
   currentStep: string;
   errors: Record<string, unknown>;
   accountType?: string | null;
+  countryCode?: string | null;
 };
 
-export function useBounceTelemetry({ email, currentStep, errors, accountType }: Args) {
+export function useBounceTelemetry({ email, currentStep, errors, accountType, countryCode }: Args) {
   const lastFocusedRef = useRef<string | null>(null);
   const sentDeviceRef = useRef(false);
   const lastErrorKeysRef = useRef<Set<string>>(new Set());
@@ -68,6 +69,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
           email: normalizedEmail,
           phase: "step",
           accountType: accountType ?? null,
+          countryCode: countryCode ?? null,
           lastStep: currentStep,
           device,
         },
@@ -82,7 +84,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
       .catch(() => {
         /* non-blocking */
       });
-  }, [hasEmail, normalizedEmail, accountType, currentStep]);
+  }, [hasEmail, normalizedEmail, accountType, currentStep, countryCode]);
 
   // Detect new validation error field names and batch-flush.
   useEffect(() => {
@@ -140,6 +142,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
           email: normalizedEmail,
           phase: "step",
           accountType: accountType ?? null,
+          countryCode: countryCode ?? null,
           lastStep: currentStep,
           lastField: lastFocusedRef.current,
         },
@@ -147,5 +150,5 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType }: 
       .catch(() => {
         /* non-blocking */
       });
-  }, [currentStep, hasEmail, normalizedEmail, accountType]);
+  }, [currentStep, hasEmail, normalizedEmail, accountType, countryCode]);
 }
