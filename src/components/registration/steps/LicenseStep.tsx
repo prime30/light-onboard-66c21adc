@@ -6,6 +6,7 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
+import { QUALIFICATION_OPTIONS } from "@/data/qualifications";
 
 const salonSizes = ["1-3 stylists", "4-10 stylists", "11-25 stylists", "26+ stylists"];
 const salonStructures = ["Booth Rental", "Commission-based", "Hybrid", "Owner-operated"];
@@ -28,13 +29,27 @@ export const LicenseStep = () => {
   const errors = rawErrors as any;
 
   // Watch form values used in this step.
-  const watchedValues = watch(["accountType", "licenseNumber", "licenseProofFiles"]);
-  const [accountType, licenseNumber, licenseProofFiles] = watchedValues;
+  const watchedValues = watch([
+    "accountType",
+    "licenseNumber",
+    "licenseProofFiles",
+    "countryCode",
+    "provinceCode",
+    "qualification",
+  ]);
+  const [accountType, licenseNumber, licenseProofFiles, countryCode, provinceCode] = watchedValues;
 
   const isSalon = accountType === "salon";
-  const label = isSalon
-    ? "Upload your salon license*"
-    : "For quicker account verification process upload your license";
+  const isAU = (countryCode ?? "").toUpperCase() === "AU";
+  const isNSW = isAU && (provinceCode ?? "").toUpperCase() === "NSW";
+
+  const label = isAU
+    ? isSalon
+      ? "Upload your salon Certificate III or business registration*"
+      : "Upload your Certificate III (or state licence)"
+    : isSalon
+      ? "Upload your salon license*"
+      : "For quicker account verification process upload your license";
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Create options for selects
@@ -46,6 +61,11 @@ export const LicenseStep = () => {
   const salonStructureOptions = salonStructures.map((structure) => ({
     value: structure,
     label: structure,
+  }));
+
+  const qualificationOptions = QUALIFICATION_OPTIONS.map((q) => ({
+    value: q.value,
+    label: q.label,
   }));
 
   return (
