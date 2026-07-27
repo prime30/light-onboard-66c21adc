@@ -173,13 +173,17 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
   },
   ZA: {
     h1: "Provide your credentials",
-    sub: "Enter your SAHA registration and salon details",
-    wholesaleCopy: "Wholesale pricing is exclusive to verified South African salon professionals.",
-    licenseFieldLabel: (s) => (s ? "Salon VAT / registration number*" : "SAHA number or National Certificate*"),
+    sub: "Enter your qualification and salon details",
+    wholesaleCopy:
+      "Wholesale pricing is exclusive to verified South African salon professionals.",
+    licenseFieldLabel: (s) =>
+      s ? "Salon CIPC / VAT number*" : "SAQA credential ID or trade-test #*",
     licenseFieldPlaceholder: (s) =>
-      s ? "e.g. VAT / CIPC number" : "e.g. SAHA # or NC Hairdressing",
+      s ? "e.g. CIPC or VAT number" : "e.g. SAQA cert ID, Services SETA cert #",
     uploadCopy: (s) =>
-      s ? "Upload your SAHA / business registration*" : "Upload your SAHA or NC certificate*",
+      s
+        ? "Upload your QCTO / National Certificate or business registration*"
+        : "Upload your QCTO, National Certificate, or City & Guilds diploma*",
     hasQualification: true,
   },
 };
