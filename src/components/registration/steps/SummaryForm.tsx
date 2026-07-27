@@ -110,7 +110,10 @@ export const SummaryForm = () => {
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   // Watch all form values at once
-  const formData = watch() as AllRegistrationFormData;
+  const formData = watch() as AllRegistrationFormData & {
+    qualification?: "cert3" | "cert4" | "apprentice";
+    nswLicenseNumber?: string;
+  };
   const {
     accountType,
     firstName,
@@ -141,10 +144,13 @@ export const SummaryForm = () => {
     acceptsSmsMarketing,
     preferredMethods,
     monthlyOrderVolume,
+    qualification,
+    nswLicenseNumber,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
     taxExemptFile = [],
   } = formData;
+  const isAU = (countryCode ?? "").toUpperCase() === "AU";
 
   // Type guard for UploadFileItem
   const isUploadFileItem = (file: UploadFileItem | string): file is UploadFileItem => {
@@ -294,7 +300,25 @@ export const SummaryForm = () => {
               title="License Information"
               stepNum={accountType === "professional" ? 4 : 4}
             >
-              <SummaryRow label="License Number" value={licenseNumber} />
+              <SummaryRow
+                label={isAU ? "ABN" : "License Number"}
+                value={licenseNumber}
+              />
+              {isAU && qualification && (
+                <SummaryRow
+                  label="Qualification"
+                  value={
+                    qualification === "cert3"
+                      ? "Certificate III in Hairdressing"
+                      : qualification === "cert4"
+                        ? "Certificate IV in Hairdressing"
+                        : "Apprentice / in training"
+                  }
+                />
+              )}
+              {isAU && nswLicenseNumber && (
+                <SummaryRow label="NSW licence" value={nswLicenseNumber} />
+              )}
               {provinceCode && <SummaryRow label="State" value={provinceCode} />}
               {accountType === "salon" && (
                 <>
