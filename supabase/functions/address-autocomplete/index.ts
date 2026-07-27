@@ -73,15 +73,21 @@ serve(async (req) => {
       includedPrimaryTypes: ["street_address", "premise", "subpremise"],
     };
 
-    // Add country restriction if provided
+    // Add country restriction if provided. Supports every country the app
+    // registers users from; anything else falls through to unrestricted +
+    // location-biased results.
+    const COUNTRY_ALIASES: Record<string, string> = {
+      US: "US", USA: "US", "UNITED STATES": "US",
+      CA: "CA", CAN: "CA", CANADA: "CA",
+      AU: "AU", AUS: "AU", AUSTRALIA: "AU",
+      GB: "GB", UK: "GB", "UNITED KINGDOM": "GB", "GREAT BRITAIN": "GB",
+      IE: "IE", IRL: "IE", IRELAND: "IE",
+      NZ: "NZ", NZL: "NZ", "NEW ZEALAND": "NZ",
+      ZA: "ZA", ZAF: "ZA", "SOUTH AFRICA": "ZA",
+    };
     if (country) {
       const normalizedCountry = String(country).trim().toUpperCase();
-      const countryCode =
-        normalizedCountry === "US" || normalizedCountry === "UNITED STATES"
-          ? "US"
-          : normalizedCountry === "CA" || normalizedCountry === "CANADA"
-            ? "CA"
-            : "";
+      const countryCode = COUNTRY_ALIASES[normalizedCountry] ?? "";
       if (countryCode) {
         requestBody.includedRegionCodes = [countryCode];
       }
