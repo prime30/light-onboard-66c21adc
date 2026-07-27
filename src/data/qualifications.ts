@@ -152,7 +152,7 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
     uploadCopy: (s) =>
       s
         ? "Upload your Certificate III or business registration*"
-        : "Upload your Certificate III (or state licence)*",
+        : "Upload your Certificate III in Hairdressing (SHB30416)*",
     hasQualification: true,
   },
   UK: {
