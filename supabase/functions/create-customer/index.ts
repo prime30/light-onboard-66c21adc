@@ -677,6 +677,38 @@ Deno.serve(async (req: Request) => {
     ]);
   }
 
+  // ----------------------------------------------------------------
+  // AU geo enforcement. If the applicant claims countryCode "AU" they
+  // MUST present a valid HMAC token from verify-au-geo (IP or GPS).
+  // Blocks VPN-based spoofing where a US/EU user picks AU to bypass
+  // license requirements.
+  // ----------------------------------------------------------------
+  if ((parseResult.data.countryCode || "").toUpperCase() === "AU") {
+    const auToken = typeof (requestBody as { auGeoToken?: unknown }).auGeoToken === "string"
+      ? ((requestBody as { auGeoToken?: string }).auGeoToken as string)
+      : "";
+    const geoCheck = await validateAuGeoToken(auToken, parseResult.data.email);
+    if (!geoCheck.ok) {
+      console.log("AU geo token invalid:", geoCheck.reason, parseResult.data.email);
+      await writeStandaloneAuditFailure({
+        email: parseResult.data.email,
+        accountType: parseResult.data.accountType,
+        step: "au_geo_failed",
+        field: "countryCode",
+        message: `AU geo verification failed: ${geoCheck.reason ?? "unknown"}`,
+        payload: parseResult.data as unknown as Record<string, unknown>,
+        req,
+      });
+      return sendError(
+        403,
+        [
+          "countryCode: We couldn't verify you're located in Australia. Please disable any VPN and try again, or allow location access.",
+        ],
+        "Forbidden",
+      );
+    }
+  }
+
   console.log("Processing customer sync for:", requestBody.data.email);
 
   // Kick off app_settings (auto_approval_enabled + extra_customer_tags) in
