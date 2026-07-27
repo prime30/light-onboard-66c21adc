@@ -114,7 +114,11 @@ const isValidZipForCountry = (zip: string, country: string | undefined): true | 
 };
 
 // Countries that require the qualification dropdown on the license step.
-export const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["AU", "UK", "IE", "NZ", "ZA"]);
+// Countries that require the qualification dropdown on the license step.
+// AU is intentionally excluded: Australia does not require a licence or
+// national qualification to provide hair-extension services, so we do not
+// force one on our AU applicants.
+export const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["UK", "IE", "NZ", "ZA"]);
 
 // Account Type Schema
 export const accountTypeSchema = z.object({
@@ -257,22 +261,26 @@ export const businessLocationSchema = z
 // UI relabels the field to "ABN*" when countryCode === "AU". Country-specific
 // qualification rules are validated by registrationSchema.superRefine below.
 const licenseValidators = {
+  // Optional in the union so AU (which requires no licence) can submit
+  // without a value; enforced as required for other countries by
+  // registrationSchema.superRefine below.
   licenseNumber: z
     .string()
     .trim()
-    .min(1, "License number is required")
-    .max(100, "License number must be less than 100 characters"),
+    .max(100, "License number must be less than 100 characters")
+    .optional(),
   licenseProofFiles: fileUploadSchema(true),
   qualification: z.enum(ALL_QUALIFICATION_VALUES).optional(),
 };
 export const licenseSchema = z.object(licenseValidators);
 
 // License Schema for salons (includes additional fields).
-// Salons MUST upload a license proof (vs. optional for individual professionals)
-// AND must provide salon size + structure on the same step.
+// Fields are optional in the union so AU salons - which have no salon
+// licensing requirement - can submit; non-AU countries have them enforced
+// as required by registrationSchema.superRefine.
 const salonValidators = {
-  salonSize: z.string().min(1, "Salon size is required"),
-  salonStructure: z.string().min(1, "Salon structure is required"),
+  salonSize: z.string().optional(),
+  salonStructure: z.string().optional(),
 };
 export const salonSchema = z.object(salonValidators);
 
@@ -401,8 +409,8 @@ export const registrationSchema = z
       ...salonValidators,
       ...licenseValidators,
       ...monthlyOrderVolumeValidators,
-      // Salons must upload license proof (override the optional spread above).
-      licenseProofFiles: fileUploadSchema(false),
+      // licenseProofFiles stays optional here; enforced as required for
+      // non-AU salons by registrationSchema.superRefine below.
     }),
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
@@ -421,6 +429,9 @@ export const registrationSchema = z
       accountType?: string;
       licenseNumber?: string;
       qualification?: string;
+      licenseProofFiles?: unknown;
+      salonSize?: string;
+      salonStructure?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
@@ -440,51 +451,80 @@ export const registrationSchema = z
     const country = (d.countryCode ?? "").toUpperCase();
     const isCredentialFlow = d.accountType === "professional" || d.accountType === "salon";
     if (isCredentialFlow) {
-      // ABN format check on AU.
-      if (country === "AU" && d.licenseNumber && !isValidABN(d.licenseNumber)) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Enter a valid ABN (11 digits)",
-          path: ["licenseNumber"],
-        });
+      // Australia does not require a licence, ABN, national qualification,
+      // or salon-licensing paperwork to provide hair-extension services, so
+      // we skip every credential check for AU. Non-AU countries still get
+      // the licence + qualification + salon checks enforced below.
+      if (country !== "AU") {
+        // licenseNumber is required for non-AU credential flows.
+        if (!d.licenseNumber || d.licenseNumber.trim().length === 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: "License number is required",
+            path: ["licenseNumber"],
+          });
+        }
+
+        // NZBN check on NZ - only enforce if it looks numeric (allow Hair Council/cert #s).
+        if (
+          country === "NZ" &&
+          d.licenseNumber &&
+          /^[\d\s]+$/.test(d.licenseNumber) &&
+          !isValidNZBN(d.licenseNumber)
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Enter a valid NZBN (13 digits) or a certificate number",
+            path: ["licenseNumber"],
+          });
+        }
+
+        // Qualification required for UK/IE/NZ/ZA and must match the country.
+        if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !d.qualification) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please select your qualification",
+            path: ["qualification"],
+          });
+        }
+        if (
+          QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
+          d.qualification &&
+          !isCurrentQualificationForCountry(country, d.qualification)
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please select a current qualification for your country",
+            path: ["qualification"],
+          });
+        }
+
+        // Salon-only: require salon size + structure + licence proof upload.
+        if (d.accountType === "salon") {
+          if (!d.salonSize || d.salonSize.trim().length === 0) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Salon size is required",
+              path: ["salonSize"],
+            });
+          }
+          if (!d.salonStructure || d.salonStructure.trim().length === 0) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Salon structure is required",
+              path: ["salonStructure"],
+            });
+          }
+          const files = d.licenseProofFiles;
+          if (!Array.isArray(files) || files.length === 0) {
+            ctx.addIssue({
+              code: "custom",
+              message: "At least one file is required",
+              path: ["licenseProofFiles"],
+            });
+          }
+        }
       }
-      // NZBN check on NZ - only enforce if it looks numeric (allow Hair Council/cert #s).
-      if (
-        country === "NZ" &&
-        d.licenseNumber &&
-        /^[\d\s]+$/.test(d.licenseNumber) &&
-        !isValidNZBN(d.licenseNumber)
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Enter a valid NZBN (13 digits) or a certificate number",
-          path: ["licenseNumber"],
-        });
-      }
-      // Qualification required for AU/UK/IE/NZ/ZA, and it must belong to the
-      // selected country so stale values from sessionStorage cannot satisfy
-      // validation after a country change.
-      if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !d.qualification) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Please select your qualification",
-          path: ["qualification"],
-        });
-      }
-      if (
-        QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
-        d.qualification &&
-        !isCurrentQualificationForCountry(country, d.qualification)
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Please select a current qualification for your country",
-          path: ["qualification"],
-        });
-      }
-      // AU NSW: no separate licence number exists - Hairdressers Act 2003
-      // requires SHB30416 (Cert III), which is already captured via the
-      // qualification field. No extra validation needed.
     }
   });
 
