@@ -2,57 +2,51 @@
 // qualification (US, CA) don't render a dropdown - just the license number.
 export type QualificationOption = { value: string; label: string; tag: string };
 
-// Verified against awarding bodies (Nov 2026):
-// - UK: Ofqual RQF-regulated NVQ Diplomas (City & Guilds 6008 / VTCT), SVQ in
-//   Scotland, plus voluntary State Registered Hairdresser (SRH) via the
-//   Hair & Barber Council.
-// - IE: QQI Level 5 (5M3351) / Level 6, or the SOLAS National Hairdressing
-//   Apprenticeship (launched 2024).
-// - NZ: NZ Certificate in Hairdressing L3 (entry) and L4 Professional Stylist
-//   (NZQA ID 2413), standards set by Ringa Hora WDC.
-// - ZA: QCTO Occupational Certificate: Hairdresser (NQF 4, SAQA 102497) is the
-//   current national qualification; National Certificate: Hairdressing and the
-//   legacy City & Guilds International Diploma are still widely held.
+// Source-backed credential options for English-speaking launch countries.
+// Keep these user-facing choices broad enough for manual verification while
+// avoiding fictional licences or cancelled programmes.
 export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = {
   // AU: training.gov.au SHB Training Package. NSW Hairdressers Act 2003
-  // requires SHB30416 (Cert III) - it does NOT issue a separate licence #.
+  // requires a prescribed qualification or assessed equivalent - it does NOT
+  // issue a separate hairdresser licence number.
   AU: [
     { value: "cert3", label: "Certificate III in Hairdressing (SHB30416)", tag: "qualification-cert3" },
     { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30516)", tag: "qualification-cert3-barbering" },
     { value: "cert4", label: "Certificate IV in Hairdressing (SHB40216)", tag: "qualification-cert4" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
-  // UK: Ofqual RQF Diplomas (VTCT / City & Guilds) replaced the legacy NVQ
-  // branding in England. SVQ is the Scottish equivalent (SQA). Hair Council
-  // SRH registration is VOLUNTARY - flagged in the label.
+  // UK: current regulated routes still include NVQ Diplomas (e.g. City &
+  // Guilds 6008) and other RQF Diplomas. SVQ is the Scottish equivalent.
+  // Hair Council SRH registration is voluntary. The proposed Hairdressing,
+  // Barbering and Beauty T Level was cancelled, so it is not offered here.
   UK: [
-    { value: "diploma2", label: "Level 2 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l2" },
-    { value: "diploma3", label: "Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
+    { value: "diploma2", label: "Level 2 NVQ Diploma / Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l2" },
+    { value: "diploma3", label: "Level 3 NVQ Diploma / Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
     { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
-    { value: "tlevel", label: "T Level in Hairdressing, Barbering & Beauty (DfE, 2023+)", tag: "qualification-tlevel" },
-    { value: "apprentice_std", label: "Hairdressing Professional (Level 2 Apprenticeship, ST0213)", tag: "qualification-apprentice-standard" },
+    { value: "apprentice_std", label: "Diploma for Hair Professionals (Level 2 apprenticeship, ST0213)", tag: "qualification-apprentice-standard" },
     { value: "srh", label: "State Registered Hairdresser (SRH, voluntary)", tag: "qualification-srh" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
-  // IE: QQI Level 5 is the standalone major award. The new SOLAS National
-  // Hairdressing Apprenticeship (2024) is a Level 6, 3-year employer-based
-  // programme - it replaces the standalone "QQI Level 6" listing.
+  // IE: QQI Level 5 Hairdressing (5M3351) remains a common standalone award.
+  // The National Hairdressing Apprenticeship awards the QQI Level 6 Advanced
+  // Certificate in Hairdressing (6M22525); it was validated before 2024 and
+  // is coordinated nationally, not just by one local provider.
   IE: [
     { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
-    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, Limerick & Clare ETB)", tag: "qualification-nha" },
-    { value: "apprentice", label: "Apprentice / in training (legacy)", tag: "qualification-apprentice" },
+    { value: "nha", label: "QQI Level 6 Advanced Certificate in Hairdressing (National Hairdressing Apprenticeship, 6M22525)", tag: "qualification-nha" },
+    { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
-  // NZ: NZQA Ringa Hora WDC. Level 3 is "Salon Support" - Level 4 is
-  // "Professional Stylist" (NZQA ID 2413).
+  // NZ: NZQA qualification IDs 2411 (Salon Support L3) and 2413
+  // (Professional Stylist L4).
   NZ: [
     {
       value: "nzcert3",
-      label: "NZ Certificate in Hairdressing - Salon Support (Level 3)",
+      label: "NZ Certificate in Hairdressing - Salon Support (Level 3, NZQA 2411)",
       tag: "qualification-nzcert3",
     },
     {
       value: "nzcert4",
-      label: "NZ Certificate in Hairdressing - Professional Stylist (Level 4)",
+      label: "NZ Certificate in Hairdressing - Professional Stylist (Level 4, NZQA 2413)",
       tag: "qualification-nzcert4",
     },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
@@ -68,7 +62,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
     },
     {
       value: "nc_hairdressing",
-      label: "National Certificate: Hairdressing (NQF 3/4, legacy)",
+      label: "Legacy SAQA hairdressing certificate (NQF 3/4)",
       tag: "qualification-nc-hairdressing",
     },
     {
@@ -80,22 +74,29 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   ],
 };
 
+const LEGACY_QUALIFICATIONS: QualificationOption[] = [
+  // Kept so restored sessionStorage / older admin records do not become
+  // unparseable. These are not shown as selectable current options.
+  { value: "tlevel", label: "T Level in Hairdressing, Barbering & Beauty (cancelled UK route)", tag: "qualification-tlevel" },
+  { value: "nvq2", label: "Legacy Level 2 NVQ Diploma in Hairdressing", tag: "qualification-diploma-l2" },
+  { value: "nvq3", label: "Legacy Level 3 NVQ Diploma in Hairdressing", tag: "qualification-diploma-l3" },
+  { value: "qqi6", label: "Legacy QQI Level 6 Hairdressing selection", tag: "qualification-nha" },
+];
+
 // Full flat list of qualification values (used to widen the zod enum).
 export const ALL_QUALIFICATION_VALUES = Array.from(
-  new Set(Object.values(QUALIFICATIONS_BY_COUNTRY).flat().map((q) => q.value))
+  new Set([...Object.values(QUALIFICATIONS_BY_COUNTRY).flat(), ...LEGACY_QUALIFICATIONS].map((q) => q.value))
 ) as [string, ...string[]];
 
 // Full label lookup across countries.
 export const QUALIFICATION_LABEL: Record<string, string> = Object.fromEntries(
-  Object.values(QUALIFICATIONS_BY_COUNTRY)
-    .flat()
+  [...Object.values(QUALIFICATIONS_BY_COUNTRY).flat(), ...LEGACY_QUALIFICATIONS]
     .map((q) => [q.value, q.label])
 );
 
 // Tag lookup across countries.
 export const QUALIFICATION_TAG: Record<string, string> = Object.fromEntries(
-  Object.values(QUALIFICATIONS_BY_COUNTRY)
-    .flat()
+  [...Object.values(QUALIFICATIONS_BY_COUNTRY).flat(), ...LEGACY_QUALIFICATIONS]
     .map((q) => [q.value, q.tag])
 );
 
@@ -152,7 +153,7 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
     uploadCopy: (s) =>
       s
         ? "Upload your Certificate III or business registration*"
-        : "Upload your Certificate III in Hairdressing (SHB30416)*",
+        : "Upload your hairdressing qualification certificate*",
     hasQualification: true,
   },
   UK: {
@@ -217,4 +218,12 @@ export function getCredentialConfig(countryCode: string | undefined): Credential
 export function getQualificationOptions(countryCode: string | undefined): QualificationOption[] {
   const key = (countryCode ?? "").toUpperCase();
   return QUALIFICATIONS_BY_COUNTRY[key] ?? [];
+}
+
+export function isCurrentQualificationForCountry(
+  countryCode: string | undefined,
+  qualification: string | undefined
+): boolean {
+  if (!qualification) return false;
+  return getQualificationOptions(countryCode).some((option) => option.value === qualification);
 }
