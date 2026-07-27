@@ -113,7 +113,6 @@ export const SummaryForm = () => {
   // Watch all form values at once
   const formData = watch() as AllRegistrationFormData & {
     qualification?: string;
-    nswLicenseNumber?: string;
   };
   const {
     accountType,
@@ -146,13 +145,11 @@ export const SummaryForm = () => {
     preferredMethods,
     monthlyOrderVolume,
     qualification,
-    nswLicenseNumber,
     licenseProofFiles = [],
     enrollmentProofFiles = [],
     taxExemptFile = [],
   } = formData;
   const country = (countryCode ?? "US").toUpperCase();
-  const isAU = country === "AU";
   const credentialConfig = getCredentialConfig(country);
 
   // Type guard for UploadFileItem

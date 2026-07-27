@@ -272,7 +272,6 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
     qualification: z.string().nullish(),
-    nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.boolean().optional().default(true),
@@ -307,7 +306,6 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
     qualification: z.string().nullish(),
-    nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
     wholesaleAgreed: z.boolean().optional().default(true),
@@ -1245,7 +1243,7 @@ Deno.serve(async (req: Request) => {
 
     const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
 
-    // International tags: country + qualification (+ NSW licence carve-out).
+    // International tags: country + qualification (+ NSW jurisdiction marker).
     // Inline qualification->tag map (edge functions can't import from src/).
     const QUALIFICATION_TAG_MAP: Record<string, string> = {
       // AU (training.gov.au SHB package)
@@ -1256,10 +1254,10 @@ Deno.serve(async (req: Request) => {
       diploma2: "qualification-diploma-l2",
       diploma3: "qualification-diploma-l3",
       svq: "qualification-svq",
-      tlevel: "qualification-tlevel",
       apprentice_std: "qualification-apprentice-standard",
       srh: "qualification-srh",
       // Legacy UK values (kept for backwards compat with saved sessions)
+      tlevel: "qualification-tlevel",
       nvq2: "qualification-diploma-l2",
       nvq3: "qualification-diploma-l3",
       // IE (QQI / SOLAS)
@@ -1276,6 +1274,28 @@ Deno.serve(async (req: Request) => {
       cg_diploma: "qualification-cg-diploma",
       // Shared
       apprentice: "qualification-apprentice",
+    };
+    const QUALIFICATION_LABEL_MAP: Record<string, string> = {
+      cert3: "Certificate III in Hairdressing (SHB30416)",
+      cert3_barbering: "Certificate III in Barbering (SHB30516)",
+      cert4: "Certificate IV in Hairdressing (SHB40216)",
+      diploma2: "Level 2 NVQ Diploma / Diploma in Hairdressing (RQF)",
+      diploma3: "Level 3 NVQ Diploma / Diploma in Hairdressing (RQF)",
+      svq: "SVQ in Hairdressing (Scotland, SCQF Level 6, GV3V 23)",
+      apprentice_std: "Diploma for Hair Professionals (Level 2 apprenticeship, ST0213)",
+      srh: "Hair Council State Registration (voluntary)",
+      tlevel: "T Level in Hairdressing, Barbering & Beauty (cancelled UK route)",
+      nvq2: "Legacy Level 2 NVQ Diploma in Hairdressing",
+      nvq3: "Legacy Level 3 NVQ Diploma in Hairdressing",
+      qqi5: "QQI Level 5 in Hairdressing (5M3351)",
+      nha: "QQI Level 6 Advanced Certificate in Hairdressing (National Hairdressing Apprenticeship, 6M22525)",
+      qqi6: "Legacy QQI Level 6 Hairdressing selection",
+      nzcert3: "NZ Certificate in Hairdressing - Salon Support (Level 3, NZQA 2411)",
+      nzcert4: "NZ Certificate in Hairdressing - Professional Stylist (Level 4, NZQA 2413)",
+      qcto_hairdresser: "QCTO Occupational Certificate: Hairdresser (NQF 4, SAQA 102497)",
+      nc_hairdressing: "Legacy SAQA hairdressing certificate (NQF 3/4)",
+      cg_diploma: "City & Guilds International Diploma (non-SAQA)",
+      apprentice: "Apprentice / in training",
     };
     const COUNTRY_TAG_MAP: Record<string, string> = {
       US: "country-us",
@@ -1352,6 +1372,9 @@ Deno.serve(async (req: Request) => {
     }
     if (customer.business_name) noteLines.push(`Business: ${customer.business_name}`);
     if (customer.license_number) noteLines.push(`License #: ${customer.license_number}`);
+    if (customer.qualification) {
+      noteLines.push(`Qualification: ${QUALIFICATION_LABEL_MAP[customer.qualification] ?? customer.qualification}`);
+    }
     if (customer.salon_size) noteLines.push(`Salon size: ${customer.salon_size}`);
     if (customer.salon_structure) noteLines.push(`Salon structure: ${customer.salon_structure}`);
     if (customer.school_name) noteLines.push(`School: ${customer.school_name}`);

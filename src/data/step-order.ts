@@ -48,7 +48,6 @@ export const FIELD_DISPLAY_NAMES: Partial<Record<ValidFieldNames, string>> = {
   licenseNumber: "License number / ABN",
   licenseProofFiles: "License document",
   qualification: "Hairdressing qualification",
-  nswLicenseNumber: "NSW hairdresser licence number",
   salonSize: "Salon size",
   salonStructure: "Salon structure",
   taxExempt: "Tax exemption choice",
