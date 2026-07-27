@@ -16,7 +16,7 @@ import {
 } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
 import { Step, IncompleteStepInfo } from "@/types/auth";
-import { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { QUALIFICATION_REQUIRED_COUNTRIES, ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
