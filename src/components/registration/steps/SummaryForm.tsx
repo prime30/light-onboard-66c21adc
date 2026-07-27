@@ -216,6 +216,11 @@ export const SummaryForm = () => {
         </p>
       </div>
 
+      <AuGeoVerificationGate
+        countryCode={(formData as { countryCode?: string }).countryCode}
+        email={email}
+      />
+
       {/* Error Display */}
       {visibleSubmitError && (
         <div
