@@ -10,6 +10,7 @@ import { UploadFileItem } from "@/lib/validations/file-schema";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { AuGeoVerificationGate } from "@/components/registration/AuGeoVerificationGate";
 
 const SummarySection = ({
   title,
