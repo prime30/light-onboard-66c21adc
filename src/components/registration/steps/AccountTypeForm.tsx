@@ -202,8 +202,10 @@ export const AccountTypeForm = () => {
     {
       id: "professional",
       icon: Scissors,
-      title: "Licensed stylist",
-      description: "Commission, or independent stylist",
+      title: isAU ? "Professional stylist" : "Licensed stylist",
+      description: isAU
+        ? "Salon-employed, mobile, or independent"
+        : "Commission, or independent stylist",
       features: [
         { label: "Pro discount", icon: Tag },
         { label: "Priority support", icon: Headphones },
@@ -225,8 +227,8 @@ export const AccountTypeForm = () => {
     {
       id: "student",
       icon: GraduationCap,
-      title: "Cosmetology student or apprentice",
-      description: "Currently enrolled",
+      title: isAU ? "Student or apprentice" : "Cosmetology student or apprentice",
+      description: isAU ? "In training or learnership" : "Currently enrolled",
       features: [
         { label: "Student pricing", icon: Tag },
         { label: "Learning resources", icon: FileCheck },
