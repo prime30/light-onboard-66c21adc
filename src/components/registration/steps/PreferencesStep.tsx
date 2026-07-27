@@ -41,6 +41,7 @@ export const PreferencesStep = () => {
     "taxExempt",
     "taxExemptFile",
     "countryCode",
+    "accountType",
   ]);
 
   const [
@@ -51,12 +52,20 @@ export const PreferencesStep = () => {
     taxExempt,
     taxExemptFile,
     countryCode,
+    accountType,
   ] = watchedValues;
 
   // Tax exemption is a US-only concept (state sales tax). Other supported
   // countries (AU, UK, IE, NZ, ZA) handle tax at the point of sale or via
   // separate schemes, so we don't collect a certificate here.
   const showTaxExemption = (countryCode ?? "US") === "US";
+
+  // Australia has no cosmetology licensing, so we require an Instagram
+  // handle from AU professionals + salons as proof of a real hair
+  // portfolio. Students still see it as optional.
+  const requireInstagramHandle =
+    (countryCode ?? "").toUpperCase() === "AU" &&
+    (accountType === "professional" || accountType === "salon");
 
   // If country changes to non-US, clear any prior tax-exempt state so it
   // doesn't linger in session storage / summary.
