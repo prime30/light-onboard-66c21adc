@@ -9,9 +9,22 @@ type Milestone = {
   at: number;
 };
 
-const MILESTONES: Milestone[] = [
+// Country-specific middle milestone: US/CA verify a cosmetology license,
+// AU has no licensing requirement, and the other supported countries use
+// their own qualification terminology.
+const MIDDLE_MILESTONE_BY_COUNTRY: Record<string, string> = {
+  US: "Checking license number",
+  CA: "Checking license number",
+  AU: "Verifying your details",
+  UK: "Verifying your qualification",
+  IE: "Verifying your qualification",
+  NZ: "Verifying your qualification",
+  ZA: "Verifying your qualification",
+};
+
+const getMilestones = (countryCode: string | undefined): Milestone[] => [
   { label: "Reviewing your application", at: 35 },
-  { label: "Checking license number", at: 70 },
+  { label: MIDDLE_MILESTONE_BY_COUNTRY[(countryCode ?? "US").toUpperCase()] ?? "Verifying your details", at: 70 },
   { label: "Setting up account", at: 100 },
 ];
 
@@ -19,7 +32,9 @@ const TOTAL_DURATION_MS = 8000;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
-  const { goToStep } = useForm();
+  const { goToStep, watch } = useForm();
+  const countryCode = watch("countryCode") as string | undefined;
+  const MILESTONES = getMilestones(countryCode);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
 
