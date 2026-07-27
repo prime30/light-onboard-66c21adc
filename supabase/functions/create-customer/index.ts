@@ -1248,18 +1248,27 @@ Deno.serve(async (req: Request) => {
     // International tags: country + qualification (+ NSW licence carve-out).
     // Inline qualification->tag map (edge functions can't import from src/).
     const QUALIFICATION_TAG_MAP: Record<string, string> = {
+      // AU
       cert3: "qualification-cert3",
       cert4: "qualification-cert4",
-      apprentice: "qualification-apprentice",
+      // UK
       nvq2: "qualification-nvq2",
       nvq3: "qualification-nvq3",
-      vtct: "qualification-vtct",
+      svq: "qualification-svq",
+      srh: "qualification-srh",
+      // IE
       qqi5: "qualification-qqi5",
       qqi6: "qualification-qqi6",
+      nha: "qualification-nha",
+      // NZ
       nzcert3: "qualification-nzcert3",
       nzcert4: "qualification-nzcert4",
-      saha: "qualification-saha",
+      // ZA
+      qcto_hairdresser: "qualification-qcto-hairdresser",
       nc_hairdressing: "qualification-nc-hairdressing",
+      cg_diploma: "qualification-cg-diploma",
+      // Shared
+      apprentice: "qualification-apprentice",
     };
     const COUNTRY_TAG_MAP: Record<string, string> = {
       US: "country-us",
