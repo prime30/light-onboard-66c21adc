@@ -708,19 +708,17 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // AU professional / salon must supply an Instagram handle - it's the
-    // only portfolio proof we require in place of licensing.
-    const isCredentialFlow =
-      parseResult.data.accountType === "professional" ||
-      parseResult.data.accountType === "salon";
-    if (isCredentialFlow) {
+    // Instagram handle is required for every registration (contact basics
+    // step). We validate format here as a backstop; the client also runs a
+    // live profile-existence check via verify-instagram-handle.
+    {
       const handle = ((parseResult.data as { socialMediaHandle?: string | null })
         .socialMediaHandle ?? "")
         .trim()
         .replace(/^@+/, "");
       if (!handle) {
         return sendError(400, [
-          "socialMediaHandle: Instagram handle is required to verify your hair portfolio",
+          "socialMediaHandle: Instagram handle is required",
         ]);
       }
       if (!/^[A-Za-z0-9._]{1,30}$/.test(handle)) {
