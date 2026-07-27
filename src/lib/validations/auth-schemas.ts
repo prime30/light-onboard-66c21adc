@@ -190,6 +190,18 @@ const contactBasicsValidators = {
       const phoneCountryCode = countryCodes.find((c) => c.iso === value)?.code || value;
       return phoneCountryCode;
     }),
+  // Instagram handle is required for every registration. Users type just
+  // the handle; the client verifies it resolves to a real profile via the
+  // verify-instagram-handle edge function and shows the confirmed URL.
+  socialMediaHandle: z
+    .string({ error: "Instagram handle is required" })
+    .trim()
+    .min(1, "Instagram handle is required")
+    .transform((val) => val.replace(/^@+/, "").trim())
+    .refine(
+      (val) => /^[A-Za-z0-9._]{1,30}$/.test(val),
+      "Enter a valid Instagram handle (letters, numbers, periods, and underscores only)"
+    ),
 };
 export const contactBasicsSchema = z.object(contactBasicsValidators);
 
