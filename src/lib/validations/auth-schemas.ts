@@ -114,7 +114,11 @@ const isValidZipForCountry = (zip: string, country: string | undefined): true | 
 };
 
 // Countries that require the qualification dropdown on the license step.
-export const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["AU", "UK", "IE", "NZ", "ZA"]);
+// Countries that require the qualification dropdown on the license step.
+// AU is intentionally excluded: Australia does not require a licence or
+// national qualification to provide hair-extension services, so we do not
+// force one on our AU applicants.
+export const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["UK", "IE", "NZ", "ZA"]);
 
 // Account Type Schema
 export const accountTypeSchema = z.object({
