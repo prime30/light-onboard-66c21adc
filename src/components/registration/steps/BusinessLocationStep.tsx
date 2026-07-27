@@ -150,7 +150,7 @@ export const BusinessLocationStep = () => {
   // Handle address input change
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setValue("businessAddress", value);
+    setValue("businessAddress", value, { shouldValidate: true, shouldDirty: true });
     handleInputChange(value);
   };
 
