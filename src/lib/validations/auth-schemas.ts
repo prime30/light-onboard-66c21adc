@@ -94,9 +94,9 @@ const isValidABN = (abn: string): boolean => {
   const digits = abn.replace(/\s+/g, "");
   if (!/^\d{11}$/.test(digits)) return false;
   const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
-  const sum = digits.split("").reduce((total, digit, index) => {
-    const value = Number(digit) - (index === 0 ? 1 : 0);
-    return total + value * weights[index];
+  const sum = weights.reduce((total, weight, index) => {
+    const value = Number(digits[index] ?? "0") - (index === 0 ? 1 : 0);
+    return total + value * weight;
   }, 0);
   return sum % 89 === 0;
 };
