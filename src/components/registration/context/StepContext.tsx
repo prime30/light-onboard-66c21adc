@@ -53,6 +53,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
   const { watch, errors, subscribe, fullErrors, emailConflict } = useFormData();
   const accountType = watch("accountType");
+  const countryCode = watch("countryCode");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
   const { enabled: autoApprove } = useAutoApproval();
@@ -65,7 +66,7 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
-    const newSteps = getStepOrder(accountType, autoApprove).slice();
+    const newSteps = getStepOrder(accountType, autoApprove, countryCode).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
     // When auto-approval is ON, the password step moves to AFTER summary,
@@ -83,7 +84,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, currentStep, autoApprove]);
+  }, [accountType, countryCode, currentStep, autoApprove]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
