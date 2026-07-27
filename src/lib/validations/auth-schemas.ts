@@ -448,7 +448,7 @@ export const registrationSchema = z
           path: ["licenseNumber"],
         });
       }
-      // NZBN check on NZ - only enforce if it looks numeric (allow SRH/cert #s).
+      // NZBN check on NZ - only enforce if it looks numeric (allow Hair Council/cert #s).
       if (
         country === "NZ" &&
         d.licenseNumber &&
