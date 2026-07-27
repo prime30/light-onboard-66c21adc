@@ -325,6 +325,36 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
+    if (currentStep === "license") {
+      const v = watch() as {
+        countryCode?: string;
+        provinceCode?: string;
+        qualification?: string;
+        nswLicenseNumber?: string;
+      };
+      const country = (v.countryCode ?? "").toUpperCase();
+      if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please select your qualification",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (
+        country === "AU" &&
+        (v.provinceCode ?? "").toUpperCase() === "NSW" &&
+        !v.nswLicenseNumber?.trim()
+      ) {
+        setShowValidationErrors(true);
+        toast({
+          title: "NSW hairdresser licence number is required",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const nextStep = steps[currentStepNumber + 1] || currentStep;
     goToStep(nextStep);
   };
