@@ -271,7 +271,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     zipCode: z.string().min(1),
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
-    qualification: z.enum(["cert3", "cert4", "apprentice"]).nullish(),
+    qualification: z.string().nullish(),
     nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
@@ -306,7 +306,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     salonStructure: z.string().min(1),
     licenseNumber: z.string().min(1),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
-    qualification: z.enum(["cert3", "cert4", "apprentice"]).nullish(),
+    qualification: z.string().nullish(),
     nswLicenseNumber: z.string().nullish(),
     taxExempt: z.boolean().default(false),
     taxExemptFile: z.array(z.string()).nullish().default([]),
@@ -1245,23 +1245,48 @@ Deno.serve(async (req: Request) => {
 
     const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
 
-    // AU-specific tags (country + qualification + optional NSW licence marker).
-    const auTags: string[] = [];
+    // International tags: country + qualification (+ NSW licence carve-out).
+    // Inline qualification->tag map (edge functions can't import from src/).
+    const QUALIFICATION_TAG_MAP: Record<string, string> = {
+      cert3: "qualification-cert3",
+      cert4: "qualification-cert4",
+      apprentice: "qualification-apprentice",
+      nvq2: "qualification-nvq2",
+      nvq3: "qualification-nvq3",
+      vtct: "qualification-vtct",
+      qqi5: "qualification-qqi5",
+      qqi6: "qualification-qqi6",
+      nzcert3: "qualification-nzcert3",
+      nzcert4: "qualification-nzcert4",
+      saha: "qualification-saha",
+      nc_hairdressing: "qualification-nc-hairdressing",
+    };
+    const COUNTRY_TAG_MAP: Record<string, string> = {
+      US: "country-us",
+      CA: "country-ca",
+      AU: "country-au",
+      UK: "country-uk",
+      GB: "country-uk",
+      IE: "country-ie",
+      NZ: "country-nz",
+      ZA: "country-za",
+    };
+    const internationalTags: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cust = customer as any;
     const custCountry = (cust.country_code ?? "").toString().toUpperCase();
-    if (custCountry === "AU") {
-      auTags.push("country-au");
-      const qual = cust.qualification;
-      if (qual === "cert3") auTags.push("qualification-cert3");
-      else if (qual === "cert4") auTags.push("qualification-cert4");
-      else if (qual === "apprentice") auTags.push("qualification-apprentice");
-      if (cust.nsw_license_number && String(cust.nsw_license_number).trim()) {
-        auTags.push("nsw-licensed");
-      }
+    if (custCountry && COUNTRY_TAG_MAP[custCountry]) {
+      internationalTags.push(COUNTRY_TAG_MAP[custCountry]);
+    }
+    const qual = cust.qualification;
+    if (qual && QUALIFICATION_TAG_MAP[qual]) {
+      internationalTags.push(QUALIFICATION_TAG_MAP[qual]);
+    }
+    if (custCountry === "AU" && cust.nsw_license_number && String(cust.nsw_license_number).trim()) {
+      internationalTags.push("nsw-licensed");
     }
 
-    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...auTags];
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...internationalTags];
 
     // Marketing consent - email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
