@@ -486,6 +486,59 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
         </div>
       )}
 
+      {/* Country cohorts */}
+      {(data?.countryCohorts?.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            By country
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            Country captured on the Business location step. "Unknown" covers leads who bounced before that step (or predate country capture).
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Country</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Started</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Completed</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Bounce %</th>
+                  <th className="text-right py-1.5 pl-2 font-medium">Purchase %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.countryCohorts!.map((row) => (
+                  <tr key={row.code}>
+                    <td className="py-1.5 pr-3 font-medium">
+                      {row.country}
+                      <span className="text-[10px] opacity-60 ml-1">({row.code})</span>
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">{row.started}</td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {row.completed}
+                      <span className="text-[10px] opacity-70 ml-1">({row.completionRate}%)</span>
+                    </td>
+                    <td
+                      className={cn(
+                        "py-1.5 px-2 text-right tabular-nums",
+                        row.bounceRate > 50 ? "text-destructive" : "text-status-green",
+                      )}
+                    >
+                      {row.bounceRate}%
+                    </td>
+                    <td className="py-1.5 pl-2 text-right tabular-nums">
+                      {row.purchaseRate}%
+                      <span className="text-[10px] opacity-70 ml-1">({row.purchasers})</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+
       {/* Drop-off steps */}
       {(data?.dropOffSteps?.length ?? 0) > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
