@@ -15,12 +15,13 @@ import {
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
 import { useModeContext } from "../context/ModeContext";
+import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 type AccountTypeConfirmationOverlayProps = {
   showAccountTypeConfirm: boolean;
@@ -108,6 +109,18 @@ export const AccountTypeForm = () => {
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
   const [showNotStylist, setShowNotStylist] = useState(false);
 
+  const geoCountry = useGeoCountry();
+  const currentCountry = watch("countryCode");
+  const effectiveCountry = (currentCountry || geoCountry || "US").toUpperCase();
+  const isAU = effectiveCountry === "AU";
+
+  // Seed the form's countryCode from geo detection once, if the user hasn't set one.
+  useEffect(() => {
+    if (!currentCountry && geoCountry) {
+      setValue("countryCode", geoCountry, dirtyFieldOptions);
+    }
+  }, [currentCountry, geoCountry, setValue]);
+
   const accountType = watch("accountType");
 
   const hasFormProgress = useMemo(() => {
@@ -189,8 +202,10 @@ export const AccountTypeForm = () => {
     {
       id: "professional",
       icon: Scissors,
-      title: "Licensed stylist",
-      description: "Commission, or independent stylist",
+      title: isAU ? "Professional stylist" : "Licensed stylist",
+      description: isAU
+        ? "Salon-employed, mobile, or independent"
+        : "Commission, or independent stylist",
       features: [
         { label: "Pro discount", icon: Tag },
         { label: "Priority support", icon: Headphones },
@@ -212,8 +227,8 @@ export const AccountTypeForm = () => {
     {
       id: "student",
       icon: GraduationCap,
-      title: "Cosmetology student or apprentice",
-      description: "Currently enrolled",
+      title: isAU ? "Student or apprentice" : "Cosmetology student or apprentice",
+      description: isAU ? "In training or learnership" : "Currently enrolled",
       features: [
         { label: "Student pricing", icon: Tag },
         { label: "Learning resources", icon: FileCheck },
@@ -233,7 +248,7 @@ export const AccountTypeForm = () => {
             </span>
           </div>
           <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-            We only sell to licensed stylists
+            {isAU ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
             Drop Dead is a trade-only brand. Ask your stylist about Drop Dead pricing. If you
