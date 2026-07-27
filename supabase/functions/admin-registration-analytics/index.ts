@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume, country_code",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
