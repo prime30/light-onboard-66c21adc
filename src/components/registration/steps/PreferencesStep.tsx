@@ -60,12 +60,9 @@ export const PreferencesStep = () => {
   // separate schemes, so we don't collect a certificate here.
   const showTaxExemption = (countryCode ?? "US") === "US";
 
-  // Australia has no cosmetology licensing, so we require an Instagram
-  // handle from AU professionals + salons as proof of a real hair
-  // portfolio. Students still see it as optional.
-  const requireInstagramHandle =
-    (countryCode ?? "").toUpperCase() === "AU" &&
-    (accountType === "professional" || accountType === "salon");
+  // (Instagram handle moved to Contact Information and required for all
+  // registrations - no longer surfaced here.)
+
 
   // If country changes to non-US, clear any prior tax-exempt state so it
   // doesn't linger in session storage / summary.
