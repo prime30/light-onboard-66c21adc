@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -266,6 +266,97 @@ export const ContactBasicsStep = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phoneNumber, phoneCountryCode]);
 
+  // Instagram handle live verification. We debounce, hit
+  // verify-instagram-handle which fetches the public IG profile URL, and
+  // surface the confirmed link (or a "not found" hint) inline. If IG rate
+  // limits us the result is "unknown" - we don't block submit in that case
+  // (server-side format check still applies).
+  const socialMediaHandle = watch("socialMediaHandle");
+  type IgStatus =
+    | { state: "idle" }
+    | { state: "invalid" }
+    | { state: "checking"; url: string }
+    | { state: "exists"; url: string; normalized: string }
+    | { state: "missing"; url: string }
+    | { state: "unknown"; url: string };
+  const [igStatus, setIgStatus] = useState<IgStatus>({ state: "idle" });
+  const lastVerifiedHandleRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const raw = String(socialMediaHandle ?? "").trim().replace(/^@+/, "");
+    if (!raw) {
+      setIgStatus({ state: "idle" });
+      lastVerifiedHandleRef.current = null;
+      return;
+    }
+    if (!/^[A-Za-z0-9._]{1,30}$/.test(raw)) {
+      setIgStatus({ state: "invalid" });
+      return;
+    }
+    const normalized = raw.toLowerCase();
+    const url = `https://www.instagram.com/${normalized}/`;
+    if (lastVerifiedHandleRef.current === normalized) return;
+    setIgStatus({ state: "checking", url });
+
+    const cacheKey = `dde:verify-ig:${normalized}`;
+    const cached = (() => {
+      try {
+        const v = sessionStorage.getItem(cacheKey);
+        return v ? (JSON.parse(v) as { exists: boolean | null }) : null;
+      } catch {
+        return null;
+      }
+    })();
+    const applyResult = (exists: boolean | null) => {
+      lastVerifiedHandleRef.current = normalized;
+      if (exists === true) {
+        setIgStatus({ state: "exists", url, normalized });
+        if (errors.socialMediaHandle?.type === "manual") clearErrors("socialMediaHandle");
+      } else if (exists === false) {
+        setIgStatus({ state: "missing", url });
+        setError("socialMediaHandle", {
+          type: "manual",
+          message: "We couldn't find that Instagram profile. Double-check the handle.",
+        });
+      } else {
+        setIgStatus({ state: "unknown", url });
+        if (errors.socialMediaHandle?.type === "manual") clearErrors("socialMediaHandle");
+      }
+    };
+    if (cached) {
+      applyResult(cached.exists);
+      return;
+    }
+    const t = window.setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("verify-instagram-handle", {
+          body: { handle: normalized },
+        });
+        if (error) {
+          setIgStatus({ state: "unknown", url });
+          return;
+        }
+        const currentRaw = String((watch("socialMediaHandle") ?? "") as string)
+          .trim()
+          .replace(/^@+/, "")
+          .toLowerCase();
+        if (currentRaw !== normalized) return;
+        const exists =
+          (data as { exists?: boolean | null } | null | undefined)?.exists ?? null;
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({ exists }));
+        } catch {
+          // ignore quota
+        }
+        applyResult(exists);
+      } catch {
+        setIgStatus({ state: "unknown", url });
+      }
+    }, 600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socialMediaHandle]);
+
 
 
 
@@ -431,6 +522,67 @@ export const ContactBasicsStep = () => {
               errors.phoneNumber.message.toLowerCase().includes("already has an account")) && (
               <ConflictPills navigate={navigate} />
             )}
+        </div>
+
+        {/* Instagram handle - required for every registration */}
+        <div className="space-y-2 animate-stagger-6 group">
+          <TextInput
+            name="socialMediaHandle"
+            type="text"
+            register={register}
+            error={errors.socialMediaHandle}
+            placeholder="yourhairhandle"
+            autoComplete="off"
+            label={
+              <>
+                Instagram handle<span className="text-destructive">*</span>
+              </>
+            }
+            prefixIcon={
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base font-medium">
+                @
+              </span>
+            }
+            className="[&_input]:pl-9"
+          />
+          {/* Live verification status */}
+          {igStatus.state === "checking" && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1.5">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Verifying instagram.com/{socialMediaHandle?.toString().trim().replace(/^@+/, "")}...
+            </p>
+          )}
+          {igStatus.state === "exists" && (
+            <a
+              href={igStatus.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 mt-1.5 group/link"
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Profile found:</span>
+              <span className="underline underline-offset-2">
+                instagram.com/{igStatus.normalized}
+              </span>
+              <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+            </a>
+          )}
+          {igStatus.state === "missing" && (
+            <p className="text-xs text-destructive flex items-center gap-1.5 mt-1.5">
+              <XCircle className="w-3 h-3" />
+              We couldn't find that profile on Instagram. Check the spelling.
+            </p>
+          )}
+          {igStatus.state === "unknown" && (
+            <p className="text-xs text-muted-foreground mt-1.5">
+              We couldn't reach Instagram to confirm this handle. It'll be reviewed manually.
+            </p>
+          )}
+          {igStatus.state === "idle" && (
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Enter your handle only. We'll confirm the profile link automatically.
+            </p>
+          )}
         </div>
       </div>
     </div>

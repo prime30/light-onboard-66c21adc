@@ -190,6 +190,18 @@ const contactBasicsValidators = {
       const phoneCountryCode = countryCodes.find((c) => c.iso === value)?.code || value;
       return phoneCountryCode;
     }),
+  // Instagram handle is required for every registration. Users type just
+  // the handle; the client verifies it resolves to a real profile via the
+  // verify-instagram-handle edge function and shows the confirmed URL.
+  socialMediaHandle: z
+    .string({ error: "Instagram handle is required" })
+    .trim()
+    .min(1, "Instagram handle is required")
+    .transform((val) => val.replace(/^@+/, "").trim())
+    .refine(
+      (val) => /^[A-Za-z0-9._]{1,30}$/.test(val),
+      "Enter a valid Instagram handle (letters, numbers, periods, and underscores only)"
+    ),
 };
 export const contactBasicsSchema = z.object(contactBasicsValidators);
 
@@ -352,11 +364,8 @@ const preferencesValidators = {
   ...taxExemptionValidators,
   birthdayMonth: z.string().optional(),
   birthdayDay: z.string().optional(),
-  socialMediaHandle: z
-    .string()
-    .trim()
-    .max(100, "Handle must be less than 100 characters")
-    .optional(),
+  // socialMediaHandle now lives on Contact Basics (required for everyone).
+
   referralSource: z
     .string({ error: "Please tell us how you heard about us" })
     .trim()
@@ -526,27 +535,9 @@ export const registrationSchema = z
           }
         }
       }
+      // socialMediaHandle is required on Contact Basics for everyone now,
+      // so no additional country-scoped rule is needed here.
 
-      // Australia-only: require an Instagram handle so we can verify a real
-      // hair portfolio. AU has no licensing, so social proof is the only
-      // signal available. Applies to professional + salon flows only.
-      if (country === "AU" && isCredentialFlow) {
-        const raw = (d.socialMediaHandle ?? "").trim().replace(/^@+/, "");
-        if (!raw) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Instagram handle is required to verify your hair portfolio",
-            path: ["socialMediaHandle"],
-          });
-        } else if (!/^[A-Za-z0-9._]{1,30}$/.test(raw)) {
-          ctx.addIssue({
-            code: "custom",
-            message:
-              "Enter a valid Instagram handle (letters, numbers, periods, and underscores only)",
-            path: ["socialMediaHandle"],
-          });
-        }
-      }
     }
   });
 
