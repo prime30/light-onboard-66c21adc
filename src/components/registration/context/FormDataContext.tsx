@@ -176,6 +176,10 @@ export function FormDataProvider({
             data: values,
             honeypot: readHoneypotValue(),
             formStartedAt: readFormStartedAt(),
+            auGeoToken:
+              (values.countryCode || "").toUpperCase() === "AU" && values.email
+                ? readAuGeoToken(values.email)
+                : undefined,
           }),
         },
         "Account created successfully!"
