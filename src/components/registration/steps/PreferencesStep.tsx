@@ -41,7 +41,6 @@ export const PreferencesStep = () => {
     "taxExempt",
     "taxExemptFile",
     "countryCode",
-    "accountType",
   ]);
 
   const [
@@ -52,7 +51,6 @@ export const PreferencesStep = () => {
     taxExempt,
     taxExemptFile,
     countryCode,
-    accountType,
   ] = watchedValues;
 
   // Tax exemption is a US-only concept (state sales tax). Other supported
