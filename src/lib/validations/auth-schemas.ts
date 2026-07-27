@@ -391,6 +391,11 @@ export const registrationSchema = z
       confirmPassword?: string;
       zipCode?: string;
       countryCode?: string;
+      provinceCode?: string;
+      accountType?: string;
+      licenseNumber?: string;
+      qualification?: string;
+      nswLicenseNumber?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
@@ -403,6 +408,34 @@ export const registrationSchema = z
       const result = isValidZipForCountry(d.zipCode, d.countryCode);
       if (result !== true) {
         ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+      }
+    }
+
+    // AU branch: ABN + qualification (+ NSW licence for NSW).
+    // Applies to professional and salon flows only.
+    const isAU = (d.countryCode ?? "").toUpperCase() === "AU";
+    const isCredentialFlow = d.accountType === "professional" || d.accountType === "salon";
+    if (isAU && isCredentialFlow) {
+      if (d.licenseNumber && !isValidABN(d.licenseNumber)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a valid ABN (11 digits)",
+          path: ["licenseNumber"],
+        });
+      }
+      if (!d.qualification) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Please select your qualification",
+          path: ["qualification"],
+        });
+      }
+      if ((d.provinceCode ?? "").toUpperCase() === "NSW" && !d.nswLicenseNumber?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          message: "NSW hairdresser licence number is required",
+          path: ["nswLicenseNumber"],
+        });
       }
     }
   });
