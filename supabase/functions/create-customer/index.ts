@@ -269,7 +269,10 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     city: z.string().min(1),
     provinceCode: z.string().min(1),
     zipCode: z.string().min(1),
-    licenseNumber: z.string().min(1),
+    // AU has no licence/qualification requirement, so licenseNumber is
+    // optional server-side. Non-AU flows already enforce presence on the
+    // client via registrationSchema.superRefine.
+    licenseNumber: z.string().nullish().default(""),
     licenseProofFiles: z.array(z.string()).nullish().default([]),
     qualification: z.string().nullish(),
     taxExempt: z.boolean().default(false),
