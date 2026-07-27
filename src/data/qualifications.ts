@@ -157,22 +157,24 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
   },
   UK: {
     h1: "Provide your credentials",
-    sub: "Enter your qualification and salon details",
-    wholesaleCopy: "Wholesale pricing is exclusive to verified UK salon professionals.",
-    licenseFieldLabel: (s) => (s ? "Salon / Companies House number*" : "NVQ certificate # or Hair Council SRH*"),
+    sub: "Enter your salon business ID and qualification",
+    wholesaleCopy:
+      "Wholesale pricing is exclusive to verified UK salon professionals. Hair Council SRH registration is voluntary in the UK.",
+    licenseFieldLabel: (s) =>
+      s ? "Companies House / VAT / UTR*" : "Diploma cert #, SRH #, VAT or UTR*",
     licenseFieldPlaceholder: (s) =>
-      s ? "e.g. Companies House number" : "e.g. NVQ cert #, SRH00000",
+      s ? "e.g. 8-digit Companies House #, VAT or UTR" : "e.g. Diploma cert #, SRH00000, UTR",
     uploadCopy: (s) =>
       s
-        ? "Upload your NVQ / salon registration certificate*"
-        : "Upload your NVQ / Hair Council certificate*",
+        ? "Upload your Diploma or salon registration certificate*"
+        : "Upload your Diploma / Hair Council certificate*",
     hasQualification: true,
   },
   IE: {
     h1: "Provide your credentials",
     sub: "Enter your qualification and salon details",
     wholesaleCopy: "Wholesale pricing is exclusive to verified Irish salon professionals.",
-    licenseFieldLabel: (s) => (s ? "Salon CRO / VAT number*" : "QQI certificate # or CRO*"),
+    licenseFieldLabel: (s) => (s ? "Salon CRO / VAT number*" : "QQI certificate # or CRO / VAT*"),
     licenseFieldPlaceholder: (s) => (s ? "e.g. CRO or VAT number" : "e.g. QQI cert #"),
     uploadCopy: (s) =>
       s ? "Upload your QQI / CRO certificate*" : "Upload your QQI certificate*",
