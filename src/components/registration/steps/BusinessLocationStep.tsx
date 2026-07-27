@@ -136,7 +136,7 @@ export const BusinessLocationStep = () => {
   }));
 
   // Get subdivisions based on selected country
-  const subdivisions = selectedCountry?.code === "US" ? states : provinces;
+  const subdivisions = selectedCountry?.subdivisions ?? states;
   const subdivisionOptions = subdivisions.map((s) => ({
     value: s.code,
     label: s.name,
