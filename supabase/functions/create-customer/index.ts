@@ -1248,22 +1248,29 @@ Deno.serve(async (req: Request) => {
     // International tags: country + qualification (+ NSW licence carve-out).
     // Inline qualification->tag map (edge functions can't import from src/).
     const QUALIFICATION_TAG_MAP: Record<string, string> = {
-      // AU
+      // AU (training.gov.au SHB package)
       cert3: "qualification-cert3",
+      cert3_barbering: "qualification-cert3-barbering",
       cert4: "qualification-cert4",
-      // UK
-      nvq2: "qualification-nvq2",
-      nvq3: "qualification-nvq3",
+      // UK (Ofqual RQF + DfE)
+      diploma2: "qualification-diploma-l2",
+      diploma3: "qualification-diploma-l3",
       svq: "qualification-svq",
+      tlevel: "qualification-tlevel",
+      apprentice_std: "qualification-apprentice-standard",
       srh: "qualification-srh",
-      // IE
+      // Legacy UK values (kept for backwards compat with saved sessions)
+      nvq2: "qualification-diploma-l2",
+      nvq3: "qualification-diploma-l3",
+      // IE (QQI / SOLAS)
       qqi5: "qualification-qqi5",
-      qqi6: "qualification-qqi6",
       nha: "qualification-nha",
-      // NZ
+      // Legacy IE value
+      qqi6: "qualification-nha",
+      // NZ (NZQA)
       nzcert3: "qualification-nzcert3",
       nzcert4: "qualification-nzcert4",
-      // ZA
+      // ZA (QCTO / SAQA / C&G)
       qcto_hairdresser: "qualification-qcto-hairdresser",
       nc_hairdressing: "qualification-nc-hairdressing",
       cg_diploma: "qualification-cg-diploma",
@@ -1291,8 +1298,11 @@ Deno.serve(async (req: Request) => {
     if (qual && QUALIFICATION_TAG_MAP[qual]) {
       internationalTags.push(QUALIFICATION_TAG_MAP[qual]);
     }
-    if (custCountry === "AU" && cust.nsw_license_number && String(cust.nsw_license_number).trim()) {
-      internationalTags.push("nsw-licensed");
+    // NSW: no separate licence number is issued by NSW - the Hairdressers
+    // Act 2003 requires Cert III, which is already captured via
+    // qualification tags. Tag NSW residents with a jurisdiction marker only.
+    if (custCountry === "AU" && (cust.province_code ?? "").toString().toUpperCase() === "NSW") {
+      internationalTags.push("au-nsw");
     }
 
     const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...internationalTags];
