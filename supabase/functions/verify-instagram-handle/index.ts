@@ -48,54 +48,80 @@ Deno.serve(async (req) => {
 
   const normalized = raw.toLowerCase();
   const url = `https://www.instagram.com/${normalized}/`;
+  // Instagram's public web profile info endpoint. Returns clean 200 JSON
+  // with `data.user` for real accounts and 404 for missing ones. Requires
+  // the public web app id header. Falls back to HTML parsing of the
+  // profile URL if the JSON endpoint refuses us.
+  const apiUrl = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(
+    normalized,
+  )}`;
+
+  const commonHeaders: Record<string, string> = {
+    "User-Agent": UA,
+    "Accept-Language": "en-US,en;q=0.9",
+  };
 
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(url, {
+    const apiRes = await fetch(apiUrl, {
       method: "GET",
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": UA,
-        "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
+        ...commonHeaders,
+        Accept: "application/json,text/plain,*/*",
+        "X-IG-App-ID": "936619743392459",
+        Referer: url,
       },
     });
     clearTimeout(timeout);
 
-    if (res.status === 404) {
+    if (apiRes.status === 404) {
       return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
     }
+    if (apiRes.status === 200) {
+      try {
+        const body = (await apiRes.json()) as {
+          data?: { user?: { username?: string } | null };
+        };
+        if (body?.data?.user && body.data.user.username) {
+          return json({ ok: true, exists: true, normalized, url });
+        }
+        return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
+      } catch {
+        // fall through to HTML fallback
+      }
+    }
 
-    // Instagram sometimes returns 200 with a login wall. Read a chunk of
-    // HTML and look for markers.
-    const text = (await res.text()).toLowerCase();
-    const notFoundMarkers = [
-      "sorry, this page isn't available",
-      "the link you followed may be broken",
-      '"user":null',
-      "page not found",
-    ];
-    const profileMarkers = [
-      `"username":"${normalized}"`,
-      `instagram.com/${normalized}`,
-      "profilepage_",
-      "og:title",
-    ];
-
-    const looksMissing = notFoundMarkers.some((m) => text.includes(m));
-    if (looksMissing) {
+    // Fallback: fetch the profile page and inspect status / markers.
+    const controller2 = new AbortController();
+    const timeout2 = setTimeout(() => controller2.abort(), 6000);
+    const htmlRes = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      signal: controller2.signal,
+      headers: {
+        ...commonHeaders,
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+      },
+    });
+    clearTimeout(timeout2);
+    if (htmlRes.status === 404) {
       return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
     }
-    const looksExists =
-      res.ok && profileMarkers.some((m) => text.includes(m));
-    if (looksExists) {
+    const text = (await htmlRes.text()).toLowerCase();
+    if (
+      text.includes("page not found") ||
+      text.includes("sorry, this page isn't available") ||
+      text.includes('"user":null')
+    ) {
+      return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
+    }
+    if (text.includes(`"username":"${normalized}"`)) {
       return json({ ok: true, exists: true, normalized, url });
     }
-
-    // Ambiguous (e.g. login wall with no markers) - don't block the user.
     return json({ ok: true, exists: null, normalized, url, reason: "ambiguous" });
   } catch (err) {
     // Network / abort - fail open so signup isn't blocked by IG rate limits.
