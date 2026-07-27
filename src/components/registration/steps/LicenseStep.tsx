@@ -111,18 +111,15 @@ export const LicenseStep = () => {
           </div>
         )}
 
-        {/* AU + NSW: NSW hairdresser licence */}
+        {/* AU + NSW: informational note. NSW's Hairdressers Act 2003 requires
+            SHB30416 (Certificate III) to practise but does NOT issue a
+            separate licence number - so we don't ask for one. */}
         {isNSW && (
-          <div className="animate-stagger-4 space-y-2">
-            <TextInput
-              name="nswLicenseNumber"
-              type="text"
-              register={register}
-              error={errors.nswLicenseNumber}
-              placeholder="Enter your NSW hairdresser licence number"
-              label="NSW hairdresser licence number*"
-              isValid={getValidationStatus("nswLicenseNumber" as never) === "complete"}
-            />
+          <div className="animate-stagger-4 flex gap-[15px] pl-5 border-l-2 border-border">
+            <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground/70 leading-relaxed">
+              NSW's Hairdressers Act 2003 requires holding Certificate III in Hairdressing (SHB30416) or a recognised equivalent - it doesn't issue a separate licence number. Selecting Cert III above satisfies this requirement.
+            </p>
           </div>
         )}
 
