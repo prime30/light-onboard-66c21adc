@@ -39,7 +39,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   // programme - it replaces the standalone "QQI Level 6" listing.
   IE: [
     { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
-    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, SOLAS)", tag: "qualification-nha" },
+    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, Limerick & Clare ETB)", tag: "qualification-nha" },
     { value: "apprentice", label: "Apprentice / in training (legacy)", tag: "qualification-apprentice" },
   ],
   // NZ: NZQA Ringa Hora WDC. Level 3 is "Salon Support" - Level 4 is
