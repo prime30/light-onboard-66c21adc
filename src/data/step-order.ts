@@ -130,10 +130,17 @@ export const STEP_ORDER: Record<string, Step[]> = {
  */
 export function getStepOrder(
   accountType: AccountType,
-  autoApprove = false
+  autoApprove = false,
+  countryCode?: string
 ): Step[] {
   if (!accountType) return ["account-type"];
-  const order = STEP_ORDER[accountType] || STEP_ORDER.professional;
+  let order = STEP_ORDER[accountType] || STEP_ORDER.professional;
+  // Australia has no licensing/qualification/salon-licence requirement for
+  // hair-extension services, so the entire "license" step is skipped for
+  // AU professionals and AU salons.
+  if ((countryCode ?? "").toUpperCase() === "AU") {
+    order = order.filter((s) => s !== "license");
+  }
   if (!autoApprove) return order;
   return order.filter((s) => s !== "create-password");
 }
