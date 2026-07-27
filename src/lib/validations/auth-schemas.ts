@@ -409,8 +409,8 @@ export const registrationSchema = z
       ...salonValidators,
       ...licenseValidators,
       ...monthlyOrderVolumeValidators,
-      // Salons must upload license proof (override the optional spread above).
-      licenseProofFiles: fileUploadSchema(false),
+      // licenseProofFiles stays optional here; enforced as required for
+      // non-AU salons by registrationSchema.superRefine below.
     }),
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
