@@ -40,6 +40,7 @@ export const PreferencesStep = () => {
     "phoneCountryCode",
     "taxExempt",
     "taxExemptFile",
+    "countryCode",
   ]);
 
   const [
@@ -49,7 +50,22 @@ export const PreferencesStep = () => {
     phoneCountryCode,
     taxExempt,
     taxExemptFile,
+    countryCode,
   ] = watchedValues;
+
+  // Tax exemption is a US-only concept (state sales tax). Other supported
+  // countries (AU, UK, IE, NZ, ZA) handle tax at the point of sale or via
+  // separate schemes, so we don't collect a certificate here.
+  const showTaxExemption = (countryCode ?? "US") === "US";
+
+  // If country changes to non-US, clear any prior tax-exempt state so it
+  // doesn't linger in session storage / summary.
+  useEffect(() => {
+    if (!showTaxExemption && (taxExempt !== undefined || (Array.isArray(taxExemptFile) && taxExemptFile.length > 0))) {
+      setValue("taxExempt", undefined as unknown as boolean, dirtyFieldOptions);
+      setValue("taxExemptFile", [], dirtyFieldOptions);
+    }
+  }, [showTaxExemption, taxExempt, taxExemptFile, setValue]);
 
   const validationStatus = getStepValidationStatus(currentStep);
 
