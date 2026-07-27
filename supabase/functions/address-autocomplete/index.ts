@@ -73,15 +73,21 @@ serve(async (req) => {
       includedPrimaryTypes: ["street_address", "premise", "subpremise"],
     };
 
-    // Add country restriction if provided
+    // Add country restriction if provided. Supports every country the app
+    // registers users from; anything else falls through to unrestricted +
+    // location-biased results.
+    const COUNTRY_ALIASES: Record<string, string> = {
+      US: "US", USA: "US", "UNITED STATES": "US",
+      CA: "CA", CAN: "CA", CANADA: "CA",
+      AU: "AU", AUS: "AU", AUSTRALIA: "AU",
+      GB: "GB", UK: "GB", "UNITED KINGDOM": "GB", "GREAT BRITAIN": "GB",
+      IE: "IE", IRL: "IE", IRELAND: "IE",
+      NZ: "NZ", NZL: "NZ", "NEW ZEALAND": "NZ",
+      ZA: "ZA", ZAF: "ZA", "SOUTH AFRICA": "ZA",
+    };
     if (country) {
       const normalizedCountry = String(country).trim().toUpperCase();
-      const countryCode =
-        normalizedCountry === "US" || normalizedCountry === "UNITED STATES"
-          ? "US"
-          : normalizedCountry === "CA" || normalizedCountry === "CANADA"
-            ? "CA"
-            : "";
+      const countryCode = COUNTRY_ALIASES[normalizedCountry] ?? "";
       if (countryCode) {
         requestBody.includedRegionCodes = [countryCode];
       }
@@ -124,21 +130,57 @@ serve(async (req) => {
       ON: { lat: 51.253775, lng: -85.323213 }, PE: { lat: 46.510712, lng: -63.416813 },
       QC: { lat: 52.939916, lng: -73.549136 }, SK: { lat: 52.939916, lng: -106.450857 },
       YT: { lat: 64.282315, lng: -135.0 },
+      // Australia states/territories
+      "AU-NSW": { lat: -32.163333, lng: 147.016667 }, "AU-VIC": { lat: -37.020, lng: 144.964 },
+      "AU-QLD": { lat: -22.575, lng: 144.085 }, "AU-WA": { lat: -25.042, lng: 117.793 },
+      "AU-SA": { lat: -30.000, lng: 136.209 }, "AU-TAS": { lat: -42.035, lng: 146.637 },
+      "AU-ACT": { lat: -35.474, lng: 149.012 }, "AU-NT": { lat: -19.491, lng: 132.551 },
+      // UK nations
+      "GB-ENG": { lat: 52.355, lng: -1.174 }, "GB-SCT": { lat: 56.490, lng: -4.203 },
+      "GB-WLS": { lat: 52.130, lng: -3.783 }, "GB-NIR": { lat: 54.787, lng: -6.492 },
+      // New Zealand island fallbacks
+      "NZ-N": { lat: -38.500, lng: 175.500 }, "NZ-S": { lat: -43.995, lng: 170.500 },
+      // South Africa provinces
+      "ZA-GT": { lat: -26.271, lng: 28.112 }, "ZA-WC": { lat: -33.226, lng: 21.856 },
+      "ZA-EC": { lat: -32.271, lng: 27.028 }, "ZA-KZN": { lat: -28.531, lng: 30.895 },
+      "ZA-LP": { lat: -23.401, lng: 29.417 }, "ZA-MP": { lat: -25.566, lng: 30.526 },
+      "ZA-NW": { lat: -26.686, lng: 25.284 }, "ZA-FS": { lat: -28.454, lng: 26.795 },
+      "ZA-NC": { lat: -29.046, lng: 21.858 },
     };
+    // Country-level centroids used when we have a country but no state pick.
+    const COUNTRY_CENTROIDS: Record<string, { lat: number; lng: number }> = {
+      AU: { lat: -25.274, lng: 133.775 },
+      GB: { lat: 54.093, lng: -2.895 },
+      IE: { lat: 53.412, lng: -8.244 },
+      NZ: { lat: -40.900, lng: 174.886 },
+      ZA: { lat: -28.816, lng: 24.992 },
+    };
+    };
+    // Resolve region centroid. Accept both bare subdivision codes ("NSW")
+    // and ISO-3166-2-style prefixed codes ("AU-NSW"). If we have a country
+    // but no matching subdivision, fall back to the country centroid so
+    // AU/UK/IE/NZ/ZA lookups don't drift back to us-west.
+    const normalizedRegion =
+      typeof regionCode === "string" ? regionCode.trim().toUpperCase() : "";
+    const normalizedCountryForBias = country
+      ? (COUNTRY_ALIASES[String(country).trim().toUpperCase()] ?? "")
+      : "";
     const centroid =
-      typeof regionCode === "string"
-        ? STATE_CENTROIDS[regionCode.trim().toUpperCase()]
-        : undefined;
+      (normalizedRegion && STATE_CENTROIDS[normalizedRegion]) ||
+      (normalizedCountryForBias && normalizedRegion
+        ? STATE_CENTROIDS[`${normalizedCountryForBias}-${normalizedRegion}`]
+        : undefined) ||
+      (normalizedCountryForBias ? COUNTRY_CENTROIDS[normalizedCountryForBias] : undefined);
 
     // Resolve a bias point. Priority:
-    //   1. Explicit state/province centroid (user already picked one).
-    //   2. IP-geo fallback derived from the caller's real IP (x-forwarded-for),
-    //      so first-keystroke results are local instead of CA-datacenter.
+    //   1. Explicit region or country centroid (user already picked one).
+    //   2. Browser IP-geo passed from the client.
+    //   3. Edge IP-geo fallback derived from the caller's real IP.
     let biasPoint: { lat: number; lng: number; radiusKm: number } | null = null;
     let biasSource = "";
     if (centroid) {
       biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 50 };
-      biasSource = `region:${regionCode}`;
+      biasSource = `region:${normalizedRegion || normalizedCountryForBias}`;
     } else if (
       clientLocationBias &&
       typeof clientLocationBias.lat === "number" &&

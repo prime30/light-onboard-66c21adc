@@ -341,6 +341,12 @@ Deno.serve(async (req: Request) => {
   if (firstName) profileAttrs.first_name = firstName;
   if (lastName) profileAttrs.last_name = lastName;
   if (phoneAcceptable) profileAttrs.phone_number = phoneE164;
+  // Klaviyo profile location uses ISO-3166-1 alpha-2. Send the 2-letter form
+  // when we have it so SMS profiles are correctly regioned and downstream
+  // segmentation (region-scoped flows, geo filters) works.
+  if (countryCode && countryCode.length === 2) {
+    profileAttrs.location = { country: countryCode };
+  }
 
   const profileRes = await klaviyo("/profile-import", klaviyoKey, {
     data: { type: "profile", attributes: profileAttrs },
