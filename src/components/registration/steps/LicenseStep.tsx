@@ -127,55 +127,6 @@ export const LicenseStep = () => {
         )}
 
 
-      <div className="space-y-5">
-        {/* License Number / ABN */}
-        <div className="animate-stagger-3 space-y-2">
-          <TextInput
-            name="licenseNumber"
-            type="text"
-            register={register}
-            error={errors.licenseNumber}
-            placeholder={
-              isAU
-                ? "e.g. 12 345 678 901"
-                : isSalon
-                  ? "Salon License #"
-                  : "Enter your license number"
-            }
-            label={isAU ? "ABN*" : isSalon ? "Salon License #*" : "License number*"}
-            isValid={getValidationStatus("licenseNumber") === "complete"}
-          />
-        </div>
-
-        {/* AU: Qualification */}
-        {isAU && (
-          <div className="animate-stagger-4">
-            <SelectInput
-              name="qualification"
-              control={control}
-              error={errors.qualification}
-              options={qualificationOptions}
-              label="Hairdressing qualification*"
-              placeholder="Select your qualification"
-              isValid={getValidationStatus("qualification" as never) === "complete"}
-            />
-          </div>
-        )}
-
-        {/* AU + NSW: NSW hairdresser licence */}
-        {isNSW && (
-          <div className="animate-stagger-4 space-y-2">
-            <TextInput
-              name="nswLicenseNumber"
-              type="text"
-              register={register}
-              error={errors.nswLicenseNumber}
-              placeholder="Enter your NSW hairdresser licence number"
-              label="NSW hairdresser licence number*"
-              isValid={getValidationStatus("nswLicenseNumber" as never) === "complete"}
-            />
-          </div>
-        )}
 
         {/* Salon-specific fields */}
         {isSalon && (
@@ -240,7 +191,7 @@ export const LicenseStep = () => {
                   </span>
                 </div>
               )}
-              <Label className="text-sm font-medium">{label}</Label>
+              <Label className="text-sm font-medium">{uploadLabel}</Label>
               <MultiFileUpload
                 files={
                   (licenseProofFiles || []) as {
