@@ -115,7 +115,7 @@ export const BusinessLocationStep = () => {
 
             // Set state/province for the matched country
             if (details.state || details.stateShort) {
-              const subdivisionList = matchedCountry.code === "US" ? states : provinces;
+              const subdivisionList = matchedCountry.subdivisions;
               const matchedSubdivision = subdivisionList.find(
                 (s) => [s.name, s.code].includes(details.state) || s.code === details.stateShort
               );
