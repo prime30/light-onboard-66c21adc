@@ -432,6 +432,7 @@ export const registrationSchema = z
       licenseProofFiles?: unknown;
       salonSize?: string;
       salonStructure?: string;
+      socialMediaHandle?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
