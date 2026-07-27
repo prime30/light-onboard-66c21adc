@@ -344,24 +344,26 @@ export const SummaryForm = () => {
           </div>
         )}
 
-        {/* Tax Exemption */}
-        <div className="animate-stagger-7">
-          <SummarySection
-            title="Tax Exemption"
-            stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}
-          >
-            <SummaryRow
-              label="Status"
-              value={
-                taxExempt === true
-                  ? "Tax exempt"
-                  : taxExempt === false
-                    ? "Not tax exempt"
-                    : "Not specified"
-              }
-            />
-          </SummarySection>
-        </div>
+        {/* Tax Exemption - US only (state sales tax concept) */}
+        {country === "US" && (
+          <div className="animate-stagger-7">
+            <SummarySection
+              title="Tax Exemption"
+              stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}
+            >
+              <SummaryRow
+                label="Status"
+                value={
+                  taxExempt === true
+                    ? "Tax exempt"
+                    : taxExempt === false
+                      ? "Not tax exempt"
+                      : "Not specified"
+                }
+              />
+            </SummarySection>
+          </div>
+        )}
 
         {/* Preferred Method */}
         {preferredMethods && preferredMethods.length > 0 && (
