@@ -431,26 +431,45 @@ export const registrationSchema = z
       }
     }
 
-    // AU branch: ABN + qualification (+ NSW licence for NSW).
-    // Applies to professional and salon flows only.
-    const isAU = (d.countryCode ?? "").toUpperCase() === "AU";
+    // Country-aware credential validation for professional + salon flows.
+    const country = (d.countryCode ?? "").toUpperCase();
     const isCredentialFlow = d.accountType === "professional" || d.accountType === "salon";
-    if (isAU && isCredentialFlow) {
-      if (d.licenseNumber && !isValidABN(d.licenseNumber)) {
+    if (isCredentialFlow) {
+      // ABN format check on AU.
+      if (country === "AU" && d.licenseNumber && !isValidABN(d.licenseNumber)) {
         ctx.addIssue({
           code: "custom",
           message: "Enter a valid ABN (11 digits)",
           path: ["licenseNumber"],
         });
       }
-      if (!d.qualification) {
+      // NZBN check on NZ - only enforce if it looks numeric (allow SRH/cert #s).
+      if (
+        country === "NZ" &&
+        d.licenseNumber &&
+        /^[\d\s]+$/.test(d.licenseNumber) &&
+        !isValidNZBN(d.licenseNumber)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a valid NZBN (13 digits) or a certificate number",
+          path: ["licenseNumber"],
+        });
+      }
+      // Qualification required for AU/UK/IE/NZ/ZA.
+      if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !d.qualification) {
         ctx.addIssue({
           code: "custom",
           message: "Please select your qualification",
           path: ["qualification"],
         });
       }
-      if ((d.provinceCode ?? "").toUpperCase() === "NSW" && !d.nswLicenseNumber?.trim()) {
+      // AU NSW licence carve-out.
+      if (
+        country === "AU" &&
+        (d.provinceCode ?? "").toUpperCase() === "NSW" &&
+        !d.nswLicenseNumber?.trim()
+      ) {
         ctx.addIssue({
           code: "custom",
           message: "NSW hairdresser licence number is required",
