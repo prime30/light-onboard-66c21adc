@@ -56,7 +56,7 @@ export const FIELD_DISPLAY_NAMES: Partial<Record<ValidFieldNames, string>> = {
   monthlyOrderVolume: "Monthly order volume",
   birthdayMonth: "Birthday month",
   birthdayDay: "Birthday day",
-  socialMediaHandle: "Social media handle",
+  socialMediaHandle: "Instagram handle",
   referralSource: "How you heard about us",
   subscribeOrderUpdates: "Order update preference",
   acceptsMarketing: "Email marketing preference",
