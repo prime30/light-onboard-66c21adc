@@ -45,6 +45,7 @@ interface Payload {
   preferredMethods?: string[] | null;
   monthlyOrderVolume?: string | null;
   autoApproved?: boolean | null;
+  countryCode?: string | null;
 }
 
 
