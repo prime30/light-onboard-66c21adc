@@ -3,7 +3,10 @@ import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
-import { ALL_QUALIFICATION_VALUES } from "../../data/qualifications.ts";
+import {
+  ALL_QUALIFICATION_VALUES,
+  isCurrentQualificationForCountry,
+} from "../../data/qualifications.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
   "Please use a permanent email address - disposable inboxes aren't accepted";
@@ -85,8 +88,18 @@ const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
 };
 
 // ABN: 11 digits, spaces allowed as separators (e.g. "12 345 678 901").
-const isValidABN = (abn: string): boolean =>
-  abn.replace(/\s+/g, "").length === 11 && /^\d+$/.test(abn.replace(/\s+/g, ""));
+// Australian Business Register checksum: subtract 1 from the first digit,
+// apply weights 10,1,3,5,7,9,11,13,15,17,19, then require mod 89 === 0.
+const isValidABN = (abn: string): boolean => {
+  const digits = abn.replace(/\s+/g, "");
+  if (!/^\d{11}$/.test(digits)) return false;
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  const sum = digits.split("").reduce((total, digit, index) => {
+    const value = Number(digit) - (index === 0 ? 1 : 0);
+    return total + value * weights[index];
+  }, 0);
+  return sum % 89 === 0;
+};
 // NZBN: 13 digits, spaces allowed.
 const isValidNZBN = (v: string): boolean => {
   const s = v.replace(/\s+/g, "");
@@ -241,9 +254,8 @@ export const businessLocationSchema = z
 // License Schema (for professionals).
 // On US/CA the licenseNumber holds a cosmetology license.
 // On AU the licenseNumber holds the practitioner's ABN (11 digits) - the
-// UI relabels the field to "ABN*" when countryCode === "AU". Additional
-// AU-only fields (qualification, nswLicenseNumber) are validated by the
-// registrationSchema.superRefine below.
+// UI relabels the field to "ABN*" when countryCode === "AU". Country-specific
+// qualification rules are validated by registrationSchema.superRefine below.
 const licenseValidators = {
   licenseNumber: z
     .string()
@@ -456,11 +468,24 @@ export const registrationSchema = z
           path: ["licenseNumber"],
         });
       }
-      // Qualification required for AU/UK/IE/NZ/ZA.
+      // Qualification required for AU/UK/IE/NZ/ZA, and it must belong to the
+      // selected country so stale values from sessionStorage cannot satisfy
+      // validation after a country change.
       if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !d.qualification) {
         ctx.addIssue({
           code: "custom",
           message: "Please select your qualification",
+          path: ["qualification"],
+        });
+      }
+      if (
+        QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
+        d.qualification &&
+        !isCurrentQualificationForCountry(country, d.qualification)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Please select a current qualification for your country",
           path: ["qualification"],
         });
       }

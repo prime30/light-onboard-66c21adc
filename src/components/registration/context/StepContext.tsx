@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Step, IncompleteStepInfo } from "@/types/auth";
 import { QUALIFICATION_REQUIRED_COUNTRIES, ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { isCurrentQualificationForCountry } from "@/data/qualifications";
 import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
@@ -165,6 +166,13 @@ export function StepProvider({ children }: StepProviderProps) {
           };
           const country = (v.countryCode ?? "").toUpperCase();
           if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
+            return false;
+          }
+          if (
+            QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
+            v.qualification &&
+            !isCurrentQualificationForCountry(country, v.qualification)
+          ) {
             return false;
           }
         }
@@ -323,6 +331,18 @@ export function StepProvider({ children }: StepProviderProps) {
         setShowValidationErrors(true);
         toast({
           title: "Please select your qualification",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (
+        QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
+        v.qualification &&
+        !isCurrentQualificationForCountry(country, v.qualification)
+      ) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please select a current qualification for your country",
           variant: "destructive",
         });
         return;

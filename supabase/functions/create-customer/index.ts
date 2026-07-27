@@ -1245,7 +1245,7 @@ Deno.serve(async (req: Request) => {
 
     const ghostShellTags = isGhostShell ? ["ghost-shell-recovered"] : [];
 
-    // International tags: country + qualification (+ NSW licence carve-out).
+    // International tags: country + qualification (+ NSW jurisdiction marker).
     // Inline qualification->tag map (edge functions can't import from src/).
     const QUALIFICATION_TAG_MAP: Record<string, string> = {
       // AU (training.gov.au SHB package)
@@ -1256,10 +1256,10 @@ Deno.serve(async (req: Request) => {
       diploma2: "qualification-diploma-l2",
       diploma3: "qualification-diploma-l3",
       svq: "qualification-svq",
-      tlevel: "qualification-tlevel",
       apprentice_std: "qualification-apprentice-standard",
       srh: "qualification-srh",
       // Legacy UK values (kept for backwards compat with saved sessions)
+      tlevel: "qualification-tlevel",
       nvq2: "qualification-diploma-l2",
       nvq3: "qualification-diploma-l3",
       // IE (QQI / SOLAS)
