@@ -251,7 +251,7 @@ const licenseValidators = {
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
   licenseProofFiles: fileUploadSchema(true),
-  qualification: z.enum(["cert3", "cert4", "apprentice"]).optional(),
+  qualification: z.enum(ALL_QUALIFICATION_VALUES).optional(),
   nswLicenseNumber: z
     .string()
     .trim()
