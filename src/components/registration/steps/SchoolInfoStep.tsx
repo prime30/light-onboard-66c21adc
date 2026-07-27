@@ -10,8 +10,10 @@ import { useForm } from "../context";
 import { UploadFileItem } from "@/contexts";
 import { states, provinces } from "@/data/locations";
 
-// Combine and sort US states and Canadian provinces alphabetically
-const allLocations = [...states, ...provinces].map((location) => location.name).sort();
+import { australianStates } from "@/data/locations";
+
+// Combine and sort US states, Canadian provinces, and Australian states/territories alphabetically
+const allLocations = [...states, ...provinces, ...australianStates].map((location) => location.name).sort();
 
 function SchoolNamePrefixIcon({ error }: { error: boolean }) {
   return (
@@ -52,7 +54,8 @@ export const SchoolInfoStep = () => {
   const validationStatus = getStepValidationStatus(currentStep);
 
   // Watch form values
-  const [enrollmentProofFiles] = watch(["enrollmentProofFiles"]);
+  const [enrollmentProofFiles, countryCode] = watch(["enrollmentProofFiles", "countryCode"]);
+  const isAU = (countryCode ?? "").toUpperCase() === "AU";
 
   // Create location options with icons
   const locationOptions = allLocations.map((location) => ({
