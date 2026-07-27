@@ -67,6 +67,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
 
   const email = watch("email");
   const accountType = watch("accountType");
+  const countryCode = watch("countryCode");
 
   // Bounce diagnostics: device, last focused field, validation errors.
   useBounceTelemetry({
@@ -74,6 +75,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     currentStep,
     errors: formDataContext.errors,
     accountType: accountType ?? null,
+    countryCode: countryCode ?? null,
   });
 
   // Auto-navigate to the step that owns the first server-returned field error
