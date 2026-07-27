@@ -707,6 +707,28 @@ Deno.serve(async (req: Request) => {
         "Forbidden",
       );
     }
+
+    // AU professional / salon must supply an Instagram handle - it's the
+    // only portfolio proof we require in place of licensing.
+    const isCredentialFlow =
+      parseResult.data.accountType === "professional" ||
+      parseResult.data.accountType === "salon";
+    if (isCredentialFlow) {
+      const handle = ((parseResult.data as { socialMediaHandle?: string | null })
+        .socialMediaHandle ?? "")
+        .trim()
+        .replace(/^@+/, "");
+      if (!handle) {
+        return sendError(400, [
+          "socialMediaHandle: Instagram handle is required to verify your hair portfolio",
+        ]);
+      }
+      if (!/^[A-Za-z0-9._]{1,30}$/.test(handle)) {
+        return sendError(400, [
+          "socialMediaHandle: Enter a valid Instagram handle (letters, numbers, periods, and underscores only)",
+        ]);
+      }
+    }
   }
 
   console.log("Processing customer sync for:", requestBody.data.email);

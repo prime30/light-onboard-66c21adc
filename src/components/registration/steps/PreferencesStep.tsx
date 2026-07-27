@@ -41,6 +41,7 @@ export const PreferencesStep = () => {
     "taxExempt",
     "taxExemptFile",
     "countryCode",
+    "accountType",
   ]);
 
   const [
@@ -51,12 +52,20 @@ export const PreferencesStep = () => {
     taxExempt,
     taxExemptFile,
     countryCode,
+    accountType,
   ] = watchedValues;
 
   // Tax exemption is a US-only concept (state sales tax). Other supported
   // countries (AU, UK, IE, NZ, ZA) handle tax at the point of sale or via
   // separate schemes, so we don't collect a certificate here.
   const showTaxExemption = (countryCode ?? "US") === "US";
+
+  // Australia has no cosmetology licensing, so we require an Instagram
+  // handle from AU professionals + salons as proof of a real hair
+  // portfolio. Students still see it as optional.
+  const requireInstagramHandle =
+    (countryCode ?? "").toUpperCase() === "AU" &&
+    (accountType === "professional" || accountType === "salon");
 
   // If country changes to non-US, clear any prior tax-exempt state so it
   // doesn't linger in session storage / summary.
@@ -487,19 +496,26 @@ export const PreferencesStep = () => {
           </p>
         </div>
 
-        {/* Social Media Handle (Optional) */}
+        {/* Social Media Handle - required for AU pro/salon (portfolio proof) */}
         <div className="animate-stagger-6">
           <TextInput
             name="socialMediaHandle"
             type="text"
             register={register}
             error={errors.socialMediaHandle}
-            placeholder="yourusername"
+            placeholder={requireInstagramHandle ? "yourhairportfolio" : "yourusername"}
             label={
-              <>
-                Social media handle{" "}
-                <span className="text-muted-foreground font-normal">(optional)</span>
-              </>
+              requireInstagramHandle ? (
+                <>
+                  Instagram handle{" "}
+                  <span className="text-destructive font-normal">*</span>
+                </>
+              ) : (
+                <>
+                  Social media handle{" "}
+                  <span className="text-muted-foreground font-normal">(optional)</span>
+                </>
+              )
             }
             prefixIcon={
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">
@@ -509,10 +525,13 @@ export const PreferencesStep = () => {
             className="[&_input]:pl-9"
           />
           <p className="text-xs text-muted-foreground mt-2.5">
-            Instagram, TikTok, or your primary platform
+            {requireInstagramHandle
+              ? "Share the Instagram where you post your hair work. We review portfolios before approving Australian applications."
+              : "Instagram, TikTok, or your primary platform"}
           </p>
         </div>
       </div>
+
 
 
       {/* Terms of Service Modal */}

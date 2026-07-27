@@ -432,6 +432,7 @@ export const registrationSchema = z
       licenseProofFiles?: unknown;
       salonSize?: string;
       salonStructure?: string;
+      socialMediaHandle?: string;
     };
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
@@ -523,6 +524,27 @@ export const registrationSchema = z
               path: ["licenseProofFiles"],
             });
           }
+        }
+      }
+
+      // Australia-only: require an Instagram handle so we can verify a real
+      // hair portfolio. AU has no licensing, so social proof is the only
+      // signal available. Applies to professional + salon flows only.
+      if (country === "AU" && isCredentialFlow) {
+        const raw = (d.socialMediaHandle ?? "").trim().replace(/^@+/, "");
+        if (!raw) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Instagram handle is required to verify your hair portfolio",
+            path: ["socialMediaHandle"],
+          });
+        } else if (!/^[A-Za-z0-9._]{1,30}$/.test(raw)) {
+          ctx.addIssue({
+            code: "custom",
+            message:
+              "Enter a valid Instagram handle (letters, numbers, periods, and underscores only)",
+            path: ["socialMediaHandle"],
+          });
         }
       }
     }
