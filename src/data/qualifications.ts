@@ -18,7 +18,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   // requires SHB30416 (Cert III) - it does NOT issue a separate licence #.
   AU: [
     { value: "cert3", label: "Certificate III in Hairdressing (SHB30416)", tag: "qualification-cert3" },
-    { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30216)", tag: "qualification-cert3-barbering" },
+    { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30516)", tag: "qualification-cert3-barbering" },
     { value: "cert4", label: "Certificate IV in Hairdressing (SHB40216)", tag: "qualification-cert4" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
@@ -30,7 +30,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
     { value: "diploma3", label: "Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-diploma-l3" },
     { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
     { value: "tlevel", label: "T Level in Hairdressing, Barbering & Beauty (DfE, 2023+)", tag: "qualification-tlevel" },
-    { value: "apprentice_std", label: "Hair Professional Apprenticeship Standard (Level 2)", tag: "qualification-apprentice-standard" },
+    { value: "apprentice_std", label: "Hairdressing Professional (Level 2 Apprenticeship, ST0213)", tag: "qualification-apprentice-standard" },
     { value: "srh", label: "State Registered Hairdresser (SRH, voluntary)", tag: "qualification-srh" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
@@ -39,7 +39,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   // programme - it replaces the standalone "QQI Level 6" listing.
   IE: [
     { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
-    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, SOLAS)", tag: "qualification-nha" },
+    { value: "nha", label: "National Hairdressing Apprenticeship (Level 6, Limerick & Clare ETB)", tag: "qualification-nha" },
     { value: "apprentice", label: "Apprentice / in training (legacy)", tag: "qualification-apprentice" },
   ],
   // NZ: NZQA Ringa Hora WDC. Level 3 is "Salon Support" - Level 4 is

@@ -118,7 +118,7 @@ export const LicenseStep = () => {
           <div className="animate-stagger-4 flex gap-[15px] pl-5 border-l-2 border-border">
             <Info className="w-4 h-4 text-muted-foreground/70 shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground/70 leading-relaxed">
-              NSW's Hairdressers Act 2003 requires holding Certificate III in Hairdressing (SHB30416) or a recognised equivalent - it doesn't issue a separate licence number. Selecting Cert III above satisfies this requirement.
+              Under the NSW Hairdressers Act 2003, hairdressers must hold a prescribed hairdressing qualification (e.g. Certificate III in Hairdressing) or be assessed as competent by NSW Fair Trading. NSW doesn't issue a separate hairdresser licence number, so selecting your qualification above is all we need.
             </p>
           </div>
         )}
