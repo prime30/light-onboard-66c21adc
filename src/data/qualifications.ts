@@ -2,32 +2,62 @@
 // qualification (US, CA) don't render a dropdown - just the license number.
 export type QualificationOption = { value: string; label: string; tag: string };
 
+// Verified against awarding bodies (Nov 2026):
+// - UK: Ofqual RQF-regulated NVQ Diplomas (City & Guilds 6008 / VTCT), SVQ in
+//   Scotland, plus voluntary State Registered Hairdresser (SRH) via the
+//   Hair & Barber Council.
+// - IE: QQI Level 5 (5M3351) / Level 6, or the SOLAS National Hairdressing
+//   Apprenticeship (launched 2024).
+// - NZ: NZ Certificate in Hairdressing L3 (entry) and L4 Professional Stylist
+//   (NZQA ID 2413), standards set by Ringa Hora WDC.
+// - ZA: QCTO Occupational Certificate: Hairdresser (NQF 4, SAQA 102497) is the
+//   current national qualification; National Certificate: Hairdressing and the
+//   legacy City & Guilds International Diploma are still widely held.
 export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = {
   AU: [
     { value: "cert3", label: "Certificate III in Hairdressing (SHB30416)", tag: "qualification-cert3" },
-    { value: "cert4", label: "Certificate IV in Hairdressing", tag: "qualification-cert4" },
+    { value: "cert4", label: "Certificate IV in Hairdressing (SHB40216)", tag: "qualification-cert4" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
   UK: [
-    { value: "nvq2", label: "NVQ Level 2 in Hairdressing", tag: "qualification-nvq2" },
-    { value: "nvq3", label: "NVQ Level 3 in Hairdressing", tag: "qualification-nvq3" },
-    { value: "vtct", label: "VTCT / City & Guilds diploma", tag: "qualification-vtct" },
-    { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
+    { value: "nvq2", label: "NVQ Level 2 Diploma in Hairdressing (RQF)", tag: "qualification-nvq2" },
+    { value: "nvq3", label: "NVQ Level 3 Diploma in Hairdressing (RQF)", tag: "qualification-nvq3" },
+    { value: "svq", label: "SVQ in Hairdressing (Scotland)", tag: "qualification-svq" },
+    { value: "srh", label: "State Registered Hairdresser (SRH / SRB)", tag: "qualification-srh" },
+    { value: "apprentice", label: "Hairdressing apprenticeship (in training)", tag: "qualification-apprentice" },
   ],
   IE: [
-    { value: "qqi5", label: "QQI Level 5 in Hairdressing", tag: "qualification-qqi5" },
+    { value: "qqi5", label: "QQI Level 5 in Hairdressing (5M3351)", tag: "qualification-qqi5" },
     { value: "qqi6", label: "QQI Level 6 in Hairdressing", tag: "qualification-qqi6" },
+    { value: "nha", label: "National Hairdressing Apprenticeship (SOLAS)", tag: "qualification-nha" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
   NZ: [
     { value: "nzcert3", label: "NZ Certificate in Hairdressing (Level 3)", tag: "qualification-nzcert3" },
-    { value: "nzcert4", label: "NZ Certificate in Commercial Hairdressing (Level 4)", tag: "qualification-nzcert4" },
+    {
+      value: "nzcert4",
+      label: "NZ Certificate in Hairdressing - Professional Stylist (Level 4)",
+      tag: "qualification-nzcert4",
+    },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
   ZA: [
-    { value: "saha", label: "SAHA registered hairdresser", tag: "qualification-saha" },
-    { value: "nc_hairdressing", label: "National Certificate in Hairdressing", tag: "qualification-nc-hairdressing" },
-    { value: "apprentice", label: "Apprentice / learner", tag: "qualification-apprentice" },
+    {
+      value: "qcto_hairdresser",
+      label: "QCTO Occupational Certificate: Hairdresser (NQF 4)",
+      tag: "qualification-qcto-hairdresser",
+    },
+    {
+      value: "nc_hairdressing",
+      label: "National Certificate: Hairdressing (NQF 3/4)",
+      tag: "qualification-nc-hairdressing",
+    },
+    {
+      value: "cg_diploma",
+      label: "City & Guilds International Diploma in Hairdressing",
+      tag: "qualification-cg-diploma",
+    },
+    { value: "apprentice", label: "Learner / apprentice", tag: "qualification-apprentice" },
   ],
 };
 
