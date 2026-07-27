@@ -313,9 +313,8 @@ export const SummaryForm = () => {
                   value={QUALIFICATION_LABEL[qualification]}
                 />
               )}
-              {isAU && nswLicenseNumber && (
-                <SummaryRow label="NSW licence" value={nswLicenseNumber} />
-              )}
+              {/* NSW: no separate licence number is issued - Cert III
+                  (captured via qualification above) is the legal requirement. */}
               {provinceCode && <SummaryRow label="State" value={provinceCode} />}
               {accountType === "salon" && (
                 <>

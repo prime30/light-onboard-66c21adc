@@ -464,18 +464,9 @@ export const registrationSchema = z
           path: ["qualification"],
         });
       }
-      // AU NSW licence carve-out.
-      if (
-        country === "AU" &&
-        (d.provinceCode ?? "").toUpperCase() === "NSW" &&
-        !d.nswLicenseNumber?.trim()
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          message: "NSW hairdresser licence number is required",
-          path: ["nswLicenseNumber"],
-        });
-      }
+      // AU NSW: no separate licence number exists - Hairdressers Act 2003
+      // requires SHB30416 (Cert III), which is already captured via the
+      // qualification field. No extra validation needed.
     }
   });
 
