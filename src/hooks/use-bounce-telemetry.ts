@@ -69,6 +69,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
           email: normalizedEmail,
           phase: "step",
           accountType: accountType ?? null,
+          countryCode: countryCode ?? null,
           lastStep: currentStep,
           device,
         },
@@ -83,7 +84,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .catch(() => {
         /* non-blocking */
       });
-  }, [hasEmail, normalizedEmail, accountType, currentStep]);
+  }, [hasEmail, normalizedEmail, accountType, currentStep, countryCode]);
 
   // Detect new validation error field names and batch-flush.
   useEffect(() => {
