@@ -156,20 +156,31 @@ serve(async (req) => {
       ZA: { lat: -28.816, lng: 24.992 },
     };
     };
+    // Resolve region centroid. Accept both bare subdivision codes ("NSW")
+    // and ISO-3166-2-style prefixed codes ("AU-NSW"). If we have a country
+    // but no matching subdivision, fall back to the country centroid so
+    // AU/UK/IE/NZ/ZA lookups don't drift back to us-west.
+    const normalizedRegion =
+      typeof regionCode === "string" ? regionCode.trim().toUpperCase() : "";
+    const normalizedCountryForBias = country
+      ? (COUNTRY_ALIASES[String(country).trim().toUpperCase()] ?? "")
+      : "";
     const centroid =
-      typeof regionCode === "string"
-        ? STATE_CENTROIDS[regionCode.trim().toUpperCase()]
-        : undefined;
+      (normalizedRegion && STATE_CENTROIDS[normalizedRegion]) ||
+      (normalizedCountryForBias && normalizedRegion
+        ? STATE_CENTROIDS[`${normalizedCountryForBias}-${normalizedRegion}`]
+        : undefined) ||
+      (normalizedCountryForBias ? COUNTRY_CENTROIDS[normalizedCountryForBias] : undefined);
 
     // Resolve a bias point. Priority:
-    //   1. Explicit state/province centroid (user already picked one).
-    //   2. IP-geo fallback derived from the caller's real IP (x-forwarded-for),
-    //      so first-keystroke results are local instead of CA-datacenter.
+    //   1. Explicit region or country centroid (user already picked one).
+    //   2. Browser IP-geo passed from the client.
+    //   3. Edge IP-geo fallback derived from the caller's real IP.
     let biasPoint: { lat: number; lng: number; radiusKm: number } | null = null;
     let biasSource = "";
     if (centroid) {
       biasPoint = { lat: centroid.lat, lng: centroid.lng, radiusKm: 50 };
-      biasSource = `region:${regionCode}`;
+      biasSource = `region:${normalizedRegion || normalizedCountryForBias}`;
     } else if (
       clientLocationBias &&
       typeof clientLocationBias.lat === "number" &&
