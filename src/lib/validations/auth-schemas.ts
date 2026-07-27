@@ -3,6 +3,7 @@ import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
+import { ALL_QUALIFICATION_VALUES } from "../../data/qualifications.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
   "Please use a permanent email address - disposable inboxes aren't accepted";
@@ -62,19 +63,35 @@ const isValidPhoneNumber = (phone: string): boolean => {
   return digits.length >= 10 && digits.length <= 15;
 };
 
-// Zip / postal code patterns. Defaults to a permissive 3–10 alphanumeric/space/dash
-// match for countries we don't have a specific rule for.
+// Zip / postal code patterns per country. Falls back to a permissive
+// alphanumeric match for countries we don't have a specific rule for.
 const ZIP_PATTERNS: Record<string, { regex: RegExp; message: string }> = {
   US: { regex: /^\d{5}(-\d{4})?$/, message: "Enter a valid US ZIP (12345 or 12345-6789)" },
   CA: {
     regex: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ \-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
     message: "Enter a valid Canadian postal code (A1A 1A1)",
   },
+  UK: {
+    regex: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i,
+    message: "Enter a valid UK postcode (e.g. SW1A 1AA)",
+  },
+  IE: {
+    regex: /^[AC-FHKNPRTV-Y]\d{2} ?[0-9AC-FHKNPRTV-Y]{4}$/i,
+    message: "Enter a valid Eircode (e.g. D02 X285)",
+  },
   AU: { regex: /^\d{4}$/, message: "Enter a valid Australian postcode (4 digits)" },
+  NZ: { regex: /^\d{4}$/, message: "Enter a valid NZ postcode (4 digits)" },
+  ZA: { regex: /^\d{4}$/, message: "Enter a valid South African postal code (4 digits)" },
 };
 
 // ABN: 11 digits, spaces allowed as separators (e.g. "12 345 678 901").
-const isValidABN = (abn: string): boolean => abn.replace(/\s+/g, "").length === 11 && /^\d+$/.test(abn.replace(/\s+/g, ""));
+const isValidABN = (abn: string): boolean =>
+  abn.replace(/\s+/g, "").length === 11 && /^\d+$/.test(abn.replace(/\s+/g, ""));
+// NZBN: 13 digits, spaces allowed.
+const isValidNZBN = (v: string): boolean => {
+  const s = v.replace(/\s+/g, "");
+  return s.length === 13 && /^\d+$/.test(s);
+};
 const isValidZipForCountry = (zip: string, country: string | undefined): true | string => {
   const trimmed = zip.trim();
   const pattern = country ? ZIP_PATTERNS[country.toUpperCase()] : undefined;
@@ -82,6 +99,9 @@ const isValidZipForCountry = (zip: string, country: string | undefined): true | 
   // Generic fallback: 3–10 alphanumeric (allowing space/dash).
   return /^[A-Za-z0-9][A-Za-z0-9 \-]{1,9}$/.test(trimmed) || "Please enter a valid postal code";
 };
+
+// Countries that require the qualification dropdown on the license step.
+const QUALIFICATION_REQUIRED_COUNTRIES = new Set(["AU", "UK", "IE", "NZ", "ZA"]);
 
 // Account Type Schema
 export const accountTypeSchema = z.object({
@@ -231,7 +251,7 @@ const licenseValidators = {
     .min(1, "License number is required")
     .max(100, "License number must be less than 100 characters"),
   licenseProofFiles: fileUploadSchema(true),
-  qualification: z.enum(["cert3", "cert4", "apprentice"]).optional(),
+  qualification: z.enum(ALL_QUALIFICATION_VALUES).optional(),
   nswLicenseNumber: z
     .string()
     .trim()
@@ -411,26 +431,45 @@ export const registrationSchema = z
       }
     }
 
-    // AU branch: ABN + qualification (+ NSW licence for NSW).
-    // Applies to professional and salon flows only.
-    const isAU = (d.countryCode ?? "").toUpperCase() === "AU";
+    // Country-aware credential validation for professional + salon flows.
+    const country = (d.countryCode ?? "").toUpperCase();
     const isCredentialFlow = d.accountType === "professional" || d.accountType === "salon";
-    if (isAU && isCredentialFlow) {
-      if (d.licenseNumber && !isValidABN(d.licenseNumber)) {
+    if (isCredentialFlow) {
+      // ABN format check on AU.
+      if (country === "AU" && d.licenseNumber && !isValidABN(d.licenseNumber)) {
         ctx.addIssue({
           code: "custom",
           message: "Enter a valid ABN (11 digits)",
           path: ["licenseNumber"],
         });
       }
-      if (!d.qualification) {
+      // NZBN check on NZ - only enforce if it looks numeric (allow SRH/cert #s).
+      if (
+        country === "NZ" &&
+        d.licenseNumber &&
+        /^[\d\s]+$/.test(d.licenseNumber) &&
+        !isValidNZBN(d.licenseNumber)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a valid NZBN (13 digits) or a certificate number",
+          path: ["licenseNumber"],
+        });
+      }
+      // Qualification required for AU/UK/IE/NZ/ZA.
+      if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !d.qualification) {
         ctx.addIssue({
           code: "custom",
           message: "Please select your qualification",
           path: ["qualification"],
         });
       }
-      if ((d.provinceCode ?? "").toUpperCase() === "NSW" && !d.nswLicenseNumber?.trim()) {
+      // AU NSW licence carve-out.
+      if (
+        country === "AU" &&
+        (d.provinceCode ?? "").toUpperCase() === "NSW" &&
+        !d.nswLicenseNumber?.trim()
+      ) {
         ctx.addIssue({
           code: "custom",
           message: "NSW hairdresser licence number is required",

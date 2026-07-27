@@ -3,6 +3,7 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
 import { countryCodes } from "@/data/country-codes";
+import { getCredentialConfig, QUALIFICATION_LABEL } from "@/data/qualifications";
 import { AccountType, BusinessOperationType } from "@/types/auth";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { UploadFileItem } from "@/lib/validations/file-schema";
@@ -111,7 +112,7 @@ export const SummaryForm = () => {
 
   // Watch all form values at once
   const formData = watch() as AllRegistrationFormData & {
-    qualification?: "cert3" | "cert4" | "apprentice";
+    qualification?: string;
     nswLicenseNumber?: string;
   };
   const {
@@ -150,7 +151,9 @@ export const SummaryForm = () => {
     enrollmentProofFiles = [],
     taxExemptFile = [],
   } = formData;
-  const isAU = (countryCode ?? "").toUpperCase() === "AU";
+  const country = (countryCode ?? "US").toUpperCase();
+  const isAU = country === "AU";
+  const credentialConfig = getCredentialConfig(country);
 
   // Type guard for UploadFileItem
   const isUploadFileItem = (file: UploadFileItem | string): file is UploadFileItem => {
@@ -301,19 +304,13 @@ export const SummaryForm = () => {
               stepNum={accountType === "professional" ? 4 : 4}
             >
               <SummaryRow
-                label={isAU ? "ABN" : "License Number"}
+                label={credentialConfig.licenseFieldLabel(accountType === "salon").replace(/\*$/, "")}
                 value={licenseNumber}
               />
-              {isAU && qualification && (
+              {qualification && QUALIFICATION_LABEL[qualification] && (
                 <SummaryRow
                   label="Qualification"
-                  value={
-                    qualification === "cert3"
-                      ? "Certificate III in Hairdressing"
-                      : qualification === "cert4"
-                        ? "Certificate IV in Hairdressing"
-                        : "Apprentice / in training"
-                  }
+                  value={QUALIFICATION_LABEL[qualification]}
                 />
               )}
               {isAU && nswLicenseNumber && (

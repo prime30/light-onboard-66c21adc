@@ -8,12 +8,107 @@ import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import { UploadFileItem } from "@/contexts";
-import { states, provinces } from "@/data/locations";
+import {
+  states,
+  provinces,
+  australianStates,
+  ukNations,
+  irishCounties,
+  nzRegions,
+  zaProvinces,
+} from "@/data/locations";
 
-import { australianStates } from "@/data/locations";
+// Combine and sort all English-speaking-country subdivisions alphabetically
+const allLocations = [
+  ...states,
+  ...provinces,
+  ...australianStates,
+  ...ukNations,
+  ...irishCounties,
+  ...nzRegions,
+  ...zaProvinces,
+]
+  .map((location) => location.name)
+  .sort();
 
-// Combine and sort US states, Canadian provinces, and Australian states/territories alphabetically
-const allLocations = [...states, ...provinces, ...australianStates].map((location) => location.name).sort();
+// Per-country copy for the training-institution step. Countries not listed
+// fall through to the US default.
+const SCHOOL_COPY: Record<
+  string,
+  {
+    h1: string;
+    schoolLabel: string;
+    schoolPlaceholder: string;
+    regionLabel: string;
+    regionPlaceholder: string;
+    uploadLabel: string;
+    uploadHint: string;
+  }
+> = {
+  US: {
+    h1: "What cosmetology school do you attend?",
+    schoolLabel: "School/Apprenticeship Name*",
+    schoolPlaceholder: "Enter your school or apprenticeship name",
+    regionLabel: "State/Province*",
+    regionPlaceholder: "Select your state/province",
+    uploadLabel: "Upload proof of enrollment or apprenticeship*",
+    uploadHint: "Upload school ID, apprenticeship license, enrollment letter, etc.",
+  },
+  CA: {
+    h1: "What cosmetology school do you attend?",
+    schoolLabel: "School/Apprenticeship Name*",
+    schoolPlaceholder: "Enter your school or apprenticeship name",
+    regionLabel: "Province/Territory*",
+    regionPlaceholder: "Select your province/territory",
+    uploadLabel: "Upload proof of enrollment or apprenticeship*",
+    uploadHint: "Upload school ID, apprenticeship license, enrollment letter, etc.",
+  },
+  AU: {
+    h1: "Which TAFE or RTO do you attend?",
+    schoolLabel: "TAFE / RTO name*",
+    schoolPlaceholder: "Enter your TAFE or RTO name",
+    regionLabel: "State/Territory*",
+    regionPlaceholder: "Select your state/territory",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your TAFE/RTO student ID, enrollment letter, or apprenticeship agreement.",
+  },
+  UK: {
+    h1: "Which college or academy do you attend?",
+    schoolLabel: "College / academy name*",
+    schoolPlaceholder: "Enter your college or academy name",
+    regionLabel: "Nation*",
+    regionPlaceholder: "Select your nation",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your college ID, NVQ enrollment letter, or apprenticeship agreement.",
+  },
+  IE: {
+    h1: "Which college or ETB centre do you attend?",
+    schoolLabel: "College / ETB centre name*",
+    schoolPlaceholder: "Enter your college or ETB centre name",
+    regionLabel: "County*",
+    regionPlaceholder: "Select your county",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your student ID, QQI enrollment letter, or apprenticeship agreement.",
+  },
+  NZ: {
+    h1: "Which polytechnic or ITO do you train with?",
+    schoolLabel: "Polytechnic / ITO name*",
+    schoolPlaceholder: "Enter your polytechnic or ITO name",
+    regionLabel: "Region*",
+    regionPlaceholder: "Select your region",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your student ID, enrollment letter, or apprenticeship agreement.",
+  },
+  ZA: {
+    h1: "Which academy or TVET college do you attend?",
+    schoolLabel: "Academy / TVET college name*",
+    schoolPlaceholder: "Enter your academy or TVET college name",
+    regionLabel: "Province*",
+    regionPlaceholder: "Select your province",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your student ID, learnership agreement, or enrollment letter.",
+  },
+};
 
 function SchoolNamePrefixIcon({ error }: { error: boolean }) {
   return (
@@ -55,14 +150,14 @@ export const SchoolInfoStep = () => {
 
   // Watch form values
   const [enrollmentProofFiles, countryCode] = watch(["enrollmentProofFiles", "countryCode"]);
-  const isAU = (countryCode ?? "").toUpperCase() === "AU";
+  const country = (countryCode ?? "US").toUpperCase();
+  const copy = SCHOOL_COPY[country] ?? SCHOOL_COPY.US;
 
   // Create location options with icons
   const locationOptions = allLocations.map((location) => ({
     value: location,
     label: (
       <div className="flex items-center gap-2.5">
-        {/*{hasStateIcon(location) && <StateIcon state={location} className="w-4 h-4" />}*/}
         <span>{location}</span>
       </div>
     ),
@@ -87,57 +182,51 @@ export const SchoolInfoStep = () => {
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          {isAU ? "Which TAFE or RTO do you attend?" : "What cosmetology school do you attend?"}
+          {copy.h1}
         </h1>
       </div>
 
       <div className="space-y-5 animate-stagger-2">
-        {/* School / TAFE / RTO Name */}
         <div className="animate-stagger-2">
           <TextInput
             name="schoolName"
             type="text"
             register={register}
             error={errors.schoolName}
-            placeholder={
-              isAU ? "Enter your TAFE or RTO name" : "Enter your school or apprenticeship name"
-            }
-            label={isAU ? "TAFE / RTO name*" : "School/Apprenticeship Name*"}
+            placeholder={copy.schoolPlaceholder}
+            label={copy.schoolLabel}
             isValid={getValidationStatus("schoolName") === "complete"}
             prefixIcon={<SchoolNamePrefixIcon error={!!errors.schoolName} />}
           />
         </div>
 
-        {/* State/Province/Territory */}
         <div className="animate-stagger-3">
           <SelectInput
             name="schoolState"
             control={control}
             error={errors.schoolState}
             options={locationOptions}
-            label={isAU ? "State/Territory*" : "State/Province*"}
-            placeholder={
-              isAU ? "Select your state/territory" : "Select your state/province"
-            }
+            label={copy.regionLabel}
+            placeholder={copy.regionPlaceholder}
             isValid={getValidationStatus("schoolState") === "complete"}
           />
         </div>
 
-        {/* Multi-File Upload */}
         <div className="space-y-2.5 animate-stagger-4">
-          <Label className="text-sm font-medium">
-            {isAU
-              ? "Upload proof of enrollment*"
-              : "Upload proof of enrollment or apprenticeship*"}
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            {isAU
-              ? "Upload your TAFE/RTO student ID, enrollment letter, or apprenticeship agreement."
-              : "Upload school ID, apprenticeship license, enrollment letter, etc."}
-          </p>
+          <Label className="text-sm font-medium">{copy.uploadLabel}</Label>
+          <p className="text-xs text-muted-foreground">{copy.uploadHint}</p>
           <div data-field="enrollment-proof">
             <MultiFileUpload
-              files={(enrollmentProofFiles || []) as { id: string; file: File; status: "completed" | "error" | "pending" | "uploading"; progress: number; error?: string; url?: string; }[]}
+              files={
+                (enrollmentProofFiles || []) as {
+                  id: string;
+                  file: File;
+                  status: "completed" | "error" | "pending" | "uploading";
+                  progress: number;
+                  error?: string;
+                  url?: string;
+                }[]
+              }
               onFilesChange={handleEnrollmentProofFilesChange}
               placeholder="Upload your documents"
               maxFiles={5}
