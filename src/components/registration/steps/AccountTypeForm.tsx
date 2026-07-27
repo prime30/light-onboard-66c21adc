@@ -109,6 +109,18 @@ export const AccountTypeForm = () => {
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
   const [showNotStylist, setShowNotStylist] = useState(false);
 
+  const geoCountry = useGeoCountry();
+  const currentCountry = watch("countryCode");
+  const effectiveCountry = (currentCountry || geoCountry || "US").toUpperCase();
+  const isAU = effectiveCountry === "AU";
+
+  // Seed the form's countryCode from geo detection once, if the user hasn't set one.
+  useEffect(() => {
+    if (!currentCountry && geoCountry) {
+      setValue("countryCode", geoCountry, dirtyFieldOptions);
+    }
+  }, [currentCountry, geoCountry, setValue]);
+
   const accountType = watch("accountType");
 
   const hasFormProgress = useMemo(() => {
