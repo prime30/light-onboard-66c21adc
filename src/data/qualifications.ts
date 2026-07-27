@@ -18,7 +18,7 @@ export const QUALIFICATIONS_BY_COUNTRY: Record<string, QualificationOption[]> = 
   // requires SHB30416 (Cert III) - it does NOT issue a separate licence #.
   AU: [
     { value: "cert3", label: "Certificate III in Hairdressing (SHB30416)", tag: "qualification-cert3" },
-    { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30216)", tag: "qualification-cert3-barbering" },
+    { value: "cert3_barbering", label: "Certificate III in Barbering (SHB30516)", tag: "qualification-cert3-barbering" },
     { value: "cert4", label: "Certificate IV in Hairdressing (SHB40216)", tag: "qualification-cert4" },
     { value: "apprentice", label: "Apprentice / in training", tag: "qualification-apprentice" },
   ],
