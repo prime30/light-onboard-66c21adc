@@ -3,6 +3,7 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
 import { countryCodes } from "@/data/country-codes";
+import { getCredentialConfig, QUALIFICATION_LABEL } from "@/data/qualifications";
 import { AccountType, BusinessOperationType } from "@/types/auth";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { UploadFileItem } from "@/lib/validations/file-schema";
