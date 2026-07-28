@@ -259,41 +259,104 @@ async function sendSlackApplicantsNotification(payload: {
   }
 
   const handle = payload.socialMediaHandle?.trim();
-  const instagramLink = handle
-    ? `https://instagram.com/${handle.replace(/^@/, "")}`
-    : null;
+  const normalizedHandle = handle ? handle.replace(/^@/, "") : null;
+  const instagramLink = normalizedHandle ? `https://instagram.com/${normalizedHandle}` : null;
+  const fullName = [payload.firstName, payload.lastName].filter(Boolean).join(" ") || "N/A";
+  const displayName = payload.firstName || payload.email.split("@")[0] || "Applicant";
 
-  const blocks = [
+  const blocks: Record<string, unknown>[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "New application submitted",
+        emoji: true,
+      },
+    },
     {
       type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*New application submitted*\n` +
-          `*Name:* ${[payload.firstName, payload.lastName].filter(Boolean).join(" ") || "N/A"}\n` +
-          `*Email:* ${payload.email}\n` +
-          `*Country:* ${payload.countryCode?.toUpperCase() || "N/A"}\n` +
-          `*Account type:* ${payload.accountType || "N/A"}`,
-      },
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Name:*\n${fullName}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Email:*\n<mailto:${payload.email}|${payload.email}>`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Country:*\n${payload.countryCode?.toUpperCase() || "N/A"}`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Account type:*\n${payload.accountType || "N/A"}`,
+        },
+      ],
     },
   ];
 
-    if (handle) {
+  if (normalizedHandle) {
     blocks.push({
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*Instagram:* @${handle.replace(/^@/, "")}` +
-          (instagramLink ? ` - <${instagramLink}|View profile>` : ""),
+        text: `*Instagram:* @${normalizedHandle}`,
       },
     });
   }
+
+  const actions: Record<string, unknown>[] = [];
+  if (instagramLink) {
+    actions.push({
+      type: "button",
+      text: {
+        type: "plain_text",
+        text: "View Instagram profile",
+        emoji: true,
+      },
+      url: instagramLink,
+      action_id: "view_instagram_profile",
+    });
+  }
+  actions.push({
+    type: "button",
+    text: {
+      type: "plain_text",
+      text: "Email applicant",
+      emoji: true,
+    },
+    url: `mailto:${payload.email}`,
+    action_id: "email_applicant",
+  });
+
+  if (actions.length > 0) {
+    blocks.push({
+      type: "actions",
+      elements: actions,
+    });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `Drop Dead Extensions - ${new Date().toLocaleString("en-US", {
+          timeZone: "America/Los_Angeles",
+          dateStyle: "medium",
+          timeStyle: "short",
+        })} PT`,
+      },
+    ],
+  });
 
   try {
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: `New application from ${payload.email}`,
+        text: `New application from ${displayName} (${payload.email})`,
         blocks,
       }),
     });
