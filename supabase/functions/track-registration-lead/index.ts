@@ -281,6 +281,94 @@ Deno.serve(async (req: Request) => {
     return json(200, { ok: true, klaviyoSynced: false });
   }
 
+  // ----------------- Existing-customer guard -----------------
+  // If this email belongs to a Shopify customer that already carries an
+  // "Account type:" tag (i.e. completed a B2B application previously), do NOT
+  // fire a "Started Registration" event and mark their Klaviyo profile as
+  // completed so any in-flight abandonment flow drops them on next filter eval.
+  // Only run this on non-completion pings; completion path already sets the
+  // right properties below.
+  let treatAsAlreadyCompleted = false;
+  if (!isCompleted) {
+    try {
+      const heliumKey = Deno.env.get("HELIUM_PRIVATE_ACCESS_TOKEN");
+      const shopDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+      const shopToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      if (heliumKey && shopDomain && shopToken) {
+        const searchRes = await fetch(
+          `https://app.customerfields.com/api/v2/customers/search.json?page=1&limit=1&sort_by=updated_at&sort_order=desc&email=${encodeURIComponent(email)}`,
+          { headers: { Accept: "application/json", Authorization: `Bearer ${heliumKey}` } },
+        );
+        if (searchRes.ok) {
+          const searchData = (await searchRes.json()) as { customers?: Array<{ shopify_id?: number | string }> };
+          const shopifyId = searchData.customers?.[0]?.shopify_id;
+          if (shopifyId) {
+            const tagRes = await fetch(
+              `https://${shopDomain}/admin/api/2024-10/customers/${shopifyId}.json`,
+              { headers: { "X-Shopify-Access-Token": shopToken, "Content-Type": "application/json" } },
+            );
+            if (tagRes.ok) {
+              const tagJson = await tagRes.json();
+              const tagStr: string = tagJson?.customer?.tags ?? "";
+              treatAsAlreadyCompleted = tagStr
+                .split(",")
+                .map((t: string) => t.trim())
+                .some((t: string) => /^account type:/i.test(t));
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("track-registration-lead: existing-customer guard threw", err);
+    }
+  }
+
+  if (treatAsAlreadyCompleted) {
+    // Backfill the lead row so future pings short-circuit and so admin
+    // analytics reflect reality.
+    try {
+      await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ completed_at: new Date().toISOString() }),
+        },
+      );
+    } catch { /* best-effort */ }
+
+    // Upsert Klaviyo profile with registration_completed=true so the
+    // abandonment flow's property filter drops them immediately. Do NOT fire
+    // a "Started Registration" event.
+    const guardProfileRes = await klaviyo("/profile-import", klaviyoKey, {
+      data: {
+        type: "profile",
+        attributes: {
+          email,
+          properties: {
+            registration_completed: true,
+            registration_completed_at: new Date().toISOString(),
+            registration_status: "approved",
+            registration_source: "apply.dropdeadextensions.com",
+          },
+        },
+      },
+    });
+    if (!guardProfileRes.ok) {
+      console.warn(
+        "track-registration-lead: guard profile-import failed",
+        guardProfileRes.status,
+        JSON.stringify(guardProfileRes.body),
+      );
+    }
+    return json(200, { ok: true, skipped: "existing_customer", klaviyoSynced: guardProfileRes.ok });
+  }
+
   // Klaviyo is stricter than our loose regex. Reject obviously malformed emails
   // (double dots, leading/trailing dots in the local part, no dot in domain,
   // TLDs shorter than 2 chars, non-ASCII) before spending a request that would
