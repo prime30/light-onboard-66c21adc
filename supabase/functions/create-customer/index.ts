@@ -663,7 +663,7 @@ Deno.serve(async (req: Request) => {
         let fieldPath = path.length > 0 ? path.join(".") : "form";
         if (
           fieldPath === "form" &&
-          (e.code === "invalid_union_discriminator" || e.code === "invalid_union")
+          ["invalid_union_discriminator", "invalid_union"].includes(String(e.code))
         ) {
           fieldPath = "accountType";
         }
