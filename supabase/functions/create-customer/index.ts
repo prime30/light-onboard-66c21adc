@@ -239,6 +239,72 @@ async function loadAppSettings(): Promise<{
   }
 }
 
+// ------------------------------------------------------------------
+// Slack notification: post every registration to the #applications
+// channel with the Instagram handle so the team can follow immediately.
+// Best-effort: failures are logged but never block the applicant.
+// ------------------------------------------------------------------
+async function sendSlackApplicantsNotification(payload: {
+  firstName?: string | null;
+  lastName?: string | null;
+  email: string;
+  countryCode?: string | null;
+  accountType?: string | null;
+  socialMediaHandle?: string | null;
+}): Promise<void> {
+  const webhookUrl = Deno.env.get("SLACK_APPLICANTS_WEBHOOK");
+  if (!webhookUrl) {
+    console.warn("SLACK_APPLICANTS_WEBHOOK not set; skipping Slack notification");
+    return;
+  }
+
+  const handle = payload.socialMediaHandle?.trim();
+  const instagramLink = handle
+    ? `https://instagram.com/${handle.replace(/^@/, "")}`
+    : null;
+
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*New application submitted*\n` +
+          `*Name:* ${[payload.firstName, payload.lastName].filter(Boolean).join(" ") || "N/A"}\n` +
+          `*Email:* ${payload.email}\n` +
+          `*Country:* ${payload.countryCode?.toUpperCase() || "N/A"}\n` +
+          `*Account type:* ${payload.accountType || "N/A"}`,
+      },
+    },
+  ];
+
+    if (handle) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Instagram:* @${handle.replace(/^@/, "")}` +
+          (instagramLink ? ` - <${instagramLink}|View profile>` : ""),
+      },
+    });
+  }
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: `New application from ${payload.email}`,
+        blocks,
+      }),
+    });
+    if (!res.ok) {
+      console.warn("Slack applicants webhook returned non-OK:", res.status, await res.text());
+    }
+  } catch (err) {
+    console.warn("Slack applicants notification threw (non-blocking):", err);
+  }
+}
+
 // Convert camelCase to snake_case
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -592,8 +658,7 @@ Deno.serve(async (req: Request) => {
     // what failed. Attribute those to `accountType` so the client can
     // auto-navigate the user to the account-type step instead of showing
     // an unactionable generic banner on the final submit.
-    const issues = parseResult.error.issues.map(
-      (e: { code?: string; message: string; path?: Array<string | number> }) => {
+    const issues = parseResult.error.issues.map((e) => {
         const path = Array.isArray(e.path) ? e.path.filter((p) => p !== undefined) : [];
         let fieldPath = path.length > 0 ? path.join(".") : "form";
         if (
@@ -683,7 +748,7 @@ Deno.serve(async (req: Request) => {
   // Blocks VPN-based spoofing where a US/EU user picks AU to bypass
   // license requirements.
   // ----------------------------------------------------------------
-  if ((parseResult.data.countryCode || "").toUpperCase() === "AU") {
+  if (((parseResult.data as { countryCode?: string }).countryCode || "").toUpperCase() === "AU") {
     const auToken = typeof (requestBody as { auGeoToken?: unknown }).auGeoToken === "string"
       ? ((requestBody as { auGeoToken?: string }).auGeoToken as string)
       : "";
@@ -2042,6 +2107,23 @@ Deno.serve(async (req: Request) => {
         });
       } catch (err) {
         console.warn("track-registration-lead completion threw (non-blocking):", err);
+      }
+    })());
+
+    // Slack notification to the applications channel with the applicant's
+    // Instagram handle so the team can follow them immediately.
+    tailTasks.push((async () => {
+      try {
+        await sendSlackApplicantsNotification({
+          firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
+          lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
+          email: parseResult.data.email,
+          countryCode: (parseResult.data as { countryCode?: string }).countryCode ?? null,
+          accountType: parseResult.data.accountType ?? null,
+          socialMediaHandle: (parseResult.data as { socialMediaHandle?: string }).socialMediaHandle ?? null,
+        });
+      } catch (err) {
+        console.warn("Slack applicants notification tail threw (non-blocking):", err);
       }
     })());
 
