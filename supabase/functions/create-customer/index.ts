@@ -757,8 +757,12 @@ Deno.serve(async (req: Request) => {
     );
 
     if (!echoesUserData) {
-      return sendError(400, ["Submission blocked"]);
+      notifyBlocked("honeypot", { preview: v.slice(0, 60), length: v.length }, requestBody);
+      return sendError(400, [
+        "Something on this page filled in a hidden field we use to block bots, so your application was held (error SPAM-HP). This is almost always a browser extension or password manager auto-filling the form. To get through: turn off autofill for this page, or open the application in a private/incognito window and re-enter your details. Still stuck? Email hello@dropdeadextensions.com with the code SPAM-HP and we'll complete your application manually.",
+      ]);
     }
+
   }
 
 
