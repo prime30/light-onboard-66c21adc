@@ -12,7 +12,9 @@ const strongPassword = z
 export const resetPasswordSchema = z
   .object({
     password: strongPassword,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z
+      .string({ error: "Please confirm your password" })
+      .min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -24,7 +26,9 @@ export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export const activateAccountSchema = z
   .object({
     password: strongPassword,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z
+      .string({ error: "Please confirm your password" })
+      .min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
