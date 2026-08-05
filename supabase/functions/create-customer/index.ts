@@ -689,10 +689,11 @@ Deno.serve(async (req: Request) => {
     return sendError(400, ["Invalid JSON in request body"]);
   }
 
-  // Spam: min-time-on-form check. A real user takes well over 3s to complete
-  // a multi-step registration; bots typically POST in <1s. Reject anything
-  // suspiciously fast, missing, malformed, or in the future.
-  const MIN_FORM_FILL_MS = 3000;
+  // Spam: min-time-on-form check. Only catches instant bot POSTs. Kept at 1s
+  // because a restored session (sessionStorage resume) legitimately reaches the
+  // summary and submits seconds after page load - formStartedAt is captured at
+  // page load, so a returning user's elapsed time can be very small.
+  const MIN_FORM_FILL_MS = 1000;
   const formStartedAtRaw = (requestBody as { formStartedAt?: unknown }).formStartedAt;
   const formStartedAt = typeof formStartedAtRaw === "number" ? formStartedAtRaw : NaN;
   const elapsed = Date.now() - formStartedAt;
@@ -700,6 +701,7 @@ Deno.serve(async (req: Request) => {
     console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt });
     return sendError(400, ["Submission blocked"]);
   }
+
 
   // Spam: honeypot field. NOT a standalone hard block: browser autofill and
   // password managers can populate a hidden input, and that was rejecting real
