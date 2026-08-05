@@ -699,8 +699,12 @@ Deno.serve(async (req: Request) => {
   const elapsed = Date.now() - formStartedAt;
   if (!Number.isFinite(formStartedAt) || elapsed < MIN_FORM_FILL_MS || elapsed < 0) {
     console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt });
-    return sendError(400, ["Submission blocked"]);
+    notifyBlocked("timing", { elapsed, formStartedAt }, requestBody);
+    return sendError(400, [
+      "Your application was submitted before the page finished loading, so we couldn't process it (error SPAM-TIME). Please refresh the page and press Submit again. If it keeps happening, email hello@dropdeadextensions.com and we'll finish your application for you.",
+    ]);
   }
+
 
 
   // Spam: honeypot field. NOT a standalone hard block: browser autofill and
