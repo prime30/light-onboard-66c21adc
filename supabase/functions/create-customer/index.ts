@@ -681,6 +681,36 @@ Deno.serve(async (req: Request) => {
     return sendError(500, ["Server configuration error"]);
   }
 
+  // Fire-and-forget alert whenever an anti-spam gate blocks a submission, so a
+  // false positive on a real applicant surfaces to ops instead of dying in logs.
+  const notifyBlocked = (
+    reason: string,
+    detail: Record<string, unknown>,
+    body: { data?: { email?: unknown; firstName?: unknown; lastName?: unknown } }
+  ) => {
+    try {
+      const u = Deno.env.get("SUPABASE_URL");
+      const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!u || !k) return;
+      void fetch(`${u}/functions/v1/notify-error`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "create-customer-spam-block",
+          message: `Submission blocked by ${reason} gate`,
+          context: {
+            reason,
+            ...detail,
+            email: body?.data?.email ?? null,
+            name: `${body?.data?.firstName ?? ""} ${body?.data?.lastName ?? ""}`.trim() || null,
+          },
+        }),
+      }).catch(() => {});
+    } catch {
+      /* never throw */
+    }
+  };
+
   // Parse the request body
   let requestBody: CustomerCreateRequest & { honeypot?: unknown; formStartedAt?: unknown };
   try {
@@ -688,6 +718,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return sendError(400, ["Invalid JSON in request body"]);
   }
+
 
   // Spam: min-time-on-form check. Only catches instant bot POSTs. Kept at 1s
   // because a restored session (sessionStorage resume) legitimately reaches the
