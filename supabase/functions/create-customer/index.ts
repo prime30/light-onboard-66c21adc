@@ -681,6 +681,36 @@ Deno.serve(async (req: Request) => {
     return sendError(500, ["Server configuration error"]);
   }
 
+  // Fire-and-forget alert whenever an anti-spam gate blocks a submission, so a
+  // false positive on a real applicant surfaces to ops instead of dying in logs.
+  const notifyBlocked = (
+    reason: string,
+    detail: Record<string, unknown>,
+    body: { data?: { email?: unknown; firstName?: unknown; lastName?: unknown } }
+  ) => {
+    try {
+      const u = Deno.env.get("SUPABASE_URL");
+      const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!u || !k) return;
+      void fetch(`${u}/functions/v1/notify-error`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${k}`, apikey: k, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "create-customer-spam-block",
+          message: `Submission blocked by ${reason} gate`,
+          context: {
+            reason,
+            ...detail,
+            email: body?.data?.email ?? null,
+            name: `${body?.data?.firstName ?? ""} ${body?.data?.lastName ?? ""}`.trim() || null,
+          },
+        }),
+      }).catch(() => {});
+    } catch {
+      /* never throw */
+    }
+  };
+
   // Parse the request body
   let requestBody: CustomerCreateRequest & { honeypot?: unknown; formStartedAt?: unknown };
   try {
@@ -688,6 +718,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return sendError(400, ["Invalid JSON in request body"]);
   }
+
 
   // Spam: min-time-on-form check. Only catches instant bot POSTs. Kept at 1s
   // because a restored session (sessionStorage resume) legitimately reaches the
@@ -699,8 +730,12 @@ Deno.serve(async (req: Request) => {
   const elapsed = Date.now() - formStartedAt;
   if (!Number.isFinite(formStartedAt) || elapsed < MIN_FORM_FILL_MS || elapsed < 0) {
     console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt });
-    return sendError(400, ["Submission blocked"]);
+    notifyBlocked("timing", { elapsed, formStartedAt }, requestBody);
+    return sendError(400, [
+      "Your application was submitted before the page finished loading, so we couldn't process it (error SPAM-TIME). Please refresh the page and press Submit again. If it keeps happening, email hello@dropdeadextensions.com and we'll finish your application for you.",
+    ]);
   }
+
 
 
   // Spam: honeypot field. NOT a standalone hard block: browser autofill and
@@ -753,8 +788,12 @@ Deno.serve(async (req: Request) => {
     );
 
     if (!echoesUserData) {
-      return sendError(400, ["Submission blocked"]);
+      notifyBlocked("honeypot", { preview: v.slice(0, 60), length: v.length }, requestBody);
+      return sendError(400, [
+        "Something on this page filled in a hidden field we use to block bots, so your application was held (error SPAM-HP). This is almost always a browser extension or password manager auto-filling the form. To get through: turn off autofill for this page, or open the application in a private/incognito window and re-enter your details. Still stuck? Email hello@dropdeadextensions.com with the code SPAM-HP and we'll complete your application manually.",
+      ]);
     }
+
   }
 
 
