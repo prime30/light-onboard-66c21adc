@@ -693,9 +693,15 @@ Deno.serve(async (req: Request) => {
   // silently reject with a generic 400 (don't tip off the bot).
   const honeypotValue = (requestBody as { honeypot?: unknown }).honeypot;
   if (typeof honeypotValue === "string" && honeypotValue.trim() !== "") {
-    console.log("Honeypot triggered - rejecting request");
+    // Log a truncated preview so browser-autofill false positives are
+    // diagnosable (real bots dump junk; autofill dumps addresses/emails).
+    console.log(
+      "Honeypot triggered - rejecting request",
+      JSON.stringify({ preview: honeypotValue.trim().slice(0, 40), email: (requestBody as { email?: unknown }).email })
+    );
     return sendError(400, ["Submission blocked"]);
   }
+
 
   // Spam: min-time-on-form check. A real user takes well over 3s to complete
   // a multi-step registration; bots typically POST in <1s. Reject anything
