@@ -33,6 +33,8 @@ function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) 
   return converted;
 }
 
+const MISSING_FILE_MESSAGE = "Please attach at least one file";
+
 function fileUploadSchema(optional: boolean) {
   let fileArraySchema = z
     .array(uploadFileItemSchema)
@@ -43,18 +45,23 @@ function fileUploadSchema(optional: boolean) {
 
   if (!optional) {
     fileArraySchema = fileArraySchema.refine((items) => items.length >= 1, {
-      message: "At least one file is required",
+      message: MISSING_FILE_MESSAGE,
     }) as typeof fileArraySchema;
-    stringArraySchema = stringArraySchema.min(1, "At least one file is required");
+    stringArraySchema = stringArraySchema.min(1, MISSING_FILE_MESSAGE);
   }
 
-  const filesSchema = z.union([fileArraySchema, stringArraySchema]);
+  // Custom `error` on the union so a missing value never surfaces Zod's raw
+  // "Invalid input: expected array, received undefined" to the user.
+  const filesSchema = z.union([fileArraySchema, stringArraySchema], {
+    error: MISSING_FILE_MESSAGE,
+  });
 
   if (optional) {
     return filesSchema.optional().nullable().overwrite(convertFileUploadToUrl);
   }
   return filesSchema.overwrite(convertFileUploadToUrl);
 }
+
 
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
@@ -140,11 +147,13 @@ export const businessOperationSchema = z.object(businessOperationValidators);
 // School Info Schema (for students)
 const schoolInfoValidators = {
   schoolName: z
-    .string()
+    .string({ error: "School/Apprenticeship name is required" })
     .trim()
     .min(1, "School/Apprenticeship name is required")
     .max(200, "Name must be less than 200 characters"),
-  schoolState: z.string().min(1, "State/Province is required"),
+  schoolState: z
+    .string({ error: "State/Province is required" })
+    .min(1, "State/Province is required"),
   enrollmentProofFiles: fileUploadSchema(false),
 };
 export const schoolInfoSchema = z.object(schoolInfoValidators);
@@ -211,13 +220,15 @@ export const contactBasicsSchema = z.object(contactBasicsValidators);
 // Shopify activation-email round-trip.
 const createPasswordValidators = {
   password: z
-    .string()
+    .string({ error: "Password is required" })
     .min(8, "Password must be at least 8 characters")
     .max(72, "Password must be less than 72 characters")
     .regex(/[a-z]/, "Password must include a lowercase letter")
     .regex(/[A-Z]/, "Password must include an uppercase letter")
     .regex(/\d/, "Password must include a number"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
+  confirmPassword: z
+    .string({ error: "Please confirm your password" })
+    .min(1, "Please confirm your password"),
 };
 // Plain ZodObject used for step-level gating (consumed by step-order
 // stepValidations, fieldsForStep, etc.). Cross-field equality is enforced by
@@ -235,25 +246,27 @@ export type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
 // Business Location Schema
 const businessLocationValidators = {
   businessName: z
-    .string()
+    .string({ error: "Business or salon name is required" })
     .trim()
     .min(1, "Business or salon name is required")
     .max(200, "Business name must be less than 200 characters"),
   businessAddress: z
-    .string()
+    .string({ error: "Address is required" })
     .trim()
     .min(1, "Address is required")
     .max(500, "Address must be less than 500 characters"),
   suiteNumber: z.string().trim().max(50, "Suite number must be less than 50 characters").optional(),
-  countryCode: z.string().min(1, "Country is required"),
+  countryCode: z.string({ error: "Country is required" }).min(1, "Country is required"),
   city: z
-    .string()
+    .string({ error: "City is required" })
     .trim()
     .min(1, "City is required")
     .max(100, "City must be less than 100 characters"),
-  provinceCode: z.string().min(1, "State/Province is required"),
+  provinceCode: z
+    .string({ error: "State/Province is required" })
+    .min(1, "State/Province is required"),
   zipCode: z
-    .string()
+    .string({ error: "Zip/Postal code is required" })
     .trim()
     .min(1, "Zip/Postal code is required")
     .max(20, "Zip code must be less than 20 characters"),
@@ -340,8 +353,11 @@ export type PreferredMethod = (typeof PREFERRED_METHOD_OPTIONS)[number];
 
 const preferredMethodValidators = {
   preferredMethods: z
-    .array(z.enum(PREFERRED_METHOD_OPTIONS))
+    .array(z.enum(PREFERRED_METHOD_OPTIONS), {
+      error: "Please select at least one preferred method",
+    })
     .min(1, "Please select at least one preferred method"),
+
 };
 export const preferredMethodSchema = z.object(preferredMethodValidators);
 export type PreferredMethodFormData = z.infer<typeof preferredMethodSchema>;
