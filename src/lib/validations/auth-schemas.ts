@@ -33,6 +33,8 @@ function convertFileUploadToUrl(value: UploadFileItem[] | string[] | undefined) 
   return converted;
 }
 
+const MISSING_FILE_MESSAGE = "Please attach at least one file";
+
 function fileUploadSchema(optional: boolean) {
   let fileArraySchema = z
     .array(uploadFileItemSchema)
@@ -43,18 +45,23 @@ function fileUploadSchema(optional: boolean) {
 
   if (!optional) {
     fileArraySchema = fileArraySchema.refine((items) => items.length >= 1, {
-      message: "At least one file is required",
+      message: MISSING_FILE_MESSAGE,
     }) as typeof fileArraySchema;
-    stringArraySchema = stringArraySchema.min(1, "At least one file is required");
+    stringArraySchema = stringArraySchema.min(1, MISSING_FILE_MESSAGE);
   }
 
-  const filesSchema = z.union([fileArraySchema, stringArraySchema]);
+  // Custom `error` on the union so a missing value never surfaces Zod's raw
+  // "Invalid input: expected array, received undefined" to the user.
+  const filesSchema = z.union([fileArraySchema, stringArraySchema], {
+    error: MISSING_FILE_MESSAGE,
+  });
 
   if (optional) {
     return filesSchema.optional().nullable().overwrite(convertFileUploadToUrl);
   }
   return filesSchema.overwrite(convertFileUploadToUrl);
 }
+
 
 export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 
