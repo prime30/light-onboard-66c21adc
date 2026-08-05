@@ -701,29 +701,60 @@ Deno.serve(async (req: Request) => {
     return sendError(400, ["Submission blocked"]);
   }
 
-  // Spam: honeypot field. NO LONGER a standalone hard block: browser autofill
-  // and password managers can populate a hidden input, and that was rejecting
-  // real applicants. We only block when the filled honeypot is corroborated by
-  // another bot signal: link/HTML spam payload, or an implausibly fast submit.
+  // Spam: honeypot field. NOT a standalone hard block: browser autofill and
+  // password managers can populate a hidden input, and that was rejecting real
+  // applicants. Corroboration is CONTENT-based, never time-based: a restored
+  // session (sessionStorage resume) can legitimately submit seconds after page
+  // load, so elapsed time says nothing about this request.
+  //
+  // Autofill copies data the user themselves typed (email, name, phone, salon
+  // name, address, handle). A bot injects text unrelated to the form payload.
+  // So: if the honeypot value echoes any submitted field, treat it as autofill
+  // and let it through. Otherwise reject.
   const honeypotValue = (requestBody as { honeypot?: unknown }).honeypot;
   if (typeof honeypotValue === "string" && honeypotValue.trim() !== "") {
     const v = honeypotValue.trim();
-    const looksLikeSpamPayload = /https?:\/\/|www\.|<\s*a\b|\[url|\bbb?code\b/i.test(v);
-    const suspiciouslyFast = elapsed < 20_000;
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9@.]/g, "");
+    const vNorm = norm(v);
+
+    // Collect every string the user submitted (shallow + one level of arrays).
+    const submitted: string[] = [];
+    const collect = (val: unknown, depth = 0) => {
+      if (depth > 2) return;
+      if (typeof val === "string") {
+        if (val.trim().length >= 3) submitted.push(val);
+      } else if (Array.isArray(val)) {
+        val.forEach((x) => collect(x, depth + 1));
+      } else if (val && typeof val === "object") {
+        Object.values(val as Record<string, unknown>).forEach((x) => collect(x, depth + 1));
+      }
+    };
+    collect((requestBody as { data?: unknown }).data);
+
+    const echoesUserData =
+      vNorm.length >= 3 &&
+      submitted.some((s) => {
+        const sn = norm(s);
+        return sn.length >= 3 && (sn.includes(vNorm) || vNorm.includes(sn));
+      });
+
     console.log(
       "Honeypot filled",
       JSON.stringify({
         preview: v.slice(0, 40),
         length: v.length,
-        email: (requestBody as { email?: unknown }).email,
+        email: (requestBody as { data?: { email?: unknown } }).data?.email,
         elapsedMs: elapsed,
-        blocked: looksLikeSpamPayload || suspiciouslyFast,
+        echoesUserData,
+        blocked: !echoesUserData,
       })
     );
-    if (looksLikeSpamPayload || suspiciouslyFast) {
+
+    if (!echoesUserData) {
       return sendError(400, ["Submission blocked"]);
     }
   }
+
 
 
   // Validate the request body against the schema
