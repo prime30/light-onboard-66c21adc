@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Match registration password rules exactly (see auth-schemas.ts).
 const strongPassword = z
-  .string()
+  .string({ error: "Password is required" })
   .min(8, "Password must be at least 8 characters")
   .max(72, "Password must be less than 72 characters")
   .regex(/[a-z]/, "Password must include a lowercase letter")
