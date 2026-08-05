@@ -347,8 +347,11 @@ export type PreferredMethod = (typeof PREFERRED_METHOD_OPTIONS)[number];
 
 const preferredMethodValidators = {
   preferredMethods: z
-    .array(z.enum(PREFERRED_METHOD_OPTIONS))
+    .array(z.enum(PREFERRED_METHOD_OPTIONS), {
+      error: "Please select at least one preferred method",
+    })
     .min(1, "Please select at least one preferred method"),
+
 };
 export const preferredMethodSchema = z.object(preferredMethodValidators);
 export type PreferredMethodFormData = z.infer<typeof preferredMethodSchema>;
