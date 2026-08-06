@@ -417,6 +417,9 @@ export const preferencesSchema = z.object(preferencesValidators).refine(
 const relaxedBusinessOperationValidators = {
   businessOperationType: z.enum(["commission", "independent"]).nullish(),
 };
+const relaxedPreferredMethodValidators = {
+  preferredMethods: z.array(z.enum(PREFERRED_METHOD_OPTIONS)).nullish(),
+};
 const relaxedMonthlyOrderVolumeValidators = {
   monthlyOrderVolume: z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish(),
 };
@@ -425,7 +428,7 @@ const baseValidators = {
   ...contactBasicsValidators,
   ...createPasswordValidators,
   ...taxExemptionValidators,
-  ...preferredMethodValidators,
+  ...relaxedPreferredMethodValidators,
   ...preferencesValidators,
 };
 

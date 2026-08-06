@@ -22,7 +22,7 @@ import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
-import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, useAutoApproval } from "@/lib/app-settings";
+import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -59,6 +59,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: autoApprove } = useAutoApproval();
   const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
   const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
+  const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -71,6 +72,7 @@ export function StepProvider({ children }: StepProviderProps) {
     const hiddenSteps: Step[] = [];
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
+    if (!preferredMethodStepEnabled) hiddenSteps.push("preferred-method");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
@@ -89,7 +91,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;

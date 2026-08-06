@@ -423,7 +423,8 @@ const PREFERRED_METHOD_OPTIONS = [
   "SecreTapes",
   "Volume Weft",
 ] as const;
-const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).min(1);
+// May be absent when the admin hides the preferred-method step.
+const preferredMethodsSchema = z.array(z.enum(PREFERRED_METHOD_OPTIONS)).nullish();
 const MONTHLY_ORDER_VOLUME_OPTIONS = ["None", "1-5", "6-10", "10+"] as const;
 const monthlyOrderVolumeSchema = z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish();
 

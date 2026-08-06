@@ -8,6 +8,7 @@ type Flags = {
   founderCallEnabled: boolean;
   businessOperationStepEnabled: boolean;
   orderVolumeStepEnabled: boolean;
+  preferredMethodStepEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
@@ -19,7 +20,7 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
@@ -29,6 +30,7 @@ async function fetchFlags(): Promise<Flags> {
       founderCallEnabled: (data as Flags).founderCallEnabled !== false,
       businessOperationStepEnabled: (data as Flags).businessOperationStepEnabled !== false,
       orderVolumeStepEnabled: (data as Flags).orderVolumeStepEnabled !== false,
+      preferredMethodStepEnabled: (data as Flags).preferredMethodStepEnabled !== false,
     };
     return cachedFlags;
   })();
@@ -115,10 +117,14 @@ function useFlagDefaultTrue(pick: (f: Flags) => boolean): { enabled: boolean; lo
 
 const pickBizOpStep = (f: Flags) => f.businessOperationStepEnabled;
 const pickOrderVolumeStep = (f: Flags) => f.orderVolumeStepEnabled;
+const pickPreferredMethodStep = (f: Flags) => f.preferredMethodStepEnabled;
 
 export function useBusinessOperationStepEnabled() {
   return useFlagDefaultTrue(pickBizOpStep);
 }
 export function useOrderVolumeStepEnabled() {
   return useFlagDefaultTrue(pickOrderVolumeStep);
+}
+export function usePreferredMethodStepEnabled() {
+  return useFlagDefaultTrue(pickPreferredMethodStep);
 }
