@@ -60,6 +60,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
   const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
   const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
+  const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -73,6 +74,7 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
     if (!preferredMethodStepEnabled) hiddenSteps.push("preferred-method");
+    if (!businessLocationStepEnabled) hiddenSteps.push("business-location");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
@@ -91,7 +93,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
@@ -167,7 +169,7 @@ export function StepProvider({ children }: StepProviderProps) {
         }
         // License step: country-aware credential gate. Mirror the top-level
         // superRefine rule that requires qualification for AU/UK/IE/NZ/ZA.
-        if (step === "license") {
+        if (step === "contact-basics") {
           const v = values as {
             countryCode?: string;
             qualification?: string;
@@ -329,7 +331,7 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
-    if (currentStep === "license") {
+    if (currentStep === "contact-basics") {
       const v = watch() as {
         countryCode?: string;
         qualification?: string;

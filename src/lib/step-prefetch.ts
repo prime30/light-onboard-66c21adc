@@ -50,7 +50,6 @@ const STEP_IMPORTS: Partial<Record<Step, () => Promise<unknown>>> = {
   "create-password":    () => import("@/components/registration/steps/CreatePasswordStep"),
   "business-location":  () => import("@/components/registration/steps/BusinessLocationStep"),
   "school-info":        () => import("@/components/registration/steps/SchoolInfoStep"),
-  "license":            () => import("@/components/registration/steps/LicenseStep"),
   "tax-exemption":      () => import("@/components/registration/steps/TaxExemptionStep"),
   "preferred-method":   () => import("@/components/registration/steps/PreferredMethodStep"),
   "monthly-order-volume": () => import("@/components/registration/steps/MonthlyOrderVolumeStep"),

@@ -17,7 +17,6 @@ const PreferredMethodStep = lazy(() => import("@/components/registration/steps/P
 const MonthlyOrderVolumeStep = lazy(() => import("@/components/registration/steps/MonthlyOrderVolumeStep").then(m => ({ default: m.MonthlyOrderVolumeStep })));
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
 const SchoolInfoStep = lazy(() => import("@/components/registration/steps/SchoolInfoStep").then(m => ({ default: m.SchoolInfoStep })));
-const LicenseStep = lazy(() => import("@/components/registration/steps/LicenseStep").then(m => ({ default: m.LicenseStep })));
 
 const TaxExemptionStep = lazy(() => import("@/components/registration/steps/TaxExemptionStep").then(m => ({ default: m.TaxExemptionStep })));
 const BusinessOperationStep = lazy(() => import("@/components/registration/steps/BusinessOperationStep").then(m => ({ default: m.BusinessOperationStep })));
@@ -229,7 +228,7 @@ const Auth = () => {
       "State/province": "#stateProvince",
       "ZIP code": "#zipCode",
       // License fields
-      "License number": "#license",
+      "License number": "#contact-basics",
       "Salon size": "[data-field='salon-size']",
       "Salon structure": "[data-field='salon-structure']",
       // School fields
@@ -471,7 +470,6 @@ const Auth = () => {
           {currentStep !== "onboarding" && (
             <Suspense fallback={null}>
               {currentStep === "account-type" && <AccountTypeForm />}
-              {currentStep === "license" && <LicenseStep />}
               {currentStep === "business-operation" && <BusinessOperationStep />}
               {currentStep === "business-location" && <BusinessLocationStep />}
               {currentStep === "school-info" && <SchoolInfoStep />}
