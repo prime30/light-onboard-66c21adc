@@ -86,10 +86,10 @@ export const WelcomeOfferStep = () => {
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Your welcome offer
+          Unlock 15% off
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-[42ch] mx-auto">
-          Subscribe to texts and email to unlock 15% off your first pro order.
+          Subscribe to texts and email below to reveal your 15% off code on the next screen.
         </p>
       </div>
 
