@@ -466,35 +466,9 @@ export const PreferencesStep = () => {
           )}
         </div>
 
-        {/* Birthday (Optional) */}
-        <div className="space-y-2.5 animate-stagger-3 group">
-          <div className="grid grid-cols-2 gap-2.5">
-            <SelectInput
-              name="birthdayMonth"
-              control={control}
-              error={errors.birthdayMonth}
-              options={monthOptions}
-              label={
-                <>
-                  Birthday <span className="text-muted-foreground font-normal">(optional)</span>
-                </>
-              }
-              placeholder="Month"
-            />
-            <SelectInput
-              name="birthdayDay"
-              control={control}
-              error={errors.birthdayDay}
-              options={dayOptions}
-              label=" " // Space to align with month label
-              placeholder="Day"
-              className="mt-6"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            We'll send you a special treat on your birthday!
-          </p>
-        </div>
+        {/* Birthday field removed. */}
+
+
 
         {/* Social handle moved to Contact Information step. */}
 
