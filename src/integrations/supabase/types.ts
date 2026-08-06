@@ -17,6 +17,7 @@ export type Database = {
       app_settings: {
         Row: {
           auto_approval_enabled: boolean
+          business_location_step_enabled: boolean
           business_operation_step_enabled: boolean
           discount_metafields_enabled: boolean
           extra_customer_tags: string[]
@@ -32,6 +33,7 @@ export type Database = {
         }
         Insert: {
           auto_approval_enabled?: boolean
+          business_location_step_enabled?: boolean
           business_operation_step_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
@@ -47,6 +49,7 @@ export type Database = {
         }
         Update: {
           auto_approval_enabled?: boolean
+          business_location_step_enabled?: boolean
           business_operation_step_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
