@@ -106,7 +106,7 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 };
 
 export const SummaryForm = () => {
-  const { watch, currentStep, errors, errorActions, submitErrorMessage } = useForm();
+  const { watch, currentStep, getStepNumber, errors, errorActions, submitErrorMessage } = useForm();
   const navigate = useNavigate();
   const errorRef = useRef<HTMLDivElement>(null);
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
