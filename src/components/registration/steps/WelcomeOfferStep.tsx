@@ -187,8 +187,7 @@ export const WelcomeOfferStep = () => {
                 <MessageSquare className="w-[15px] h-[15px]" strokeWidth={1.75} />
               </div>
               <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">Subscribe to texts</span>
+                <div className="flex items-center gap-3">
                   <Checkbox
                     checked={acceptsSmsMarketing || false}
                     onCheckedChange={(checked) => {
@@ -196,8 +195,9 @@ export const WelcomeOfferStep = () => {
                       setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
                       if (next && !hasPhone) setIsEditingPhone(true);
                     }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
+                  <span className="text-sm font-medium text-foreground">Subscribe to texts for 15% off</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Approval alerts, order updates, sales, and early releases.
