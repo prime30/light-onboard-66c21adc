@@ -131,7 +131,8 @@ export const STEP_ORDER: Record<string, Step[]> = {
 export function getStepOrder(
   accountType: AccountType,
   autoApprove = false,
-  countryCode?: string
+  countryCode?: string,
+  hiddenSteps?: Step[]
 ): Step[] {
   if (!accountType) return ["account-type"];
   let order = STEP_ORDER[accountType] || STEP_ORDER.professional;
@@ -140,6 +141,9 @@ export function getStepOrder(
   // AU professionals and AU salons.
   if ((countryCode ?? "").toUpperCase() === "AU") {
     order = order.filter((s) => s !== "license");
+  }
+  if (hiddenSteps?.length) {
+    order = order.filter((s) => !hiddenSteps.includes(s));
   }
   if (!autoApprove) return order;
   return order.filter((s) => s !== "create-password");
