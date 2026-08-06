@@ -16,6 +16,8 @@ interface RequestBody {
   discountMetafieldsEnabled?: boolean;
   founderCallHighVolumeOnly?: boolean;
   founderCallEnabled?: boolean;
+  businessOperationStepEnabled?: boolean;
+  orderVolumeStepEnabled?: boolean;
   extraCustomerTags?: string[];
 }
 
@@ -129,14 +131,16 @@ Deno.serve(async (req: Request) => {
   const hasMetafieldsToggle = typeof body.discountMetafieldsEnabled === "boolean";
   const hasFounderHighVolumeToggle = typeof body.founderCallHighVolumeOnly === "boolean";
   const hasFounderEnabledToggle = typeof body.founderCallEnabled === "boolean";
+  const hasBizOpStepToggle = typeof body.businessOperationStepEnabled === "boolean";
+  const hasOrderVolStepToggle = typeof body.orderVolumeStepEnabled === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasTags) {
+  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasTags) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, extra_customer_tags")
+      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, extra_customer_tags")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -152,6 +156,8 @@ Deno.serve(async (req: Request) => {
   if (hasMetafieldsToggle) update.discount_metafields_enabled = body.discountMetafieldsEnabled;
   if (hasFounderHighVolumeToggle) update.founder_call_high_volume_only = body.founderCallHighVolumeOnly;
   if (hasFounderEnabledToggle) update.founder_call_enabled = body.founderCallEnabled;
+  if (hasBizOpStepToggle) update.business_operation_step_enabled = body.businessOperationStepEnabled;
+  if (hasOrderVolStepToggle) update.order_volume_step_enabled = body.orderVolumeStepEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
 
   const { data, error } = await supabase

@@ -23,21 +23,23 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true }, 200);
   }
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data, error } = await supabase
     .from("app_settings")
-    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled")
+    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled")
     .eq("singleton", true)
     .maybeSingle();
   if (error || !data) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true }, 200);
   }
   return json({
     autoApprovalEnabled: !!data.auto_approval_enabled,
     welcomeOfferEnabled: !!data.welcome_offer_enabled,
     founderCallHighVolumeOnly: !!data.founder_call_high_volume_only,
     founderCallEnabled: data.founder_call_enabled !== false,
+    businessOperationStepEnabled: data.business_operation_step_enabled !== false,
+    orderVolumeStepEnabled: data.order_volume_step_enabled !== false,
   });
 });

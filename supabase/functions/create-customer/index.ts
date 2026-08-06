@@ -430,7 +430,7 @@ const monthlyOrderVolumeSchema = z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish();
 const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({
     accountType: z.literal("professional"),
-    businessOperationType: z.enum(["commission", "independent"]),
+    businessOperationType: z.enum(["commission", "independent"]).nullish(),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     preferredName: z.string().nullish(),
