@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Info, Pencil } from "lucide-react";
+import { Info, Pencil, MessageSquare, Mail, Gift, Lock, Unlock } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { countryCodes } from "@/data/country-codes";
 import { CountryFlag } from "./ContactBasicsStep";
