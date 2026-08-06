@@ -106,7 +106,9 @@ const Auth = () => {
       currentStep !== "success" &&
       currentStep !== "assessing" &&
       currentStep !== "schedule" &&
-      currentStep !== "schedule-confirmed");
+      currentStep !== "schedule-confirmed" &&
+      currentStep !== "welcome-offer");
+
   useEffect(() => {
     if (!footerVisible) {
       setFooterEnterReady(false);
