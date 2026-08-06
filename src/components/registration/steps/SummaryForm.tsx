@@ -317,11 +317,11 @@ export const SummaryForm = () => {
                 />
               )}
               {provinceCode && <SummaryRow label="State" value={provinceCode} />}
-              {accountType === "salon" && (
-                <>
-                  <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />
-                  <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />
-                </>
+              {accountType === "salon" && salonSize && (
+                <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />
+              )}
+              {accountType === "salon" && salonStructure && (
+                <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />
               )}
             </SummarySection>
           </div>
@@ -338,7 +338,7 @@ export const SummaryForm = () => {
         )}
 
         {/* Business Location */}
-        {(accountType === "professional" || accountType === "salon") && (
+        {(accountType === "professional" || accountType === "salon") && !!businessAddress && (
           <div className="animate-stagger-6">
             <SummarySection
               title="Business Location"
