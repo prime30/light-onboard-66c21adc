@@ -24,6 +24,7 @@ export type Database = {
           founder_call_high_volume_only: boolean
           id: string
           order_volume_step_enabled: boolean
+          preferred_method_step_enabled: boolean
           singleton: boolean
           updated_at: string
           updated_by: string | null
@@ -38,6 +39,7 @@ export type Database = {
           founder_call_high_volume_only?: boolean
           id?: string
           order_volume_step_enabled?: boolean
+          preferred_method_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           founder_call_high_volume_only?: boolean
           id?: string
           order_volume_step_enabled?: boolean
+          preferred_method_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null

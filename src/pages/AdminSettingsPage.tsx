@@ -50,6 +50,8 @@ const AdminSettingsPage = () => {
   const [updatingBizOpStep, setUpdatingBizOpStep] = useState(false);
   const [orderVolumeStepOn, setOrderVolumeStepOn] = useState<boolean | null>(null);
   const [updatingOrderVolumeStep, setUpdatingOrderVolumeStep] = useState(false);
+  const [preferredMethodStepOn, setPreferredMethodStepOn] = useState<boolean | null>(null);
+  const [updatingPreferredMethodStep, setUpdatingPreferredMethodStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -163,6 +165,11 @@ const AdminSettingsPage = () => {
         } else {
           setOrderVolumeStepOn(true);
         }
+        if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
+          setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
+        } else {
+          setPreferredMethodStepOn(true);
+        }
         if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
         setBizOpStepOn(data.setting.business_operation_step_enabled);
       } else {
@@ -172,6 +179,11 @@ const AdminSettingsPage = () => {
         setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
       } else {
         setOrderVolumeStepOn(true);
+      }
+      if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
+        setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
+      } else {
+        setPreferredMethodStepOn(true);
       }
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
@@ -245,6 +257,11 @@ const AdminSettingsPage = () => {
         setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
       } else {
         setOrderVolumeStepOn(true);
+      }
+      if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
+        setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
+      } else {
+        setPreferredMethodStepOn(true);
       }
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
@@ -435,7 +452,7 @@ const AdminSettingsPage = () => {
 
 
   const handleStepToggle = async (
-    key: "businessOperationStepEnabled" | "orderVolumeStepEnabled",
+    key: "businessOperationStepEnabled" | "orderVolumeStepEnabled" | "preferredMethodStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,
@@ -964,6 +981,35 @@ const AdminSettingsPage = () => {
                 }
                 disabled={updatingOrderVolumeStep}
                 aria-label="Toggle extensions ordered per month step"
+              />
+            )}
+          </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">Your preferred method</h3>
+              <p className="text-xs text-muted-foreground">
+                Install method multi-select step. Turning this off also stops applying the
+                "Preferred method" tags to new customers.
+              </p>
+            </div>
+            {preferredMethodStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={preferredMethodStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "preferredMethodStepEnabled",
+                    next,
+                    preferredMethodStepOn,
+                    setPreferredMethodStepOn,
+                    setUpdatingPreferredMethodStep,
+                    "Your preferred method"
+                  )
+                }
+                disabled={updatingPreferredMethodStep}
+                aria-label="Toggle preferred method step"
               />
             )}
           </div>
