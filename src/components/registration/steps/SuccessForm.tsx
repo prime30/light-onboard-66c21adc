@@ -116,9 +116,11 @@ export const SuccessForm = () => {
   // offer flow is off: promote SALONTRIAL15 for their first order.
   const showSalonTrial15Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
-  // The pro trial code is gated behind the SMS opt-in captured during
-  // registration: subscribers see the code, non-subscribers see it locked.
-  const smsSubscribed = watch("acceptsSmsMarketing") === true;
+  // The pro trial code is gated behind BOTH marketing opt-ins captured during
+  // registration (texts + email): subscribers see the code, everyone else sees
+  // it locked.
+  const smsSubscribed =
+    watch("acceptsSmsMarketing") === true && watch("acceptsMarketing") === true;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
