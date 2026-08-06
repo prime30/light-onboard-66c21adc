@@ -90,8 +90,8 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
 export const STEP_ORDER: Record<string, Step[]> = {
   professional: [
     "account-type",
-    "business-operation",
     "contact-basics",
+    "business-operation",
     "create-password",
     "business-location",
     "license",
@@ -101,8 +101,8 @@ export const STEP_ORDER: Record<string, Step[]> = {
   ],
   salon: [
     "account-type",
-    "business-location",
     "contact-basics",
+    "business-location",
     "create-password",
     "license",
     "preferred-method",
@@ -111,8 +111,8 @@ export const STEP_ORDER: Record<string, Step[]> = {
   ],
   student: [
     "account-type",
-    "school-info",
     "contact-basics",
+    "school-info",
     "create-password",
     "preferred-method",
     "preferences",
