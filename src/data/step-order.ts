@@ -4,6 +4,7 @@ import {
   businessLocationSchema,
   businessOperationSchema,
   contactBasicsSchema,
+  contactBasicsStepSchema,
   createPasswordStepSchema,
   licenseSchema,
   monthlyOrderVolumeSchema,
@@ -94,7 +95,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "business-operation",
     "create-password",
     "business-location",
-    "license",
     "preferred-method",
     "monthly-order-volume",
     "preferences",
@@ -104,7 +104,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "contact-basics",
     "business-location",
     "create-password",
-    "license",
     "preferred-method",
     "monthly-order-volume",
     "preferences",
@@ -153,7 +152,9 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   reviews: null,
   onboarding: null,
   "account-type": accountTypeSchema,
-  "contact-basics": contactBasicsSchema,
+  // Contact Information now also carries the license / ABN number and the
+  // optional credential document upload.
+  "contact-basics": contactBasicsStepSchema,
   // Plain ZodObject schema (refinement runs at registrationSchema level).
   "create-password": createPasswordStepSchema,
   license: licenseSchema,
