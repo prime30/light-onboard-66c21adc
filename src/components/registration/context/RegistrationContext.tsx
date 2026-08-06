@@ -47,8 +47,6 @@ type InternalFormData = {
   taxExempt: boolean | null;
   taxExemptFile?: string[];
   
-  birthdayMonth?: string;
-  birthdayDay?: string;
   socialMediaHandle?: string;
   referralSource?: string;
   subscribeOrderUpdates: boolean;
@@ -83,8 +81,6 @@ const initialFormData: InternalFormData = {
   taxExempt: null,
   taxExemptFile: [],
   
-  birthdayMonth: "",
-  birthdayDay: "",
   socialMediaHandle: "",
   referralSource: "",
   subscribeOrderUpdates: true,
