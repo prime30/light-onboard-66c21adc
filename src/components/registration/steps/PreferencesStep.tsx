@@ -150,54 +150,105 @@ export const PreferencesStep = () => {
             option in the stack. */}
         <div
           className={cn(
-            "space-y-[15px] p-5 rounded-form bg-muted border border-border/50",
+            "relative overflow-hidden rounded-form border border-border/60 bg-gradient-to-b from-muted/80 to-muted/40 backdrop-blur-sm shadow-card",
             "animate-stagger-2"
           )}
         >
-          <p className="text-sm font-medium text-foreground">Communication preferences</p>
-          <div className="space-y-[15px]">
+          {/* Decorative top accent */}
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-foreground/10 via-foreground/25 to-foreground/10" />
 
-            {/* SMS marketing - Shopify sms_marketing_consent (TCPA). Top of
-                the stack: framed around the approval moment, which is what
-                the applicant actually cares about right now. */}
-            <label
-              className={cn(
-                "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer border-border hover:border-foreground/30"
-              )}
-            >
-              <Checkbox
-                checked={acceptsSmsMarketing || false}
-                onCheckedChange={(checked) => {
-                  const next = !!checked;
-                  setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
-                  // If opting in without a valid number on file, open the
-                  // inline editor immediately so they can supply it here.
-                  if (next && !hasPhone) {
-                    setIsEditingPhone(true);
-                  }
-                }}
-                className="rounded-full mt-1.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-1.5 flex-1">
+          {/* Reward header */}
+          <div className="relative px-5 pt-5 pb-4 border-b border-border/40">
+            <div className="flex items-start gap-3.5">
+              <div className="flex-shrink-0 w-10 h-10 rounded-[12px] bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-foreground/80" />
+              </div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground">
-                    Subscribe to texts (required for 15% off)
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+                  <p className="text-sm font-medium text-foreground">Unlock your welcome offer</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                     15% off
                   </span>
                 </div>
-                <p className="text-xs text-foreground/70 leading-relaxed">
-                  Subscribe to both texts and email below to unlock 15% off your first order, revealed at the end of this application. You'll also get approval alerts, order and shipping updates, sales, and early releases.
+                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                  Subscribe to both texts and email to get <span className="font-medium text-foreground">SALONTRIAL15</span> revealed on the next screen.
                 </p>
-                <p className="text-[11px] text-foreground/60 leading-relaxed">
+              </div>
+            </div>
+
+            {/* Unlock status pill */}
+            <div
+              className={cn(
+                "mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium uppercase tracking-[0.08em] border transition-all duration-300",
+                acceptsSmsMarketing && acceptsMarketing
+                  ? "bg-status-green/10 border-status-green/30 text-status-green"
+                  : "bg-foreground/[0.012] border-foreground/10 text-foreground/60"
+              )}
+            >
+              {acceptsSmsMarketing && acceptsMarketing ? (
+                <>
+                  <Unlock className="w-3 h-3" />
+                  <span>15% off unlocked</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3" />
+                  <span>
+                    {!acceptsSmsMarketing && !acceptsMarketing && "15% off locked"}
+                    {acceptsSmsMarketing && !acceptsMarketing && "Email required to unlock"}
+                    {!acceptsSmsMarketing && acceptsMarketing && "Texts required to unlock"}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="p-5 space-y-4">
+            {/* SMS marketing card */}
+            <label
+              className={cn(
+                "relative flex items-start gap-3.5 group p-4 rounded-form bg-background border transition-all duration-300 cursor-pointer",
+                acceptsSmsMarketing
+                  ? "border-foreground/30 shadow-input-focus"
+                  : "border-border hover:border-foreground/20 hover:shadow-card"
+              )}
+            >
+              <div className="flex-shrink-0">
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors duration-300",
+                    acceptsSmsMarketing ? "bg-foreground text-background" : "bg-muted border border-border/60 text-foreground/60"
+                  )}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground">Subscribe to texts</span>
+                  <Checkbox
+                    checked={acceptsSmsMarketing || false}
+                    onCheckedChange={(checked) => {
+                      const next = !!checked;
+                      setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
+                      if (next && !hasPhone) {
+                        setIsEditingPhone(true);
+                      }
+                    }}
+                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                  />
+                </div>
+                <p className="text-xs text-foreground/70 leading-relaxed">
+                  Get approval alerts, order updates, sales, and early releases - plus unlock your 15% off code.
+                </p>
+                <p className="text-[11px] text-foreground/50 leading-relaxed">
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
                   Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
                   Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
-                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                    className="underline underline-offset-2 text-foreground/70 hover:text-foreground transition-colors"
                   >
                     Terms
                   </button>
@@ -205,7 +256,7 @@ export const PreferencesStep = () => {
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
-                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                    className="underline underline-offset-2 text-foreground/70 hover:text-foreground transition-colors"
                   >
                     Privacy Policy
                   </button>
@@ -228,9 +279,7 @@ export const PreferencesStep = () => {
                 )}
                 {!hasPhone && !isEditingPhone && (
                   <div className="flex items-center gap-1.5 pt-1">
-                    <span className="text-xs text-foreground/70">
-                      No phone number on file.
-                    </span>
+                    <span className="text-xs text-foreground/70">No phone number on file.</span>
                     <button
                       type="button"
                       onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
@@ -278,26 +327,38 @@ export const PreferencesStep = () => {
               </div>
             </label>
 
-            {/* Email marketing - Shopify email_marketing_consent */}
-            <label className="flex items-start gap-[15px] cursor-pointer group">
-              <Checkbox
-                checked={acceptsMarketing || false}
-                onCheckedChange={(checked) => {
-                  setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
-                }}
-                className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-              />
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                    Email me about promotions, new products & deals
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
-                    15% off
-                  </span>
+            {/* Email marketing card */}
+            <label
+              className={cn(
+                "relative flex items-start gap-3.5 group p-4 rounded-form bg-background border transition-all duration-300 cursor-pointer",
+                acceptsMarketing
+                  ? "border-foreground/30 shadow-input-focus"
+                  : "border-border hover:border-foreground/20 hover:shadow-card"
+              )}
+            >
+              <div className="flex-shrink-0">
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors duration-300",
+                    acceptsMarketing ? "bg-foreground text-background" : "bg-muted border border-border/60 text-foreground/60"
+                  )}
+                >
+                  <Mail className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Also required to unlock your 15% off pro trial code. Unsubscribe anytime.
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="text-sm font-medium text-foreground">Subscribe to emails</span>
+                  <Checkbox
+                    checked={acceptsMarketing || false}
+                    onCheckedChange={(checked) => {
+                      setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
+                    }}
+                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                  />
+                </div>
+                <p className="text-xs text-foreground/70 leading-relaxed">
+                  Promotions, new products, and deals - plus required to unlock your 15% off pro trial code. Unsubscribe anytime.
                 </p>
               </div>
             </label>
