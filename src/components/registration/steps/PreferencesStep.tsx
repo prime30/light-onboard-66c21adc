@@ -203,14 +203,14 @@ export const PreferencesStep = () => {
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">
-                    Subscribe to texts and unlock 15% off your first order
+                    Subscribe to texts (required for 15% off)
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                     15% off
                   </span>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed">
-                  Subscribers get their pro trial code revealed at the end of this application, plus approval alerts, order and shipping updates, sales, and early releases.
+                  Subscribe to both texts and email below to unlock 15% off your first order, revealed at the end of this application. You'll also get approval alerts, order and shipping updates, sales, and early releases.
                 </p>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
