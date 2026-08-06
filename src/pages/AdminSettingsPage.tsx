@@ -52,6 +52,8 @@ const AdminSettingsPage = () => {
   const [updatingOrderVolumeStep, setUpdatingOrderVolumeStep] = useState(false);
   const [preferredMethodStepOn, setPreferredMethodStepOn] = useState<boolean | null>(null);
   const [updatingPreferredMethodStep, setUpdatingPreferredMethodStep] = useState(false);
+  const [businessLocationStepOn, setBusinessLocationStepOn] = useState<boolean | null>(null);
+  const [updatingBusinessLocationStep, setUpdatingBusinessLocationStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -170,6 +172,7 @@ const AdminSettingsPage = () => {
         } else {
           setPreferredMethodStepOn(true);
         }
+        setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
         if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
         setBizOpStepOn(data.setting.business_operation_step_enabled);
       } else {
@@ -185,6 +188,7 @@ const AdminSettingsPage = () => {
       } else {
         setPreferredMethodStepOn(true);
       }
+      setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
         } else {
@@ -263,6 +267,7 @@ const AdminSettingsPage = () => {
       } else {
         setPreferredMethodStepOn(true);
       }
+      setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
       } else {
@@ -452,7 +457,11 @@ const AdminSettingsPage = () => {
 
 
   const handleStepToggle = async (
-    key: "businessOperationStepEnabled" | "orderVolumeStepEnabled" | "preferredMethodStepEnabled",
+    key:
+      | "businessOperationStepEnabled"
+      | "orderVolumeStepEnabled"
+      | "preferredMethodStepEnabled"
+      | "businessLocationStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,
@@ -1010,6 +1019,35 @@ const AdminSettingsPage = () => {
                 }
                 disabled={updatingPreferredMethodStep}
                 aria-label="Toggle preferred method step"
+              />
+            )}
+          </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">Business location</h3>
+              <p className="text-xs text-muted-foreground">
+                Salon / business name and address step. Off by default. Turning it off means new
+                customers are created without a default address in Shopify.
+              </p>
+            </div>
+            {businessLocationStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={businessLocationStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "businessLocationStepEnabled",
+                    next,
+                    businessLocationStepOn,
+                    setBusinessLocationStepOn,
+                    setUpdatingBusinessLocationStep,
+                    "Business location"
+                  )
+                }
+                disabled={updatingBusinessLocationStep}
+                aria-label="Toggle business location step"
               />
             )}
           </div>
