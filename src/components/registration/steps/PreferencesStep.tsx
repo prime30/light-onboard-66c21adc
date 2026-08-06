@@ -203,14 +203,14 @@ export const PreferencesStep = () => {
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">
-                    Text me when I'm approved to shop & with pro-only deals
+                    Subscribe to texts and unlock 15% off your first order
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
-                    Recommended
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+                    15% off
                   </span>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed">
-                  Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases.
+                  Subscribers get their pro trial code revealed at the end of this application, plus approval alerts, order and shipping updates, sales, and early releases.
                 </p>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
