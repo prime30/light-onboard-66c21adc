@@ -411,6 +411,16 @@ export const preferencesSchema = z.object(preferencesValidators).refine(
   }
 );
 
+// These two steps can be hidden by an admin toggle, so the full-registration
+// schema keeps them optional. The per-step schemas above still require them
+// whenever the step is actually part of the flow.
+const relaxedBusinessOperationValidators = {
+  businessOperationType: z.enum(["commission", "independent"]).nullish(),
+};
+const relaxedMonthlyOrderVolumeValidators = {
+  monthlyOrderVolume: z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish(),
+};
+
 const baseValidators = {
   ...contactBasicsValidators,
   ...createPasswordValidators,
@@ -423,17 +433,17 @@ export const registrationSchema = z
   .discriminatedUnion("accountType", [
     z.object({ accountType: z.literal("professional") }).extend({
       ...baseValidators,
-      ...businessOperationValidators,
+      ...relaxedBusinessOperationValidators,
       ...businessLocationValidators,
       ...licenseValidators,
-      ...monthlyOrderVolumeValidators,
+      ...relaxedMonthlyOrderVolumeValidators,
     }),
     z.object({ accountType: z.literal("salon") }).extend({
       ...baseValidators,
       ...businessLocationValidators,
       ...salonValidators,
       ...licenseValidators,
-      ...monthlyOrderVolumeValidators,
+      ...relaxedMonthlyOrderVolumeValidators,
       // licenseProofFiles stays optional here; enforced as required for
       // non-AU salons by registrationSchema.superRefine below.
     }),

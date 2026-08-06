@@ -6,6 +6,8 @@ type Flags = {
   welcomeOfferEnabled: boolean;
   founderCallHighVolumeOnly: boolean;
   founderCallEnabled: boolean;
+  businessOperationStepEnabled: boolean;
+  orderVolumeStepEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
@@ -17,7 +19,7 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
@@ -25,6 +27,8 @@ async function fetchFlags(): Promise<Flags> {
       welcomeOfferEnabled: !!(data as Flags).welcomeOfferEnabled,
       founderCallHighVolumeOnly: !!(data as Flags).founderCallHighVolumeOnly,
       founderCallEnabled: (data as Flags).founderCallEnabled !== false,
+      businessOperationStepEnabled: (data as Flags).businessOperationStepEnabled !== false,
+      orderVolumeStepEnabled: (data as Flags).orderVolumeStepEnabled !== false,
     };
     return cachedFlags;
   })();
@@ -89,4 +93,32 @@ export function useFounderCallEnabled() {
     };
   }, []);
   return { enabled, loading };
+}
+
+/** Both default to true (step shown) while the flags are still loading. */
+function useFlagDefaultTrue(pick: (f: Flags) => boolean): { enabled: boolean; loading: boolean } {
+  const [enabled, setEnabled] = useState<boolean>(cachedFlags ? pick(cachedFlags) : true);
+  const [loading, setLoading] = useState<boolean>(cachedFlags === null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchFlags().then((f) => {
+      if (cancelled) return;
+      setEnabled(pick(f));
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pick]);
+  return { enabled, loading };
+}
+
+const pickBizOpStep = (f: Flags) => f.businessOperationStepEnabled;
+const pickOrderVolumeStep = (f: Flags) => f.orderVolumeStepEnabled;
+
+export function useBusinessOperationStepEnabled() {
+  return useFlagDefaultTrue(pickBizOpStep);
+}
+export function useOrderVolumeStepEnabled() {
+  return useFlagDefaultTrue(pickOrderVolumeStep);
 }

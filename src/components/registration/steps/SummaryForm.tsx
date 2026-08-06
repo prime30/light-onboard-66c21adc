@@ -281,7 +281,7 @@ export const SummaryForm = () => {
         </div>
 
         {/* Business Operation (Professional only) */}
-        {accountType === "professional" && (
+        {accountType === "professional" && businessOperationType && (
           <div className="animate-stagger-4">
             <SummarySection title="Business Operation" stepNum={2}>
               <SummaryRow label="Type" value={getBusinessOperationLabel(businessOperationType)} />

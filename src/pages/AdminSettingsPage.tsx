@@ -46,6 +46,10 @@ const AdminSettingsPage = () => {
   const [updatingFounderHighVolume, setUpdatingFounderHighVolume] = useState(false);
   const [founderCallOn, setFounderCallOn] = useState<boolean | null>(null);
   const [updatingFounderCallOn, setUpdatingFounderCallOn] = useState(false);
+  const [bizOpStepOn, setBizOpStepOn] = useState<boolean | null>(null);
+  const [updatingBizOpStep, setUpdatingBizOpStep] = useState(false);
+  const [orderVolumeStepOn, setOrderVolumeStepOn] = useState<boolean | null>(null);
+  const [updatingOrderVolumeStep, setUpdatingOrderVolumeStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -149,7 +153,27 @@ const AdminSettingsPage = () => {
         } else {
           setFounderHighVolume(false);
         }
-        if (typeof data?.setting?.founder_call_enabled === "boolean") {
+        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
+          setBizOpStepOn(data.setting.business_operation_step_enabled);
+        } else {
+          setBizOpStepOn(true);
+        }
+        if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
+          setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
+        } else {
+          setOrderVolumeStepOn(true);
+        }
+        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
+        setBizOpStepOn(data.setting.business_operation_step_enabled);
+      } else {
+        setBizOpStepOn(true);
+      }
+      if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
+        setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
+      } else {
+        setOrderVolumeStepOn(true);
+      }
+      if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
         } else {
           setFounderCallOn(true);
@@ -211,6 +235,16 @@ const AdminSettingsPage = () => {
         setFounderHighVolume(data.setting.founder_call_high_volume_only);
       } else {
         setFounderHighVolume(false);
+      }
+      if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
+        setBizOpStepOn(data.setting.business_operation_step_enabled);
+      } else {
+        setBizOpStepOn(true);
+      }
+      if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
+        setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
+      } else {
+        setOrderVolumeStepOn(true);
       }
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
@@ -399,6 +433,45 @@ const AdminSettingsPage = () => {
 
 
 
+
+  const handleStepToggle = async (
+    key: "businessOperationStepEnabled" | "orderVolumeStepEnabled",
+    next: boolean,
+    current: boolean | null,
+    setValue: (v: boolean) => void,
+    setUpdatingValue: (v: boolean) => void,
+    label: string
+  ) => {
+    if (current === null) return;
+    setValue(next);
+    setUpdatingValue(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { token, [key]: next },
+      });
+      if (error || !data?.success) {
+        setValue(current);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? `${label} step ON` : `${label} step OFF`,
+        description: next
+          ? "The step is part of the registration flow."
+          : "The step is hidden and skipped for new registrations.",
+      });
+    } catch (err) {
+      console.error(err);
+      setValue(current);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingValue(false);
+    }
+  };
 
   const addTag = (raw: string) => {
     const t = raw.trim().replace(/,/g, " ").slice(0, MAX_TAG_LENGTH);
@@ -824,6 +897,76 @@ const AdminSettingsPage = () => {
               </span>
             </div>
           )}
+        </div>
+
+        {/* Registration step visibility */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-5">
+          <div className="space-y-1">
+            <h2 className="text-base font-medium text-foreground">Registration step visibility</h2>
+            <p className="text-sm text-muted-foreground">
+              Turn individual steps off to shorten the registration flow. Hidden steps are skipped
+              and their answers are no longer required.
+            </p>
+          </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">How do you operate</h3>
+              <p className="text-xs text-muted-foreground">
+                Commission vs independent stylist step (professionals only).
+              </p>
+            </div>
+            {bizOpStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={bizOpStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "businessOperationStepEnabled",
+                    next,
+                    bizOpStepOn,
+                    setBizOpStepOn,
+                    setUpdatingBizOpStep,
+                    "How do you operate"
+                  )
+                }
+                disabled={updatingBizOpStep}
+                aria-label="Toggle how do you operate step"
+              />
+            )}
+          </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">
+                Extensions ordered per month
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Monthly order volume step. Turning this off also removes the volume cohort data for
+                new registrations and disables founder call volume gating for them.
+              </p>
+            </div>
+            {orderVolumeStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={orderVolumeStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "orderVolumeStepEnabled",
+                    next,
+                    orderVolumeStepOn,
+                    setOrderVolumeStepOn,
+                    setUpdatingOrderVolumeStep,
+                    "Extensions ordered per month"
+                  )
+                }
+                disabled={updatingOrderVolumeStep}
+                aria-label="Toggle extensions ordered per month step"
+              />
+            )}
+          </div>
         </div>
           {founderHighVolume !== null && (
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">

@@ -22,7 +22,7 @@ import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -57,6 +57,8 @@ export function StepProvider({ children }: StepProviderProps) {
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
   const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
+  const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -66,7 +68,10 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
-    const newSteps = getStepOrder(accountType, autoApprove, countryCode).slice();
+    const hiddenSteps: Step[] = [];
+    if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
+    if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
+    const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
     // When auto-approval is ON, the password step moves to AFTER summary,
@@ -84,7 +89,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove]);
+  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
