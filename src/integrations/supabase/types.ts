@@ -17,11 +17,13 @@ export type Database = {
       app_settings: {
         Row: {
           auto_approval_enabled: boolean
+          business_operation_step_enabled: boolean
           discount_metafields_enabled: boolean
           extra_customer_tags: string[]
           founder_call_enabled: boolean
           founder_call_high_volume_only: boolean
           id: string
+          order_volume_step_enabled: boolean
           singleton: boolean
           updated_at: string
           updated_by: string | null
@@ -29,11 +31,13 @@ export type Database = {
         }
         Insert: {
           auto_approval_enabled?: boolean
+          business_operation_step_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
           id?: string
+          order_volume_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -41,11 +45,13 @@ export type Database = {
         }
         Update: {
           auto_approval_enabled?: boolean
+          business_operation_step_enabled?: boolean
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
           id?: string
+          order_volume_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
