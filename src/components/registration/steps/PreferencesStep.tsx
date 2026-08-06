@@ -310,11 +310,16 @@ export const PreferencesStep = () => {
                 className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Email me about promotions, new products & deals
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                    Email me about promotions, new products & deals
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+                    15% off
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
+                  Also required to unlock your 15% off pro trial code. Unsubscribe anytime.
                 </p>
               </div>
             </label>
