@@ -559,31 +559,9 @@ export const registrationSchema = z
           });
         }
 
-        // Salon-only: require salon size + structure + licence proof upload.
-        if (d.accountType === "salon") {
-          if (!d.salonSize || d.salonSize.trim().length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Salon size is required",
-              path: ["salonSize"],
-            });
-          }
-          if (!d.salonStructure || d.salonStructure.trim().length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Salon structure is required",
-              path: ["salonStructure"],
-            });
-          }
-          const files = d.licenseProofFiles;
-          if (!Array.isArray(files) || files.length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "At least one file is required",
-              path: ["licenseProofFiles"],
-            });
-          }
-        }
+        // Salon size / structure / licence proof upload are no longer
+        // collected on a dedicated step, so they are never required.
+
       }
       // socialMediaHandle is required on Contact Basics for everyone now,
       // so no additional country-scoped rule is needed here.
