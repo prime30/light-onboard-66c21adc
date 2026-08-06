@@ -670,46 +670,65 @@ export const SuccessForm = () => {
           {showSalonTrial15Nudge && (
             <div className="p-5 rounded-[20px] border border-accent-red/25 bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 text-left">
               <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider">
-                Pro trial
+                {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                Test our products before offering them to clients
+                {smsSubscribed
+                  ? "Your 15% off pro trial code is ready"
+                  : "Subscribe to texts to get 15% off your first order"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Use code SALONTRIAL15 for 15% off your first order. We don't give away free samples - as a premium, small-batch business, every unit matters. This is a way to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients.
+                {smsSubscribed
+                  ? "We don't give away free samples - as a premium, small-batch business, every unit matters. Use this code to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients."
+                  : "This 15% off pro trial code is reserved for SMS subscribers. You didn't opt in, so it stays locked for now. You can subscribe any time from your account or by replying to a text from us, and we'll send it over."}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText("SALONTRIAL15").then(() => {
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  });
-                }}
-                style={{ touchAction: "manipulation" }}
-                className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-                aria-label="Copy SALONTRIAL15 code"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
-                  <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
-                    SALONTRIAL15
-                  </span>
+              {smsSubscribed ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText("SALONTRIAL15").then(() => {
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    });
+                  }}
+                  style={{ touchAction: "manipulation" }}
+                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
+                  aria-label="Copy SALONTRIAL15 code"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Tag className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
+                      SALONTRIAL15
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                    {copied ? (
+                      <>
+                        <CheckCheck className="w-3.5 h-3.5 text-status-green" />
+                        <span className="text-status-green">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              ) : (
+                <div
+                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border bg-muted/60"
+                  aria-label="Discount code locked"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
+                      SALONTRIAL••
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
-                  {copied ? (
-                    <>
-                      <CheckCheck className="w-3.5 h-3.5 text-status-green" />
-                      <span className="text-status-green">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </div>
-              </button>
+              )}
             </div>
           )}
           <Button
