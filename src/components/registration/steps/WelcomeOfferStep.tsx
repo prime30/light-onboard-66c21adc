@@ -119,7 +119,7 @@ export const WelcomeOfferStep = () => {
               </div>
             </div>
 
-            {/* Code chip - blurred until both consents are given */}
+            {/* Code chip - hidden until both consents are given */}
             <div className="mt-[15px] flex items-center gap-3 flex-wrap">
               <div
                 className={cn(
@@ -134,13 +134,15 @@ export const WelcomeOfferStep = () => {
                 ) : (
                   <Lock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
                 )}
+                <span className="sr-only">Salontrial15</span>
                 <span
+                  aria-hidden="true"
                   className={cn(
                     "text-xs font-medium tracking-[0.14em] uppercase transition-all duration-500",
-                    isUnlocked ? "text-foreground" : "text-foreground/50 blur-[4px] select-none"
+                    isUnlocked ? "text-foreground" : "text-foreground/50 select-none"
                   )}
                 >
-                  Salontrial15
+                  {isUnlocked ? "Salontrial15" : "••••••••••••"}
                 </span>
               </div>
 
