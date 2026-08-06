@@ -615,31 +615,33 @@ export const ContactBasicsStep = () => {
               />
             )}
 
-            <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5">
-                <Label className="text-sm font-medium">
-                  {credentialConfig.uploadCopy(isSalon)}
-                </Label>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-                  Optional
-                </span>
+            {showLicenseUpload && (
+              <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2.5">
+                  <Label className="text-sm font-medium">
+                    {credentialConfig.uploadCopy(isSalon)}
+                  </Label>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+                    Optional
+                  </span>
+                </div>
+                <MultiFileUpload
+                  files={
+                    (licenseProofFiles || []) as {
+                      id: string;
+                      file: File;
+                      status: "completed" | "error" | "pending" | "uploading";
+                      progress: number;
+                      error?: string;
+                      url?: string;
+                    }[]
+                  }
+                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
+                  placeholder="Upload photos of your license"
+                  maxFiles={3}
+                />
               </div>
-              <MultiFileUpload
-                files={
-                  (licenseProofFiles || []) as {
-                    id: string;
-                    file: File;
-                    status: "completed" | "error" | "pending" | "uploading";
-                    progress: number;
-                    error?: string;
-                    url?: string;
-                  }[]
-                }
-                onFilesChange={(files) => setValue("licenseProofFiles", files)}
-                placeholder="Upload photos of your license"
-                maxFiles={3}
-              />
-            </div>
+            )}
           </div>
         )}
       </div>
