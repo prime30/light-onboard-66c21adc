@@ -203,14 +203,14 @@ export const PreferencesStep = () => {
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">
-                    Subscribe to texts and unlock 15% off your first order
+                    Subscribe to texts (required for 15% off)
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                     15% off
                   </span>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed">
-                  Subscribers get their pro trial code revealed at the end of this application, plus approval alerts, order and shipping updates, sales, and early releases.
+                  Subscribe to both texts and email below to unlock 15% off your first order, revealed at the end of this application. You'll also get approval alerts, order and shipping updates, sales, and early releases.
                 </p>
                 <p className="text-[11px] text-foreground/60 leading-relaxed">
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
@@ -310,11 +310,16 @@ export const PreferencesStep = () => {
                 className="rounded-full mt-2 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                  Email me about promotions, new products & deals
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                    Email me about promotions, new products & deals
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+                    15% off
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Marketing emails from Drop Dead Extensions. Unsubscribe anytime.
+                  Also required to unlock your 15% off pro trial code. Unsubscribe anytime.
                 </p>
               </div>
             </label>

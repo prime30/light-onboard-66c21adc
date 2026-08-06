@@ -116,9 +116,11 @@ export const SuccessForm = () => {
   // offer flow is off: promote SALONTRIAL15 for their first order.
   const showSalonTrial15Nudge = !founderCallEnabled && !welcomeOfferEnabled;
 
-  // The pro trial code is gated behind the SMS opt-in captured during
-  // registration: subscribers see the code, non-subscribers see it locked.
-  const smsSubscribed = watch("acceptsSmsMarketing") === true;
+  // The pro trial code is gated behind BOTH marketing opt-ins captured during
+  // registration (texts + email): subscribers see the code, everyone else sees
+  // it locked.
+  const smsSubscribed =
+    watch("acceptsSmsMarketing") === true && watch("acceptsMarketing") === true;
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -679,12 +681,12 @@ export const SuccessForm = () => {
               <p className="mt-1 text-sm font-semibold text-foreground">
                 {smsSubscribed
                   ? "Your 15% off pro trial code is ready"
-                  : "Subscribe to texts to get 15% off your first order"}
+                  : "Subscribe to texts and email to get 15% off your first order"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                 {smsSubscribed
                   ? "We don't give away free samples - as a premium, small-batch business, every unit matters. Use this code to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients."
-                  : "This 15% off pro trial code is reserved for SMS subscribers. You didn't opt in, so it stays locked for now. You can subscribe any time from your account or by replying to a text from us, and we'll send it over."}
+                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You didn't opt in to both, so it stays locked for now. You can subscribe any time from your account or by replying to a text from us, and we'll send it over."}
               </p>
               {smsSubscribed ? (
                 <button
