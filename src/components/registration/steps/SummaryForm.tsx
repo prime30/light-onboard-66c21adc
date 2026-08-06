@@ -52,24 +52,6 @@ const SummaryRow = ({ label, value }: { label: string; value: string | null | un
   );
 };
 
-const getMonthName = (month: string) => {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const idx = parseInt(month, 10) - 1;
-  return months[idx] || month;
-};
 
 const getAccountTypeLabel = (accountType: AccountType) => {
   if (accountType === "professional") return "Professional Stylist";
@@ -137,8 +119,6 @@ export const SummaryForm = () => {
     salonSize,
     salonStructure,
     taxExempt,
-    birthdayMonth,
-    birthdayDay,
     socialMediaHandle,
     
     acceptsMarketing,

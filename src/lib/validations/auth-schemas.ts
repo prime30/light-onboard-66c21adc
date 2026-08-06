@@ -388,8 +388,6 @@ export type MonthlyOrderVolumeFormData = z.infer<typeof monthlyOrderVolumeSchema
 // live in their own step but were merged into Preferences).
 const preferencesValidators = {
   ...taxExemptionValidators,
-  birthdayMonth: z.string().optional(),
-  birthdayDay: z.string().optional(),
   // socialMediaHandle now lives on Contact Basics (required for everyone).
 
   referralSource: z
