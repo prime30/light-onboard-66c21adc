@@ -13,6 +13,7 @@ import {
   salonLicenseStepSchema,
   schoolInfoSchema,
   taxExemptionSchema,
+  welcomeOfferSchema,
 } from "@/lib/validations/auth-schemas";
 import type { Step, AccountType } from "@/types/auth";
 import { ZodObject } from "zod";
@@ -76,6 +77,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "preferred-method": "Preferred Method",
   "monthly-order-volume": "Monthly Order Volume",
   preferences: "Preferences",
+  "welcome-offer": "Welcome Offer",
   summary: "Review & Submit",
   assessing: "Assessing Application",
   success: "Success",
@@ -96,6 +98,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "preferred-method",
     "monthly-order-volume",
     "preferences",
+    "welcome-offer",
   ],
   salon: [
     "account-type",
@@ -105,6 +108,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "preferred-method",
     "monthly-order-volume",
     "preferences",
+    "welcome-offer",
   ],
   student: [
     "account-type",
@@ -113,6 +117,7 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "create-password",
     "preferred-method",
     "preferences",
+    "welcome-offer",
   ],
 };
 
@@ -163,6 +168,7 @@ export const stepValidations: Record<Step, ZodObject | null> = {
   "preferred-method": preferredMethodSchema,
   "monthly-order-volume": monthlyOrderVolumeSchema,
   preferences: preferencesSchema,
+  "welcome-offer": welcomeOfferSchema,
   summary: null,
   assessing: null,
   success: null,
@@ -286,6 +292,13 @@ export const STEPS: Record<Step, StepInfo> = {
     displayName: STEP_DISPLAY_NAMES.preferences,
     fields: fieldsForStep["preferences"],
     schema: stepValidations["preferences"],
+    accountTypes: ["professional", "salon", "student"],
+  },
+  "welcome-offer": {
+    name: "welcome-offer",
+    displayName: STEP_DISPLAY_NAMES["welcome-offer"],
+    fields: fieldsForStep["welcome-offer"],
+    schema: stepValidations["welcome-offer"],
     accountTypes: ["professional", "salon", "student"],
   },
   "preferred-method": {
