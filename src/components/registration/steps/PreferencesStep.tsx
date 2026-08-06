@@ -73,6 +73,9 @@ export const PreferencesStep = () => {
 
   const validationStatus = getStepValidationStatus(currentStep);
 
+  const consentCount = (acceptsSmsMarketing ? 1 : 0) + (acceptsMarketing ? 1 : 0);
+  const isUnlocked = consentCount === 2;
+
   const handleTaxToggle = (checked: boolean) => {
     setValue("taxExempt", checked, dirtyFieldOptions);
     if (!checked) {
@@ -150,220 +153,247 @@ export const PreferencesStep = () => {
             option in the stack. */}
         <div
           className={cn(
-            "relative overflow-hidden rounded-form border border-border/60 bg-gradient-to-b from-muted/80 to-muted/40 backdrop-blur-sm shadow-card",
+            "relative overflow-hidden rounded-form border border-border bg-background shadow-card",
             "animate-stagger-2"
           )}
         >
-          {/* Decorative top accent */}
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-foreground/10 via-foreground/25 to-foreground/10" />
-
-          {/* Reward header */}
-          <div className="relative px-5 pt-5 pb-4 border-b border-border/40">
-            <div className="flex items-start gap-3.5">
-              <div className="flex-shrink-0 w-10 h-10 rounded-[12px] bg-foreground/5 border border-foreground/10 flex items-center justify-center">
-                <Gift className="w-5 h-5 text-foreground/80" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-foreground">Unlock your welcome offer</p>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red text-[10px] font-medium uppercase tracking-[0.1em] text-background">
-                    15% off
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                  Subscribe to both texts and email to get <span className="font-medium text-foreground">SALONTRIAL15</span> revealed on the next screen.
+          {/* Offer header */}
+          <div className="relative px-5 pt-5 pb-[25px] bg-gradient-to-b from-muted/70 to-transparent">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  Welcome offer
                 </p>
+                <h2 className="mt-2 font-termina font-medium uppercase text-base sm:text-lg text-foreground leading-[1.15]">
+                  15% off your first order
+                </h2>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed max-w-[38ch]">
+                  Subscribe to texts and email to reveal your code on the next screen.
+                </p>
+              </div>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground/[0.04] border border-border/70 flex items-center justify-center">
+                <Gift className="w-[18px] h-[18px] text-foreground/70" strokeWidth={1.5} />
               </div>
             </div>
 
-            {/* Unlock status pill */}
-            <div
-              className={cn(
-                "mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium uppercase tracking-[0.08em] border transition-all duration-300",
-                acceptsSmsMarketing && acceptsMarketing
-                  ? "bg-status-green/10 border-status-green/30 text-status-green"
-                  : "bg-foreground/[0.012] border-foreground/10 text-foreground/60"
-              )}
-            >
-              {acceptsSmsMarketing && acceptsMarketing ? (
-                <>
-                  <Unlock className="w-3 h-3" />
-                  <span>15% off unlocked</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3 h-3" />
-                  <span>
-                    {!acceptsSmsMarketing && !acceptsMarketing && "15% off locked"}
-                    {acceptsSmsMarketing && !acceptsMarketing && "Email required to unlock"}
-                    {!acceptsSmsMarketing && acceptsMarketing && "Texts required to unlock"}
-                  </span>
-                </>
-              )}
+            {/* Code chip - blurred until both consents are given */}
+            <div className="mt-[15px] flex items-center gap-3 flex-wrap">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 px-3.5 py-2 rounded-[10px] border border-dashed transition-all duration-500",
+                  isUnlocked
+                    ? "border-status-green/40 bg-status-green/[0.06]"
+                    : "border-border bg-foreground/[0.012]"
+                )}
+              >
+                {isUnlocked ? (
+                  <Unlock className="w-3.5 h-3.5 text-status-green" strokeWidth={1.75} />
+                ) : (
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
+                )}
+                <span
+                  className={cn(
+                    "text-xs font-medium tracking-[0.14em] uppercase transition-all duration-500",
+                    isUnlocked
+                      ? "text-foreground"
+                      : "text-foreground/50 blur-[4px] select-none"
+                  )}
+                >
+                  Salontrial15
+                </span>
+              </div>
+
+              {/* Two-segment progress */}
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span
+                    className={cn(
+                      "h-[3px] w-6 rounded-full transition-colors duration-300",
+                      acceptsSmsMarketing ? "bg-status-green" : "bg-border"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "h-[3px] w-6 rounded-full transition-colors duration-300",
+                      acceptsMarketing ? "bg-status-green" : "bg-border"
+                    )}
+                  />
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium uppercase tracking-[0.12em] transition-colors duration-300",
+                    isUnlocked ? "text-status-green" : "text-muted-foreground"
+                  )}
+                >
+                  {isUnlocked ? "Unlocked" : `${consentCount} of 2`}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="p-5 space-y-4">
-            {/* SMS marketing card */}
+          {/* Consent rows */}
+          <div className="border-t border-border/70 divide-y divide-border/70">
+            {/* SMS */}
             <label
               className={cn(
-                "relative flex items-start gap-3.5 group p-4 rounded-form bg-background border transition-all duration-300 cursor-pointer",
-                acceptsSmsMarketing
-                  ? "border-foreground/30 shadow-input-focus"
-                  : "border-border hover:border-foreground/20 hover:shadow-card"
+                "block px-5 py-[20px] cursor-pointer transition-colors duration-300",
+                acceptsSmsMarketing ? "bg-foreground/[0.012]" : "hover:bg-muted/40"
               )}
             >
-              <div className="flex-shrink-0">
-                <div
+              <div className="flex items-start gap-3.5">
+                <MessageSquare
                   className={cn(
-                    "w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors duration-300",
-                    acceptsSmsMarketing ? "bg-foreground text-background" : "bg-muted border border-border/60 text-foreground/60"
+                    "w-[18px] h-[18px] mt-0.5 flex-shrink-0 transition-colors duration-300",
+                    acceptsSmsMarketing ? "text-foreground" : "text-foreground/40"
                   )}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground">Subscribe to texts</span>
-                  <Checkbox
-                    checked={acceptsSmsMarketing || false}
-                    onCheckedChange={(checked) => {
-                      const next = !!checked;
-                      setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
-                      if (next && !hasPhone) {
-                        setIsEditingPhone(true);
-                      }
-                    }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-                  />
-                </div>
-                <p className="text-xs text-foreground/70 leading-relaxed">
-                  Get approval alerts, order updates, sales, and early releases - plus unlock your 15% off code.
-                </p>
-                <p className="text-[11px] text-foreground/50 leading-relaxed">
-                  By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
-                  Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
-                  Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
-                    className="underline underline-offset-2 text-foreground/70 hover:text-foreground transition-colors"
-                  >
-                    Terms
-                  </button>
-                  {" & "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
-                    className="underline underline-offset-2 text-foreground/70 hover:text-foreground transition-colors"
-                  >
-                    Privacy Policy
-                  </button>
-                  .
-                </p>
-                {hasPhone && !isEditingPhone && (
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <Pencil className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-xs text-foreground/70">
-                      SMS will be sent to {formatPhoneNumber(phoneNumber)}.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
-                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Edit number
-                    </button>
+                  strokeWidth={1.5}
+                />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-foreground">
+                        Subscribe to texts
+                      </span>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                        Approval alerts, order updates, sales, and early releases.
+                      </p>
+                    </div>
+                    <Checkbox
+                      checked={acceptsSmsMarketing || false}
+                      onCheckedChange={(checked) => {
+                        const next = !!checked;
+                        setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
+                        if (next && !hasPhone) {
+                          setIsEditingPhone(true);
+                        }
+                      }}
+                      className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    />
                   </div>
-                )}
-                {!hasPhone && !isEditingPhone && (
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <span className="text-xs text-foreground/70">No phone number on file.</span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
-                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Add number
-                    </button>
-                  </div>
-                )}
-                {isEditingPhone && (
-                  <div className="space-y-2 pt-1" onClick={(e) => e.preventDefault()}>
-                    <div className="flex gap-2">
-                      <div className="w-[110px]">
-                        <SelectInput
-                          name="phoneCountryCode"
-                          control={control}
-                          error={errors.phoneCountryCode}
-                          options={countryCodeOptions}
-                          placeholder="Select"
-                          className="w-full"
+                  {hasPhone && !isEditingPhone && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Pencil className="w-3 h-3 text-muted-foreground" strokeWidth={1.75} />
+                      <span className="text-xs text-muted-foreground">
+                        Sending to {formatPhoneNumber(phoneNumber)}.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
+                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
+                      >
+                        Edit number
+                      </button>
+                    </div>
+                  )}
+                  {!hasPhone && !isEditingPhone && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs text-muted-foreground">No phone number on file.</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setIsEditingPhone(true); }}
+                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
+                      >
+                        Add number
+                      </button>
+                    </div>
+                  )}
+                  {isEditingPhone && (
+                    <div className="space-y-2" onClick={(e) => e.preventDefault()}>
+                      <div className="flex gap-2">
+                        <div className="w-[110px]">
+                          <SelectInput
+                            name="phoneCountryCode"
+                            control={control}
+                            error={errors.phoneCountryCode}
+                            options={countryCodeOptions}
+                            placeholder="Select"
+                            className="w-full"
+                          />
+                        </div>
+                        <TextInput
+                          name="phoneNumber"
+                          type="tel"
+                          register={register}
+                          error={errors.phoneNumber}
+                          placeholder="(555) 123-4567"
+                          autoComplete="tel-national"
+                          autoFocus
+                          onBlur={(event) => {
+                            setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                          }}
                         />
                       </div>
-                      <TextInput
-                        name="phoneNumber"
-                        type="tel"
-                        register={register}
-                        error={errors.phoneNumber}
-                        placeholder="(555) 123-4567"
-                        autoComplete="tel-national"
-                        autoFocus
-                        onBlur={(event) => {
-                          setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                        }}
-                      />
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setIsEditingPhone(false); }}
+                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
+                      >
+                        Done editing
+                      </button>
                     </div>
+                  )}
+                  <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+                    By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
+                    Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+                    Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
                     <button
                       type="button"
-                      onClick={(e) => { e.preventDefault(); setIsEditingPhone(false); }}
-                      className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                      onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
+                      className="underline underline-offset-2 hover:text-foreground transition-colors"
                     >
-                      Done editing
+                      Terms
                     </button>
-                  </div>
-                )}
+                    {" & "}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
+                      className="underline underline-offset-2 hover:text-foreground transition-colors"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </p>
+                </div>
               </div>
             </label>
 
-            {/* Email marketing card */}
+            {/* Email */}
             <label
               className={cn(
-                "relative flex items-start gap-3.5 group p-4 rounded-form bg-background border transition-all duration-300 cursor-pointer",
-                acceptsMarketing
-                  ? "border-foreground/30 shadow-input-focus"
-                  : "border-border hover:border-foreground/20 hover:shadow-card"
+                "block px-5 py-[20px] cursor-pointer transition-colors duration-300",
+                acceptsMarketing ? "bg-foreground/[0.012]" : "hover:bg-muted/40"
               )}
             >
-              <div className="flex-shrink-0">
-                <div
+              <div className="flex items-start gap-3.5">
+                <Mail
                   className={cn(
-                    "w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors duration-300",
-                    acceptsMarketing ? "bg-foreground text-background" : "bg-muted border border-border/60 text-foreground/60"
+                    "w-[18px] h-[18px] mt-0.5 flex-shrink-0 transition-colors duration-300",
+                    acceptsMarketing ? "text-foreground" : "text-foreground/40"
                   )}
-                >
-                  <Mail className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="text-sm font-medium text-foreground">Subscribe to emails</span>
+                  strokeWidth={1.5}
+                />
+                <div className="flex-1 min-w-0 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium text-foreground">
+                      Subscribe to emails
+                    </span>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                      Promotions, new products, and pro-only deals. Unsubscribe anytime.
+                    </p>
+                  </div>
                   <Checkbox
                     checked={acceptsMarketing || false}
                     onCheckedChange={(checked) => {
                       setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
                     }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
                 </div>
-                <p className="text-xs text-foreground/70 leading-relaxed">
-                  Promotions, new products, and deals - plus required to unlock your 15% off pro trial code. Unsubscribe anytime.
-                </p>
               </div>
             </label>
           </div>
         </div>
+
 
         {/* SMS opt-in confirmation strip - only after SMS is selected */}
         {showSmsNotice && (
