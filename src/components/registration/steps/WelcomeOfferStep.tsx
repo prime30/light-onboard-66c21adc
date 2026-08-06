@@ -148,6 +148,31 @@ export const WelcomeOfferStep = () => {
                 <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
                 <span className="text-sm font-medium text-foreground">Text me the code</span>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
+                By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from Drop Dead Extensions at the number provided. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowTerms(true);
+                  }}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Terms
+                </button>
+                {" & "}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPrivacy(true);
+                  }}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
               {hasPhone && !isEditingPhone && (
                 <p className="text-xs text-foreground/70 pt-1">
                   {formatPhoneNumber(phoneNumber)}{" "}
