@@ -86,10 +86,10 @@ export const WelcomeOfferStep = () => {
           </span>
         </div>
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Your welcome offer
+          Unlock 15% off
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-[42ch] mx-auto">
-          Subscribe to texts and email to unlock 15% off your first pro order.
+          Subscribe to texts and email below to reveal your 15% off code on the next screen.
         </p>
       </div>
 
@@ -105,13 +105,13 @@ export const WelcomeOfferStep = () => {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Welcome offer
+                  Unlock 15% off
                 </p>
                 <h2 className="mt-2 font-termina font-medium uppercase text-base sm:text-lg text-foreground leading-[1.15]">
                   15% off your first order
                 </h2>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed max-w-[38ch]">
-                  Your code is revealed on the next screen once both boxes are checked.
+                  Check both boxes below to reveal your 15% off code on the next screen.
                 </p>
               </div>
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground/[0.04] border border-border/70 flex items-center justify-center">
@@ -119,7 +119,7 @@ export const WelcomeOfferStep = () => {
               </div>
             </div>
 
-            {/* Code chip - blurred until both consents are given */}
+            {/* Code chip - hidden until both consents are given */}
             <div className="mt-[15px] flex items-center gap-3 flex-wrap">
               <div
                 className={cn(
@@ -134,13 +134,15 @@ export const WelcomeOfferStep = () => {
                 ) : (
                   <Lock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
                 )}
+                <span className="sr-only">Salontrial15</span>
                 <span
+                  aria-hidden="true"
                   className={cn(
                     "text-xs font-medium tracking-[0.14em] uppercase transition-all duration-500",
-                    isUnlocked ? "text-foreground" : "text-foreground/50 blur-[4px] select-none"
+                    isUnlocked ? "text-foreground" : "text-foreground/50 select-none"
                   )}
                 >
-                  Salontrial15
+                  {isUnlocked ? "Salontrial15" : "••••••••••••"}
                 </span>
               </div>
 
@@ -185,8 +187,7 @@ export const WelcomeOfferStep = () => {
                 <MessageSquare className="w-[15px] h-[15px]" strokeWidth={1.75} />
               </div>
               <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">Subscribe to texts</span>
+                <div className="flex items-center gap-3">
                   <Checkbox
                     checked={acceptsSmsMarketing || false}
                     onCheckedChange={(checked) => {
@@ -194,8 +195,9 @@ export const WelcomeOfferStep = () => {
                       setValue("acceptsSmsMarketing", next, dirtyFieldOptions);
                       if (next && !hasPhone) setIsEditingPhone(true);
                     }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
+                  <span className="text-sm font-medium text-foreground">Subscribe to texts for 15% off</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Approval alerts, order updates, sales, and early releases.
@@ -317,15 +319,15 @@ export const WelcomeOfferStep = () => {
                 <Mail className="w-[15px] h-[15px]" strokeWidth={1.75} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-foreground">Subscribe to emails</span>
+                <div className="flex items-center gap-3 mb-1">
                   <Checkbox
                     checked={acceptsMarketing || false}
                     onCheckedChange={(checked) => {
                       setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
                     }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
+                  <span className="text-sm font-medium text-foreground">Subscribe to emails for 15% off</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Promotions, new products, and pro education. Unsubscribe anytime.
