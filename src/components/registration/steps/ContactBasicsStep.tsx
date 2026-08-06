@@ -440,10 +440,95 @@ export const ContactBasicsStep = () => {
           />
         </div>
 
+        {/* Email */}
+        <div className="animate-stagger-3">
+          <TextInput
+            name={"email"}
+            type="email"
+            register={register}
+            error={emailDisplayError}
+            placeholder="your@email"
+            label="Email*"
+            autoComplete="email"
+            isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
+            prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
+            onBlur={(event) => {
+              const value = (event.target.value ?? "").trim().toLowerCase();
+              if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+              if (lastTrackedLeadRef.current === value) return;
+              lastTrackedLeadRef.current = value;
+              supabase.functions
+                .invoke("track-registration-lead", {
+                  body: {
+                    email: value,
+                    phase: "started",
+                    accountType: watch("accountType") ?? null,
+                    lastStep: "contact-basics",
+                    firstName: watch("firstName") ?? null,
+                    lastName: watch("lastName") ?? null,
+                  },
+                })
+                .catch(() => {
+                  // Non-blocking
+                });
+            }}
+          />
+          {matchingEmailConflict && (
+            <ConflictPills navigate={navigate} />
+          )}
+        </div>
+
+        {/* Phone Number with Country Code */}
+        <div className="space-y-2.5 animate-stagger-4 group">
+          <Label
+            htmlFor="phoneNumber"
+            className={cn(
+              "text-sm font-medium label-float",
+              (errors.phoneNumber || errors.phoneCountryCode) && "text-destructive"
+            )}
+          >
+            Phone number*
+          </Label>
+          <div className="flex gap-2">
+            <div className="w-[110px]">
+              <SelectInput
+                name="phoneCountryCode"
+                control={control}
+                error={errors.phoneCountryCode}
+                options={countryCodeOptions}
+                placeholder="Select"
+                className="w-full"
+              />
+            </div>
+
+            <div className="relative flex-1 input-glow input-ripple rounded-form">
+              <TextInput
+                name={"phoneNumber"}
+                type="tel"
+                register={register}
+                error={errors.phoneNumber}
+                placeholder="(555) 123-4567"
+                autoComplete="tel-national"
+                isValid={getValidationStatus("phoneNumber") === "complete"}
+                prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
+                onBlur={(event) => {
+                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                }}
+              />
+            </div>
+          </div>
+          {errors.phoneNumber?.type === "manual" &&
+            typeof errors.phoneNumber?.message === "string" &&
+            (errors.phoneNumber.message.toLowerCase().includes("already linked") ||
+              errors.phoneNumber.message.toLowerCase().includes("already has an account")) && (
+              <ConflictPills navigate={navigate} />
+            )}
+        </div>
+
         {/* Credential fields (professional + salon, non-AU).
             These used to live on a dedicated license step. */}
         {isCredentialFlow && country !== "AU" && (
-          <div className="space-y-5 pt-[5px] animate-stagger-3">
+          <div className="space-y-5 pt-[5px] animate-stagger-5">
             <TextInput
               name="licenseNumber"
               type="text"
@@ -497,7 +582,7 @@ export const ContactBasicsStep = () => {
         )}
 
         {/* Instagram handle - required for every registration */}
-        <div className="space-y-2 animate-stagger-4 group">
+        <div className="space-y-2 animate-stagger-6 group">
           <TextInput
             name="socialMediaHandle"
             type="text"
@@ -556,91 +641,6 @@ export const ContactBasicsStep = () => {
               confirm the profile link automatically.
             </p>
           )}
-        </div>
-
-        {/* Email */}
-        <div className="animate-stagger-5">
-          <TextInput
-            name={"email"}
-            type="email"
-            register={register}
-            error={emailDisplayError}
-            placeholder="your@email"
-            label="Email*"
-            autoComplete="email"
-            isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
-            prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
-            onBlur={(event) => {
-              const value = (event.target.value ?? "").trim().toLowerCase();
-              if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
-              if (lastTrackedLeadRef.current === value) return;
-              lastTrackedLeadRef.current = value;
-              supabase.functions
-                .invoke("track-registration-lead", {
-                  body: {
-                    email: value,
-                    phase: "started",
-                    accountType: watch("accountType") ?? null,
-                    lastStep: "contact-basics",
-                    firstName: watch("firstName") ?? null,
-                    lastName: watch("lastName") ?? null,
-                  },
-                })
-                .catch(() => {
-                  // Non-blocking
-                });
-            }}
-          />
-          {matchingEmailConflict && (
-            <ConflictPills navigate={navigate} />
-          )}
-        </div>
-
-        {/* Phone Number with Country Code */}
-        <div className="space-y-2.5 animate-stagger-6 group">
-          <Label
-            htmlFor="phoneNumber"
-            className={cn(
-              "text-sm font-medium label-float",
-              (errors.phoneNumber || errors.phoneCountryCode) && "text-destructive"
-            )}
-          >
-            Phone number*
-          </Label>
-          <div className="flex gap-2">
-            <div className="w-[110px]">
-              <SelectInput
-                name="phoneCountryCode"
-                control={control}
-                error={errors.phoneCountryCode}
-                options={countryCodeOptions}
-                placeholder="Select"
-                className="w-full"
-              />
-            </div>
-
-            <div className="relative flex-1 input-glow input-ripple rounded-form">
-              <TextInput
-                name={"phoneNumber"}
-                type="tel"
-                register={register}
-                error={errors.phoneNumber}
-                placeholder="(555) 123-4567"
-                autoComplete="tel-national"
-                isValid={getValidationStatus("phoneNumber") === "complete"}
-                prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
-                onBlur={(event) => {
-                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                }}
-              />
-            </div>
-          </div>
-          {errors.phoneNumber?.type === "manual" &&
-            typeof errors.phoneNumber?.message === "string" &&
-            (errors.phoneNumber.message.toLowerCase().includes("already linked") ||
-              errors.phoneNumber.message.toLowerCase().includes("already has an account")) && (
-              <ConflictPills navigate={navigate} />
-            )}
         </div>
 
       </div>
