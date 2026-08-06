@@ -43,7 +43,6 @@ export const WelcomeOfferStep = () => {
   ]);
 
   const validationStatus = getStepValidationStatus(currentStep);
-  const isUnlocked = !!acceptsSmsMarketing && !!acceptsMarketing;
 
   const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
   const phoneValid = toE164(phoneNumber, phoneCountryCode).ok;
@@ -103,16 +102,10 @@ export const WelcomeOfferStep = () => {
         </div>
       </div>
 
-      {/* Offer card with two states */}
-      <div className="relative overflow-hidden rounded-form border border-border bg-background shadow-card animate-stagger-2">
-        {/* Offer state */}
-        <div
-          className={cn(
-            "transition-all duration-500 ease-out p-6 sm:p-8",
-            subStep === "email" ? "opacity-0 -translate-x-4 pointer-events-none absolute inset-0" : "opacity-100 translate-x-0 relative"
-          )}
-        >
-          <div className="space-y-5">
+      {/* Offer card */}
+      <div className="rounded-form border border-border bg-background shadow-card animate-stagger-2">
+        {subStep === "offer" && (
+          <div className="p-6 sm:p-8 space-y-5 animate-fade-in">
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-1">
                 <Gift className="w-5 h-5 text-foreground" strokeWidth={1.75} />
@@ -244,16 +237,10 @@ export const WelcomeOfferStep = () => {
               </Button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Email state */}
-        <div
-          className={cn(
-            "p-6 sm:p-8",
-            subStep === "offer" ? "opacity-0 translate-x-4 pointer-events-none absolute inset-0" : "opacity-100 translate-x-0 relative animate-slide-in-right"
-          )}
-        >
-          <div className="space-y-5">
+        {subStep === "email" && (
+          <div className="p-6 sm:p-8 space-y-5 animate-slide-in-right">
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-status-green/10 mb-1">
                 <Unlock className="w-5 h-5 text-status-green" strokeWidth={1.75} />
@@ -320,7 +307,7 @@ export const WelcomeOfferStep = () => {
               </Button>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Back to previous step */}
