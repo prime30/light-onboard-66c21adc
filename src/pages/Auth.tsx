@@ -13,6 +13,7 @@ const AccountTypeForm = lazy(() => import("@/components/registration/steps/Accou
 const ContactBasicsStep = lazy(() => import("@/components/registration/steps/ContactBasicsStep").then(m => ({ default: m.ContactBasicsStep })));
 const CreatePasswordStep = lazy(() => import("@/components/registration/steps/CreatePasswordStep").then(m => ({ default: m.CreatePasswordStep })));
 const PreferencesStep = lazy(() => import("@/components/registration/steps/PreferencesStep").then(m => ({ default: m.PreferencesStep })));
+const WelcomeOfferStep = lazy(() => import("@/components/registration/steps/WelcomeOfferStep").then(m => ({ default: m.WelcomeOfferStep })));
 const PreferredMethodStep = lazy(() => import("@/components/registration/steps/PreferredMethodStep").then(m => ({ default: m.PreferredMethodStep })));
 const MonthlyOrderVolumeStep = lazy(() => import("@/components/registration/steps/MonthlyOrderVolumeStep").then(m => ({ default: m.MonthlyOrderVolumeStep })));
 const BusinessLocationStep = lazy(() => import("@/components/registration/steps/BusinessLocationStep").then(m => ({ default: m.BusinessLocationStep })));
@@ -480,6 +481,7 @@ const Auth = () => {
               {currentStep === "preferred-method" && <PreferredMethodStep />}
               {currentStep === "monthly-order-volume" && <MonthlyOrderVolumeStep />}
               {currentStep === "preferences" && <PreferencesStep />}
+              {currentStep === "welcome-offer" && <WelcomeOfferStep />}
               {currentStep === "summary" && <SummaryForm />}
               {currentStep === "assessing" && <AssessingStep />}
               {currentStep === "success" && (

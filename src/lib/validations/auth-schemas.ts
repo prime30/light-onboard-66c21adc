@@ -407,6 +407,17 @@ const preferencesValidators = {
     .optional()
     .transform((val) => val ?? false),
 };
+export const welcomeOfferSchema = z.object({
+  acceptsMarketing: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? false),
+  acceptsSmsMarketing: z
+    .boolean()
+    .optional()
+    .transform((val) => val ?? false),
+});
+
 export const preferencesSchema = z.object(preferencesValidators).refine(
   (data) => {
     if (!data.taxExempt) return true;

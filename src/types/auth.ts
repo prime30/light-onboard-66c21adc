@@ -25,6 +25,7 @@ export type Step =
   | "preferred-method"
   | "monthly-order-volume"
   | "preferences"
+  | "welcome-offer"
   | "summary"
   | "assessing"
   | "success"

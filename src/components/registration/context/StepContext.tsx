@@ -158,7 +158,7 @@ export function StepProvider({ children }: StepProviderProps) {
         // phone number on file - otherwise the consent has nothing to send
         // to. Gate Continue on the same rule so users can't advance with
         // a checked SMS box and an empty/invalid number.
-        if (step === "preferences") {
+        if (step === "preferences" || step === "welcome-offer") {
           const { acceptsSmsMarketing, phoneNumber } = values as {
             acceptsSmsMarketing?: boolean;
             phoneNumber?: string;
@@ -327,7 +327,7 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
-    if (currentStep === "preferences") {
+    if (currentStep === "preferences" || currentStep === "welcome-offer") {
       const { acceptsSmsMarketing, phoneNumber } = watch() as {
         acceptsSmsMarketing?: boolean;
         phoneNumber?: string;

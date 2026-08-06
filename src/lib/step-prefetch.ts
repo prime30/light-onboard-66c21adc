@@ -54,6 +54,7 @@ const STEP_IMPORTS: Partial<Record<Step, () => Promise<unknown>>> = {
   "preferred-method":   () => import("@/components/registration/steps/PreferredMethodStep"),
   "monthly-order-volume": () => import("@/components/registration/steps/MonthlyOrderVolumeStep"),
   "preferences":        () => import("@/components/registration/steps/PreferencesStep"),
+  "welcome-offer":      () => import("@/components/registration/steps/WelcomeOfferStep"),
   "summary":            () => import("@/components/registration/steps/SummaryForm"),
   "assessing":          () => import("@/components/registration/steps/AssessingStep"),
   "success":            () => import("@/components/registration/steps/SuccessForm"),
