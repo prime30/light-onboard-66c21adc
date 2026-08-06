@@ -138,7 +138,16 @@ export const SuccessForm = () => {
         console.warn("[SuccessForm] Parent origin not allowlisted; skipping REGISTRATION_SUCCESS");
         return;
       }
-      const values = watch() as { email?: string; accountType?: string };
+      const values = watch() as { email?: string; accountType?: string; phone?: string };
+      const subscriptionPayload = {
+        email: values?.email ?? null,
+        phone: values?.phone ?? null,
+        smsSubscribed: watch("acceptsSmsMarketing") === true,
+        emailSubscribed: watch("acceptsMarketing") === true,
+        // Both opt-ins required to unlock the pro trial code.
+        discountUnlocked: smsSubscribed,
+        discountCode: smsSubscribed ? "SALONTRIAL15" : null,
+      };
       window.parent.postMessage(
         {
           type: IframeMessageTypes.REGISTRATION_SUCCESS,
@@ -148,7 +157,19 @@ export const SuccessForm = () => {
             autoApproved: !!autoApproved,
             monthlyOrderVolume: monthlyOrderVolume ?? null,
             founderCallEligible: showFounderCallNudge,
+            ...subscriptionPayload,
           },
+          timestamp: new Date().toISOString(),
+        },
+        targetOrigin
+      );
+      // Dedicated message so the theme can listen for just the marketing
+      // subscription state without parsing the registration payload:
+      // unlocked -> show the 15% off code, locked -> re-promote the opt-in.
+      window.parent.postMessage(
+        {
+          type: IframeMessageTypes.SUBSCRIPTION_STATUS,
+          data: subscriptionPayload,
           timestamp: new Date().toISOString(),
         },
         targetOrigin
@@ -159,6 +180,7 @@ export const SuccessForm = () => {
     // Intentionally fire once on mount - re-renders should not re-emit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // Prefetch the schedule step chunk + first week of Calendly slots so that
   // tapping "Accept the invitation" navigates to a fully-ready calendar with
