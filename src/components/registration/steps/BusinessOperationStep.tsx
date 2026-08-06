@@ -32,7 +32,7 @@ export const BusinessOperationStep = () => {
       setTransitionDirection("forward");
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentStep("contact-basics");
+        goToNextStep();
         setIsTransitioning(false);
       }, 150);
     }, 800);
