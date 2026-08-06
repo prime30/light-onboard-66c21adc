@@ -7,6 +7,7 @@ export { ContactBasicsStep, CountryFlag } from "./ContactBasicsStep";
 export { CreatePasswordStep } from "./CreatePasswordStep";
 export { OnboardingForm } from "./OnboardingForm";
 export { PreferencesStep } from "./PreferencesStep";
+export { WelcomeOfferStep } from "./WelcomeOfferStep";
 export { PreferredMethodStep } from "./PreferredMethodStep";
 export { MonthlyOrderVolumeStep } from "./MonthlyOrderVolumeStep";
 export { SchoolInfoStep } from "./SchoolInfoStep";
