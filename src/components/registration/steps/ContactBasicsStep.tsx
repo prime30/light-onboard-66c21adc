@@ -440,8 +440,64 @@ export const ContactBasicsStep = () => {
           />
         </div>
 
+        {/* Credential fields (professional + salon, non-AU).
+            These used to live on a dedicated license step. */}
+        {isCredentialFlow && country !== "AU" && (
+          <div className="space-y-5 pt-[5px] animate-stagger-3">
+            <TextInput
+              name="licenseNumber"
+              type="text"
+              register={register}
+              error={licenseErrors.licenseNumber}
+              placeholder={credentialConfig.licenseFieldPlaceholder(isSalon)}
+              label={credentialConfig.licenseFieldLabel(isSalon)}
+              isValid={getValidationStatus("licenseNumber") === "complete"}
+            />
+
+            {credentialConfig.hasQualification && qualificationOptions.length > 0 && (
+              <SelectInput
+                name="qualification"
+                control={control}
+                error={licenseErrors.qualification}
+                options={qualificationOptions}
+                label="Hairdressing qualification*"
+                placeholder="Select your qualification"
+                isValid={getValidationStatus("qualification" as never) === "complete"}
+              />
+            )}
+
+            {showLicenseUpload && (
+              <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2.5">
+                  <Label className="text-sm font-medium">
+                    {credentialConfig.uploadCopy(isSalon)}
+                  </Label>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+                    Optional
+                  </span>
+                </div>
+                <MultiFileUpload
+                  files={
+                    (licenseProofFiles || []) as {
+                      id: string;
+                      file: File;
+                      status: "completed" | "error" | "pending" | "uploading";
+                      progress: number;
+                      error?: string;
+                      url?: string;
+                    }[]
+                  }
+                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
+                  placeholder="Upload photos of your license"
+                  maxFiles={3}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Instagram handle - required for every registration */}
-        <div className="space-y-2 animate-stagger-3 group">
+        <div className="space-y-2 animate-stagger-4 group">
           <TextInput
             name="socialMediaHandle"
             type="text"
@@ -502,9 +558,8 @@ export const ContactBasicsStep = () => {
           )}
         </div>
 
-
         {/* Email */}
-        <div className="animate-stagger-4">
+        <div className="animate-stagger-5">
           <TextInput
             name={"email"}
             type="email"
@@ -541,9 +596,8 @@ export const ContactBasicsStep = () => {
           )}
         </div>
 
-
         {/* Phone Number with Country Code */}
-        <div className="space-y-2.5 animate-stagger-5 group">
+        <div className="space-y-2.5 animate-stagger-6 group">
           <Label
             htmlFor="phoneNumber"
             className={cn(
@@ -589,61 +643,6 @@ export const ContactBasicsStep = () => {
             )}
         </div>
 
-        {/* Credential fields (professional + salon, non-AU).
-            These used to live on a dedicated license step. */}
-        {isCredentialFlow && country !== "AU" && (
-          <div className="space-y-5 pt-[5px]">
-            <TextInput
-              name="licenseNumber"
-              type="text"
-              register={register}
-              error={licenseErrors.licenseNumber}
-              placeholder={credentialConfig.licenseFieldPlaceholder(isSalon)}
-              label={credentialConfig.licenseFieldLabel(isSalon)}
-              isValid={getValidationStatus("licenseNumber") === "complete"}
-            />
-
-            {credentialConfig.hasQualification && qualificationOptions.length > 0 && (
-              <SelectInput
-                name="qualification"
-                control={control}
-                error={licenseErrors.qualification}
-                options={qualificationOptions}
-                label="Hairdressing qualification*"
-                placeholder="Select your qualification"
-                isValid={getValidationStatus("qualification" as never) === "complete"}
-              />
-            )}
-
-            {showLicenseUpload && (
-              <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
-                <div className="flex items-center justify-between gap-2.5">
-                  <Label className="text-sm font-medium">
-                    {credentialConfig.uploadCopy(isSalon)}
-                  </Label>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-                    Optional
-                  </span>
-                </div>
-                <MultiFileUpload
-                  files={
-                    (licenseProofFiles || []) as {
-                      id: string;
-                      file: File;
-                      status: "completed" | "error" | "pending" | "uploading";
-                      progress: number;
-                      error?: string;
-                      url?: string;
-                    }[]
-                  }
-                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
-                  placeholder="Upload photos of your license"
-                  maxFiles={3}
-                />
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
