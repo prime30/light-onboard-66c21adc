@@ -105,13 +105,13 @@ export const WelcomeOfferStep = () => {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Welcome offer
+                  Unlock 15% off
                 </p>
                 <h2 className="mt-2 font-termina font-medium uppercase text-base sm:text-lg text-foreground leading-[1.15]">
                   15% off your first order
                 </h2>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed max-w-[38ch]">
-                  Your code is revealed on the next screen once both boxes are checked.
+                  Check both boxes below to reveal your 15% off code on the next screen.
                 </p>
               </div>
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-foreground/[0.04] border border-border/70 flex items-center justify-center">
