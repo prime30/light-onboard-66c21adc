@@ -409,12 +409,6 @@ export const SummaryForm = () => {
             title="Preferences & Details"
             stepNum={accountType === "professional" ? 9 : accountType === "student" ? 7 : 8}
           >
-            {birthdayMonth && birthdayDay && (
-              <SummaryRow
-                label="Birthday"
-                value={`${getMonthName(birthdayMonth)} ${parseInt(birthdayDay, 10)}`}
-              />
-            )}
             {socialMediaHandle && (
               <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
             )}
