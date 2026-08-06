@@ -319,15 +319,15 @@ export const WelcomeOfferStep = () => {
                 <Mail className="w-[15px] h-[15px]" strokeWidth={1.75} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-foreground">Subscribe to emails</span>
+                <div className="flex items-center gap-3 mb-1">
                   <Checkbox
                     checked={acceptsMarketing || false}
                     onCheckedChange={(checked) => {
                       setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
                     }}
-                    className="rounded-full ml-auto data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                    className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
+                  <span className="text-sm font-medium text-foreground">Subscribe to emails for 15% off</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Promotions, new products, and pro education. Unsubscribe anytime.
