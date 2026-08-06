@@ -108,30 +108,8 @@ export const PreferencesStep = () => {
     }
   }, [acceptsSmsMarketing, showSmsNotice]);
 
-  // Create month options
-  const monthOptions = [
-    { value: "01", label: "January" },
-    { value: "02", label: "February" },
-    { value: "03", label: "March" },
-    { value: "04", label: "April" },
-    { value: "05", label: "May" },
-    { value: "06", label: "June" },
-    { value: "07", label: "July" },
-    { value: "08", label: "August" },
-    { value: "09", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
-  ];
+  // (Birthday collection removed - no month/day options needed.)
 
-  // Create day options
-  const dayOptions = Array.from({ length: 31 }, (_, i) => {
-    const day = i + 1;
-    return {
-      value: day.toString().padStart(2, "0"),
-      label: day.toString(),
-    };
-  });
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
