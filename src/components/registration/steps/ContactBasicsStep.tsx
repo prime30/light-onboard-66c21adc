@@ -14,6 +14,7 @@ import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoApproval } from "@/lib/app-settings";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -374,6 +375,10 @@ export const ContactBasicsStep = () => {
     label: q.label,
   }));
   const licenseProofFiles = watch("licenseProofFiles");
+  // Optional license upload is only useful for manual review - hide it when
+  // automatic approval is on.
+  const { enabled: autoApprovalEnabled, loading: autoApprovalLoading } = useAutoApproval();
+  const showLicenseUpload = !autoApprovalLoading && !autoApprovalEnabled;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const licenseErrors = errors as any;
 
@@ -610,31 +615,33 @@ export const ContactBasicsStep = () => {
               />
             )}
 
-            <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2.5">
-                <Label className="text-sm font-medium">
-                  {credentialConfig.uploadCopy(isSalon)}
-                </Label>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-                  Optional
-                </span>
+            {showLicenseUpload && (
+              <div data-field-wrapper="licenseProofFiles" className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2.5">
+                  <Label className="text-sm font-medium">
+                    {credentialConfig.uploadCopy(isSalon)}
+                  </Label>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
+                    Optional
+                  </span>
+                </div>
+                <MultiFileUpload
+                  files={
+                    (licenseProofFiles || []) as {
+                      id: string;
+                      file: File;
+                      status: "completed" | "error" | "pending" | "uploading";
+                      progress: number;
+                      error?: string;
+                      url?: string;
+                    }[]
+                  }
+                  onFilesChange={(files) => setValue("licenseProofFiles", files)}
+                  placeholder="Upload photos of your license"
+                  maxFiles={3}
+                />
               </div>
-              <MultiFileUpload
-                files={
-                  (licenseProofFiles || []) as {
-                    id: string;
-                    file: File;
-                    status: "completed" | "error" | "pending" | "uploading";
-                    progress: number;
-                    error?: string;
-                    url?: string;
-                  }[]
-                }
-                onFilesChange={(files) => setValue("licenseProofFiles", files)}
-                placeholder="Upload photos of your license"
-                maxFiles={3}
-              />
-            </div>
+            )}
           </div>
         )}
       </div>
