@@ -9,6 +9,7 @@ type Flags = {
   businessOperationStepEnabled: boolean;
   orderVolumeStepEnabled: boolean;
   preferredMethodStepEnabled: boolean;
+  businessLocationStepEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
@@ -20,7 +21,7 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false };
       return cachedFlags;
     }
     cachedFlags = {
@@ -31,6 +32,7 @@ async function fetchFlags(): Promise<Flags> {
       businessOperationStepEnabled: (data as Flags).businessOperationStepEnabled !== false,
       orderVolumeStepEnabled: (data as Flags).orderVolumeStepEnabled !== false,
       preferredMethodStepEnabled: (data as Flags).preferredMethodStepEnabled !== false,
+      businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
     };
     return cachedFlags;
   })();
@@ -127,4 +129,9 @@ export function useOrderVolumeStepEnabled() {
 }
 export function usePreferredMethodStepEnabled() {
   return useFlagDefaultTrue(pickPreferredMethodStep);
+}
+/** Business Location is hidden by default (opt-in via admin settings). */
+const pickBusinessLocationStep = (f: Flags) => f.businessLocationStepEnabled;
+export function useBusinessLocationStepEnabled() {
+  return useFlag(pickBusinessLocationStep);
 }

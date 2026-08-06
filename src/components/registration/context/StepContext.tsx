@@ -22,7 +22,7 @@ import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
-import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useAutoApproval } from "@/lib/app-settings";
+import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useBusinessLocationStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -60,6 +60,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
   const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
   const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
+  const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -73,6 +74,7 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
     if (!preferredMethodStepEnabled) hiddenSteps.push("preferred-method");
+    if (!businessLocationStepEnabled) hiddenSteps.push("business-location");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
@@ -91,7 +93,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
@@ -165,14 +167,26 @@ export function StepProvider({ children }: StepProviderProps) {
             return false;
           }
         }
-        // License step: country-aware credential gate. Mirror the top-level
-        // superRefine rule that requires qualification for AU/UK/IE/NZ/ZA.
-        if (step === "license") {
+        // Contact Information now carries the credential fields, so the
+        // country-aware credential gate lives here. Mirrors the top-level
+        // superRefine rules (license number + qualification).
+        if (step === "contact-basics") {
           const v = values as {
             countryCode?: string;
             qualification?: string;
+            licenseNumber?: string;
+            accountType?: string;
           };
           const country = (v.countryCode ?? "").toUpperCase();
+          const isCredentialFlow =
+            v.accountType === "professional" || v.accountType === "salon";
+          if (
+            isCredentialFlow &&
+            country !== "AU" &&
+            !(v.licenseNumber ?? "").trim()
+          ) {
+            return false;
+          }
           if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
             return false;
           }
@@ -329,12 +343,24 @@ export function StepProvider({ children }: StepProviderProps) {
       }
     }
 
-    if (currentStep === "license") {
+    if (currentStep === "contact-basics") {
       const v = watch() as {
         countryCode?: string;
         qualification?: string;
+        licenseNumber?: string;
+        accountType?: string;
       };
       const country = (v.countryCode ?? "").toUpperCase();
+      const isCredentialFlow =
+        v.accountType === "professional" || v.accountType === "salon";
+      if (isCredentialFlow && country !== "AU" && !(v.licenseNumber ?? "").trim()) {
+        setShowValidationErrors(true);
+        toast({
+          title: "Please enter your license number",
+          variant: "destructive",
+        });
+        return;
+      }
       if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
         setShowValidationErrors(true);
         toast({

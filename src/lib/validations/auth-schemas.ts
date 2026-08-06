@@ -299,6 +299,16 @@ const licenseValidators = {
 };
 export const licenseSchema = z.object(licenseValidators);
 
+// The credential fields (license / ABN number + optional document upload +
+// qualification) now live on the Contact Information step - there is no
+// dedicated license step anymore. Country-aware "required" rules are applied
+// by StepContext + registrationSchema.superRefine.
+export const contactBasicsStepSchema = z.object({
+  ...contactBasicsValidators,
+  ...licenseValidators,
+});
+
+
 // License Schema for salons (includes additional fields).
 // Fields are optional in the union so AU salons - which have no salon
 // licensing requirement - can submit; non-AU countries have them enforced
@@ -423,6 +433,18 @@ const relaxedPreferredMethodValidators = {
 const relaxedMonthlyOrderVolumeValidators = {
   monthlyOrderVolume: z.enum(MONTHLY_ORDER_VOLUME_OPTIONS).nullish(),
 };
+// Business Location is an admin-toggleable step (hidden by default), so the
+// full-registration schema keeps its address fields optional. The per-step
+// schema above still requires them whenever the step is part of the flow.
+const relaxedBusinessLocationValidators = {
+  businessName: z.string().trim().max(200).nullish(),
+  businessAddress: z.string().trim().max(500).nullish(),
+  suiteNumber: z.string().trim().max(50).nullish(),
+  countryCode: businessLocationValidators.countryCode,
+  city: z.string().trim().max(100).nullish(),
+  provinceCode: z.string().nullish(),
+  zipCode: z.string().trim().max(20).nullish(),
+};
 
 const baseValidators = {
   ...contactBasicsValidators,
@@ -437,19 +459,18 @@ export const registrationSchema = z
     z.object({ accountType: z.literal("professional") }).extend({
       ...baseValidators,
       ...relaxedBusinessOperationValidators,
-      ...businessLocationValidators,
+      ...relaxedBusinessLocationValidators,
       ...licenseValidators,
       ...relaxedMonthlyOrderVolumeValidators,
     }),
     z.object({ accountType: z.literal("salon") }).extend({
       ...baseValidators,
-      ...businessLocationValidators,
+      ...relaxedBusinessLocationValidators,
       ...salonValidators,
       ...licenseValidators,
       ...relaxedMonthlyOrderVolumeValidators,
-      // licenseProofFiles stays optional here; enforced as required for
-      // non-AU salons by registrationSchema.superRefine below.
     }),
+
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
       ...schoolInfoValidators,
@@ -538,31 +559,9 @@ export const registrationSchema = z
           });
         }
 
-        // Salon-only: require salon size + structure + licence proof upload.
-        if (d.accountType === "salon") {
-          if (!d.salonSize || d.salonSize.trim().length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Salon size is required",
-              path: ["salonSize"],
-            });
-          }
-          if (!d.salonStructure || d.salonStructure.trim().length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Salon structure is required",
-              path: ["salonStructure"],
-            });
-          }
-          const files = d.licenseProofFiles;
-          if (!Array.isArray(files) || files.length === 0) {
-            ctx.addIssue({
-              code: "custom",
-              message: "At least one file is required",
-              path: ["licenseProofFiles"],
-            });
-          }
-        }
+        // Salon size / structure / licence proof upload are no longer
+        // collected on a dedicated step, so they are never required.
+
       }
       // socialMediaHandle is required on Contact Basics for everyone now,
       // so no additional country-scoped rule is needed here.

@@ -438,13 +438,13 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     email: z.email(),
     phoneNumber: z.string().min(7),
     phoneCountryCode: z.string().default("+1"),
-    businessName: z.string().min(1),
-    businessAddress: z.string().min(1),
+    businessName: z.string().nullish().default(""),
+    businessAddress: z.string().nullish().default(""),
     suiteNumber: z.string().nullish(),
     countryCode: z.string().min(1).default("US"),
-    city: z.string().min(1),
-    provinceCode: z.string().min(1),
-    zipCode: z.string().min(1),
+    city: z.string().nullish().default(""),
+    provinceCode: z.string().nullish().default(""),
+    zipCode: z.string().nullish().default(""),
     // AU has no licence/qualification requirement, so licenseNumber is
     // optional server-side. Non-AU flows already enforce presence on the
     // client via registrationSchema.superRefine.
@@ -473,13 +473,13 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     email: z.email(),
     phoneNumber: z.string().min(7),
     phoneCountryCode: z.string().default("+1"),
-    businessName: z.string().min(1),
-    businessAddress: z.string().min(1),
+    businessName: z.string().nullish().default(""),
+    businessAddress: z.string().nullish().default(""),
     suiteNumber: z.string().nullish(),
-    countryCode: z.string().min(1),
-    city: z.string().min(1),
-    provinceCode: z.string().min(1),
-    zipCode: z.string().min(1),
+    countryCode: z.string().min(1).default("US"),
+    city: z.string().nullish().default(""),
+    provinceCode: z.string().nullish().default(""),
+    zipCode: z.string().nullish().default(""),
     // AU salons have no licensing/qualification/proof requirement; keep
     // these optional and enforce for non-AU on the client.
     salonSize: z.string().nullish().default(""),
