@@ -299,6 +299,16 @@ const licenseValidators = {
 };
 export const licenseSchema = z.object(licenseValidators);
 
+// The credential fields (license / ABN number + optional document upload +
+// qualification) now live on the Contact Information step - there is no
+// dedicated license step anymore. Country-aware "required" rules are applied
+// by StepContext + registrationSchema.superRefine.
+export const contactBasicsStepSchema = z.object({
+  ...contactBasicsValidators,
+  ...licenseValidators,
+});
+
+
 // License Schema for salons (includes additional fields).
 // Fields are optional in the union so AU salons - which have no salon
 // licensing requirement - can submit; non-AU countries have them enforced
