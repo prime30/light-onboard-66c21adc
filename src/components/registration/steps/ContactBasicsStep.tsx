@@ -375,6 +375,10 @@ export const ContactBasicsStep = () => {
     label: q.label,
   }));
   const licenseProofFiles = watch("licenseProofFiles");
+  // Optional license upload is only useful for manual review - hide it when
+  // automatic approval is on.
+  const { enabled: autoApprovalEnabled, loading: autoApprovalLoading } = useAutoApproval();
+  const showLicenseUpload = !autoApprovalLoading && !autoApprovalEnabled;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const licenseErrors = errors as any;
 
