@@ -406,8 +406,8 @@ export const ContactBasicsStep = () => {
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Your Contact Information
         </h1>
-        <p className="text-[10px] text-muted-foreground/60 flex items-center justify-center gap-1.5 pt-1">
-          <ShieldCheck className="w-2.5 h-2.5" />
+        <p className="text-xs sm:text-sm text-muted-foreground/80 flex items-center justify-center gap-1.5 pt-1">
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
           <span>Your information is secure and never shared with third parties.</span>
         </p>
       </div>
