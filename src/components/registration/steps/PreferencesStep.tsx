@@ -73,6 +73,9 @@ export const PreferencesStep = () => {
 
   const validationStatus = getStepValidationStatus(currentStep);
 
+  const consentCount = (acceptsSmsMarketing ? 1 : 0) + (acceptsMarketing ? 1 : 0);
+  const isUnlocked = consentCount === 2;
+
   const handleTaxToggle = (checked: boolean) => {
     setValue("taxExempt", checked, dirtyFieldOptions);
     if (!checked) {
