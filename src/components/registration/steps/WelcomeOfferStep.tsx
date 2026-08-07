@@ -153,9 +153,25 @@ export const WelcomeOfferStep = () => {
               <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
             </div>
 
-            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[25px]">
+            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px]">
               Get 15% off your first order
             </h1>
+
+            <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
+              Optional. Say yes to text updates on the next two screens and we&apos;ll show your
+              discount code right away, or skip and finish your application.
+            </p>
+
+            {/* Two step progress */}
+            <div className="flex items-center gap-[10px] mb-[25px]">
+              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
+                <MessageSquare className="w-3.5 h-3.5" /> 1. Texts
+              </span>
+              <span className="h-px w-5 bg-border" />
+              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background/50 border border-border/40 text-[11px] font-medium text-muted-foreground">
+                <Mail className="w-3.5 h-3.5" /> 2. Email
+              </span>
+            </div>
 
             {/* Phone context */}
             <div className="w-full max-w-[26rem] space-y-[10px]">
@@ -163,9 +179,10 @@ export const WelcomeOfferStep = () => {
                 <>
                   <p className="text-sm text-muted-foreground">
                     {hasPhone
-                      ? "You will be opting into text messages with number"
+                      ? "Texts will go to this number"
                       : "We don't have a mobile number for you yet"}
                   </p>
+
                   <div className="inline-flex items-center gap-3 px-[15px] py-[8px] rounded-[10px] bg-background/70 border border-border/40">
                     {hasPhone && (
                       <span className="text-sm font-medium text-foreground">
