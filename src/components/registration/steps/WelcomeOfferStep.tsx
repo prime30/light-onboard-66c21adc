@@ -296,12 +296,23 @@ export const WelcomeOfferStep = () => {
                   </div>
 
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                    Almost there
+                    One more step
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                    Subscribe to email to reveal your 15% off code.
+                    Texts are on. Say yes to email too and your 15% off code appears right here.
                   </p>
+
+                  <div className="flex items-center justify-center gap-[10px] pt-1">
+                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-status-green/10 border border-status-green/20 text-[11px] font-medium text-status-green">
+                      <CheckCircle className="w-3.5 h-3.5" /> 1. Texts
+                    </span>
+                    <span className="h-px w-5 bg-border" />
+                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
+                      <Mail className="w-3.5 h-3.5" /> 2. Email
+                    </span>
+                  </div>
                 </div>
+
               </>
 
 
