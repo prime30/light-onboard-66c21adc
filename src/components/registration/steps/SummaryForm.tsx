@@ -14,16 +14,22 @@ import { AuGeoVerificationGate } from "@/components/registration/AuGeoVerificati
 
 const SummarySection = ({
   title,
-  step: targetStep,
+  field,
+  fallbackStep,
   children,
 }: {
   title: string;
-  step: Step | Step[];
+  field: keyof AllRegistrationFormData;
+  fallbackStep?: Step;
   children: React.ReactNode;
 }) => {
-  const { steps, goToStep } = useForm();
-  const candidates = Array.isArray(targetStep) ? targetStep : [targetStep];
-  const resolved = candidates.find((s) => steps.includes(s));
+  const { steps, getStepForField, goToStep } = useForm();
+  const owningStep = getStepForField(field);
+  const resolved = owningStep && steps.includes(owningStep)
+    ? owningStep
+    : fallbackStep && steps.includes(fallbackStep)
+      ? fallbackStep
+      : undefined;
   return (
     <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
@@ -242,7 +248,7 @@ export const SummaryForm = () => {
       <div className="space-y-3">
         {/* Account Type */}
         <div className="animate-stagger-2">
-          <SummarySection title="Account Type" step="account-type">
+          <SummarySection title="Account Type" field="accountType">
             <SummaryRow label="Type" value={getAccountTypeLabel(accountType)} />
           </SummarySection>
         </div>
@@ -251,7 +257,7 @@ export const SummaryForm = () => {
         <div className="animate-stagger-3">
           <SummarySection
             title="Contact Information"
-            step="contact-basics"
+            field="firstName"
           >
             <SummaryRow label="Name" value={`${firstName} ${lastName}`} />
             {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
@@ -267,7 +273,7 @@ export const SummaryForm = () => {
         {/* Business Operation (Professional only) */}
         {accountType === "professional" && businessOperationType && (
           <div className="animate-stagger-4">
-            <SummarySection title="Business Operation" step="business-operation">
+            <SummarySection title="Business Operation" field="businessOperationType">
               <SummaryRow label="Type" value={getBusinessOperationLabel(businessOperationType)} />
             </SummarySection>
           </div>
@@ -276,7 +282,7 @@ export const SummaryForm = () => {
         {/* School Information (Student only) */}
         {accountType === "student" && (
           <div className="animate-stagger-4">
-            <SummarySection title="School Information" step="school-info">
+            <SummarySection title="School Information" field="schoolName">
               <SummaryRow label="School" value={schoolName} />
               <SummaryRow label="State" value={schoolState} />
             </SummarySection>
@@ -288,7 +294,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-5">
             <SummarySection
               title="License Information"
-              step="contact-basics"
+              field="licenseNumber"
             >
               <SummaryRow
                 label={credentialConfig.licenseFieldLabel(accountType === "salon").replace(/\*$/, "")}
@@ -314,7 +320,7 @@ export const SummaryForm = () => {
         {/* Salon details for AU (no license section, but keep size/structure if provided) */}
         {accountType === "salon" && country === "AU" && (salonSize || salonStructure) && (
           <div className="animate-stagger-5">
-            <SummarySection title="Salon Details" step="business-location">
+            <SummarySection title="Salon Details" field="businessAddress">
               {salonSize && <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />}
               {salonStructure && <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />}
             </SummarySection>
@@ -326,7 +332,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-6">
             <SummarySection
               title="Business Location"
-              step="business-location"
+              field="businessAddress"
             >
               <SummaryRow label="Business Name" value={businessName} />
               <SummaryRow
@@ -347,7 +353,8 @@ export const SummaryForm = () => {
           <div className="animate-stagger-7">
             <SummarySection
               title="Tax Exemption"
-              step={["business-location", "tax-exemption"]}
+              field="taxExempt"
+              fallbackStep="business-location"
             >
               <SummaryRow
                 label="Status"
@@ -368,7 +375,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-8">
             <SummarySection
               title="Preferred Method"
-              step="preferred-method"
+              field="preferredMethods"
             >
               <SummaryRow label="Selected" value={preferredMethods.join(", ")} />
             </SummarySection>
@@ -380,7 +387,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-8">
             <SummarySection
               title="Monthly Order Volume"
-              step="monthly-order-volume"
+              field="monthlyOrderVolume"
             >
               <SummaryRow label="Extensions / month" value={monthlyOrderVolume} />
             </SummarySection>
