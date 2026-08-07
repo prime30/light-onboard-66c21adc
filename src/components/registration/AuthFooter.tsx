@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
-import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { QUALIFICATION_REQUIRED_COUNTRIES, type ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
@@ -277,6 +277,35 @@ export function AuthFooter({
             description: "Or uncheck the SMS opt-in to continue.",
           });
           shakeMissingFields(["phoneNumber", "acceptsSmsMarketing"]);
+          return;
+        }
+      }
+
+      // Contact Information now carries the credential fields. Their schema
+      // entries are optional (the requirement lives in a union-level
+      // superRefine), so they never land in `missingFields` and would shake
+      // nothing. Set real field errors here so the red highlight shows.
+      if (currentStep === "contact-basics") {
+        const accountType = watch("accountType") as string | undefined;
+        const country = ((watch("countryCode") as string | undefined) ?? "").toUpperCase();
+        const isCredentialFlow = accountType === "professional" || accountType === "salon";
+        const credentialMissing: ValidFieldNames[] = [];
+        if (isCredentialFlow && country !== "AU" && !((watch("licenseNumber") as string | undefined) ?? "").trim()) {
+          setError("licenseNumber" as ValidFieldNames, {
+            type: "manual",
+            message: "License number is required",
+          });
+          credentialMissing.push("licenseNumber" as ValidFieldNames);
+        }
+        if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !watch("qualification" as ValidFieldNames)) {
+          setError("qualification" as ValidFieldNames, {
+            type: "manual",
+            message: "Please select your qualification",
+          });
+          credentialMissing.push("qualification" as ValidFieldNames);
+        }
+        if (credentialMissing.length > 0) {
+          shakeMissingFields([...new Set([...missing, ...credentialMissing])]);
           return;
         }
       }
