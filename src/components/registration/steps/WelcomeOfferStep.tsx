@@ -120,10 +120,10 @@ export const WelcomeOfferStep = () => {
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
+      className={`relative w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
         checked
           ? "border-status-green/40 bg-status-green/[0.06]"
-          : "border-border/50 bg-background/70 hover:border-foreground/25"
+          : "border-border/50 bg-background/70 hover:border-foreground/25 border-shimmer"
       }`}
     >
       <span
@@ -170,7 +170,7 @@ export const WelcomeOfferStep = () => {
             <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
           </div>
 
-          <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px]">
+          <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px] text-shimmer">
             Get 15% off your first order
           </h1>
 
