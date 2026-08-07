@@ -53,7 +53,9 @@ type StepProviderProps = {
 // Provider component
 export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
-  const { watch, errors, subscribe, fullErrors, emailConflict } = useFormData();
+  const { watch, errors, subscribe, fullErrors, emailConflict, setError, setFocus, clearErrors } =
+    useFormData();
+
   const accountType = watch("accountType");
   const countryCode = watch("countryCode");
   const { toast } = useToast();
