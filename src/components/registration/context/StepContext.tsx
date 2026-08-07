@@ -269,13 +269,14 @@ export function StepProvider({ children }: StepProviderProps) {
     // to matching by the first path segment so auto-nav still lands the
     // user on the correct step.
     const top = (fieldName ?? "").toString().split(".")[0];
-    for (const [step, fields] of Object.entries(fieldsForStep)) {
+    for (const step of steps) {
+      const fields = fieldsForStep[step] || [];
       if (fields.includes(fieldName) || (top && fields.includes(top as ValidFieldNames))) {
-        return step as Step;
+        return step;
       }
     }
     return null;
-  }, []);
+  }, [steps]);
 
   useEffect(() => {
     const updateCompletedSteps = () => {
