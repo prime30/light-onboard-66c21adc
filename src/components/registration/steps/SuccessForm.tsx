@@ -759,12 +759,12 @@ export const SuccessForm = () => {
                     });
                   }}
                   style={{ touchAction: "manipulation" }}
-                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/60 hover:bg-muted transition-colors"
+                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-status-green/40 bg-status-green/5 hover:bg-status-green/10 transition-colors"
                   aria-label="Copy SALONTRIAL15 code"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-mono font-semibold text-foreground tracking-wider">
+                    <Tag className="w-3.5 h-3.5 text-status-green shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-status-green tracking-wider">
                       SALONTRIAL15
                     </span>
                   </div>
