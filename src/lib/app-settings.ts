@@ -13,7 +13,35 @@ type Flags = {
   referralStepEnabled: boolean;
 };
 
-let cachedFlags: Flags | null = null;
+const FLAGS_CACHE_KEY = "dd_app_flags_v1";
+
+/**
+ * Warm start: reuse the last known flags from localStorage so the very first
+ * render already has the real step configuration. Without this the registration
+ * flow briefly builds its step list from placeholder defaults and then rebuilds
+ * it when the network flags land, which shifts step numbers mid-flow.
+ */
+function readPersistedFlags(): Flags | null {
+  try {
+    const raw = localStorage.getItem(FLAGS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<Flags>;
+    if (typeof parsed?.autoApprovalEnabled !== "boolean") return null;
+    return parsed as Flags;
+  } catch {
+    return null;
+  }
+}
+
+function persistFlags(flags: Flags) {
+  try {
+    localStorage.setItem(FLAGS_CACHE_KEY, JSON.stringify(flags));
+  } catch {
+    /* storage unavailable - ignore */
+  }
+}
+
+let cachedFlags: Flags | null = readPersistedFlags();
 let inFlightFlags: Promise<Flags> | null = null;
 
 async function fetchFlags(): Promise<Flags> {
