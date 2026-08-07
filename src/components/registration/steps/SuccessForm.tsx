@@ -387,7 +387,7 @@ export const SuccessForm = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-[100px] h-[100px] rounded-full bg-gradient-to-br from-muted to-accent/20 opacity-60" />
         </div>
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="hidden sm:flex absolute inset-0 items-center justify-center">
           <div className="w-[65px] h-[65px] rounded-full bg-foreground flex items-center justify-center">
             <Check className="w-[30px] h-[30px] text-background" strokeWidth={2.5} />
           </div>
