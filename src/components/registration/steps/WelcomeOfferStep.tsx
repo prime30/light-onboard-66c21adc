@@ -173,7 +173,7 @@ export const WelcomeOfferStep = () => {
 
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
-          <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[25px]">
+          <div className="hidden sm:flex w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm items-center justify-center mb-[25px]">
             <Tag className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
           </div>
 
