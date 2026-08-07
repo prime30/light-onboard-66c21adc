@@ -18,6 +18,7 @@ import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly, useFounderCallEnabled } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
+import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
 import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
@@ -93,7 +94,7 @@ export const SuccessForm = () => {
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { enabled: founderCallEnabled } = useFounderCallEnabled();
-  const { watch } = useForm();
+  const { watch, setValue } = useForm();
   const { isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
@@ -119,8 +120,46 @@ export const SuccessForm = () => {
   // The pro trial code is gated behind BOTH marketing opt-ins captured during
   // registration (texts + email): subscribers see the code, everyone else sees
   // it locked.
-  const smsSubscribed =
-    watch("acceptsSmsMarketing") === true && watch("acceptsMarketing") === true;
+  const smsOptedIn = watch("acceptsSmsMarketing") === true;
+  const emailOptedIn = watch("acceptsMarketing") === true;
+  const smsSubscribed = smsOptedIn && emailOptedIn;
+
+  const phoneNumber = watch("phoneNumber") as string | undefined;
+  const formattedPhone = phoneNumber ? formatPhoneNumber(phoneNumber) : "";
+
+  // Late opt-in from the success screen: flips the missing consent and, once
+  // both are on, re-emits SUBSCRIPTION_STATUS so the parent theme unlocks the
+  // 15% off code too.
+  const handleLateOptIn = (which: "sms" | "email") => {
+    const nextSms = which === "sms" ? true : smsOptedIn;
+    const nextEmail = which === "email" ? true : emailOptedIn;
+    setValue(which === "sms" ? "acceptsSmsMarketing" : "acceptsMarketing", true, {
+      shouldDirty: true,
+    });
+    if (!isInIframeApp) return;
+    try {
+      const targetOrigin = resolveParentOrigin();
+      if (!targetOrigin) return;
+      const unlocked = nextSms && nextEmail;
+      window.parent.postMessage(
+        {
+          type: IframeMessageTypes.SUBSCRIPTION_STATUS,
+          data: {
+            email: (watch("email") as string | undefined) ?? null,
+            phone: phoneNumber ?? null,
+            smsSubscribed: nextSms,
+            emailSubscribed: nextEmail,
+            discountUnlocked: unlocked,
+            discountCode: unlocked ? "SALONTRIAL15" : null,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        targetOrigin
+      );
+    } catch (err) {
+      console.error("[SuccessForm] Failed to post late SUBSCRIPTION_STATUS:", err);
+    }
+  };
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
@@ -708,7 +747,7 @@ export const SuccessForm = () => {
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                 {smsSubscribed
                   ? "We don't give away free samples - as a premium, small-batch business, every unit matters. Use this code to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients."
-                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You didn't opt in to both, so it stays locked for now. You can subscribe any time from your account or by replying to a text from us, and we'll send it over."}
+                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You haven't opted in to both yet - turn on what's missing below and the code unlocks right away."}
               </p>
               {smsSubscribed ? (
                 <button
@@ -744,19 +783,59 @@ export const SuccessForm = () => {
                   </div>
                 </button>
               ) : (
-                <div
-                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border bg-muted/60"
-                  aria-label="Discount code locked"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
-                      SALONTRIAL••
-                    </span>
+                <>
+                  <div
+                    className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border bg-muted/60"
+                    aria-label="Discount code locked"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
+                        SALONTRIAL••
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
-                </div>
+
+                  {/* Late opt-in: let them fix whatever is missing without
+                      leaving the success screen. */}
+                  <div className="mt-3 space-y-2">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                      Still missing
+                    </p>
+                    {!smsOptedIn && (
+                      <button
+                        type="button"
+                        onClick={() => handleLateOptIn("sms")}
+                        style={{ touchAction: "manipulation" }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
+                      >
+                        <span className="w-[18px] h-[18px] rounded-md border border-border shrink-0" />
+                        <span className="text-xs text-foreground">
+                          Subscribe to texts
+                          {formattedPhone ? ` at ${formattedPhone}` : ""}
+                        </span>
+                      </button>
+                    )}
+                    {!emailOptedIn && (
+                      <button
+                        type="button"
+                        onClick={() => handleLateOptIn("email")}
+                        style={{ touchAction: "manipulation" }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
+                      >
+                        <span className="w-[18px] h-[18px] rounded-md border border-border shrink-0" />
+                        <span className="text-xs text-foreground">Subscribe to emails</span>
+                      </button>
+                    )}
+                    <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+                      Message and data rates may apply. Unsubscribe any time by replying STOP or
+                      using the unsubscribe link.
+                    </p>
+                  </div>
+                </>
               )}
+
             </div>
           )}
           <Button
