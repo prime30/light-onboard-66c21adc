@@ -415,7 +415,7 @@ export const SuccessForm = () => {
       </div>
 
       <div className="space-y-2.5">
-        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+        <h1 className="font-termina font-medium uppercase text-2xl md:text-3xl text-foreground tracking-[-0.006em]">
           {autoApproved ? "Welcome to Drop Dead" : "You're all set!"}
         </h1>
         <p className="text-muted-foreground">
