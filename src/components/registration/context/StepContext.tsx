@@ -120,8 +120,10 @@ export function StepProvider({ children }: StepProviderProps) {
     if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
+    // TEMPORARY: allow welcome-offer default during verification before accountType is loaded
+    if (currentStep === "welcome-offer" && !accountType) return;
     setCurrentStep("summary");
-  }, [steps, currentStep]);
+  }, [steps, currentStep, accountType]);
 
 
   const getStepValidationStatus = useCallback(
