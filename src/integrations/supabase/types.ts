@@ -26,6 +26,7 @@ export type Database = {
           id: string
           order_volume_step_enabled: boolean
           preferred_method_step_enabled: boolean
+          referral_step_enabled: boolean
           singleton: boolean
           updated_at: string
           updated_by: string | null
@@ -42,6 +43,7 @@ export type Database = {
           id?: string
           order_volume_step_enabled?: boolean
           preferred_method_step_enabled?: boolean
+          referral_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           id?: string
           order_volume_step_enabled?: boolean
           preferred_method_step_enabled?: boolean
+          referral_step_enabled?: boolean
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
