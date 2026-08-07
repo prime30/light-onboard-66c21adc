@@ -121,8 +121,6 @@ export const SummaryForm = () => {
     taxExempt,
     socialMediaHandle,
     
-    acceptsMarketing,
-    acceptsSmsMarketing,
     preferredMethods,
     monthlyOrderVolume,
     qualification,
