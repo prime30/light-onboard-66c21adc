@@ -735,8 +735,8 @@ export const SuccessForm = () => {
       {!showFounderCallNudge && !welcomeOfferEnabled && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
-            <div className="p-5 rounded-[20px] border border-border bg-muted text-left">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="p-5 rounded-[20px] border border-status-green/25 bg-gradient-to-br from-status-green/10 via-muted/50 to-status-green/5 text-left">
+              <p className="text-[10px] font-medium text-status-green uppercase tracking-wider">
                 {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
@@ -759,12 +759,12 @@ export const SuccessForm = () => {
                     });
                   }}
                   style={{ touchAction: "manipulation" }}
-                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/60 hover:bg-muted transition-colors"
+                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-status-green/40 bg-status-green/5 hover:bg-status-green/10 transition-colors"
                   aria-label="Copy SALONTRIAL15 code"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-mono font-semibold text-foreground tracking-wider">
+                    <Tag className="w-3.5 h-3.5 text-status-green shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-status-green tracking-wider">
                       SALONTRIAL15
                     </span>
                   </div>
