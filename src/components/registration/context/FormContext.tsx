@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect, useRef } from "react";
+import { createContext, useContext, ReactNode, useEffect } from "react";
 import { FormDataProvider, useFormData } from "./FormDataContext";
 import { StepProvider, useStepContext } from "./StepContext";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
@@ -6,7 +6,6 @@ import { useGlobalApp } from "@/contexts";
 import { IncompleteStepInfo } from "@/types/auth";
 import { emitApplicationSubmitted } from "@/lib/parent-breadcrumb";
 import { useBounceTelemetry } from "@/hooks/use-bounce-telemetry";
-import { useAutoApproval } from "@/lib/app-settings";
 
 
 export type AuthFormContextType = {
@@ -89,48 +88,6 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverErrorField?.bump]);
-
-  // Schema-drift snap-back: once the form rehydrates from localStorage, if
-  // the user already had real progress (accountType selected) but is still
-  // parked on the onboarding/account-type intro, walk the current step
-  // order and jump to the earliest step that isn't fully valid. This covers
-  // returning users (Klaviyo abandoned-form link) whose saved data is
-  // missing a field that became required in a newer build - without this,
-  // they'd sail through to summary/password and hit a generic submit error.
-  const hasSnappedRef = useRef(false);
-  // Gate snap-back on the auto-approval flag finishing its first fetch.
-  // `steps` depends on `autoApprove`; running snap-back before the RPC
-  // resolves can lock the user onto a step that gets re-ordered (e.g.
-  // create-password moving to after summary), and the one-shot
-  // hasSnappedRef would prevent recovery on the next re-render.
-  const { loading: autoApproveLoading } = useAutoApproval();
-  useEffect(() => {
-    if (hasSnappedRef.current) return;
-    if (autoApproveLoading) return;
-    if (!accountType) return; // fresh visitor - leave them on onboarding
-    if (currentStep !== "onboarding" && currentStep !== "account-type") return;
-    if (!steps || steps.length === 0) return;
-
-    // Find the first non-complete step after onboarding/account-type.
-    const target = steps.find(
-      (s) =>
-        s !== "onboarding" &&
-        s !== "account-type" &&
-        s !== "success" &&
-        s !== "assessing" &&
-        getStepValidationStatus(s) !== "complete"
-    );
-    hasSnappedRef.current = true;
-    if (target && target !== currentStep) {
-      setCurrentStep(target);
-    } else if (!target) {
-      // Everything is complete - drop them on the summary step.
-      setCurrentStep("summary");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountType, steps, autoApproveLoading]);
-
-
 
   // Reset form and move to success step on successful submission
   useEffect(() => {

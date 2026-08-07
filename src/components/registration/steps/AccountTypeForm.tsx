@@ -16,11 +16,9 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
-import { useModeContext } from "../context/ModeContext";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 type AccountTypeConfirmationOverlayProps = {
@@ -98,11 +96,8 @@ export const AccountTypeForm = () => {
     getValidationStatus,
     dirtyFields,
     reset,
-    setCurrentStep,
     getStepNumber,
   } = useForm();
-
-  const { setTransitionDirection, setIsTransitioning } = useModeContext();
 
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
@@ -129,55 +124,28 @@ export const AccountTypeForm = () => {
     return dirtyFieldKeys.length > 0;
   }, [dirtyFields]);
 
-  // Execute account type selection and auto-advance
+  // Update the selected account type without navigating. The shared footer's
+  // Continue action owns forward navigation; the old delayed auto-advance
+  // could fire after Continue and jump over Contact Information.
   const executeAccountTypeSelect = useCallback(
     (type: AccountType | null, previousType: AccountType | null) => {
       setValue("accountType", type, dirtyFieldOptions);
-      if (type) {
-        // Auto-advance after grace period - navigate directly to next step
-        setTimeout(() => {
-          // const newTotal = type === "student" ? 7 : type === "professional" ? 9 : 8;
-          // setDisplayTotalSteps(newTotal);
+      if (type && previousType !== type && previousType !== null) {
+        const firstName = watch("firstName");
+        const lastName = watch("lastName");
+        const email = watch("email");
+        const phoneNumber = watch("phoneNumber");
 
-          if (previousType !== type && previousType !== null) {
-            console.log(previousType, type);
-            const firstName = watch("firstName");
-            const lastName = watch("lastName");
-            const email = watch("email");
-            const phoneNumber = watch("phoneNumber");
+        reset();
 
-            reset();
-
-            setValue("accountType", type, dirtyFieldOptions);
-            setValue("firstName", firstName, dirtyFieldOptions);
-            setValue("lastName", lastName, dirtyFieldOptions);
-            setValue("email", email, dirtyFieldOptions);
-            setValue("phoneNumber", phoneNumber, dirtyFieldOptions);
-
-            // setCompletedSteps(new Set([1]));
-          } else if (previousType !== type) {
-            // setCompletedSteps(new Set([1]));
-          } else {
-            // setCompletedSteps((prev) => new Set([...prev, 1]));
-          }
-
-          // Calculate next step based on selected type
-          const nextStep: Step =
-            type === "student"
-              ? "school-info"
-              : type === "professional"
-                ? "business-operation"
-                : "business-location";
-          setTransitionDirection("forward");
-          setIsTransitioning(true);
-          setTimeout(() => {
-            setCurrentStep(nextStep);
-            setIsTransitioning(false);
-          }, 150);
-        }, 800);
+        setValue("accountType", type, dirtyFieldOptions);
+        setValue("firstName", firstName, dirtyFieldOptions);
+        setValue("lastName", lastName, dirtyFieldOptions);
+        setValue("email", email, dirtyFieldOptions);
+        setValue("phoneNumber", phoneNumber, dirtyFieldOptions);
       }
     },
-    [setValue, setCurrentStep, setIsTransitioning, watch, reset, setTransitionDirection]
+    [setValue, watch, reset]
   );
 
   // Handle account type selection with auto-advance
