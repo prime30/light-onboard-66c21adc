@@ -14,33 +14,34 @@ import { AuGeoVerificationGate } from "@/components/registration/AuGeoVerificati
 
 const SummarySection = ({
   title,
-  stepNum,
+  step: targetStep,
   children,
 }: {
   title: string;
-  stepNum: number;
+  step: Step;
   children: React.ReactNode;
 }) => {
   const { steps, goToStep } = useForm();
+  const canEdit = steps.includes(targetStep);
   return (
     <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">{title}</span>
-        <button
-          type="button"
-          onClick={() => {
-            const step = steps[stepNum] || "summary";
-            goToStep(step);
-          }}
-          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-        >
-          Edit
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => goToStep(targetStep)}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Edit
+          </button>
+        )}
       </div>
       <div className="space-y-1.5 text-sm text-muted-foreground">{children}</div>
     </div>
   );
 };
+
 
 const SummaryRow = ({ label, value }: { label: string; value: string | null | undefined }) => {
   if (!value) return null;
