@@ -310,7 +310,7 @@ export const WelcomeOfferStep = () => {
                     size="pill-lg"
                     onClick={goToPrevStep}
                     aria-label="Go back"
-                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
+                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
                   >
                     <ArrowLeft
                       className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
@@ -324,7 +324,7 @@ export const WelcomeOfferStep = () => {
                     className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-base tracking-wide group active:scale-[0.98] transition-transform"
                   >
                     Continue
-                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
+                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
                   </Button>
                 </div>
               </>
