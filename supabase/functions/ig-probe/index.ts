@@ -2,13 +2,9 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const { handle = "dropdeadextensions" } = await req.json().catch(() => ({}));
-  const targets: Record<string, string> = {
-    imginn: `https://imginn.com/${handle}/`,
-    picnob: `https://www.picnob.com/profile/${handle}/`,
-    dumpor: `https://dumpor.com/v/${handle}`,
-    igram: `https://greatfon.com/v/${handle}`,
-    threads: `https://www.threads.net/@${handle}`,
-  };
+  const names: string[] = [handle];
+  const targets: Record<string, string> = Object.fromEntries(names.map((n) => [n, `https://imginn.com/${n}/`]));
+
   const out: Record<string, unknown> = {};
   await Promise.all(Object.entries(targets).map(async ([k, u]) => {
     try {
