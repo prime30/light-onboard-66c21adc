@@ -40,6 +40,7 @@ export type StepContextType = {
   getStepNumber: (step: Step) => number;
   getStepForField: (fieldName: ValidFieldNames) => Step | null;
   steps: Step[];
+  visitedSteps: Set<Step>;
 };
 
 // Create the context
