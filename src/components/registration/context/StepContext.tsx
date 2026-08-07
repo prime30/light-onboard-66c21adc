@@ -63,7 +63,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
+  const [currentStep, setCurrentStep] = useState<Step>("welcome-offer");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
 
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
