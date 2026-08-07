@@ -44,13 +44,18 @@ function persistFlags(flags: Flags) {
 let cachedFlags: Flags | null = readPersistedFlags();
 let inFlightFlags: Promise<Flags> | null = null;
 
+/** True once the flags have been confirmed from the network this session. */
+let flagsFresh = false;
+
 async function fetchFlags(): Promise<Flags> {
-  if (cachedFlags) return cachedFlags;
+  if (cachedFlags && flagsFresh) return cachedFlags;
   if (inFlightFlags) return inFlightFlags;
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true };
+      // Keep the persisted values on a network failure rather than snapping
+      // back to placeholder defaults (which would change the step list).
+      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
@@ -64,6 +69,8 @@ async function fetchFlags(): Promise<Flags> {
       businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
       referralStepEnabled: (data as Flags).referralStepEnabled !== false,
     };
+    flagsFresh = true;
+    persistFlags(cachedFlags);
     return cachedFlags;
   })();
   try {
