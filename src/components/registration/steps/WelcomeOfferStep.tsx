@@ -111,9 +111,6 @@ export const WelcomeOfferStep = () => {
               <h1 className="font-termina font-medium uppercase text-[clamp(2rem,6vw,3rem)] leading-[0.95] text-foreground tracking-tight">
                 Want 15% off?
               </h1>
-              <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Subscribe to SMS and email to unlock your discount.
-              </p>
             </div>
 
             {/* Phone display / editor */}
