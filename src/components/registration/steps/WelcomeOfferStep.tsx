@@ -226,13 +226,14 @@ export const WelcomeOfferStep = () => {
 
 
         {subStep === "reveal" && (
-          <div className="p-6 sm:p-8 space-y-6 animate-slide-in-right">
+          <div className="p-[25px] sm:p-10 space-y-[25px] animate-slide-in-right">
             {codeRevealed ? (
               <>
-                <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-status-green/10">
-                    <CheckCircle className="w-4 h-4 text-status-green" strokeWidth={1.75} />
+                <div className="text-center space-y-[15px]">
+                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-status-green/10 border border-status-green/20 flex items-center justify-center">
+                    <CheckCircle className="w-7 h-7 text-status-green" strokeWidth={1.25} />
                   </div>
+
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                     Your code is ready
                   </h2>
