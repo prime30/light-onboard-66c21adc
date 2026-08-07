@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Gift, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -12,6 +12,8 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
+
+const DISCOUNT_CODE = "SALONTRIAL15";
 
 export const WelcomeOfferStep = () => {
   const {
@@ -30,12 +32,12 @@ export const WelcomeOfferStep = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [subStep, setSubStep] = useState<"offer" | "email">("offer");
+  const [subStep, setSubStep] = useState<"offer" | "reveal">("offer");
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber, phoneCountryCode] = watch([
+  const [acceptsMarketing, phoneNumber, phoneCountryCode] = watch([
     "acceptsMarketing",
-    "acceptsSmsMarketing",
     "phoneNumber",
     "phoneCountryCode",
   ]);
@@ -62,31 +64,39 @@ export const WelcomeOfferStep = () => {
     ),
   }));
 
-  const handleYes = () => {
+  const handleSmsSubscribe = () => {
     setPhoneError(null);
     if (!phoneValid) {
-      setPhoneError("Add a valid phone number so we can text your code.");
+      setPhoneError("Add a valid phone number so we can confirm your account.");
       setIsEditingPhone(true);
       return;
     }
     setValue("acceptsSmsMarketing", true, dirtyFieldOptions);
     setIsEditingPhone(false);
-    setSubStep("email");
+    setSubStep("reveal");
   };
 
-  const handleNo = () => {
+  const handleSkip = () => {
     setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
     setValue("acceptsMarketing", false, dirtyFieldOptions);
     goToNextStep();
   };
 
-  const handleEmailContinue = () => {
+  const handleEmailSubscribe = () => {
     setValue("acceptsMarketing", true, dirtyFieldOptions);
     goToNextStep();
   };
 
-  const handleEmailBack = () => {
-    setSubStep("offer");
+  const handleEmailSkip = () => {
+    setValue("acceptsMarketing", false, dirtyFieldOptions);
+    goToNextStep();
+  };
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(DISCOUNT_CODE).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -116,7 +126,7 @@ export const WelcomeOfferStep = () => {
             <div className="space-y-2">
               {hasPhone && !isEditingPhone && (
                 <p className="text-center text-sm text-muted-foreground">
-                  We&apos;ll text your code to {formatPhoneNumber(phoneNumber)}.{" "}
+                  Your code will be shown here for {formatPhoneNumber(phoneNumber)}.{" "}
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
@@ -184,25 +194,25 @@ export const WelcomeOfferStep = () => {
                 type="button"
                 size="pill-lg"
                 className="w-full h-12 text-sm font-medium tracking-wide"
-                onClick={handleYes}
+                onClick={handleSmsSubscribe}
               >
                 <MessageSquare className="w-4 h-4" />
-                Text my 15% off code
+                Yes, subscribe to SMS for my discount
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="pill-lg"
                 className="w-full text-muted-foreground hover:text-foreground"
-                onClick={handleNo}
+                onClick={handleSkip}
               >
-                No thanks, I&apos;ll skip the discount
+                No thanks, skip the discount
               </Button>
             </div>
 
             {/* TCPA disclaimer */}
             <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-              By tapping "Text my 15% off code" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
               <button
                 type="button"
                 onClick={() => setShowTerms(true)}
@@ -223,19 +233,48 @@ export const WelcomeOfferStep = () => {
           </div>
         )}
 
-        {subStep === "email" && (
+        {subStep === "reveal" && (
           <div className="p-6 sm:p-8 space-y-6 animate-slide-in-right">
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
-                <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-status-green/10">
+                <CheckCircle className="w-4 h-4 text-status-green" strokeWidth={1.75} />
               </div>
               <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                Add your email to unlock it
+                You&apos;re in. Here&apos;s your code.
               </h2>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Your code is ready - just confirm where to send it.
+                Use it at checkout on your first order.
               </p>
             </div>
+
+            {/* Code reveal */}
+            <button
+              type="button"
+              onClick={copyCode}
+              style={{ touchAction: "manipulation" }}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
+              aria-label="Copy SALONTRIAL15 code"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Gift className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
+                  {DISCOUNT_CODE}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                {copied ? (
+                  <>
+                    <CheckCircle className="w-3.5 h-3.5 text-status-green" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </div>
+            </button>
 
             {/* CTAs */}
             <div className="flex flex-col gap-2">
@@ -243,24 +282,24 @@ export const WelcomeOfferStep = () => {
                 type="button"
                 size="pill-lg"
                 className="w-full h-12 text-sm font-medium tracking-wide"
-                onClick={handleEmailContinue}
+                onClick={handleEmailSubscribe}
               >
                 <Mail className="w-4 h-4" />
-                Email me my 15% off code
+                Yes, subscribe to email for my discount
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="pill-lg"
                 className="w-full text-muted-foreground hover:text-foreground"
-                onClick={handleEmailBack}
+                onClick={handleEmailSkip}
               >
-                Back
+                No thanks, continue to finish
               </Button>
             </div>
 
             <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-              By tapping "Email me my 15% off code" you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
+              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
               <button
                 type="button"
                 onClick={() => setShowTerms(true)}

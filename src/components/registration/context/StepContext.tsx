@@ -65,6 +65,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
+
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
     {} as Record<Step, ValidationStatus>
   );
