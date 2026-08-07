@@ -4,7 +4,7 @@ import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail"
 import { useForm } from "@/components/registration/context/FormContext";
 import { countryCodes } from "@/data/country-codes";
 import { getCredentialConfig, QUALIFICATION_LABEL } from "@/data/qualifications";
-import { AccountType, BusinessOperationType } from "@/types/auth";
+import { AccountType, BusinessOperationType, Step } from "@/types/auth";
 import { AllRegistrationFormData } from "@/lib/validations/auth-schemas";
 import { UploadFileItem } from "@/lib/validations/file-schema";
 import { useEffect, useRef } from "react";
@@ -18,19 +18,20 @@ const SummarySection = ({
   children,
 }: {
   title: string;
-  step: Step;
+  step: Step | Step[];
   children: React.ReactNode;
 }) => {
   const { steps, goToStep } = useForm();
-  const canEdit = steps.includes(targetStep);
+  const candidates = Array.isArray(targetStep) ? targetStep : [targetStep];
+  const resolved = candidates.find((s) => steps.includes(s));
   return (
     <div className="space-y-2 p-4 rounded-form bg-muted border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">{title}</span>
-        {canEdit && (
+        {resolved && (
           <button
             type="button"
-            onClick={() => goToStep(targetStep)}
+            onClick={() => goToStep(resolved)}
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
             Edit
@@ -241,7 +242,7 @@ export const SummaryForm = () => {
       <div className="space-y-3">
         {/* Account Type */}
         <div className="animate-stagger-2">
-          <SummarySection title="Account Type" stepNum={1}>
+          <SummarySection title="Account Type" step="account-type">
             <SummaryRow label="Type" value={getAccountTypeLabel(accountType)} />
           </SummarySection>
         </div>
@@ -250,7 +251,7 @@ export const SummaryForm = () => {
         <div className="animate-stagger-3">
           <SummarySection
             title="Contact Information"
-            stepNum={accountType === "student" ? 3 : accountType === "professional" ? 3 : 3}
+            step="contact-basics"
           >
             <SummaryRow label="Name" value={`${firstName} ${lastName}`} />
             {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
@@ -266,7 +267,7 @@ export const SummaryForm = () => {
         {/* Business Operation (Professional only) */}
         {accountType === "professional" && businessOperationType && (
           <div className="animate-stagger-4">
-            <SummarySection title="Business Operation" stepNum={2}>
+            <SummarySection title="Business Operation" step="business-operation">
               <SummaryRow label="Type" value={getBusinessOperationLabel(businessOperationType)} />
             </SummarySection>
           </div>
@@ -275,7 +276,7 @@ export const SummaryForm = () => {
         {/* School Information (Student only) */}
         {accountType === "student" && (
           <div className="animate-stagger-4">
-            <SummarySection title="School Information" stepNum={2}>
+            <SummarySection title="School Information" step="school-info">
               <SummaryRow label="School" value={schoolName} />
               <SummaryRow label="State" value={schoolState} />
             </SummarySection>
@@ -287,7 +288,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-5">
             <SummarySection
               title="License Information"
-              stepNum={accountType === "professional" ? 4 : 4}
+              step="contact-basics"
             >
               <SummaryRow
                 label={credentialConfig.licenseFieldLabel(accountType === "salon").replace(/\*$/, "")}
@@ -313,7 +314,7 @@ export const SummaryForm = () => {
         {/* Salon details for AU (no license section, but keep size/structure if provided) */}
         {accountType === "salon" && country === "AU" && (salonSize || salonStructure) && (
           <div className="animate-stagger-5">
-            <SummarySection title="Salon Details" stepNum={4}>
+            <SummarySection title="Salon Details" step="business-location">
               {salonSize && <SummaryRow label="Salon Size" value={getSalonSizeLabel(salonSize)} />}
               {salonStructure && <SummaryRow label="Structure" value={getSalonStructureLabel(salonStructure)} />}
             </SummarySection>
@@ -325,7 +326,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-6">
             <SummarySection
               title="Business Location"
-              stepNum={accountType === "professional" ? 5 : 2}
+              step="business-location"
             >
               <SummaryRow label="Business Name" value={businessName} />
               <SummaryRow
@@ -346,7 +347,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-7">
             <SummarySection
               title="Tax Exemption"
-              stepNum={accountType === "professional" ? 6 : accountType === "student" ? 4 : 5}
+              step={["business-location", "tax-exemption"]}
             >
               <SummaryRow
                 label="Status"
@@ -367,7 +368,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-8">
             <SummarySection
               title="Preferred Method"
-              stepNum={accountType === "professional" ? 8 : accountType === "student" ? 6 : 7}
+              step="preferred-method"
             >
               <SummaryRow label="Selected" value={preferredMethods.join(", ")} />
             </SummarySection>
@@ -379,7 +380,7 @@ export const SummaryForm = () => {
           <div className="animate-stagger-8">
             <SummarySection
               title="Monthly Order Volume"
-              stepNum={accountType === "professional" ? 9 : 8}
+              step="monthly-order-volume"
             >
               <SummaryRow label="Extensions / month" value={monthlyOrderVolume} />
             </SummarySection>
