@@ -538,9 +538,9 @@ export const ContactBasicsStep = () => {
               label={credentialConfig.licenseFieldLabel(isSalon)}
               isValid={getValidationStatus("licenseNumber") === "complete"}
               prefixChip={
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-green/10 border border-status-green/25 text-[10px] font-semibold text-status-green uppercase tracking-[0.12em] whitespace-nowrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em] whitespace-nowrap">
                   <Check className="w-3 h-3" />
-                  Exclusively Professional
+                  Pro Only
                 </span>
               }
             />
