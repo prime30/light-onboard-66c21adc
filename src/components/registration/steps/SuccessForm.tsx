@@ -123,6 +123,42 @@ export const SuccessForm = () => {
   const emailOptedIn = watch("acceptsMarketing") === true;
   const smsSubscribed = smsOptedIn && emailOptedIn;
 
+  const phoneNumber = watch("phoneNumber") as string | undefined;
+  const formattedPhone = phoneNumber ? formatPhoneNumber(phoneNumber) : "";
+
+  // Late opt-in from the success screen: flips the missing consent and, once
+  // both are on, re-emits SUBSCRIPTION_STATUS so the parent theme unlocks the
+  // 15% off code too.
+  const handleLateOptIn = (which: "sms" | "email") => {
+    const nextSms = which === "sms" ? true : smsOptedIn;
+    const nextEmail = which === "email" ? true : emailOptedIn;
+    setValue(which === "sms" ? "acceptsSmsMarketing" : "acceptsMarketing", true, {
+      shouldDirty: true,
+    });
+    if (!isInIframeApp) return;
+    try {
+      const targetOrigin = resolveParentOrigin();
+      if (!targetOrigin) return;
+      const unlocked = nextSms && nextEmail;
+      window.parent.postMessage(
+        {
+          type: IframeMessageTypes.SUBSCRIPTION_STATUS,
+          data: {
+            email: (watch("email") as string | undefined) ?? null,
+            phone: phoneNumber ?? null,
+            smsSubscribed: nextSms,
+            emailSubscribed: nextEmail,
+            discountUnlocked: unlocked,
+            discountCode: unlocked ? "SALONTRIAL15" : null,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        targetOrigin
+      );
+    } catch (err) {
+      console.error("[SuccessForm] Failed to post late SUBSCRIPTION_STATUS:", err);
+    }
+  };
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
