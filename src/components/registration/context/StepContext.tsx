@@ -141,12 +141,15 @@ export function StepProvider({ children }: StepProviderProps) {
   // (the natural recovery point) instead. POST_FLOW steps live outside
   // `steps` by design - leave those alone.
   useEffect(() => {
+    // While the flags load, `steps` is an intentional placeholder prefix - do
+    // not treat a restored mid-flow step as invalid.
+    if (flagsLoading) return;
     const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
     if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
     setCurrentStep("summary");
-  }, [steps, currentStep]);
+  }, [steps, currentStep, flagsLoading]);
 
 
   const getStepValidationStatus = useCallback(
