@@ -188,8 +188,8 @@ export const WelcomeOfferStep = () => {
               badge="Save 15%"
               description={
                 hasPhone ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span>Approx. 4 texts/month to {formatPhoneNumber(phoneNumber)}.</span>
+                  <>
+                    Approx. 4 texts/month to {formatPhoneNumber(phoneNumber)}.
                     <span
                       role="button"
                       tabIndex={0}
@@ -204,12 +204,12 @@ export const WelcomeOfferStep = () => {
                           setIsEditingPhone(true);
                         }
                       }}
-                      className="inline-flex items-center justify-center p-0.5 rounded hover:bg-foreground/10 text-muted-foreground hover:text-foreground transition-colors"
+                      className="inline-flex items-center justify-center align-middle text-foreground/40 hover:text-foreground/70 transition-colors ml-0.5"
                     >
                       <Pencil className="w-3 h-3" />
                     </span>
-                    <span>Reply STOP to cancel.</span>
-                  </span>
+                    {" "}Reply STOP to cancel.
+                  </>
                 ) : (
                   "Add a mobile number to opt in. Approx. 4 texts/month."
                 )
