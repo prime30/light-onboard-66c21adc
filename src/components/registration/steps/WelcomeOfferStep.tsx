@@ -106,6 +106,35 @@ export const WelcomeOfferStep = () => {
     });
   };
 
+  // Render the step's actions into the shared sticky footer slot at the bottom of the viewport
+  const [footerSlot, setFooterSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setFooterSlot(document.getElementById("step-footer-slot"));
+  }, []);
+
+  const primaryAction: {
+    label: string;
+    icon?: JSX.Element;
+    onClick: () => void;
+    skip?: { label: string; onClick: () => void };
+  } =
+    subStep === "offer"
+      ? {
+          label: "Yes, subscribe to SMS for my discount",
+          icon: <MessageSquare className="w-4 h-4 shrink-0" />,
+          onClick: handleSmsSubscribe,
+          skip: { label: "No thanks, skip the discount", onClick: handleSkip },
+        }
+      : codeRevealed
+        ? { label: "Continue", onClick: handleContinue }
+        : {
+            label: "Yes, subscribe to email for my discount",
+            icon: <Mail className="w-4 h-4 shrink-0" />,
+            onClick: handleEmailSubscribe,
+            skip: { label: "No thanks, continue to finish", onClick: handleEmailSkip },
+          };
+
+
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
       <div className="space-y-2 text-center animate-stagger-1">
