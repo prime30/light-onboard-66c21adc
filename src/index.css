@@ -651,19 +651,6 @@
     animation: progressPulse 2s ease-in-out infinite;
   }
 
-  /* Text shimmer effect */
-  .text-shimmer {
-    background: linear-gradient(
-      120deg,
-      hsl(var(--foreground)) 0%,
-      hsl(var(--foreground) / 0.6) 50%,
-      hsl(var(--foreground)) 100%
-    );
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    animation: textShimmer 3s ease-in-out infinite;
-  }
 
   /* Magnetic hover container */
   .magnetic-container {
