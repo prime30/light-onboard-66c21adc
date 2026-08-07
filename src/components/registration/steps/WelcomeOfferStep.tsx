@@ -381,10 +381,17 @@ export const WelcomeOfferStep = () => {
               <Button
                 type="button"
                 size="pill-lg"
-                onClick={goToNextStep}
+                disabled={isSubmitting}
+                onClick={() => (isFinalSubmitStep ? void submitForm() : goToNextStep())}
                 className="flex-1 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
               >
-                <span className="text-center">Continue</span>
+                <span className="text-center">
+                  {isSubmitting
+                    ? "Creating account..."
+                    : isFinalSubmitStep
+                      ? "Create account & continue"
+                      : "Continue"}
+                </span>
                 <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
               </Button>
             </div>
