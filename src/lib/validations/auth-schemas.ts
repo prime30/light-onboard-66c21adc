@@ -272,11 +272,21 @@ const businessLocationValidators = {
     .max(20, "Zip code must be less than 20 characters"),
 };
 export const businessLocationSchema = z
-  .object(businessLocationValidators)
+  .object({ ...businessLocationValidators, ...taxExemptionValidators })
   .superRefine((data, ctx) => {
     const result = isValidZipForCountry(data.zipCode, data.countryCode);
     if (result !== true) {
       ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+    }
+    if (data.taxExempt) {
+      const files = data.taxExemptFile;
+      if (!Array.isArray(files) || files.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Tax exemption document is required when claiming tax exemption",
+          path: ["taxExemptFile"],
+        });
+      }
     }
   });
 
@@ -387,7 +397,6 @@ export type MonthlyOrderVolumeFormData = z.infer<typeof monthlyOrderVolumeSchema
 // Preferences Schema (now also includes tax exemption fields, which used to
 // live in their own step but were merged into Preferences).
 const preferencesValidators = {
-  ...taxExemptionValidators,
   // socialMediaHandle now lives on Contact Basics (required for everyone).
 
   referralSource: z
@@ -418,17 +427,15 @@ export const welcomeOfferSchema = z.object({
     .transform((val) => val ?? false),
 });
 
-export const preferencesSchema = z.object(preferencesValidators).refine(
-  (data) => {
-    if (!data.taxExempt) return true;
-    if (!data.taxExemptFile || !Array.isArray(data.taxExemptFile)) return false;
-    return data.taxExemptFile.length > 0;
-  },
-  {
-    message: "Tax exemption document is required when claiming tax exemption",
-    path: ["taxExemptFile"],
-  }
-);
+export const preferencesSchema = z.object(preferencesValidators);
+
+// The referral step ("How did you hear about us?") is admin-toggleable, so the
+// full-registration schema keeps referralSource optional. The per-step schema
+// above still requires it whenever the step is part of the flow.
+const relaxedPreferencesValidators = {
+  ...preferencesValidators,
+  referralSource: z.string().trim().max(100).nullish(),
+};
 
 // These two steps can be hidden by an admin toggle, so the full-registration
 // schema keeps them optional. The per-step schemas above still require them
@@ -460,7 +467,7 @@ const baseValidators = {
   ...createPasswordValidators,
   ...taxExemptionValidators,
   ...relaxedPreferredMethodValidators,
-  ...preferencesValidators,
+  ...relaxedPreferencesValidators,
 };
 
 export const registrationSchema = z

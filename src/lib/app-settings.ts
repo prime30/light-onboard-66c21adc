@@ -10,6 +10,7 @@ type Flags = {
   orderVolumeStepEnabled: boolean;
   preferredMethodStepEnabled: boolean;
   businessLocationStepEnabled: boolean;
+  referralStepEnabled: boolean;
 };
 
 let cachedFlags: Flags | null = null;
@@ -21,7 +22,7 @@ async function fetchFlags(): Promise<Flags> {
   inFlightFlags = (async () => {
     const { data, error } = await supabase.functions.invoke("public-app-flags", { body: {} });
     if (error || !data) {
-      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false };
+      cachedFlags = { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true };
       return cachedFlags;
     }
     cachedFlags = {
@@ -33,6 +34,7 @@ async function fetchFlags(): Promise<Flags> {
       orderVolumeStepEnabled: (data as Flags).orderVolumeStepEnabled !== false,
       preferredMethodStepEnabled: (data as Flags).preferredMethodStepEnabled !== false,
       businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
+      referralStepEnabled: (data as Flags).referralStepEnabled !== false,
     };
     return cachedFlags;
   })();
@@ -129,6 +131,10 @@ export function useOrderVolumeStepEnabled() {
 }
 export function usePreferredMethodStepEnabled() {
   return useFlagDefaultTrue(pickPreferredMethodStep);
+}
+const pickReferralStep = (f: Flags) => f.referralStepEnabled;
+export function useReferralStepEnabled() {
+  return useFlagDefaultTrue(pickReferralStep);
 }
 /** Business Location is hidden by default (opt-in via admin settings). */
 const pickBusinessLocationStep = (f: Flags) => f.businessLocationStepEnabled;

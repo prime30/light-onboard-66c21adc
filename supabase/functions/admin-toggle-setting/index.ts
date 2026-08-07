@@ -136,14 +136,15 @@ Deno.serve(async (req: Request) => {
   const hasBizOpStepToggle = typeof body.businessOperationStepEnabled === "boolean";
   const hasOrderVolStepToggle = typeof body.orderVolumeStepEnabled === "boolean";
   const hasPreferredMethodStepToggle = typeof body.preferredMethodStepEnabled === "boolean";
+  const hasReferralStepToggle = typeof body.referralStepEnabled === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasTags) {
+  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasReferralStepToggle && !hasTags) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, extra_customer_tags")
+      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, extra_customer_tags")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -164,6 +165,7 @@ Deno.serve(async (req: Request) => {
   if (typeof body.businessLocationStepEnabled === "boolean")
     update.business_location_step_enabled = body.businessLocationStepEnabled;
   if (hasPreferredMethodStepToggle) update.preferred_method_step_enabled = body.preferredMethodStepEnabled;
+  if (hasReferralStepToggle) update.referral_step_enabled = body.referralStepEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
 
   const { data, error } = await supabase
