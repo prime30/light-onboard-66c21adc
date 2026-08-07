@@ -373,7 +373,7 @@ export const WelcomeOfferStep = () => {
                     size="pill-lg"
                     onClick={goToPrevStep}
                     aria-label="Go back"
-                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
+                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
                   >
                     <ArrowLeft
                       className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
@@ -384,11 +384,11 @@ export const WelcomeOfferStep = () => {
                     type="button"
                     size="pill-lg"
                     onClick={handleEmailSubscribe}
-                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-base tracking-wide group active:scale-[0.98] transition-transform"
+                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
                   >
-                    <Mail className="w-4 h-4" />
-                    Yes, subscribe to email for my discount
-                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1" />
+                    <Mail className="w-4 h-4 shrink-0" />
+                    <span className="text-center">Yes, subscribe to email for my discount</span>
+                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
                   </Button>
                 </div>
 
