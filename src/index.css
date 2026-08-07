@@ -967,6 +967,73 @@
   }
 }
 
+@keyframes sweepShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--foreground)) 0%,
+    hsl(var(--foreground)) 40%,
+    hsl(var(--primary)) 50%,
+    hsl(var(--foreground)) 60%,
+    hsl(var(--foreground)) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweepShimmer 2.5s linear infinite;
+}
+
+.border-shimmer {
+  position: relative;
+  background: linear-gradient(
+        var(--tw-bg-opacity, 1) padding-box,
+        hsl(var(--background) / 0.7) padding-box
+      ),
+      linear-gradient(
+        90deg,
+        hsl(var(--border) / 0.5) 0%,
+        hsl(var(--border) / 0.5) 40%,
+        hsl(var(--primary)) 50%,
+        hsl(var(--border) / 0.5) 60%,
+        hsl(var(--border) / 0.5) 100%
+      );
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  border: 2px solid transparent;
+  animation: sweepShimmer 2.5s linear infinite;
+}
+
+.border-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--border) / 0.3) 0%,
+    hsl(var(--border) / 0.3) 40%,
+    hsl(var(--primary)) 50%,
+    hsl(var(--border) / 0.3) 60%,
+    hsl(var(--border) / 0.3) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: sweepShimmer 2.5s linear infinite;
+}
+
 @keyframes float {
   0%,
   100% {
