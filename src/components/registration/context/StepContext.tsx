@@ -63,7 +63,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  const [currentStep, setCurrentStep] = useState<Step>("welcome-offer");
+  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
 
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
@@ -117,7 +117,7 @@ export function StepProvider({ children }: StepProviderProps) {
   // `steps` by design - leave those alone.
   useEffect(() => {
     const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
-    if (POST_FLOW.includes(currentStep) || currentStep === "welcome-offer") return;
+    if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
     setCurrentStep("summary");
