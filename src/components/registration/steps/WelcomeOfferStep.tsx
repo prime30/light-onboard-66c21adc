@@ -35,6 +35,7 @@ export const WelcomeOfferStep = () => {
   const [subStep, setSubStep] = useState<"offer" | "reveal">("offer");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [codeRevealed, setCodeRevealed] = useState(false);
 
   const [acceptsMarketing, phoneNumber, phoneCountryCode] = watch([
     "acceptsMarketing",
@@ -84,11 +85,15 @@ export const WelcomeOfferStep = () => {
 
   const handleEmailSubscribe = () => {
     setValue("acceptsMarketing", true, dirtyFieldOptions);
-    goToNextStep();
+    setCodeRevealed(true);
   };
 
   const handleEmailSkip = () => {
     setValue("acceptsMarketing", false, dirtyFieldOptions);
+    goToNextStep();
+  };
+
+  const handleContinue = () => {
     goToNextStep();
   };
 
@@ -235,88 +240,115 @@ export const WelcomeOfferStep = () => {
 
         {subStep === "reveal" && (
           <div className="p-6 sm:p-8 space-y-6 animate-slide-in-right">
-            <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-status-green/10">
-                <CheckCircle className="w-4 h-4 text-status-green" strokeWidth={1.75} />
-              </div>
-              <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                You&apos;re in. Here&apos;s your code.
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Use it at checkout on your first order.
-              </p>
-            </div>
+            {codeRevealed ? (
+              <>
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-status-green/10">
+                    <CheckCircle className="w-4 h-4 text-status-green" strokeWidth={1.75} />
+                  </div>
+                  <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+                    Your code is ready
+                  </h2>
+                  <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
+                    Use it at checkout on your first order.
+                  </p>
+                </div>
 
-            {/* Code reveal */}
-            <button
-              type="button"
-              onClick={copyCode}
-              style={{ touchAction: "manipulation" }}
-              className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-              aria-label="Copy SALONTRIAL15 code"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <Gift className="w-3.5 h-3.5 text-accent-red shrink-0" />
-                <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
-                  {DISCOUNT_CODE}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
-                {copied ? (
-                  <>
-                    <CheckCircle className="w-3.5 h-3.5 text-status-green" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </div>
-            </button>
+                {/* Code reveal */}
+                <button
+                  type="button"
+                  onClick={copyCode}
+                  style={{ touchAction: "manipulation" }}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
+                  aria-label="Copy SALONTRIAL15 code"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Gift className="w-3.5 h-3.5 text-accent-red shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
+                      {DISCOUNT_CODE}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+                    {copied ? (
+                      <>
+                        <CheckCircle className="w-3.5 h-3.5 text-status-green" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </div>
+                </button>
 
-            {/* CTAs */}
-            <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                size="pill-lg"
-                className="w-full h-12 text-sm font-medium tracking-wide"
-                onClick={handleEmailSubscribe}
-              >
-                <Mail className="w-4 h-4" />
-                Yes, subscribe to email for my discount
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="pill-lg"
-                className="w-full text-muted-foreground hover:text-foreground"
-                onClick={handleEmailSkip}
-              >
-                No thanks, continue to finish
-              </Button>
-            </div>
+                <Button
+                  type="button"
+                  size="pill-lg"
+                  className="w-full h-12 text-sm font-medium tracking-wide"
+                  onClick={handleContinue}
+                >
+                  Continue
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
+                    <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+                  </div>
+                  <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+                    Almost there
+                  </h2>
+                  <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
+                    Subscribe to email to reveal your 15% off code.
+                  </p>
+                </div>
 
-            <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
-              <button
-                type="button"
-                onClick={() => setShowTerms(true)}
-                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Terms
-              </button>
-              {" & "}
-              <button
-                type="button"
-                onClick={() => setShowPrivacy(true)}
-                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Privacy Policy
-              </button>
-              .
-            </p>
+                {/* CTAs */}
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    size="pill-lg"
+                    className="w-full h-12 text-sm font-medium tracking-wide"
+                    onClick={handleEmailSubscribe}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Yes, subscribe to email for my discount
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="pill-lg"
+                    className="w-full text-muted-foreground hover:text-foreground"
+                    onClick={handleEmailSkip}
+                  >
+                    No thanks, continue to finish
+                  </Button>
+                </div>
+
+                <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
+                  By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Terms
+                  </button>
+                  {" & "}
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacy(true)}
+                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>
