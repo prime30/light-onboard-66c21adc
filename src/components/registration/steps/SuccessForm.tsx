@@ -119,8 +119,10 @@ export const SuccessForm = () => {
   // The pro trial code is gated behind BOTH marketing opt-ins captured during
   // registration (texts + email): subscribers see the code, everyone else sees
   // it locked.
-  const smsSubscribed =
-    watch("acceptsSmsMarketing") === true && watch("acceptsMarketing") === true;
+  const smsOptedIn = watch("acceptsSmsMarketing") === true;
+  const emailOptedIn = watch("acceptsMarketing") === true;
+  const smsSubscribed = smsOptedIn && emailOptedIn;
+
 
 
   // Use real server expiry if available, otherwise count down 48h from mount
