@@ -58,12 +58,24 @@ export function StepProvider({ children }: StepProviderProps) {
   const countryCode = watch("countryCode");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
-  const { enabled: autoApprove } = useAutoApproval();
-  const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
-  const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
-  const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
-  const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
-  const { enabled: referralStepEnabled } = useReferralStepEnabled();
+  const { enabled: autoApprove, loading: autoApproveLoading } = useAutoApproval();
+  const { enabled: bizOpStepEnabled, loading: bizOpLoading } = useBusinessOperationStepEnabled();
+  const { enabled: orderVolumeStepEnabled, loading: orderVolumeLoading } = useOrderVolumeStepEnabled();
+  const { enabled: preferredMethodStepEnabled, loading: preferredMethodLoading } = usePreferredMethodStepEnabled();
+  const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } = useBusinessLocationStepEnabled();
+  const { enabled: referralStepEnabled, loading: referralLoading } = useReferralStepEnabled();
+
+  // Until every flag has resolved we do not know the real step list. Building
+  // it from placeholder defaults and then rebuilding once the flags land is
+  // what made the flow look like it "skips" steps, so hold the list at the
+  // pre-account-type prefix while loading.
+  const flagsLoading =
+    autoApproveLoading ||
+    bizOpLoading ||
+    orderVolumeLoading ||
+    preferredMethodLoading ||
+    businessLocationLoading ||
+    referralLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -74,6 +86,14 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
+    if (flagsLoading) {
+      const pending: Step[] = ["onboarding", "account-type"];
+      return {
+        steps: pending,
+        totalSteps: pending.length,
+        currentStepNumber: pending.indexOf(currentStep),
+      };
+    }
     const hiddenSteps: Step[] = [];
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
@@ -99,7 +119,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
