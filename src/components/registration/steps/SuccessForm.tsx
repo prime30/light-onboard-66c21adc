@@ -710,7 +710,7 @@ export const SuccessForm = () => {
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                 {smsSubscribed
                   ? "We don't give away free samples - as a premium, small-batch business, every unit matters. Use this code to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients."
-                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You didn't opt in to both, so it stays locked for now. You can subscribe any time from your account or by replying to a text from us, and we'll send it over."}
+                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You haven't opted in to both yet - turn on what's missing below and the code unlocks right away."}
               </p>
               {smsSubscribed ? (
                 <button
@@ -746,19 +746,59 @@ export const SuccessForm = () => {
                   </div>
                 </button>
               ) : (
-                <div
-                  className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border bg-muted/60"
-                  aria-label="Discount code locked"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
-                      SALONTRIAL••
-                    </span>
+                <>
+                  <div
+                    className="w-full mt-3 flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border bg-muted/60"
+                    aria-label="Discount code locked"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
+                        SALONTRIAL••
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
-                </div>
+
+                  {/* Late opt-in: let them fix whatever is missing without
+                      leaving the success screen. */}
+                  <div className="mt-3 space-y-2">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                      Still missing
+                    </p>
+                    {!smsOptedIn && (
+                      <button
+                        type="button"
+                        onClick={() => handleLateOptIn("sms")}
+                        style={{ touchAction: "manipulation" }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
+                      >
+                        <span className="w-[18px] h-[18px] rounded-md border border-border shrink-0" />
+                        <span className="text-xs text-foreground">
+                          Subscribe to texts
+                          {formattedPhone ? ` at ${formattedPhone}` : ""}
+                        </span>
+                      </button>
+                    )}
+                    {!emailOptedIn && (
+                      <button
+                        type="button"
+                        onClick={() => handleLateOptIn("email")}
+                        style={{ touchAction: "manipulation" }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
+                      >
+                        <span className="w-[18px] h-[18px] rounded-md border border-border shrink-0" />
+                        <span className="text-xs text-foreground">Subscribe to emails</span>
+                      </button>
+                    )}
+                    <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+                      Message and data rates may apply. Unsubscribe any time by replying STOP or
+                      using the unsubscribe link.
+                    </p>
+                  </div>
+                </>
               )}
+
             </div>
           )}
           <Button
