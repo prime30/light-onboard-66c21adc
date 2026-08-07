@@ -121,8 +121,6 @@ export const SummaryForm = () => {
     taxExempt,
     socialMediaHandle,
     
-    acceptsMarketing,
-    acceptsSmsMarketing,
     preferredMethods,
     monthlyOrderVolume,
     qualification,
@@ -257,6 +255,10 @@ export const SummaryForm = () => {
             {preferredName && <SummaryRow label="Preferred Name" value={preferredName} />}
             <SummaryRow label="Email" value={email} />
             <SummaryRow label="Phone" value={formatPhoneDisplay(phoneCountryCode, phoneNumber)} />
+            {socialMediaHandle && (
+              <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
+            )}
+
           </SummarySection>
         </div>
 
@@ -383,20 +385,8 @@ export const SummaryForm = () => {
           </div>
         )}
 
-        {/* Preferences */}
-        <div className="animate-stagger-8">
-          <SummarySection
-            title="Preferences & Details"
-            stepNum={accountType === "professional" ? 9 : accountType === "student" ? 7 : 8}
-          >
-            {socialMediaHandle && (
-              <SummaryRow label="Social Media" value={`@${socialMediaHandle}`} />
-            )}
-            
-            <SummaryRow label="Email Marketing" value={acceptsMarketing ? "Yes" : "No"} />
-            <SummaryRow label="SMS Marketing" value={acceptsSmsMarketing ? "Yes" : "No"} />
-          </SummarySection>
-        </div>
+
+
 
         {/* Uploaded Documents */}
         {uploadedFiles.length > 0 && (
