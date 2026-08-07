@@ -114,89 +114,107 @@ export const WelcomeOfferStep = () => {
                 Want 15% off?
               </h1>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Unlock your code for your first order.
+                Subscribe below and unlock your discount.
               </p>
             </div>
 
-            {/* Locked code chip */}
-            <div className="flex justify-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 rounded-form border border-dashed border-border bg-foreground/[0.012]">
-                <Lock className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-                <span className="font-termina font-medium text-lg tracking-[0.12em] uppercase text-foreground/50 select-none">
-                  ••••••••••••
-                </span>
+            {/* SMS subscribe row */}
+            <label className="block px-4 py-4 rounded-form border border-border cursor-pointer transition-colors hover:bg-muted/30">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  checked={acceptsSmsMarketing || false}
+                  onCheckedChange={(checked) => {
+                    const isChecked = !!checked;
+                    setValue("acceptsSmsMarketing", isChecked, dirtyFieldOptions);
+                    if (!isChecked) {
+                      setValue("acceptsMarketing", false, dirtyFieldOptions);
+                    }
+                  }}
+                  className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
+                    <span className="text-sm font-medium text-foreground">Yes, subscribe to SMS for my discount</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
+                    Get the 15% off code and product updates via text.
+                  </p>
+                </div>
               </div>
-            </div>
+            </label>
 
             {/* Phone display / editor */}
-            <div className="space-y-2">
-              {hasPhone && !isEditingPhone && (
-                <p className="text-center text-xs text-muted-foreground">
-                  SMS will be sent to {formatPhoneNumber(phoneNumber)}.{" "}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                  >
-                    Edit
-                  </button>
-                </p>
-              )}
-              {!hasPhone && !isEditingPhone && (
-                <p className="text-center text-xs text-muted-foreground">
-                  No phone number on file.{" "}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                  >
-                    Add number
-                  </button>
-                </p>
-              )}
-              {isEditingPhone && (
-                <div className="space-y-2 animate-fade-in">
-                  <div className="flex gap-2">
-                    <div className="w-[110px]">
-                      <SelectInput
-                        name="phoneCountryCode"
-                        control={control}
-                        error={errors.phoneCountryCode}
-                        options={countryCodeOptions}
-                        placeholder="Select"
-                        className="w-full"
+            {acceptsSmsMarketing && (
+              <div className="space-y-2 animate-fade-in">
+                {hasPhone && !isEditingPhone && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    SMS will be sent to {formatPhoneNumber(phoneNumber)}.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(true)}
+                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Edit number
+                    </button>
+                  </p>
+                )}
+                {!hasPhone && !isEditingPhone && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    No phone number on file.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(true)}
+                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Add number
+                    </button>
+                  </p>
+                )}
+                {isEditingPhone && (
+                  <div className="space-y-2 animate-fade-in">
+                    <div className="flex gap-2">
+                      <div className="w-[110px]">
+                        <SelectInput
+                          name="phoneCountryCode"
+                          control={control}
+                          error={errors.phoneCountryCode}
+                          options={countryCodeOptions}
+                          placeholder="Select"
+                          className="w-full"
+                        />
+                      </div>
+                      <TextInput
+                        name="phoneNumber"
+                        type="tel"
+                        register={register}
+                        error={errors.phoneNumber}
+                        placeholder="(555) 123-4567"
+                        autoComplete="tel-national"
+                        autoFocus
+                        onBlur={(event) => {
+                          setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                        }}
                       />
                     </div>
-                    <TextInput
-                      name="phoneNumber"
-                      type="tel"
-                      register={register}
-                      error={errors.phoneNumber}
-                      placeholder="(555) 123-4567"
-                      autoComplete="tel-national"
-                      autoFocus
-                      onBlur={(event) => {
-                        setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                      }}
-                    />
+                    {phoneError && (
+                      <p className="text-xs text-destructive text-center">{phoneError}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(false)}
+                      className="block mx-auto text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    >
+                      Done editing
+                    </button>
                   </div>
-                  {phoneError && (
-                    <p className="text-xs text-destructive text-center">{phoneError}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(false)}
-                    className="block mx-auto text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                  >
-                    Done editing
-                  </button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* TCPA disclaimer */}
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed text-center">
-              By tapping "Yes, text me the code!" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+              By tapping "Yes, subscribe to SMS for my discount" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
               <button
                 type="button"
                 onClick={() => setShowTerms(true)}
@@ -223,8 +241,7 @@ export const WelcomeOfferStep = () => {
                 className="w-full h-12 text-sm font-medium tracking-wide"
                 onClick={handleYes}
               >
-                <MessageSquare className="w-4 h-4" />
-                Yes, text me the code!
+                Continue
               </Button>
               <Button
                 type="button"
@@ -242,47 +259,18 @@ export const WelcomeOfferStep = () => {
         {subStep === "email" && (
           <div className="p-6 sm:p-8 space-y-5 animate-slide-in-right">
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-status-green/10 mb-1">
-                {acceptsMarketing ? (
-                  <Unlock className="w-5 h-5 text-status-green" strokeWidth={1.75} />
-                ) : (
-                  <Lock className="w-5 h-5 text-muted-foreground" strokeWidth={1.75} />
-                )}
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-1">
+                <Mail className="w-5 h-5 text-foreground" strokeWidth={1.75} />
               </div>
               <h2 className="font-termina font-medium uppercase text-[clamp(1.5rem,5vw,2.5rem)] leading-[1] text-foreground tracking-tight">
-                You almost have 15% off!
+                Unlock your 15% off
               </h2>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Just subscribe to email too.
+                Subscribe to email too and get your discount code.
               </p>
             </div>
 
-            {/* Code chip: stays locked until email is confirmed */}
-            <div className="flex justify-center">
-              <div
-                className={`inline-flex items-center gap-2 px-5 py-3 rounded-form border transition-colors ${
-                  acceptsMarketing
-                    ? "border-status-green/40 bg-status-green/[0.06]"
-                    : "border-border bg-muted/30"
-                }`}
-              >
-                {acceptsMarketing ? (
-                  <Unlock className="w-4 h-4 text-status-green" strokeWidth={1.75} />
-                ) : (
-                  <Lock className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-                )}
-                <span
-                  className={`font-termina font-medium text-lg tracking-[0.12em] uppercase ${
-                    acceptsMarketing ? "text-foreground" : "text-muted-foreground/60"
-                  }`}
-                >
-                  {acceptsMarketing ? "SALONTRIAL15" : "••••••••••••"}
-                </span>
-              </div>
-            </div>
-
-
-            {/* Email consent row */}
+            {/* Email subscribe row */}
             <label className="block px-4 py-4 rounded-form border border-border cursor-pointer transition-colors hover:bg-muted/30">
               <div className="flex items-start gap-3">
                 <Checkbox
@@ -295,7 +283,7 @@ export const WelcomeOfferStep = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
-                    <span className="text-sm font-medium text-foreground">Email me the code</span>
+                    <span className="text-sm font-medium text-foreground">Yes, subscribe to email for my discount</span>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
                     Get the 15% off code and product updates via email.
