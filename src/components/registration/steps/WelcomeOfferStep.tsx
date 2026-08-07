@@ -107,12 +107,14 @@ export const WelcomeOfferStep = () => {
     icon,
     title,
     description,
+    badge,
   }: {
     checked: boolean;
     onClick: () => void;
     icon: JSX.Element;
     title: string;
     description: string;
+    badge?: string;
   }) => (
     <button
       type="button"
@@ -131,10 +133,18 @@ export const WelcomeOfferStep = () => {
       >
         {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </span>
-      <span className="min-w-0">
+      <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
           {icon}
-          {title}
+          <span className="flex items-center gap-2">
+            {title}
+            {badge && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
+                <span className="w-1 h-1 rounded-full bg-accent-red" />
+                {badge}
+              </span>
+            )}
+          </span>
         </span>
         <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
           {description}
