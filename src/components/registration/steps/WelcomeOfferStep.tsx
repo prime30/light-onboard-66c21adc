@@ -311,30 +311,8 @@ export const WelcomeOfferStep = () => {
                     Subscribe to email to reveal your 15% off code.
                   </p>
                 </div>
-
-                {/* TCPA disclaimer */}
-                <div className="rounded-form bg-muted/50 p-3.5">
-                  <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-                    By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowTerms(true)}
-                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Terms
-                    </button>
-                    {" & "}
-                    <button
-                      type="button"
-                      onClick={() => setShowPrivacy(true)}
-                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Privacy Policy
-                    </button>
-                    .
-                  </p>
-                </div>
               </>
+
 
             )}
           </div>
