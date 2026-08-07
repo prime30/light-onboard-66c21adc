@@ -331,6 +331,48 @@ export const WelcomeOfferStep = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {footerSlot &&
+        createPortal(
+          <div className="lg:max-w-[38rem] mx-auto flex flex-col gap-[10px]">
+            <div className="flex gap-[10px]">
+              <Button
+                type="button"
+                variant="outline"
+                size="pill-lg"
+                onClick={goToPrevStep}
+                aria-label="Go back"
+                className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
+              >
+                <ArrowLeft
+                  className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
+                  aria-hidden="true"
+                />
+              </Button>
+              <Button
+                type="button"
+                size="pill-lg"
+                onClick={primaryAction.onClick}
+                className="flex-1 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
+              >
+                {primaryAction.icon}
+                <span className="text-center">{primaryAction.label}</span>
+                <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
+              </Button>
+            </div>
+            {primaryAction.skip && (
+              <button
+                type="button"
+                onClick={primaryAction.skip.onClick}
+                className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {primaryAction.skip.label}
+              </button>
+            )}
+          </div>,
+          footerSlot
+        )}
     </div>
+
   );
 };
