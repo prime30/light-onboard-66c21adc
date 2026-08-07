@@ -810,7 +810,7 @@ export const SuccessForm = () => {
                         style={{ touchAction: "manipulation" }}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
                       >
-                        <span className="w-[18px] h-[18px] rounded-md border border-border shrink-0" />
+                        <span className="w-[18px] h-[18px] rounded-md border border-muted-foreground/30 bg-muted shrink-0" />
                         <span className="text-xs text-foreground">
                           Subscribe to texts
                           {formattedPhone ? ` at ${formattedPhone}` : ""}
