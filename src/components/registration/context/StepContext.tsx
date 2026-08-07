@@ -312,6 +312,17 @@ export function StepProvider({ children }: StepProviderProps) {
     return () => unsubscribe();
   }, [steps, getStepValidationStatus, subscribe]);
 
+  // Clear the manual credential errors as soon as the user fills them in.
+  const licenseNumberValue = watch("licenseNumber" as never) as string | undefined;
+  const qualificationValue = watch("qualification" as never) as string | undefined;
+  useEffect(() => {
+    if ((licenseNumberValue ?? "").trim()) clearErrors("licenseNumber" as never);
+  }, [licenseNumberValue, clearErrors]);
+  useEffect(() => {
+    if (qualificationValue) clearErrors("qualification" as never);
+  }, [qualificationValue, clearErrors]);
+
+
   const goToNextStep = () => {
     const schema = getStepSchema(currentStep, accountType);
     if (schema) {
