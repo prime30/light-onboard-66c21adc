@@ -244,6 +244,11 @@ export const createPasswordSchema = createPasswordStepSchema.refine(
 export type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
 
 // Business Location Schema
+const taxExemptionValidators = {
+  taxExempt: z.boolean().optional(),
+  taxExemptFile: fileUploadSchema(true),
+};
+
 const businessLocationValidators = {
   businessName: z
     .string({ error: "Business or salon name is required" })
@@ -339,10 +344,6 @@ export const salonLicenseStepSchema = z.object({
 });
 
 // Tax Exemption Schema
-const taxExemptionValidators = {
-  taxExempt: z.boolean().optional(),
-  taxExemptFile: fileUploadSchema(true),
-};
 export const taxExemptionSchema = z.object(taxExemptionValidators).refine(
   (data) => {
     if (!data.taxExempt) {
