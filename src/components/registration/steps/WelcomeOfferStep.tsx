@@ -203,6 +203,29 @@ export const WelcomeOfferStep = () => {
                 No thanks, finish registration
               </Button>
             </div>
+
+            {/* TCPA disclaimer */}
+            <div className="bg-muted/50 border border-border/50 rounded-form px-4 py-3">
+              <p className="text-[11px] text-muted-foreground/70 leading-relaxed text-center">
+                By tapping "Yes, subscribe to SMS for my discount" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(true)}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Terms
+                </button>
+                {" & "}
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacy(true)}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
+            </div>
           </div>
         )}
 
