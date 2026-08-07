@@ -302,7 +302,7 @@ export const WelcomeOfferStep = () => {
           </button>
           .
         </p>
-      </details>
+      </div>
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
