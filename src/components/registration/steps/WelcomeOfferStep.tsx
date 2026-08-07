@@ -120,10 +120,10 @@ export const WelcomeOfferStep = () => {
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
+      className={`relative w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
         checked
           ? "border-status-green/40 bg-status-green/[0.06]"
-          : "border-border/50 bg-background/70 hover:border-foreground/25"
+          : "border-border/50 bg-background/70 hover:border-foreground/25 border-shimmer"
       }`}
     >
       <span
