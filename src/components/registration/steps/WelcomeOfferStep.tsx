@@ -114,103 +114,75 @@ export const WelcomeOfferStep = () => {
                 Want 15% off?
               </h1>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Subscribe below and unlock your discount.
+                Subscribe to SMS and email to unlock your discount.
               </p>
             </div>
 
-            {/* SMS subscribe row */}
-            <label className="block px-4 py-4 rounded-form border border-border cursor-pointer transition-colors hover:bg-muted/30">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  checked={acceptsSmsMarketing || false}
-                  onCheckedChange={(checked) => {
-                    const isChecked = !!checked;
-                    setValue("acceptsSmsMarketing", isChecked, dirtyFieldOptions);
-                    if (!isChecked) {
-                      setValue("acceptsMarketing", false, dirtyFieldOptions);
-                    }
-                  }}
-                  className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground mt-0.5"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
-                    <span className="text-sm font-medium text-foreground">Yes, subscribe to SMS for my discount</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
-                    Get the 15% off code and product updates via text.
-                  </p>
-                </div>
-              </div>
-            </label>
-
             {/* Phone display / editor */}
-            {acceptsSmsMarketing && (
-              <div className="space-y-2 animate-fade-in">
-                {hasPhone && !isEditingPhone && (
-                  <p className="text-center text-xs text-muted-foreground">
-                    SMS will be sent to {formatPhoneNumber(phoneNumber)}.{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingPhone(true)}
-                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Edit number
-                    </button>
-                  </p>
-                )}
-                {!hasPhone && !isEditingPhone && (
-                  <p className="text-center text-xs text-muted-foreground">
-                    No phone number on file.{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingPhone(true)}
-                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Add number
-                    </button>
-                  </p>
-                )}
-                {isEditingPhone && (
-                  <div className="space-y-2 animate-fade-in">
-                    <div className="flex gap-2">
-                      <div className="w-[110px]">
-                        <SelectInput
-                          name="phoneCountryCode"
-                          control={control}
-                          error={errors.phoneCountryCode}
-                          options={countryCodeOptions}
-                          placeholder="Select"
-                          className="w-full"
-                        />
-                      </div>
-                      <TextInput
-                        name="phoneNumber"
-                        type="tel"
-                        register={register}
-                        error={errors.phoneNumber}
-                        placeholder="(555) 123-4567"
-                        autoComplete="tel-national"
-                        autoFocus
-                        onBlur={(event) => {
-                          setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                        }}
+            <div className="space-y-2">
+              {hasPhone && !isEditingPhone && (
+                <p className="text-center text-xs text-muted-foreground">
+                  SMS will be sent to {formatPhoneNumber(phoneNumber)}.{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPhone(true)}
+                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                  >
+                    Edit number
+                  </button>
+                </p>
+              )}
+              {!hasPhone && !isEditingPhone && (
+                <p className="text-center text-xs text-muted-foreground">
+                  No phone number on file.{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPhone(true)}
+                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                  >
+                    Add number
+                  </button>
+                </p>
+              )}
+              {isEditingPhone && (
+                <div className="space-y-2 animate-fade-in">
+                  <div className="flex gap-2">
+                    <div className="w-[110px]">
+                      <SelectInput
+                        name="phoneCountryCode"
+                        control={control}
+                        error={errors.phoneCountryCode}
+                        options={countryCodeOptions}
+                        placeholder="Select"
+                        className="w-full"
                       />
                     </div>
-                    {phoneError && (
-                      <p className="text-xs text-destructive text-center">{phoneError}</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingPhone(false)}
-                      className="block mx-auto text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Done editing
-                    </button>
+                    <TextInput
+                      name="phoneNumber"
+                      type="tel"
+                      register={register}
+                      error={errors.phoneNumber}
+                      placeholder="(555) 123-4567"
+                      autoComplete="tel-national"
+                      autoFocus
+                      onBlur={(event) => {
+                        setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                      }}
+                    />
                   </div>
-                )}
-              </div>
-            )}
+                  {phoneError && (
+                    <p className="text-xs text-destructive text-center">{phoneError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPhone(false)}
+                    className="block mx-auto text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                  >
+                    Done editing
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* TCPA disclaimer */}
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed text-center">
@@ -241,7 +213,8 @@ export const WelcomeOfferStep = () => {
                 className="w-full h-12 text-sm font-medium tracking-wide"
                 onClick={handleYes}
               >
-                Continue
+                <MessageSquare className="w-4 h-4" />
+                Yes, subscribe to SMS for my discount
               </Button>
               <Button
                 type="button"
@@ -266,31 +239,9 @@ export const WelcomeOfferStep = () => {
                 Unlock your 15% off
               </h2>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Subscribe to email too and get your discount code.
+                Just subscribe to email too.
               </p>
             </div>
-
-            {/* Email subscribe row */}
-            <label className="block px-4 py-4 rounded-form border border-border cursor-pointer transition-colors hover:bg-muted/30">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  checked={acceptsMarketing || false}
-                  onCheckedChange={(checked) => {
-                    setValue("acceptsMarketing", !!checked, dirtyFieldOptions);
-                  }}
-                  className="rounded-full data-[state=checked]:bg-foreground data-[state=checked]:border-foreground mt-0.5"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.75} />
-                    <span className="text-sm font-medium text-foreground">Yes, subscribe to email for my discount</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
-                    Get the 15% off code and product updates via email.
-                  </p>
-                </div>
-              </div>
-            </label>
 
             {/* CTAs */}
             <div className="flex flex-col gap-3">
@@ -299,9 +250,9 @@ export const WelcomeOfferStep = () => {
                 size="pill-lg"
                 className="w-full h-12 text-sm font-medium tracking-wide"
                 onClick={handleEmailContinue}
-                disabled={!acceptsMarketing}
               >
-                Continue
+                <Mail className="w-4 h-4" />
+                Yes, subscribe to email for my discount
               </Button>
               <Button
                 type="button"
