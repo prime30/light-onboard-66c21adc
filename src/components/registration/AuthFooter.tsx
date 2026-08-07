@@ -139,7 +139,7 @@ export function AuthFooter({
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
     if (isScheduleConfirmedStep) return "Go to shop";
-    if (isLatePasswordStep) return "Create account & continue";
+    if (isLatePasswordStep) return "Continue";
     if (isSummaryStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
