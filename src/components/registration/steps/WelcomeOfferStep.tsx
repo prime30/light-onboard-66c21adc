@@ -114,7 +114,7 @@ export const WelcomeOfferStep = () => {
                 Want 15% off?
               </h1>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Unlock SALONTRIAL15 for your first order.
+                Unlock your code for your first order.
               </p>
             </div>
 
@@ -196,7 +196,7 @@ export const WelcomeOfferStep = () => {
 
             {/* TCPA disclaimer */}
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed text-center">
-              By tapping below you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+              By tapping "Yes, text me the code!" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
               <button
                 type="button"
                 onClick={() => setShowTerms(true)}
