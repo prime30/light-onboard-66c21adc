@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -103,6 +105,35 @@ export const WelcomeOfferStep = () => {
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
+  // Render the step's actions into the shared sticky footer slot at the bottom of the viewport
+  const [footerSlot, setFooterSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setFooterSlot(document.getElementById("step-footer-slot"));
+  }, []);
+
+  const primaryAction: {
+    label: string;
+    icon?: JSX.Element;
+    onClick: () => void;
+    skip?: { label: string; onClick: () => void };
+  } =
+    subStep === "offer"
+      ? {
+          label: "Yes, subscribe to SMS for my discount",
+          icon: <MessageSquare className="w-4 h-4 shrink-0" />,
+          onClick: handleSmsSubscribe,
+          skip: { label: "No thanks, skip the discount", onClick: handleSkip },
+        }
+      : codeRevealed
+        ? { label: "Continue", onClick: handleContinue }
+        : {
+            label: "Yes, subscribe to email for my discount",
+            icon: <Mail className="w-4 h-4 shrink-0" />,
+            onClick: handleEmailSubscribe,
+            skip: { label: "No thanks, continue to finish", onClick: handleEmailSkip },
+          };
+
 
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
@@ -219,41 +250,6 @@ export const WelcomeOfferStep = () => {
                 .
               </p>
             </div>
-
-            {/* Bottom action bar */}
-            <div className="flex gap-[10px] pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="pill-lg"
-                onClick={goToPrevStep}
-                aria-label="Go back"
-                className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
-              >
-                <ArrowLeft
-                  className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
-                  aria-hidden="true"
-                />
-              </Button>
-              <Button
-                type="button"
-                size="pill-lg"
-                onClick={handleSmsSubscribe}
-                className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
-              >
-                <MessageSquare className="w-4 h-4 shrink-0" />
-                <span className="text-center">Yes, subscribe to SMS for my discount</span>
-                <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
-              </Button>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              No thanks, skip the discount
-            </button>
           </div>
         )}
 
@@ -301,32 +297,6 @@ export const WelcomeOfferStep = () => {
                     )}
                   </div>
                 </button>
-
-                {/* Bottom action bar */}
-                <div className="flex gap-[10px] pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="pill-lg"
-                    onClick={goToPrevStep}
-                    aria-label="Go back"
-                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
-                  >
-                    <ArrowLeft
-                      className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
-                      aria-hidden="true"
-                    />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="pill-lg"
-                    onClick={handleContinue}
-                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-base tracking-wide group active:scale-[0.98] transition-transform"
-                  >
-                    Continue
-                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
-                  </Button>
-                </div>
               </>
             ) : (
               <>
@@ -364,42 +334,8 @@ export const WelcomeOfferStep = () => {
                     .
                   </p>
                 </div>
-
-                {/* Bottom action bar */}
-                <div className="flex gap-[10px] pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="pill-lg"
-                    onClick={goToPrevStep}
-                    aria-label="Go back"
-                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
-                  >
-                    <ArrowLeft
-                      className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
-                      aria-hidden="true"
-                    />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="pill-lg"
-                    onClick={handleEmailSubscribe}
-                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
-                  >
-                    <Mail className="w-4 h-4 shrink-0" />
-                    <span className="text-center">Yes, subscribe to email for my discount</span>
-                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
-                  </Button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleEmailSkip}
-                  className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  No thanks, continue to finish
-                </button>
               </>
+
             )}
           </div>
         )}
@@ -426,6 +362,48 @@ export const WelcomeOfferStep = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {footerSlot &&
+        createPortal(
+          <div className="lg:max-w-[38rem] mx-auto flex flex-col gap-[10px]">
+            <div className="flex gap-[10px]">
+              <Button
+                type="button"
+                variant="outline"
+                size="pill-lg"
+                onClick={goToPrevStep}
+                aria-label="Go back"
+                className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
+              >
+                <ArrowLeft
+                  className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
+                  aria-hidden="true"
+                />
+              </Button>
+              <Button
+                type="button"
+                size="pill-lg"
+                onClick={primaryAction.onClick}
+                className="flex-1 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
+              >
+                {primaryAction.icon}
+                <span className="text-center">{primaryAction.label}</span>
+                <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
+              </Button>
+            </div>
+            {primaryAction.skip && (
+              <button
+                type="button"
+                onClick={primaryAction.skip.onClick}
+                className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {primaryAction.skip.label}
+              </button>
+            )}
+          </div>,
+          footerSlot
+        )}
     </div>
+
   );
 };
