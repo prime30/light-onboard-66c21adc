@@ -146,51 +146,45 @@ export const WelcomeOfferStep = () => {
         </div>
       </div>
 
-      <div className="rounded-form bg-background shadow-card animate-stagger-2 overflow-hidden">
+      <div className="rounded-form bg-muted/40 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         {subStep === "offer" && (
-          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
-                <Gift className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-              </div>
-              <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                Get 15% off your first order
-              </h1>
+          <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
+            <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[30px]">
+              <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
             </div>
 
+            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[25px]">
+              Get 15% off your first order
+            </h1>
+
             {/* Phone context */}
-            <div className="space-y-2">
-              {hasPhone && !isEditingPhone && (
-                <p className="text-center text-sm text-muted-foreground">
-                  You will be opting into text messages with number{" "}
-                  <span className="font-medium text-foreground">
-                    {formatPhoneNumber(phoneNumber)}
-                  </span>
-                  .{" "}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground hover:text-foreground/70 transition-colors"
-                  >
-                    Edit number
-                  </button>
-                </p>
-              )}
-              {!hasPhone && !isEditingPhone && (
-                <p className="text-center text-sm text-muted-foreground">
-                  No phone number on file.{" "}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground hover:text-foreground/70 transition-colors"
-                  >
-                    Add number
-                  </button>
-                </p>
+            <div className="w-full max-w-[26rem] space-y-[10px]">
+              {!isEditingPhone && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {hasPhone
+                      ? "You will be opting into text messages with number"
+                      : "We don't have a mobile number for you yet"}
+                  </p>
+                  <div className="inline-flex items-center gap-3 px-[15px] py-[8px] rounded-[10px] bg-background/70 border border-border/40">
+                    {hasPhone && (
+                      <span className="text-sm font-medium text-foreground">
+                        {formatPhoneNumber(phoneNumber)}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(true)}
+                      className="text-sm font-medium text-status-green hover:opacity-70 transition-opacity"
+                    >
+                      {hasPhone ? "Edit number" : "Add number"}
+                    </button>
+                  </div>
+                </>
               )}
               {isEditingPhone && (
-                <div className="space-y-2 animate-fade-in">
-                  <div className="flex gap-2">
+                <div className="space-y-[10px] animate-fade-in text-left">
+                  <div className="flex gap-[10px]">
                     <div className="w-[110px]">
                       <SelectInput
                         name="phoneCountryCode"
@@ -227,40 +221,19 @@ export const WelcomeOfferStep = () => {
                 </div>
               )}
             </div>
-
-            {/* TCPA disclaimer */}
-            <div className="rounded-form bg-muted/50 p-3.5">
-              <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-                By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-                <button
-                  type="button"
-                  onClick={() => setShowTerms(true)}
-                  className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Terms
-                </button>
-                {" & "}
-                <button
-                  type="button"
-                  onClick={() => setShowPrivacy(true)}
-                  className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </button>
-                .
-              </p>
-            </div>
           </div>
         )}
 
+
         {subStep === "reveal" && (
-          <div className="p-6 sm:p-8 space-y-6 animate-slide-in-right">
+          <div className="p-[25px] sm:p-10 space-y-[25px] animate-slide-in-right">
             {codeRevealed ? (
               <>
-                <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-status-green/10">
-                    <CheckCircle className="w-4 h-4 text-status-green" strokeWidth={1.75} />
+                <div className="text-center space-y-[15px]">
+                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-status-green/10 border border-status-green/20 flex items-center justify-center">
+                    <CheckCircle className="w-7 h-7 text-status-green" strokeWidth={1.25} />
                   </div>
+
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                     Your code is ready
                   </h2>
@@ -301,9 +274,10 @@ export const WelcomeOfferStep = () => {
             ) : (
               <>
                 <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
-                    <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center">
+                    <Mail className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
                   </div>
+
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                     Almost there
                   </h2>
@@ -311,35 +285,50 @@ export const WelcomeOfferStep = () => {
                     Subscribe to email to reveal your 15% off code.
                   </p>
                 </div>
-
-                {/* TCPA disclaimer */}
-                <div className="rounded-form bg-muted/50 p-3.5">
-                  <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-                    By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowTerms(true)}
-                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Terms
-                    </button>
-                    {" & "}
-                    <button
-                      type="button"
-                      onClick={() => setShowPrivacy(true)}
-                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Privacy Policy
-                    </button>
-                    .
-                  </p>
-                </div>
               </>
+
 
             )}
           </div>
         )}
       </div>
+
+      {/* Fine print, outside the card so the offer keeps the visual weight */}
+      {!(subStep === "reveal" && codeRevealed) && (
+        <p className="mx-auto max-w-[32rem] px-5 text-center text-[11px] leading-[1.5] text-muted-foreground/70 animate-stagger-3">
+          {subStep === "offer" ? (
+            <>
+              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
+              recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
+              above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
+              STOP to cancel, HELP for help. See our{" "}
+            </>
+          ) : (
+            <>
+              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
+              recurring automated marketing emails from Drop Dead Extensions. Consent is not a
+              condition of purchase. See our{" "}
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowTerms(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Terms
+          </button>
+          {" & "}
+          <button
+            type="button"
+            onClick={() => setShowPrivacy(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Privacy Policy
+          </button>
+          .
+        </p>
+      )}
+
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
