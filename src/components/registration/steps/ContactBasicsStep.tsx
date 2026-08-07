@@ -631,10 +631,20 @@ export const ContactBasicsStep = () => {
             </p>
           )}
           {igStatus.state === "unknown" && (
-            <p className="text-xs text-muted-foreground mt-1.5">
-              We couldn't reach Instagram to confirm this handle. It'll be reviewed manually.
-            </p>
+            <a
+              href={igStatus.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-1.5 group/link"
+            >
+              <span>Saved as</span>
+              <span className="underline underline-offset-2">
+                instagram.com/{socialMediaHandle?.toString().trim().replace(/^@+/, "")}
+              </span>
+              <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+            </a>
           )}
+
           {igStatus.state === "idle" && (
             <p className="text-xs text-muted-foreground mt-1.5">
               It helps us verify that you're a stylist faster. Enter your handle only, we'll

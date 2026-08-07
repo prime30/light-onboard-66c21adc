@@ -77,21 +77,40 @@ Deno.serve(async (req) => {
     });
     clearTimeout(timeout);
 
+    // Instagram is consistent about one thing: a username that does not exist
+    // returns 404 from this endpoint. Everything else (200 with full user
+    // payload, 200 with a bare {"status":"ok"} for accounts it won't serialize
+    // for logged-out clients, or a 400 "Asset asset://... has been deleted"
+    // serializer bug) means the username DID resolve to a real account.
     if (apiRes.status === 404) {
       return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
     }
+
+    const apiText = await apiRes.text();
+    let parsed: { data?: { user?: { username?: string } | null }; status?: string } | null = null;
+    try {
+      parsed = JSON.parse(apiText);
+    } catch {
+      parsed = null;
+    }
+
     if (apiRes.status === 200) {
-      try {
-        const body = (await apiRes.json()) as {
-          data?: { user?: { username?: string } | null };
-        };
-        if (body?.data?.user && body.data.user.username) {
-          return json({ ok: true, exists: true, normalized, url });
-        }
-        return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
-      } catch {
-        // fall through to HTML fallback
+      if (parsed?.data?.user && parsed.data.user.username) {
+        return json({ ok: true, exists: true, normalized, url });
       }
+      // Explicit null user means gone; a bare ok/empty payload means the
+      // handle resolved but IG withheld the profile from a logged-out client.
+      if (parsed && "data" in parsed && parsed.data && parsed.data.user === null) {
+        return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
+      }
+      if (parsed?.status === "ok" || (parsed && !("data" in parsed))) {
+        return json({ ok: true, exists: true, normalized, url, reason: "withheld" });
+      }
+    }
+
+    // Known serializer failure on real handles.
+    if (apiRes.status === 400 && /asset:\/\/|has been deleted/i.test(apiText)) {
+      return json({ ok: true, exists: true, normalized, url, reason: "serializer_bug" });
     }
 
     // Fallback: fetch the profile page and inspect status / markers.
@@ -119,10 +138,49 @@ Deno.serve(async (req) => {
     ) {
       return json({ ok: true, exists: false, normalized, url, reason: "not_found" });
     }
-    if (text.includes(`"username":"${normalized}"`)) {
+    if (
+      text.includes(`"username":"${normalized}"`) ||
+      text.includes(`@${normalized}) • instagram`) ||
+      text.includes(`(@${normalized})`) ||
+      text.includes(`instagram.com/${normalized}/"`)
+    ) {
       return json({ ok: true, exists: true, normalized, url });
     }
-    return json({ ok: true, exists: null, normalized, url, reason: "ambiguous" });
+    // Instagram blocks datacenter IPs (401 on the API, 429 on the HTML page),
+    // so add one positive-only mirror signal. A 200 there means the handle is
+    // real; anything else is treated as "unknown", never as "missing".
+    try {
+      const controller3 = new AbortController();
+      const timeout3 = setTimeout(() => controller3.abort(), 6000);
+      const mirrorRes = await fetch(`https://imginn.com/${normalized}/`, {
+        method: "GET",
+        redirect: "follow",
+        signal: controller3.signal,
+        headers: { ...commonHeaders, Accept: "text/html,*/*;q=0.8" },
+      });
+      clearTimeout(timeout3);
+      if (mirrorRes.status === 200) {
+        const mirrorText = (await mirrorRes.text()).toLowerCase();
+        if (mirrorText.includes(normalized)) {
+          return json({ ok: true, exists: true, normalized, url, reason: "mirror" });
+        }
+      }
+    } catch {
+      // ignore mirror failures
+    }
+
+    console.log(
+      `verify-instagram-handle: ambiguous ${normalized} api=${apiRes.status} html=${htmlRes.status}`,
+    );
+    return json({
+      ok: true,
+      exists: null,
+      normalized,
+      url,
+      reason: "ambiguous",
+      apiStatus: apiRes.status,
+      htmlStatus: htmlRes.status,
+    });
   } catch (err) {
     // Network / abort - fail open so signup isn't blocked by IG rate limits.
     return json({
