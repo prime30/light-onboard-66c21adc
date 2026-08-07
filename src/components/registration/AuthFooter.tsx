@@ -360,9 +360,9 @@ export function AuthFooter({
       return;
     }
 
-    // Final real submit: either the late password step (auto-approval ON)
+    // Final real submit: either the late welcome-offer step (auto-approval ON)
     // or the summary step (auto-approval OFF, original flow).
-    if (isLatePasswordStep || isSummaryStep) {
+    if (isLateWelcomeOfferStep || isSummaryStep) {
       submitForm();
       return;
     }
@@ -379,7 +379,7 @@ export function AuthFooter({
     isSummaryStep,
     isFauxSubmitStep,
     autoApprove,
-    isLatePasswordStep,
+    isLateWelcomeOfferStep,
     isFinalGateStep,
     goToStep,
     submitForm,
