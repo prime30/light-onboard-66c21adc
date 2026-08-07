@@ -107,12 +107,14 @@ export const WelcomeOfferStep = () => {
     icon,
     title,
     description,
+    badge,
   }: {
     checked: boolean;
     onClick: () => void;
     icon: JSX.Element;
     title: string;
     description: string;
+    badge?: string;
   }) => (
     <button
       type="button"
@@ -131,10 +133,18 @@ export const WelcomeOfferStep = () => {
       >
         {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </span>
-      <span className="min-w-0">
+      <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
           {icon}
-          {title}
+          <span className="flex items-center gap-2">
+            {title}
+            {badge && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
+                <span className="w-1 h-1 rounded-full bg-accent-red" />
+                {badge}
+              </span>
+            )}
+          </span>
         </span>
         <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
           {description}
@@ -154,15 +164,7 @@ export const WelcomeOfferStep = () => {
         </div>
       </div>
 
-      <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden relative">
-        {/* Faux discount badge */}
-        <div className="absolute top-[18px] right-[18px] sm:top-[22px] sm:right-[22px] z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[11px] font-semibold tracking-wide uppercase shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-red" />
-            Save 15%
-          </span>
-        </div>
-
+      <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
           <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[25px]">
             <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
@@ -183,6 +185,7 @@ export const WelcomeOfferStep = () => {
               onClick={toggleSms}
               icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
               title="Text me offers"
+              badge="Save 15%"
               description={
                 hasPhone
                   ? `Approx. 4 texts/month to ${formatPhoneNumber(phoneNumber)}. Reply STOP to cancel.`
@@ -194,6 +197,7 @@ export const WelcomeOfferStep = () => {
               onClick={toggleEmail}
               icon={<Mail className="w-4 h-4 text-foreground/70" />}
               title="Email me offers"
+              badge="Save 15%"
               description="Restocks, pro education, and promos. Unsubscribe anytime."
             />
 
