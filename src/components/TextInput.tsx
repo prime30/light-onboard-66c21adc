@@ -11,6 +11,7 @@ type TextInputProps<TFieldValues extends FieldValues = FieldValues> =
       isValid?: boolean;
       label?: React.ReactNode;
       prefixIcon?: React.ReactNode;
+      prefixChip?: React.ReactNode;
       className?: string;
     };
 
@@ -24,6 +25,7 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
   valueAsNumber,
   label = null,
   prefixIcon = null,
+  prefixChip = null,
   isValid = false,
   className = "",
   ...inputProps
@@ -38,8 +40,13 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           {label}
         </Label>
       )}
-      <div className="input-glow input-ripple rounded-form">
+      <div className="input-glow input-ripple rounded-form relative">
         {prefixIcon}
+        {prefixChip && (
+          <div className="absolute left-[14px] top-1/2 -translate-y-1/2 z-10">
+            {prefixChip}
+          </div>
+        )}
         <Input
           id={name}
           type={type}
@@ -48,7 +55,9 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           {...(register ? register(name, { valueAsNumber }) : {})}
           className={cn(
             "h-input rounded-form bg-muted border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300",
-            prefixIcon && "pl-14",
+            prefixIcon && !prefixChip && "pl-14",
+            prefixChip && !prefixIcon && "pl-[188px]",
+            prefixIcon && prefixChip && "pl-[202px]",
             error && "border-destructive/50 bg-destructive/5"
           )}
           {...inputProps}
@@ -59,3 +68,4 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
     </div>
   );
 }
+
