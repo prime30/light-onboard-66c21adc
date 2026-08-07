@@ -85,11 +85,15 @@ export const WelcomeOfferStep = () => {
 
   const handleEmailSubscribe = () => {
     setValue("acceptsMarketing", true, dirtyFieldOptions);
-    goToNextStep();
+    setCodeRevealed(true);
   };
 
   const handleEmailSkip = () => {
     setValue("acceptsMarketing", false, dirtyFieldOptions);
+    goToNextStep();
+  };
+
+  const handleContinue = () => {
     goToNextStep();
   };
 
