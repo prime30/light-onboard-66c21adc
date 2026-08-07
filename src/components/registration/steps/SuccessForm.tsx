@@ -93,7 +93,7 @@ export const SuccessForm = () => {
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { enabled: founderCallEnabled } = useFounderCallEnabled();
-  const { watch } = useForm();
+  const { watch, setValue } = useForm();
   const { isInIframe: isInIframeApp } = useGlobalApp();
   const navigate = useNavigate();
   const { setCurrentStep } = useStepContext();
