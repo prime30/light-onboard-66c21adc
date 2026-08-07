@@ -384,6 +384,13 @@ export function StepProvider({ children }: StepProviderProps) {
         v.accountType === "professional" || v.accountType === "salon";
       if (isCredentialFlow && country !== "AU" && !(v.licenseNumber ?? "").trim()) {
         setShowValidationErrors(true);
+        // The union-level superRefine never runs while other branch fields are
+        // missing, so set the field error manually to get the red highlight.
+        setError("licenseNumber" as never, {
+          type: "manual",
+          message: "License number is required",
+        });
+        setFocus?.("licenseNumber" as never);
         toast({
           title: "Please enter your license number",
           variant: "destructive",
@@ -392,12 +399,17 @@ export function StepProvider({ children }: StepProviderProps) {
       }
       if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
         setShowValidationErrors(true);
+        setError("qualification" as never, {
+          type: "manual",
+          message: "Please select your qualification",
+        });
         toast({
           title: "Please select your qualification",
           variant: "destructive",
         });
         return;
       }
+
       if (
         QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
         v.qualification &&
