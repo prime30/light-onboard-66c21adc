@@ -22,7 +22,8 @@ import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
-import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useBusinessLocationStepEnabled, useAutoApproval } from "@/lib/app-settings";
+import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useBusinessLocationStepEnabled,
+  useReferralStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -61,6 +62,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
   const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
   const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
+  const { enabled: referralStepEnabled } = useReferralStepEnabled();
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -76,6 +78,7 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
     if (!preferredMethodStepEnabled) hiddenSteps.push("preferred-method");
     if (!businessLocationStepEnabled) hiddenSteps.push("business-location");
+    if (!referralStepEnabled) hiddenSteps.push("preferences");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
     newSteps.push("summary");
@@ -95,7 +98,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;

@@ -54,6 +54,8 @@ const AdminSettingsPage = () => {
   const [updatingPreferredMethodStep, setUpdatingPreferredMethodStep] = useState(false);
   const [businessLocationStepOn, setBusinessLocationStepOn] = useState<boolean | null>(null);
   const [updatingBusinessLocationStep, setUpdatingBusinessLocationStep] = useState(false);
+  const [referralStepOn, setReferralStepOn] = useState<boolean | null>(null);
+  const [updatingReferralStep, setUpdatingReferralStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -173,6 +175,7 @@ const AdminSettingsPage = () => {
           setPreferredMethodStepOn(true);
         }
         setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
         if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
         setBizOpStepOn(data.setting.business_operation_step_enabled);
       } else {
@@ -189,6 +192,7 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
         } else {
@@ -268,6 +272,7 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
       } else {
@@ -461,7 +466,8 @@ const AdminSettingsPage = () => {
       | "businessOperationStepEnabled"
       | "orderVolumeStepEnabled"
       | "preferredMethodStepEnabled"
-      | "businessLocationStepEnabled",
+      | "businessLocationStepEnabled"
+      | "referralStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,
@@ -1051,7 +1057,37 @@ const AdminSettingsPage = () => {
               />
             )}
           </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">How did you hear about us?</h3>
+              <p className="text-xs text-muted-foreground">
+                Referral source step. Turning this off removes the question from every flow (no
+                referral source is recorded for new customers).
+              </p>
+            </div>
+            {referralStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={referralStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "referralStepEnabled",
+                    next,
+                    referralStepOn,
+                    setReferralStepOn,
+                    setUpdatingReferralStep,
+                    "How did you hear about us?"
+                  )
+                }
+                disabled={updatingReferralStep}
+                aria-label="Toggle referral source step"
+              />
+            )}
+          </div>
         </div>
+
           {founderHighVolume !== null && (
             <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
               Current state:{" "}
