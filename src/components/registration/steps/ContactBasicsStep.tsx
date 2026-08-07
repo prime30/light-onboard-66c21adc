@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { ArrowRight, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -537,6 +537,12 @@ export const ContactBasicsStep = () => {
               placeholder={credentialConfig.licenseFieldPlaceholder(isSalon)}
               label={credentialConfig.licenseFieldLabel(isSalon)}
               isValid={getValidationStatus("licenseNumber") === "complete"}
+              prefixChip={
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-green/10 border border-status-green/25 text-[10px] font-semibold text-status-green uppercase tracking-[0.12em] whitespace-nowrap">
+                  <Check className="w-3 h-3" />
+                  Exclusively Professional
+                </span>
+              }
             />
 
             {credentialConfig.hasQualification && qualificationOptions.length > 0 && (
