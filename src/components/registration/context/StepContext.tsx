@@ -40,6 +40,7 @@ export type StepContextType = {
   getStepNumber: (step: Step) => number;
   getStepForField: (fieldName: ValidFieldNames) => Step | null;
   steps: Step[];
+  visitedSteps: Set<Step>;
 };
 
 // Create the context
@@ -57,12 +58,24 @@ export function StepProvider({ children }: StepProviderProps) {
   const countryCode = watch("countryCode");
   const { toast } = useToast();
   const { setTransitionDirection, setIsTransitioning, mainScrollRef } = useModeContext();
-  const { enabled: autoApprove } = useAutoApproval();
-  const { enabled: bizOpStepEnabled } = useBusinessOperationStepEnabled();
-  const { enabled: orderVolumeStepEnabled } = useOrderVolumeStepEnabled();
-  const { enabled: preferredMethodStepEnabled } = usePreferredMethodStepEnabled();
-  const { enabled: businessLocationStepEnabled } = useBusinessLocationStepEnabled();
-  const { enabled: referralStepEnabled } = useReferralStepEnabled();
+  const { enabled: autoApprove, loading: autoApproveLoading } = useAutoApproval();
+  const { enabled: bizOpStepEnabled, loading: bizOpLoading } = useBusinessOperationStepEnabled();
+  const { enabled: orderVolumeStepEnabled, loading: orderVolumeLoading } = useOrderVolumeStepEnabled();
+  const { enabled: preferredMethodStepEnabled, loading: preferredMethodLoading } = usePreferredMethodStepEnabled();
+  const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } = useBusinessLocationStepEnabled();
+  const { enabled: referralStepEnabled, loading: referralLoading } = useReferralStepEnabled();
+
+  // Until every flag has resolved we do not know the real step list. Building
+  // it from placeholder defaults and then rebuilding once the flags land is
+  // what made the flow look like it "skips" steps, so hold the list at the
+  // pre-account-type prefix while loading.
+  const flagsLoading =
+    autoApproveLoading ||
+    bizOpLoading ||
+    orderVolumeLoading ||
+    preferredMethodLoading ||
+    businessLocationLoading ||
+    referralLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -73,6 +86,14 @@ export function StepProvider({ children }: StepProviderProps) {
   );
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
+    if (flagsLoading) {
+      const pending: Step[] = ["onboarding", "account-type"];
+      return {
+        steps: pending,
+        totalSteps: pending.length,
+        currentStepNumber: pending.indexOf(currentStep),
+      };
+    }
     const hiddenSteps: Step[] = [];
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
@@ -98,7 +119,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
@@ -120,12 +141,15 @@ export function StepProvider({ children }: StepProviderProps) {
   // (the natural recovery point) instead. POST_FLOW steps live outside
   // `steps` by design - leave those alone.
   useEffect(() => {
+    // While the flags load, `steps` is an intentional placeholder prefix - do
+    // not treat a restored mid-flow step as invalid.
+    if (flagsLoading) return;
     const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
     if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
     setCurrentStep("summary");
-  }, [steps, currentStep]);
+  }, [steps, currentStep, flagsLoading]);
 
 
   const getStepValidationStatus = useCallback(
@@ -503,6 +527,24 @@ export function StepProvider({ children }: StepProviderProps) {
       });
   }, [steps, completedSteps, errors, fullErrors, watch, getStepNumber, emailConflict]);
 
+  /**
+   * Steps the user has actually reached. A step counts as visited when it has
+   * been landed on, or when any later step has been landed on (covers resumed
+   * sessions where earlier steps were filled in a previous visit).
+   * The step indicator uses this so future steps whose schemas happen to
+   * validate (all-optional / defaulted fields) are NOT shown as completed.
+   */
+  const visitedSteps = useMemo(() => {
+    let maxIndex = steps.indexOf(currentStep);
+    dirtySteps.forEach((step) => {
+      const i = steps.indexOf(step);
+      if (i > maxIndex) maxIndex = i;
+    });
+    const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
+    if (POST_FLOW.includes(currentStep)) maxIndex = steps.length - 1;
+    return new Set(steps.slice(0, maxIndex + 1));
+  }, [steps, currentStep, dirtySteps]);
+
   const value: StepContextType = {
     totalSteps,
     currentStep,
@@ -517,6 +559,7 @@ export function StepProvider({ children }: StepProviderProps) {
     getStepNumber,
     getStepForField,
     steps,
+    visitedSteps,
   };
 
   return <StepContext.Provider value={value}>{children}</StepContext.Provider>;

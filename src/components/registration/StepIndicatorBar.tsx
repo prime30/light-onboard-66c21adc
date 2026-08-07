@@ -15,6 +15,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     totalSteps: displayTotalSteps,
     completedSteps,
     steps,
+    visitedSteps,
     goToStep,
     goToNextStep,
     goToPrevStep,
@@ -52,14 +53,17 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     return ((displayTotalSteps + 1) / 2 - getCurrentStepNumber - 1) * 40;
   }, [displayTotalSteps, getCurrentStepNumber]);
 
-  // Memoize step validation states to prevent re-renders when other steps change
+  // Memoize step validation states to prevent re-renders when other steps change.
+  // Steps the user has not reached yet are always shown as untouched, even if
+  // their schema technically validates (steps made only of optional or
+  // defaulted fields would otherwise light up green before being visited).
   const currentStepValidationStates = useMemo(() => {
     const relevantSteps = steps.slice(1); // Skip onboarding only; flag is rendered separately
     return relevantSteps.map((step) => ({
       step,
-      status: completedSteps[step] || "in-progress",
+      status: visitedSteps.has(step) ? completedSteps[step] || "in-progress" : "untouched",
     }));
-  }, [steps, completedSteps]);
+  }, [steps, completedSteps, visitedSteps]);
 
   // Swipe refs - must be called before early return
   const stepSwipeStartX = useRef<number | null>(null);
