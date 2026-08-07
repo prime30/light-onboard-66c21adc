@@ -791,7 +791,7 @@ export const SuccessForm = () => {
                     <div className="flex items-center gap-2 min-w-0">
                       <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                       <span className="text-sm font-mono font-semibold text-muted-foreground tracking-wider">
-                        SALONTRIAL••
+                        SALON•••••15
                       </span>
                     </div>
                     <span className="text-[11px] text-muted-foreground shrink-0">Locked</span>
