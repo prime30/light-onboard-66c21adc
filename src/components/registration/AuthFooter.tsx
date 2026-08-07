@@ -87,9 +87,11 @@ export function AuthFooter({
   //     resumed a stale session can see exactly what's still blocking them.
   const popoverSteps = useMemo(() => {
     if (isFauxSubmitStep) {
-      return incompleteSteps.filter((s) => s.step !== "create-password");
+      return incompleteSteps.filter(
+        (s) => s.step !== "create-password" && s.step !== "welcome-offer"
+      );
     }
-    if (isSummaryStep || isLatePasswordStep) {
+    if (isSummaryStep || isLatePasswordStep || isLateWelcomeOfferStep) {
       return incompleteSteps;
     }
     // Put the current step first if it's incomplete so the most relevant
