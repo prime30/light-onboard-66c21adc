@@ -139,8 +139,8 @@ export const WelcomeOfferStep = () => {
           <span className="flex items-center gap-2">
             {title}
             {badge && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
-                <span className="w-1 h-1 rounded-full bg-accent-red" />
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
+                <Tag className="w-3 h-3" />
                 {badge}
               </span>
             )}
