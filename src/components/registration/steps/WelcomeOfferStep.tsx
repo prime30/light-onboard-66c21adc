@@ -366,7 +366,6 @@ export const WelcomeOfferStep = () => {
                 </div>
               </>
 
-              </>
             )}
           </div>
         )}
