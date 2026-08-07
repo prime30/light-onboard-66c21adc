@@ -115,7 +115,7 @@ export const WelcomeOfferStep = () => {
         </div>
       </div>
 
-      <div className="rounded-form border border-border bg-background shadow-card animate-stagger-2 overflow-hidden">
+      <div className="rounded-form bg-background shadow-card animate-stagger-2 overflow-hidden">
         {subStep === "offer" && (
           <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
             <div className="text-center space-y-3">
