@@ -504,6 +504,24 @@ export function StepProvider({ children }: StepProviderProps) {
       });
   }, [steps, completedSteps, errors, fullErrors, watch, getStepNumber, emailConflict]);
 
+  /**
+   * Steps the user has actually reached. A step counts as visited when it has
+   * been landed on, or when any later step has been landed on (covers resumed
+   * sessions where earlier steps were filled in a previous visit).
+   * The step indicator uses this so future steps whose schemas happen to
+   * validate (all-optional / defaulted fields) are NOT shown as completed.
+   */
+  const visitedSteps = useMemo(() => {
+    let maxIndex = steps.indexOf(currentStep);
+    dirtySteps.forEach((step) => {
+      const i = steps.indexOf(step);
+      if (i > maxIndex) maxIndex = i;
+    });
+    const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
+    if (POST_FLOW.includes(currentStep)) maxIndex = steps.length - 1;
+    return new Set(steps.slice(0, maxIndex + 1));
+  }, [steps, currentStep, dirtySteps]);
+
   const value: StepContextType = {
     totalSteps,
     currentStep,
@@ -518,6 +536,7 @@ export function StepProvider({ children }: StepProviderProps) {
     getStepNumber,
     getStepForField,
     steps,
+    visitedSteps,
   };
 
   return <StepContext.Provider value={value}>{children}</StepContext.Provider>;
