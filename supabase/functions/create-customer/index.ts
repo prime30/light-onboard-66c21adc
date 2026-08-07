@@ -1701,6 +1701,14 @@ Deno.serve(async (req: Request) => {
     if (customer.school_name) noteLines.push(`School: ${customer.school_name}`);
     if (customer.school_state) noteLines.push(`School state: ${customer.school_state}`);
     if (customer.referral_source) noteLines.push(`Referral: ${customer.referral_source}`);
+    if (taxExemptFlag) {
+      noteLines.push("Tax exempt: yes (resale certificate claimed)");
+      if (parseTaxExemptFiles?.[0]) {
+        noteLines.push(`Tax exempt document: ${parseTaxExemptFiles[0]}`);
+      } else {
+        noteLines.push("Tax exempt document: none uploaded");
+      }
+    }
     if (customer.social_media_handle) noteLines.push(`Social: ${customer.social_media_handle}`);
     const applicationNote = noteLines.length
       ? `Application submitted ${consentTimestamp}\n${noteLines.join("\n")}`
