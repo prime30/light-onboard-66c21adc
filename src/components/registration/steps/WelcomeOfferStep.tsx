@@ -321,41 +321,47 @@ export const WelcomeOfferStep = () => {
         )}
       </div>
 
-      {/* Fine print, outside the card so the offer keeps the visual weight */}
+      {/* Fine print, collapsed so it does not compete with the offer */}
       {!(subStep === "reveal" && codeRevealed) && (
-        <p className="mx-auto max-w-[32rem] px-5 text-center text-[11px] leading-[1.5] text-muted-foreground/70 animate-stagger-3">
-          {subStep === "offer" ? (
-            <>
-              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
-              recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
-              above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
-              STOP to cancel, HELP for help. See our{" "}
-            </>
-          ) : (
-            <>
-              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
-              recurring automated marketing emails from Drop Dead Extensions. Consent is not a
-              condition of purchase. See our{" "}
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowTerms(true)}
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            Terms
-          </button>
-          {" & "}
-          <button
-            type="button"
-            onClick={() => setShowPrivacy(true)}
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            Privacy Policy
-          </button>
-          .
-        </p>
+        <details className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
+          <summary className="cursor-pointer list-none text-[11px] font-medium text-muted-foreground/70 underline underline-offset-2 hover:text-foreground transition-colors">
+            {subStep === "offer" ? "SMS consent details" : "Email consent details"}
+          </summary>
+          <p className="mt-[10px] text-[11px] leading-[1.5] text-muted-foreground/70">
+            {subStep === "offer" ? (
+              <>
+                By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
+                recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
+                above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
+                STOP to cancel, HELP for help. See our{" "}
+              </>
+            ) : (
+              <>
+                By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
+                recurring automated marketing emails from Drop Dead Extensions. Consent is not a
+                condition of purchase. See our{" "}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowTerms(true)}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Terms
+            </button>
+            {" & "}
+            <button
+              type="button"
+              onClick={() => setShowPrivacy(true)}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </button>
+            .
+          </p>
+        </details>
       )}
+
 
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
