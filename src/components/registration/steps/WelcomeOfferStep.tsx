@@ -341,6 +341,43 @@ export const WelcomeOfferStep = () => {
         )}
       </div>
 
+      {/* Fine print, outside the card so the offer keeps the visual weight */}
+      {!(subStep === "reveal" && codeRevealed) && (
+        <p className="mx-auto max-w-[32rem] px-5 text-center text-[11px] leading-[1.5] text-muted-foreground/70 animate-stagger-3">
+          {subStep === "offer" ? (
+            <>
+              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
+              recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
+              above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
+              STOP to cancel, HELP for help. See our{" "}
+            </>
+          ) : (
+            <>
+              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
+              recurring automated marketing emails from Drop Dead Extensions. Consent is not a
+              condition of purchase. See our{" "}
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowTerms(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Terms
+          </button>
+          {" & "}
+          <button
+            type="button"
+            onClick={() => setShowPrivacy(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Privacy Policy
+          </button>
+          .
+        </p>
+      )}
+
+
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
           <DialogHeader>
