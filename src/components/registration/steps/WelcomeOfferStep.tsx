@@ -131,13 +131,17 @@ export const WelcomeOfferStep = () => {
             <div className="space-y-2">
               {hasPhone && !isEditingPhone && (
                 <p className="text-center text-sm text-muted-foreground">
-                  Your code will be shown here for {formatPhoneNumber(phoneNumber)}.{" "}
+                  You will be opting into text messages with number{" "}
+                  <span className="font-medium text-foreground">
+                    {formatPhoneNumber(phoneNumber)}
+                  </span>
+                  .{" "}
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
                     className="font-medium text-foreground hover:text-foreground/70 transition-colors"
                   >
-                    Edit
+                    Edit number
                   </button>
                 </p>
               )}
