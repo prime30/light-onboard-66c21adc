@@ -99,19 +99,19 @@ export function AuthFooter({
     const current = incompleteSteps.find((s) => s.step === currentStep);
     const others = incompleteSteps.filter((s) => s.step !== currentStep);
     return current ? [current, ...others] : others;
-  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isLateWelcomeOfferStep, currentStep]);
 
   const continueBlocked = isSummaryStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
-    : isLatePasswordStep
+    : isLateWelcomeOfferStep
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
   // Popover only surfaces on the final-gate steps: the review/summary page
-  // and the late create-password page (the safety net if a user somehow got
-  // past summary). On every other step, an invalid Continue just shakes the
-  // missing fields without opening the "incomplete steps" list.
-  const isFinalGateStep = isSummaryStep || isLatePasswordStep || isFauxSubmitStep;
+  // and the late welcome-offer page (the last gate before the real submit in
+  // auto-approval mode). On every other step, an invalid Continue just shakes
+  // the missing fields without opening the "incomplete steps" list.
+  const isFinalGateStep = isSummaryStep || isLateWelcomeOfferStep || isFauxSubmitStep;
   const showTooltip = isFinalGateStep && continueBlocked && popoverSteps.length > 0;
 
   const openSubmitTooltip = useCallback(() => {
