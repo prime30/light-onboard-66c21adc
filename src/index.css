@@ -651,19 +651,6 @@
     animation: progressPulse 2s ease-in-out infinite;
   }
 
-  /* Text shimmer effect */
-  .text-shimmer {
-    background: linear-gradient(
-      120deg,
-      hsl(var(--foreground)) 0%,
-      hsl(var(--foreground) / 0.6) 50%,
-      hsl(var(--foreground)) 100%
-    );
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    animation: textShimmer 3s ease-in-out infinite;
-  }
 
   /* Magnetic hover container */
   .magnetic-container {
@@ -957,15 +944,6 @@
   }
 }
 
-@keyframes textShimmer {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
 
 @keyframes sweepShimmer {
   0% {
@@ -980,16 +958,16 @@
   background: linear-gradient(
     90deg,
     hsl(var(--foreground)) 0%,
-    hsl(var(--foreground)) 40%,
-    hsl(var(--primary)) 50%,
-    hsl(var(--foreground)) 60%,
+    hsl(var(--foreground)) 30%,
+    hsl(var(--muted-foreground)) 50%,
+    hsl(var(--foreground)) 70%,
     hsl(var(--foreground)) 100%
   );
-  background-size: 200% 100%;
+  background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: sweepShimmer 2.5s linear infinite;
+  animation: sweepShimmer 4.5s cubic-bezier(0.45, 0, 0.55, 1) 2 forwards;
 }
 
 .border-shimmer::before {
@@ -1000,18 +978,18 @@
   padding: 2px;
   background: linear-gradient(
     90deg,
-    hsl(var(--border) / 0.3) 0%,
-    hsl(var(--border) / 0.3) 40%,
-    hsl(var(--primary)) 50%,
-    hsl(var(--border) / 0.3) 60%,
-    hsl(var(--border) / 0.3) 100%
+    hsl(var(--border)) 0%,
+    hsl(var(--border)) 30%,
+    hsl(var(--foreground) / 0.12) 50%,
+    hsl(var(--border)) 70%,
+    hsl(var(--border)) 100%
   );
-  background-size: 200% 100%;
+  background-size: 300% 100%;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
-  animation: sweepShimmer 2.5s linear infinite;
+  animation: sweepShimmer 4.5s cubic-bezier(0.45, 0, 0.55, 1) 2 forwards;
 }
 
 @keyframes float {
