@@ -167,7 +167,7 @@ export const WelcomeOfferStep = () => {
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
           <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[25px]">
-            <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
+            <Tag className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
           </div>
 
           <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px] text-shimmer">
