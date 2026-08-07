@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -34,13 +34,12 @@ export const WelcomeOfferStep = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [subStep, setSubStep] = useState<"offer" | "reveal">("offer");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [codeRevealed, setCodeRevealed] = useState(false);
 
-  const [acceptsMarketing, phoneNumber, phoneCountryCode] = watch([
+  const [acceptsMarketing, acceptsSmsMarketing, phoneNumber, phoneCountryCode] = watch([
     "acceptsMarketing",
+    "acceptsSmsMarketing",
     "phoneNumber",
     "phoneCountryCode",
   ]);
@@ -49,6 +48,10 @@ export const WelcomeOfferStep = () => {
 
   const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
   const phoneValid = toE164(phoneNumber, phoneCountryCode).ok;
+
+  const smsOn = !!acceptsSmsMarketing;
+  const emailOn = !!acceptsMarketing;
+  const unlocked = smsOn && emailOn;
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
@@ -67,36 +70,22 @@ export const WelcomeOfferStep = () => {
     ),
   }));
 
-  const handleSmsSubscribe = () => {
+  const toggleSms = () => {
+    if (smsOn) {
+      setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
+      return;
+    }
     setPhoneError(null);
     if (!phoneValid) {
-      setPhoneError("Add a valid phone number so we can confirm your account.");
+      setPhoneError("Add a valid mobile number so we can text your code details.");
       setIsEditingPhone(true);
       return;
     }
     setValue("acceptsSmsMarketing", true, dirtyFieldOptions);
-    setIsEditingPhone(false);
-    setSubStep("reveal");
   };
 
-  const handleSkip = () => {
-    setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
-    setValue("acceptsMarketing", false, dirtyFieldOptions);
-    goToNextStep();
-  };
-
-  const handleEmailSubscribe = () => {
-    setValue("acceptsMarketing", true, dirtyFieldOptions);
-    setCodeRevealed(true);
-  };
-
-  const handleEmailSkip = () => {
-    setValue("acceptsMarketing", false, dirtyFieldOptions);
-    goToNextStep();
-  };
-
-  const handleContinue = () => {
-    goToNextStep();
+  const toggleEmail = () => {
+    setValue("acceptsMarketing", !emailOn, dirtyFieldOptions);
   };
 
   const copyCode = () => {
@@ -112,28 +101,47 @@ export const WelcomeOfferStep = () => {
     setFooterSlot(document.getElementById("step-footer-slot"));
   }, []);
 
-  const primaryAction: {
-    label: string;
-    icon?: JSX.Element;
+  const OptInRow = ({
+    checked,
+    onClick,
+    icon,
+    title,
+    description,
+  }: {
+    checked: boolean;
     onClick: () => void;
-    skip?: { label: string; onClick: () => void };
-  } =
-    subStep === "offer"
-      ? {
-          label: "Yes, subscribe to SMS for my discount",
-          icon: <MessageSquare className="w-4 h-4 shrink-0" />,
-          onClick: handleSmsSubscribe,
-          skip: { label: "No thanks, skip the discount", onClick: handleSkip },
-        }
-      : codeRevealed
-        ? { label: "Continue", onClick: handleContinue }
-        : {
-            label: "Yes, subscribe to email for my discount",
-            icon: <Mail className="w-4 h-4 shrink-0" />,
-            onClick: handleEmailSubscribe,
-            skip: { label: "No thanks, continue to finish", onClick: handleEmailSkip },
-          };
-
+    icon: JSX.Element;
+    title: string;
+    description: string;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={checked}
+      className={`w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
+        checked
+          ? "border-status-green/40 bg-status-green/[0.06]"
+          : "border-border/50 bg-background/70 hover:border-foreground/25"
+      }`}
+    >
+      <span
+        className={`mt-[2px] w-[22px] h-[22px] rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+          checked ? "border-status-green bg-status-green" : "border-border bg-background"
+        }`}
+      >
+        {checked && <Check className="w-3.5 h-3.5 text-background" strokeWidth={3} />}
+      </span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+          {icon}
+          {title}
+        </span>
+        <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
+          {description}
+        </span>
+      </span>
+    </button>
+  );
 
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
@@ -147,125 +155,100 @@ export const WelcomeOfferStep = () => {
       </div>
 
       <div className="rounded-form bg-muted/40 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
-        {subStep === "offer" && (
-          <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
-            <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[30px]">
-              <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
-            </div>
+        <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
+          <div className="w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center mb-[25px]">
+            <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
+          </div>
 
-            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px]">
-              Get 15% off your first order
-            </h1>
+          <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px]">
+            Get 15% off your first order
+          </h1>
 
-            <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-              Optional. Say yes to text updates on the next two screens and we&apos;ll show your
-              discount code right away, or skip and finish your application.
-            </p>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
+            Optional. Select both boxes below to unlock your code, or skip and finish your
+            application.
+          </p>
 
-            {/* Two step progress */}
-            <div className="flex items-center gap-[10px] mb-[25px]">
-              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
-                <MessageSquare className="w-3.5 h-3.5" /> 1. Texts
-              </span>
-              <span className="h-px w-5 bg-border" />
-              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background/50 border border-border/40 text-[11px] font-medium text-muted-foreground">
-                <Mail className="w-3.5 h-3.5" /> 2. Email
-              </span>
-            </div>
+          <div className="w-full max-w-[26rem] space-y-[10px]">
+            <OptInRow
+              checked={smsOn}
+              onClick={toggleSms}
+              icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
+              title="Text me offers"
+              description={
+                hasPhone
+                  ? `Approx. 4 texts/month to ${formatPhoneNumber(phoneNumber)}. Reply STOP to cancel.`
+                  : "Add a mobile number to opt in. Approx. 4 texts/month."
+              }
+            />
+            <OptInRow
+              checked={emailOn}
+              onClick={toggleEmail}
+              icon={<Mail className="w-4 h-4 text-foreground/70" />}
+              title="Email me offers"
+              description="Restocks, pro education, and promos. Unsubscribe anytime."
+            />
 
-            {/* Phone context */}
-            <div className="w-full max-w-[26rem] space-y-[10px]">
-              {!isEditingPhone && (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    {hasPhone
-                      ? "Texts will go to this number"
-                      : "We don't have a mobile number for you yet"}
-                  </p>
+            {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
 
-                  <div className="inline-flex items-center gap-3 px-[15px] py-[8px] rounded-[10px] bg-background/70 border border-border/40">
-                    {hasPhone && (
-                      <span className="text-sm font-medium text-foreground">
-                        {formatPhoneNumber(phoneNumber)}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingPhone(true)}
-                      className="text-sm font-medium text-status-green hover:opacity-70 transition-opacity"
-                    >
-                      {hasPhone ? "Edit number" : "Add number"}
-                    </button>
-                  </div>
-                </>
-              )}
-              {isEditingPhone && (
-                <div className="space-y-[10px] animate-fade-in text-left">
-                  <div className="flex gap-[10px]">
-                    <div className="w-[110px]">
-                      <SelectInput
-                        name="phoneCountryCode"
-                        control={control}
-                        error={errors.phoneCountryCode}
-                        options={countryCodeOptions}
-                        placeholder="Select"
-                        className="w-full"
-                      />
-                    </div>
-                    <TextInput
-                      name="phoneNumber"
-                      type="tel"
-                      register={register}
-                      error={errors.phoneNumber}
-                      placeholder="(555) 123-4567"
-                      autoComplete="tel-national"
-                      autoFocus
-                      onBlur={(event) => {
-                        setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                      }}
+            {!isEditingPhone && (
+              <button
+                type="button"
+                onClick={() => setIsEditingPhone(true)}
+                className="block mx-auto text-xs font-medium text-status-green hover:opacity-70 transition-opacity pt-[5px]"
+              >
+                {hasPhone ? "Edit number" : "Add number"}
+              </button>
+            )}
+
+            {isEditingPhone && (
+              <div className="space-y-[10px] animate-fade-in text-left pt-[5px]">
+                <div className="flex gap-[10px]">
+                  <div className="w-[110px]">
+                    <SelectInput
+                      name="phoneCountryCode"
+                      control={control}
+                      error={errors.phoneCountryCode}
+                      options={countryCodeOptions}
+                      placeholder="Select"
+                      className="w-full"
                     />
                   </div>
-                  {phoneError && (
-                    <p className="text-xs text-destructive text-center">{phoneError}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingPhone(false)}
-                    className="block mx-auto text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
-                  >
-                    Done editing
-                  </button>
+                  <TextInput
+                    name="phoneNumber"
+                    type="tel"
+                    register={register}
+                    error={errors.phoneNumber}
+                    placeholder="(555) 123-4567"
+                    autoComplete="tel-national"
+                    autoFocus
+                    onBlur={(event) => {
+                      setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                    }}
+                  />
                 </div>
-              )}
-            </div>
-          </div>
-        )}
+                <button
+                  type="button"
+                  onClick={() => setIsEditingPhone(false)}
+                  className="block mx-auto text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
+                >
+                  Done editing
+                </button>
+              </div>
+            )}
 
-
-        {subStep === "reveal" && (
-          <div className="p-[25px] sm:p-10 space-y-[25px] animate-slide-in-right">
-            {codeRevealed ? (
-              <>
-                <div className="text-center space-y-[15px]">
-                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-status-green/10 border border-status-green/20 flex items-center justify-center">
-                    <CheckCircle className="w-7 h-7 text-status-green" strokeWidth={1.25} />
-                  </div>
-
-                  <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                    Your code is ready
-                  </h2>
-                  <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                    Use it at checkout on your first order.
-                  </p>
+            {unlocked && (
+              <div className="pt-[15px] space-y-[10px] animate-fade-in">
+                <div className="flex items-center justify-center gap-2 text-xs font-medium text-status-green">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Your code is unlocked</span>
                 </div>
-
-                {/* Code reveal */}
                 <button
                   type="button"
                   onClick={copyCode}
                   style={{ touchAction: "manipulation" }}
                   className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-                  aria-label="Copy SALONTRIAL15 code"
+                  aria-label={`Copy ${DISCOUNT_CODE} code`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Gift className="w-3.5 h-3.5 text-accent-red shrink-0" />
@@ -287,82 +270,41 @@ export const WelcomeOfferStep = () => {
                     )}
                   </div>
                 </button>
-              </>
-            ) : (
-              <>
-                <div className="text-center space-y-3">
-                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center">
-                    <Mail className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
-                  </div>
-
-                  <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                    One more step
-                  </h2>
-                  <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                    Texts are on. Say yes to email too and your 15% off code appears right here.
-                  </p>
-
-                  <div className="flex items-center justify-center gap-[10px] pt-1">
-                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-status-green/10 border border-status-green/20 text-[11px] font-medium text-status-green">
-                      <CheckCircle className="w-3.5 h-3.5" /> 1. Texts
-                    </span>
-                    <span className="h-px w-5 bg-border" />
-                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
-                      <Mail className="w-3.5 h-3.5" /> 2. Email
-                    </span>
-                  </div>
-                </div>
-
-              </>
-
-
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Fine print, collapsed so it does not compete with the offer */}
-      {!(subStep === "reveal" && codeRevealed) && (
-        <details className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
-          <summary className="cursor-pointer list-none text-[11px] font-medium text-muted-foreground/70 underline underline-offset-2 hover:text-foreground transition-colors">
-            {subStep === "offer" ? "SMS consent details" : "Email consent details"}
-          </summary>
-          <p className="mt-[10px] text-[11px] leading-[1.5] text-muted-foreground/70">
-            {subStep === "offer" ? (
-              <>
-                By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
-                recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
-                above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
-                STOP to cancel, HELP for help. See our{" "}
-              </>
-            ) : (
-              <>
-                By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
-                recurring automated marketing emails from Drop Dead Extensions. Consent is not a
-                condition of purchase. See our{" "}
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowTerms(true)}
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              Terms
-            </button>
-            {" & "}
-            <button
-              type="button"
-              onClick={() => setShowPrivacy(true)}
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              Privacy Policy
-            </button>
-            .
-          </p>
-        </details>
-      )}
-
-
+      <details className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
+        <summary className="cursor-pointer list-none text-[11px] font-medium text-muted-foreground/70 underline underline-offset-2 hover:text-foreground transition-colors">
+          Consent details
+        </summary>
+        <p className="mt-[10px] text-[11px] leading-[1.5] text-muted-foreground/70">
+          By selecting &quot;Text me offers&quot; you agree to receive recurring automated marketing
+          texts (approx. 4/month) from Drop Dead Extensions at the number shown. By selecting
+          &quot;Email me offers&quot; you agree to receive recurring marketing emails. Consent is not
+          a condition of purchase. Msg &amp; data rates may apply. Reply STOP to cancel, HELP for
+          help. See our{" "}
+          <button
+            type="button"
+            onClick={() => setShowTerms(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Terms
+          </button>
+          {" & "}
+          <button
+            type="button"
+            onClick={() => setShowPrivacy(true)}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Privacy Policy
+          </button>
+          .
+        </p>
+      </details>
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
@@ -406,27 +348,16 @@ export const WelcomeOfferStep = () => {
               <Button
                 type="button"
                 size="pill-lg"
-                onClick={primaryAction.onClick}
+                onClick={goToNextStep}
                 className="flex-1 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
               >
-                {primaryAction.icon}
-                <span className="text-center">{primaryAction.label}</span>
+                <span className="text-center">Continue</span>
                 <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
               </Button>
             </div>
-            {primaryAction.skip && (
-              <button
-                type="button"
-                onClick={primaryAction.skip.onClick}
-                className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {primaryAction.skip.label}
-              </button>
-            )}
           </div>,
           footerSlot
         )}
     </div>
-
   );
 };
