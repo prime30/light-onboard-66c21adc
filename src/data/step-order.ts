@@ -148,7 +148,10 @@ export function getStepOrder(
     order = order.filter((s) => !hiddenSteps.includes(s));
   }
   if (!autoApprove) return order;
-  return order.filter((s) => s !== "create-password");
+  // In auto-approval mode both the password step AND the welcome-offer
+  // (subscribe) step move to AFTER the summary/assessing sequence - the
+  // subscribe page now comes right after the password is set.
+  return order.filter((s) => s !== "create-password" && s !== "welcome-offer");
 }
 
 export const stepValidations: Record<Step, ZodObject | null> = {

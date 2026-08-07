@@ -80,10 +80,11 @@ export function StepProvider({ children }: StepProviderProps) {
     newSteps.unshift("onboarding");
     newSteps.push("summary");
     // When auto-approval is ON, the password step moves to AFTER summary,
-    // gated by a faux "assessing" review animation. Submit on summary just
-    // advances to assessing; the real backend submit happens on password.
+    // gated by a faux "assessing" review animation, and the welcome-offer
+    // (subscribe) step comes right after the password. Submit on summary just
+    // advances to assessing; the real backend submit happens on welcome-offer.
     if (autoApprove && accountType) {
-      newSteps.push("assessing", "create-password");
+      newSteps.push("assessing", "create-password", "welcome-offer");
     }
 
     const totalSteps = newSteps.length;
