@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
-import type { ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { QUALIFICATION_REQUIRED_COUNTRIES, type ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
