@@ -56,8 +56,8 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           className={cn(
             "h-input rounded-form bg-muted border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300",
             prefixIcon && !prefixChip && "pl-14",
-            prefixChip && !prefixIcon && "pl-[228px]",
-            prefixIcon && prefixChip && "pl-[242px]",
+            prefixChip && !prefixIcon && "pl-[126px]",
+            prefixIcon && prefixChip && "pl-[160px]",
             error && "border-destructive/50 bg-destructive/5"
           )}
           {...inputProps}
