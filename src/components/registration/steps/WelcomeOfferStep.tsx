@@ -189,26 +189,29 @@ export const WelcomeOfferStep = () => {
               description={
                 hasPhone ? (
                   <>
-                    Approx. 4 texts/month to {formatPhoneNumber(phoneNumber)}.
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Edit phone number"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEditingPhone(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
+                    Approx. 4 texts/month to{" "}
+                    <span className="inline-flex items-center gap-1">
+                      <span>{formatPhoneNumber(phoneNumber)}</span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Edit phone number"
+                        onClick={(e) => {
                           e.stopPropagation();
                           setIsEditingPhone(true);
-                        }
-                      }}
-                      className="inline-flex items-center justify-center align-middle text-foreground/40 hover:text-foreground/70 transition-colors ml-0.5"
-                    >
-                      <Pencil className="w-3 h-3" />
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            setIsEditingPhone(true);
+                          }
+                        }}
+                        className="inline-flex items-center justify-center text-foreground/40 hover:text-foreground/70 transition-colors"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </span>
                     </span>
-                    {" "}Reply STOP to cancel.
+                    . Reply STOP to cancel.
                   </>
                 ) : (
                   "Add a mobile number to opt in. Approx. 4 texts/month."
