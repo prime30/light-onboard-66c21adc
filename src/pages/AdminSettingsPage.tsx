@@ -54,6 +54,8 @@ const AdminSettingsPage = () => {
   const [updatingPreferredMethodStep, setUpdatingPreferredMethodStep] = useState(false);
   const [businessLocationStepOn, setBusinessLocationStepOn] = useState<boolean | null>(null);
   const [updatingBusinessLocationStep, setUpdatingBusinessLocationStep] = useState(false);
+  const [referralStepOn, setReferralStepOn] = useState<boolean | null>(null);
+  const [updatingReferralStep, setUpdatingReferralStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -173,6 +175,7 @@ const AdminSettingsPage = () => {
           setPreferredMethodStepOn(true);
         }
         setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
         if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
         setBizOpStepOn(data.setting.business_operation_step_enabled);
       } else {
@@ -189,6 +192,7 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
         } else {
@@ -268,6 +272,7 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
+        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
       } else {
@@ -461,7 +466,8 @@ const AdminSettingsPage = () => {
       | "businessOperationStepEnabled"
       | "orderVolumeStepEnabled"
       | "preferredMethodStepEnabled"
-      | "businessLocationStepEnabled",
+      | "businessLocationStepEnabled"
+      | "referralStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,

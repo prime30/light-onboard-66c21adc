@@ -76,7 +76,7 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
   "tax-exemption": "Tax Exemption",
   "preferred-method": "Preferred Method",
   "monthly-order-volume": "Monthly Order Volume",
-  preferences: "Preferences",
+  preferences: "How You Heard About Us",
   "welcome-offer": "Welcome Offer",
   summary: "Review & Submit",
   assessing: "Assessing Application",
