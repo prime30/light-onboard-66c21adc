@@ -146,6 +146,29 @@ Deno.serve(async (req) => {
     ) {
       return json({ ok: true, exists: true, normalized, url });
     }
+    // Instagram blocks datacenter IPs (401 on the API, 429 on the HTML page),
+    // so add one positive-only mirror signal. A 200 there means the handle is
+    // real; anything else is treated as "unknown", never as "missing".
+    try {
+      const controller3 = new AbortController();
+      const timeout3 = setTimeout(() => controller3.abort(), 6000);
+      const mirrorRes = await fetch(`https://imginn.com/${normalized}/`, {
+        method: "GET",
+        redirect: "follow",
+        signal: controller3.signal,
+        headers: { ...commonHeaders, Accept: "text/html,*/*;q=0.8" },
+      });
+      clearTimeout(timeout3);
+      if (mirrorRes.status === 200) {
+        const mirrorText = (await mirrorRes.text()).toLowerCase();
+        if (mirrorText.includes(normalized)) {
+          return json({ ok: true, exists: true, normalized, url, reason: "mirror" });
+        }
+      }
+    } catch {
+      // ignore mirror failures
+    }
+
     console.log(
       `verify-instagram-handle: ambiguous ${normalized} api=${apiRes.status} html=${htmlRes.status}`,
     );
