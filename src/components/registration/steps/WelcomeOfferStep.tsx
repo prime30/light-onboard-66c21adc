@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Mail, ArrowLeft, Gift } from "lucide-react";
+import { ArrowLeft, Gift, Mail, MessageSquare } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -100,40 +100,39 @@ export const WelcomeOfferStep = () => {
         </div>
       </div>
 
-      {/* Offer card */}
-      <div className="rounded-form border border-border bg-background shadow-card animate-stagger-2">
+      <div className="rounded-form border border-border bg-background shadow-card animate-stagger-2 overflow-hidden">
         {subStep === "offer" && (
-          <div className="p-6 sm:p-8 space-y-5 animate-fade-in">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-1">
-                <Gift className="w-5 h-5 text-foreground" strokeWidth={1.75} />
+          <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
+            <div className="text-center space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
+                <Gift className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
               </div>
-              <h1 className="font-termina font-medium uppercase text-[clamp(2rem,6vw,3rem)] leading-[0.95] text-foreground tracking-tight">
-                Want 15% off?
+              <h1 className="font-die-grotesk font-medium text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+                Get 15% off your first order
               </h1>
             </div>
 
-            {/* Phone display / editor */}
+            {/* Phone context */}
             <div className="space-y-2">
               {hasPhone && !isEditingPhone && (
-                <p className="text-center text-xs text-muted-foreground">
-                  SMS will be sent to {formatPhoneNumber(phoneNumber)}.{" "}
+                <p className="text-center text-sm text-muted-foreground">
+                  We&apos;ll text your code to {formatPhoneNumber(phoneNumber)}.{" "}
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    className="font-medium text-foreground hover:text-foreground/70 transition-colors"
                   >
-                    Edit number
+                    Edit
                   </button>
                 </p>
               )}
               {!hasPhone && !isEditingPhone && (
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-center text-sm text-muted-foreground">
                   No phone number on file.{" "}
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
-                    className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    className="font-medium text-foreground hover:text-foreground/70 transition-colors"
                   >
                     Add number
                   </button>
@@ -171,7 +170,7 @@ export const WelcomeOfferStep = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(false)}
-                    className="block mx-auto text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    className="block mx-auto text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
                   >
                     Done editing
                   </button>
@@ -180,7 +179,7 @@ export const WelcomeOfferStep = () => {
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <Button
                 type="button"
                 size="pill-lg"
@@ -188,7 +187,7 @@ export const WelcomeOfferStep = () => {
                 onClick={handleYes}
               >
                 <MessageSquare className="w-4 h-4" />
-                Yes, subscribe to SMS for my discount
+                Text my 15% off code
               </Button>
               <Button
                 type="button"
@@ -197,51 +196,49 @@ export const WelcomeOfferStep = () => {
                 className="w-full text-muted-foreground hover:text-foreground"
                 onClick={handleNo}
               >
-                No thanks, finish registration
+                No thanks, I&apos;ll skip the discount
               </Button>
             </div>
 
             {/* TCPA disclaimer */}
-            <div className="bg-muted/50 border border-border/50 rounded-form px-4 py-3">
-              <p className="text-[11px] text-muted-foreground/70 leading-relaxed text-center">
-                By tapping "Yes, subscribe to SMS for my discount" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-                <button
-                  type="button"
-                  onClick={() => setShowTerms(true)}
-                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                >
-                  Terms
-                </button>
-                {" & "}
-                <button
-                  type="button"
-                  onClick={() => setShowPrivacy(true)}
-                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </button>
-                .
-              </p>
-            </div>
+            <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
+              By tapping "Text my 15% off code" you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Terms
+              </button>
+              {" & "}
+              <button
+                type="button"
+                onClick={() => setShowPrivacy(true)}
+                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Privacy Policy
+              </button>
+              .
+            </p>
           </div>
         )}
 
         {subStep === "email" && (
-          <div className="p-6 sm:p-8 space-y-5 animate-slide-in-right">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-1">
-                <Mail className="w-5 h-5 text-foreground" strokeWidth={1.75} />
+          <div className="p-6 sm:p-8 space-y-6 animate-slide-in-right">
+            <div className="text-center space-y-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
+                <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
               </div>
-              <h2 className="font-termina font-medium uppercase text-[clamp(1.5rem,5vw,2.5rem)] leading-[1] text-foreground tracking-tight">
-                Unlock your 15% off
+              <h2 className="font-die-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+                Add your email to unlock it
               </h2>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                Just subscribe to email too.
+                Your code is ready - just confirm where to send it.
               </p>
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <Button
                 type="button"
                 size="pill-lg"
@@ -249,7 +246,7 @@ export const WelcomeOfferStep = () => {
                 onClick={handleEmailContinue}
               >
                 <Mail className="w-4 h-4" />
-                Yes, subscribe to email for my discount
+                Email me my 15% off code
               </Button>
               <Button
                 type="button"
@@ -261,11 +258,30 @@ export const WelcomeOfferStep = () => {
                 Back
               </Button>
             </div>
+
+            <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
+              By tapping "Email me my 15% off code" you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Terms
+              </button>
+              {" & "}
+              <button
+                type="button"
+                onClick={() => setShowPrivacy(true)}
+                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Privacy Policy
+              </button>
+              .
+            </p>
           </div>
         )}
       </div>
 
-      {/* Back to previous step */}
       <button
         type="button"
         onClick={goToPrevStep}
