@@ -992,26 +992,6 @@
   animation: sweepShimmer 2.5s linear infinite;
 }
 
-.border-shimmer {
-  position: relative;
-  background: linear-gradient(
-        var(--tw-bg-opacity, 1) padding-box,
-        hsl(var(--background) / 0.7) padding-box
-      ),
-      linear-gradient(
-        90deg,
-        hsl(var(--border) / 0.5) 0%,
-        hsl(var(--border) / 0.5) 40%,
-        hsl(var(--primary)) 50%,
-        hsl(var(--border) / 0.5) 60%,
-        hsl(var(--border) / 0.5) 100%
-      );
-  background-clip: padding-box, border-box;
-  background-origin: padding-box, border-box;
-  border: 2px solid transparent;
-  animation: sweepShimmer 2.5s linear infinite;
-}
-
 .border-shimmer::before {
   content: "";
   position: absolute;
