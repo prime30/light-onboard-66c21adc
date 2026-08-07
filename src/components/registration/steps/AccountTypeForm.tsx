@@ -16,11 +16,9 @@ import { StepValidationIcon } from "@/components/registration/StepValidationIcon
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Step } from "@/types/auth";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
-import { useModeContext } from "../context/ModeContext";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 type AccountTypeConfirmationOverlayProps = {
@@ -98,11 +96,8 @@ export const AccountTypeForm = () => {
     getValidationStatus,
     dirtyFields,
     reset,
-    setCurrentStep,
     getStepNumber,
   } = useForm();
-
-  const { setTransitionDirection, setIsTransitioning } = useModeContext();
 
   const validationStatus = getValidationStatus("accountType");
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
