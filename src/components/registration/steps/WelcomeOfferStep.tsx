@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -197,48 +197,63 @@ export const WelcomeOfferStep = () => {
               )}
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col gap-2">
+            {/* TCPA disclaimer */}
+            <div className="rounded-form bg-muted/50 p-3.5">
+              <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
+                By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(true)}
+                  className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Terms
+                </button>
+                {" & "}
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacy(true)}
+                  className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
+            </div>
+
+            {/* Bottom action bar */}
+            <div className="flex gap-[10px] pt-2">
               <Button
                 type="button"
+                variant="outline"
                 size="pill-lg"
-                className="w-full h-12 text-sm font-medium tracking-wide"
-                onClick={handleSmsSubscribe}
+                onClick={goToPrevStep}
+                aria-label="Go back"
+                className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
               >
-                <MessageSquare className="w-4 h-4" />
-                Yes, subscribe to SMS for my discount
+                <ArrowLeft
+                  className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
+                  aria-hidden="true"
+                />
               </Button>
               <Button
                 type="button"
-                variant="ghost"
                 size="pill-lg"
-                className="w-full text-muted-foreground hover:text-foreground"
-                onClick={handleSkip}
+                onClick={handleSmsSubscribe}
+                className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
               >
-                No thanks, skip the discount
+                <MessageSquare className="w-4 h-4 shrink-0" />
+                <span className="text-center">Yes, subscribe to SMS for my discount</span>
+                <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
               </Button>
             </div>
 
-            {/* TCPA disclaimer */}
-            <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number above. Consent is not a condition of purchase. Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-              <button
-                type="button"
-                onClick={() => setShowTerms(true)}
-                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Terms
-              </button>
-              {" & "}
-              <button
-                type="button"
-                onClick={() => setShowPrivacy(true)}
-                className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Privacy Policy
-              </button>
-              .
-            </p>
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              No thanks, skip the discount
+            </button>
           </div>
         )}
 
@@ -287,14 +302,31 @@ export const WelcomeOfferStep = () => {
                   </div>
                 </button>
 
-                <Button
-                  type="button"
-                  size="pill-lg"
-                  className="w-full h-12 text-sm font-medium tracking-wide"
-                  onClick={handleContinue}
-                >
-                  Continue
-                </Button>
+                {/* Bottom action bar */}
+                <div className="flex gap-[10px] pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="pill-lg"
+                    onClick={goToPrevStep}
+                    aria-label="Go back"
+                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
+                  >
+                    <ArrowLeft
+                      className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="pill-lg"
+                    onClick={handleContinue}
+                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-base tracking-wide group active:scale-[0.98] transition-transform"
+                  >
+                    Continue
+                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
+                  </Button>
+                </div>
               </>
             ) : (
               <>
@@ -310,61 +342,68 @@ export const WelcomeOfferStep = () => {
                   </p>
                 </div>
 
-                {/* CTAs */}
-                <div className="flex flex-col gap-2">
+                {/* TCPA disclaimer */}
+                <div className="rounded-form bg-muted/50 p-3.5">
+                  <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
+                    By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowTerms(true)}
+                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Terms
+                    </button>
+                    {" & "}
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacy(true)}
+                      className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </p>
+                </div>
+
+                {/* Bottom action bar */}
+                <div className="flex gap-[10px] pt-2">
                   <Button
                     type="button"
+                    variant="outline"
                     size="pill-lg"
-                    className="w-full h-12 text-sm font-medium tracking-wide"
-                    onClick={handleEmailSubscribe}
+                    onClick={goToPrevStep}
+                    aria-label="Go back"
+                    className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform shrink-0"
                   >
-                    <Mail className="w-4 h-4" />
-                    Yes, subscribe to email for my discount
+                    <ArrowLeft
+                      className="w-[18px] h-[18px] transition-transform duration-150 group-active:-translate-x-1"
+                      aria-hidden="true"
+                    />
                   </Button>
                   <Button
                     type="button"
-                    variant="ghost"
                     size="pill-lg"
-                    className="w-full text-muted-foreground hover:text-foreground"
-                    onClick={handleEmailSkip}
+                    onClick={handleEmailSubscribe}
+                    className="flex-1 h-11 bg-foreground text-background hover:bg-foreground font-medium text-sm sm:text-base tracking-wide whitespace-normal leading-tight group active:scale-[0.98] transition-transform"
                   >
-                    No thanks, continue to finish
+                    <Mail className="w-4 h-4 shrink-0" />
+                    <span className="text-center">Yes, subscribe to email for my discount</span>
+                    <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
                   </Button>
                 </div>
 
-                <p className="text-[10px] leading-relaxed text-center text-muted-foreground/60">
-                  By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive recurring automated marketing emails from Drop Dead Extensions. Consent is not a condition of purchase. See our{" "}
-                  <button
-                    type="button"
-                    onClick={() => setShowTerms(true)}
-                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Terms
-                  </button>
-                  {" & "}
-                  <button
-                    type="button"
-                    onClick={() => setShowPrivacy(true)}
-                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Privacy Policy
-                  </button>
-                  .
-                </p>
+                <button
+                  type="button"
+                  onClick={handleEmailSkip}
+                  className="block w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  No thanks, continue to finish
+                </button>
               </>
             )}
           </div>
         )}
       </div>
-
-      <button
-        type="button"
-        onClick={goToPrevStep}
-        className="flex items-center justify-center gap-1.5 w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors animate-stagger-3"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        Back
-      </button>
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
