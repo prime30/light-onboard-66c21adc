@@ -113,7 +113,7 @@ export const WelcomeOfferStep = () => {
     onClick: () => void;
     icon: JSX.Element;
     title: string;
-    description: string;
+    description: ReactNode;
     badge?: string;
   }) => (
     <button
