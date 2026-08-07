@@ -565,11 +565,14 @@ export function FormDataProvider({
       });
     }
     // Force full-schema validation after restore so MISSING required fields
-    // (which setValue wouldn't have touched) populate `errors`. Without this,
-    // a resumed session that's missing a now-required field can sail past the
-    // step validators and only blow up at summary/password submit.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (trigger as any)?.();
+    // (which setValue wouldn't have touched) populate `errors`. Only do this
+    // when there is actually restored data - on a first visit it would paint
+    // every untouched field red before the user typed anything.
+    if (sanitizedStored || initialValues) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (trigger as any)?.();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
