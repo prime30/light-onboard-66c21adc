@@ -313,8 +313,8 @@ export function StepProvider({ children }: StepProviderProps) {
   }, [steps, getStepValidationStatus, subscribe]);
 
   // Clear the manual credential errors as soon as the user fills them in.
-  const licenseNumberValue = watch("licenseNumber" as never) as string | undefined;
-  const qualificationValue = watch("qualification" as never) as string | undefined;
+  const licenseNumberValue = watch("licenseNumber") as unknown as string | undefined;
+  const qualificationValue = watch("qualification" as never) as unknown as string | undefined;
   useEffect(() => {
     if ((licenseNumberValue ?? "").trim()) clearErrors("licenseNumber" as never);
   }, [licenseNumberValue, clearErrors]);
