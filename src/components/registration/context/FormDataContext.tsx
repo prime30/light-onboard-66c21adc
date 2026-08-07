@@ -151,7 +151,6 @@ export function FormDataProvider({
     setError,
     setFocus,
     clearErrors,
-    trigger,
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
