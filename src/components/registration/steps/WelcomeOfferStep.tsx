@@ -153,9 +153,25 @@ export const WelcomeOfferStep = () => {
               <Gift className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
             </div>
 
-            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[25px]">
+            <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px]">
               Get 15% off your first order
             </h1>
+
+            <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
+              Optional. Say yes to text updates on the next two screens and we&apos;ll show your
+              discount code right away, or skip and finish your application.
+            </p>
+
+            {/* Two step progress */}
+            <div className="flex items-center gap-[10px] mb-[25px]">
+              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
+                <MessageSquare className="w-3.5 h-3.5" /> 1. Texts
+              </span>
+              <span className="h-px w-5 bg-border" />
+              <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background/50 border border-border/40 text-[11px] font-medium text-muted-foreground">
+                <Mail className="w-3.5 h-3.5" /> 2. Email
+              </span>
+            </div>
 
             {/* Phone context */}
             <div className="w-full max-w-[26rem] space-y-[10px]">
@@ -163,9 +179,10 @@ export const WelcomeOfferStep = () => {
                 <>
                   <p className="text-sm text-muted-foreground">
                     {hasPhone
-                      ? "You will be opting into text messages with number"
+                      ? "Texts will go to this number"
                       : "We don't have a mobile number for you yet"}
                   </p>
+
                   <div className="inline-flex items-center gap-3 px-[15px] py-[8px] rounded-[10px] bg-background/70 border border-border/40">
                     {hasPhone && (
                       <span className="text-sm font-medium text-foreground">
@@ -279,12 +296,23 @@ export const WelcomeOfferStep = () => {
                   </div>
 
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
-                    Almost there
+                    One more step
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
-                    Subscribe to email to reveal your 15% off code.
+                    Texts are on. Say yes to email too and your 15% off code appears right here.
                   </p>
+
+                  <div className="flex items-center justify-center gap-[10px] pt-1">
+                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-status-green/10 border border-status-green/20 text-[11px] font-medium text-status-green">
+                      <CheckCircle className="w-3.5 h-3.5" /> 1. Texts
+                    </span>
+                    <span className="h-px w-5 bg-border" />
+                    <span className="inline-flex items-center gap-2 px-[12px] py-[6px] rounded-full bg-background border border-border/50 text-[11px] font-medium text-foreground">
+                      <Mail className="w-3.5 h-3.5" /> 2. Email
+                    </span>
+                  </div>
                 </div>
+
               </>
 
 
@@ -293,41 +321,47 @@ export const WelcomeOfferStep = () => {
         )}
       </div>
 
-      {/* Fine print, outside the card so the offer keeps the visual weight */}
+      {/* Fine print, collapsed so it does not compete with the offer */}
       {!(subStep === "reveal" && codeRevealed) && (
-        <p className="mx-auto max-w-[32rem] px-5 text-center text-[11px] leading-[1.5] text-muted-foreground/70 animate-stagger-3">
-          {subStep === "offer" ? (
-            <>
-              By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
-              recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
-              above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
-              STOP to cancel, HELP for help. See our{" "}
-            </>
-          ) : (
-            <>
-              By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
-              recurring automated marketing emails from Drop Dead Extensions. Consent is not a
-              condition of purchase. See our{" "}
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowTerms(true)}
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            Terms
-          </button>
-          {" & "}
-          <button
-            type="button"
-            onClick={() => setShowPrivacy(true)}
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            Privacy Policy
-          </button>
-          .
-        </p>
+        <details className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
+          <summary className="cursor-pointer list-none text-[11px] font-medium text-muted-foreground/70 underline underline-offset-2 hover:text-foreground transition-colors">
+            {subStep === "offer" ? "SMS consent details" : "Email consent details"}
+          </summary>
+          <p className="mt-[10px] text-[11px] leading-[1.5] text-muted-foreground/70">
+            {subStep === "offer" ? (
+              <>
+                By tapping &quot;Yes, subscribe to SMS for my discount&quot; you agree to receive
+                recurring automated texts (approx. 4/month) from Drop Dead Extensions at the number
+                above. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply
+                STOP to cancel, HELP for help. See our{" "}
+              </>
+            ) : (
+              <>
+                By tapping &quot;Yes, subscribe to email for my discount&quot; you agree to receive
+                recurring automated marketing emails from Drop Dead Extensions. Consent is not a
+                condition of purchase. See our{" "}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowTerms(true)}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Terms
+            </button>
+            {" & "}
+            <button
+              type="button"
+              onClick={() => setShowPrivacy(true)}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </button>
+            .
+          </p>
+        </details>
       )}
+
 
 
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
