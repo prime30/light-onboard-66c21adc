@@ -3,11 +3,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const { handle = "dropdeadextensions" } = await req.json().catch(() => ({}));
   const targets: Record<string, string> = {
-    unavatar: `https://unavatar.io/instagram/${handle}?json`,
-    jina: `https://r.jina.ai/https://www.instagram.com/${handle}/`,
-    picuki: `https://www.instagram.com/${handle}/embed/captioned/`,
-    ddg: `https://duckduckgo.com/html/?q=%22${handle}%22+site%3Ainstagram.com`,
-    iginfo: `https://i.instagram.com/api/v1/users/web_profile_info/?username=${handle}`,
+    imginn: `https://imginn.com/${handle}/`,
+    picnob: `https://www.picnob.com/profile/${handle}/`,
+    dumpor: `https://dumpor.com/v/${handle}`,
+    igram: `https://greatfon.com/v/${handle}`,
+    threads: `https://www.threads.net/@${handle}`,
   };
   const out: Record<string, unknown> = {};
   await Promise.all(Object.entries(targets).map(async ([k, u]) => {
