@@ -29,7 +29,13 @@ export const WelcomeOfferStep = () => {
     setValue,
     goToNextStep,
     goToPrevStep,
+    submitForm,
+    isSubmitting,
   } = useForm();
+  // In auto-approval mode this step lands AFTER the password step and is the
+  // last gate before the account is actually created, so Continue submits.
+  const { enabled: autoApprove } = useAutoApproval();
+  const isFinalSubmitStep = autoApprove;
 
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
