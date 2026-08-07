@@ -125,11 +125,11 @@ export const WelcomeOfferStep = () => {
       }`}
     >
       <span
-        className={`mt-[2px] w-[22px] h-[22px] rounded-full border flex items-center justify-center shrink-0 transition-colors ${
-          checked ? "border-status-green bg-status-green" : "border-border bg-background"
+        className={`mt-[2px] w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
+          checked ? "border-status-green bg-status-green" : "border-foreground/30 bg-background"
         }`}
       >
-        {checked && <Check className="w-3.5 h-3.5 text-background" strokeWidth={3} />}
+        {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </span>
       <span className="min-w-0">
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
