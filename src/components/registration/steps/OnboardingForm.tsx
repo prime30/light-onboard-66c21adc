@@ -1,19 +1,8 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
+import { Check, GraduationCap, Tag } from "lucide-react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { FadeText } from "../FadeText";
-
-// Lazy-load below-the-fold heavy children. They're not on the critical path
-// for the email/password form interactivity - let them hydrate after first paint.
-const MarqueeBadges = lazy(() =>
-  import("@/components/registration/helpers/MarqueeBadges").then((m) => ({
-    default: m.MarqueeBadges,
-  }))
-);
-const RotatingStylistAvatarsLight = lazy(() =>
-  import("@/components/registration/helpers/RotatingStylistAvatarsLight").then((m) => ({
-    default: m.RotatingStylistAvatarsLight,
-  }))
-);
+import { cn } from "@/lib/utils";
 
 // Animated Number Component
 const AnimatedNumber = ({
@@ -114,13 +103,35 @@ interface OnboardingFormProps {
   isRestoring?: boolean;
 }
 
+const TRUST_BADGES = [
+  { icon: Check, label: "Exclusively professional", highlighted: false },
+  { icon: GraduationCap, label: "Advanced education", highlighted: true },
+  { icon: Tag, label: "Wholesale pricing", highlighted: false },
+];
+
+const STEPS = [
+  {
+    label: "Tell us who you are",
+    description: "Select your account type and share your contact details.",
+  },
+  {
+    label: "Provide your license number",
+    description: "Upload your license so we can verify you're a professional.",
+  },
+  {
+    label: "Follow post-approval instructions",
+    description: "Get approved and unlock wholesale pricing and pro benefits.",
+  },
+];
+
 export const OnboardingForm = ({
   onSignIn,
   isRestoring = false,
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
+
   return (
-    <div className="space-y-3 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
+    <div className="space-y-10 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
       {/* Restoring progress indicator */}
       {isRestoring && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
@@ -148,90 +159,100 @@ export const OnboardingForm = ({
       )}
 
       {/* Hero section - desktop only (mobile shows in hero banner) */}
-      <div className="hidden lg:block text-center space-y-[clamp(5px,1vh,12px)] animate-stagger-1 lg:pb-0 lg:pt-[clamp(16px,4vh,48px)]">
+      <div className="hidden lg:block text-center space-y-5 animate-stagger-1 lg:pb-0 lg:pt-[clamp(16px,4vh,48px)]">
         <FadeText
           as="h1"
-          className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+          className="font-termina font-medium uppercase text-3xl sm:text-4xl md:text-5xl text-foreground leading-[1.05] text-balance tracking-[-0.006em]"
         >
           Apply for pro pricing
         </FadeText>
         <FadeText
           as="p"
-          className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed max-w-sm mx-auto"
+          className="text-base text-muted-foreground/80 leading-relaxed max-w-sm mx-auto"
         >
           Unlock wholesale pricing on the industries best{" "}
           <span className="whitespace-nowrap">hair and tools.</span>
         </FadeText>
       </div>
 
-      {/* Trust badges - Marquee with center highlight effect (lazy) */}
-      <div style={{ minHeight: "32px" }}>
-        <Suspense fallback={null}>
-          <MarqueeBadges />
-        </Suspense>
-      </div>
-
-      {/* Steps preview */}
-      <div className="grid gap-5 lg:gap-[clamp(12px,2vh,24px)]">
-        {[
-          {
-            label: "Tell us who you are",
-          },
-          {
-            label: "Provide your license number",
-          },
-          {
-            label: "Follow post-approval instructions to finalize account",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-4 text-left opacity-0 animate-step-card-enter"
-            style={{
-              animationDelay: `${400 + i * 150}ms`,
-              animationFillMode: "forwards",
-            }}
-          >
-            <span className="font-termina font-medium text-3xl lg:text-4xl text-foreground/20 tabular-nums leading-none flex-shrink-0 w-10 text-center">
-              {i + 1}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm sm:text-base font-medium text-foreground/70">{item.label}</p>
+      {/* Trust badges */}
+      <div className="flex flex-wrap justify-center gap-2.5 animate-stagger-2">
+        {TRUST_BADGES.map((badge, i) => {
+          const Icon = badge.icon;
+          return (
+            <div
+              key={i}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-medium shadow-sm",
+                badge.highlighted
+                  ? "bg-status-green/10 border-status-green/30 text-status-green"
+                  : "bg-background border-border text-muted-foreground"
+              )}
+            >
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="whitespace-nowrap">{badge.label}</span>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Benefits highlight with animated counters - desktop only */}
+      {/* Steps timeline */}
+      <div className="w-full max-w-md mx-auto relative animate-stagger-2">
+        <div className="absolute left-4 top-3 bottom-3 w-px bg-border" />
+        <div className="space-y-6">
+          {STEPS.map((step, i) => (
+            <div
+              key={i}
+              className="relative pl-12 opacity-0 animate-step-card-enter"
+              style={{
+                animationDelay: `${500 + i * 150}ms`,
+                animationFillMode: "forwards",
+              }}
+            >
+              <div className="absolute left-0 top-0.5 w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center z-10 shadow-sm">
+                <span className="font-termina font-medium text-sm text-foreground">{i + 1}</span>
+              </div>
+              <div>
+                <h3 className="text-base font-medium text-foreground">{step.label}</h3>
+                <p className="text-sm text-muted-foreground/80 mt-1 leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Benefits highlight with animated counters */}
       <div
-        className="hidden lg:flex justify-center gap-6 text-center animate-stagger-3"
-        style={{ minHeight: "52px" }}
+        className={cn(
+          "w-full max-w-md mx-auto grid grid-cols-3 border-y border-border py-7 animate-stagger-3",
+          !fontsLoaded && "opacity-0"
+        )}
       >
         {fontsLoaded && (
           <>
-            <div>
-              <div className="text-2xl font-semibold text-foreground">
+            <div className="text-center border-r border-border px-2">
+              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
                 <AnimatedNumber value={50} suffix="%" delay={200} />
               </div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
                 Avg. Savings
               </div>
             </div>
-            <div className="w-px bg-border" />
-            <div>
-              <div className="text-2xl font-semibold text-foreground">
+            <div className="text-center border-r border-border px-2">
+              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
                 <AnimatedNumber value={24} suffix="hr" delay={400} />
               </div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
                 Approval
               </div>
             </div>
-            <div className="w-px bg-border" />
-            <div>
-              <div className="text-2xl font-semibold text-foreground">
+            <div className="text-center px-2">
+              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
                 <AnimatedProductCount delay={600} />
               </div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
                 Products
               </div>
             </div>
@@ -239,20 +260,11 @@ export const OnboardingForm = ({
         )}
       </div>
 
-      {/* Loved by pros - with avatars (mobile/tablet only) - gated on fontsLoaded, lazy chunk */}
-      <div className="lg:hidden pt-3" style={{ minHeight: "28px" }}>
-        {fontsLoaded && (
-          <Suspense fallback={null}>
-            <RotatingStylistAvatarsLight />
-          </Suspense>
-        )}
-      </div>
-
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-sm text-muted-foreground text-center animate-stagger-3">
         Already a member?{" "}
         <button
           onClick={onSignIn}
-          className="text-foreground font-medium underline underline-offset-2 hover:text-foreground/80 transition-colors duration-200"
+          className="text-foreground font-semibold underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors duration-200"
         >
           Login
         </button>
