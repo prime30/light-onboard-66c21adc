@@ -185,6 +185,7 @@ export const WelcomeOfferStep = () => {
               onClick={toggleSms}
               icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
               title="Text me offers"
+              badge="Save 15%"
               description={
                 hasPhone
                   ? `Approx. 4 texts/month to ${formatPhoneNumber(phoneNumber)}. Reply STOP to cancel.`
@@ -196,6 +197,7 @@ export const WelcomeOfferStep = () => {
               onClick={toggleEmail}
               icon={<Mail className="w-4 h-4 text-foreground/70" />}
               title="Email me offers"
+              badge="Save 15%"
               description="Restocks, pro education, and promos. Unsubscribe anytime."
             />
 
