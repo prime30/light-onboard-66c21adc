@@ -177,7 +177,7 @@ export const WelcomeOfferStep = () => {
             <Tag className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
           </div>
 
-          <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,3rem)] leading-[1.05] tracking-[-0.02em] text-foreground max-w-[15ch] mb-[15px] text-shimmer">
+          <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
             Get 15% off your first order
           </h1>
 
