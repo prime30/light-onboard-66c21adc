@@ -107,7 +107,7 @@ export const WelcomeOfferStep = () => {
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
                 <Gift className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
               </div>
-              <h1 className="font-die-grotesk font-medium text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+              <h1 className="font-grotesk font-medium text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                 Get 15% off your first order
               </h1>
             </div>
@@ -229,7 +229,7 @@ export const WelcomeOfferStep = () => {
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
                 <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
               </div>
-              <h2 className="font-die-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
+              <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                 Add your email to unlock it
               </h2>
               <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto">
