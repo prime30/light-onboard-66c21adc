@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Check, CheckCircle, Copy, Gift, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Copy, Gift, Mail, MessageSquare, Tag } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
@@ -139,8 +139,8 @@ export const WelcomeOfferStep = () => {
           <span className="flex items-center gap-2">
             {title}
             {badge && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
-                <span className="w-1 h-1 rounded-full bg-accent-red" />
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
+                <Tag className="w-3 h-3" />
                 {badge}
               </span>
             )}
