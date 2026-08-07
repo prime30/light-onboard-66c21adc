@@ -243,7 +243,11 @@ export const WelcomeOfferStep = () => {
           <div className="p-6 sm:p-8 space-y-5 animate-slide-in-right">
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-status-green/10 mb-1">
-                <Unlock className="w-5 h-5 text-status-green" strokeWidth={1.75} />
+                {acceptsMarketing ? (
+                  <Unlock className="w-5 h-5 text-status-green" strokeWidth={1.75} />
+                ) : (
+                  <Lock className="w-5 h-5 text-muted-foreground" strokeWidth={1.75} />
+                )}
               </div>
               <h2 className="font-termina font-medium uppercase text-[clamp(1.5rem,5vw,2.5rem)] leading-[1] text-foreground tracking-tight">
                 You almost have 15% off!
@@ -253,15 +257,30 @@ export const WelcomeOfferStep = () => {
               </p>
             </div>
 
-            {/* Unlocked code chip */}
+            {/* Code chip: stays locked until email is confirmed */}
             <div className="flex justify-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 rounded-form border border-status-green/40 bg-status-green/[0.06]">
-                <Unlock className="w-4 h-4 text-status-green" strokeWidth={1.75} />
-                <span className="font-termina font-medium text-lg tracking-[0.12em] uppercase text-foreground">
-                  SALONTRIAL15
+              <div
+                className={`inline-flex items-center gap-2 px-5 py-3 rounded-form border transition-colors ${
+                  acceptsMarketing
+                    ? "border-status-green/40 bg-status-green/[0.06]"
+                    : "border-border bg-muted/30"
+                }`}
+              >
+                {acceptsMarketing ? (
+                  <Unlock className="w-4 h-4 text-status-green" strokeWidth={1.75} />
+                ) : (
+                  <Lock className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+                )}
+                <span
+                  className={`font-termina font-medium text-lg tracking-[0.12em] uppercase ${
+                    acceptsMarketing ? "text-foreground" : "text-muted-foreground/60"
+                  }`}
+                >
+                  {acceptsMarketing ? "SALONTRIAL15" : "••••••••••••"}
                 </span>
               </div>
             </div>
+
 
             {/* Email consent row */}
             <label className="block px-4 py-4 rounded-form border border-border cursor-pointer transition-colors hover:bg-muted/30">
