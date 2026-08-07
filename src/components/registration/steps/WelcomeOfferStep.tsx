@@ -35,6 +35,7 @@ export const WelcomeOfferStep = () => {
   const [subStep, setSubStep] = useState<"offer" | "reveal">("offer");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [codeRevealed, setCodeRevealed] = useState(false);
 
   const [acceptsMarketing, phoneNumber, phoneCountryCode] = watch([
     "acceptsMarketing",
