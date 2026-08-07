@@ -735,8 +735,8 @@ export const SuccessForm = () => {
       {!showFounderCallNudge && !welcomeOfferEnabled && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
-            <div className="p-5 rounded-[20px] border border-accent-red/25 bg-gradient-to-br from-accent-red/10 via-muted/50 to-accent-red/5 text-left">
-              <p className="text-[10px] font-medium text-accent-red uppercase tracking-wider">
+            <div className="p-5 rounded-[20px] border border-border bg-muted text-left">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
               </p>
               <p className="mt-1 text-sm font-semibold text-foreground">
