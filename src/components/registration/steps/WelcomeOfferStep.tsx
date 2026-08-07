@@ -273,9 +273,10 @@ export const WelcomeOfferStep = () => {
             ) : (
               <>
                 <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted/70">
-                    <Mail className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+                  <div className="mx-auto w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm flex items-center justify-center">
+                    <Mail className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
                   </div>
+
                   <h2 className="font-grotesk font-medium text-[clamp(1.5rem,4.5vw,2.25rem)] leading-[1.05] text-foreground tracking-[-0.02em]">
                     Almost there
                   </h2>
