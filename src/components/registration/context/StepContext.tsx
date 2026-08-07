@@ -53,7 +53,9 @@ type StepProviderProps = {
 // Provider component
 export function StepProvider({ children }: StepProviderProps) {
   const { setFormProgress } = useOutletContext<RegistrationLayoutOutletContext>();
-  const { watch, errors, subscribe, fullErrors, emailConflict } = useFormData();
+  const { watch, errors, subscribe, fullErrors, emailConflict, setError, setFocus, clearErrors } =
+    useFormData();
+
   const accountType = watch("accountType");
   const countryCode = watch("countryCode");
   const { toast } = useToast();
@@ -310,6 +312,17 @@ export function StepProvider({ children }: StepProviderProps) {
     return () => unsubscribe();
   }, [steps, getStepValidationStatus, subscribe]);
 
+  // Clear the manual credential errors as soon as the user fills them in.
+  const licenseNumberValue = watch("licenseNumber") as unknown as string | undefined;
+  const qualificationValue = watch("qualification" as never) as unknown as string | undefined;
+  useEffect(() => {
+    if ((licenseNumberValue ?? "").trim()) clearErrors("licenseNumber" as never);
+  }, [licenseNumberValue, clearErrors]);
+  useEffect(() => {
+    if (qualificationValue) clearErrors("qualification" as never);
+  }, [qualificationValue, clearErrors]);
+
+
   const goToNextStep = () => {
     const schema = getStepSchema(currentStep, accountType);
     if (schema) {
@@ -384,6 +397,13 @@ export function StepProvider({ children }: StepProviderProps) {
         v.accountType === "professional" || v.accountType === "salon";
       if (isCredentialFlow && country !== "AU" && !(v.licenseNumber ?? "").trim()) {
         setShowValidationErrors(true);
+        // The union-level superRefine never runs while other branch fields are
+        // missing, so set the field error manually to get the red highlight.
+        setError("licenseNumber" as never, {
+          type: "manual",
+          message: "License number is required",
+        });
+        setFocus?.("licenseNumber" as never);
         toast({
           title: "Please enter your license number",
           variant: "destructive",
@@ -392,12 +412,17 @@ export function StepProvider({ children }: StepProviderProps) {
       }
       if (QUALIFICATION_REQUIRED_COUNTRIES.has(country) && !v.qualification) {
         setShowValidationErrors(true);
+        setError("qualification" as never, {
+          type: "manual",
+          message: "Please select your qualification",
+        });
         toast({
           title: "Please select your qualification",
           variant: "destructive",
         });
         return;
       }
+
       if (
         QUALIFICATION_REQUIRED_COUNTRIES.has(country) &&
         v.qualification &&
