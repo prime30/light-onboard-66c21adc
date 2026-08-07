@@ -117,7 +117,7 @@ type FormDataProviderProps = {
 // Provider component
 export function FormDataProvider({
   children,
-  initialValues = defaultValues,
+  initialValues,
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
   const { apiCall } = useApiClient();
@@ -151,7 +151,6 @@ export function FormDataProvider({
     setError,
     setFocus,
     clearErrors,
-    trigger,
   } = useForm<RegistrationFormData>({
     mode: "onChange",
     resolver: zodResolver(registrationSchema),
@@ -554,24 +553,26 @@ export function FormDataProvider({
     }
 
 
+    const restoreFieldOptions = {
+      shouldDirty: true,
+      shouldTouch: false,
+      shouldValidate: false,
+    };
+
     if (sanitizedStored) {
       Object.entries(sanitizedStored).forEach(([key, value]) => {
-        setValue(key as ValidFieldNames, value, dirtyFieldOptions);
+        setValue(key as ValidFieldNames, value, restoreFieldOptions);
       });
     }
     if (initialValues) {
       Object.entries(initialValues).forEach(([key, value]) => {
-        setValue(key as ValidFieldNames, value, dirtyFieldOptions);
+        setValue(key as ValidFieldNames, value, restoreFieldOptions);
       });
     }
-    // Force full-schema validation after restore so MISSING required fields
-    // (which setValue wouldn't have touched) populate `errors`. Only do this
-    // when there is actually restored data - on a first visit it would paint
-    // every untouched field red before the user typed anything.
-    if (sanitizedStored || initialValues) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (trigger as any)?.();
-    }
+    // Restoring data must not validate the entire registration. A stored atom
+    // always contains the default values, including on a genuinely fresh
+    // private visit, so a mount-time trigger painted every required field red.
+    // Step validation still runs when the user presses Continue.
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
