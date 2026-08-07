@@ -1,0 +1,1 @@
+UPDATE public.app_settings SET referral_step_enabled = false WHERE singleton = true;
