@@ -747,8 +747,9 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
             <Tile
               icon={<TrendingUp className="w-3.5 h-3.5 text-status-green" />}
               label="Take rate"
-              value={`${data.gatedOffer.takeRate}%`}
-              suffix={`${data.gatedOffer.bothYes} of ${data.gatedOffer.total}`}
+              value={data.gatedOffer.bothYes}
+              suffix={`${data.gatedOffer.takeRate}% of ${data.gatedOffer.total}`}
+
             />
             <Tile
               icon={<TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />}
