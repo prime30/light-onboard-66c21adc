@@ -1015,6 +1015,8 @@ Deno.serve(async (req: Request) => {
       attendedLiftPp,
     },
     consent,
+    gatedOffer,
+
     recovery,
     accountTypeGate,
   });
