@@ -115,6 +115,18 @@ type ApiResponse = {
     byType: ConsentByType[];
     series: { date: string; total: number; sms: number; smsRate: number }[];
   };
+  gatedOffer?: {
+    startDate: string;
+    total: number;
+    bothYes: number;
+    takeRate: number;
+    smsOnly: number;
+    emailOnly: number;
+    neither: number;
+    series: { date: string; total: number; both: number; takeRate: number }[];
+    byType: { type: string; total: number; both: number; takeRate: number }[];
+  };
+
   recovery?: {
     recoveredCount: number;
     bouncedCount: number;
@@ -721,7 +733,67 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
 
 
 
+      {/* Gated offer take rate (SMS + email BOTH) since launch */}
+      {data?.gatedOffer && data.gatedOffer.total > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Gated offer take rate (SMS + email)
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            % of completed registrations that opted in to BOTH channels (the condition to
+            unlock the 15% code). Counting from {data.gatedOffer.startDate}.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <Tile
+              icon={<TrendingUp className="w-3.5 h-3.5 text-status-green" />}
+              label="Take rate"
+              value={data.gatedOffer.bothYes}
+              suffix={`${data.gatedOffer.takeRate}% of ${data.gatedOffer.total}`}
+
+            />
+            <Tile
+              icon={<TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />}
+              label="Partial / none"
+              value={data.gatedOffer.total - data.gatedOffer.bothYes}
+              suffix={`SMS only ${data.gatedOffer.smsOnly} · Email only ${data.gatedOffer.emailOnly} · Neither ${data.gatedOffer.neither}`}
+            />
+          </div>
+          <div className="divide-y divide-border/50 mb-3">
+            {data.gatedOffer.byType.map((row) => (
+              <div key={row.type} className="flex items-center justify-between py-1.5 text-xs gap-3">
+                <span className="font-medium capitalize">{row.type.replace(/_/g, " ")}</span>
+                <span className="text-muted-foreground tabular-nums whitespace-nowrap">
+                  <span className={cn(row.takeRate >= 50 ? "text-status-green" : "text-foreground")}>
+                    {row.takeRate}%
+                  </span>
+                  <span className="text-[10px] opacity-70 ml-1">
+                    ({row.both}/{row.total})
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            {data.gatedOffer.series.map((d) => (
+              <div key={d.date} className="flex items-center gap-2 text-[10px]">
+                <span className="w-16 shrink-0 text-muted-foreground tabular-nums">{d.date.slice(5)}</span>
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-status-green"
+                    style={{ width: `${Math.min(100, d.takeRate)}%` }}
+                  />
+                </div>
+                <span className="w-24 shrink-0 text-right tabular-nums text-muted-foreground">
+                  {d.takeRate}% ({d.both}/{d.total})
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Marketing consent (SMS / email opt-in rates) */}
+
       {data?.consent && data.consent.total > 0 && (
         <div className="rounded-[10px] border border-border/50 p-3">
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">

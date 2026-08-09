@@ -913,6 +913,66 @@ Deno.serve(async (req: Request) => {
     })),
   };
 
+  // ---- gated offer take rate (SMS + email BOTH) since launch 2026-08-06 ----
+  // The 15% code is only revealed when a registrant opts in to both channels,
+  // so "take rate" = both / completed registrations on or after launch day.
+  const GATED_OFFER_START = "2026-08-06";
+  const gatedSubs = subs.filter((s) => s.created_at.slice(0, 10) >= GATED_OFFER_START);
+  let bothYes = 0;
+  let gatedSmsOnly = 0;
+  let gatedEmailOnly = 0;
+  let gatedNeither = 0;
+  const gatedDayMap = new Map<string, { total: number; both: number }>();
+  const gatedByType = new Map<string, { total: number; both: number }>();
+  for (const s of gatedSubs) {
+    const p = (s.payload ?? {}) as Record<string, unknown>;
+    const sms = !!p.accepts_sms_marketing;
+    const em = !!p.accepts_marketing;
+    const both = sms && em;
+    if (both) bothYes += 1;
+    else if (sms) gatedSmsOnly += 1;
+    else if (em) gatedEmailOnly += 1;
+    else gatedNeither += 1;
+
+    const day = s.created_at.slice(0, 10);
+    const d = gatedDayMap.get(day) ?? { total: 0, both: 0 };
+    d.total += 1;
+    if (both) d.both += 1;
+    gatedDayMap.set(day, d);
+
+    const k = s.account_type ?? "unknown";
+    const t = gatedByType.get(k) ?? { total: 0, both: 0 };
+    t.total += 1;
+    if (both) t.both += 1;
+    gatedByType.set(k, t);
+  }
+  const gatedOffer = {
+    startDate: GATED_OFFER_START,
+    total: gatedSubs.length,
+    bothYes,
+    takeRate: pct(bothYes, gatedSubs.length),
+    smsOnly: gatedSmsOnly,
+    emailOnly: gatedEmailOnly,
+    neither: gatedNeither,
+    series: Array.from(gatedDayMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, v]) => ({
+        date,
+        total: v.total,
+        both: v.both,
+        takeRate: pct(v.both, v.total),
+      })),
+    byType: Array.from(gatedByType.entries())
+      .map(([type, v]) => ({
+        type,
+        total: v.total,
+        both: v.both,
+        takeRate: pct(v.both, v.total),
+      }))
+      .sort((a, b) => b.total - a.total),
+  };
+
+
   return json({
     success: true,
     rangeDays: days,
@@ -955,6 +1015,8 @@ Deno.serve(async (req: Request) => {
       attendedLiftPp,
     },
     consent,
+    gatedOffer,
+
     recovery,
     accountTypeGate,
   });
