@@ -115,6 +115,18 @@ type ApiResponse = {
     byType: ConsentByType[];
     series: { date: string; total: number; sms: number; smsRate: number }[];
   };
+  gatedOffer?: {
+    startDate: string;
+    total: number;
+    bothYes: number;
+    takeRate: number;
+    smsOnly: number;
+    emailOnly: number;
+    neither: number;
+    series: { date: string; total: number; both: number; takeRate: number }[];
+    byType: { type: string; total: number; both: number; takeRate: number }[];
+  };
+
   recovery?: {
     recoveredCount: number;
     bouncedCount: number;
