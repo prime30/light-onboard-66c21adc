@@ -182,16 +182,12 @@ export const OnboardingForm = ({
           return (
             <div
               key={i}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-medium shadow-sm",
-                badge.highlighted
-                  ? "bg-status-green/10 border-status-green/30 text-status-green"
-                  : "bg-background border-border text-muted-foreground"
-              )}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border/60 bg-muted/50 text-xs font-medium text-muted-foreground"
             >
-              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              <Icon className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
               <span className="whitespace-nowrap">{badge.label}</span>
             </div>
+
           );
         })}
       </div>
