@@ -175,8 +175,20 @@ export const OnboardingForm = ({
         </FadeText>
       </div>
 
+      {/* Offer callout - visible before the form so it can actually motivate signup */}
+      <div className="flex justify-center animate-stagger-2">
+        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-form border border-border/60 bg-muted/50 max-w-md">
+          <Gift className="w-4 h-4 flex-shrink-0 text-foreground/70" strokeWidth={1.5} />
+          <p className="text-xs sm:text-[13px] leading-[1.45] text-muted-foreground">
+            <span className="font-medium text-foreground">15% off your first order</span> when you
+            opt in to texts and emails at the end of your application.
+          </p>
+        </div>
+      </div>
+
       {/* Trust badges */}
       <div className="flex flex-wrap justify-center gap-2.5 animate-stagger-2">
+
         {TRUST_BADGES.map((badge, i) => {
           const Icon = badge.icon;
           return (
