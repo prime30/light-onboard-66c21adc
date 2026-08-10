@@ -119,10 +119,6 @@ const STEPS = [
     label: "Provide your license number",
     description: "Upload your license so we can verify you're a professional.",
   },
-  {
-    label: "Follow post-approval instructions",
-    description: "Get approved and unlock wholesale pricing and pro benefits.",
-  },
 ];
 
 export const OnboardingForm = ({
