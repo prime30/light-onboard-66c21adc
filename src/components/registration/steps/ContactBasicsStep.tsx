@@ -409,7 +409,15 @@ export const ContactBasicsStep = () => {
         </p>
       </div>
 
-      <div className="space-y-5">
+      {/* A real <form> element is what lets iOS Safari / Chrome offer grouped
+          "fill contact" autofill across name + email + phone in one tap.
+          Submission is handled by the step footer, so Enter is a no-op here. */}
+      <form
+        autoComplete="on"
+        noValidate
+        onSubmit={(event) => event.preventDefault()}
+        className="space-y-5"
+      >
         {/* First and Last Name */}
         <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
           <TextInput
