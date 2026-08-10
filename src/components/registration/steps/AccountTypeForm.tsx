@@ -28,6 +28,7 @@ type AccountTypeConfirmationOverlayProps = {
   setPendingAccountType: (type: AccountType | null) => void;
   executeAccountTypeSelect: (type: AccountType | null, previousType: AccountType | null) => void;
   accountType: AccountType | null;
+  goToNextStep?: () => void;
 };
 
 function AccountTypeConfirmationOverlay({
@@ -37,6 +38,7 @@ function AccountTypeConfirmationOverlay({
   setPendingAccountType,
   executeAccountTypeSelect,
   accountType,
+  goToNextStep,
 }: AccountTypeConfirmationOverlayProps) {
   if (!showAccountTypeConfirm) return null;
 
@@ -66,7 +68,10 @@ function AccountTypeConfirmationOverlay({
                 const nextType = pendingAccountType;
                 setShowAccountTypeConfirm(false);
                 setPendingAccountType(null);
-                if (nextType) executeAccountTypeSelect(nextType, accountType);
+                if (nextType) {
+                  executeAccountTypeSelect(nextType, accountType);
+                  goToNextStep?.();
+                }
               }}
               className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
             >
