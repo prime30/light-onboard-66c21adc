@@ -256,6 +256,9 @@ export const OnboardingForm = ({
             <p className="text-sm text-muted-foreground max-w-[260px]">
               A welcome code will be revealed after you complete your application and opt in to SMS and email updates.
             </p>
+            <p className="text-[11px] text-muted-foreground/70">
+              Have an affiliate code? Save even more on your first order.
+            </p>
           </div>
         </div>
       </div>
