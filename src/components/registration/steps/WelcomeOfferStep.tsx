@@ -245,7 +245,7 @@ export const WelcomeOfferStep = () => {
             <OptInRow
               checked={emailOn}
               onClick={toggleEmail}
-              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70 shrink-0">@</span>}
+              channel="Email"
               title="Email me about promotions, new products & deals"
               description="Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
             />
