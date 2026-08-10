@@ -228,7 +228,14 @@ export const OnboardingForm = ({
           !fontsLoaded && "opacity-0"
         )}
       >
-        <div className="relative overflow-hidden rounded-form border border-status-green/30 bg-muted/40 px-6 py-6 text-center">
+        <button
+          type="button"
+          onClick={() => setOfferActive(true)}
+          className={cn(
+            "relative w-full overflow-hidden rounded-form border border-status-green/30 bg-muted/40 px-6 py-6 text-center transition-all",
+            offerActive ? "cursor-default" : "cursor-pointer hover:bg-muted/50 active:scale-[0.99]"
+          )}
+        >
           <div
             className="absolute inset-0 pointer-events-none opacity-40"
             style={{
@@ -241,23 +248,51 @@ export const OnboardingForm = ({
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-green/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-status-green/20 to-transparent" />
           <div className="relative flex flex-col items-center gap-2">
-            <div className="inline-flex items-center gap-2 text-muted-foreground">
-              <Lock className="w-4 h-4" strokeWidth={1.5} />
-              <span className="text-[11px] uppercase tracking-widest font-semibold">
-                Unlock after approval
-              </span>
-            </div>
-            <div className="text-4xl sm:text-5xl font-termina font-medium uppercase tracking-[-0.006em] text-foreground leading-none">
-              15% Off
-            </div>
-            <p className="text-sm text-muted-foreground max-w-[320px]">
-              A welcome code will be revealed after you complete your application and opt in to SMS and email updates.
-            </p>
-            <p className="text-[11px] text-muted-foreground/70">
-              Have an affiliate code? Save even more on your first order.
-            </p>
+            {!offerActive ? (
+              <>
+                <div className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Lock className="w-4 h-4" strokeWidth={1.5} />
+                  <span className="text-[11px] uppercase tracking-widest font-semibold">
+                    Unlock after approval
+                  </span>
+                </div>
+                <div className="text-4xl sm:text-5xl font-termina font-medium uppercase tracking-[-0.006em] text-foreground leading-none">
+                  15% Off
+                </div>
+                <p className="text-sm text-muted-foreground max-w-[320px]">
+                  A welcome code will be revealed after you complete your application and opt in to SMS and email updates.
+                </p>
+                <p className="text-[11px] text-muted-foreground/70">
+                  Have an affiliate code? Save even more on your first order.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center gap-2 text-status-green">
+                  <Lock className="w-4 h-4" strokeWidth={1.5} />
+                  <span className="text-[11px] uppercase tracking-widest font-semibold">
+                    Unlock after approval
+                  </span>
+                </div>
+                <p className="text-sm text-foreground max-w-[320px]">
+                  Finish registration, subscribe to SMS and email at the end, and it will give you the code.
+                </p>
+                <Button
+                  type="button"
+                  size="pill-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartRegistration?.();
+                  }}
+                  className="mt-2 bg-foreground text-background hover:bg-foreground font-medium text-sm tracking-wide group active:scale-[0.98] transition-transform"
+                >
+                  <span>Complete registration</span>
+                  <ArrowRight className="w-[18px] h-[18px] transition-all duration-150 group-hover:w-[24px] group-hover:translate-x-0.5 group-active:translate-x-1 shrink-0" />
+                </Button>
+              </>
+            )}
           </div>
-        </div>
+        </button>
       </div>
 
       <p className="text-sm text-muted-foreground text-center animate-stagger-3">
