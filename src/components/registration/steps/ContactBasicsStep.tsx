@@ -533,6 +533,9 @@ export const ContactBasicsStep = () => {
             <TextInput
               name="licenseNumber"
               type="text"
+              autoComplete="off"
+              data-1p-ignore="true"
+              data-lpignore="true"
               register={register}
               error={licenseErrors.licenseNumber}
               placeholder={credentialConfig.licenseFieldPlaceholder(isSalon)}
