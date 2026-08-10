@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Check, CheckCircle, Copy, Gift, Mail, MessageSquare, Pencil, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Pencil } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 
@@ -15,8 +15,6 @@ import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
 import { useAutoApproval } from "@/lib/app-settings";
-
-const DISCOUNT_CODE = "SALONTRIAL15";
 
 export const WelcomeOfferStep = () => {
   const {
@@ -40,7 +38,6 @@ export const WelcomeOfferStep = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const [acceptsMarketing, acceptsSmsMarketing, phoneNumber, phoneCountryCode] = watch([
     "acceptsMarketing",
@@ -56,7 +53,6 @@ export const WelcomeOfferStep = () => {
 
   const smsOn = !!acceptsSmsMarketing;
   const emailOn = !!acceptsMarketing;
-  const unlocked = smsOn && emailOn;
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
@@ -82,7 +78,7 @@ export const WelcomeOfferStep = () => {
     }
     setPhoneError(null);
     if (!phoneValid) {
-      setPhoneError("Add a valid mobile number so we can text your code details.");
+      setPhoneError("Add a valid mobile number so we can text you when you're approved.");
       setIsEditingPhone(true);
       return;
     }
@@ -91,13 +87,6 @@ export const WelcomeOfferStep = () => {
 
   const toggleEmail = () => {
     setValue("acceptsMarketing", !emailOn, dirtyFieldOptions);
-  };
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(DISCOUNT_CODE).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
   };
 
   // Render the step's actions into the shared sticky footer slot at the bottom of the viewport
@@ -113,6 +102,7 @@ export const WelcomeOfferStep = () => {
     title,
     description,
     badge,
+    children,
   }: {
     checked: boolean;
     onClick: () => void;
@@ -120,6 +110,7 @@ export const WelcomeOfferStep = () => {
     title: string;
     description: ReactNode;
     badge?: string;
+    children?: ReactNode;
   }) => (
     <button
       type="button"
@@ -127,25 +118,24 @@ export const WelcomeOfferStep = () => {
       aria-pressed={checked}
       className={`relative w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
         checked
-          ? "border-status-green/40 bg-status-green/[0.06]"
+          ? "border-foreground/30 bg-foreground/[0.04]"
           : "border-border/50 bg-background/70 hover:border-foreground/25 border-shimmer"
       }`}
     >
       <span
         className={`mt-[2px] w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
-          checked ? "border-status-green bg-status-green" : "border-foreground/30 bg-background"
+          checked ? "border-foreground bg-foreground" : "border-foreground/30 bg-background"
         }`}
       >
         {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
       </span>
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1 text-left">
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
           {icon}
           <span className="flex items-center gap-2">
             {title}
             {badge && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-[10px] font-semibold tracking-wide uppercase">
-                <Tag className="w-3 h-3" />
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
                 {badge}
               </span>
             )}
@@ -154,6 +144,7 @@ export const WelcomeOfferStep = () => {
         <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
           {description}
         </span>
+        {children}
       </span>
     </button>
   );
@@ -166,71 +157,89 @@ export const WelcomeOfferStep = () => {
 
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
-          <div className="hidden sm:flex w-[70px] h-[70px] rounded-[15px] bg-background border border-border/40 shadow-sm items-center justify-center mb-[25px]">
-            <Tag className="w-7 h-7 text-foreground/80" strokeWidth={1.25} />
-          </div>
-
           <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
-            Claim 15% off your first order
+            Communication preferences
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Optional. Select both boxes below to unlock your code on this screen, or skip and finish your
-            application.
+            Choose how we keep you in the loop about your pro account.
           </p>
 
           <div className="w-full max-w-[26rem] space-y-[10px]">
             <OptInRow
               checked={smsOn}
               onClick={toggleSms}
-              icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
-              title="Text me offers"
-              badge="Save 15%"
+              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70">SMS</span>}
+              title="Text me when I'm approved to shop & with pro-only deals"
+              badge="Recommended"
               description={
-                hasPhone ? (
-                  <>
-                    Approx. 4 texts/month to{" "}
-                    <span className="inline-flex items-center gap-1">
-                      <span>{formatPhoneNumber(phoneNumber)}</span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Edit phone number"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsEditingPhone(true);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.stopPropagation();
-                            setIsEditingPhone(true);
-                          }
-                        }}
-                        className="inline-flex items-center justify-center text-foreground/40 hover:text-foreground/70 transition-colors"
-                      >
-                        <Pencil className="w-3 h-3" />
+                <>
+                  Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases.
+                  <p className="text-[11px] text-foreground/60 leading-relaxed mt-1.5">
+                    By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
+                    Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+                    Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
+                      className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      Terms
+                    </button>
+                    {" & "}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
+                      className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </p>
+                  {hasPhone && !isEditingPhone && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <Pencil className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-foreground/70">
+                        SMS will be sent to {formatPhoneNumber(phoneNumber)}.
                       </span>
-                    </span>
-                    . Reply STOP to cancel.
-                  </>
-                ) : (
-                  "Add a mobile number to opt in. Approx. 4 texts/month."
-                )
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
+                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                      >
+                        Edit number
+                      </button>
+                    </div>
+                  )}
+                  {!hasPhone && !isEditingPhone && (
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="text-xs text-foreground/70">
+                        No phone number on file.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
+                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                      >
+                        Add number
+                      </button>
+                    </div>
+                  )}
+                </>
               }
             />
             <OptInRow
               checked={emailOn}
               onClick={toggleEmail}
-              icon={<Mail className="w-4 h-4 text-foreground/70" />}
-              title="Email me offers"
-              badge="Save 15%"
-              description="Restocks, pro education, and promos. Unsubscribe anytime."
+              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70">@</span>}
+              title="Email me about promotions, new products & deals"
+              description="Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
             />
 
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
 
             {isEditingPhone && (
-              <div className="space-y-[10px] animate-fade-in text-left pt-[5px]">
+              <div className="space-y-[10px] animate-fade-in text-left pt-[5px]" onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-[10px]">
                   <div className="w-[110px]">
                     <SelectInput
@@ -264,42 +273,6 @@ export const WelcomeOfferStep = () => {
                 </button>
               </div>
             )}
-
-            {unlocked && (
-              <div className="pt-[15px] space-y-[10px] animate-fade-in">
-                <div className="flex items-center justify-center gap-2 text-xs font-medium text-status-green">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Your SALONTRIAL15 code is ready</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={copyCode}
-                  style={{ touchAction: "manipulation" }}
-                  className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl border border-dashed border-accent-red/40 bg-accent-red/5 hover:bg-accent-red/10 transition-colors"
-                  aria-label={`Copy ${DISCOUNT_CODE} code`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Gift className="w-3.5 h-3.5 text-accent-red shrink-0" />
-                    <span className="text-sm font-mono font-semibold text-accent-red tracking-wider">
-                      {DISCOUNT_CODE}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
-                    {copied ? (
-                      <>
-                        <CheckCircle className="w-3.5 h-3.5 text-status-green" />
-                        <span>Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </div>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -307,9 +280,9 @@ export const WelcomeOfferStep = () => {
       {/* Always visible TCPA disclosure, never collapsed or hidden behind a link */}
       <div className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
         <p className="text-[11px] leading-[1.5] text-muted-foreground">
-          By selecting &quot;Text me offers&quot; you agree to receive recurring automated
+          By selecting &quot;Text me when I'm approved to shop & with pro-only deals&quot; you agree to receive recurring automated
           marketing texts (approx. 4/month) from Drop Dead Extensions at the number shown. By
-          selecting &quot;Email me offers&quot; you agree to receive recurring marketing emails.
+          selecting &quot;Email me about promotions, new products & deals&quot; you agree to receive recurring marketing emails.
           Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to
           cancel, HELP for help. See our{" "}
           <button
