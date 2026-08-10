@@ -306,12 +306,11 @@ export const WelcomeOfferStep = () => {
       {/* Always visible TCPA disclosure, never collapsed or hidden behind a link */}
       <div className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
         <p className="text-[11px] leading-[1.5] text-muted-foreground">
-
-          By selecting &quot;Text me offers&quot; you agree to receive recurring automated marketing
-          texts (approx. 4/month) from Drop Dead Extensions at the number shown. By selecting
-          &quot;Email me offers&quot; you agree to receive recurring marketing emails. Consent is not
-          a condition of purchase. Msg &amp; data rates may apply. Reply STOP to cancel, HELP for
-          help. See our{" "}
+          By selecting &quot;Text me my code&quot; you agree to receive recurring automated
+          marketing texts (approx. 4/month) from Drop Dead Extensions at the number shown. By
+          selecting &quot;Email me my code&quot; you agree to receive recurring marketing emails.
+          Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to
+          cancel, HELP for help. See our{" "}
           <button
             type="button"
             onClick={() => setShowTerms(true)}
