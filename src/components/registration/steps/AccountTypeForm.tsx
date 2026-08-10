@@ -102,6 +102,7 @@ export const AccountTypeForm = () => {
     dirtyFields,
     reset,
     getStepNumber,
+    goToNextStep,
   } = useForm();
 
   const validationStatus = getValidationStatus("accountType");
@@ -167,8 +168,11 @@ export const AccountTypeForm = () => {
 
       // No existing progress or same type selected, proceed directly
       executeAccountTypeSelect(type, previousType || null);
+      if (type) {
+        goToNextStep();
+      }
     },
-    [accountType, executeAccountTypeSelect, hasFormProgress]
+    [accountType, executeAccountTypeSelect, hasFormProgress, goToNextStep]
   );
 
   const types: RenderAccountTypeProps[] = [
@@ -261,6 +265,7 @@ export const AccountTypeForm = () => {
         setPendingAccountType={setPendingAccountType}
         executeAccountTypeSelect={executeAccountTypeSelect}
         accountType={accountType}
+        goToNextStep={goToNextStep}
       />
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
