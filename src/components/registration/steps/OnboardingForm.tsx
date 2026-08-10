@@ -223,12 +223,11 @@ export const OnboardingForm = ({
       >
         <div className="relative overflow-hidden rounded-form border border-status-green/30 bg-muted/40 px-6 py-6 text-center">
           <div
-            className="absolute inset-0 pointer-events-none opacity-40"
+            className="absolute inset-0 pointer-events-none opacity-40 animate-shimmer"
             style={{
               background:
-                "linear-gradient(110deg, transparent 25%, hsl(var(--status-green) / 0.15) 50%, transparent 75%)",
+                "linear-gradient(110deg, transparent 25%, hsl(var(--status-green) / 0.22) 50%, transparent 75%)",
               backgroundSize: "200% 100%",
-              animation: "green-shimmer 3.5s ease-in-out infinite",
             }}
           />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-green/40 to-transparent" />
