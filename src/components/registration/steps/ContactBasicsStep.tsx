@@ -5,7 +5,7 @@ import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from 
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { useForm } from "../context";
@@ -103,7 +103,7 @@ export const ContactBasicsStep = () => {
     emailConflict,
     setEmailConflict,
   } = useForm();
-  const validationStatus = getStepValidationStatus(currentStep);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   // sessionStorage-cached lookups to avoid re-calling Shopify for the same
   // value twice in a session (covers back-nav, refresh-into-restore, and
