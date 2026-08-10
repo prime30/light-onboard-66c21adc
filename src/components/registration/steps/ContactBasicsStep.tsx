@@ -509,6 +509,7 @@ export const ContactBasicsStep = () => {
                 error={errors.phoneNumber}
                 placeholder="(555) 123-4567"
                 autoComplete="tel-national"
+                inputMode="tel"
                 isValid={getValidationStatus("phoneNumber") === "complete"}
                 prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
                 onBlur={(event) => {
