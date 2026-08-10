@@ -286,7 +286,9 @@ export const AccountTypeForm = () => {
         {types.map((type, index) => (
           <button
             key={type.id}
+            type="button"
             onClick={() => handleAccountTypeSelect(accountType === type.id ? null : type.id)}
+
             className={cn(
               "relative w-full p-[15px] sm:p-5 rounded-form sm:rounded-[20px] border-2 text-left group overflow-hidden",
               "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
