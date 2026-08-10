@@ -1,5 +1,5 @@
 import { Building2, Users, Check, Headphones, Tag } from "lucide-react";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { cn } from "@/lib/utils";
 import { ValidFieldNames } from "@/lib/validations/auth-schemas";
 import { dirtyFieldOptions, useForm } from "../context";
@@ -10,11 +10,11 @@ const STEP: Step = "business-operation";
 const fieldName: ValidFieldNames = "businessOperationType";
 
 export const BusinessOperationStep = () => {
-  const { getStepValidationStatus, goToNextStep, setValue, watch, getStepNumber } = useForm();
+  const { goToNextStep, setValue, watch, getStepNumber } = useForm();
 
   const { setTransitionDirection, setIsTransitioning } = useModeContext();
 
-  const validationStatus = getStepValidationStatus(STEP);
+  
   const businessOperationType = watch(fieldName);
 
   // Handle business operation type selection with auto-advance
@@ -64,12 +64,7 @@ export const BusinessOperationStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(STEP)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           How do you operate?
         </h1>

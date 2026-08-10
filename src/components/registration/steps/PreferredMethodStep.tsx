@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { cn } from "@/lib/utils";
 import {
   PREFERRED_METHOD_OPTIONS,
@@ -62,9 +62,9 @@ const METHOD_DETAILS: Record<
 };
 
 export const PreferredMethodStep = () => {
-  const { getStepValidationStatus, setValue, watch, getStepNumber, errors } = useForm();
+  const { setValue, watch, getStepNumber, errors } = useForm();
 
-  const validationStatus = getStepValidationStatus(STEP);
+  
   const selected = (watch(fieldName) as PreferredMethod[] | undefined) ?? [];
   const fieldError = errors.preferredMethods;
 

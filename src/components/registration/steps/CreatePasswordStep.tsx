@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CheckMarkIcon } from "@/components/CheckMarkIcon";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { useForm } from "../context";
 
 function PasswordPrefixIcon({ error }: { error: boolean }) {
@@ -80,7 +80,7 @@ export const CreatePasswordStep = () => {
   const navigate = useNavigate();
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
-  const validationStatus = getStepValidationStatus(currentStep);
+  
   const password = (watch("password") as string | undefined) ?? "";
   const confirmPassword = (watch("confirmPassword") as string | undefined) ?? "";
 
@@ -118,12 +118,7 @@ export const CreatePasswordStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(currentStep)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Create your password
         </h1>
