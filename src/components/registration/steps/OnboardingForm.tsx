@@ -102,6 +102,7 @@ const AnimatedProductCount = ({
 
 interface OnboardingFormProps {
   onSignIn: () => void;
+  onStartRegistration?: () => void;
   isRestoring?: boolean;
 }
 
