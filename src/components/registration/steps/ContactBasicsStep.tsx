@@ -94,7 +94,6 @@ export const ContactBasicsStep = () => {
     errors,
     getValidationStatus,
     currentStep,
-    getStepValidationStatus,
     getStepNumber,
     setValue,
     watch,
@@ -103,7 +102,6 @@ export const ContactBasicsStep = () => {
     emailConflict,
     setEmailConflict,
   } = useForm();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   // sessionStorage-cached lookups to avoid re-calling Shopify for the same
   // value twice in a session (covers back-nav, refresh-into-restore, and
