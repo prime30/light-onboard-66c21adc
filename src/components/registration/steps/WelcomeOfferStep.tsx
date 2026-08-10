@@ -175,7 +175,8 @@ export const WelcomeOfferStep = () => {
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Get your SALONTRIAL15 code by confirming where to send it below.
+            Optional. Select both boxes below to unlock your code on this screen, or skip and finish your
+            application.
           </p>
 
           <div className="w-full max-w-[26rem] space-y-[10px]">
@@ -183,12 +184,12 @@ export const WelcomeOfferStep = () => {
               checked={smsOn}
               onClick={toggleSms}
               icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
-              title="Text me my code"
+              title="Text me offers"
               badge="Save 15%"
               description={
                 hasPhone ? (
                   <>
-                    Send SALONTRIAL15 and pro-only updates to{" "}
+                    Approx. 4 texts/month to{" "}
                     <span className="inline-flex items-center gap-1">
                       <span>{formatPhoneNumber(phoneNumber)}</span>
                       <span
@@ -213,7 +214,7 @@ export const WelcomeOfferStep = () => {
                     . Reply STOP to cancel.
                   </>
                 ) : (
-                  "Add a mobile number to get your SALONTRIAL15 code by text."
+                  "Add a mobile number to opt in. Approx. 4 texts/month."
                 )
               }
             />
@@ -221,9 +222,9 @@ export const WelcomeOfferStep = () => {
               checked={emailOn}
               onClick={toggleEmail}
               icon={<Mail className="w-4 h-4 text-foreground/70" />}
-              title="Email me my code"
+              title="Email me offers"
               badge="Save 15%"
-              description="Send SALONTRIAL15, restocks, and pro education to your inbox."
+              description="Restocks, pro education, and promos. Unsubscribe anytime."
             />
 
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
@@ -306,9 +307,9 @@ export const WelcomeOfferStep = () => {
       {/* Always visible TCPA disclosure, never collapsed or hidden behind a link */}
       <div className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
         <p className="text-[11px] leading-[1.5] text-muted-foreground">
-          By selecting &quot;Text me my code&quot; you agree to receive recurring automated
+          By selecting &quot;Text me offers&quot; you agree to receive recurring automated
           marketing texts (approx. 4/month) from Drop Dead Extensions at the number shown. By
-          selecting &quot;Email me my code&quot; you agree to receive recurring marketing emails.
+          selecting &quot;Email me offers&quot; you agree to receive recurring marketing emails.
           Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to
           cancel, HELP for help. See our{" "}
           <button
