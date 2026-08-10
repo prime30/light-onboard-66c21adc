@@ -113,6 +113,35 @@ Deno.serve(async (req) => {
       return json({ ok: true, exists: true, normalized, url, reason: "serializer_bug" });
     }
 
+    // The profile-info endpoint commonly rejects datacenter traffic with 401.
+    // Instagram's lightweight page-data route still resolves usernames without
+    // authentication: existing profiles return 200/201, while missing profiles
+    // return 404. This gives us a deterministic fallback before parsing HTML.
+    try {
+      const controllerProbe = new AbortController();
+      const timeoutProbe = setTimeout(() => controllerProbe.abort(), 6000);
+      const probeRes = await fetch(`${url}?__a=1&__d=dis`, {
+        method: "GET",
+        redirect: "follow",
+        signal: controllerProbe.signal,
+        headers: {
+          ...commonHeaders,
+          Accept: "application/json,text/plain,*/*",
+          "X-Requested-With": "XMLHttpRequest",
+          Referer: "https://www.instagram.com/",
+        },
+      });
+      clearTimeout(timeoutProbe);
+      if (probeRes.status === 404) {
+        return json({ ok: true, exists: false, normalized, url, reason: "page_data_not_found" });
+      }
+      if (probeRes.status === 200 || probeRes.status === 201) {
+        return json({ ok: true, exists: true, normalized, url, reason: "page_data" });
+      }
+    } catch {
+      // Continue to the HTML and mirror fallbacks.
+    }
+
     // Fallback: fetch the profile page and inspect status / markers.
     const controller2 = new AbortController();
     const timeout2 = setTimeout(() => controller2.abort(), 6000);
