@@ -175,7 +175,8 @@ export const WelcomeOfferStep = () => {
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Get your SALONTRIAL15 code by confirming where to send it below.
+            Optional. Select both boxes below to unlock your code on this screen, or skip and finish your
+            application.
           </p>
 
           <div className="w-full max-w-[26rem] space-y-[10px]">
