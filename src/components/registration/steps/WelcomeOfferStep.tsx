@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, ArrowRight, Check, CheckCircle, Copy, Gift, Mail, MessageSquare, Pencil, Tag } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { dirtyFieldOptions, useForm } from "../context";
@@ -51,7 +51,7 @@ export const WelcomeOfferStep = () => {
     "phoneCountryCode",
   ]);
 
-  const validationStatus = getStepValidationStatus(currentStep);
+  
 
   const hasPhone = !!(phoneNumber && String(phoneNumber).trim().length >= 7);
   const phoneValid = toE164(phoneNumber, phoneCountryCode).ok;
@@ -163,12 +163,7 @@ export const WelcomeOfferStep = () => {
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
       <div className="space-y-2 text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-1 animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(currentStep)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
       </div>
 
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
