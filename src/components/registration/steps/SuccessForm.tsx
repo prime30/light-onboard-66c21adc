@@ -735,16 +735,18 @@ export const SuccessForm = () => {
       {!showFounderCallNudge && !welcomeOfferEnabled && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
-            <div className="relative overflow-hidden p-5 rounded-[20px] border border-status-green/25 bg-gradient-to-br from-status-green/10 via-muted/50 to-status-green/5 text-left">
+            <div className="relative overflow-hidden p-5 rounded-[20px] border border-status-green/30 bg-muted/40 text-left">
               <div
-                className="absolute inset-0 pointer-events-none opacity-40"
+                className="absolute inset-0 pointer-events-none opacity-80"
                 style={{
                   background:
-                    "linear-gradient(110deg, transparent 25%, hsl(var(--status-green) / 0.22) 50%, transparent 75%)",
+                    "linear-gradient(110deg, transparent 25%, hsl(var(--status-green) / 0.32) 50%, transparent 75%)",
                   backgroundSize: "200% 100%",
                   animation: "shimmer 4s linear infinite",
                 }}
               />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-green/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-status-green/20 to-transparent" />
               <div className="relative">
               <p className="text-[10px] font-medium text-status-green uppercase tracking-wider">
                 {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
