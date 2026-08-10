@@ -735,10 +735,21 @@ export const SuccessForm = () => {
       {!showFounderCallNudge && !welcomeOfferEnabled && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
-            <div className="p-5 rounded-[20px] border border-status-green/25 bg-gradient-to-br from-status-green/10 via-muted/50 to-status-green/5 text-left">
+            <div className="relative overflow-hidden p-5 rounded-[20px] border border-status-green/25 bg-gradient-to-br from-status-green/10 via-muted/50 to-status-green/5 text-left">
+              <div
+                className="absolute inset-0 pointer-events-none opacity-40"
+                style={{
+                  background:
+                    "linear-gradient(110deg, transparent 25%, hsl(var(--status-green) / 0.22) 50%, transparent 75%)",
+                  backgroundSize: "200% 100%",
+                  animation: "shimmer 4s linear infinite",
+                }}
+              />
+              <div className="relative">
               <p className="text-[10px] font-medium text-status-green uppercase tracking-wider">
                 {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
               </p>
+
               <p className="mt-1 text-sm font-semibold text-foreground">
                 {smsSubscribed
                   ? "Your 15% off pro trial code is ready"
@@ -835,8 +846,9 @@ export const SuccessForm = () => {
                   </div>
                 </>
               )}
-
+              </div>
             </div>
+
           )}
           <Button
             type="button"
