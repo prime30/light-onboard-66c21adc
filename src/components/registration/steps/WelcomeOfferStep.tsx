@@ -194,7 +194,7 @@ export const WelcomeOfferStep = () => {
             <OptInRow
               checked={smsOn}
               onClick={toggleSms}
-              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70 shrink-0">SMS</span>}
+              channel="Text messages"
               title="Text me when I'm approved to shop & with pro-only deals"
               badge="Recommended"
               meta={
