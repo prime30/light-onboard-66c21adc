@@ -25,8 +25,6 @@ export const WelcomeOfferStep = () => {
     watch,
     errors,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
     setValue,
     goToNextStep,
     goToPrevStep,

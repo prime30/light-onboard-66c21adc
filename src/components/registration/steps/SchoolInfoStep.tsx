@@ -137,8 +137,6 @@ export const SchoolInfoStep = () => {
     errors: rawErrors,
     getValidationStatus,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
     showValidationErrors,
   } = useForm();
 

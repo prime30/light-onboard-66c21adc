@@ -20,8 +20,6 @@ export const PreferencesStep = () => {
     watch,
     errors,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
     setValue,
   } = useForm();
 
