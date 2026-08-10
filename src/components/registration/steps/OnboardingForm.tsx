@@ -126,6 +126,19 @@ export const OnboardingForm = ({
   isRestoring = false,
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
+  const { enabled: autoApprove } = useAutoApproval();
+
+  const finalStep = autoApprove
+    ? {
+        label: "Access your pro account",
+        description: "Approval is automatic - unlock wholesale pricing and pro benefits right away.",
+      }
+    : {
+        label: "Follow post-approval instructions",
+        description: "Get approved and unlock wholesale pricing and pro benefits.",
+      };
+
+  const steps = [...STEPS, finalStep];
 
   return (
     <div className="space-y-10 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
