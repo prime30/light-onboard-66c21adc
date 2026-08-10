@@ -171,12 +171,11 @@ export const WelcomeOfferStep = () => {
           </div>
 
           <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
-            Get 15% off your first order
+            Claim 15% off your first order
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Optional. Select both boxes below to unlock your code, or skip and finish your
-            application.
+            Get your SALONTRIAL15 code by confirming where to send it below.
           </p>
 
           <div className="w-full max-w-[26rem] space-y-[10px]">
