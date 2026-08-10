@@ -22,7 +22,7 @@ export const slides = [
 ];
 
 export const features = [
-  { icon: Gift, label: "Rewards", desc: "On every order" },
+  { icon: Gift, label: "15% off", desc: "Your first order" },
   { icon: Truck, label: "Free shipping", desc: "2-day delivery on $500+" },
   { icon: Tag, label: "Pro prices", desc: "Wholesale rates" },
 ];
