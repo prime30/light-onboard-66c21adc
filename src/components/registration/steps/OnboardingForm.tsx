@@ -130,8 +130,8 @@ export const OnboardingForm = ({
 
   const finalStep = autoApprove
     ? {
-        label: "Access your pro account",
-        description: "Approval is automatic - unlock wholesale pricing and pro benefits right away.",
+        label: "Quick verification",
+        description: "Your credentials are verified quickly so you can unlock wholesale pricing and pro benefits.",
       }
     : {
         label: "Follow post-approval instructions",
