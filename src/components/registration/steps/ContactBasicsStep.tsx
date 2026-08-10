@@ -94,7 +94,6 @@ export const ContactBasicsStep = () => {
     errors,
     getValidationStatus,
     currentStep,
-    getStepNumber,
     setValue,
     watch,
     setError,

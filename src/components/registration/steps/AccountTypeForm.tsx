@@ -101,7 +101,6 @@ export const AccountTypeForm = () => {
     getValidationStatus,
     dirtyFields,
     reset,
-    getStepNumber,
     goToNextStep,
   } = useForm();
 

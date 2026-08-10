@@ -60,8 +60,6 @@ export const BusinessLocationStep = () => {
     errors: rawErrors,
     getValidationStatus,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
   } = useForm();
 
   // Cast errors to any to handle discriminated union field access

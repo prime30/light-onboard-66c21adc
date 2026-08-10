@@ -70,8 +70,6 @@ export const CreatePasswordStep = () => {
     watch,
     getValidationStatus,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
     clearErrors,
     setError,
     errorActions,

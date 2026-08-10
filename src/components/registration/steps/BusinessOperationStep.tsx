@@ -10,7 +10,7 @@ const STEP: Step = "business-operation";
 const fieldName: ValidFieldNames = "businessOperationType";
 
 export const BusinessOperationStep = () => {
-  const { goToNextStep, setValue, watch, getStepNumber } = useForm();
+  const { goToNextStep, setValue, watch } = useForm();
 
   const { setTransitionDirection, setIsTransitioning } = useModeContext();
 

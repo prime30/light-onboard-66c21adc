@@ -62,7 +62,7 @@ const METHOD_DETAILS: Record<
 };
 
 export const PreferredMethodStep = () => {
-  const { setValue, watch, getStepNumber, errors } = useForm();
+  const { setValue, watch, errors } = useForm();
 
   
   const selected = (watch(fieldName) as PreferredMethod[] | undefined) ?? [];

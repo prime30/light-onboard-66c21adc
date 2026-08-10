@@ -122,7 +122,7 @@ const BoxGrid = ({
 
 
 export const MonthlyOrderVolumeStep = () => {
-  const { setValue, watch, getStepNumber, errors } = useForm();
+  const { setValue, watch, errors } = useForm();
 
   
   const selected = watch(fieldName) as MonthlyOrderVolume | undefined;
