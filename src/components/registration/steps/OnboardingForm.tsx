@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, Gift, GraduationCap, Lock, Tag } from "lucide-react";
+import { Check, GraduationCap, Lock, Tag } from "lucide-react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { FadeText } from "../FadeText";
 import { cn } from "@/lib/utils";
