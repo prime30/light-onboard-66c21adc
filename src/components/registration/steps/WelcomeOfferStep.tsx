@@ -102,6 +102,8 @@ export const WelcomeOfferStep = () => {
     title,
     description,
     badge,
+    meta,
+    legal,
     children,
   }: {
     checked: boolean;
@@ -110,44 +112,64 @@ export const WelcomeOfferStep = () => {
     title: string;
     description: ReactNode;
     badge?: string;
+    meta?: ReactNode;
+    legal?: ReactNode;
     children?: ReactNode;
   }) => (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`relative w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
+      className={`relative w-full text-left p-[25px] rounded-[15px] border transition-all duration-300 ring-1 ${
         checked
-          ? "border-foreground/30 bg-foreground/[0.04]"
-          : "border-border/50 bg-background/70 hover:border-foreground/25 border-shimmer"
+          ? "border-border/50 bg-background/70 backdrop-blur-xl ring-foreground/[0.05] shadow-card"
+          : "border-border/40 bg-background/40 backdrop-blur-md ring-foreground/[0.03] hover:border-foreground/25 border-shimmer"
       }`}
     >
-      <span
-        className={`mt-[2px] w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
-          checked ? "border-foreground bg-foreground" : "border-foreground/30 bg-background"
-        }`}
-      >
-        {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-          {icon}
-          <span className="flex items-center gap-2">
-            {title}
+      <span className="flex gap-[20px]">
+        <span
+          className={`mt-[2px] w-[25px] h-[25px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            checked
+              ? "border-foreground bg-foreground shadow-lg shadow-foreground/20"
+              : "border-foreground/25 bg-background"
+          }`}
+        >
+          {checked && <Check className="w-[15px] h-[15px] text-background" strokeWidth={3} />}
+        </span>
+
+        <span className="min-w-0 flex-1 block text-left">
+          <span className="flex items-start justify-between gap-[15px] mb-[5px]">
+            <span className="flex items-center gap-2 text-[15px] sm:text-base font-medium leading-snug text-foreground">
+              {icon}
+              <span>{title}</span>
+            </span>
             {badge && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+              <span className="shrink-0 inline-flex items-center px-[8px] py-[3px] rounded-[5px] bg-foreground font-termina text-[9px] font-medium uppercase tracking-[0.12em] text-background">
                 {badge}
               </span>
             )}
           </span>
+
+          {meta && <span className="block mb-[15px]">{meta}</span>}
+
+          <span className="block text-[13px] text-muted-foreground leading-[1.6]">
+            {description}
+          </span>
+
+          {legal && (
+            <span className="block mt-[20px] rounded-[10px] border border-border/50 bg-muted/40 p-[15px]">
+              <span className="block text-[11px] leading-[1.6] text-muted-foreground/80">
+                {legal}
+              </span>
+            </span>
+          )}
+
+          {children}
         </span>
-        <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
-          {description}
-        </span>
-        {children}
       </span>
     </button>
   );
+
 
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
