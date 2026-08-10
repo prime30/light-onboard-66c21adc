@@ -268,7 +268,7 @@ export const WelcomeOfferStep = () => {
               <div className="pt-[15px] space-y-[10px] animate-fade-in">
                 <div className="flex items-center justify-center gap-2 text-xs font-medium text-status-green">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Your code is unlocked</span>
+                  <span>Your SALONTRIAL15 code is ready</span>
                 </div>
                 <button
                   type="button"
