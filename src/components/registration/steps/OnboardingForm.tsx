@@ -209,7 +209,7 @@ export const OnboardingForm = ({
               <div className="absolute left-0 top-0.5 w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center z-10 shadow-sm">
                 <span className="font-termina font-medium text-sm text-foreground">{i + 1}</span>
               </div>
-              <div>
+              <div className="flex items-center h-8">
                 <h3 className="text-base font-medium text-foreground">{step.label}</h3>
               </div>
             </div>
