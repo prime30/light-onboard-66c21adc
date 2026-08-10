@@ -846,8 +846,9 @@ export const SuccessForm = () => {
                   </div>
                 </>
               )}
-
+              </div>
             </div>
+
           )}
           <Button
             type="button"
