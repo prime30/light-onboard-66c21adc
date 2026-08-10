@@ -199,7 +199,7 @@ export const OnboardingForm = ({
 
       {/* Steps timeline */}
       <div className="w-full max-w-md mx-auto relative animate-stagger-2">
-        <div className="absolute left-4 top-3 bottom-3 w-px bg-border" />
+        <div className="absolute left-4 top-3 bottom-5 w-px bg-border" />
         <div className="space-y-6">
           {steps.map((step, i) => (
             <div
