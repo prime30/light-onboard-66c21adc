@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Check, GraduationCap, Lock, Tag } from "lucide-react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
+import { useAutoApproval } from "@/lib/app-settings";
 import { FadeText } from "../FadeText";
 import { cn } from "@/lib/utils";
 
