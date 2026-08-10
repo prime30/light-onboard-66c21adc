@@ -102,6 +102,8 @@ export const WelcomeOfferStep = () => {
     title,
     description,
     badge,
+    meta,
+    legal,
     children,
   }: {
     checked: boolean;
@@ -110,44 +112,64 @@ export const WelcomeOfferStep = () => {
     title: string;
     description: ReactNode;
     badge?: string;
+    meta?: ReactNode;
+    legal?: ReactNode;
     children?: ReactNode;
   }) => (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`relative w-full flex items-start gap-[15px] text-left p-[15px] rounded-[15px] border transition-colors ${
+      className={`relative w-full text-left p-[25px] rounded-[15px] border transition-all duration-300 ring-1 ${
         checked
-          ? "border-foreground/30 bg-foreground/[0.04]"
-          : "border-border/50 bg-background/70 hover:border-foreground/25 border-shimmer"
+          ? "border-border/50 bg-background/70 backdrop-blur-xl ring-foreground/[0.05] shadow-card"
+          : "border-border/40 bg-background/40 backdrop-blur-md ring-foreground/[0.03] hover:border-foreground/25 border-shimmer"
       }`}
     >
-      <span
-        className={`mt-[2px] w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
-          checked ? "border-foreground bg-foreground" : "border-foreground/30 bg-background"
-        }`}
-      >
-        {checked && <Check className="w-4 h-4 text-background" strokeWidth={3} />}
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-          {icon}
-          <span className="flex items-center gap-2">
-            {title}
+      <span className="flex gap-[20px]">
+        <span
+          className={`mt-[2px] w-[25px] h-[25px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            checked
+              ? "border-foreground bg-foreground shadow-lg shadow-foreground/20"
+              : "border-foreground/25 bg-background"
+          }`}
+        >
+          {checked && <Check className="w-[15px] h-[15px] text-background" strokeWidth={3} />}
+        </span>
+
+        <span className="min-w-0 flex-1 block text-left">
+          <span className="flex items-start justify-between gap-[15px] mb-[5px]">
+            <span className="flex items-center gap-2 text-[15px] sm:text-base font-medium leading-snug text-foreground">
+              {icon}
+              <span>{title}</span>
+            </span>
             {badge && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-foreground text-[10px] font-medium uppercase tracking-[0.1em] text-background">
+              <span className="shrink-0 inline-flex items-center px-[8px] py-[3px] rounded-[5px] bg-foreground font-termina text-[9px] font-medium uppercase tracking-[0.12em] text-background">
                 {badge}
               </span>
             )}
           </span>
+
+          {meta && <span className="block mb-[15px]">{meta}</span>}
+
+          <span className="block text-[13px] text-muted-foreground leading-[1.6]">
+            {description}
+          </span>
+
+          {legal && (
+            <span className="block mt-[20px] rounded-[10px] border border-border/50 bg-muted/40 p-[15px]">
+              <span className="block text-[11px] leading-[1.6] text-muted-foreground/80">
+                {legal}
+              </span>
+            </span>
+          )}
+
+          {children}
         </span>
-        <span className="block text-xs text-muted-foreground mt-[4px] leading-[1.5]">
-          {description}
-        </span>
-        {children}
       </span>
     </button>
   );
+
 
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
@@ -165,76 +187,66 @@ export const WelcomeOfferStep = () => {
             Choose how we keep you in the loop about your pro account.
           </p>
 
-          <div className="w-full max-w-[26rem] space-y-[10px]">
+          <div className="w-full max-w-[30rem] space-y-[20px]">
             <OptInRow
               checked={smsOn}
               onClick={toggleSms}
-              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70">SMS</span>}
+              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70 shrink-0">SMS</span>}
               title="Text me when I'm approved to shop & with pro-only deals"
               badge="Recommended"
-              description={
+              meta={
+                !isEditingPhone && (
+                  <span className="flex flex-wrap items-center gap-[5px] text-[13px] text-muted-foreground">
+                    <Pencil className="w-3 h-3 shrink-0" />
+                    <span>
+                      {hasPhone
+                        ? `Sending to ${formatPhoneNumber(phoneNumber)}`
+                        : "No phone number on file"}
+                    </span>
+                    <span className="text-border">&bull;</span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
+                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
+                    >
+                      {hasPhone ? "Edit number" : "Add number"}
+                    </button>
+                  </span>
+                )
+              }
+              description="Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases."
+              legal={
                 <>
-                  Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases.
-                  <p className="text-[11px] text-foreground/60 leading-relaxed mt-1.5">
-                    By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
-                    Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
-                    Msg & data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
-                      className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                    >
-                      Terms
-                    </button>
-                    {" & "}
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
-                      className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                    >
-                      Privacy Policy
-                    </button>
-                    .
-                  </p>
-                  {hasPhone && !isEditingPhone && (
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <Pencil className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs text-foreground/70">
-                        SMS will be sent to {formatPhoneNumber(phoneNumber)}.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
-                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                      >
-                        Edit number
-                      </button>
-                    </div>
-                  )}
-                  {!hasPhone && !isEditingPhone && (
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <span className="text-xs text-foreground/70">
-                        No phone number on file.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
-                        className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                      >
-                        Add number
-                      </button>
-                    </div>
-                  )}
+                  By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
+                  Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+                  Msg &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
+                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                  >
+                    Terms
+                  </button>
+                  {" & "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
+                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
                 </>
               }
             />
             <OptInRow
               checked={emailOn}
               onClick={toggleEmail}
-              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70">@</span>}
+              icon={<span className="w-4 h-4 rounded-full border border-foreground/40 flex items-center justify-center text-[9px] font-medium text-foreground/70 shrink-0">@</span>}
               title="Email me about promotions, new products & deals"
               description="Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
             />
+
 
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
 
