@@ -123,10 +123,12 @@ const STEPS = [
 
 export const OnboardingForm = ({
   onSignIn,
+  onStartRegistration,
   isRestoring = false,
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
   const { enabled: autoApprove } = useAutoApproval();
+  const [offerActive, setOfferActive] = useState(false);
 
   const finalStep = autoApprove
     ? {
