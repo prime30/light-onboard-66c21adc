@@ -749,18 +749,18 @@ export const SuccessForm = () => {
               <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-status-green/20 to-transparent" />
               <div className="relative">
               <p className="text-[10px] font-medium text-status-green uppercase tracking-wider">
-                {smsSubscribed ? "15% off unlocked" : "Subscriber-only offer"}
+                {smsSubscribed ? "15% off ready" : "Complete your code"}
               </p>
 
               <p className="mt-1 text-sm font-semibold text-foreground">
                 {smsSubscribed
-                  ? "Your 15% off pro trial code is ready"
-                  : "Subscribe to texts and email to get 15% off your first order"}
+                  ? "Your SALONTRIAL15 code is ready"
+                  : "Confirm where to send your SALONTRIAL15 code"}
               </p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                 {smsSubscribed
                   ? "We don't give away free samples - as a premium, small-batch business, every unit matters. Use this code to feel the product in hand, see how it holds up, and invest in extensions you'll trust to offer your clients."
-                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. You haven't opted in to both yet - turn on what's missing below and the code unlocks right away."}
+                  : "This 15% off pro trial code is reserved for stylists subscribed to both our texts and emails. Turn on what's missing below and the full code unlocks right away."}
               </p>
               {smsSubscribed ? (
                 <button
