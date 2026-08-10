@@ -166,13 +166,6 @@ export const OnboardingForm = ({
         >
           Apply for pro pricing
         </FadeText>
-        <FadeText
-          as="p"
-          className="text-base text-muted-foreground/80 leading-relaxed max-w-sm mx-auto"
-        >
-          Unlock wholesale pricing on the industries best{" "}
-          <span className="whitespace-nowrap">hair and tools.</span>
-        </FadeText>
       </div>
 
 
