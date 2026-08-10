@@ -221,7 +221,7 @@ export const OnboardingForm = ({
         </div>
       </div>
 
-      {/* Offer highlight — bigger and more noticeable */}
+      {/* Offer highlight — locked teaser, code revealed only after opt-in */}
       <div
         className={cn(
           "w-full max-w-md mx-auto animate-stagger-3",
@@ -233,20 +233,16 @@ export const OnboardingForm = ({
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
           <div className="relative flex flex-col items-center gap-2">
             <div className="inline-flex items-center gap-2 text-muted-foreground">
-              <Gift className="w-5 h-5" strokeWidth={1.5} />
+              <Lock className="w-4 h-4" strokeWidth={1.5} />
               <span className="text-[11px] uppercase tracking-widest font-semibold">
-                Limited offer
+                Unlock after approval
               </span>
             </div>
             <div className="text-4xl sm:text-5xl font-termina font-medium uppercase tracking-[-0.006em] text-foreground leading-none">
               15% Off
             </div>
             <p className="text-sm text-muted-foreground max-w-[260px]">
-              Use code{" "}
-              <span className="inline-flex items-center rounded-md bg-background border border-border/60 px-2 py-1 text-sm font-semibold text-foreground tracking-wide">
-                SALONTRIAL15
-              </span>{" "}
-              on your first order after approval.
+              A welcome code will be revealed after you complete your application and opt in to SMS and email updates.
             </p>
           </div>
         </div>
