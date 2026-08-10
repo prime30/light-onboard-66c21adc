@@ -201,7 +201,7 @@ export const OnboardingForm = ({
       <div className="w-full max-w-md mx-auto relative animate-stagger-2">
         <div className="absolute left-4 top-3 bottom-3 w-px bg-border" />
         <div className="space-y-6">
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <div
               key={i}
               className="relative pl-12 opacity-0 animate-step-card-enter"
