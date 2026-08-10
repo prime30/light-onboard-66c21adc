@@ -659,7 +659,7 @@ export const ContactBasicsStep = () => {
           )}
         </div>
 
-      </div>
+      </form>
     </div>
   );
 };
