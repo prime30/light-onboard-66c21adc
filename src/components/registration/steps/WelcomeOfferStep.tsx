@@ -184,12 +184,12 @@ export const WelcomeOfferStep = () => {
               checked={smsOn}
               onClick={toggleSms}
               icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
-              title="Text me my code"
+              title="Text me offers"
               badge="Save 15%"
               description={
                 hasPhone ? (
                   <>
-                    Send SALONTRIAL15 and pro-only updates to{" "}
+                    Approx. 4 texts/month to{" "}
                     <span className="inline-flex items-center gap-1">
                       <span>{formatPhoneNumber(phoneNumber)}</span>
                       <span
@@ -214,7 +214,7 @@ export const WelcomeOfferStep = () => {
                     . Reply STOP to cancel.
                   </>
                 ) : (
-                  "Add a mobile number to get your SALONTRIAL15 code by text."
+                  "Add a mobile number to opt in. Approx. 4 texts/month."
                 )
               }
             />
@@ -222,9 +222,9 @@ export const WelcomeOfferStep = () => {
               checked={emailOn}
               onClick={toggleEmail}
               icon={<Mail className="w-4 h-4 text-foreground/70" />}
-              title="Email me my code"
+              title="Email me offers"
               badge="Save 15%"
-              description="Send SALONTRIAL15, restocks, and pro education to your inbox."
+              description="Restocks, pro education, and promos. Unsubscribe anytime."
             />
 
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
