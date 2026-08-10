@@ -171,12 +171,11 @@ export const WelcomeOfferStep = () => {
           </div>
 
           <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
-            Get 15% off your first order
+            Claim 15% off your first order
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Optional. Select both boxes below to unlock your code, or skip and finish your
-            application.
+            Get your SALONTRIAL15 code by confirming where to send it below.
           </p>
 
           <div className="w-full max-w-[26rem] space-y-[10px]">
@@ -184,12 +183,12 @@ export const WelcomeOfferStep = () => {
               checked={smsOn}
               onClick={toggleSms}
               icon={<MessageSquare className="w-4 h-4 text-foreground/70" />}
-              title="Text me offers"
+              title="Text me my code"
               badge="Save 15%"
               description={
                 hasPhone ? (
                   <>
-                    Approx. 4 texts/month to{" "}
+                    Send SALONTRIAL15 and pro-only updates to{" "}
                     <span className="inline-flex items-center gap-1">
                       <span>{formatPhoneNumber(phoneNumber)}</span>
                       <span
@@ -214,7 +213,7 @@ export const WelcomeOfferStep = () => {
                     . Reply STOP to cancel.
                   </>
                 ) : (
-                  "Add a mobile number to opt in. Approx. 4 texts/month."
+                  "Add a mobile number to get your SALONTRIAL15 code by text."
                 )
               }
             />
@@ -222,9 +221,9 @@ export const WelcomeOfferStep = () => {
               checked={emailOn}
               onClick={toggleEmail}
               icon={<Mail className="w-4 h-4 text-foreground/70" />}
-              title="Email me offers"
+              title="Email me my code"
               badge="Save 15%"
-              description="Restocks, pro education, and promos. Unsubscribe anytime."
+              description="Send SALONTRIAL15, restocks, and pro education to your inbox."
             />
 
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
@@ -269,7 +268,7 @@ export const WelcomeOfferStep = () => {
               <div className="pt-[15px] space-y-[10px] animate-fade-in">
                 <div className="flex items-center justify-center gap-2 text-xs font-medium text-status-green">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Your code is unlocked</span>
+                  <span>Your SALONTRIAL15 code is ready</span>
                 </div>
                 <button
                   type="button"
@@ -307,12 +306,11 @@ export const WelcomeOfferStep = () => {
       {/* Always visible TCPA disclosure, never collapsed or hidden behind a link */}
       <div className="mx-auto max-w-[32rem] px-5 text-center animate-stagger-3">
         <p className="text-[11px] leading-[1.5] text-muted-foreground">
-
-          By selecting &quot;Text me offers&quot; you agree to receive recurring automated marketing
-          texts (approx. 4/month) from Drop Dead Extensions at the number shown. By selecting
-          &quot;Email me offers&quot; you agree to receive recurring marketing emails. Consent is not
-          a condition of purchase. Msg &amp; data rates may apply. Reply STOP to cancel, HELP for
-          help. See our{" "}
+          By selecting &quot;Text me my code&quot; you agree to receive recurring automated
+          marketing texts (approx. 4/month) from Drop Dead Extensions at the number shown. By
+          selecting &quot;Email me my code&quot; you agree to receive recurring marketing emails.
+          Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to
+          cancel, HELP for help. See our{" "}
           <button
             type="button"
             onClick={() => setShowTerms(true)}
