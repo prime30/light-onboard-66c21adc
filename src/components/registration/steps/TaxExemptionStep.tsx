@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router";
 import { Info, Check, ArrowUpRight, Calendar } from "lucide-react";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg";
@@ -9,8 +9,7 @@ import { MultiFileUpload } from "../MultiFileUpload";
 import { UploadFileItem } from "@/contexts";
 
 export const TaxExemptionStep = () => {
-  const { watch, setValue, currentStep, getStepValidationStatus, getStepNumber, errors } =
-    useForm();
+  const { watch, setValue, currentStep, errors } = useForm();
 
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
@@ -20,7 +19,7 @@ export const TaxExemptionStep = () => {
   const watchedValues = watch(["taxExempt", "taxExemptFile"]);
   const [taxExempt, taxExemptFile] = watchedValues;
 
-  const validationStatus = getStepValidationStatus(currentStep);
+  
   const selectionError = taxExempt === null;
 
   const handleYesClick = () => {
@@ -52,12 +51,7 @@ export const TaxExemptionStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(currentStep)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Do you have a tax exemption?
         </h1>

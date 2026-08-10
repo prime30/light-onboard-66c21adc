@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { toast } from "sonner";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { cn } from "@/lib/utils";
 import {
   MONTHLY_ORDER_VOLUME_OPTIONS,
@@ -122,9 +122,9 @@ const BoxGrid = ({
 
 
 export const MonthlyOrderVolumeStep = () => {
-  const { getStepValidationStatus, setValue, watch, getStepNumber, errors } = useForm();
+  const { setValue, watch, errors } = useForm();
 
-  const validationStatus = getStepValidationStatus(STEP);
+  
   const selected = watch(fieldName) as MonthlyOrderVolume | undefined;
   const fieldError = errors.monthlyOrderVolume;
 
@@ -143,12 +143,7 @@ export const MonthlyOrderVolumeStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(STEP)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           How many extensions do you order per month currently?
         </h1>

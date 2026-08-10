@@ -5,7 +5,7 @@ import { MultiFileUpload } from "../MultiFileUpload";
 import { UploadFileItem } from "@/contexts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { StateIcon, hasStateIcon } from "@/components/StateIcon";
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
@@ -60,8 +60,6 @@ export const BusinessLocationStep = () => {
     errors: rawErrors,
     getValidationStatus,
     currentStep,
-    getStepValidationStatus,
-    getStepNumber,
   } = useForm();
 
   // Cast errors to any to handle discriminated union field access
@@ -98,7 +96,7 @@ export const BusinessLocationStep = () => {
   };
 
   const isStudent = accountType === "student";
-  const validationStatus = getStepValidationStatus(currentStep);
+  
 
   // Get country metadata
   const selectedCountry = countries.find((c) => c.code === countryCode);
@@ -180,12 +178,7 @@ export const BusinessLocationStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(currentStep)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           {isStudent ? "Where are you located?" : "Where is your business located?"}
         </h1>

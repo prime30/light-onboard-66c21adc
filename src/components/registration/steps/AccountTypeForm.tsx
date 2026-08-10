@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   Search,
 } from "lucide-react";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -101,11 +101,10 @@ export const AccountTypeForm = () => {
     getValidationStatus,
     dirtyFields,
     reset,
-    getStepNumber,
     goToNextStep,
   } = useForm();
 
-  const validationStatus = getValidationStatus("accountType");
+  
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
   const [showNotStylist, setShowNotStylist] = useState(false);
@@ -281,12 +280,7 @@ export const AccountTypeForm = () => {
         goToNextStep={goToNextStep}
       />
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status={validationStatus} />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber("account-type")}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Tell us who you are
         </h1>

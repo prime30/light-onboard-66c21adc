@@ -1,5 +1,5 @@
 import { ShieldCheck, AlertCircle } from "lucide-react";
-import { StepValidationIcon } from "@/components/registration/StepValidationIcon";
+
 import { FilePreviewGrid } from "@/components/registration/FilePreviewThumbnail";
 import { useForm } from "@/components/registration/context/FormContext";
 import { countryCodes } from "@/data/country-codes";
@@ -96,7 +96,7 @@ const formatPhoneDisplay = (phoneCountryCode: string, phoneNumber: string) => {
 };
 
 export const SummaryForm = () => {
-  const { watch, currentStep, getStepNumber, errors, errorActions, submitErrorMessage } = useForm();
+  const { watch, currentStep, errors, errorActions, submitErrorMessage } = useForm();
   const navigate = useNavigate();
   const errorRef = useRef<HTMLDivElement>(null);
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
@@ -183,12 +183,7 @@ export const SummaryForm = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-          <StepValidationIcon status="complete" />
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-            Step {getStepNumber(currentStep)}
-          </span>
-        </div>
+        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Review Your Application
         </h1>
