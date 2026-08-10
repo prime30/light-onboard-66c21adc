@@ -468,6 +468,10 @@ const Auth = () => {
                 setModeTransitionDirection("right");
                 navigate("/login");
               }}
+              onStartRegistration={() => {
+                setModeTransitionDirection("right");
+                setCurrentStep("account-type");
+              }}
             />
           )}
           {currentStep !== "onboarding" && (
