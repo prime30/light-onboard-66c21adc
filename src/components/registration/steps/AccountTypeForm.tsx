@@ -154,6 +154,18 @@ export const AccountTypeForm = () => {
     [setValue, watch, reset]
   );
 
+  // Auto-advance is deferred to an effect: the dynamic step list is derived
+  // from accountType, so calling goToNextStep() in the same tick would use the
+  // stale one-item step list and jump straight to the summary.
+  const [pendingAdvance, setPendingAdvance] = useState(false);
+
+  useEffect(() => {
+    if (!pendingAdvance) return;
+    if (!accountType) return;
+    setPendingAdvance(false);
+    goToNextStep();
+  }, [pendingAdvance, accountType, goToNextStep]);
+
   // Handle account type selection with auto-advance
   const handleAccountTypeSelect = useCallback(
     (type: AccountType | null) => {
@@ -169,11 +181,12 @@ export const AccountTypeForm = () => {
       // No existing progress or same type selected, proceed directly
       executeAccountTypeSelect(type, previousType || null);
       if (type) {
-        goToNextStep();
+        setPendingAdvance(true);
       }
     },
-    [accountType, executeAccountTypeSelect, hasFormProgress, goToNextStep]
+    [accountType, executeAccountTypeSelect, hasFormProgress]
   );
+
 
   const types: RenderAccountTypeProps[] = [
     {
