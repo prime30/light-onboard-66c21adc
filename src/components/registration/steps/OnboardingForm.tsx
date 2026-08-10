@@ -117,7 +117,7 @@ const STEPS = [
   },
   {
     label: "Provide your license number",
-    description: "Upload your license so we can verify you're a professional.",
+    description: "Share your license number so we can verify you're a professional.",
   },
 ];
 
