@@ -175,16 +175,6 @@ export const OnboardingForm = ({
         </FadeText>
       </div>
 
-      {/* Offer callout - visible before the form so it can actually motivate signup */}
-      <div className="flex justify-center animate-stagger-2">
-        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-form border border-border/60 bg-muted/50 max-w-md">
-          <Gift className="w-4 h-4 flex-shrink-0 text-foreground/70" strokeWidth={1.5} />
-          <p className="text-xs sm:text-[13px] leading-[1.45] text-muted-foreground">
-            <span className="font-medium text-foreground">15% off your first order</span> when you
-            opt in to texts and emails at the end of your application.
-          </p>
-        </div>
-      </div>
 
       {/* Trust badges */}
       <div className="flex flex-wrap justify-center gap-2.5 animate-stagger-2">
@@ -231,41 +221,35 @@ export const OnboardingForm = ({
         </div>
       </div>
 
-      {/* Benefits highlight with animated counters */}
+      {/* Offer highlight — bigger and more noticeable */}
       <div
         className={cn(
-          "w-full max-w-md mx-auto grid grid-cols-3 border-y border-border py-7 animate-stagger-3",
+          "w-full max-w-md mx-auto animate-stagger-3",
           !fontsLoaded && "opacity-0"
         )}
       >
-        {fontsLoaded && (
-          <>
-            <div className="text-center border-r border-border px-2">
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
-                <AnimatedNumber value={50} suffix="%" delay={200} />
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
-                Avg. Savings
-              </div>
+        <div className="relative overflow-hidden rounded-form border border-border/80 bg-muted/40 px-6 py-6 text-center">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          <div className="relative flex flex-col items-center gap-2">
+            <div className="inline-flex items-center gap-2 text-muted-foreground">
+              <Gift className="w-5 h-5" strokeWidth={1.5} />
+              <span className="text-[11px] uppercase tracking-widest font-semibold">
+                Limited offer
+              </span>
             </div>
-            <div className="text-center border-r border-border px-2">
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
-                <AnimatedNumber value={24} suffix="hr" delay={400} />
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
-                Approval
-              </div>
+            <div className="text-4xl sm:text-5xl font-termina font-medium uppercase tracking-[-0.006em] text-foreground leading-none">
+              15% Off
             </div>
-            <div className="text-center px-2">
-              <div className="text-2xl sm:text-3xl font-semibold text-foreground font-termina">
-                <AnimatedProductCount delay={600} />
-              </div>
-              <div className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mt-1">
-                Products
-              </div>
-            </div>
-          </>
-        )}
+            <p className="text-sm text-muted-foreground max-w-[260px]">
+              Use code{" "}
+              <span className="inline-flex items-center rounded-md bg-background border border-border/60 px-2 py-1 text-sm font-semibold text-foreground tracking-wide">
+                SALONTRIAL15
+              </span>{" "}
+              on your first order after approval.
+            </p>
+          </div>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground text-center animate-stagger-3">
