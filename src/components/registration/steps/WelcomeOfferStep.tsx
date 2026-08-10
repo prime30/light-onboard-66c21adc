@@ -98,7 +98,7 @@ export const WelcomeOfferStep = () => {
   const OptInRow = ({
     checked,
     onClick,
-    icon,
+    channel,
     title,
     description,
     badge,
@@ -108,7 +108,7 @@ export const WelcomeOfferStep = () => {
   }: {
     checked: boolean;
     onClick: () => void;
-    icon: JSX.Element;
+    channel: string;
     title: string;
     description: ReactNode;
     badge?: string;
@@ -120,47 +120,49 @@ export const WelcomeOfferStep = () => {
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`relative w-full text-left p-[25px] rounded-[15px] border transition-all duration-300 ring-1 ${
+      className={`relative w-full text-left px-[20px] py-[20px] rounded-[15px] border transition-all duration-300 ${
         checked
-          ? "border-border/50 bg-background/70 backdrop-blur-xl ring-foreground/[0.05] shadow-card"
-          : "border-border/40 bg-background/40 backdrop-blur-md ring-foreground/[0.03] hover:border-foreground/25 border-shimmer"
+          ? "border-foreground/20 bg-background/80 backdrop-blur-xl shadow-card"
+          : "border-border/50 bg-background/45 backdrop-blur-md hover:border-foreground/25 border-shimmer"
       }`}
     >
-      <span className="flex gap-[20px]">
+      <span className="flex gap-[15px]">
         <span
-          className={`mt-[2px] w-[25px] h-[25px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-            checked
-              ? "border-foreground bg-foreground shadow-lg shadow-foreground/20"
-              : "border-foreground/25 bg-background"
+          className={`mt-[1px] w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            checked ? "border-foreground bg-foreground" : "border-foreground/25 bg-background"
           }`}
         >
-          {checked && <Check className="w-[15px] h-[15px] text-background" strokeWidth={3} />}
+          {checked && <Check className="w-[13px] h-[13px] text-background" strokeWidth={3} />}
         </span>
 
         <span className="min-w-0 flex-1 block text-left">
-          <span className="flex items-start justify-between gap-[15px] mb-[5px]">
-            <span className="flex items-center gap-2 text-[15px] sm:text-base font-medium leading-snug text-foreground">
-              {icon}
-              <span>{title}</span>
+          <span className="flex items-center gap-[10px] mb-[8px]">
+            <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              {channel}
             </span>
             {badge && (
-              <span className="shrink-0 inline-flex items-center px-[8px] py-[3px] rounded-[5px] bg-foreground font-termina text-[9px] font-medium uppercase tracking-[0.12em] text-background">
-                {badge}
-              </span>
+              <>
+                <span className="w-[3px] h-[3px] rounded-full bg-border" />
+                <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70">
+                  {badge}
+                </span>
+              </>
             )}
           </span>
 
-          {meta && <span className="block mb-[15px]">{meta}</span>}
+          <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
+            {title}
+          </span>
 
-          <span className="block text-[13px] text-muted-foreground leading-[1.6]">
+          <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
             {description}
           </span>
 
+          {meta && <span className="block mt-[12px]">{meta}</span>}
+
           {legal && (
-            <span className="block mt-[20px] rounded-[10px] border border-border/50 bg-muted/40 p-[15px]">
-              <span className="block text-[11px] leading-[1.6] text-muted-foreground/80">
-                {legal}
-              </span>
+            <span className="block mt-[12px] pt-[12px] border-t border-border/50 text-[10.5px] leading-[1.55] text-muted-foreground/70">
+              {legal}
             </span>
           )}
 
@@ -169,6 +171,7 @@ export const WelcomeOfferStep = () => {
       </span>
     </button>
   );
+
 
 
   return (
