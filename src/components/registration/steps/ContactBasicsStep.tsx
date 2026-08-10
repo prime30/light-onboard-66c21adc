@@ -409,7 +409,15 @@ export const ContactBasicsStep = () => {
         </p>
       </div>
 
-      <div className="space-y-5">
+      {/* A real <form> element is what lets iOS Safari / Chrome offer grouped
+          "fill contact" autofill across name + email + phone in one tap.
+          Submission is handled by the step footer, so Enter is a no-op here. */}
+      <form
+        autoComplete="on"
+        noValidate
+        onSubmit={(event) => event.preventDefault()}
+        className="space-y-5"
+      >
         {/* First and Last Name */}
         <div className="grid grid-cols-2 gap-2.5 animate-stagger-2">
           <TextInput
@@ -501,6 +509,7 @@ export const ContactBasicsStep = () => {
                 error={errors.phoneNumber}
                 placeholder="(555) 123-4567"
                 autoComplete="tel-national"
+                inputMode="tel"
                 isValid={getValidationStatus("phoneNumber") === "complete"}
                 prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
                 onBlur={(event) => {
@@ -524,6 +533,9 @@ export const ContactBasicsStep = () => {
             <TextInput
               name="licenseNumber"
               type="text"
+              autoComplete="off"
+              data-1p-ignore="true"
+              data-lpignore="true"
               register={register}
               error={licenseErrors.licenseNumber}
               placeholder={credentialConfig.licenseFieldPlaceholder(isSalon)}
@@ -651,7 +663,7 @@ export const ContactBasicsStep = () => {
           )}
         </div>
 
-      </div>
+      </form>
     </div>
   );
 };
