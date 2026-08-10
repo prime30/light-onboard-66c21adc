@@ -449,6 +449,8 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const goToStep = (step: Step) => {
+    console.log("[DBG goToStep]", currentStep, "->", step, new Error().stack);
+
     // Allow post-flow steps (success, schedule, schedule-confirmed) even
     // though they're intentionally outside the dynamic `steps` array.
     const POST_FLOW: Step[] = ["success", "schedule", "schedule-confirmed"];
