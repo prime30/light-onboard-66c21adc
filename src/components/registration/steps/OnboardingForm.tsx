@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Check, GraduationCap, Lock, Tag } from "lucide-react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
+import { useAutoApproval } from "@/lib/app-settings";
 import { FadeText } from "../FadeText";
 import { cn } from "@/lib/utils";
 
@@ -118,10 +119,6 @@ const STEPS = [
     label: "Provide your license number",
     description: "Upload your license so we can verify you're a professional.",
   },
-  {
-    label: "Follow post-approval instructions",
-    description: "Get approved and unlock wholesale pricing and pro benefits.",
-  },
 ];
 
 export const OnboardingForm = ({
@@ -129,6 +126,19 @@ export const OnboardingForm = ({
   isRestoring = false,
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
+  const { enabled: autoApprove } = useAutoApproval();
+
+  const finalStep = autoApprove
+    ? {
+        label: "Access your pro account",
+        description: "Approval is automatic - unlock wholesale pricing and pro benefits right away.",
+      }
+    : {
+        label: "Follow post-approval instructions",
+        description: "Get approved and unlock wholesale pricing and pro benefits.",
+      };
+
+  const steps = [...STEPS, finalStep];
 
   return (
     <div className="space-y-10 lg:space-y-0 lg:flex lg:flex-col lg:justify-between lg:flex-1 lg:min-h-0 relative">
@@ -191,7 +201,7 @@ export const OnboardingForm = ({
       <div className="w-full max-w-md mx-auto relative animate-stagger-2">
         <div className="absolute left-4 top-3 bottom-3 w-px bg-border" />
         <div className="space-y-6">
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <div
               key={i}
               className="relative pl-12 opacity-0 animate-step-card-enter"
