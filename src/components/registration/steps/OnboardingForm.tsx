@@ -113,11 +113,9 @@ const TRUST_BADGES = [
 const STEPS = [
   {
     label: "Tell us who you are",
-    description: "Select your account type and share your contact details.",
   },
   {
     label: "Provide your license number",
-    description: "Share your license number so we can verify you're a professional.",
   },
 ];
 
@@ -131,11 +129,9 @@ export const OnboardingForm = ({
   const finalStep = autoApprove
     ? {
         label: "Quick verification",
-        description: "Your credentials are verified quickly so you can unlock wholesale pricing and pro benefits.",
       }
     : {
         label: "Follow post-approval instructions",
-        description: "Get approved and unlock wholesale pricing and pro benefits.",
       };
 
   const steps = [...STEPS, finalStep];
@@ -215,9 +211,6 @@ export const OnboardingForm = ({
               </div>
               <div>
                 <h3 className="text-base font-medium text-foreground">{step.label}</h3>
-                <p className="text-sm text-muted-foreground/80 mt-1 leading-relaxed">
-                  {step.description}
-                </p>
               </div>
             </div>
           ))}
