@@ -814,7 +814,7 @@ export const SuccessForm = () => {
                       leaving the success screen. */}
                   <div className="mt-3 space-y-2">
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                      Still missing
+                      Choose where to send it
                     </p>
                     {!smsOptedIn && (
                       <button
@@ -825,7 +825,7 @@ export const SuccessForm = () => {
                       >
                         <span className="w-[18px] h-[18px] rounded-md border border-muted-foreground/30 bg-muted shrink-0" />
                         <span className="text-xs text-foreground">
-                          Subscribe to texts
+                          Text me my code
                           {formattedPhone ? ` at ${formattedPhone}` : ""}
                         </span>
                       </button>
@@ -838,7 +838,7 @@ export const SuccessForm = () => {
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-background/70 hover:bg-foreground/[0.03] transition-colors text-left"
                       >
                         <span className="w-[18px] h-[18px] rounded-md border border-muted-foreground/30 bg-muted shrink-0" />
-                        <span className="text-xs text-foreground">Subscribe to emails</span>
+                        <span className="text-xs text-foreground">Email me my code</span>
                       </button>
                     )}
                     <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
