@@ -253,7 +253,7 @@ export const OnboardingForm = ({
             <div className="text-4xl sm:text-5xl font-termina font-medium uppercase tracking-[-0.006em] text-foreground leading-none">
               15% Off
             </div>
-            <p className="text-sm text-muted-foreground max-w-[260px]">
+            <p className="text-sm text-muted-foreground max-w-[320px]">
               A welcome code will be revealed after you complete your application and opt in to SMS and email updates.
             </p>
             <p className="text-[11px] text-muted-foreground/70">
