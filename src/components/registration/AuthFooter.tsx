@@ -58,7 +58,7 @@ export function AuthFooter({
   } = useForm();
   const [preflightChecking, setPreflightChecking] = useState(false);
   const navigate = useNavigate();
-  const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: autoApprove, loading: autoApproveLoading } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
   const { closeIframe, isInIframe } = useCloseIframe();
