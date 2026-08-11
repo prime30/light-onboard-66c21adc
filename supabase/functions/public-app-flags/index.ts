@@ -32,7 +32,7 @@ Deno.serve(async (req: Request) => {
     .eq("singleton", true)
     .maybeSingle();
   if (error || !data) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false }, 200);
   }
   return json({
     autoApprovalEnabled: !!data.auto_approval_enabled,
@@ -44,5 +44,6 @@ Deno.serve(async (req: Request) => {
     preferredMethodStepEnabled: data.preferred_method_step_enabled !== false,
     businessLocationStepEnabled: !!data.business_location_step_enabled,
     referralStepEnabled: data.referral_step_enabled !== false,
+    summaryStepEnabled: !!data.summary_step_enabled,
   });
 });
