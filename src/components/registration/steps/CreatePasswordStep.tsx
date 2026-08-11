@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Check, Eye, EyeOff, Lock, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Lock, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -121,10 +121,6 @@ export const CreatePasswordStep = () => {
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
           Used to sign in to your wholesale account.
-        </p>
-        <p className="text-[10px] text-muted-foreground/60 flex items-center justify-center gap-1.5 pt-1">
-          <ShieldCheck className="w-2.5 h-2.5" />
-          <span>Stored securely. Never visible to anyone but you.</span>
         </p>
       </div>
 
