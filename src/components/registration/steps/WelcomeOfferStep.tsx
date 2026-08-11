@@ -174,7 +174,7 @@ export const WelcomeOfferStep = () => {
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
           <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
-            Communication preferences
+            Subscribe and Save
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
