@@ -454,7 +454,8 @@ const AdminSettingsPage = () => {
       | "orderVolumeStepEnabled"
       | "preferredMethodStepEnabled"
       | "businessLocationStepEnabled"
-      | "referralStepEnabled",
+      | "referralStepEnabled"
+      | "summaryStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,
