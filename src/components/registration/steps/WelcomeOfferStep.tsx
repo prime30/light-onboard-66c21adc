@@ -175,106 +175,99 @@ export const WelcomeOfferStep = () => {
         </h1>
       </div>
 
-      <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
-        <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
-
-
-
-          <div className="w-full max-w-[30rem] space-y-[20px]">
-            <OptInRow
-              checked={smsOn}
-              onClick={toggleSms}
-              title="Text me when I'm approved to shop & with pro-only deals"
-              meta={
-                !isEditingPhone && (
-                  <span className="flex flex-wrap items-center gap-[5px] text-[13px] text-muted-foreground">
-                    <Pencil className="w-3 h-3 shrink-0" />
-                    <span>
-                      {hasPhone
-                        ? `Sending to ${formatPhoneNumber(phoneNumber)}`
-                        : "No phone number on file"}
-                    </span>
-                    <span className="text-border">&bull;</span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
-                      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
-                    >
-                      {hasPhone ? "Edit number" : "Add number"}
-                    </button>
-                  </span>
-                )
-              }
-              legal={
-                <>
-                  By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
-                  Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
-                  Msg &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
-                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                  >
-                    Terms
-                  </button>
-                  {" & "}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
-                    className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-                  >
-                    Privacy Policy
-                  </button>
-                  .
-                </>
-              }
-            />
-            <OptInRow
-              checked={emailOn}
-              onClick={toggleEmail}
-              title="Email me about promotions, new products & deals"
-            />
-
-
-            {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
-
-            {isEditingPhone && (
-              <div className="space-y-[10px] animate-fade-in text-left pt-[5px]" onClick={(e) => e.stopPropagation()}>
-                <div className="flex gap-[10px]">
-                  <div className="w-[110px]">
-                    <SelectInput
-                      name="phoneCountryCode"
-                      control={control}
-                      error={errors.phoneCountryCode}
-                      options={countryCodeOptions}
-                      placeholder="Select"
-                      className="w-full"
-                    />
-                  </div>
-                  <TextInput
-                    name="phoneNumber"
-                    type="tel"
-                    register={register}
-                    error={errors.phoneNumber}
-                    placeholder="(555) 123-4567"
-                    autoComplete="tel-national"
-                    autoFocus
-                    onBlur={(event) => {
-                      setValue("phoneNumber", formatPhoneNumber(event.target.value));
-                    }}
-                  />
-                </div>
+      <div className="w-full max-w-[30rem] mx-auto space-y-[20px] animate-stagger-2">
+        <OptInRow
+          checked={smsOn}
+          onClick={toggleSms}
+          title="Text me when I'm approved to shop & with pro-only deals"
+          meta={
+            !isEditingPhone && (
+              <span className="flex flex-wrap items-center gap-[5px] text-[13px] text-muted-foreground">
+                <Pencil className="w-3 h-3 shrink-0" />
+                <span>
+                  {hasPhone
+                    ? `Sending to ${formatPhoneNumber(phoneNumber)}`
+                    : "No phone number on file"}
+                </span>
+                <span className="text-border">&bull;</span>
                 <button
                   type="button"
-                  onClick={() => setIsEditingPhone(false)}
-                  className="block mx-auto text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
                 >
-                  Done editing
+                  {hasPhone ? "Edit number" : "Add number"}
                 </button>
+              </span>
+            )
+          }
+          legal={
+            <>
+              By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
+              Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+              Msg &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
+                className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Terms
+              </button>
+              {" & "}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
+                className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Privacy Policy
+              </button>
+              .
+            </>
+          }
+        />
+        <OptInRow
+          checked={emailOn}
+          onClick={toggleEmail}
+          title="Email me about promotions, new products & deals"
+        />
+
+
+        {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
+
+        {isEditingPhone && (
+          <div className="space-y-[10px] animate-fade-in text-left pt-[5px]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex gap-[10px]">
+              <div className="w-[110px]">
+                <SelectInput
+                  name="phoneCountryCode"
+                  control={control}
+                  error={errors.phoneCountryCode}
+                  options={countryCodeOptions}
+                  placeholder="Select"
+                  className="w-full"
+                />
               </div>
-            )}
+              <TextInput
+                name="phoneNumber"
+                type="tel"
+                register={register}
+                error={errors.phoneNumber}
+                placeholder="(555) 123-4567"
+                autoComplete="tel-national"
+                autoFocus
+                onBlur={(event) => {
+                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsEditingPhone(false)}
+              className="block mx-auto text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
+            >
+              Done editing
+            </button>
           </div>
-        </div>
+        )}
       </div>
 
 
