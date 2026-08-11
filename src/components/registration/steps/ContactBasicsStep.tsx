@@ -8,13 +8,17 @@ import { cn } from "@/lib/utils";
 
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
-import { useForm } from "../context";
+import { Checkbox } from "@/components/ui/checkbox";
+import { dirtyFieldOptions, useForm } from "../context";
+import type { UploadFileItem } from "@/contexts";
 import { countryCodes } from "@/data/country-codes";
+import { countries } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoApproval } from "@/lib/app-settings";
+import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
