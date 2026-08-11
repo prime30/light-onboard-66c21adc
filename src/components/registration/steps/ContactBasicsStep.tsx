@@ -5,11 +5,14 @@ import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from 
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
+import { Select, SelectContent, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { dirtyFieldOptions, useForm } from "../context";
+import { Controller } from "react-hook-form";
 import type { UploadFileItem } from "@/contexts";
 import { countryCodes } from "@/data/country-codes";
 import { countries } from "@/data/locations";
@@ -26,7 +29,7 @@ export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: 
     src={`https://flagcdn.com/w40/${iso}.png`}
     srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
     alt={iso.toUpperCase()}
-    className={cn("w-5 h-auto rounded-sm object-cover", className)}
+    className={cn("w-5 h-5 rounded-full object-cover", className)}
     loading="lazy"
   />
 );
@@ -534,13 +537,51 @@ export const ContactBasicsStep = () => {
           </Label>
           <div className="flex gap-2">
             <div className="w-[110px]">
-              <SelectInput
+              <Controller
                 name="phoneCountryCode"
                 control={control}
-                error={errors.phoneCountryCode}
-                options={countryCodeOptions}
-                placeholder="Select"
-                className="w-full"
+                render={({ field }) => {
+                  const selected = countryCodes.find((c) => c.iso === field.value);
+                  return (
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectPrimitive.Trigger
+                        className={cn(
+                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-2 px-2 outline-none",
+                          errors.phoneCountryCode && "border-destructive/50 bg-destructive/5"
+                        )}
+                      >
+                        <SelectValue placeholder="Select">
+                          {selected && (
+                            <span className="flex items-center gap-2">
+                              <CountryFlag iso={selected.iso} />
+                              <span className="text-sm font-medium">{selected.code}</span>
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectPrimitive.Trigger>
+                      <SelectContent>
+                        {countryCodes.map((country) => (
+                          <SelectPrimitive.Item
+                            key={country.iso}
+                            value={country.iso}
+                            className={cn(
+                              "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-2 px-3 text-sm outline-none transition-colors",
+                              "focus:bg-accent focus:text-accent-foreground",
+                              "data-[state=checked]:bg-foreground/[0.04]"
+                            )}
+                          >
+                            <CountryFlag iso={country.iso} />
+                            <span className="font-medium">{country.code}</span>
+                            <span className="text-muted-foreground text-xs">({country.name})</span>
+                          </SelectPrimitive.Item>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
               />
             </div>
 
