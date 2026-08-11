@@ -74,6 +74,9 @@ export function AuthFooter({
   const isLateWelcomeOfferStep = autoApprove && currentStep === "welcome-offer";
   const isFauxSubmitStep = autoApprove && isSummaryStep;
 
+  // The last item in the active steps array is always the final gate before
+  // success (summary when it is enabled, otherwise the welcome-offer step).
+  const isFinalStep = currentStep === steps[steps.length - 1];
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
   // Popover content rules:
@@ -91,7 +94,7 @@ export function AuthFooter({
         (s) => s.step !== "create-password" && s.step !== "welcome-offer"
       );
     }
-    if (isSummaryStep || isLatePasswordStep || isLateWelcomeOfferStep) {
+    if (isSummaryStep || isLatePasswordStep || isLateWelcomeOfferStep || isFinalStep) {
       return incompleteSteps;
     }
     // Put the current step first if it's incomplete so the most relevant
@@ -99,19 +102,20 @@ export function AuthFooter({
     const current = incompleteSteps.find((s) => s.step === currentStep);
     const others = incompleteSteps.filter((s) => s.step !== currentStep);
     return current ? [current, ...others] : others;
-  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isLateWelcomeOfferStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isLateWelcomeOfferStep, isFinalStep, currentStep]);
 
-  const continueBlocked = isSummaryStep
+  const continueBlocked = isFinalStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
     : isLateWelcomeOfferStep
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
-  // Popover only surfaces on the final-gate steps: the review/summary page
-  // and the late welcome-offer page (the last gate before the real submit in
-  // auto-approval mode). On every other step, an invalid Continue just shakes
-  // the missing fields without opening the "incomplete steps" list.
-  const isFinalGateStep = isSummaryStep || isLateWelcomeOfferStep || isFauxSubmitStep;
+  // Popover only surfaces on the final-gate steps: the review/summary page,
+  // the late welcome-offer page (the last gate before the real submit in
+  // auto-approval mode), or the final step when the summary is hidden. On every
+  // other step, an invalid Continue just shakes the missing fields without
+  // opening the "incomplete steps" list.
+  const isFinalGateStep = isFinalStep || isSummaryStep || isLateWelcomeOfferStep || isFauxSubmitStep;
   const showTooltip = isFinalGateStep && continueBlocked && popoverSteps.length > 0;
 
   const openSubmitTooltip = useCallback(() => {
