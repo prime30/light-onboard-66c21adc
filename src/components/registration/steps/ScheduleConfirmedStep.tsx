@@ -140,7 +140,7 @@ export const ScheduleConfirmedStep = () => {
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
-      <div className="space-y-[clamp(5px,1vh,10px)] animate-stagger-1">
+      <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <Check className="w-3 h-3 text-success" strokeWidth={3} />
           <span className="font-mono-eyebrow text-[10px] text-muted-foreground">
