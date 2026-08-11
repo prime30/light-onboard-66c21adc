@@ -179,6 +179,7 @@ export const WelcomeOfferStep = () => {
         <OptInRow
           checked={smsOn}
           onClick={toggleSms}
+          badge="Save 15%"
           title="Text me when I'm approved to shop & with pro-only deals"
           meta={
             !isEditingPhone && (
