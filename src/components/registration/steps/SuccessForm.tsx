@@ -858,7 +858,7 @@ export const SuccessForm = () => {
             className="w-full h-12 min-h-12 touch-manipulation rounded-form group"
           >
             <span className="flex items-center justify-center gap-2">
-              Go to shop
+              You are approved. Go to shop
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </span>
           </Button>
