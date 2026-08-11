@@ -400,11 +400,17 @@ export const ContactBasicsStep = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const licenseErrors = errors as any;
 
-  // Tax exemption (US only) now lives directly under the license number.
+  // Tax exemption (US only) now lives directly under the license number, but
+  // only when the separate Business Information step is hidden - otherwise it
+  // is collected there.
+  const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } =
+    useBusinessLocationStepEnabled();
+  const businessLocationStepVisible =
+    !businessLocationLoading && !autoApprovalLoading && (businessLocationStepEnabled || !autoApprovalEnabled);
   const taxExempt = watch("taxExempt");
   const taxExemptFile = watch("taxExemptFile");
   const taxFileRef = useRef<HTMLDivElement>(null);
-  const showTaxExemption = country === "US";
+  const showTaxExemption = country === "US" && !businessLocationStepVisible;
   const handleTaxToggle = (checked: boolean) => {
     setValue("taxExempt", checked, dirtyFieldOptions);
     if (!checked) {
