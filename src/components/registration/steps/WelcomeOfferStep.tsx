@@ -133,28 +133,28 @@ export const WelcomeOfferStep = () => {
           {checked && <Check className="w-[13px] h-[13px] text-background" strokeWidth={3} />}
         </span>
 
-        <span className="min-w-0 flex-1 block text-left">
-          <span className="flex items-start justify-between gap-[10px] mb-[8px]">
-            <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
-              {title}
+          <span className="min-w-0 flex-1 block text-left">
+            <span className="flex items-start justify-between gap-[10px] mb-[8px]">
+              <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
+                {title}
+              </span>
+              {badge && (
+                <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70 shrink-0">
+                  {badge}
+                </span>
+              )}
             </span>
-            {badge && (
-              <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70 shrink-0">
-                {badge}
+
+            {meta && <span className="block mb-[12px]">{meta}</span>}
+
+            {description && (
+              <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
+                {description}
               </span>
             )}
+
+            {children}
           </span>
-
-          {description && (
-            <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
-              {description}
-            </span>
-          )}
-
-          {meta && <span className="block mt-[12px]">{meta}</span>}
-
-          {children}
-        </span>
       </span>
 
       {legal && (
