@@ -23,16 +23,16 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false }, 200);
   }
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data, error } = await supabase
     .from("app_settings")
-    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled")
+    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled")
     .eq("singleton", true)
     .maybeSingle();
   if (error || !data) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false }, 200);
   }
   return json({
     autoApprovalEnabled: !!data.auto_approval_enabled,
@@ -44,5 +44,6 @@ Deno.serve(async (req: Request) => {
     preferredMethodStepEnabled: data.preferred_method_step_enabled !== false,
     businessLocationStepEnabled: !!data.business_location_step_enabled,
     referralStepEnabled: data.referral_step_enabled !== false,
+    summaryStepEnabled: !!data.summary_step_enabled,
   });
 });

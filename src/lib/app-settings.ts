@@ -11,6 +11,7 @@ type Flags = {
   preferredMethodStepEnabled: boolean;
   businessLocationStepEnabled: boolean;
   referralStepEnabled: boolean;
+  summaryStepEnabled: boolean;
 };
 
 const FLAGS_CACHE_KEY = "dd_app_flags_v1";
@@ -55,7 +56,7 @@ async function fetchFlags(): Promise<Flags> {
     if (error || !data) {
       // Keep the persisted values on a network failure rather than snapping
       // back to placeholder defaults (which would change the step list).
-      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true };
+      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false };
       return cachedFlags;
     }
     cachedFlags = {
@@ -68,6 +69,7 @@ async function fetchFlags(): Promise<Flags> {
       preferredMethodStepEnabled: (data as Flags).preferredMethodStepEnabled !== false,
       businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
       referralStepEnabled: (data as Flags).referralStepEnabled !== false,
+      summaryStepEnabled: !!(data as Flags).summaryStepEnabled,
     };
     flagsFresh = true;
     persistFlags(cachedFlags);
@@ -175,4 +177,10 @@ export function useReferralStepEnabled() {
 const pickBusinessLocationStep = (f: Flags) => f.businessLocationStepEnabled;
 export function useBusinessLocationStepEnabled() {
   return useFlag(pickBusinessLocationStep);
+}
+
+/** Summary / review step is hidden by default (opt-in via admin settings). */
+const pickSummaryStep = (f: Flags) => f.summaryStepEnabled;
+export function useSummaryStepEnabled() {
+  return useFlag(pickSummaryStep);
 }

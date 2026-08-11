@@ -23,7 +23,7 @@ import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
 import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useBusinessLocationStepEnabled,
-  useReferralStepEnabled, useAutoApproval } from "@/lib/app-settings";
+  useReferralStepEnabled, useSummaryStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -66,6 +66,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: preferredMethodStepEnabled, loading: preferredMethodLoading } = usePreferredMethodStepEnabled();
   const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } = useBusinessLocationStepEnabled();
   const { enabled: referralStepEnabled, loading: referralLoading } = useReferralStepEnabled();
+  const { enabled: summaryStepEnabled, loading: summaryStepLoading } = useSummaryStepEnabled();
 
   // Until every flag has resolved we do not know the real step list. Building
   // it from placeholder defaults and then rebuilding once the flags land is
@@ -77,7 +78,8 @@ export function StepProvider({ children }: StepProviderProps) {
     orderVolumeLoading ||
     preferredMethodLoading ||
     businessLocationLoading ||
-    referralLoading;
+    referralLoading ||
+    summaryStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
@@ -104,11 +106,13 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!referralStepEnabled) hiddenSteps.push("preferences");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
-    newSteps.push("summary");
+    if (summaryStepEnabled) {
+      newSteps.push("summary");
+    }
     // When auto-approval is ON, the password step moves to AFTER summary,
     // gated by a faux "assessing" review animation, and the welcome-offer
-    // (subscribe) step comes right after the password. Submit on summary just
-    // advances to assessing; the real backend submit happens on welcome-offer.
+    // (subscribe) step comes right after the password. If the summary step is
+    // hidden, the welcome-offer step becomes the final real submit gate.
     if (autoApprove && accountType) {
       newSteps.push("assessing", "create-password", "welcome-offer");
     }
@@ -121,7 +125,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled, summaryStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
@@ -139,9 +143,10 @@ export function StepProvider({ children }: StepProviderProps) {
   // post-summary `assessing` and `create-password` steps disappear from
   // `steps`. If the user happened to be parked on one of them when the
   // setting changed, currentStepNumber becomes -1 and the next/prev
-  // handlers send them back to onboarding. Snap them forward to `summary`
-  // (the natural recovery point) instead. POST_FLOW steps live outside
-  // `steps` by design - leave those alone.
+  // handlers send them back to onboarding. Snap them forward to the last
+  // available step in the current flow (summary when shown, otherwise the final
+  // form step) so the user lands on a sensible recovery point. POST_FLOW steps
+  // live outside `steps` by design - leave those alone.
   useEffect(() => {
     // While the flags load, `steps` is an intentional placeholder prefix - do
     // not treat a restored mid-flow step as invalid.
@@ -150,7 +155,7 @@ export function StepProvider({ children }: StepProviderProps) {
     if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
-    setCurrentStep("summary");
+    setCurrentStep(steps[steps.length - 1]);
   }, [steps, currentStep, flagsLoading]);
 
 

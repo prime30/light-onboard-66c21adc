@@ -56,6 +56,8 @@ const AdminSettingsPage = () => {
   const [updatingBusinessLocationStep, setUpdatingBusinessLocationStep] = useState(false);
   const [referralStepOn, setReferralStepOn] = useState<boolean | null>(null);
   const [updatingReferralStep, setUpdatingReferralStep] = useState(false);
+  const [summaryStepOn, setSummaryStepOn] = useState<boolean | null>(null);
+  const [updatingSummaryStep, setUpdatingSummaryStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
@@ -176,24 +178,8 @@ const AdminSettingsPage = () => {
         }
         setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
         setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
-        setBizOpStepOn(data.setting.business_operation_step_enabled);
-      } else {
-        setBizOpStepOn(true);
-      }
-      if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
-        setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
-      } else {
-        setOrderVolumeStepOn(true);
-      }
-      if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
-        setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
-      } else {
-        setPreferredMethodStepOn(true);
-      }
-      setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-      if (typeof data?.setting?.founder_call_enabled === "boolean") {
+        setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
+        if (typeof data?.setting?.founder_call_enabled === "boolean") {
           setFounderCallOn(data.setting.founder_call_enabled);
         } else {
           setFounderCallOn(true);
@@ -272,7 +258,8 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
+      setReferralStepOn(data?.setting?.referral_step_enabled !== false);
+      setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
         setFounderCallOn(data.setting.founder_call_enabled);
       } else {
@@ -467,7 +454,8 @@ const AdminSettingsPage = () => {
       | "orderVolumeStepEnabled"
       | "preferredMethodStepEnabled"
       | "businessLocationStepEnabled"
-      | "referralStepEnabled",
+      | "referralStepEnabled"
+      | "summaryStepEnabled",
     next: boolean,
     current: boolean | null,
     setValue: (v: boolean) => void,
@@ -1083,6 +1071,35 @@ const AdminSettingsPage = () => {
                 }
                 disabled={updatingReferralStep}
                 aria-label="Toggle referral source step"
+              />
+            )}
+          </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">Review application</h3>
+              <p className="text-xs text-muted-foreground">
+                Summary / review step before submission. Turning this off removes the review screen
+                and submits directly from the last form step.
+              </p>
+            </div>
+            {summaryStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={summaryStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "summaryStepEnabled",
+                    next,
+                    summaryStepOn,
+                    setSummaryStepOn,
+                    setUpdatingSummaryStep,
+                    "Review application"
+                  )
+                }
+                disabled={updatingSummaryStep}
+                aria-label="Toggle review application step"
               />
             )}
           </div>
