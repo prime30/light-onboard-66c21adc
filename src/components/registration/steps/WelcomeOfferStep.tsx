@@ -118,13 +118,13 @@ export const WelcomeOfferStep = () => {
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className={`relative w-full text-left px-[20px] py-[20px] rounded-[15px] border transition-all duration-300 ${
+      className={`relative w-full text-left rounded-[15px] border transition-all duration-300 ${
         checked
           ? "border-foreground/20 bg-background/80 backdrop-blur-xl shadow-card"
           : "border-border/50 bg-background/45 backdrop-blur-md hover:border-foreground/25 border-shimmer"
       }`}
     >
-      <span className="flex gap-[15px]">
+      <span className="flex gap-[15px] px-[20px] pt-[20px] pb-[20px]">
         <span
           className={`mt-[1px] w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
             checked ? "border-foreground bg-foreground" : "border-foreground/25 bg-background"
@@ -153,15 +153,15 @@ export const WelcomeOfferStep = () => {
 
           {meta && <span className="block mt-[12px]">{meta}</span>}
 
-          {legal && (
-            <span className="block mt-[16px] -mx-[20px] -mb-[20px] px-[20px] py-[14px] bg-muted/50 border-t border-border/50 text-[10.5px] leading-[1.55] text-muted-foreground/70">
-              {legal}
-            </span>
-          )}
-
           {children}
         </span>
       </span>
+
+      {legal && (
+        <span className="block w-full px-[20px] py-[14px] bg-muted/50 border-t border-border/50 text-[10.5px] leading-[1.55] text-muted-foreground/70">
+          {legal}
+        </span>
+      )}
     </button>
   );
 
