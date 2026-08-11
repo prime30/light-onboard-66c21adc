@@ -145,7 +145,7 @@ export function AuthFooter({
     if (mode === "signin") return "Login";
     if (isScheduleConfirmedStep) return "Go to shop";
     if (isLatePasswordStep) return "Continue";
-    if (isSummaryStep) return "Submit application";
+    if (isFinalStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
   };
