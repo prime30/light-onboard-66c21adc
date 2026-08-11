@@ -66,6 +66,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: preferredMethodStepEnabled, loading: preferredMethodLoading } = usePreferredMethodStepEnabled();
   const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } = useBusinessLocationStepEnabled();
   const { enabled: referralStepEnabled, loading: referralLoading } = useReferralStepEnabled();
+  const { enabled: summaryStepEnabled, loading: summaryStepLoading } = useSummaryStepEnabled();
 
   // Until every flag has resolved we do not know the real step list. Building
   // it from placeholder defaults and then rebuilding once the flags land is
@@ -77,7 +78,8 @@ export function StepProvider({ children }: StepProviderProps) {
     orderVolumeLoading ||
     preferredMethodLoading ||
     businessLocationLoading ||
-    referralLoading;
+    referralLoading ||
+    summaryStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("onboarding");
