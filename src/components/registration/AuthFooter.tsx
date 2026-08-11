@@ -422,7 +422,7 @@ export function AuthFooter({
     isFinalStep,
     isSummaryStep,
     isFauxSubmitStep,
-    isLateWelcomeOfferStep,
+    isLatePasswordStep,
     isFinalGateStep,
     goToStep,
     submitForm,
