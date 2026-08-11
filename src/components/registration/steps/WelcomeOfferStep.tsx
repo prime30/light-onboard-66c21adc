@@ -136,22 +136,15 @@ export const WelcomeOfferStep = () => {
         </span>
 
         <span className="min-w-0 flex-1 block text-left">
-          <span className="flex items-center gap-[10px] mb-[8px]">
-            <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              {channel}
+          <span className="flex items-start justify-between gap-[10px] mb-[8px]">
+            <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
+              {title}
             </span>
             {badge && (
-              <>
-                <span className="w-[3px] h-[3px] rounded-full bg-border" />
-                <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70">
-                  {badge}
-                </span>
-              </>
+              <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70 shrink-0">
+                {badge}
+              </span>
             )}
-          </span>
-
-          <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
-            {title}
           </span>
 
           <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
