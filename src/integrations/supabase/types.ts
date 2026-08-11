@@ -28,6 +28,7 @@ export type Database = {
           preferred_method_step_enabled: boolean
           referral_step_enabled: boolean
           singleton: boolean
+          summary_step_enabled: boolean
           updated_at: string
           updated_by: string | null
           welcome_offer_enabled: boolean
@@ -45,6 +46,7 @@ export type Database = {
           preferred_method_step_enabled?: boolean
           referral_step_enabled?: boolean
           singleton?: boolean
+          summary_step_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
           welcome_offer_enabled?: boolean
@@ -62,6 +64,7 @@ export type Database = {
           preferred_method_step_enabled?: boolean
           referral_step_enabled?: boolean
           singleton?: boolean
+          summary_step_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
           welcome_offer_enabled?: boolean
