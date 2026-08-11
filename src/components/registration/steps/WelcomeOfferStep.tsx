@@ -179,9 +179,6 @@ export const WelcomeOfferStep = () => {
             Subscribe and Save
           </h1>
 
-          <p className="text-sm sm:text-base text-muted-foreground max-w-[38ch] mb-[25px]">
-            Choose how we keep you in the loop about your pro account.
-          </p>
 
           <div className="w-full max-w-[30rem] space-y-[20px]">
             <OptInRow
