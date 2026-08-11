@@ -178,29 +178,12 @@ const AdminSettingsPage = () => {
         }
         setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
         setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
-        setBizOpStepOn(data.setting.business_operation_step_enabled);
-      } else {
-        setBizOpStepOn(true);
-      }
-      if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
-        setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
-      } else {
-        setOrderVolumeStepOn(true);
-      }
-      if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
-        setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
-      } else {
-        setPreferredMethodStepOn(true);
-      }
-      setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-      setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-      setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
-      if (typeof data?.setting?.founder_call_enabled === "boolean") {
-        setFounderCallOn(data.setting.founder_call_enabled);
-      } else {
-        setFounderCallOn(true);
-      }
+        setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
+        if (typeof data?.setting?.founder_call_enabled === "boolean") {
+          setFounderCallOn(data.setting.founder_call_enabled);
+        } else {
+          setFounderCallOn(true);
+        }
       })
       .catch(() => {
         /* keep on login screen if verification fails */
