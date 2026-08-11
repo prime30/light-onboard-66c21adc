@@ -394,10 +394,16 @@ export function AuthFooter({
       return;
     }
 
-    // Final real submit: either the late welcome-offer step (auto-approval ON)
-    // or the summary step (auto-approval OFF, original flow).
-    if (isLateWelcomeOfferStep || isSummaryStep) {
-      submitForm();
+    // Final real submit: the last step in the active flow. In auto-approval
+    // mode with the summary enabled this is a faux "Submit application" that
+    // advances to the assessing animation; otherwise it actually fires the
+    // registration request.
+    if (isFinalStep) {
+      if (isFauxSubmitStep) {
+        goToStep("assessing");
+      } else {
+        submitForm();
+      }
       return;
     }
 
