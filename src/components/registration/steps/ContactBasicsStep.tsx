@@ -555,7 +555,7 @@ export const ContactBasicsStep = () => {
                       >
                         <SelectValue placeholder="Select">
                           {selected && (
-                            <span className="flex items-center gap-2">
+                            <span className="flex w-full items-center justify-between">
                               <CountryFlag iso={selected.iso} />
                               <span className="text-sm font-medium">{selected.code}</span>
                             </span>
