@@ -67,16 +67,16 @@ export function AuthFooter({
   const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
   const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
-  // When auto-approval is ON, the password step is collected after summary and
-  // the welcome-offer (subscribe) step is the LAST gate before the real
-  // backend submit fires. The summary "Submit application" button is a faux
-  // submit that just advances to the assessing animation.
+  // When auto-approval is ON, the welcome-offer step is collected BEFORE the
+  // faux "assessing" review animation, and the create-password step is the
+  // LAST gate before the real backend submit fires. The summary "Submit
+  // application" button is a faux submit that advances to welcome-offer.
   const isLatePasswordStep = autoApprove && currentStep === "create-password";
-  const isLateWelcomeOfferStep = autoApprove && currentStep === "welcome-offer";
   const isFauxSubmitStep = autoApprove && isSummaryStep;
 
   // The last item in the active steps array is always the final gate before
-  // success (summary when it is enabled, otherwise the welcome-offer step).
+  // success (summary when it is enabled, otherwise the create-password step
+  // in auto-approval mode or the welcome-offer step in legacy non-auto mode).
   const isFinalStep = currentStep === steps[steps.length - 1];
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
