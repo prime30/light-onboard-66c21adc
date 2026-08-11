@@ -536,7 +536,7 @@ export const ContactBasicsStep = () => {
             Phone number*
           </Label>
           <div className="flex gap-2">
-            <div className="w-[110px]">
+            <div className="w-[95px]">
               <Controller
                 name="phoneCountryCode"
                 control={control}
