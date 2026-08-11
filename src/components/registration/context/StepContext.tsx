@@ -102,7 +102,10 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!bizOpStepEnabled) hiddenSteps.push("business-operation");
     if (!orderVolumeStepEnabled) hiddenSteps.push("monthly-order-volume");
     if (!preferredMethodStepEnabled) hiddenSteps.push("preferred-method");
-    if (!businessLocationStepEnabled) hiddenSteps.push("business-location");
+    // Business information is mandatory for manual review, so it is always
+    // shown when auto-approval is off - the admin toggle only applies while
+    // auto-approval is on.
+    if (!businessLocationStepEnabled && autoApprove) hiddenSteps.push("business-location");
     if (!referralStepEnabled) hiddenSteps.push("preferences");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
