@@ -188,7 +188,6 @@ export const WelcomeOfferStep = () => {
               checked={smsOn}
               onClick={toggleSms}
               title="Text me when I'm approved to shop & with pro-only deals"
-              badge="Recommended"
               meta={
                 !isEditingPhone && (
                   <span className="flex flex-wrap items-center gap-[5px] text-[13px] text-muted-foreground">
@@ -209,7 +208,6 @@ export const WelcomeOfferStep = () => {
                   </span>
                 )
               }
-              
               legal={
                 <>
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
