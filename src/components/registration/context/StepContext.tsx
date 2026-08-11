@@ -106,11 +106,13 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!referralStepEnabled) hiddenSteps.push("preferences");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     newSteps.unshift("onboarding");
-    newSteps.push("summary");
+    if (summaryStepEnabled) {
+      newSteps.push("summary");
+    }
     // When auto-approval is ON, the password step moves to AFTER summary,
     // gated by a faux "assessing" review animation, and the welcome-offer
-    // (subscribe) step comes right after the password. Submit on summary just
-    // advances to assessing; the real backend submit happens on welcome-offer.
+    // (subscribe) step comes right after the password. If the summary step is
+    // hidden, the welcome-offer step becomes the final real submit gate.
     if (autoApprove && accountType) {
       newSteps.push("assessing", "create-password", "welcome-offer");
     }
