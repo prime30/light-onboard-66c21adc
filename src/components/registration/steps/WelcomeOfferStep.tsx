@@ -170,28 +170,10 @@ export const WelcomeOfferStep = () => {
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
-      <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+    <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Save 15% on your first order
         </h1>
-        {!isEditingPhone && (
-          <span className="inline-flex flex-wrap items-center justify-center gap-[5px] text-[13px] text-muted-foreground">
-            <Pencil className="w-3 h-3 shrink-0" />
-            <span>
-              {hasPhone
-                ? `Sending to ${formatPhoneNumber(phoneNumber)}`
-                : "No phone number on file"}
-            </span>
-            <span className="text-border">&bull;</span>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditingPhone(true); }}
-              className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/70 transition-colors"
-            >
-              {hasPhone ? "Edit number" : "Add number"}
-            </button>
-          </span>
-        )}
       </div>
 
       <div className="w-full max-w-[30rem] mx-auto space-y-[20px] animate-stagger-2">
