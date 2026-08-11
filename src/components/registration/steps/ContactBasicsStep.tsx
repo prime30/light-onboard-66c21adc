@@ -5,9 +5,11 @@ import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from 
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
+import { Select, SelectContent, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { dirtyFieldOptions, useForm } from "../context";
 import type { UploadFileItem } from "@/contexts";
