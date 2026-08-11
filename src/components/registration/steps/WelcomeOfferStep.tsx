@@ -169,15 +169,15 @@ export const WelcomeOfferStep = () => {
 
   return (
     <div className="space-y-[clamp(16px,3vh,30px)]">
-      <div className="space-y-2 text-center animate-stagger-1">
-        <div className="animate-stagger-1" />
+      <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+          Subscribe and Save
+        </h1>
       </div>
 
       <div className="rounded-form bg-muted/70 backdrop-blur-xl border border-border/40 shadow-card animate-stagger-2 overflow-hidden">
         <div className="p-[25px] sm:p-10 flex flex-col items-center text-center animate-fade-in">
-          <h1 className="font-termina font-medium uppercase text-[clamp(1.25rem,4vw,2rem)] leading-[1.1] tracking-[-0.006em] text-foreground max-w-[18ch] mb-[15px]">
-            Subscribe and Save
-          </h1>
+
 
 
           <div className="w-full max-w-[30rem] space-y-[20px]">
