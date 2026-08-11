@@ -17,7 +17,7 @@ import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useBusinessLocationStepEnabled } from "@/lib/app-settings";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
