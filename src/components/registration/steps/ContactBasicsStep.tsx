@@ -302,7 +302,10 @@ export const ContactBasicsStep = () => {
     }
     const normalized = raw.toLowerCase();
     const url = `https://www.instagram.com/${normalized}/`;
-    if (lastVerifiedHandleRef.current === normalized) return;
+    // Note: never bail out early here. If we return while the status is
+    // still "checking" (e.g. the user typed a char then deleted it back to
+    // an already-verified handle) the spinner would hang forever. The
+    // sessionStorage cache below resolves known handles synchronously.
     setIgStatus({ state: "checking", url });
 
     const cacheKey = `dde:verify-ig:${normalized}`;
