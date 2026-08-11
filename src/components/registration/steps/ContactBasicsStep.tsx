@@ -786,18 +786,10 @@ export const ContactBasicsStep = () => {
             </p>
           )}
           {igStatus.state === "unknown" && (
-            <a
-              href={igStatus.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-1.5 group/link"
-            >
-              <span>Saved as</span>
-              <span className="underline underline-offset-2">
-                instagram.com/{socialMediaHandle?.toString().trim().replace(/^@+/, "")}
-              </span>
-              <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-            </a>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1.5">
+              <Loader2 className="w-3 h-3 opacity-0" />
+              We couldn't verify this profile right now. We'll review it manually.
+            </p>
           )}
 
           {igStatus.state === "idle" && (
