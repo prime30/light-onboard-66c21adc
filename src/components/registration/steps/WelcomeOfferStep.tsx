@@ -228,7 +228,7 @@ export const WelcomeOfferStep = () => {
         <OptInRow
           checked={emailOn}
           onClick={toggleEmail}
-          title="Email me about promotions, new products & deals"
+          title=""
         />
 
 
