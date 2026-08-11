@@ -143,9 +143,10 @@ export function StepProvider({ children }: StepProviderProps) {
   // post-summary `assessing` and `create-password` steps disappear from
   // `steps`. If the user happened to be parked on one of them when the
   // setting changed, currentStepNumber becomes -1 and the next/prev
-  // handlers send them back to onboarding. Snap them forward to `summary`
-  // (the natural recovery point) instead. POST_FLOW steps live outside
-  // `steps` by design - leave those alone.
+  // handlers send them back to onboarding. Snap them forward to the last
+  // available step in the current flow (summary when shown, otherwise the final
+  // form step) so the user lands on a sensible recovery point. POST_FLOW steps
+  // live outside `steps` by design - leave those alone.
   useEffect(() => {
     // While the flags load, `steps` is an intentional placeholder prefix - do
     // not treat a restored mid-flow step as invalid.
@@ -154,7 +155,7 @@ export function StepProvider({ children }: StepProviderProps) {
     if (POST_FLOW.includes(currentStep)) return;
     if (steps.length === 0) return;
     if (steps.includes(currentStep)) return;
-    setCurrentStep("summary");
+    setCurrentStep(steps[steps.length - 1]);
   }, [steps, currentStep, flagsLoading]);
 
 
