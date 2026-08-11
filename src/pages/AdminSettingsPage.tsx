@@ -56,6 +56,8 @@ const AdminSettingsPage = () => {
   const [updatingBusinessLocationStep, setUpdatingBusinessLocationStep] = useState(false);
   const [referralStepOn, setReferralStepOn] = useState<boolean | null>(null);
   const [updatingReferralStep, setUpdatingReferralStep] = useState(false);
+  const [summaryStepOn, setSummaryStepOn] = useState<boolean | null>(null);
+  const [updatingSummaryStep, setUpdatingSummaryStep] = useState(false);
 
   // Extra customer tags
   const [extraTags, setExtraTags] = useState<string[]>([]);
