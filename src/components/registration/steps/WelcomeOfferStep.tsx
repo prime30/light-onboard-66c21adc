@@ -193,41 +193,50 @@ export const WelcomeOfferStep = () => {
       </div>
 
       <div className="w-full max-w-[30rem] mx-auto space-y-[20px] animate-stagger-2">
-        <OptInRow
-          checked={smsOn}
-          onClick={toggleSms}
-          badge="Save 15%"
-          title="Text me when I'm approved to shop & with pro-only deals"
-          legal={
-            <>
-              By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
-              Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
-              Msg &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
-                className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-              >
-                Terms
-              </button>
-              {" & "}
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
-                className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
-              >
-                Privacy Policy
-              </button>
-              .
-            </>
-          }
-        />
-        <OptInRow
-          checked={emailOn}
-          onClick={toggleEmail}
-          badge="Save 15%"
-          title="Email me when I'm approved to shop & with pro-only deals"
-        />
+        <div className="rounded-[15px] border border-border/40 bg-muted/40 backdrop-blur-md p-[20px] space-y-[20px]">
+          <div className="text-center space-y-[5px]">
+            <h2 className="font-grotesk text-[17px] font-medium text-foreground leading-[1.3]">
+              Save 15% on your first order
+            </h2>
+          </div>
+
+          <OptInRow
+            checked={smsOn}
+            onClick={toggleSms}
+            badge="Save 15%"
+            title="Text me when I'm approved to shop & with pro-only deals"
+            legal={
+              <>
+                By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
+                Drop Dead Extensions at the number provided. Consent is not a condition of purchase.
+                Msg &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our{" "}
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTerms(true); }}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Terms
+                </button>
+                {" & "}
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPrivacy(true); }}
+                  className="underline underline-offset-2 text-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </>
+            }
+          />
+          <OptInRow
+            checked={emailOn}
+            onClick={toggleEmail}
+            badge="Save 15%"
+            title="Email me when I'm approved to shop & with pro-only deals"
+          />
+        </div>
+
 
 
         {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
