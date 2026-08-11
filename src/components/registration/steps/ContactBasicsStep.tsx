@@ -549,7 +549,7 @@ export const ContactBasicsStep = () => {
                     >
                       <SelectPrimitive.Trigger
                         className={cn(
-                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-2 px-2 outline-none",
+                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-1.5 px-2 outline-none",
                           errors.phoneCountryCode && "border-destructive/50 bg-destructive/5"
                         )}
                       >
