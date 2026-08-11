@@ -168,14 +168,15 @@ export const CreatePasswordStep = () => {
             <CheckMarkIcon show={passwordValid} />
           </div>
 
-          {/* Requirements checklist - always visible until every rule is
-              satisfied, so the user sees exactly what's still wrong instead
-              of relying on a single generic error message. */}
+          {/* Requirements checklist - only shows rules that are still
+              unmet, so the user sees exactly what's still wrong. */}
           {!allChecksPassed ? (
             <ul className="space-y-1 pt-1.5" aria-live="polite">
-              {checks.map((c) => (
-                <RequirementRow key={c.id} passed={c.passed} label={c.label} />
-              ))}
+              {checks
+                .filter((c) => !c.passed)
+                .map((c) => (
+                  <RequirementRow key={c.id} passed={c.passed} label={c.label} />
+                ))}
             </ul>
           ) : (
             <p className="text-[11px] text-success flex items-center gap-1.5 pt-1.5">
