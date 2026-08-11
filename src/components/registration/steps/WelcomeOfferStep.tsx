@@ -138,7 +138,7 @@ export const WelcomeOfferStep = () => {
               {title}
             </span>
             {badge && (
-              <span className="inline-flex ml-[8px] -translate-y-px rounded-full bg-muted px-[8px] py-[3px] font-termina text-[8px] font-medium uppercase leading-none text-muted-foreground">
+              <span className="inline-flex items-center ml-[8px] rounded-full bg-foreground px-[10px] py-[5px] font-grotesk text-[11px] font-medium uppercase leading-none text-background">
                 {badge}
               </span>
             )}
