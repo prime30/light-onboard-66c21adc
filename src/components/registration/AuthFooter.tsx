@@ -54,6 +54,7 @@ export function AuthFooter({
     submitErrorMessage,
     setEmailConflict,
     incompleteSteps,
+    steps,
   } = useForm();
   const [preflightChecking, setPreflightChecking] = useState(false);
   const navigate = useNavigate();
