@@ -178,7 +178,6 @@ export const BusinessLocationStep = () => {
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           {isStudent ? "Where are you located?" : "Where is your business located?"}
         </h1>
