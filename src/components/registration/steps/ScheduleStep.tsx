@@ -279,7 +279,7 @@ export const ScheduleStep = () => {
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in">
-      <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+      <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
           <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[9px] font-semibold">
             {subStepNumber}
