@@ -1074,6 +1074,35 @@ const AdminSettingsPage = () => {
               />
             )}
           </div>
+
+          <div className="flex items-start justify-between gap-6 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-foreground">Review application</h3>
+              <p className="text-xs text-muted-foreground">
+                Summary / review step before submission. Turning this off removes the review screen
+                and submits directly from the last form step.
+              </p>
+            </div>
+            {summaryStepOn === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={summaryStepOn}
+                onCheckedChange={(next) =>
+                  handleStepToggle(
+                    "summaryStepEnabled",
+                    next,
+                    summaryStepOn,
+                    setSummaryStepOn,
+                    setUpdatingSummaryStep,
+                    "Review application"
+                  )
+                }
+                disabled={updatingSummaryStep}
+                aria-label="Toggle review application step"
+              />
+            )}
+          </div>
         </div>
 
           {founderHighVolume !== null && (
