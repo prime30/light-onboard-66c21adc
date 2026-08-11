@@ -194,12 +194,13 @@ const AdminSettingsPage = () => {
         setPreferredMethodStepOn(true);
       }
       setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
+      setReferralStepOn(data?.setting?.referral_step_enabled !== false);
+      setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
       if (typeof data?.setting?.founder_call_enabled === "boolean") {
-          setFounderCallOn(data.setting.founder_call_enabled);
-        } else {
-          setFounderCallOn(true);
-        }
+        setFounderCallOn(data.setting.founder_call_enabled);
+      } else {
+        setFounderCallOn(true);
+      }
       })
       .catch(() => {
         /* keep on login screen if verification fails */
