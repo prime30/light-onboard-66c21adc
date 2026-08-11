@@ -124,6 +124,11 @@ export const WelcomeOfferStep = () => {
           : "border-border/50 bg-background/45 backdrop-blur-md hover:border-foreground/25 border-shimmer"
       }`}
     >
+      {badge && (
+        <span className="absolute top-[20px] right-[20px] font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70">
+          {badge}
+        </span>
+      )}
       <span className="flex gap-[15px] px-[20px] pt-[20px] pb-[20px]">
         <span
           className={`mt-[1px] w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
@@ -134,18 +139,11 @@ export const WelcomeOfferStep = () => {
         </span>
 
           <span className="min-w-0 flex-1 block text-left">
-            <span className="flex items-start justify-between gap-[10px] mb-[8px]">
-              <span className="block text-[15px] font-medium leading-[1.35] text-foreground">
-                {title}
-              </span>
-              {badge && (
-                <span className="font-termina text-[9px] font-medium uppercase tracking-[0.14em] text-foreground/70 shrink-0">
-                  {badge}
-                </span>
-              )}
+            <span className="block text-[15px] font-medium leading-[1.35] text-foreground pr-[60px]">
+              {title}
             </span>
 
-            {meta && <span className="block mb-[12px]">{meta}</span>}
+            {meta && <span className="block mt-[8px] mb-[12px]">{meta}</span>}
 
             {description && (
               <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
@@ -164,6 +162,7 @@ export const WelcomeOfferStep = () => {
       )}
     </button>
   );
+
 
 
 
