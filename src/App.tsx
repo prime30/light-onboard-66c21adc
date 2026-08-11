@@ -27,6 +27,7 @@ const BlogResaleLicense = lazy(() => import("./pages/BlogResaleLicense"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SsoPreviewPage = lazy(() => import("./pages/SsoPreviewPage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
+const OAuthConsentPage = lazy(() => import("./pages/OAuthConsentPage"));
 
 const queryClient = new QueryClient();
 
@@ -163,6 +164,14 @@ const children: RouteObject[] = [
     element: (
       <Suspense fallback={<GenericBootFallback />}>
         <AdminSettingsPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: ".lovable/oauth/consent",
+    element: (
+      <Suspense fallback={<GenericBootFallback />}>
+        <OAuthConsentPage />
       </Suspense>
     ),
   },
