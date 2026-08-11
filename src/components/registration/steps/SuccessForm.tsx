@@ -418,11 +418,6 @@ export const SuccessForm = () => {
         <h1 className="font-termina font-medium uppercase text-2xl md:text-3xl text-foreground tracking-[-0.006em]">
           {autoApproved ? "Welcome to Drop Dead" : "You're all set!"}
         </h1>
-        <p className="text-muted-foreground">
-          {autoApproved
-            ? "You're approved. Your pro account is active and ready to shop wholesale pricing."
-            : "Your account has been successfully submitted. Our team will review and approve or deny your professional account within 24 hours."}
-        </p>
       </div>
 
       {showFounderCallNudge && (
