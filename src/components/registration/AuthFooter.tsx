@@ -359,7 +359,7 @@ export function AuthFooter({
     if (shouldRunDuplicateEmailCheck) {
       const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
       const continueAfterCheck = () => {
-        if (isFauxSubmitStep) goToStep("assessing");
+        if (isFauxSubmitStep) goToStep("welcome-offer");
         else submitForm();
       };
       if (!email) {
