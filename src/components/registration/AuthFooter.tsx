@@ -399,11 +399,11 @@ export function AuthFooter({
 
     // Final real submit: the last step in the active flow. In auto-approval
     // mode with the summary enabled this is a faux "Submit application" that
-    // advances to the assessing animation; otherwise it actually fires the
+    // advances to the welcome-offer step; otherwise it actually fires the
     // registration request.
     if (isFinalStep) {
       if (isFauxSubmitStep) {
-        goToStep("assessing");
+        goToStep("welcome-offer");
       } else {
         submitForm();
       }
