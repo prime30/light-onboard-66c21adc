@@ -98,7 +98,6 @@ export const WelcomeOfferStep = () => {
   const OptInRow = ({
     checked,
     onClick,
-    channel,
     title,
     description,
     badge,
@@ -108,7 +107,6 @@ export const WelcomeOfferStep = () => {
   }: {
     checked: boolean;
     onClick: () => void;
-    channel: string;
     title: string;
     description: ReactNode;
     badge?: string;
@@ -187,7 +185,6 @@ export const WelcomeOfferStep = () => {
             <OptInRow
               checked={smsOn}
               onClick={toggleSms}
-              channel="Text messages"
               title="Text me when I'm approved to shop & with pro-only deals"
               badge="Recommended"
               meta={
@@ -238,7 +235,6 @@ export const WelcomeOfferStep = () => {
             <OptInRow
               checked={emailOn}
               onClick={toggleEmail}
-              channel="Email"
               title="Email me about promotions, new products & deals"
               description="Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
             />
