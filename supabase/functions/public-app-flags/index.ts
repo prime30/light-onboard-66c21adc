@@ -28,7 +28,7 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data, error } = await supabase
     .from("app_settings")
-    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled")
+    .select("auto_approval_enabled, welcome_offer_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled")
     .eq("singleton", true)
     .maybeSingle();
   if (error || !data) {
