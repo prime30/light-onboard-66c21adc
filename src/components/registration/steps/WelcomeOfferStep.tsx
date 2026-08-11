@@ -225,6 +225,7 @@ export const WelcomeOfferStep = () => {
         <OptInRow
           checked={emailOn}
           onClick={toggleEmail}
+          badge="Required"
           title="Email me when I'm approved to shop & with pro-only deals"
         />
 
