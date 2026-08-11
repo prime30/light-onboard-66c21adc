@@ -144,6 +144,8 @@ export function AuthFooter({
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
     if (isScheduleConfirmedStep) return "Go to shop";
+    // Late password step in auto-approval mode is now the final real submit gate.
+    if (isLatePasswordStep && isFinalStep) return "Create account & continue";
     if (isLatePasswordStep) return "Continue";
     // While flags are still loading the step list is a placeholder prefix; don't
     // label the first real step as "Submit application" until the full flow is known.
