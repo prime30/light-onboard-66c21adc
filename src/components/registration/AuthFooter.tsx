@@ -145,6 +145,9 @@ export function AuthFooter({
     if (mode === "signin") return "Login";
     if (isScheduleConfirmedStep) return "Go to shop";
     if (isLatePasswordStep) return "Continue";
+    // While flags are still loading the step list is a placeholder prefix; don't
+    // label the first real step as "Submit application" until the full flow is known.
+    if (autoApproveLoading && currentStep !== "onboarding") return "Continue";
     if (isFinalStep) return "Submit application";
     if (currentStep === "onboarding") return "Get started";
     return "Continue";
