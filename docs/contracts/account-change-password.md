@@ -13,12 +13,23 @@ inline on `/account` without an email round-trip and without
 re-entering their current password. The trust chain is:
 
 1. Customer is on `/account` → Shopify session cookie is valid.
-2. Theme JS calls the App Proxy at `/apps/apply/change-password`.
+2. Theme JS calls the App Proxy at `/apps/account/change-password`.
 3. Shopify appends a signed query string with `logged_in_customer_id`.
 4. Backend verifies the HMAC, trusts the customer id, and calls the
    Admin API to set the new password.
 
-## Existing app + proxy (already provisioned)
+## Live app + proxy (in use)
+
+- App: `reset-password-9`
+- App Proxy:
+  - prefix: `apps`
+  - subpath: `account`
+  - url: `https://<project-ref>.supabase.co/functions/v1` (this project's backend functions base)
+  - effect: `https://dropdeadextensions.com/apps/account/change-password` →
+    the `change-password` edge function directly (no SPA hop, no host rewrite)
+- HMAC secret: `SHOPIFY_ACCOUNT_APP_SECRET` (the `reset-password-9` app's Client secret)
+
+## Legacy app + proxy (registration SPA only)
 
 - App: `lovable-registration-dawn-4` ("Lovable Registration (Dawn)")
 - Scopes: `read_customers, write_customers, read_discounts, write_discounts, read_orders`
@@ -43,7 +54,7 @@ etc.). This contract adds **one new route**: `POST /change-password`.
 POST /change-password
 ```
 
-(via the proxy at `https://dropdeadextensions.com/apps/apply/change-password`)
+(via the proxy at `https://dropdeadextensions.com/apps/account/change-password`)
 
 ### Headers
 
@@ -64,7 +75,7 @@ POST /change-password
 | Param | Source of truth |
 |---|---|
 | `shop` | Always `drop-dead-2428.myshopify.com` for this storefront |
-| `path_prefix` | `/apps/apply` |
+| `path_prefix` | `/apps/account` |
 | `timestamp` | Unix seconds |
 | `signature` | HMAC-SHA256 of all other params, hex-encoded |
 | `logged_in_customer_id` | Customer id (numeric string) - present iff a customer session cookie is attached to the request |
