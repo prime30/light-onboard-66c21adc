@@ -283,9 +283,6 @@ export const AccountTypeForm = () => {
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Tell us who you are
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-          Select the account type that fits you best.
-        </p>
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
