@@ -207,7 +207,7 @@ export const WelcomeOfferStep = () => {
                   </span>
                 )
               }
-              description="Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases."
+              description=""
               legal={
                 <>
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
