@@ -29,10 +29,12 @@ export const WelcomeOfferStep = () => {
     submitForm,
     isSubmitting,
   } = useForm();
-  // The welcome-offer step is no longer the final submit gate; it now sits
-  // before the assessing animation, so Continue always advances to the next
-  // step and the create-password step handles the real backend submit.
-  const isFinalSubmitStep = false;
+  // In auto-approval mode this step now sits BEFORE the faux "assessing"
+  // screen, so the real submit happens on create-password. In non-auto mode
+  // this step is the final gate only when the review/summary step is hidden.
+  const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: summaryStepEnabled } = useSummaryStepEnabled();
+  const isFinalSubmitStep = !autoApprove && !summaryStepEnabled;
 
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
