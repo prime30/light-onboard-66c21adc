@@ -125,7 +125,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled, summaryStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;
