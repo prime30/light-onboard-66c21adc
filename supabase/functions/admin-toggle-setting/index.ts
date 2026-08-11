@@ -20,6 +20,7 @@ interface RequestBody {
   orderVolumeStepEnabled?: boolean;
   businessLocationStepEnabled?: boolean;
   preferredMethodStepEnabled?: boolean;
+  summaryStepEnabled?: boolean;
   extraCustomerTags?: string[];
 }
 
