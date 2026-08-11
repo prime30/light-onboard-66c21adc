@@ -107,7 +107,7 @@ export function AuthFooter({
 
   const continueBlocked = isFinalStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
-    : isLateWelcomeOfferStep
+    : isLatePasswordStep
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
