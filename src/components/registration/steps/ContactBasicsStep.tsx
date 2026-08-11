@@ -374,10 +374,11 @@ export const ContactBasicsStep = () => {
   // Priority: the phone number's country (explicit user choice) wins,
   // IP geolocation only seeds the initial default.
   const geoCountry = useGeoCountry();
-  const phoneCountryCode = watch("phoneCountryCode");
   useEffect(() => {
-    const iso = String(phoneCountryCode ?? "").toUpperCase();
-    if (!iso) return;
+    const raw = String(phoneCountryCode ?? "").trim().toLowerCase();
+    if (!raw) return;
+    const match = countryCodes.find((c) => c.iso === raw);
+    const iso = (match?.country ?? raw.toUpperCase()).toUpperCase();
     if (!countries.some((c) => c.code === iso)) return;
     setValue("countryCode", iso, dirtyFieldOptions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
