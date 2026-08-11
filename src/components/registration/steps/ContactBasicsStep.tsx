@@ -29,7 +29,7 @@ export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: 
     src={`https://flagcdn.com/w40/${iso}.png`}
     srcSet={`https://flagcdn.com/w80/${iso}.png 2x`}
     alt={iso.toUpperCase()}
-    className={cn("w-5 h-5 rounded-full object-cover", className)}
+    className={cn("w-4 h-4 rounded-full object-cover", className)}
     loading="lazy"
   />
 );
