@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://qsunfiextzzdxnsyrkkc.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "bright-start-flow",
+      "version": "0.1.0",
+      "title": "Bright Start Flow"
+    },
+    "tools": [
+      {
+        "name": "get_my_registration",
+        "title": "Get my registration",
+        "description": "Read the signed-in stylist's wholesale registration profile: account type, contact details, license number, salon details and application status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_marketing_consent",
+        "title": "List my marketing consent",
+        "description": "List the signed-in user's recorded marketing consent events (SMS and email opt-ins), newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_my_communication_preferences",
+        "title": "Update my communication preferences",
+        "description": "Update the signed-in user's marketing preferences and Instagram handle on their registration profile. Only the provided fields change.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "subscribe_order_updates": {
+              "description": "Receive transactional order update emails.",
+              "type": "boolean"
+            },
+            "subscribe_promotions": {
+              "description": "Receive promotional emails.",
+              "type": "boolean"
+            },
+            "subscribe_sms_promotions": {
+              "description": "Receive promotional text messages.",
+              "type": "boolean"
+            },
+            "social_media_handle": {
+              "description": "Instagram handle, with or without the leading @.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
