@@ -259,7 +259,7 @@ export function AuthFooter({
     }
 
 
-    const shouldRunDuplicateEmailCheck = isFauxSubmitStep || (!autoApprove && isSummaryStep);
+    const shouldRunDuplicateEmailCheck = isFinalStep || isFauxSubmitStep;
     const blockingSteps = shouldRunDuplicateEmailCheck
       ? popoverSteps.filter((s) => !s.missingFields.every((field) => field === "email"))
       : popoverSteps;
