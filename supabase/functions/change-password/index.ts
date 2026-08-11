@@ -1,5 +1,11 @@
 // POST /change-password - invoked via Shopify App Proxy at
-// https://dropdeadextensions.com/apps/apply/change-password
+// https://dropdeadextensions.com/apps/account/change-password
+//
+// The `reset-password-9` Shopify app owns that proxy and points it directly
+// at this project's edge function base URL (.../functions/v1), so Shopify
+// forwards the `change-password` sub-path straight here. No SPA hop and no
+// host rewrite is involved. Because the proxy signs with that app's Client
+// secret, HMAC verification uses SHOPIFY_ACCOUNT_APP_SECRET.
 //
 // Trust chain (see docs/contracts/account-change-password.md):
 //   1. Customer is on /account → Shopify session cookie is valid.
@@ -13,6 +19,7 @@
 //   - Never accept customer id from the request body.
 //   - Never log the new password value.
 //   - Never echo Admin API error bodies verbatim to the client.
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
