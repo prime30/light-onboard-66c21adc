@@ -169,20 +169,24 @@ export const CreatePasswordStep = () => {
           </div>
 
           {/* Requirements checklist - only shows rules that are still
-              unmet, so the user sees exactly what's still wrong. */}
-          {!allChecksPassed ? (
-            <ul className="space-y-1 pt-1.5" aria-live="polite">
-              {checks
-                .filter((c) => !c.passed)
-                .map((c) => (
-                  <RequirementRow key={c.id} passed={c.passed} label={c.label} />
-                ))}
-            </ul>
-          ) : (
-            <p className="text-[11px] text-success flex items-center gap-1.5 pt-1.5">
-              <Check className="w-3 h-3" />
-              <span>Password meets all requirements</span>
-            </p>
+              unmet after the user has typed at least 3 characters. */}
+          {(password.length >= 3 || allChecksPassed) && (
+            <div className="pt-1.5">
+              {allChecksPassed ? (
+                <p className="text-[11px] text-success flex items-center gap-1.5">
+                  <Check className="w-3 h-3" />
+                  <span>Password meets all requirements</span>
+                </p>
+              ) : (
+                <ul className="space-y-1" aria-live="polite">
+                  {checks
+                    .filter((c) => !c.passed)
+                    .map((c) => (
+                      <RequirementRow key={c.id} passed={c.passed} label={c.label} />
+                    ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
 
