@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
-    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true }, 200);
+    return json({ autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false }, 200);
   }
   const supabase = createClient(supabaseUrl, serviceKey);
   const { data, error } = await supabase
