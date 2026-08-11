@@ -236,7 +236,6 @@ export const WelcomeOfferStep = () => {
               checked={emailOn}
               onClick={toggleEmail}
               title="Email me about promotions, new products & deals"
-              description="Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
             />
 
 
