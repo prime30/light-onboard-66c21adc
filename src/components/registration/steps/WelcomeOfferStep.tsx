@@ -108,7 +108,7 @@ export const WelcomeOfferStep = () => {
     checked: boolean;
     onClick: () => void;
     title: string;
-    description: ReactNode;
+    description?: ReactNode;
     badge?: string;
     meta?: ReactNode;
     legal?: ReactNode;
@@ -145,9 +145,11 @@ export const WelcomeOfferStep = () => {
             )}
           </span>
 
-          <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
-            {description}
-          </span>
+          {description && (
+            <span className="block mt-[8px] text-[13px] text-muted-foreground leading-[1.55]">
+              {description}
+            </span>
+          )}
 
           {meta && <span className="block mt-[12px]">{meta}</span>}
 
@@ -207,7 +209,7 @@ export const WelcomeOfferStep = () => {
                   </span>
                 )
               }
-              description="Texts from the Drop Dead team about your pro account, order confirmations, shipping updates, sales, and early releases."
+              
               legal={
                 <>
                   By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
