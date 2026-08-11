@@ -269,7 +269,7 @@ export const AccountTypeForm = () => {
   }
 
   return (
-    <div className="space-y-[clamp(12px,2vh,20px)] sm:space-y-[clamp(15px,2.5vh,30px)]">
+    <div className="space-y-[clamp(12px,2vh,25px)]">
       <AccountTypeConfirmationOverlay
         showAccountTypeConfirm={showAccountTypeConfirm}
         setShowAccountTypeConfirm={setShowAccountTypeConfirm}
@@ -280,7 +280,6 @@ export const AccountTypeForm = () => {
         goToNextStep={goToNextStep}
       />
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <div className="animate-stagger-1" />
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           Tell us who you are
         </h1>
