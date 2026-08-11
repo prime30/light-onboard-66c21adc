@@ -168,6 +168,7 @@ Deno.serve(async (req: Request) => {
     update.business_location_step_enabled = body.businessLocationStepEnabled;
   if (hasPreferredMethodStepToggle) update.preferred_method_step_enabled = body.preferredMethodStepEnabled;
   if (hasReferralStepToggle) update.referral_step_enabled = body.referralStepEnabled;
+  if (hasSummaryStepToggle) update.summary_step_enabled = body.summaryStepEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
 
   const { data, error } = await supabase
