@@ -8,13 +8,17 @@ import { cn } from "@/lib/utils";
 
 import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
-import { useForm } from "../context";
+import { Checkbox } from "@/components/ui/checkbox";
+import { dirtyFieldOptions, useForm } from "../context";
+import type { UploadFileItem } from "@/contexts";
 import { countryCodes } from "@/data/country-codes";
+import { countries } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoApproval } from "@/lib/app-settings";
+import { useGeoCountry } from "@/hooks/useGeoCountry";
 
 // Flag component using flagcdn.com for consistent cross-platform rendering
 export const CountryFlag = ({ iso, className = "" }: { iso: string; className?: string }) => (
@@ -365,7 +369,24 @@ export const ContactBasicsStep = () => {
   const accountType = watch("accountType");
   const isSalon = accountType === "salon";
   const isCredentialFlow = accountType === "professional" || accountType === "salon";
-  const country = String(watch("countryCode") ?? "US").toUpperCase();
+
+  // Country now drives the flow without collecting a business address.
+  // Priority: the phone number's country (explicit user choice) wins,
+  // IP geolocation only seeds the initial default.
+  const geoCountry = useGeoCountry();
+  useEffect(() => {
+    const raw = String(phoneCountryCode ?? "").trim().toLowerCase();
+    if (!raw) return;
+    const match = countryCodes.find((c) => c.iso === raw);
+    const iso = (match?.country ?? raw.toUpperCase()).toUpperCase();
+    if (!countries.some((c) => c.code === iso)) return;
+    setValue("countryCode", iso, dirtyFieldOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneCountryCode]);
+
+  const country = String(
+    watch("countryCode") ?? geoCountry ?? "US"
+  ).toUpperCase();
   const credentialConfig = getCredentialConfig(country);
   const qualificationOptions = getQualificationOptions(country).map((q) => ({
     value: q.value,
@@ -378,6 +399,22 @@ export const ContactBasicsStep = () => {
   const showLicenseUpload = !autoApprovalLoading && !autoApprovalEnabled;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const licenseErrors = errors as any;
+
+  // Tax exemption (US only) now lives directly under the license number.
+  const taxExempt = watch("taxExempt");
+  const taxExemptFile = watch("taxExemptFile");
+  const taxFileRef = useRef<HTMLDivElement>(null);
+  const showTaxExemption = country === "US";
+  const handleTaxToggle = (checked: boolean) => {
+    setValue("taxExempt", checked, dirtyFieldOptions);
+    if (!checked) {
+      setValue("taxExemptFile", [], dirtyFieldOptions);
+    } else {
+      setTimeout(() => {
+        taxFileRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+  };
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
@@ -586,6 +623,69 @@ export const ContactBasicsStep = () => {
                   placeholder="Upload photos of your license"
                   maxFiles={3}
                 />
+              </div>
+            )}
+
+            {/* Tax exemption (US only) sits directly under the license number */}
+            {showTaxExemption && (
+              <div className="space-y-[15px]">
+                <label
+                  className={cn(
+                    "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer",
+                    taxExempt === true
+                      ? "border-foreground/40 hover:border-foreground/60"
+                      : "border-border hover:border-foreground/30"
+                  )}
+                >
+                  <Checkbox
+                    checked={taxExempt === true}
+                    onCheckedChange={(checked) => handleTaxToggle(!!checked)}
+                    className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                  />
+                  <div className="space-y-0.5 flex-1">
+                    <span className="text-sm font-medium text-foreground">
+                      I have a tax exemption certificate
+                    </span>
+                    <p className="text-xs text-muted-foreground">
+                      Upload it to avoid sales tax on your orders. Not required to register.
+                    </p>
+                  </div>
+                </label>
+
+                <div
+                  ref={taxFileRef}
+                  className={cn(
+                    "grid transition-all duration-400",
+                    taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                  style={{
+                    transitionTimingFunction:
+                      taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <div
+                      className={cn(taxExempt === true && "animate-haptic-pop")}
+                      data-field="tax-document"
+                    >
+                      <MultiFileUpload
+                        files={
+                          Array.isArray(taxExemptFile) &&
+                          taxExemptFile.every((item) => typeof item === "object")
+                            ? (taxExemptFile as UploadFileItem[])
+                            : []
+                        }
+                        onFilesChange={(files: UploadFileItem[]) =>
+                          setValue("taxExemptFile", files, dirtyFieldOptions)
+                        }
+                        placeholder="Upload your state tax-exempt license"
+                        error={!!licenseErrors.taxExemptFile}
+                        errorMessage="Please upload your tax exemption document"
+                        maxFiles={1}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
