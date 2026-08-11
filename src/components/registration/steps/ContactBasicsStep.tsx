@@ -632,15 +632,13 @@ export const ContactBasicsStep = () => {
               </div>
             )}
 
-            {/* Tax exemption (US only) sits directly under the license number */}
+            {/* Tax exemption (US only) — secondary to license input */}
             {showTaxExemption && (
-              <div className="space-y-[15px]">
+              <div className="space-y-3 pt-2">
                 <label
                   className={cn(
-                    "relative flex items-start gap-[15px] group p-4 -mx-1 rounded-form bg-background border transition-colors cursor-pointer",
-                    taxExempt === true
-                      ? "border-foreground/40 hover:border-foreground/60"
-                      : "border-border hover:border-foreground/30"
+                    "relative flex items-center gap-3 group cursor-pointer",
+                    taxExempt === true && "text-foreground"
                   )}
                 >
                   <Checkbox
@@ -648,14 +646,12 @@ export const ContactBasicsStep = () => {
                     onCheckedChange={(checked) => handleTaxToggle(!!checked)}
                     className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
-                  <div className="space-y-0.5 flex-1">
-                    <span className="text-sm font-medium text-foreground">
-                      I have a tax exemption certificate
-                    </span>
-                    <p className="text-xs text-muted-foreground">
-                      Upload it to avoid sales tax on your orders. Not required to register.
-                    </p>
-                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    Do you want to upload a tax exemption?
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em] ml-auto">
+                    Not required
+                  </span>
                 </label>
 
                 <div
