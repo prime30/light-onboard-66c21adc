@@ -16,13 +16,13 @@ import { useGlobalApp } from "@/contexts/GlobalAppProvider";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
-import salonHero from "@/assets/salon-hero.jpg";
+import slideCutAsset from "@/assets/slide-cut.jpg.asset.json";
 import slideBlowoutAsset from "@/assets/slide-blowout.jpg.asset.json";
 import slideCommunityAsset from "@/assets/slide-community.jpg.asset.json";
 import { useModeContext } from "./context/ModeContext";
 import { resolveSsoPresentation } from "@/lib/sso-context";
 
-const slideImages = [salonHero, slideBlowoutAsset.url, slideCommunityAsset.url];
+const slideImages = [slideCutAsset.url, slideBlowoutAsset.url, slideCommunityAsset.url];
 
 
 function SignInBackground() {
