@@ -67,16 +67,16 @@ export function AuthFooter({
   const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
   const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
-  // When auto-approval is ON, the password step is collected after summary and
-  // the welcome-offer (subscribe) step is the LAST gate before the real
-  // backend submit fires. The summary "Submit application" button is a faux
-  // submit that just advances to the assessing animation.
+  // When auto-approval is ON, the welcome-offer step is collected BEFORE the
+  // faux "assessing" review animation, and the create-password step is the
+  // LAST gate before the real backend submit fires. The summary "Submit
+  // application" button is a faux submit that advances to welcome-offer.
   const isLatePasswordStep = autoApprove && currentStep === "create-password";
-  const isLateWelcomeOfferStep = autoApprove && currentStep === "welcome-offer";
   const isFauxSubmitStep = autoApprove && isSummaryStep;
 
   // The last item in the active steps array is always the final gate before
-  // success (summary when it is enabled, otherwise the welcome-offer step).
+  // success (summary when it is enabled, otherwise the create-password step
+  // in auto-approval mode or the welcome-offer step in legacy non-auto mode).
   const isFinalStep = currentStep === steps[steps.length - 1];
   const isStepValid = getStepValidationStatus(currentStep) === "complete";
 
@@ -95,7 +95,7 @@ export function AuthFooter({
         (s) => s.step !== "create-password" && s.step !== "welcome-offer"
       );
     }
-    if (isSummaryStep || isLatePasswordStep || isLateWelcomeOfferStep || isFinalStep) {
+    if (isSummaryStep || isLatePasswordStep || isFinalStep) {
       return incompleteSteps;
     }
     // Put the current step first if it's incomplete so the most relevant
@@ -103,20 +103,20 @@ export function AuthFooter({
     const current = incompleteSteps.find((s) => s.step === currentStep);
     const others = incompleteSteps.filter((s) => s.step !== currentStep);
     return current ? [current, ...others] : others;
-  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isLateWelcomeOfferStep, isFinalStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isFinalStep, currentStep]);
 
   const continueBlocked = isFinalStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
-    : isLateWelcomeOfferStep
+    : isLatePasswordStep
       ? !isFormValid && popoverSteps.length > 0
       : !isStepValid && popoverSteps.length > 0;
 
   // Popover only surfaces on the final-gate steps: the review/summary page,
-  // the late welcome-offer page (the last gate before the real submit in
+  // the late create-password page (the last gate before the real submit in
   // auto-approval mode), or the final step when the summary is hidden. On every
   // other step, an invalid Continue just shakes the missing fields without
   // opening the "incomplete steps" list.
-  const isFinalGateStep = isFinalStep || isSummaryStep || isLateWelcomeOfferStep || isFauxSubmitStep;
+  const isFinalGateStep = isFinalStep || isSummaryStep || isLatePasswordStep || isFauxSubmitStep;
   const showTooltip = isFinalGateStep && continueBlocked && popoverSteps.length > 0;
 
   const openSubmitTooltip = useCallback(() => {
@@ -144,6 +144,8 @@ export function AuthFooter({
     if (isSubmitting) return null; // Will show Loader2 + "Submitting..."
     if (mode === "signin") return "Login";
     if (isScheduleConfirmedStep) return "Go to shop";
+    // Late password step in auto-approval mode is now the final real submit gate.
+    if (isLatePasswordStep && isFinalStep) return "Create account & continue";
     if (isLatePasswordStep) return "Continue";
     // While flags are still loading the step list is a placeholder prefix; don't
     // label the first real step as "Submit application" until the full flow is known.
@@ -359,7 +361,7 @@ export function AuthFooter({
     if (shouldRunDuplicateEmailCheck) {
       const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
       const continueAfterCheck = () => {
-        if (isFauxSubmitStep) goToStep("assessing");
+        if (isFauxSubmitStep) goToStep("welcome-offer");
         else submitForm();
       };
       if (!email) {
@@ -399,11 +401,11 @@ export function AuthFooter({
 
     // Final real submit: the last step in the active flow. In auto-approval
     // mode with the summary enabled this is a faux "Submit application" that
-    // advances to the assessing animation; otherwise it actually fires the
+    // advances to the welcome-offer step; otherwise it actually fires the
     // registration request.
     if (isFinalStep) {
       if (isFauxSubmitStep) {
-        goToStep("assessing");
+        goToStep("welcome-offer");
       } else {
         submitForm();
       }
@@ -422,7 +424,7 @@ export function AuthFooter({
     isFinalStep,
     isSummaryStep,
     isFauxSubmitStep,
-    isLateWelcomeOfferStep,
+    isLatePasswordStep,
     isFinalGateStep,
     goToStep,
     submitForm,

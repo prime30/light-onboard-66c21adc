@@ -14,7 +14,7 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useSummaryStepEnabled } from "@/lib/app-settings";
 
 export const WelcomeOfferStep = () => {
   const {
@@ -29,10 +29,12 @@ export const WelcomeOfferStep = () => {
     submitForm,
     isSubmitting,
   } = useForm();
-  // In auto-approval mode this step lands AFTER the password step and is the
-  // last gate before the account is actually created, so Continue submits.
+  // In auto-approval mode this step now sits BEFORE the faux "assessing"
+  // screen, so the real submit happens on create-password. In non-auto mode
+  // this step is the final gate only when the review/summary step is hidden.
   const { enabled: autoApprove } = useAutoApproval();
-  const isFinalSubmitStep = autoApprove;
+  const { enabled: summaryStepEnabled } = useSummaryStepEnabled();
+  const isFinalSubmitStep = !autoApprove && !summaryStepEnabled;
 
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);

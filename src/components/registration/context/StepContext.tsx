@@ -111,10 +111,11 @@ export function StepProvider({ children }: StepProviderProps) {
     }
     // When auto-approval is ON, the password step moves to AFTER summary,
     // gated by a faux "assessing" review animation, and the welcome-offer
-    // (subscribe) step comes right after the password. If the summary step is
-    // hidden, the welcome-offer step becomes the final real submit gate.
+    // (subscribe) step comes right BEFORE assessing so the discount is offered
+    // before the application is reviewed. If the summary step is hidden, the
+    // create-password step becomes the final real submit gate.
     if (autoApprove && accountType) {
-      newSteps.push("assessing", "create-password", "welcome-offer");
+      newSteps.push("welcome-offer", "assessing", "create-password");
     }
 
     const totalSteps = newSteps.length;
