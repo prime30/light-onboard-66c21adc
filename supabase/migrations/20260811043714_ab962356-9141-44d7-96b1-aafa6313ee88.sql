@@ -1,0 +1,1 @@
+UPDATE public.app_settings SET business_location_step_enabled = false;
