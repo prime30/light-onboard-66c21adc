@@ -172,7 +172,7 @@ export const WelcomeOfferStep = () => {
     <div className="space-y-[clamp(16px,3vh,30px)]">
       <div className="space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Subscribe and Save
+          Save 15% on your first order
         </h1>
         {!isEditingPhone && (
           <span className="inline-flex flex-wrap items-center justify-center gap-[5px] text-[13px] text-muted-foreground">
@@ -198,7 +198,7 @@ export const WelcomeOfferStep = () => {
         <div className="rounded-[15px] border border-border/40 bg-muted/40 backdrop-blur-md p-[20px] space-y-[20px]">
           <div className="text-center space-y-[5px]">
             <h2 className="font-grotesk text-[17px] font-medium text-foreground leading-[1.3]">
-              Save 15% on your first order
+              Subscribe and Save
             </h2>
           </div>
 
