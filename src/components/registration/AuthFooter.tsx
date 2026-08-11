@@ -494,7 +494,9 @@ export function AuthFooter({
               onClick={
                 currentStep === "schedule"
                   ? () => goToStep("success")
-                  : goToPrevStep
+                  : isLatePasswordStep
+                    ? () => goToStep("welcome-offer")
+                    : goToPrevStep
               }
               aria-label="Go back"
               className="w-[55px] p-0 border-border hover:bg-muted/60 hover:border-foreground/30 group active:bg-muted/80 active:scale-95 transition-transform"
