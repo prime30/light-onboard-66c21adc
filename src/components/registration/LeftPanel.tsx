@@ -28,7 +28,7 @@ const slideImages = [slideCutAsset.url, slideBlowoutAsset.url, slideCommunityAss
 function SignInBackground() {
   const { ssoContext } = useGlobalApp();
   const ssoPresentation = resolveSsoPresentation(ssoContext);
-  const heroSrc = ssoPresentation?.heroImage || salonHero;
+  const heroSrc = ssoPresentation?.heroImage || slideCutAsset.url;
   const heroAlt = ssoPresentation?.label
     ? `${ssoPresentation.label} community`
     : "Professional salon";
