@@ -154,7 +154,7 @@ export const WelcomeOfferStep = () => {
           {meta && <span className="block mt-[12px]">{meta}</span>}
 
           {legal && (
-            <span className="block mt-[12px] pt-[12px] border-t border-border/50 text-[10.5px] leading-[1.55] text-muted-foreground/70">
+            <span className="block mt-[16px] -mx-[20px] -mb-[20px] px-[20px] py-[14px] bg-muted/50 border-t border-border/50 text-[10.5px] leading-[1.55] text-muted-foreground/70">
               {legal}
             </span>
           )}
