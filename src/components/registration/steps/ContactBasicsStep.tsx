@@ -536,7 +536,7 @@ export const ContactBasicsStep = () => {
             Phone number*
           </Label>
           <div className="flex gap-2">
-            <div className="w-[95px]">
+            <div className="w-[70px]">
               <Controller
                 name="phoneCountryCode"
                 control={control}
@@ -549,13 +549,13 @@ export const ContactBasicsStep = () => {
                     >
                       <SelectPrimitive.Trigger
                         className={cn(
-                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-2 px-2 outline-none",
+                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-1.5 px-2 outline-none",
                           errors.phoneCountryCode && "border-destructive/50 bg-destructive/5"
                         )}
                       >
                         <SelectValue placeholder="Select">
                           {selected && (
-                            <span className="flex w-full items-center justify-between">
+                            <span className="flex items-center gap-1.5">
                               <CountryFlag iso={selected.iso} />
                               <span className="text-sm font-medium">{selected.code}</span>
                             </span>
