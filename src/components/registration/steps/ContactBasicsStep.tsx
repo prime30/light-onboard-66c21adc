@@ -369,7 +369,23 @@ export const ContactBasicsStep = () => {
   const accountType = watch("accountType");
   const isSalon = accountType === "salon";
   const isCredentialFlow = accountType === "professional" || accountType === "salon";
-  const country = String(watch("countryCode") ?? "US").toUpperCase();
+
+  // Country now drives the flow without collecting a business address.
+  // Priority: the phone number's country (explicit user choice) wins,
+  // IP geolocation only seeds the initial default.
+  const geoCountry = useGeoCountry();
+  const phoneCountryCode = watch("phoneCountryCode");
+  useEffect(() => {
+    const iso = String(phoneCountryCode ?? "").toUpperCase();
+    if (!iso) return;
+    if (!countries.some((c) => c.code === iso)) return;
+    setValue("countryCode", iso, dirtyFieldOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneCountryCode]);
+
+  const country = String(
+    watch("countryCode") ?? geoCountry ?? "US"
+  ).toUpperCase();
   const credentialConfig = getCredentialConfig(country);
   const qualificationOptions = getQualificationOptions(country).map((q) => ({
     value: q.value,
@@ -382,6 +398,22 @@ export const ContactBasicsStep = () => {
   const showLicenseUpload = !autoApprovalLoading && !autoApprovalEnabled;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const licenseErrors = errors as any;
+
+  // Tax exemption (US only) now lives directly under the license number.
+  const taxExempt = watch("taxExempt");
+  const taxExemptFile = watch("taxExemptFile");
+  const taxFileRef = useRef<HTMLDivElement>(null);
+  const showTaxExemption = country === "US";
+  const handleTaxToggle = (checked: boolean) => {
+    setValue("taxExempt", checked, dirtyFieldOptions);
+    if (!checked) {
+      setValue("taxExemptFile", [], dirtyFieldOptions);
+    } else {
+      setTimeout(() => {
+        taxFileRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+  };
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
