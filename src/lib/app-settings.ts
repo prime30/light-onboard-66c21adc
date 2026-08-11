@@ -178,3 +178,9 @@ const pickBusinessLocationStep = (f: Flags) => f.businessLocationStepEnabled;
 export function useBusinessLocationStepEnabled() {
   return useFlag(pickBusinessLocationStep);
 }
+
+/** Summary / review step is hidden by default (opt-in via admin settings). */
+const pickSummaryStep = (f: Flags) => f.summaryStepEnabled;
+export function useSummaryStepEnabled() {
+  return useFlag(pickSummaryStep);
+}
