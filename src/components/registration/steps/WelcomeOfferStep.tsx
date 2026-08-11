@@ -14,7 +14,6 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
-import { useAutoApproval } from "@/lib/app-settings";
 
 export const WelcomeOfferStep = () => {
   const {
