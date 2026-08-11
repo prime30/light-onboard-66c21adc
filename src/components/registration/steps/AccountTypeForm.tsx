@@ -382,8 +382,8 @@ export const AccountTypeForm = () => {
                 </div>
               </div>
 
-              {/* Features - Full width row on mobile */}
-              <div className="flex sm:hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
+              {/* Features - hidden on mobile */}
+              <div className="hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
                 {type.features.map((feature, i) => {
                   const FeatureIcon = feature.icon;
                   return (
