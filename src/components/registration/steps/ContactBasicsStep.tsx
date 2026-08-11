@@ -536,13 +536,51 @@ export const ContactBasicsStep = () => {
           </Label>
           <div className="flex gap-2">
             <div className="w-[110px]">
-              <SelectInput
+              <Controller
                 name="phoneCountryCode"
                 control={control}
-                error={errors.phoneCountryCode}
-                options={countryCodeOptions}
-                placeholder="Select"
-                className="w-full"
+                render={({ field }) => {
+                  const selected = countryCodes.find((c) => c.iso === field.value);
+                  return (
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectPrimitive.Trigger
+                        className={cn(
+                          "h-input w-full rounded-form bg-muted border border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300 flex items-center justify-center gap-2 px-2 outline-none",
+                          errors.phoneCountryCode && "border-destructive/50 bg-destructive/5"
+                        )}
+                      >
+                        <SelectValue placeholder="Select">
+                          {selected && (
+                            <span className="flex items-center gap-2">
+                              <CountryFlag iso={selected.iso} />
+                              <span className="text-sm font-medium">{selected.code}</span>
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectPrimitive.Trigger>
+                      <SelectContent>
+                        {countryCodes.map((country) => (
+                          <SelectPrimitive.Item
+                            key={country.iso}
+                            value={country.iso}
+                            className={cn(
+                              "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-2 px-3 text-sm outline-none transition-colors",
+                              "focus:bg-accent focus:text-accent-foreground",
+                              "data-[state=checked]:bg-foreground/[0.04]"
+                            )}
+                          >
+                            <CountryFlag iso={country.iso} />
+                            <span className="font-medium">{country.code}</span>
+                            <span className="text-muted-foreground text-xs">({country.name})</span>
+                          </SelectPrimitive.Item>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
               />
             </div>
 
