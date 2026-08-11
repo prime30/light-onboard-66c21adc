@@ -637,7 +637,7 @@ export const ContactBasicsStep = () => {
               <div className="space-y-3 pt-2">
                 <label
                   className={cn(
-                    "relative flex items-center gap-3 group cursor-pointer",
+                    "relative flex items-start gap-3 group cursor-pointer",
                     taxExempt === true && "text-foreground"
                   )}
                 >
@@ -646,11 +646,11 @@ export const ContactBasicsStep = () => {
                     onCheckedChange={(checked) => handleTaxToggle(!!checked)}
                     className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                   />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="inline-flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                     Do you want to upload a tax exemption?
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em] ml-auto">
-                    Not required
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em] shrink-0">
+                      Not required
+                    </span>
                   </span>
                 </label>
 
