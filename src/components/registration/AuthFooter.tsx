@@ -95,7 +95,7 @@ export function AuthFooter({
         (s) => s.step !== "create-password" && s.step !== "welcome-offer"
       );
     }
-    if (isSummaryStep || isLatePasswordStep || isLateWelcomeOfferStep || isFinalStep) {
+    if (isSummaryStep || isLatePasswordStep || isFinalStep) {
       return incompleteSteps;
     }
     // Put the current step first if it's incomplete so the most relevant
@@ -103,7 +103,7 @@ export function AuthFooter({
     const current = incompleteSteps.find((s) => s.step === currentStep);
     const others = incompleteSteps.filter((s) => s.step !== currentStep);
     return current ? [current, ...others] : others;
-  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isLateWelcomeOfferStep, isFinalStep, currentStep]);
+  }, [incompleteSteps, isSummaryStep, isFauxSubmitStep, isLatePasswordStep, isFinalStep, currentStep]);
 
   const continueBlocked = isFinalStep
     ? (isFauxSubmitStep ? popoverSteps.length > 0 : !isFormValid && popoverSteps.length > 0)
