@@ -180,7 +180,7 @@ export const OnboardingForm = ({
 
 
       {/* Trust badges */}
-      <div className="flex flex-wrap justify-center gap-2.5 animate-stagger-2">
+      <div className="hidden sm:flex flex-wrap justify-center gap-2.5 animate-stagger-2">
 
         {TRUST_BADGES.map((badge, i) => {
           const Icon = badge.icon;
