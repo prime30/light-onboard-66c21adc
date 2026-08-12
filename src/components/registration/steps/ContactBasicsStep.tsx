@@ -150,28 +150,47 @@ export const ContactBasicsStep = () => {
 
     if (lastCheckedRef.current === value) return;
 
-    const applyResult = (data: { exists?: boolean } | undefined) => {
+    const applyResult = (
+      data: { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
+    ) => {
       if (data?.exists) {
-        const message = "An account with this email already exists. Please sign in instead.";
+        // Account exists but was never activated: an account-setup email was
+        // just re-sent, so point them at their inbox instead of a login they
+        // cannot complete.
+        const message = data.needsActivation
+          ? data.inviteSent
+            ? "This email already has an account that was never set up. We just sent you a new account-setup email, check your inbox."
+            : "This email already has an account that was never set up. Contact hello@dropdeadextensions.com and we'll finish setting it up."
+          : "An account with this email already exists. Please sign in instead.";
         setEmailConflict({ email: value, message });
         setError("email", {
           type: "manual",
           message,
         });
-        toast.error("This email is already registered", {
-          id: `email-exists:${value}`,
-          description: "Please sign in instead of creating a new account.",
-          duration: 6000,
-        });
+        toast.error(
+          data.needsActivation ? "Check your email to finish setup" : "This email is already registered",
+          {
+            id: `email-exists:${value}`,
+            description: data.needsActivation
+              ? data.inviteSent
+                ? "We just sent an account-setup email so you can set your password."
+                : "Reach out to hello@dropdeadextensions.com and we'll finish setting up your account."
+              : "Please sign in instead of creating a new account.",
+            duration: 8000,
+          }
+        );
       } else if (errors.email?.type === "manual") {
         setEmailConflict(null);
         clearErrors("email");
       }
     };
 
+
     // Cache hit - skip the network round trip entirely.
-    const cacheKey = `dde:check-email:${value}`;
-    const cached = cacheGet(cacheKey) as { exists?: boolean } | undefined;
+    const cacheKey = `dde:check-email:v2:${value}`;
+    const cached = cacheGet(cacheKey) as
+      | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean }
+      | undefined;
     if (cached) {
       lastCheckedRef.current = value;
       applyResult(cached);
@@ -188,7 +207,9 @@ export const ContactBasicsStep = () => {
         const current = (watch("email") ?? "").trim().toLowerCase();
         if (current !== value) return;
         cacheSet(cacheKey, data ?? {});
-        applyResult(data as { exists?: boolean } | undefined);
+        applyResult(
+          data as { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
+        );
       } catch {
         // Fail silently - submit will still catch the conflict server-side.
       }
