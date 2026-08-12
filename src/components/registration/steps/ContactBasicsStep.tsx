@@ -187,8 +187,10 @@ export const ContactBasicsStep = () => {
 
 
     // Cache hit - skip the network round trip entirely.
-    const cacheKey = `dde:check-email:${value}`;
-    const cached = cacheGet(cacheKey) as { exists?: boolean } | undefined;
+    const cacheKey = `dde:check-email:v2:${value}`;
+    const cached = cacheGet(cacheKey) as
+      | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean }
+      | undefined;
     if (cached) {
       lastCheckedRef.current = value;
       applyResult(cached);
@@ -205,7 +207,9 @@ export const ContactBasicsStep = () => {
         const current = (watch("email") ?? "").trim().toLowerCase();
         if (current !== value) return;
         cacheSet(cacheKey, data ?? {});
-        applyResult(data as { exists?: boolean } | undefined);
+        applyResult(
+          data as { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
+        );
       } catch {
         // Fail silently - submit will still catch the conflict server-side.
       }
