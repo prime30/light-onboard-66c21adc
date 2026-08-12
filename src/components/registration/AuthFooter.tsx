@@ -241,6 +241,46 @@ export function AuthFooter({
     }
   }, [setFocus]);
 
+  // Duplicate-account pre-flight. Checks BOTH email and phone (Shopify) so a
+  // conflict is surfaced before the user walks into the faux "assessing"
+  // animation or the late password step and hits a hard server error there.
+  type PreflightConflict = { field: "email" | "phoneNumber"; message: string };
+  const runConflictPreflight = useCallback(async (): Promise<PreflightConflict | null> => {
+    const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+    const phoneNumber = String(watch("phoneNumber") ?? "");
+    const phoneCountryCode = String(watch("phoneCountryCode") ?? "");
+    const emailReq = email
+      ? supabase.functions.invoke("check-email", { body: { email } }).catch(() => null)
+      : Promise.resolve(null);
+    const phoneReq =
+      phoneNumber.replace(/\D/g, "").length >= 6
+        ? supabase.functions
+            .invoke("check-phone", { body: { phoneNumber, phoneCountryCode } })
+            .catch(() => null)
+        : Promise.resolve(null);
+    const [emailRes, phoneRes] = await Promise.all([emailReq, phoneReq]);
+
+    if (emailRes && !emailRes.error && (emailRes.data as { exists?: boolean } | undefined)?.exists) {
+      const message = "An account with this email already exists. Please sign in instead.";
+      setEmailConflict({ email, message });
+      setError("email", { type: "manual", message });
+      return { field: "email", message };
+    }
+
+    const phoneData =
+      phoneRes && !phoneRes.error
+        ? (phoneRes.data as { inUse?: boolean; maskedEmail?: string } | undefined)
+        : undefined;
+    if (phoneData?.inUse) {
+      const message = phoneData.maskedEmail
+        ? `This phone already has an account under ${phoneData.maskedEmail}.`
+        : "This phone number is already linked to another account.";
+      setError("phoneNumber", { type: "manual", message });
+      return { field: "phoneNumber", message };
+    }
+    return null;
+  }, [watch, setError, setEmailConflict]);
+
   const handleContinue = useCallback(() => {
     // Schedule-confirmed: button is "Go to shop" - close the iframe (Shopify
     // embed) or navigate to the shop home. Include qualified-candidate
