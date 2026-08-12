@@ -353,11 +353,51 @@ export function AuthFooter({
       return;
     }
 
+    // The faux "assessing" screen shows an approval animation and then hands
+    // off to create-password, where the real submit fires. Never let a user
+    // walk into that animation with a conflict we can already detect  -  run
+    // the duplicate-email pre-flight before entering it.
+    const nextStepInFlow = steps[steps.indexOf(currentStep) + 1];
+    if (nextStepInFlow === "assessing") {
+      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+      if (!email) {
+        goToNextStep();
+        return;
+      }
+      setPreflightChecking(true);
+      supabase.functions
+        .invoke("check-email", { body: { email } })
+        .then(({ data, error }) => {
+          if (error) {
+            // Fail open - the real submit still validates server-side.
+            goToNextStep();
+            return;
+          }
+          if ((data as { exists?: boolean } | undefined)?.exists) {
+            const message =
+              "An account with this email already exists. Please sign in instead.";
+            setEmailConflict({ email, message });
+            setError("email", { type: "manual", message });
+            setSubmitError({
+              message,
+              actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+            });
+            return;
+          }
+          setEmailConflict(null);
+          setSubmitError(null);
+          goToNextStep();
+        })
+        .catch(() => goToNextStep())
+        .finally(() => setPreflightChecking(false));
+      return;
+    }
 
     // Auto-approval flow: summary "Submit application" is a faux submit  - 
     // pre-flight check for duplicate email so we surface "Go to Login"
     // BEFORE the user lands on the late password step. Phone duplicates are
     // already caught on the Contact step.
+
     if (shouldRunDuplicateEmailCheck) {
       const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
       const continueAfterCheck = () => {
