@@ -124,10 +124,48 @@ Deno.serve(async (req: Request) => {
         .map((t: string) => t.trim())
         .some((t: string) => /^account type:/i.test(t));
 
-      return new Response(JSON.stringify({ exists: hasAppliedTag }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // The account exists but was never activated (state "invited" =
+      // invite sent, never consumed; "disabled" = no password set). Telling
+      // these people to "sign in instead" strands them, since they have no
+      // password. Re-issue the Shopify account invite email instead.
+      const state: string = json?.customer?.state ?? "";
+      const needsActivation = hasAppliedTag && (state === "invited" || state === "disabled");
+      let inviteSent = false;
+      if (needsActivation) {
+        try {
+          const inviteRes = await fetch(
+            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyId}/send_invite.json`,
+            {
+              method: "POST",
+              headers: {
+                "X-Shopify-Access-Token": shopifyAdminToken,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ customer_invite: {} }),
+            }
+          );
+          inviteSent = inviteRes.ok;
+          if (!inviteRes.ok) {
+            console.error(
+              "check-email: send_invite failed",
+              email,
+              inviteRes.status,
+              (await inviteRes.text()).slice(0, 300)
+            );
+          }
+        } catch (inviteErr) {
+          console.error("check-email: send_invite threw", inviteErr);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ exists: hasAppliedTag, needsActivation, inviteSent }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+
     } catch (tagErr) {
       console.warn("check-email: Shopify tag fetch threw:", tagErr);
       return new Response(JSON.stringify({ exists: true }), {
