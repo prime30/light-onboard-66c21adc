@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Check, Eye, EyeOff, Lock, X } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Check, Eye, EyeOff, Lock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { CheckMarkIcon } from "@/components/CheckMarkIcon";
 
 import { useForm } from "../context";
@@ -72,11 +70,7 @@ export const CreatePasswordStep = () => {
     currentStep,
     clearErrors,
     setError,
-    errorActions,
-    submitErrorMessage,
   } = useForm();
-  const navigate = useNavigate();
-  const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   
   const password = (watch("password") as string | undefined) ?? "";
