@@ -10,7 +10,7 @@ import {
   useIframeCartBridge,
 } from "@/hooks/use-iframe-cart";
 import colorRingProduct from "@/assets/color-ring-product.png";
-import kristiAvatar from "@/assets/avatars/kristi.png.asset.json";
+import kristiAvatar from "@/assets/avatars/kristi.png";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
@@ -472,7 +472,7 @@ export const SuccessForm = () => {
                   className="block relative w-14 h-14 rounded-full overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_hsl(var(--foreground)/0.5)]"
                 >
                   <img
-                    src={kristiAvatar.url}
+                    src={kristiAvatar}
                     alt="Kristi, founder"
                     className="w-full h-full object-cover"
                   />
