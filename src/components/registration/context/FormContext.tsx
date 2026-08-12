@@ -96,6 +96,11 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     const lastName = watch("lastName");
     const phoneNumber = watch("phoneNumber");
     const phoneCountryCode = watch("phoneCountryCode");
+    // Preserve the marketing opt-ins so the success screen's gated 15% code
+    // reveal matches what the user selected on the welcome-offer step. The
+    // post-submit reset used to wipe these, re-locking the code in production.
+    const acceptsMarketing = watch("acceptsMarketing");
+    const acceptsSmsMarketing = watch("acceptsSmsMarketing");
     if (isSubmitSuccessful) {
       // Notify the parent Shopify theme (when embedded) that an application
       // was submitted, so it can set the dd_applied cookie used to gate the
@@ -113,6 +118,8 @@ function FormContextProvider({ children }: { children: ReactNode }) {
         lastName,
         phoneNumber,
         phoneCountryCode,
+        acceptsMarketing,
+        acceptsSmsMarketing,
       } as Partial<AllRegistrationFormData>);
       setCurrentStep("success");
     }
