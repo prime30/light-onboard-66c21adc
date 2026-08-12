@@ -273,7 +273,7 @@ export const ContactBasicsStep = () => {
     }, 600);
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phoneNumber, phoneCountryCode]);
+  }, [phoneNumber, phoneCountryCode, watch("email")]);
 
   // Instagram handle live verification. We debounce, hit
   // verify-instagram-handle which fetches the public IG profile URL, and
