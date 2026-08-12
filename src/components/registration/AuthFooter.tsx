@@ -255,7 +255,7 @@ export function AuthFooter({
     const phoneReq =
       phoneNumber.replace(/\D/g, "").length >= 6
         ? supabase.functions
-            .invoke("check-phone", { body: { phoneNumber, phoneCountryCode } })
+            .invoke("check-phone", { body: { phoneNumber, phoneCountryCode, email } })
             .catch(() => null)
         : Promise.resolve(null);
     const [emailRes, phoneRes] = await Promise.all([emailReq, phoneReq]);
