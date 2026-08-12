@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let body: { phoneNumber?: string; phoneCountryCode?: string };
+  let body: { phoneNumber?: string; phoneCountryCode?: string; email?: string };
   try {
     body = await req.json();
   } catch {
@@ -114,8 +114,11 @@ Deno.serve(async (req: Request) => {
 
   if (!valid) return ok({ valid: false, inUse: false });
 
-  // Cache hit short-circuits the Shopify search.
-  const cached = cacheGet(e164);
+  const selfEmail = (body.email ?? "").trim().toLowerCase();
+  // Cache hit short-circuits the Shopify search. Keyed with the applicant's
+  // own email because the "owned by someone else" verdict depends on it.
+  const cacheKey = `${e164}|${selfEmail}`;
+  const cached = cacheGet(cacheKey);
   if (cached !== undefined)
     return ok({ valid: true, inUse: cached.inUse, maskedEmail: cached.maskedEmail });
 
@@ -146,24 +149,16 @@ Deno.serve(async (req: Request) => {
     const json = (await res.json()) as {
       customers?: Array<{ id?: number; email?: string; tags?: string }>;
     };
-    const first = Array.isArray(json.customers) ? json.customers[0] : undefined;
-    // Soft-merge aware: a Shopify customer may already exist with this phone
-    // because support/Klaviyo/legacy import created a shell. We only block
-    // registration when that customer has already completed a B2B application
-    // (detected by an "Account type:" Shopify tag, same rule as check-email).
-    // Without this, users like legacy-invite/ghost-shell accounts get stuck at
-    // contact-basics before ever reaching the create-customer soft-merge path.
-    let inUse = false;
-    if (first) {
-      const tagStr = typeof first.tags === "string" ? first.tags : "";
-      const hasAppliedTag = tagStr
-        .split(",")
-        .map((t) => t.trim())
-        .some((t) => /^account type:/i.test(t));
-      inUse = hasAppliedTag;
-    }
-    const maskedEmail = inUse && first?.email ? maskEmail(first.email) : undefined;
-    cacheSet(e164, { inUse, maskedEmail });
+    const customers = Array.isArray(json.customers) ? json.customers : [];
+    // Mirror create-customer exactly: the number is "in use" when ANY other
+    // Shopify customer owns it. The only pass-through is the soft-merge
+    // target, i.e. a customer with the same email as the applicant.
+    const owner = customers.find(
+      (c) => (c?.email ?? "").trim().toLowerCase() !== selfEmail || !selfEmail
+    );
+    const inUse = !!owner;
+    const maskedEmail = inUse && owner?.email ? maskEmail(owner.email) : undefined;
+    cacheSet(cacheKey, { inUse, maskedEmail });
     return ok({ valid: true, inUse, maskedEmail });
   } catch (e) {
     console.warn("check-phone: search threw:", e);
