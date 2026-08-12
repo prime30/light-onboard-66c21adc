@@ -473,6 +473,8 @@ export function AuthFooter({
     setSubmitError,
     setEmailConflict,
     errors,
+    steps,
+    runConflictPreflight,
   ]);
 
 
