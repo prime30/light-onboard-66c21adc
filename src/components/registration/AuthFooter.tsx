@@ -366,27 +366,20 @@ export function AuthFooter({
     }
 
     if (currentStep === "contact-basics") {
-      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
-      if (!email) {
-        goToNextStep();
-        return;
-      }
       setPreflightChecking(true);
-      supabase.functions
-        .invoke("check-email", { body: { email } })
-        .then(({ data, error }) => {
-          if (error) {
+      runConflictPreflight()
+        .then((conflict) => {
+          if (!conflict) {
+            setEmailConflict(null);
             goToNextStep();
             return;
           }
-          if ((data as { exists?: boolean } | undefined)?.exists) {
-            const message = "An account with this email already exists. Please sign in instead.";
-            setEmailConflict({ email, message });
-            setError("email", { type: "manual", message });
-            return;
+          if (conflict.field === "phoneNumber") {
+            toast.error("This phone number is already in use", {
+              description: "Please use a different number or sign in to the existing account.",
+            });
+            shakeMissingFields(["phoneNumber"]);
           }
-          setEmailConflict(null);
-          goToNextStep();
         })
         .catch(() => goToNextStep())
         .finally(() => setPreflightChecking(false));
@@ -396,37 +389,23 @@ export function AuthFooter({
     // The faux "assessing" screen shows an approval animation and then hands
     // off to create-password, where the real submit fires. Never let a user
     // walk into that animation with a conflict we can already detect  -  run
-    // the duplicate-email pre-flight before entering it.
+    // the duplicate email/phone pre-flight before entering it.
     const nextStepInFlow = steps[steps.indexOf(currentStep) + 1];
     if (nextStepInFlow === "assessing") {
-      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
-      if (!email) {
-        goToNextStep();
-        return;
-      }
       setPreflightChecking(true);
-      supabase.functions
-        .invoke("check-email", { body: { email } })
-        .then(({ data, error }) => {
-          if (error) {
-            // Fail open - the real submit still validates server-side.
+      runConflictPreflight()
+        .then((conflict) => {
+          if (!conflict) {
+            setEmailConflict(null);
+            setSubmitError(null);
             goToNextStep();
             return;
           }
-          if ((data as { exists?: boolean } | undefined)?.exists) {
-            const message =
-              "An account with this email already exists. Please sign in instead.";
-            setEmailConflict({ email, message });
-            setError("email", { type: "manual", message });
-            setSubmitError({
-              message,
-              actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
-            });
-            return;
-          }
-          setEmailConflict(null);
-          setSubmitError(null);
-          goToNextStep();
+          setSubmitError({
+            message: conflict.message,
+            actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+          });
+          if (conflict.field === "phoneNumber") shakeMissingFields(["phoneNumber"]);
         })
         .catch(() => goToNextStep())
         .finally(() => setPreflightChecking(false));
@@ -434,47 +413,28 @@ export function AuthFooter({
     }
 
     // Auto-approval flow: summary "Submit application" is a faux submit  - 
-    // pre-flight check for duplicate email so we surface "Go to Login"
-    // BEFORE the user lands on the late password step. Phone duplicates are
-    // already caught on the Contact step.
+    // pre-flight check for duplicate email AND phone so we surface
+    // "Go to Login" BEFORE the user lands on the late password step.
 
     if (shouldRunDuplicateEmailCheck) {
-      const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
       const continueAfterCheck = () => {
         if (isFauxSubmitStep) goToStep("welcome-offer");
         else submitForm();
       };
-      if (!email) {
-        continueAfterCheck();
-        return;
-      }
       setPreflightChecking(true);
-      supabase.functions
-        .invoke("check-email", { body: { email } })
-        .then(({ data, error }) => {
-          if (error) {
-            // Fail open - server-side submit will still catch it.
+      runConflictPreflight()
+        .then((conflict) => {
+          if (!conflict) {
             continueAfterCheck();
             return;
           }
-          if ((data as { exists?: boolean } | undefined)?.exists) {
-            setError("email", {
-              type: "manual",
-              message:
-                "An account with this email already exists. Please sign in instead.",
-            });
-            setSubmitError({
-              message:
-                "An account with this email already exists. Please sign in instead.",
-              actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
-            });
-            return;
-          }
-          continueAfterCheck();
+          setSubmitError({
+            message: conflict.message,
+            actions: [{ type: "LOGIN", label: "Go to Login", url: "/login" }],
+          });
+          if (conflict.field === "phoneNumber") shakeMissingFields(["phoneNumber"]);
         })
-        .catch(() => {
-          continueAfterCheck();
-        })
+        .catch(() => continueAfterCheck())
         .finally(() => setPreflightChecking(false));
       return;
     }
