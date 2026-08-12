@@ -212,7 +212,8 @@ export const ContactBasicsStep = () => {
     const lengthOk = isNanp ? raw.length === 10 : raw.length >= 7 && raw.length <= 15;
     if (!raw || !lengthOk) return;
 
-    const key = `${code}|${raw}`;
+    const selfEmail = String(watch("email") ?? "").trim().toLowerCase();
+    const key = `${code}|${raw}|${selfEmail}`;
     if (lastCheckedPhoneRef.current === key) return;
 
     const applyResult = (
@@ -243,7 +244,7 @@ export const ContactBasicsStep = () => {
       }
     };
 
-    const cacheKey = `dde:check-phone:v2:${key}`;
+    const cacheKey = `dde:check-phone:v3:${key}`;
     const cached = cacheGet(cacheKey) as
       | { valid?: boolean; inUse?: boolean; maskedEmail?: string }
       | undefined;
@@ -256,13 +257,14 @@ export const ContactBasicsStep = () => {
     const handle = window.setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke("check-phone", {
-          body: { phoneNumber, phoneCountryCode },
+          body: { phoneNumber, phoneCountryCode, email: selfEmail },
         });
         if (error) return;
         lastCheckedPhoneRef.current = key;
         const currentRaw = (watch("phoneNumber") ?? "").replace(/\D/g, "");
         const currentCode = watch("phoneCountryCode") ?? "";
-        if (`${currentCode}|${currentRaw}` !== key) return;
+        const currentEmail = String(watch("email") ?? "").trim().toLowerCase();
+        if (`${currentCode}|${currentRaw}|${currentEmail}` !== key) return;
         cacheSet(cacheKey, data ?? {});
         applyResult(data as { valid?: boolean; inUse?: boolean; maskedEmail?: string } | undefined);
       } catch {
@@ -271,7 +273,7 @@ export const ContactBasicsStep = () => {
     }, 600);
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phoneNumber, phoneCountryCode]);
+  }, [phoneNumber, phoneCountryCode, watch("email")]);
 
   // Instagram handle live verification. We debounce, hit
   // verify-instagram-handle which fetches the public IG profile URL, and
