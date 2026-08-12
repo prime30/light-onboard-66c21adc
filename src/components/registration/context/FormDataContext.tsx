@@ -65,10 +65,14 @@ export type FormDataContextType = {
   serverErrorField: { field: ValidFieldNames; bump: number } | null;
   emailConflict: EmailConflict;
   setEmailConflict: (conflict: EmailConflict) => void;
-  setSubmitError: (input: {
-    message: string;
-    actions?: Array<{ type: string; label: string; url?: string }>;
-  }) => void;
+  setSubmitError: (
+    input:
+      | {
+          message: string;
+          actions?: Array<{ type: string; label: string; url?: string }>;
+        }
+      | null
+  ) => void;
   discountCode: string | null;
   discountExpiry: string | null;
 };
@@ -708,18 +712,26 @@ export function FormDataProvider({
   );
 
   const setSubmitError = useCallback(
-    ({
-      message,
-      actions = [],
-    }: {
-      message: string;
-      actions?: Array<{ type: string; label: string; url?: string }>;
-    }) => {
+    (
+      input:
+        | {
+            message: string;
+            actions?: Array<{ type: string; label: string; url?: string }>;
+          }
+        | null
+    ) => {
+      if (!input) {
+        setSubmitErrorMessage(null);
+        setErrorActions([]);
+        clearErrors("root.form");
+        return;
+      }
+      const { message, actions = [] } = input;
       setSubmitErrorMessage(message);
       setErrorActions(actions);
       setError("root.form", { type: "manual", message });
     },
-    [setError]
+    [setError, clearErrors]
   );
 
   const value: FormDataContextType = {
