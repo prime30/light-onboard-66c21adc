@@ -38,6 +38,18 @@ export function ResetPasswordPage() {
     }
   }, [customer.isLoggedIn, navigate]);
 
+  // Shopify account-invite emails carry `customer.account_activation_url`
+  // (/account/activate/{id}/{token}), not a reset URL. If the theme forwards
+  // one of those here, customerResetByUrl silently fails and the password is
+  // never saved. Detect it and hand off to the activation flow instead.
+  const activationCandidate = resetUrl || searchParams.get("url") || "";
+  if (/\/account\/activate\//i.test(activationCandidate)) {
+    const next = new URLSearchParams();
+    next.set("activation_url", activationCandidate);
+    if (emailHint) next.set("email_hint", emailHint);
+    return <Navigate to={`/activate-account?${next.toString()}`} replace />;
+  }
+
   return (
     <ResetPasswordForm
       token={token}
