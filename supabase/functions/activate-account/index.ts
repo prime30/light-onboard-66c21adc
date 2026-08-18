@@ -144,6 +144,87 @@ Deno.serve(async (req) => {
             const j = await adminRes.json();
             email = j?.customer?.email ?? null;
             firstName = j?.customer?.first_name ?? null;
+            const state: string = j?.customer?.state ?? "";
+
+            // CRITICAL: Shopify's classic activation endpoint answers 302 even
+            // when it did NOT persist the password (theme redirects, new
+            // customer accounts, proxy interference). The customer then stays
+            // `invited`/`disabled` and can never log in - the exact silent
+            // failure reported by applicants. The token was accepted here, so
+            // fall back to an Admin-side password write and re-verify state.
+            if (state && state !== "enabled") {
+              console.warn(
+                "[activate-account] Activation 302 but state is",
+                state,
+                "- setting password via Admin API for customer",
+                derivedCustomerId
+              );
+              try {
+                const putRes = await fetch(
+                  `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${derivedCustomerId}.json`,
+                  {
+                    method: "PUT",
+                    headers: {
+                      "X-Shopify-Access-Token": adminToken,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      customer: {
+                        id: Number(derivedCustomerId),
+                        password,
+                        password_confirmation: password,
+                        send_email_welcome: false,
+                      },
+                    }),
+                  }
+                );
+                if (!putRes.ok) {
+                  const putTxt = await putRes.text();
+                  console.error(
+                    "[activate-account] Admin password write failed:",
+                    putRes.status,
+                    putTxt.slice(0, 400)
+                  );
+                  return sendError(
+                    500,
+                    [
+                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                    ],
+                    "Password not saved"
+                  );
+                }
+                const putJson = await putRes.json();
+                const newState: string = putJson?.customer?.state ?? "";
+                email = putJson?.customer?.email ?? email;
+                firstName = putJson?.customer?.first_name ?? firstName;
+                if (newState !== "enabled") {
+                  console.error(
+                    "[activate-account] Admin password write left state as",
+                    newState,
+                    "for customer",
+                    derivedCustomerId
+                  );
+                  return sendError(
+                    500,
+                    [
+                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                    ],
+                    "Password not saved"
+                  );
+                }
+                console.log(
+                  "[activate-account] Password set via Admin API fallback, customer now enabled:",
+                  derivedCustomerId
+                );
+              } catch (putErr) {
+                console.error("[activate-account] Admin password write threw:", putErr);
+                return sendError(
+                  500,
+                  ["An unexpected error occurred. Please try again."],
+                  "Password not saved"
+                );
+              }
+            }
             // Visibility: activate-account has no Storefront token to lean on
             // (Shopify's activation endpoint returns a 302 with no body), so
             // the Admin API is the sole source for email/firstName here.
