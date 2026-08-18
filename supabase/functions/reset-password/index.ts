@@ -275,6 +275,56 @@ Deno.serve(async (req) => {
   }
 
   const { resetUrl: providedResetUrl, customerId, token, password } = parsed.data;
+
+  // Account-invite emails carry an ACTIVATION url (/account/activate/{id}/{token}).
+  // customerResetByUrl does not accept those: it fails and the password is never
+  // saved. Detect and run the real activation POST instead.
+  if (providedResetUrl && /\/account\/activate\//i.test(providedResetUrl)) {
+    try {
+      const activateRes = await fetch(providedResetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          "customer[password]": password,
+          "customer[password_confirmation]": password,
+        }).toString(),
+        redirect: "manual",
+      });
+
+      if (activateRes.status === 302 || activateRes.status === 200) {
+        const numericId = parseShopifyCustomerId(providedResetUrl);
+        const { email, firstName } = await lookupCustomerViaAdmin(
+          SHOPIFY_STORE_DOMAIN,
+          ADMIN_TOKEN,
+          numericId,
+          null
+        );
+        return sendSuccess(
+          { reset: true, activated: true, email, firstName, accessToken: null, expiresAt: null },
+          "Password set successfully"
+        );
+      }
+
+      const txt = await activateRes.text();
+      if (txt.includes("already been activated") || txt.includes("already active")) {
+        return sendError(
+          400,
+          ["This account is already set up. Please sign in with your existing password."],
+          "Already activated"
+        );
+      }
+      console.error("Activation via reset-password failed:", activateRes.status, txt.slice(0, 400));
+      return sendError(
+        400,
+        ["This link is invalid or has already been used. Request a new account-setup email."],
+        "Invalid link"
+      );
+    } catch (e) {
+      console.error("Activation via reset-password threw:", e);
+      return sendError(500, ["An unexpected error occurred. Please try again."]);
+    }
+  }
+
   const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
   if (!storefrontToken) {
     return sendError(500, ["Server configuration error"]);
