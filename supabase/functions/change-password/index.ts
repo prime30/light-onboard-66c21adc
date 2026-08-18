@@ -221,8 +221,49 @@ Deno.serve(async (req) => {
   }
 
   if (adminRes.ok) {
+    // A 200 from the Admin API is not by itself proof the password persisted:
+    // customers left in `invited`/`disabled` state can accept the write and
+    // still be unable to log in. Verify state flipped to `enabled` before
+    // telling the customer their password was saved.
+    let state = "";
+    try {
+      const j = await adminRes.json();
+      state = j?.customer?.state ?? "";
+    } catch {
+      // fall through to the explicit re-read below
+    }
+
+    if (state !== "enabled") {
+      try {
+        const verifyRes = await fetch(adminUrl, {
+          headers: {
+            "X-Shopify-Access-Token": ADMIN_TOKEN,
+            "Content-Type": "application/json",
+          },
+        });
+        if (verifyRes.ok) {
+          const vj = await verifyRes.json();
+          state = vj?.customer?.state ?? state;
+        }
+      } catch (e) {
+        console.error("[change-password] State re-verify threw:", e);
+      }
+    }
+
+    if (state !== "enabled") {
+      console.error(
+        `[change-password] Password write returned 200 but customer ${customerId} state is "${state}" - not confirming success`
+      );
+      return fail(
+        "shopify_error",
+        400,
+        "We couldn't confirm your new password was saved. Please contact hello@dropdeadextensions.com and we'll set it up for you."
+      );
+    }
+
     return jsonResponse({ ok: true }, 200);
   }
+
 
   if (adminRes.status === 429) {
     return fail("rate_limited", 429);
