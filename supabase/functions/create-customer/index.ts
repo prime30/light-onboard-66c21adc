@@ -1282,6 +1282,23 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // The business-location step is disabled by default, so `country_code` may
+  // arrive empty or as the schema default. Derive it from the phone country
+  // dial code so the Shopify default address still carries a country.
+  const dialToCountry: Record<string, string> = {
+    "+1": "US",
+    "+61": "AU",
+    "+64": "NZ",
+    "+44": "GB",
+  };
+  const derivedCountry =
+    dialToCountry[(customer.phone_country_code ?? "").toString().trim()] ?? undefined;
+  const resolvedCountryCode =
+    (customer.country_code ?? "").toString().trim().toUpperCase() || derivedCountry || "US";
+  customer.country_code = resolvedCountryCode;
+
+
+
   // Handle tax exempt files (common to all account types)
   const taxExemptFiles = Array.isArray(customer.tax_exempt_file)
     ? customer.tax_exempt_file || []
