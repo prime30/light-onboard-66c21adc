@@ -1735,13 +1735,16 @@ Deno.serve(async (req: Request) => {
 
     // Native fields we always want mirrored onto the Shopify customer record,
     // so they're populated regardless of Helium field-mapping configuration.
+    // Note: country_code is now always resolved (derived from the phone dial
+    // code when the address step is off), so it does not count as a real
+    // address signal here.
     const hasNativeAddress = !!(
       customer.business_address ||
       customer.city ||
       customer.province_code ||
-      customer.zip_code ||
-      customer.country_code
+      customer.zip_code
     );
+
 
     const needsShopifyUpdate =
       !!shopifyCustomerId &&
