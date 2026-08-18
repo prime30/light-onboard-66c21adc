@@ -128,6 +128,11 @@ Deno.serve(async (req) => {
       // Failure here is non-fatal - activation already succeeded.
       let email: string | null = null;
       let firstName: string | null = null;
+      // Shopify's storefront activation endpoint answers 302/200 even for a
+      // bogus or already-used token, so a redirect alone is NOT proof the
+      // password saved. We only report success once the Admin API confirms the
+      // customer is `enabled`.
+      let activationVerified = false;
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken && derivedCustomerId) {
         try {
@@ -216,6 +221,7 @@ Deno.serve(async (req) => {
                   "[activate-account] Password set via Admin API fallback, customer now enabled:",
                   derivedCustomerId
                 );
+                activationVerified = true;
               } catch (putErr) {
                 console.error("[activate-account] Admin password write threw:", putErr);
                 return sendError(
@@ -224,6 +230,8 @@ Deno.serve(async (req) => {
                   "Password not saved"
                 );
               }
+            } else if (state === "enabled") {
+              activationVerified = true;
             }
             // Visibility: activate-account has no Storefront token to lean on
             // (Shopify's activation endpoint returns a 302 with no body), so
@@ -236,6 +244,14 @@ Deno.serve(async (req) => {
                 derivedCustomerId
               );
             }
+          } else if (adminRes.status === 404) {
+            // No such customer: the link's id/token pair is bogus.
+            console.warn("[activate-account] Customer not found:", derivedCustomerId);
+            return sendError(
+              400,
+              ["This activation link is invalid or has already been used."],
+              "Invalid activation link"
+            );
           } else {
             console.warn("Admin customer lookup failed:", adminRes.status);
           }
@@ -243,6 +259,22 @@ Deno.serve(async (req) => {
           console.warn("Admin customer lookup threw:", e);
         }
       }
+
+      if (!activationVerified) {
+        console.error(
+          "[activate-account] Could not verify activation for customer",
+          derivedCustomerId,
+          "- refusing to report success"
+        );
+        return sendError(
+          500,
+          [
+            "We couldn't confirm your password was saved. Please try the link again or contact hello@dropdeadextensions.com and we'll set it up for you.",
+          ],
+          "Activation unverified"
+        );
+      }
+
       // Return the numeric Shopify customer ID so the SPA can hand it to
       // downstream code without re-fetching it.
       const shopifyCustomerId = derivedCustomerId
