@@ -1282,6 +1282,23 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // The business-location step is disabled by default, so `country_code` may
+  // arrive empty or as the schema default. Derive it from the phone country
+  // dial code so the Shopify default address still carries a country.
+  const dialToCountry: Record<string, string> = {
+    "+1": "US",
+    "+61": "AU",
+    "+64": "NZ",
+    "+44": "GB",
+  };
+  const derivedCountry =
+    dialToCountry[(customer.phone_country_code ?? "").toString().trim()] ?? undefined;
+  const resolvedCountryCode =
+    (customer.country_code ?? "").toString().trim().toUpperCase() || derivedCountry || "US";
+  customer.country_code = resolvedCountryCode;
+
+
+
   // Handle tax exempt files (common to all account types)
   const taxExemptFiles = Array.isArray(customer.tax_exempt_file)
     ? customer.tax_exempt_file || []
@@ -1369,8 +1386,10 @@ Deno.serve(async (req: Request) => {
     customerCreateInput.proof_file_3 = files?.[2];
   } else if (customer.account_type === "student") {
     customerCreateInput.default_address = {
+      country_code: customer.country_code,
       phone: formatPhoneNumber(customer.phone_country_code, customer.phone_number),
     };
+
 
     customerCreateInput.school_name = customer.school_name;
     customerCreateInput.school_state = customer.school_state;
@@ -1716,13 +1735,16 @@ Deno.serve(async (req: Request) => {
 
     // Native fields we always want mirrored onto the Shopify customer record,
     // so they're populated regardless of Helium field-mapping configuration.
+    // Note: country_code is now always resolved (derived from the phone dial
+    // code when the address step is off), so it does not count as a real
+    // address signal here.
     const hasNativeAddress = !!(
       customer.business_address ||
       customer.city ||
       customer.province_code ||
-      customer.zip_code ||
-      customer.country_code
+      customer.zip_code
     );
+
 
     const needsShopifyUpdate =
       !!shopifyCustomerId &&
