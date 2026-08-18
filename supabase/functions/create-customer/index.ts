@@ -1386,8 +1386,10 @@ Deno.serve(async (req: Request) => {
     customerCreateInput.proof_file_3 = files?.[2];
   } else if (customer.account_type === "student") {
     customerCreateInput.default_address = {
+      country_code: customer.country_code,
       phone: formatPhoneNumber(customer.phone_country_code, customer.phone_number),
     };
+
 
     customerCreateInput.school_name = customer.school_name;
     customerCreateInput.school_state = customer.school_state;
