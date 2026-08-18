@@ -1291,11 +1291,37 @@ Deno.serve(async (req: Request) => {
     "+64": "NZ",
     "+44": "GB",
   };
-  const derivedCountry =
-    dialToCountry[(customer.phone_country_code ?? "").toString().trim()] ?? undefined;
+  // Canadian NANP area codes. +1 alone can't distinguish US from CA, so use
+  // the area code to split them before falling back to US.
+  const CA_AREA_CODES = new Set([
+    "204", "226", "236", "249", "250", "263", "289", "306", "343", "354", "365", "367", "368",
+    "382", "403", "416", "418", "428", "431", "437", "438", "450", "468", "474", "506", "514",
+    "519", "548", "579", "581", "584", "587", "604", "613", "639", "647", "672", "683", "705",
+    "709", "742", "753", "778", "780", "782", "807", "819", "825", "867", "873", "879", "902",
+    "905",
+  ]);
+  const dial = (customer.phone_country_code ?? "").toString().trim();
+  const localDigits = (customer.phone_number ?? "").toString().replace(/\D/g, "");
+  let derivedCountry = dialToCountry[dial] ?? undefined;
+  if (dial === "+1") {
+    const areaCode = localDigits.length === 11 && localDigits.startsWith("1")
+      ? localDigits.slice(1, 4)
+      : localDigits.slice(0, 3);
+    if (CA_AREA_CODES.has(areaCode)) derivedCountry = "CA";
+  }
   const resolvedCountryCode =
     (customer.country_code ?? "").toString().trim().toUpperCase() || derivedCountry || "US";
   customer.country_code = resolvedCountryCode;
+
+  // AU landline area codes map to a state. Mobiles (04x) are nationwide and
+  // carry no state signal, so those stay blank for manual review.
+  if (resolvedCountryCode === "AU" && !(customer.province_code ?? "").toString().trim()) {
+    const auArea = localDigits.replace(/^61/, "").replace(/^0/, "").slice(0, 1);
+    const auStateMap: Record<string, string> = { "2": "NSW", "3": "VIC", "7": "QLD", "8": "SA" };
+    const auState = auStateMap[auArea];
+    if (auState) customer.province_code = auState;
+  }
+
 
 
 
