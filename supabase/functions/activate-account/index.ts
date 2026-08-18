@@ -128,6 +128,11 @@ Deno.serve(async (req) => {
       // Failure here is non-fatal - activation already succeeded.
       let email: string | null = null;
       let firstName: string | null = null;
+      // Shopify's storefront activation endpoint answers 302/200 even for a
+      // bogus or already-used token, so a redirect alone is NOT proof the
+      // password saved. We only report success once the Admin API confirms the
+      // customer is `enabled`.
+      let activationVerified = false;
       const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
       if (adminToken && derivedCustomerId) {
         try {
