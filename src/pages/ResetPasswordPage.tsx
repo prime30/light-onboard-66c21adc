@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams, useNavigate, Navigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "@/components/registration/context/ModeContext";
