@@ -70,6 +70,7 @@ export function ActivationRecovery({ defaultEmail = "" }: { defaultEmail?: strin
         type="email"
         placeholder="you@salon.com"
         name="recovery-email"
+        error={undefined}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         autoComplete="email"
