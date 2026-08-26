@@ -39,6 +39,19 @@ interface RepairResp {
   error?: string;
 }
 
+interface LinkResp {
+  success: boolean;
+  email?: string;
+  state?: string;
+  alreadyEnabled?: boolean;
+  message?: string;
+  rawUrl?: string;
+  rawUrlStatus?: number | null;
+  spaUrl?: string;
+  themeActivatePageOk?: boolean;
+  error?: string;
+}
+
 export function StrandedAccountsPanel({ adminToken }: Props) {
   const [busy, setBusy] = useState(false);
   const [audit, setAudit] = useState<AuditResp | null>(null);
@@ -80,6 +93,36 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
     }
   };
 
+  const [linkEmail, setLinkEmail] = useState("");
+  const [link, setLink] = useState<LinkResp | null>(null);
+
+  const mintLink = async () => {
+    const target = linkEmail.trim().toLowerCase();
+    if (!target.includes("@")) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    setBusy(true);
+    setLink(null);
+    try {
+      const { data, error } = await supabase.functions.invoke<LinkResp>("admin-stranded-accounts", {
+        body: { token: adminToken, action: "link", linkEmail: target },
+      });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Could not mint link");
+      setLink(data);
+      if (data.spaUrl) {
+        await navigator.clipboard.writeText(data.spaUrl).catch(() => {});
+        toast.success("Setup link copied to clipboard");
+      } else {
+        toast.info(data.message || "No link needed");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not mint link");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const tally = useMemo(() => Object.entries(audit?.stateTally ?? {}), [audit]);
 
   return (
@@ -108,6 +151,43 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           )}
         </div>
       </header>
+
+      <div className="rounded-[10px] border border-border/40 bg-background/40 p-4 space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Direct setup link: mints a fresh Shopify activation URL for one customer and wraps it in our own
+          password setup screen. Use this when someone says the invite email does not open a working
+          password form. The link is copied to your clipboard so you can send it directly.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="email"
+            value={linkEmail}
+            onChange={(e) => setLinkEmail(e.target.value)}
+            placeholder="customer@email.com"
+            className="flex-1 min-w-[220px] rounded-[10px] border border-border/50 bg-background px-3 py-2 text-xs"
+          />
+          <Button size="sm" variant="outline" onClick={mintLink} disabled={busy}>
+            {busy ? "Working..." : "Mint setup link"}
+          </Button>
+        </div>
+        {link && (
+          <div className="text-xs space-y-1 pt-1">
+            <div className="text-muted-foreground">
+              Shopify state: <span className="text-foreground">{link.state}</span>
+              {typeof link.rawUrlStatus === "number" && (
+                <>
+                  {" · "}Storefront activate page:{" "}
+                  <span className={link.themeActivatePageOk ? "text-foreground" : "text-destructive"}>
+                    HTTP {link.rawUrlStatus}
+                  </span>
+                </>
+              )}
+            </div>
+            {link.spaUrl && <p className="break-all text-foreground/80">{link.spaUrl}</p>}
+            {link.message && <p className="text-muted-foreground">{link.message}</p>}
+          </div>
+        )}
+      </div>
 
       {audit && (
         <>
