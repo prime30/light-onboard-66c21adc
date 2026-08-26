@@ -26,9 +26,18 @@ type Args = {
   errors: Record<string, unknown>;
   accountType?: string | null;
   countryCode?: string | null;
+  /** True when the user granted email marketing consent (promotional sends). */
+  emailMarketingConsent?: boolean;
 };
 
-export function useBounceTelemetry({ email, currentStep, errors, accountType, countryCode }: Args) {
+export function useBounceTelemetry({
+  email,
+  currentStep,
+  errors,
+  accountType,
+  countryCode,
+  emailMarketingConsent,
+}: Args) {
   const lastFocusedRef = useRef<string | null>(null);
   const sentDeviceRef = useRef(false);
   const lastErrorKeysRef = useRef<Set<string>>(new Set());
@@ -37,6 +46,9 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
 
   const normalizedEmail = (email ?? "").trim().toLowerCase();
   const hasEmail = EMAIL_RE.test(normalizedEmail);
+  // The server only fires the promotional "Started Registration" metric when
+  // the email actually cleared client-side validation.
+  const emailValidated = hasEmail && !(errors as Record<string, unknown>)?.email;
 
   // Track last focused input within the registration form.
   useEffect(() => {
@@ -67,6 +79,8 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .invoke("track-registration-lead", {
         body: {
           email: normalizedEmail,
+          emailValidated,
+          emailMarketingConsent: !!emailMarketingConsent,
           phase: "step",
           accountType: accountType ?? null,
           countryCode: countryCode ?? null,
@@ -84,7 +98,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .catch(() => {
         /* non-blocking */
       });
-  }, [hasEmail, normalizedEmail, accountType, currentStep, countryCode]);
+  }, [hasEmail, normalizedEmail, accountType, currentStep, countryCode, emailValidated, emailMarketingConsent]);
 
   // Detect new validation error field names and batch-flush.
   useEffect(() => {
@@ -113,6 +127,8 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
         .invoke("track-registration-lead", {
           body: {
             email: normalizedEmail,
+          emailValidated,
+          emailMarketingConsent: !!emailMarketingConsent,
             phase: "step",
             accountType: accountType ?? null,
             lastStep: currentStep,
@@ -130,7 +146,7 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
         flushTimerRef.current = null;
       }
     };
-  }, [errors, hasEmail, normalizedEmail, accountType, currentStep]);
+  }, [errors, hasEmail, normalizedEmail, accountType, currentStep, emailValidated, emailMarketingConsent]);
 
   // On step change, send a step ping including the last focused field (the
   // field they were on right before navigating away - strong drop-off signal).
@@ -140,6 +156,8 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .invoke("track-registration-lead", {
         body: {
           email: normalizedEmail,
+          emailValidated,
+          emailMarketingConsent: !!emailMarketingConsent,
           phase: "step",
           accountType: accountType ?? null,
           countryCode: countryCode ?? null,
@@ -150,5 +168,5 @@ export function useBounceTelemetry({ email, currentStep, errors, accountType, co
       .catch(() => {
         /* non-blocking */
       });
-  }, [currentStep, hasEmail, normalizedEmail, accountType, countryCode]);
+  }, [currentStep, hasEmail, normalizedEmail, accountType, countryCode, emailValidated, emailMarketingConsent]);
 }
