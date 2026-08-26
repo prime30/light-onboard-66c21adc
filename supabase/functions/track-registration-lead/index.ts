@@ -584,8 +584,11 @@ Deno.serve(async (req: Request) => {
     }).catch(() => {});
   }
 
-  // Mark sync time (best-effort).
+  // Mark sync time, and stamp the started-event timestamp so the promotional
+  // trigger can never fire twice for this email (best-effort).
   try {
+    const patch: Record<string, unknown> = { klaviyo_synced_at: new Date().toISOString() };
+    if (!isCompleted && eventRes.ok) patch.klaviyo_started_event_at = new Date().toISOString();
     await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}`,
       {
@@ -596,7 +599,7 @@ Deno.serve(async (req: Request) => {
           "Content-Type": "application/json",
           Prefer: "return=minimal",
         },
-        body: JSON.stringify({ klaviyo_synced_at: new Date().toISOString() }),
+        body: JSON.stringify(patch),
       },
     );
   } catch {
@@ -607,6 +610,8 @@ Deno.serve(async (req: Request) => {
     ok: true,
     phase,
     klaviyoSynced: profileRes.ok && eventRes.ok,
+    eventFired: eventRes.ok,
+    metric: metricName,
   });
   } catch (error) {
     console.error("track-registration-lead unhandled:", error);
