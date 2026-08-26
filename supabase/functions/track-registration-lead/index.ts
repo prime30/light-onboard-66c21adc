@@ -170,6 +170,11 @@ Deno.serve(async (req: Request) => {
     // (even to null) on step pings would clobber the timestamp because the
     // success-step ping fires AFTER create-customer marks completion.
     if (isCompleted) upsertBody.completed_at = new Date().toISOString();
+    // Consent is sticky: only ever written when granted, never cleared here.
+    if (emailMarketingConsent) {
+      upsertBody.email_marketing_consent = true;
+      upsertBody.email_marketing_consent_at = new Date().toISOString();
+    }
     if (lastField) upsertBody.last_field = lastField;
     if (deviceType) upsertBody.device_type = deviceType;
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
