@@ -1818,6 +1818,9 @@ Deno.serve(async (req: Request) => {
     //                           (with soft-merge Storefront customerRecover fallback)
     // ----------------------------------------------------------------
     const tailTasks: Promise<unknown>[] = [];
+    // null means password activation was not required for this submission.
+    // When required, this must become true before we return success.
+    let accountPasswordVerified: boolean | null = null;
 
     // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
@@ -2077,6 +2080,7 @@ Deno.serve(async (req: Request) => {
         const { autoApprovalEnabled } = await appSettingsPromise;
 
         if (autoApprovalEnabled) {
+          accountPasswordVerified = false;
           if (shopifyDomain && shopifyAdminToken) {
             // Step 1: ask Shopify Admin API for the activation URL.
             const urlRes = await shopifyFetch(
@@ -2091,7 +2095,6 @@ Deno.serve(async (req: Request) => {
             );
 
             let activated = false;
-            let activationStatusForFallback = 0;
             let activationFailureDetail = "";
 
             if (urlRes.ok) {
@@ -2109,11 +2112,89 @@ Deno.serve(async (req: Request) => {
                 });
 
                 if (activateRes.status === 302 || activateRes.status === 200) {
-                  console.log("Auto-activated Shopify customer:", shopifyCustomerId);
-                  activated = true;
+                  // Shopify can return 302/200 even when the password was not
+                  // persisted. Never treat the response status as proof. Read
+                  // the customer back, then use an Admin password write as the
+                  // deterministic fallback and verify the final state.
+                  let verifiedState = "";
+                  const verifyCustomerState = async (): Promise<string> => {
+                    const verifyRes = await shopifyFetch(
+                      `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,state`,
+                      {
+                        method: "GET",
+                        headers: {
+                          "X-Shopify-Access-Token": shopifyAdminToken,
+                          "Content-Type": "application/json",
+                        },
+                      }
+                    );
+                    if (!verifyRes.ok) return "";
+                    const verifyJson = await verifyRes.json();
+                    return verifyJson?.customer?.state ?? "";
+                  };
+
+                  const verifySubmittedCredentials = async (): Promise<boolean> => {
+                    const backendUrl = Deno.env.get("SUPABASE_URL");
+                    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+                    if (!backendUrl || !serviceKey) return false;
+                    const loginRes = await fetch(`${backendUrl}/functions/v1/customer-login`, {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${serviceKey}`,
+                        apikey: serviceKey,
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ email: customer.email, password: submittedPassword }),
+                    });
+                    if (!loginRes.ok) return false;
+                    const loginJson = await loginRes.json();
+                    return loginJson?.success === true && !!loginJson?.data?.accessToken;
+                  };
+
+                  verifiedState = await verifyCustomerState();
+                  let credentialsVerified =
+                    verifiedState === "enabled" && await verifySubmittedCredentials();
+                  if (!credentialsVerified) {
+                    const passwordWriteRes = await shopifyFetch(
+                      `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json`,
+                      {
+                        method: "PUT",
+                        headers: {
+                          "X-Shopify-Access-Token": shopifyAdminToken,
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          customer: {
+                            id: Number(shopifyCustomerId),
+                            password: submittedPassword,
+                            password_confirmation: submittedPassword,
+                            send_email_welcome: false,
+                          },
+                        }),
+                      }
+                    );
+
+                    if (!passwordWriteRes.ok) {
+                      const writeText = await passwordWriteRes.text();
+                      activationFailureDetail = `Admin password write returned ${passwordWriteRes.status}: ${writeText.substring(0, 200)}`;
+                      recordAuditFailure("auto_activation", activationFailureDetail);
+                    } else {
+                      verifiedState = await verifyCustomerState();
+                      credentialsVerified =
+                        verifiedState === "enabled" && await verifySubmittedCredentials();
+                    }
+                  }
+
+                  if (verifiedState === "enabled" && credentialsVerified) {
+                    console.log("Verified Shopify customer password by storefront sign-in:", shopifyCustomerId);
+                    activated = true;
+                    accountPasswordVerified = true;
+                  } else {
+                    activationFailureDetail = `Password activation could not be verified by storefront sign-in; customer state=${verifiedState || "unknown"}`;
+                    recordAuditFailure("auto_activation", activationFailureDetail);
+                  }
                 } else {
                   const txt = await activateRes.text();
-                  activationStatusForFallback = activateRes.status;
                   activationFailureDetail = `activation POST returned ${activateRes.status}: ${txt.substring(0, 200)}`;
                   recordAuditFailure("auto_activation", activationFailureDetail);
                 }
@@ -2123,139 +2204,33 @@ Deno.serve(async (req: Request) => {
               }
             } else {
               const txt = await urlRes.text();
-              activationStatusForFallback = urlRes.status;
               activationFailureDetail = `account_activation_url fetch returned ${urlRes.status}: ${txt.substring(0, 200)}`;
               recordAuditFailure("auto_activation", activationFailureDetail);
             }
 
-            // Fallback when activation didn't succeed. The correct fallback
-            // depends on the customer's post-state:
-            //   - Soft-merge into an existing ENABLED customer → Storefront
-            //     customerRecover sends a reset email (only works on enabled
-            //     customers; silently no-ops for invited).
-            //   - Brand-new customer left in INVITED state → Admin
-            //     send_invite re-issues the account invite email (this is
-            //     the only thing Shopify will actually deliver for an
-            //     invited customer).
-            // Picking the wrong one leaves the user with no email at all.
+            // If direct password setup failed, send the customer through the
+            // verified recovery function. That function prepares and verifies
+            // invited/disabled accounts before sending a reset email. It never
+            // uses the broken storefront account-invite template.
             if (!activated) {
-              const isSoftMerge = !!existingCustomerId;
               try {
-                // Look up the customer's current Shopify state. The right
-                // fallback depends on it, NOT on whether this was a
-                // soft-merge:
-                //   - enabled  → Storefront customerRecover (reset email)
-                //   - invited  → Admin send_invite (customerRecover no-ops)
-                //   - disabled → Admin send_invite (customerRecover also
-                //                no-ops on disabled - this is the
-                //                Smile/Klaviyo auto-provisioned-shell case)
-                let customerState: string | null = null;
-                try {
-                  const stateRes = await shopifyFetch(
-                    `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=state`,
-                    {
-                      method: "GET",
-                      headers: {
-                        "X-Shopify-Access-Token": shopifyAdminToken,
-                        "Content-Type": "application/json",
-                      },
-                    }
-                  );
-                  if (stateRes.ok) {
-                    const sJson = await stateRes.json();
-                    customerState = sJson?.customer?.state ?? null;
-                  } else {
-                    recordAuditFailure(
-                      "activation_fallback",
-                      `state lookup HTTP ${stateRes.status}: ${(await stateRes.text()).substring(0, 150)}`
-                    );
-                  }
-                } catch (stateErr) {
+                const backendUrl = Deno.env.get("SUPABASE_URL");
+                const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+                if (!backendUrl || !serviceKey) throw new Error("Backend recovery configuration missing");
+                const recoveryRes = await fetch(`${backendUrl}/functions/v1/recover-password`, {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${serviceKey}`,
+                    apikey: serviceKey,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ email: customer.email }),
+                });
+                if (!recoveryRes.ok) {
                   recordAuditFailure(
                     "activation_fallback",
-                    `state lookup threw: ${stateErr instanceof Error ? stateErr.message : String(stateErr)}`
+                    `verified recovery HTTP ${recoveryRes.status}: ${(await recoveryRes.text()).substring(0, 200)}`
                   );
-                }
-
-                // Default routing: if state is unknown, preserve the prior
-                // behavior (soft-merge → customerRecover, brand-new → invite).
-                const useRecover =
-                  customerState === "enabled" ||
-                  (customerState === null && isSoftMerge);
-
-                if (useRecover) {
-                  const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-                  if (!storefrontToken) {
-                    recordAuditFailure(
-                      "activation_fallback",
-                      "customerRecover fallback skipped: SHOPIFY_STOREFRONT_ACCESS_TOKEN missing"
-                    );
-                  } else {
-                    const recoverRes = await fetch(
-                      `https://${shopifyDomain}/api/2024-10/graphql.json`,
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          "X-Shopify-Storefront-Access-Token": storefrontToken,
-                        },
-                        body: JSON.stringify({
-                          query:
-                            "mutation customerRecover($email: String!) { customerRecover(email: $email) { customerUserErrors { code field message } } }",
-                          variables: { email: customer.email },
-                        }),
-                      }
-                    );
-                    if (recoverRes.ok) {
-                      const rJson = await recoverRes.json();
-                      const errs = rJson?.data?.customerRecover?.customerUserErrors ?? [];
-                      if (errs.length === 0) {
-                        console.log(
-                          `Sent customerRecover reset email (state=${customerState ?? "unknown"}):`,
-                          customer.email
-                        );
-                      } else {
-                        recordAuditFailure(
-                          "activation_fallback",
-                          `customerRecover userErrors: ${JSON.stringify(errs).substring(0, 250)}`
-                        );
-                      }
-                    } else {
-                      recordAuditFailure(
-                        "activation_fallback",
-                        `customerRecover HTTP ${recoverRes.status}: ${(await recoverRes.text()).substring(0, 200)}`
-                      );
-                    }
-                  }
-                } else {
-                  // invited / disabled / unknown-on-brand-new - use Admin
-                  // send_invite. customerRecover silently no-ops on both
-                  // invited and disabled states, leaving the user stranded
-                  // with no email (the Smile.io auto-provisioned-shell bug).
-                  const inviteRes = await shopifyFetch(
-                    `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}/send_invite.json`,
-                    {
-                      method: "POST",
-                      headers: {
-                        "X-Shopify-Access-Token": shopifyAdminToken,
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({ customer_invite: {} }),
-                    }
-                  );
-                  if (inviteRes.ok) {
-                    console.log(
-                      `Sent Shopify account invite as activation fallback (state=${customerState ?? "unknown"}):`,
-                      customer.email,
-                      `(prior activation status: ${activationStatusForFallback})`
-                    );
-                  } else {
-                    const txt = await inviteRes.text();
-                    recordAuditFailure(
-                      "activation_fallback",
-                      `send_invite HTTP ${inviteRes.status}: ${txt.substring(0, 200)}`
-                    );
-                  }
                 }
               } catch (recoverErr) {
                 recordAuditFailure(
@@ -2265,6 +2240,7 @@ Deno.serve(async (req: Request) => {
               }
             }
           } else {
+            accountPasswordVerified = false;
             recordAuditFailure(
               "auto_activation",
               "Auto-approval enabled but SHOPIFY_STORE_DOMAIN/SHOPIFY_ADMIN_ACCESS_TOKEN missing"
@@ -2272,6 +2248,7 @@ Deno.serve(async (req: Request) => {
           }
         }
       } catch (activationErr) {
+        accountPasswordVerified = false;
         recordAuditFailure(
           "auto_activation",
           `activation chain threw: ${activationErr instanceof Error ? activationErr.message : String(activationErr)}`
@@ -2279,48 +2256,6 @@ Deno.serve(async (req: Request) => {
       }
       })());
     }
-
-    // Mark the registration lead as completed so the Klaviyo
-    // "Finish your registration" flow stops sending. Flow filter is
-    // `registration_completed is not true`; Klaviyo re-evaluates filters
-    // at every step so flipping the property mid-sequence drops queued
-    // sends without us needing a separate "unsubscribe from flow" call.
-    tailTasks.push((async () => {
-      try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        if (!supabaseUrl) return;
-        // Resolve auto-approval flag so Klaviyo can target the welcome
-        // flow only at registrants who can actually shop immediately.
-        let autoApproved = false;
-        try {
-          const { autoApprovalEnabled } = await appSettingsPromise;
-          autoApproved = !!autoApprovalEnabled && !!submittedPassword;
-        } catch {
-          // best-effort; default false
-        }
-        await fetch(`${supabaseUrl}/functions/v1/track-registration-lead`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: parseResult.data.email,
-            phase: "completed",
-            accountType: parseResult.data.accountType,
-            lastStep: "submitted",
-            emailValidated: true,
-            emailMarketingConsent:
-              (parseResult.data as { acceptsMarketing?: boolean }).acceptsMarketing === true,
-            firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
-            lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
-            phoneE164: (parseResult.data as { phoneE164?: string }).phoneE164 ?? null,
-            preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
-            monthlyOrderVolume: (parseResult.data as { monthlyOrderVolume?: string }).monthlyOrderVolume ?? null,
-            autoApproved,
-          }),
-        });
-      } catch (err) {
-        console.warn("track-registration-lead completion threw (non-blocking):", err);
-      }
-    })());
 
     // Slack notification to the applications channel with the applicant's
     // Instagram handle so the team can follow them immediately.
@@ -2342,6 +2277,52 @@ Deno.serve(async (req: Request) => {
     // Wait for all independent tails to complete before finalizing
     // the audit row. allSettled - one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
+
+    // A completed registration must never be reported when the customer still
+    // cannot sign in. This was the silent failure that stranded accounts while
+    // Shopify returned a successful-looking redirect without saving the
+    // password. Keep the audit row actionable and stop the success screen.
+    if (accountPasswordVerified === false) {
+      await updateAuditRow({
+        status: "shopify_ok",
+        shopify_customer_id: shopifyCustomerId ?? null,
+        error_log: auditErrors,
+      });
+      return sendError(502, [
+        "Your professional account was created, but we could not confirm your password was saved. Please contact hello@dropdeadextensions.com so we can finish setup before you try to sign in.",
+      ]);
+    }
+
+    // Mark completion only after password setup has passed its required
+    // storefront sign-in verification. This prevents failed accounts from
+    // being removed from the abandoned-registration recovery flow.
+    try {
+      const backendUrl = Deno.env.get("SUPABASE_URL");
+      if (backendUrl) {
+        const { autoApprovalEnabled } = await appSettingsPromise;
+        await fetch(`${backendUrl}/functions/v1/track-registration-lead`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: parseResult.data.email,
+            phase: "completed",
+            accountType: parseResult.data.accountType,
+            lastStep: "submitted",
+            emailValidated: true,
+            emailMarketingConsent:
+              (parseResult.data as { acceptsMarketing?: boolean }).acceptsMarketing === true,
+            firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
+            lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
+            phoneE164: (parseResult.data as { phoneE164?: string }).phoneE164 ?? null,
+            preferredMethods: (parseResult.data as { preferredMethods?: string[] }).preferredMethods ?? null,
+            monthlyOrderVolume: (parseResult.data as { monthlyOrderVolume?: string }).monthlyOrderVolume ?? null,
+            autoApproved: !!autoApprovalEnabled && !!submittedPassword,
+          }),
+        });
+      }
+    } catch (err) {
+      console.warn("track-registration-lead completion threw (non-blocking):", err);
+    }
 
     // Welcome-offer minting moved server-side: generate-discount is now an
     // internal-only edge function (gated by service-role bearer header) so

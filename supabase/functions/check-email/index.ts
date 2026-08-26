@@ -126,35 +126,39 @@ Deno.serve(async (req: Request) => {
 
       // The account exists but was never activated (state "invited" =
       // invite sent, never consumed; "disabled" = no password set). Telling
-      // these people to "sign in instead" strands them, since they have no
-      // password. Re-issue the Shopify account invite email instead.
+       // these people to "sign in instead" strands them, since they have no
+       // password. Route through recover-password, which first enables the
+       // account with an unknown random password and then sends a reset link.
+       // Do not use send_invite here because the storefront activation route
+       // is the broken path this recovery is intended to bypass.
       const state: string = json?.customer?.state ?? "";
       const needsActivation = hasAppliedTag && (state === "invited" || state === "disabled");
-      let inviteSent = false;
+       let inviteSent = false;
       if (needsActivation) {
         try {
-          const inviteRes = await fetch(
-            `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyId}/send_invite.json`,
-            {
-              method: "POST",
-              headers: {
-                "X-Shopify-Access-Token": shopifyAdminToken,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ customer_invite: {} }),
-            }
-          );
-          inviteSent = inviteRes.ok;
-          if (!inviteRes.ok) {
+           const backendUrl = Deno.env.get("SUPABASE_URL");
+           const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+           if (!backendUrl || !serviceKey) throw new Error("Backend recovery configuration missing");
+           const recoveryRes = await fetch(`${backendUrl}/functions/v1/recover-password`, {
+             method: "POST",
+             headers: {
+               Authorization: `Bearer ${serviceKey}`,
+               apikey: serviceKey,
+               "Content-Type": "application/json",
+             },
+             body: JSON.stringify({ email }),
+           });
+           inviteSent = recoveryRes.ok;
+           if (!recoveryRes.ok) {
             console.error(
-              "check-email: send_invite failed",
+               "check-email: verified setup recovery failed",
               email,
-              inviteRes.status,
-              (await inviteRes.text()).slice(0, 300)
+               recoveryRes.status,
+               (await recoveryRes.text()).slice(0, 300)
             );
           }
         } catch (inviteErr) {
-          console.error("check-email: send_invite threw", inviteErr);
+           console.error("check-email: verified setup recovery threw", inviteErr);
         }
       }
 

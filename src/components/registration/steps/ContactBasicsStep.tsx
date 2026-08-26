@@ -154,12 +154,12 @@ export const ContactBasicsStep = () => {
       data: { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
     ) => {
       if (data?.exists) {
-        // Account exists but was never activated: an account-setup email was
-        // just re-sent, so point them at their inbox instead of a login they
-        // cannot complete.
+        // Account exists but was never activated. The backend prepares it for
+        // verified recovery and sends a password setup link, bypassing the
+        // storefront activation page.
         const message = data.needsActivation
           ? data.inviteSent
-            ? "This email already has an account that was never set up. We just sent you a new account-setup email, check your inbox."
+            ? "This email already has an account that was never set up. We sent a password setup link, check your inbox."
             : "This email already has an account that was never set up. Contact hello@dropdeadextensions.com and we'll finish setting it up."
           : "An account with this email already exists. Please sign in instead.";
         setEmailConflict({ email: value, message });
@@ -173,7 +173,7 @@ export const ContactBasicsStep = () => {
             id: `email-exists:${value}`,
             description: data.needsActivation
               ? data.inviteSent
-                ? "We just sent an account-setup email so you can set your password."
+                ? "We sent a password setup link so you can choose your password."
                 : "Reach out to hello@dropdeadextensions.com and we'll finish setting up your account."
               : "Please sign in instead of creating a new account.",
             duration: 8000,

@@ -126,13 +126,11 @@ Deno.serve(async (req) => {
   if (!parsed.success) return sendError(400, parsed.error.issues.map((i) => i.message), "Validation failed");
   const { email } = parsed.data;
 
-  // Step 1: look up the customer's Shopify state. If they're "invited"
-  // (account created but activation URL never consumed), Storefront
-  // customerRecover silently no-ops - Shopify will not send a reset
-  // email to an unactivated account. We have to use the Admin
-  // send_invite endpoint instead, which re-issues the original account
-  // invite email. This is the exact failure mode that left
-  // saraannfox97@yahoo.com stranded with no way to set a password.
+  // Step 1: look up the customer's Shopify state. Recovery silently no-ops
+  // for invited/disabled customers. Move those accounts to enabled with a
+  // random, unknown password first, verify the state, then use Shopify's
+  // reset-password email. This bypasses the storefront activation template,
+  // which has repeatedly produced links that do not open a working setup UI.
   try {
     const lookupRes = await fetch(
       `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}`,
@@ -141,30 +139,45 @@ Deno.serve(async (req) => {
     if (lookupRes.ok) {
       const lookupJson = await lookupRes.json();
       const cust = lookupJson?.customers?.[0];
-      if (cust?.state === "invited" && cust?.id) {
-        const inviteRes = await fetch(
-          `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/${cust.id}/send_invite.json`,
+      if ((cust?.state === "invited" || cust?.state === "disabled") && cust?.id) {
+        const temporaryPassword = `${crypto.randomUUID()}Aa1!`;
+        const enableRes = await fetch(
+          `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/${cust.id}.json`,
           {
-            method: "POST",
+            method: "PUT",
             headers: {
               "X-Shopify-Access-Token": ADMIN_TOKEN,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ customer_invite: {} }),
+            body: JSON.stringify({
+              customer: {
+                id: Number(cust.id),
+                password: temporaryPassword,
+                password_confirmation: temporaryPassword,
+                send_email_welcome: false,
+              },
+            }),
           }
         );
-        if (inviteRes.ok) {
-          console.log("Re-sent account invite for invited customer:", email);
-          return sendSuccess({ sent: true, channel: "invite" }, "We've sent you a fresh account-setup email.");
+        if (!enableRes.ok) {
+          console.error("Failed to prepare unactivated account for recovery:", email, enableRes.status);
+          return sendError(502, [
+            "We couldn't prepare this account for password setup. Please contact hello@dropdeadextensions.com.",
+          ], "Account setup failed");
         }
-        const inviteTxt = await inviteRes.text();
-        console.error(
-          "send_invite failed for invited customer:",
-          email,
-          inviteRes.status,
-          inviteTxt.substring(0, 300)
+
+        const verifyRes = await fetch(
+          `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${ADMIN_VERSION}/customers/${cust.id}.json?fields=id,state`,
+          { headers: { "X-Shopify-Access-Token": ADMIN_TOKEN } }
         );
-        // Fall through to customerRecover attempt below - better than nothing.
+        const verifyJson = verifyRes.ok ? await verifyRes.json() : null;
+        if (verifyJson?.customer?.state !== "enabled") {
+          console.error("Prepared account did not become enabled:", email, verifyJson?.customer?.state ?? "unknown");
+          return sendError(502, [
+            "We couldn't confirm this account is ready for password setup. Please contact hello@dropdeadextensions.com.",
+          ], "Account setup unverified");
+        }
+        console.log("Prepared unactivated customer for verified password recovery:", email);
       }
     } else {
       console.warn("Admin customer lookup failed (non-blocking):", lookupRes.status);
@@ -215,7 +228,7 @@ Deno.serve(async (req) => {
       console.error("customerRecover userErrors for", email, ":", JSON.stringify(userErrors));
     }
 
-    return sendSuccess({ sent: true, channel: "recover" }, "Reset email sent if an account exists.");
+    return sendSuccess({ sent: true, channel: "recover" }, "Password setup email sent if an account exists.");
   } catch (error) {
     console.error("Recover password error:", error);
     try {
