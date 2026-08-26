@@ -31,7 +31,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const STOREFRONT_API_VERSION = "2024-10";
 
-type Action = "audit" | "repair";
+type Action = "audit" | "repair" | "link";
 type Scope = "flagged" | "all";
 
 interface RequestBody {
@@ -39,6 +39,8 @@ interface RequestBody {
   password?: string;
   token?: string;
   action?: Action;
+  /** For action "link": the single customer email to mint a setup link for. */
+  linkEmail?: string;
   scope?: Scope;
   days?: number;
   limit?: number;
@@ -170,7 +172,83 @@ Deno.serve(async (req: Request) => {
   }
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-  const action: Action = body.action === "repair" ? "repair" : "audit";
+  const action: Action =
+    body.action === "repair" ? "repair" : body.action === "link" ? "link" : "audit";
+
+  // ---------------- LINK ----------------
+  // Mints a Shopify account activation URL directly (no email round-trip) and
+  // wraps it in our own SPA activation route, which writes the password through
+  // the activate-account function and verifies the customer really flips to
+  // "enabled". Use this when a customer says the invite email does not open a
+  // working password setup screen. Also probes the raw storefront URL so we can
+  // see whether the theme's activate page is serving or 404ing.
+  if (action === "link") {
+    const target = String(body.linkEmail ?? "").trim().toLowerCase();
+    if (!target.includes("@")) return json({ success: false, error: "linkEmail required" }, 400);
+
+    const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, target);
+    if (!cust) return json({ success: false, error: "customer_not_found" }, 404);
+    if (cust.state === "enabled") {
+      return json({
+        success: true,
+        action,
+        email: target,
+        state: cust.state,
+        alreadyEnabled: true,
+        message: "This customer already has a password. Send a password reset instead.",
+      });
+    }
+
+    const gql = await fetch(`https://${DOMAIN}/admin/api/${VERSION}/graphql.json`, {
+      method: "POST",
+      headers: { "X-Shopify-Access-Token": ADMIN_TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `mutation act($id: ID!) {
+          customerGenerateAccountActivationUrl(customerId: $id) {
+            accountActivationUrl
+            userErrors { field message }
+          }
+        }`,
+        variables: { id: `gid://shopify/Customer/${cust.id}` },
+      }),
+    });
+    const gqlBody = await gql.json().catch(() => null);
+    const payload = gqlBody?.data?.customerGenerateAccountActivationUrl;
+    const rawUrl: string | null = payload?.accountActivationUrl ?? null;
+    const userErrors = payload?.userErrors ?? gqlBody?.errors ?? [];
+    if (!rawUrl) {
+      return json({
+        success: false,
+        error: "activation_url_unavailable",
+        detail: JSON.stringify(userErrors).slice(0, 300),
+      }, 502);
+    }
+
+    // Probe the storefront activation page so we know whether the theme
+    // template is actually serving the password form.
+    let rawUrlStatus: number | null = null;
+    try {
+      const probe = await fetch(rawUrl, { method: "GET", redirect: "manual" });
+      rawUrlStatus = probe.status;
+    } catch {
+      rawUrlStatus = null;
+    }
+
+    const spaUrl = `https://apply.dropdeadextensions.com/activate-account?url=${encodeURIComponent(rawUrl)}`;
+
+    return json({
+      success: true,
+      action,
+      email: target,
+      state: cust.state,
+      shopifyId: cust.id,
+      rawUrl,
+      rawUrlStatus,
+      spaUrl,
+      themeActivatePageOk: rawUrlStatus === 200,
+    });
+  }
+
 
   // ---------------- REPAIR ----------------
   if (action === "repair") {
