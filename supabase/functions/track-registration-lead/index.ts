@@ -46,6 +46,10 @@ interface Payload {
   monthlyOrderVolume?: string | null;
   autoApproved?: boolean | null;
   countryCode?: string | null;
+  /** True only when the email cleared the client-side form validation. */
+  emailValidated?: boolean | null;
+  /** True when the user granted email marketing consent (promotional sends). */
+  emailMarketingConsent?: boolean | null;
 }
 
 
