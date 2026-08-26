@@ -138,6 +138,10 @@ Deno.serve(async (req: Request) => {
   const autoApproved = isCompleted && payload.autoApproved === true;
   const rawCountry = typeof payload.countryCode === "string" ? payload.countryCode.trim().toUpperCase() : "";
   const countryCode = /^[A-Z]{2,3}$/.test(rawCountry) ? rawCountry : null;
+  // Gates for the promotional "Started Registration" trigger.
+  const emailValidated = payload.emailValidated === true;
+  const emailMarketingConsent = payload.emailMarketingConsent === true;
+
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
