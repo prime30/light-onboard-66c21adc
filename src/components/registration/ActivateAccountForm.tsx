@@ -419,7 +419,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Invalid Link
+            Setup Link Incomplete
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
             We couldn't read the setup link from your email. Enter your email below and we'll send a fresh one.
