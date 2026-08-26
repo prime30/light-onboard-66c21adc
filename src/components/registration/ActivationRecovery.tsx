@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/TextInput";
 import { useApiClient } from "@/hooks/use-api-client";
@@ -69,9 +69,9 @@ export function ActivationRecovery({ defaultEmail = "" }: { defaultEmail?: strin
       <TextInput
         type="email"
         placeholder="you@salon.com"
+        name="recovery-email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        icon={<Mail className="w-4 h-4 text-muted-foreground/60" />}
         autoComplete="email"
       />
       {error && <p className="text-xs text-destructive leading-relaxed">{error}</p>}
