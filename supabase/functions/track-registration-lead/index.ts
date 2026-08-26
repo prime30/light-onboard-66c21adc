@@ -474,7 +474,69 @@ Deno.serve(async (req: Request) => {
   }
 
   // 2) Fire the appropriate event.
+  // "Started Registration" is a promotional trigger, so it only fires when ALL
+  // of these hold:
+  //   a) the email cleared client-side validation (emailValidated),
+  //   b) the Klaviyo profile upsert for that exact email succeeded,
+  //   c) the profile granted email marketing consent, and
+  //   d) we have not already fired it for this email (dedupe, so re-typing the
+  //      email or moving between steps never re-triggers the flow).
+  // "Completed Registration" is transactional/lifecycle and always fires.
   const metricName = isCompleted ? "Completed Registration" : "Started Registration";
+
+  let startedAlreadyFired = false;
+  if (!isCompleted) {
+    try {
+      const checkRes = await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}&select=klaviyo_started_event_at&limit=1`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+      );
+      if (checkRes.ok) {
+        const rows = (await checkRes.json()) as Array<{ klaviyo_started_event_at: string | null }>;
+        startedAlreadyFired = !!rows[0]?.klaviyo_started_event_at;
+      }
+    } catch (err) {
+      console.warn("track-registration-lead: started-dedupe lookup threw", err);
+    }
+  }
+
+  const eventBlockedReason = isCompleted
+    ? null
+    : !emailValidated
+      ? "email_not_client_validated"
+      : !profileRes.ok
+        ? "profile_upsert_failed"
+        : !emailMarketingConsent
+          ? "no_email_marketing_consent"
+          : startedAlreadyFired
+            ? "started_event_already_fired"
+            : null;
+
+  if (eventBlockedReason) {
+    try {
+      await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ klaviyo_synced_at: new Date().toISOString() }),
+        },
+      );
+    } catch { /* ignore */ }
+    return json(200, {
+      ok: true,
+      phase,
+      klaviyoSynced: profileRes.ok,
+      eventFired: false,
+      eventSkipped: eventBlockedReason,
+    });
+  }
+
   const rawEventProps: Record<string, unknown> = {
     account_type: accountType,
     last_step: lastStep,
