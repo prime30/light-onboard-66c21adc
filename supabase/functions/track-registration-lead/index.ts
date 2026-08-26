@@ -448,6 +448,13 @@ Deno.serve(async (req: Request) => {
   if (countryCode && countryCode.length === 2) {
     profileAttrs.location = { country: countryCode };
   }
+  // Record explicit email marketing consent on the profile so promotional
+  // sends are permission-backed.
+  if (emailMarketingConsent) {
+    profileAttrs.subscriptions = {
+      email: { marketing: { consent: "SUBSCRIBED" } },
+    };
+  }
 
   const profileRes = await klaviyo("/profile-import", klaviyoKey, {
     data: { type: "profile", attributes: profileAttrs },
