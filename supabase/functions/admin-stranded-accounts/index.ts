@@ -14,9 +14,10 @@
 //   invited  -> invite issued, never consumed. NO password.
 //   disabled -> shell / never invited. NO password.
 //
-// Repair routing mirrors mem/features/activation-fallback-state-aware.md:
-//   invited | disabled -> Admin POST customers/{id}/send_invite.json
-//   enabled            -> Storefront customerRecover
+// Repair routing sends every state through recover-password. That function
+// safely promotes invited/disabled accounts with a random password, verifies
+// `enabled`, then sends Shopify's reset email. It deliberately avoids the
+// storefront activation template.
 //
 // Auth pattern copied from admin-list-submissions (admin token or password).
 
@@ -264,34 +265,17 @@ Deno.serve(async (req: Request) => {
         const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, email);
         if (!cust) return { email, ok: false, channel: "none", detail: "customer_not_found" };
 
-        if (cust.state === "invited" || cust.state === "disabled") {
-          const res = await fetch(
-            `https://${DOMAIN}/admin/api/${VERSION}/customers/${cust.id}/send_invite.json`,
-            {
-              method: "POST",
-              headers: { "X-Shopify-Access-Token": ADMIN_TOKEN, "Content-Type": "application/json" },
-              body: JSON.stringify({ customer_invite: {} }),
-            },
-          );
-          if (res.ok) return { email, ok: true, channel: "invite", detail: cust.state };
-          return { email, ok: false, channel: "invite", detail: `${res.status}: ${(await res.text()).slice(0, 160)}` };
-        }
-
-        // enabled -> storefront recover
-        if (!storefrontToken) return { email, ok: false, channel: "recover", detail: "no_storefront_token" };
-        const res = await fetch(`https://${DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`, {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/recover-password`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": storefrontToken },
-          body: JSON.stringify({
-            query: `mutation customerRecover($email: String!) { customerRecover(email: $email) { customerUserErrors { code message } } }`,
-            variables: { email },
-          }),
+          headers: {
+            Authorization: `Bearer ${SERVICE_KEY}`,
+            apikey: SERVICE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
         });
-        if (!res.ok) return { email, ok: false, channel: "recover", detail: `HTTP ${res.status}` };
-        const j = await res.json();
-        const errs = j?.data?.customerRecover?.customerUserErrors ?? [];
-        if (errs.length) return { email, ok: false, channel: "recover", detail: JSON.stringify(errs).slice(0, 160) };
-        return { email, ok: true, channel: "recover", detail: "enabled" };
+        if (!res.ok) return { email, ok: false, channel: "verified_recovery", detail: `HTTP ${res.status}: ${(await res.text()).slice(0, 160)}` };
+        return { email, ok: true, channel: "verified_recovery", detail: cust.state };
       } catch (e) {
         return { email, ok: false, channel: "none", detail: e instanceof Error ? e.message : String(e) };
       }

@@ -278,47 +278,29 @@ Deno.serve(async (req) => {
 
   // Account-invite emails carry an ACTIVATION url (/account/activate/{id}/{token}).
   // customerResetByUrl does not accept those: it fails and the password is never
-  // saved. Detect and run the real activation POST instead.
+  // saved. Delegate to the single activation implementation, which verifies the
+  // customer reaches `enabled` and refuses false success responses.
   if (providedResetUrl && /\/account\/activate\//i.test(providedResetUrl)) {
     try {
-      const activateRes = await fetch(providedResetUrl, {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+      if (!supabaseUrl || !anonKey) {
+        return sendError(500, ["Server configuration error"]);
+      }
+      const activateRes = await fetch(`${supabaseUrl}/functions/v1/activate-account`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          "customer[password]": password,
-          "customer[password_confirmation]": password,
-        }).toString(),
-        redirect: "manual",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ activationUrl: providedResetUrl, password }),
       });
-
-      if (activateRes.status === 302 || activateRes.status === 200) {
-        const numericId = parseShopifyCustomerId(providedResetUrl);
-        const { email, firstName } = await lookupCustomerViaAdmin(
-          SHOPIFY_STORE_DOMAIN,
-          ADMIN_TOKEN,
-          numericId,
-          null
-        );
-        return sendSuccess(
-          { reset: true, activated: true, email, firstName, accessToken: null, expiresAt: null },
-          "Password set successfully"
-        );
-      }
-
-      const txt = await activateRes.text();
-      if (txt.includes("already been activated") || txt.includes("already active")) {
-        return sendError(
-          400,
-          ["This account is already set up. Please sign in with your existing password."],
-          "Already activated"
-        );
-      }
-      console.error("Activation via reset-password failed:", activateRes.status, txt.slice(0, 400));
-      return sendError(
-        400,
-        ["This link is invalid or has already been used. Request a new account-setup email."],
-        "Invalid link"
-      );
+      const activationBody = await activateRes.text();
+      return new Response(activationBody, {
+        status: activateRes.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } catch (e) {
       console.error("Activation via reset-password threw:", e);
       return sendError(500, ["An unexpected error occurred. Please try again."]);

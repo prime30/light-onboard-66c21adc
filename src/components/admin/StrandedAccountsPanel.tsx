@@ -85,7 +85,7 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
       });
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Repair failed");
       setRepair(data);
-      toast.success(`Re-issued ${data.sent} of ${data.attempted} account setup emails`);
+      toast.success(`Sent ${data.sent} of ${data.attempted} verified password setup emails`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Repair failed");
     } finally {
@@ -133,8 +133,8 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
             Cross-checks recent applications against their Shopify customer state. Anyone left{" "}
             <code>invited</code> or <code>disabled</code> never got a password written, usually because the activation
-            call failed and the recovery fallback returned 401. Repair re-issues the Shopify account setup email
-            (invite for invited/disabled, reset for enabled).
+            call failed. Repair safely prepares invited or disabled accounts, verifies they are enabled, then sends
+            a password setup email. It does not use the storefront activation page.
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
