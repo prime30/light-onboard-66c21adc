@@ -234,7 +234,7 @@ Deno.serve(async (req: Request) => {
       rawUrlStatus = null;
     }
 
-    const spaUrl = `https://apply.dropdeadextensions.com/activate-account?url=${encodeURIComponent(rawUrl)}`;
+    const spaUrl = `https://apply.dropdeadextensions.com/activate-account?activation_url=${encodeURIComponent(rawUrl)}`;
 
     return json({
       success: true,
