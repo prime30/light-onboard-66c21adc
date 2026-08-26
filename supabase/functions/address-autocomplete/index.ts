@@ -155,7 +155,6 @@ serve(async (req) => {
       NZ: { lat: -40.900, lng: 174.886 },
       ZA: { lat: -28.816, lng: 24.992 },
     };
-    };
     // Resolve region centroid. Accept both bare subdivision codes ("NSW")
     // and ISO-3166-2-style prefixed codes ("AU-NSW"). If we have a country
     // but no matching subdivision, fall back to the country centroid so

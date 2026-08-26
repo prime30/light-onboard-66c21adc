@@ -46,6 +46,10 @@ interface Payload {
   monthlyOrderVolume?: string | null;
   autoApproved?: boolean | null;
   countryCode?: string | null;
+  /** True only when the email cleared the client-side form validation. */
+  emailValidated?: boolean | null;
+  /** True when the user granted email marketing consent (promotional sends). */
+  emailMarketingConsent?: boolean | null;
 }
 
 
@@ -134,6 +138,10 @@ Deno.serve(async (req: Request) => {
   const autoApproved = isCompleted && payload.autoApproved === true;
   const rawCountry = typeof payload.countryCode === "string" ? payload.countryCode.trim().toUpperCase() : "";
   const countryCode = /^[A-Z]{2,3}$/.test(rawCountry) ? rawCountry : null;
+  // Gates for the promotional "Started Registration" trigger.
+  const emailValidated = payload.emailValidated === true;
+  const emailMarketingConsent = payload.emailMarketingConsent === true;
+
 
   // Capture lightweight request metadata for audit.
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -162,6 +170,11 @@ Deno.serve(async (req: Request) => {
     // (even to null) on step pings would clobber the timestamp because the
     // success-step ping fires AFTER create-customer marks completion.
     if (isCompleted) upsertBody.completed_at = new Date().toISOString();
+    // Consent is sticky: only ever written when granted, never cleared here.
+    if (emailMarketingConsent) {
+      upsertBody.email_marketing_consent = true;
+      upsertBody.email_marketing_consent_at = new Date().toISOString();
+    }
     if (lastField) upsertBody.last_field = lastField;
     if (deviceType) upsertBody.device_type = deviceType;
     if (viewportWidth) upsertBody.viewport_width = viewportWidth;
@@ -435,6 +448,13 @@ Deno.serve(async (req: Request) => {
   if (countryCode && countryCode.length === 2) {
     profileAttrs.location = { country: countryCode };
   }
+  // Record explicit email marketing consent on the profile so promotional
+  // sends are permission-backed.
+  if (emailMarketingConsent) {
+    profileAttrs.subscriptions = {
+      email: { marketing: { consent: "SUBSCRIBED" } },
+    };
+  }
 
   const profileRes = await klaviyo("/profile-import", klaviyoKey, {
     data: { type: "profile", attributes: profileAttrs },
@@ -454,7 +474,69 @@ Deno.serve(async (req: Request) => {
   }
 
   // 2) Fire the appropriate event.
+  // "Started Registration" is a promotional trigger, so it only fires when ALL
+  // of these hold:
+  //   a) the email cleared client-side validation (emailValidated),
+  //   b) the Klaviyo profile upsert for that exact email succeeded,
+  //   c) the profile granted email marketing consent, and
+  //   d) we have not already fired it for this email (dedupe, so re-typing the
+  //      email or moving between steps never re-triggers the flow).
+  // "Completed Registration" is transactional/lifecycle and always fires.
   const metricName = isCompleted ? "Completed Registration" : "Started Registration";
+
+  let startedAlreadyFired = false;
+  if (!isCompleted) {
+    try {
+      const checkRes = await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}&select=klaviyo_started_event_at&limit=1`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+      );
+      if (checkRes.ok) {
+        const rows = (await checkRes.json()) as Array<{ klaviyo_started_event_at: string | null }>;
+        startedAlreadyFired = !!rows[0]?.klaviyo_started_event_at;
+      }
+    } catch (err) {
+      console.warn("track-registration-lead: started-dedupe lookup threw", err);
+    }
+  }
+
+  const eventBlockedReason = isCompleted
+    ? null
+    : !emailValidated
+      ? "email_not_client_validated"
+      : !profileRes.ok
+        ? "profile_upsert_failed"
+        : !emailMarketingConsent
+          ? "no_email_marketing_consent"
+          : startedAlreadyFired
+            ? "started_event_already_fired"
+            : null;
+
+  if (eventBlockedReason) {
+    try {
+      await fetch(
+        `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ klaviyo_synced_at: new Date().toISOString() }),
+        },
+      );
+    } catch { /* ignore */ }
+    return json(200, {
+      ok: true,
+      phase,
+      klaviyoSynced: profileRes.ok,
+      eventFired: false,
+      eventSkipped: eventBlockedReason,
+    });
+  }
+
   const rawEventProps: Record<string, unknown> = {
     account_type: accountType,
     last_step: lastStep,
@@ -502,8 +584,11 @@ Deno.serve(async (req: Request) => {
     }).catch(() => {});
   }
 
-  // Mark sync time (best-effort).
+  // Mark sync time, and stamp the started-event timestamp so the promotional
+  // trigger can never fire twice for this email (best-effort).
   try {
+    const patch: Record<string, unknown> = { klaviyo_synced_at: new Date().toISOString() };
+    if (!isCompleted && eventRes.ok) patch.klaviyo_started_event_at = new Date().toISOString();
     await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?email=eq.${encodeURIComponent(email)}`,
       {
@@ -514,7 +599,7 @@ Deno.serve(async (req: Request) => {
           "Content-Type": "application/json",
           Prefer: "return=minimal",
         },
-        body: JSON.stringify({ klaviyo_synced_at: new Date().toISOString() }),
+        body: JSON.stringify(patch),
       },
     );
   } catch {
@@ -525,6 +610,8 @@ Deno.serve(async (req: Request) => {
     ok: true,
     phase,
     klaviyoSynced: profileRes.ok && eventRes.ok,
+    eventFired: eventRes.ok,
+    metric: metricName,
   });
   } catch (error) {
     console.error("track-registration-lead unhandled:", error);

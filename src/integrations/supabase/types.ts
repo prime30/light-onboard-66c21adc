@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -328,6 +328,8 @@ export type Database = {
           created_at: string
           device_type: string | null
           email: string
+          email_marketing_consent: boolean
+          email_marketing_consent_at: string | null
           first_order_at: string | null
           first_order_id: string | null
           first_order_synced_at: string | null
@@ -338,6 +340,7 @@ export type Database = {
           founder_call_start_time: string | null
           id: string
           ip_address: string | null
+          klaviyo_started_event_at: string | null
           klaviyo_synced_at: string | null
           last_field: string | null
           last_step: string | null
@@ -356,6 +359,8 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           email: string
+          email_marketing_consent?: boolean
+          email_marketing_consent_at?: string | null
           first_order_at?: string | null
           first_order_id?: string | null
           first_order_synced_at?: string | null
@@ -366,6 +371,7 @@ export type Database = {
           founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
+          klaviyo_started_event_at?: string | null
           klaviyo_synced_at?: string | null
           last_field?: string | null
           last_step?: string | null
@@ -384,6 +390,8 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           email?: string
+          email_marketing_consent?: boolean
+          email_marketing_consent_at?: string | null
           first_order_at?: string | null
           first_order_id?: string | null
           first_order_synced_at?: string | null
@@ -394,6 +402,7 @@ export type Database = {
           founder_call_start_time?: string | null
           id?: string
           ip_address?: string | null
+          klaviyo_started_event_at?: string | null
           klaviyo_synced_at?: string | null
           last_field?: string | null
           last_step?: string | null
