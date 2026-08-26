@@ -533,6 +533,9 @@ export const ContactBasicsStep = () => {
                   body: {
                     email: value,
                     phase: "started",
+                    // Server gates the promotional trigger on these.
+                    emailValidated: getValidationStatus("email") === "complete",
+                    emailMarketingConsent: !!watch("acceptsMarketing"),
                     accountType: watch("accountType") ?? null,
                     lastStep: "contact-basics",
                     firstName: watch("firstName") ?? null,

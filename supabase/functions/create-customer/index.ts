@@ -2306,6 +2306,9 @@ Deno.serve(async (req: Request) => {
             phase: "completed",
             accountType: parseResult.data.accountType,
             lastStep: "submitted",
+            emailValidated: true,
+            emailMarketingConsent:
+              (parseResult.data as { acceptsMarketing?: boolean }).acceptsMarketing === true,
             firstName: (parseResult.data as { firstName?: string }).firstName ?? null,
             lastName: (parseResult.data as { lastName?: string }).lastName ?? null,
             phoneE164: (parseResult.data as { phoneE164?: string }).phoneE164 ?? null,
