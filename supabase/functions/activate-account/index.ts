@@ -557,7 +557,7 @@ Deno.serve(async (req) => {
 
     }
 
-    const responseText = await activateResponse.text();
+    const responseText = await activateResponse!.text();
 
     if (responseText.includes("already been activated") || responseText.includes("already active")) {
       return sendError(400, [
@@ -577,7 +577,7 @@ Deno.serve(async (req) => {
       ], "Link expired");
     }
 
-    console.error("Shopify activate response:", activateResponse.status, responseText.substring(0, 500));
+    console.error("Shopify activate response:", activateResponse!.status, responseText.substring(0, 500));
     return sendError(400, [
       "Unable to activate account. The link may be expired or invalid.",
     ], "Activation failed");
