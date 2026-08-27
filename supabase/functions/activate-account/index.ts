@@ -36,6 +36,118 @@ function sendSuccess<T>(data: T, message?: string) {
   );
 }
 
+// --- Storefront sign-in verification -----------------------------------
+// Shopify can report a customer as `enabled` while the password the applicant
+// typed is NOT the credential on file (classic activation 302s, Admin API
+// writes racing the activation, duplicate customers on the same email). The
+// only proof that the applicant can actually log in is minting a customer
+// access token with the exact email + password they submitted, so activation
+// only reports success after that succeeds.
+let cachedStorefrontToken: string | null = null;
+
+async function getStorefrontToken(domain: string, adminToken: string): Promise<string | null> {
+  if (cachedStorefrontToken) return cachedStorefrontToken;
+  const envToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  if (envToken && envToken.length === 32 && /^[a-f0-9]+$/i.test(envToken)) {
+    cachedStorefrontToken = envToken;
+    return envToken;
+  }
+  try {
+    const res = await fetch(`https://${domain}/admin/api/2024-10/storefront_access_tokens.json`, {
+      headers: { "X-Shopify-Access-Token": adminToken, "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      console.error("[activate-account] list storefront tokens failed:", res.status);
+      return null;
+    }
+    const json = await res.json();
+    const tokens: Array<{ access_token: string; title?: string }> =
+      json?.storefront_access_tokens ?? [];
+    if (!tokens.length) return null;
+    const preferred = tokens.find((t) => (t.title || "").startsWith("lovable-")) ?? tokens[0];
+    cachedStorefrontToken = preferred?.access_token ?? null;
+    return cachedStorefrontToken;
+  } catch (e) {
+    console.error("[activate-account] storefront token lookup threw:", e);
+    return null;
+  }
+}
+
+async function verifyLogin(
+  domain: string,
+  adminToken: string,
+  email: string,
+  password: string
+): Promise<{ ok: boolean; reason: string }> {
+  const storefrontToken = await getStorefrontToken(domain, adminToken);
+  if (!storefrontToken) return { ok: false, reason: "no_storefront_token" };
+  try {
+    const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": storefrontToken,
+      },
+      body: JSON.stringify({
+        query: `mutation login($input: CustomerAccessTokenCreateInput!) {
+          customerAccessTokenCreate(input: $input) {
+            customerAccessToken { accessToken }
+            customerUserErrors { code message }
+          }
+        }`,
+        variables: { input: { email, password } },
+      }),
+    });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) cachedStorefrontToken = null;
+      return { ok: false, reason: `http_${res.status}` };
+    }
+    const json = await res.json();
+    const payload = json?.data?.customerAccessTokenCreate;
+    if (payload?.customerAccessToken?.accessToken) return { ok: true, reason: "ok" };
+    const code = payload?.customerUserErrors?.[0]?.code ?? "unknown";
+    return { ok: false, reason: String(code).toLowerCase() };
+  } catch (e) {
+    console.error("[activate-account] login verification threw:", e);
+    return { ok: false, reason: "threw" };
+  }
+}
+
+async function adminSetPassword(
+  domain: string,
+  adminToken: string,
+  customerId: string,
+  password: string
+): Promise<{ ok: boolean; state: string; email: string | null; firstName: string | null }> {
+  const res = await fetch(`https://${domain}/admin/api/2024-10/customers/${customerId}.json`, {
+    method: "PUT",
+    headers: { "X-Shopify-Access-Token": adminToken, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer: {
+        id: Number(customerId),
+        password,
+        password_confirmation: password,
+        send_email_welcome: false,
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error(
+      "[activate-account] Admin password write failed:",
+      res.status,
+      (await res.text()).slice(0, 400)
+    );
+    return { ok: false, state: "", email: null, firstName: null };
+  }
+  const json = await res.json();
+  return {
+    ok: true,
+    state: json?.customer?.state ?? "",
+    email: json?.customer?.email ?? null,
+    firstName: json?.customer?.first_name ?? null,
+  };
+}
+
 // Accept either:
 //   - activationUrl: full Shopify activation URL (preferred - matches
 //     `customer.account_activation_url` in the invite email Liquid)
