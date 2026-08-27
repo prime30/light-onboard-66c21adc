@@ -241,16 +241,13 @@ Deno.serve(async (req) => {
               "X-Shopify-Storefront-Access-Token": sfToken,
             },
             body: JSON.stringify({
-              query: `mutation activate($url: URL!, $input: CustomerActivateInput!) {
-                customerActivateByUrl(activationUrl: $url, password: $input.password) {
+              query: `mutation activate($url: URL!, $password: String!) {
+                customerActivateByUrl(activationUrl: $url, password: $password) {
                   customer { id email firstName }
                   customerAccessToken { accessToken }
                   customerUserErrors { code field message }
                 }
-              }`.replace(
-                "password: $input.password",
-                "password: $password"
-              ).replace("$input: CustomerActivateInput!", "$password: String!"),
+              }`,
               variables: { url: activateUrl, password },
             }),
           });
@@ -258,7 +255,7 @@ Deno.serve(async (req) => {
           const payload = json?.data?.customerActivateByUrl;
           if (payload?.customer?.id) {
             canonicalActivated = true;
-            console.log("[activate-account] customerActivateByUrl succeeded for", activateUrl.split("/").slice(-2, -1)[0]);
+            console.log("[activate-account] customerActivateByUrl succeeded for customer", derivedCustomerId);
           } else {
             const code = payload?.customerUserErrors?.[0]?.code ?? null;
             console.warn(
@@ -291,6 +288,18 @@ Deno.serve(async (req) => {
           body: new URLSearchParams({
             "customer[password]": password,
             "customer[password_confirmation]": password,
+          }).toString(),
+          redirect: "manual",
+        });
+
+    // Canonical activation is proof on its own. Otherwise Shopify returns a 302
+    // redirect on the classic endpoint, which is only a hint.
+    if (
+      canonicalActivated ||
+      activateResponse!.status === 302 ||
+      activateResponse!.status === 200
+    ) {
+
 
       // Best-effort email lookup so the SPA can auto-sign-in afterwards.
       // Failure here is non-fatal - activation already succeeded.
