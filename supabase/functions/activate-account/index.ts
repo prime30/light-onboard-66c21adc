@@ -276,75 +276,98 @@ Deno.serve(async (req) => {
                 "- setting password via Admin API for customer",
                 derivedCustomerId
               );
-              try {
-                const putRes = await fetch(
-                  `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${derivedCustomerId}.json`,
-                  {
-                    method: "PUT",
-                    headers: {
-                      "X-Shopify-Access-Token": adminToken,
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      customer: {
-                        id: Number(derivedCustomerId),
-                        password,
-                        password_confirmation: password,
-                        send_email_welcome: false,
-                      },
-                    }),
-                  }
+              const put = await adminSetPassword(
+                SHOPIFY_STORE_DOMAIN,
+                adminToken,
+                derivedCustomerId,
+                password
+              );
+              email = put.email ?? email;
+              firstName = put.firstName ?? firstName;
+              if (!put.ok || put.state !== "enabled") {
+                console.error(
+                  "[activate-account] Admin password write left state as",
+                  put.state,
+                  "for customer",
+                  derivedCustomerId
                 );
-                if (!putRes.ok) {
-                  const putTxt = await putRes.text();
-                  console.error(
-                    "[activate-account] Admin password write failed:",
-                    putRes.status,
-                    putTxt.slice(0, 400)
-                  );
-                  return sendError(
-                    500,
-                    [
-                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
-                    ],
-                    "Password not saved"
+                return sendError(
+                  500,
+                  [
+                    "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                  ],
+                  "Password not saved"
+                );
+              }
+              console.log(
+                "[activate-account] Password set via Admin API fallback, customer now enabled:",
+                derivedCustomerId
+              );
+              activationVerified = true;
+            } else if (state === "enabled") {
+              activationVerified = true;
+            }
+
+            // FINAL PROOF: an `enabled` state does not mean the applicant's
+            // password is the credential on file. Mint a storefront access
+            // token with the exact email + password they typed. If that fails,
+            // rewrite the password via Admin API once and re-verify, so the
+            // applicant never leaves this screen with a password Shopify will
+            // reject on the login page.
+            if (activationVerified && email) {
+              let login = await verifyLogin(
+                SHOPIFY_STORE_DOMAIN,
+                adminToken,
+                email,
+                password
+              );
+              if (!login.ok && login.reason !== "no_storefront_token") {
+                console.warn(
+                  "[activate-account] Post-activation login failed (",
+                  login.reason,
+                  ") - rewriting password for customer",
+                  derivedCustomerId
+                );
+                const repair = await adminSetPassword(
+                  SHOPIFY_STORE_DOMAIN,
+                  adminToken,
+                  derivedCustomerId,
+                  password
+                );
+                email = repair.email ?? email;
+                firstName = repair.firstName ?? firstName;
+                if (repair.ok) {
+                  login = await verifyLogin(
+                    SHOPIFY_STORE_DOMAIN,
+                    adminToken,
+                    email,
+                    password
                   );
                 }
-                const putJson = await putRes.json();
-                const newState: string = putJson?.customer?.state ?? "";
-                email = putJson?.customer?.email ?? email;
-                firstName = putJson?.customer?.first_name ?? firstName;
-                if (newState !== "enabled") {
+                if (!login.ok && login.reason !== "no_storefront_token") {
                   console.error(
-                    "[activate-account] Admin password write left state as",
-                    newState,
-                    "for customer",
+                    "[activate-account] Login still failing after repair (",
+                    login.reason,
+                    ") for customer",
                     derivedCustomerId
                   );
                   return sendError(
                     500,
                     [
-                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                      "Your password was saved but the store would not accept it on sign-in. Please contact hello@dropdeadextensions.com and we'll fix it right away.",
                     ],
-                    "Password not saved"
+                    "Login verification failed"
                   );
                 }
+              }
+              if (login.ok) {
                 console.log(
-                  "[activate-account] Password set via Admin API fallback, customer now enabled:",
+                  "[activate-account] Login verified for customer",
                   derivedCustomerId
                 );
-                activationVerified = true;
-              } catch (putErr) {
-                console.error("[activate-account] Admin password write threw:", putErr);
-                return sendError(
-                  500,
-                  ["An unexpected error occurred. Please try again."],
-                  "Password not saved"
-                );
               }
-            } else if (state === "enabled") {
-              activationVerified = true;
             }
+
             // Visibility: activate-account has no Storefront token to lean on
             // (Shopify's activation endpoint returns a 302 with no body), so
             // the Admin API is the sole source for email/firstName here.
