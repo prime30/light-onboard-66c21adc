@@ -4,6 +4,7 @@ import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { ActivateAccountForm } from "@/components/registration/ActivateAccountForm";
+import { setResetEmailHint } from "@/lib/reset-email-hint";
 
 export function ActivateAccountPage() {
   const [searchParams] = useSearchParams();
@@ -14,10 +15,19 @@ export function ActivateAccountPage() {
   const token = searchParams.get("token");
   const customerId = searchParams.get("customer_id");
   const activationUrl = searchParams.get("activation_url");
+  // Invite emails carry the recipient as ?email_hint= on the storefront root;
+  // the theme overlay forwards it to the iframe as ?email=. Accept both so the
+  // recovery form is prefilled even when the user opens the email on a
+  // different device than the one that registered (no sessionStorage there).
+  const emailHint = searchParams.get("email_hint") || searchParams.get("email");
 
   useEffect(() => {
     setMode("signin");
   }, [setMode]);
+
+  useEffect(() => {
+    if (emailHint) setResetEmailHint(emailHint);
+  }, [emailHint]);
 
   // Redirect already-logged-in users - but ONLY if they were already logged
   // in when this page mounted. Otherwise activation's own auto-login flow
