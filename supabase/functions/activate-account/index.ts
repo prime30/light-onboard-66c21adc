@@ -222,20 +222,76 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const activateResponse = await fetch(activateUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        "customer[password]": password,
-        "customer[password_confirmation]": password,
-      }).toString(),
-      redirect: "manual",
-    });
+    // PRIMARY: Shopify's canonical activation API. The classic HTML POST below
+    // answers 302 even when it silently drops the password (and the Admin API
+    // password write can flip state to `enabled` without storing the typed
+    // credential), which is exactly how applicants ended up "activated" but
+    // unable to log in. `customerActivateByUrl` stores the password and returns
+    // an access token, so success here is real proof.
+    let canonicalActivated = false;
+    const adminTokenForCanonical = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    if (adminTokenForCanonical) {
+      const sfToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, adminTokenForCanonical);
+      if (sfToken) {
+        try {
+          const res = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2024-10/graphql.json`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Shopify-Storefront-Access-Token": sfToken,
+            },
+            body: JSON.stringify({
+              query: `mutation activate($url: URL!, $input: CustomerActivateInput!) {
+                customerActivateByUrl(activationUrl: $url, password: $input.password) {
+                  customer { id email firstName }
+                  customerAccessToken { accessToken }
+                  customerUserErrors { code field message }
+                }
+              }`.replace(
+                "password: $input.password",
+                "password: $password"
+              ).replace("$input: CustomerActivateInput!", "$password: String!"),
+              variables: { url: activateUrl, password },
+            }),
+          });
+          const json = await res.json();
+          const payload = json?.data?.customerActivateByUrl;
+          if (payload?.customer?.id) {
+            canonicalActivated = true;
+            console.log("[activate-account] customerActivateByUrl succeeded for", activateUrl.split("/").slice(-2, -1)[0]);
+          } else {
+            const code = payload?.customerUserErrors?.[0]?.code ?? null;
+            console.warn(
+              "[activate-account] customerActivateByUrl did not activate:",
+              code ?? JSON.stringify(json?.errors ?? json).slice(0, 300)
+            );
+            if (code === "ALREADY_ACTIVATED") {
+              return sendError(
+                400,
+                [
+                  "This account has already been activated. You can log in with your existing password.",
+                ],
+                "Already activated"
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("[activate-account] customerActivateByUrl threw:", e);
+        }
+      }
+    }
 
-    // Shopify returns a 302 redirect on success
-    if (activateResponse.status === 302 || activateResponse.status === 200) {
+    const activateResponse = canonicalActivated
+      ? null
+      : await fetch(activateUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            "customer[password]": password,
+            "customer[password_confirmation]": password,
+
       // Best-effort email lookup so the SPA can auto-sign-in afterwards.
       // Failure here is non-fatal - activation already succeeded.
       let email: string | null = null;
