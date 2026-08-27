@@ -36,6 +36,118 @@ function sendSuccess<T>(data: T, message?: string) {
   );
 }
 
+// --- Storefront sign-in verification -----------------------------------
+// Shopify can report a customer as `enabled` while the password the applicant
+// typed is NOT the credential on file (classic activation 302s, Admin API
+// writes racing the activation, duplicate customers on the same email). The
+// only proof that the applicant can actually log in is minting a customer
+// access token with the exact email + password they submitted, so activation
+// only reports success after that succeeds.
+let cachedStorefrontToken: string | null = null;
+
+async function getStorefrontToken(domain: string, adminToken: string): Promise<string | null> {
+  if (cachedStorefrontToken) return cachedStorefrontToken;
+  const envToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  if (envToken && envToken.length === 32 && /^[a-f0-9]+$/i.test(envToken)) {
+    cachedStorefrontToken = envToken;
+    return envToken;
+  }
+  try {
+    const res = await fetch(`https://${domain}/admin/api/2024-10/storefront_access_tokens.json`, {
+      headers: { "X-Shopify-Access-Token": adminToken, "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      console.error("[activate-account] list storefront tokens failed:", res.status);
+      return null;
+    }
+    const json = await res.json();
+    const tokens: Array<{ access_token: string; title?: string }> =
+      json?.storefront_access_tokens ?? [];
+    if (!tokens.length) return null;
+    const preferred = tokens.find((t) => (t.title || "").startsWith("lovable-")) ?? tokens[0];
+    cachedStorefrontToken = preferred?.access_token ?? null;
+    return cachedStorefrontToken;
+  } catch (e) {
+    console.error("[activate-account] storefront token lookup threw:", e);
+    return null;
+  }
+}
+
+async function verifyLogin(
+  domain: string,
+  adminToken: string,
+  email: string,
+  password: string
+): Promise<{ ok: boolean; reason: string }> {
+  const storefrontToken = await getStorefrontToken(domain, adminToken);
+  if (!storefrontToken) return { ok: false, reason: "no_storefront_token" };
+  try {
+    const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": storefrontToken,
+      },
+      body: JSON.stringify({
+        query: `mutation login($input: CustomerAccessTokenCreateInput!) {
+          customerAccessTokenCreate(input: $input) {
+            customerAccessToken { accessToken }
+            customerUserErrors { code message }
+          }
+        }`,
+        variables: { input: { email, password } },
+      }),
+    });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) cachedStorefrontToken = null;
+      return { ok: false, reason: `http_${res.status}` };
+    }
+    const json = await res.json();
+    const payload = json?.data?.customerAccessTokenCreate;
+    if (payload?.customerAccessToken?.accessToken) return { ok: true, reason: "ok" };
+    const code = payload?.customerUserErrors?.[0]?.code ?? "unknown";
+    return { ok: false, reason: String(code).toLowerCase() };
+  } catch (e) {
+    console.error("[activate-account] login verification threw:", e);
+    return { ok: false, reason: "threw" };
+  }
+}
+
+async function adminSetPassword(
+  domain: string,
+  adminToken: string,
+  customerId: string,
+  password: string
+): Promise<{ ok: boolean; state: string; email: string | null; firstName: string | null }> {
+  const res = await fetch(`https://${domain}/admin/api/2024-10/customers/${customerId}.json`, {
+    method: "PUT",
+    headers: { "X-Shopify-Access-Token": adminToken, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer: {
+        id: Number(customerId),
+        password,
+        password_confirmation: password,
+        send_email_welcome: false,
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error(
+      "[activate-account] Admin password write failed:",
+      res.status,
+      (await res.text()).slice(0, 400)
+    );
+    return { ok: false, state: "", email: null, firstName: null };
+  }
+  const json = await res.json();
+  return {
+    ok: true,
+    state: json?.customer?.state ?? "",
+    email: json?.customer?.email ?? null,
+    firstName: json?.customer?.first_name ?? null,
+  };
+}
+
 // Accept either:
 //   - activationUrl: full Shopify activation URL (preferred - matches
 //     `customer.account_activation_url` in the invite email Liquid)
@@ -110,20 +222,85 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const activateResponse = await fetch(activateUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        "customer[password]": password,
-        "customer[password_confirmation]": password,
-      }).toString(),
-      redirect: "manual",
-    });
+    // PRIMARY: Shopify's canonical activation API. The classic HTML POST below
+    // answers 302 even when it silently drops the password (and the Admin API
+    // password write can flip state to `enabled` without storing the typed
+    // credential), which is exactly how applicants ended up "activated" but
+    // unable to log in. `customerActivateByUrl` stores the password and returns
+    // an access token, so success here is real proof.
+    let canonicalActivated = false;
+    const adminTokenForCanonical = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    if (adminTokenForCanonical) {
+      const sfToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, adminTokenForCanonical);
+      if (sfToken) {
+        try {
+          const res = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2024-10/graphql.json`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Shopify-Storefront-Access-Token": sfToken,
+            },
+            body: JSON.stringify({
+              query: `mutation activate($url: URL!, $password: String!) {
+                customerActivateByUrl(activationUrl: $url, password: $password) {
+                  customer { id email firstName }
+                  customerAccessToken { accessToken }
+                  customerUserErrors { code field message }
+                }
+              }`,
+              variables: { url: activateUrl, password },
+            }),
+          });
+          const json = await res.json();
+          const payload = json?.data?.customerActivateByUrl;
+          if (payload?.customer?.id) {
+            canonicalActivated = true;
+            console.log("[activate-account] customerActivateByUrl succeeded for customer", derivedCustomerId);
+          } else {
+            const code = payload?.customerUserErrors?.[0]?.code ?? null;
+            console.warn(
+              "[activate-account] customerActivateByUrl did not activate:",
+              code ?? JSON.stringify(json?.errors ?? json).slice(0, 300)
+            );
+            if (code === "ALREADY_ACTIVATED") {
+              return sendError(
+                400,
+                [
+                  "This account has already been activated. You can log in with your existing password.",
+                ],
+                "Already activated"
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("[activate-account] customerActivateByUrl threw:", e);
+        }
+      }
+    }
 
-    // Shopify returns a 302 redirect on success
-    if (activateResponse.status === 302 || activateResponse.status === 200) {
+    const activateResponse = canonicalActivated
+      ? null
+      : await fetch(activateUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            "customer[password]": password,
+            "customer[password_confirmation]": password,
+          }).toString(),
+          redirect: "manual",
+        });
+
+    // Canonical activation is proof on its own. Otherwise Shopify returns a 302
+    // redirect on the classic endpoint, which is only a hint.
+    if (
+      canonicalActivated ||
+      activateResponse!.status === 302 ||
+      activateResponse!.status === 200
+    ) {
+
+
       // Best-effort email lookup so the SPA can auto-sign-in afterwards.
       // Failure here is non-fatal - activation already succeeded.
       let email: string | null = null;
@@ -164,75 +341,98 @@ Deno.serve(async (req) => {
                 "- setting password via Admin API for customer",
                 derivedCustomerId
               );
-              try {
-                const putRes = await fetch(
-                  `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${derivedCustomerId}.json`,
-                  {
-                    method: "PUT",
-                    headers: {
-                      "X-Shopify-Access-Token": adminToken,
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      customer: {
-                        id: Number(derivedCustomerId),
-                        password,
-                        password_confirmation: password,
-                        send_email_welcome: false,
-                      },
-                    }),
-                  }
+              const put = await adminSetPassword(
+                SHOPIFY_STORE_DOMAIN,
+                adminToken,
+                derivedCustomerId,
+                password
+              );
+              email = put.email ?? email;
+              firstName = put.firstName ?? firstName;
+              if (!put.ok || put.state !== "enabled") {
+                console.error(
+                  "[activate-account] Admin password write left state as",
+                  put.state,
+                  "for customer",
+                  derivedCustomerId
                 );
-                if (!putRes.ok) {
-                  const putTxt = await putRes.text();
-                  console.error(
-                    "[activate-account] Admin password write failed:",
-                    putRes.status,
-                    putTxt.slice(0, 400)
-                  );
-                  return sendError(
-                    500,
-                    [
-                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
-                    ],
-                    "Password not saved"
+                return sendError(
+                  500,
+                  [
+                    "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                  ],
+                  "Password not saved"
+                );
+              }
+              console.log(
+                "[activate-account] Password set via Admin API fallback, customer now enabled:",
+                derivedCustomerId
+              );
+              activationVerified = true;
+            } else if (state === "enabled") {
+              activationVerified = true;
+            }
+
+            // FINAL PROOF: an `enabled` state does not mean the applicant's
+            // password is the credential on file. Mint a storefront access
+            // token with the exact email + password they typed. If that fails,
+            // rewrite the password via Admin API once and re-verify, so the
+            // applicant never leaves this screen with a password Shopify will
+            // reject on the login page.
+            if (activationVerified && email) {
+              let login = await verifyLogin(
+                SHOPIFY_STORE_DOMAIN,
+                adminToken,
+                email,
+                password
+              );
+              if (!login.ok && login.reason !== "no_storefront_token") {
+                console.warn(
+                  "[activate-account] Post-activation login failed (",
+                  login.reason,
+                  ") - rewriting password for customer",
+                  derivedCustomerId
+                );
+                const repair = await adminSetPassword(
+                  SHOPIFY_STORE_DOMAIN,
+                  adminToken,
+                  derivedCustomerId,
+                  password
+                );
+                email = repair.email ?? email;
+                firstName = repair.firstName ?? firstName;
+                if (repair.ok) {
+                  login = await verifyLogin(
+                    SHOPIFY_STORE_DOMAIN,
+                    adminToken,
+                    email,
+                    password
                   );
                 }
-                const putJson = await putRes.json();
-                const newState: string = putJson?.customer?.state ?? "";
-                email = putJson?.customer?.email ?? email;
-                firstName = putJson?.customer?.first_name ?? firstName;
-                if (newState !== "enabled") {
+                if (!login.ok && login.reason !== "no_storefront_token") {
                   console.error(
-                    "[activate-account] Admin password write left state as",
-                    newState,
-                    "for customer",
+                    "[activate-account] Login still failing after repair (",
+                    login.reason,
+                    ") for customer",
                     derivedCustomerId
                   );
                   return sendError(
                     500,
                     [
-                      "We couldn't finish setting your password. Please contact hello@dropdeadextensions.com and we'll set it up for you.",
+                      "Your password was saved but the store would not accept it on sign-in. Please contact hello@dropdeadextensions.com and we'll fix it right away.",
                     ],
-                    "Password not saved"
+                    "Login verification failed"
                   );
                 }
+              }
+              if (login.ok) {
                 console.log(
-                  "[activate-account] Password set via Admin API fallback, customer now enabled:",
+                  "[activate-account] Login verified for customer",
                   derivedCustomerId
                 );
-                activationVerified = true;
-              } catch (putErr) {
-                console.error("[activate-account] Admin password write threw:", putErr);
-                return sendError(
-                  500,
-                  ["An unexpected error occurred. Please try again."],
-                  "Password not saved"
-                );
               }
-            } else if (state === "enabled") {
-              activationVerified = true;
             }
+
             // Visibility: activate-account has no Storefront token to lean on
             // (Shopify's activation endpoint returns a 302 with no body), so
             // the Admin API is the sole source for email/firstName here.
@@ -357,7 +557,7 @@ Deno.serve(async (req) => {
 
     }
 
-    const responseText = await activateResponse.text();
+    const responseText = await activateResponse!.text();
 
     if (responseText.includes("already been activated") || responseText.includes("already active")) {
       return sendError(400, [
@@ -377,7 +577,7 @@ Deno.serve(async (req) => {
       ], "Link expired");
     }
 
-    console.error("Shopify activate response:", activateResponse.status, responseText.substring(0, 500));
+    console.error("Shopify activate response:", activateResponse!.status, responseText.substring(0, 500));
     return sendError(400, [
       "Unable to activate account. The link may be expired or invalid.",
     ], "Activation failed");
