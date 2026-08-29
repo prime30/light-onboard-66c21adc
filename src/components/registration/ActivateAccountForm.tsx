@@ -178,9 +178,11 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       } else {
         setFormState("signing-in");
         // Standalone: exchange credentials for a Storefront access token.
+        // Edge functions wrap payloads as { success, statusCode, data },
+        // and apiCall returns the whole body as `data`, so the token lives
+        // one level deeper at `data.data`.
         const loginResult = await apiCall<{
-          accessToken: string;
-          expiresAt: string;
+          data?: { accessToken?: string; expiresAt?: string };
         }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -190,17 +192,18 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           }),
         });
 
-        if (loginResult.success && loginResult.data?.accessToken) {
+        const session = loginResult.success ? loginResult.data?.data : undefined;
+        if (session?.accessToken) {
           saveStoredSession({
-            accessToken: loginResult.data.accessToken,
-            expiresAt: loginResult.data.expiresAt,
+            accessToken: session.accessToken,
+            expiresAt: session.expiresAt,
             email: customerEmail,
             firstName: customerFirstName,
           });
           setCustomer({
             isLoggedIn: true,
-            accessToken: loginResult.data.accessToken,
-            expiresAt: loginResult.data.expiresAt,
+            accessToken: session.accessToken,
+            expiresAt: session.expiresAt,
             email: customerEmail,
             firstName: customerFirstName,
           });
@@ -209,6 +212,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           const failed = loginResult as { statusCode?: number };
           setAutoLoginStatus(failed.statusCode === 429 ? "rate_limited" : "failed");
         }
+
         setFormState("success");
       }
     } else {
