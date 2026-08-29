@@ -2462,6 +2462,29 @@ Deno.serve(async (req: Request) => {
       console.warn("track-registration-lead completion threw (non-blocking):", err);
     }
 
+    // Meta ads: report the conversion server-side, only once the registration
+    // is genuinely complete (password verified above). Non-blocking.
+    try {
+      const d = parseResult.data as Record<string, unknown>;
+      await sendMetaCompleteRegistration({
+        req,
+        meta: (requestBody as { meta?: MetaClientContext }).meta ?? null,
+        email: parseResult.data.email,
+        firstName: (d.firstName as string) ?? null,
+        lastName: (d.lastName as string) ?? null,
+        phoneE164: (d.phoneE164 as string) ?? null,
+        city: (d.city as string) ?? null,
+        provinceCode: (d.provinceCode as string) ?? null,
+        zip: (d.zipCode as string) ?? null,
+        countryCode: (d.countryCode as string) ?? null,
+        accountType: parseResult.data.accountType ?? null,
+      });
+    } catch (err) {
+      console.warn("Meta CAPI tail threw (non-blocking):", err);
+    }
+
+
+
     // Welcome-offer minting moved server-side: generate-discount is now an
     // internal-only edge function (gated by service-role bearer header) so
     // the public can no longer mint unlimited discount codes by hitting it
