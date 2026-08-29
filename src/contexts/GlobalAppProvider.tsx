@@ -63,6 +63,24 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
     return unsubscribe;
   }, [subscribeToType, sendMessage]);
 
+  // Meta ads attribution: the theme owns the first-party _fbp / _fbc cookies,
+  // so it forwards them to us (iframe src params and/or a META_CONTEXT
+  // postMessage). We just cache whatever arrives for the visit.
+  useEffect(() => {
+    captureMetaSignalsFromUrl();
+    const unsubscribe = subscribeToType("META_CONTEXT", (message) => {
+      const data = (message.data ?? {}) as Record<string, unknown>;
+      recordMetaSignals({
+        fbc: data.fbc ?? data._fbc,
+        fbp: data.fbp ?? data._fbp,
+        fbclid: data.fbclid,
+        eventSourceUrl: data.eventSourceUrl ?? data.pageUrl,
+      });
+    });
+    return unsubscribe;
+  }, [subscribeToType]);
+
+
   const value: GlobalAppContextType = {
     fontsLoaded,
     ...iframeComm,
