@@ -13,6 +13,8 @@
  *   parent origin can write a cookie readable by the theme.
  */
 
+import { getMetaEventId } from "@/lib/meta-tracking";
+
 const FALLBACK_ORIGINS = [
   "https://drop-dead-2428.myshopify.com",
   "https://dropdeadextensions.com",
@@ -35,6 +37,10 @@ let alreadyEmitted = false;
 /**
  * Emit the APPLICATION_SUBMITTED breadcrumb exactly once per page lifetime.
  * Safe to call from a React effect - re-renders will not double-fire.
+ *
+ * The payload carries `metaEventId`: the theme fires the browser Pixel
+ * `CompleteRegistration` with this same eventID so it dedupes against the
+ * server-side Conversions API event sent by create-customer.
  */
 export function emitApplicationSubmitted(): void {
   if (alreadyEmitted) return;
@@ -45,13 +51,18 @@ export function emitApplicationSubmitted(): void {
     return;
   }
 
+  const metaEventId = getMetaEventId();
   const origins = getParentOrigins();
   for (const origin of origins) {
     try {
-      window.parent.postMessage({ type: "APPLICATION_SUBMITTED" }, origin);
+      window.parent.postMessage(
+        { type: "APPLICATION_SUBMITTED", metaEventId, data: { metaEventId } },
+        origin
+      );
     } catch {
       // Origin mismatch or cross-origin restriction - browser drops silently.
       // Intentional: only the matching origin's message is delivered.
     }
   }
 }
+
