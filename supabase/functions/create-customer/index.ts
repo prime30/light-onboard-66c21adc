@@ -527,6 +527,144 @@ const registrationSchema = z.discriminatedUnion("accountType", [
   }),
 ]);
 
+// ---------------------------------------------------------------------------
+// Meta (Facebook) Conversions API - server-side CompleteRegistration
+// ---------------------------------------------------------------------------
+// The SPA runs in an iframe on the theme, where browser-Pixel attribution is
+// unreliable (blocked third-party cookies, ad blockers). We therefore send the
+// conversion server-side with hashed PII, and the theme fires the browser Pixel
+// with the SAME event_id so Meta dedupes the pair instead of double-counting.
+//
+// Secrets: META_PIXEL_ID, META_CAPI_ACCESS_TOKEN (both required to send),
+//          META_TEST_EVENT_CODE (optional, for Events Manager test tab).
+type MetaClientContext = {
+  eventId?: unknown;
+  fbc?: unknown;
+  fbp?: unknown;
+  eventSourceUrl?: unknown;
+};
+
+async function sha256Hex(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** Meta requires lowercase, trimmed values hashed with SHA-256. */
+async function hashNormalized(value: string | null | undefined): Promise<string | null> {
+  const normalized = (value ?? "").trim().toLowerCase();
+  if (!normalized) return null;
+  return await sha256Hex(normalized);
+}
+
+/** Phones are hashed digits-only, including country code, no punctuation. */
+async function hashPhone(value: string | null | undefined): Promise<string | null> {
+  const digits = (value ?? "").replace(/\D/g, "");
+  if (digits.length < 7) return null;
+  return await sha256Hex(digits);
+}
+
+async function sendMetaCompleteRegistration(args: {
+  req: Request;
+  meta: MetaClientContext | null | undefined;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  phoneE164?: string | null;
+  city?: string | null;
+  provinceCode?: string | null;
+  zip?: string | null;
+  countryCode?: string | null;
+  accountType?: string | null;
+}): Promise<void> {
+  const pixelId = Deno.env.get("META_PIXEL_ID");
+  const accessToken = Deno.env.get("META_CAPI_ACCESS_TOKEN");
+  if (!pixelId || !accessToken) return; // Tracking not configured - no-op.
+
+  const str = (v: unknown): string | null =>
+    typeof v === "string" && v.trim() && v.length < 500 ? v.trim() : null;
+
+  const eventId = str(args.meta?.eventId) ?? crypto.randomUUID();
+  const fbc = str(args.meta?.fbc);
+  const fbp = str(args.meta?.fbp);
+  const eventSourceUrl =
+    str(args.meta?.eventSourceUrl) ?? "https://dropdeadextensions.com/apps/apply";
+
+  const headers = args.req.headers;
+  const clientIp =
+    (headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
+    headers.get("cf-connecting-ip") ||
+    null;
+  const userAgent = headers.get("user-agent");
+
+  const [em, fn, ln, ph, ct, st, zp, country] = await Promise.all([
+    hashNormalized(args.email),
+    hashNormalized(args.firstName),
+    hashNormalized(args.lastName),
+    hashPhone(args.phoneE164),
+    hashNormalized(args.city?.replace(/\s+/g, "")),
+    hashNormalized(args.provinceCode),
+    hashNormalized(args.zip?.replace(/\s+/g, "")),
+    hashNormalized(args.countryCode),
+  ]);
+
+  const userData: Record<string, unknown> = {};
+  if (em) userData.em = [em];
+  if (ph) userData.ph = [ph];
+  if (fn) userData.fn = [fn];
+  if (ln) userData.ln = [ln];
+  if (ct) userData.ct = [ct];
+  if (st) userData.st = [st];
+  if (zp) userData.zp = [zp];
+  if (country) userData.country = [country];
+  if (fbc) userData.fbc = fbc;
+  if (fbp) userData.fbp = fbp;
+  if (clientIp) userData.client_ip_address = clientIp;
+  if (userAgent) userData.client_user_agent = userAgent;
+
+  const testEventCode = Deno.env.get("META_TEST_EVENT_CODE");
+  const body: Record<string, unknown> = {
+    data: [
+      {
+        event_name: "CompleteRegistration",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        event_source_url: eventSourceUrl,
+        action_source: "website",
+        user_data: userData,
+        custom_data: {
+          content_name: "Pro account application",
+          status: "approved_pending_verification",
+          account_type: args.accountType ?? null,
+        },
+      },
+    ],
+  };
+  if (testEventCode) body.test_event_code = testEventCode;
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Meta CAPI CompleteRegistration failed", res.status, text.slice(0, 500));
+    } else {
+      console.log("Meta CAPI CompleteRegistration sent", { eventId, hasFbc: !!fbc, hasFbp: !!fbp });
+    }
+  } catch (err) {
+    console.warn("Meta CAPI CompleteRegistration threw (non-blocking):", err);
+  }
+}
+
+
 // Interface for function response
 type FunctionResponse<T> = {
   success: boolean;
