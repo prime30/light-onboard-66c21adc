@@ -85,12 +85,17 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
+    // Edge functions wrap payloads as { success, statusCode, data }, and
+    // apiCall returns the whole body as `data`, so the real payload lives
+    // one level deeper at `data.data`.
     const result = await apiCall<{
-      reset: boolean;
-      email: string | null;
-      firstName: string | null;
-      accessToken: string | null;
-      expiresAt: string | null;
+      data?: {
+        reset?: boolean;
+        email?: string | null;
+        firstName?: string | null;
+        accessToken?: string | null;
+        expiresAt?: string | null;
+      };
     }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
       {
@@ -105,6 +110,8 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     );
 
     if (result.success) {
+      const payload = result.data?.data;
+
       // Shopify's Storefront API can return customer.email = null from
       // customerResetByUrl for certain account states / access scopes
       // (legacy customers, etc.). Fall back to the email the user typed
