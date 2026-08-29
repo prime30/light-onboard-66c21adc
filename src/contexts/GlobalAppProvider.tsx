@@ -9,6 +9,7 @@ import {
   SSO_PARENT_ORIGIN,
   SsoContext,
 } from "@/lib/sso-context";
+import { captureMetaSignalsFromUrl, recordMetaSignals } from "@/lib/meta-tracking";
 
 type GlobalAppContextType = {
   fontsLoaded: boolean;
