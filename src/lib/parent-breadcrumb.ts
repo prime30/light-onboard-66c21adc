@@ -13,6 +13,8 @@
  *   parent origin can write a cookie readable by the theme.
  */
 
+import { getMetaEventId } from "@/lib/meta-tracking";
+
 const FALLBACK_ORIGINS = [
   "https://drop-dead-2428.myshopify.com",
   "https://dropdeadextensions.com",
