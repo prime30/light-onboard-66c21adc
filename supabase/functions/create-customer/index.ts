@@ -851,7 +851,11 @@ Deno.serve(async (req: Request) => {
   };
 
   // Parse the request body
-  let requestBody: CustomerCreateRequest & { honeypot?: unknown; formStartedAt?: unknown };
+  let requestBody: CustomerCreateRequest & {
+    honeypot?: unknown;
+    formStartedAt?: unknown;
+    meta?: MetaClientContext;
+  };
   try {
     requestBody = await req.json();
   } catch {
