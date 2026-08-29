@@ -85,12 +85,17 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
   const onSubmit = handleSubmit(async (data) => {
     setServerError("");
 
+    // Edge functions wrap payloads as { success, statusCode, data }, and
+    // apiCall returns the whole body as `data`, so the real payload lives
+    // one level deeper at `data.data`.
     const result = await apiCall<{
-      reset: boolean;
-      email: string | null;
-      firstName: string | null;
-      accessToken: string | null;
-      expiresAt: string | null;
+      data?: {
+        reset?: boolean;
+        email?: string | null;
+        firstName?: string | null;
+        accessToken?: string | null;
+        expiresAt?: string | null;
+      };
     }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
       {
@@ -105,20 +110,22 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     );
 
     if (result.success) {
+      const payload = result.data?.data;
+
       // Shopify's Storefront API can return customer.email = null from
       // customerResetByUrl for certain account states / access scopes
       // (legacy customers, etc.). Fall back to the email the user typed
       // into "Forgot password?" earlier in this same browser session,
       // captured by SignInForm via setResetEmailHint().
       const customerEmail =
-        result.data?.email ?? emailHint ?? getResetEmailHint() ?? null;
+        payload?.email ?? emailHint ?? getResetEmailHint() ?? null;
       // Hint is single-use - clear regardless of which path resolved it
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
       clearResetEmailHint();
 
       setResetCustomer({
-        firstName: result.data?.firstName ?? null,
+        firstName: payload?.firstName ?? null,
         email: customerEmail,
       });
       sendMessage("PASSWORD_RESET_SUCCESS", {
@@ -169,14 +176,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         // customerResetByUrl (already a fresh, valid Storefront token).
         // Falls back to a customer-login exchange if Shopify didn't issue
         // one (some legacy account states).
-        let accessToken = result.data?.accessToken ?? null;
-        let expiresAt = result.data?.expiresAt ?? null;
+        let accessToken = payload?.accessToken ?? null;
+        let expiresAt = payload?.expiresAt ?? null;
         let loginFailedCode: number | undefined;
 
         if (!accessToken) {
           const loginResult = await apiCall<{
-            accessToken: string;
-            expiresAt: string;
+            data?: { accessToken?: string; expiresAt?: string };
           }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -185,9 +191,10 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
               password: data.password,
             }),
           });
-          if (loginResult.success && loginResult.data?.accessToken) {
-            accessToken = loginResult.data.accessToken;
-            expiresAt = loginResult.data.expiresAt;
+          const session = loginResult.success ? loginResult.data?.data : undefined;
+          if (session?.accessToken) {
+            accessToken = session.accessToken;
+            expiresAt = session.expiresAt ?? null;
           } else {
             loginFailedCode = (loginResult as { statusCode?: number }).statusCode;
           }

@@ -448,13 +448,9 @@ Deno.serve(async (req: Request) => {
   if (countryCode && countryCode.length === 2) {
     profileAttrs.location = { country: countryCode };
   }
-  // Record explicit email marketing consent on the profile so promotional
-  // sends are permission-backed.
-  if (emailMarketingConsent) {
-    profileAttrs.subscriptions = {
-      email: { marketing: { consent: "SUBSCRIBED" } },
-    };
-  }
+  // NOTE: `subscriptions` is NOT a valid attribute on the `profile` resource
+  // used by /profile-import (Klaviyo returns 400 and the whole upsert fails).
+  // Consent is set separately below via the subscription bulk-create job.
 
   const profileRes = await klaviyo("/profile-import", klaviyoKey, {
     data: { type: "profile", attributes: profileAttrs },
@@ -472,6 +468,42 @@ Deno.serve(async (req: Request) => {
       }),
     }).catch(() => {});
   }
+
+  // Record explicit email marketing consent through the supported endpoint so
+  // promotional sends are permission-backed. Non-fatal: a failure here must
+  // never break lead tracking or the registration flow.
+  if (profileRes.ok && emailMarketingConsent) {
+    const listId = Deno.env.get("KLAVIYO_MARKETING_LIST_ID") || "";
+    const subRes = await klaviyo("/profile-subscription-bulk-create-jobs", klaviyoKey, {
+      data: {
+        type: "profile-subscription-bulk-create-job",
+        attributes: {
+          profiles: {
+            data: [
+              {
+                type: "profile",
+                attributes: {
+                  email,
+                  subscriptions: { email: { marketing: { consent: "SUBSCRIBED" } } },
+                },
+              },
+            ],
+          },
+        },
+        ...(listId
+          ? { relationships: { list: { data: { type: "list", id: listId } } } }
+          : {}),
+      },
+    });
+    if (!subRes.ok) {
+      console.error(
+        "Klaviyo subscription job failed",
+        subRes.status,
+        JSON.stringify(subRes.body),
+      );
+    }
+  }
+
 
   // 2) Fire the appropriate event.
   // "Started Registration" is a promotional trigger, so it only fires when ALL
