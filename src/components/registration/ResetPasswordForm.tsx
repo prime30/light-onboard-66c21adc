@@ -118,14 +118,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       // into "Forgot password?" earlier in this same browser session,
       // captured by SignInForm via setResetEmailHint().
       const customerEmail =
-        result.data?.email ?? emailHint ?? getResetEmailHint() ?? null;
+        payload?.email ?? emailHint ?? getResetEmailHint() ?? null;
       // Hint is single-use - clear regardless of which path resolved it
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
       clearResetEmailHint();
 
       setResetCustomer({
-        firstName: result.data?.firstName ?? null,
+        firstName: payload?.firstName ?? null,
         email: customerEmail,
       });
       sendMessage("PASSWORD_RESET_SUCCESS", {
@@ -176,14 +176,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         // customerResetByUrl (already a fresh, valid Storefront token).
         // Falls back to a customer-login exchange if Shopify didn't issue
         // one (some legacy account states).
-        let accessToken = result.data?.accessToken ?? null;
-        let expiresAt = result.data?.expiresAt ?? null;
+        let accessToken = payload?.accessToken ?? null;
+        let expiresAt = payload?.expiresAt ?? null;
         let loginFailedCode: number | undefined;
 
         if (!accessToken) {
           const loginResult = await apiCall<{
-            accessToken: string;
-            expiresAt: string;
+            data?: { accessToken?: string; expiresAt?: string };
           }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -192,9 +191,10 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
               password: data.password,
             }),
           });
-          if (loginResult.success && loginResult.data?.accessToken) {
-            accessToken = loginResult.data.accessToken;
-            expiresAt = loginResult.data.expiresAt;
+          const session = loginResult.success ? loginResult.data?.data : undefined;
+          if (session?.accessToken) {
+            accessToken = session.accessToken;
+            expiresAt = session.expiresAt ?? null;
           } else {
             loginFailedCode = (loginResult as { statusCode?: number }).statusCode;
           }

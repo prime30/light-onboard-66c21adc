@@ -331,26 +331,26 @@ export function FormDataProvider({
           (async () => {
             try {
               const loginResult = await apiCall<{
-                accessToken: string;
-                expiresAt: string;
+                data?: { accessToken?: string; expiresAt?: string };
               }>(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: values.email, password }),
               });
-              if (loginResult.success && loginResult.data?.accessToken) {
+              const session = loginResult.success ? loginResult.data?.data : undefined;
+              if (session?.accessToken) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const fname = ((values as any).firstName as string | undefined) ?? null;
                 saveStoredSession({
-                  accessToken: loginResult.data.accessToken,
-                  expiresAt: loginResult.data.expiresAt,
+                  accessToken: session.accessToken,
+                  expiresAt: session.expiresAt,
                   email: values.email,
                   firstName: fname,
                 });
                 setCustomer({
                   isLoggedIn: true,
-                  accessToken: loginResult.data.accessToken,
-                  expiresAt: loginResult.data.expiresAt,
+                  accessToken: session.accessToken,
+                  expiresAt: session.expiresAt,
                   email: values.email,
                   firstName: fname,
                 });
