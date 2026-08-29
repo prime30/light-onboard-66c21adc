@@ -196,6 +196,10 @@ export function FormDataProvider({
             data: values,
             honeypot: readHoneypotValue(),
             formStartedAt: readFormStartedAt(),
+            // Meta ads attribution: forwarded click ids plus the shared event
+            // id so the server-side CompleteRegistration event dedupes with
+            // the theme's browser Pixel event.
+            meta: getMetaContext(),
             auGeoToken:
               ((values as { countryCode?: string }).countryCode || "").toUpperCase() === "AU" &&
               (values as { email?: string }).email
