@@ -50,6 +50,9 @@ interface Payload {
   emailValidated?: boolean | null;
   /** True when the user granted email marketing consent (promotional sends). */
   emailMarketingConsent?: boolean | null;
+  /** Ad / campaign channel for this visit, from src/lib/attribution.ts. */
+  attributionChannel?: string | null;
+  attributionCampaign?: string | null;
 }
 
 
@@ -141,6 +144,20 @@ Deno.serve(async (req: Request) => {
   // Gates for the promotional "Started Registration" trigger.
   const emailValidated = payload.emailValidated === true;
   const emailMarketingConsent = payload.emailMarketingConsent === true;
+  // Attribution channel is first-touch: written on every ping but the value is
+  // stable for the visit because it comes from the SPA's sessionStorage cache.
+  const ATTRIBUTION_CHANNELS = [
+    "meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid",
+    "email", "organic_social", "campaign", "direct",
+  ];
+  const attributionChannel =
+    typeof payload.attributionChannel === "string" && ATTRIBUTION_CHANNELS.includes(payload.attributionChannel)
+      ? payload.attributionChannel
+      : null;
+  const attributionCampaign =
+    typeof payload.attributionCampaign === "string" && payload.attributionCampaign.trim().length > 0
+      ? payload.attributionCampaign.trim().slice(0, 200)
+      : null;
 
 
   // Capture lightweight request metadata for audit.
@@ -181,6 +198,8 @@ Deno.serve(async (req: Request) => {
     if (viewportHeight) upsertBody.viewport_height = viewportHeight;
     if (monthlyOrderVolume) upsertBody.monthly_order_volume = monthlyOrderVolume;
     if (countryCode) upsertBody.country_code = countryCode;
+    if (attributionChannel) upsertBody.attribution_channel = attributionChannel;
+    if (attributionCampaign) upsertBody.attribution_campaign = attributionCampaign;
 
     // ---- Prefix-typing dedupe ----
     // Users typing their email blur the field mid-type ("@yahoo.c", "@yahoo.co",
