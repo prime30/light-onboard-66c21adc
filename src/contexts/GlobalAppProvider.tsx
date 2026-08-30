@@ -9,7 +9,12 @@ import {
   SSO_PARENT_ORIGIN,
   SsoContext,
 } from "@/lib/sso-context";
-import { captureMetaSignalsFromUrl, recordMetaSignals } from "@/lib/meta-tracking";
+import {
+  captureMetaSignalsFromCookies,
+  captureMetaSignalsFromUrl,
+  recordMetaSignals,
+} from "@/lib/meta-tracking";
+import { isTrustedParentOrigin } from "@/lib/parent-origin";
 
 type GlobalAppContextType = {
   fontsLoaded: boolean;
@@ -64,22 +69,28 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
     return unsubscribe;
   }, [subscribeToType, sendMessage]);
 
-  // Meta ads attribution: the theme owns the first-party _fbp / _fbc cookies,
-  // so it forwards them to us (iframe src params and/or a META_CONTEXT
-  // postMessage). We just cache whatever arrives for the visit.
+  // Meta ads attribution. Two paths:
+  //   1. First-party (App Proxy /apps/apply): we share the storefront origin,
+  //      so the theme Pixel's own _fbp / _fbc cookies are readable here.
+  //   2. Cross-origin (apply.dropdeadextensions.com): the theme forwards the
+  //      signals via a META_CONTEXT postMessage (and legacy src params).
+  // parent_url is the only trustworthy event_source_url - the iframe URL is not.
   useEffect(() => {
+    captureMetaSignalsFromCookies();
     captureMetaSignalsFromUrl();
-    const unsubscribe = subscribeToType("META_CONTEXT", (message) => {
+    const unsubscribe = subscribeToType("META_CONTEXT", (message, event) => {
+      if (!isTrustedParentOrigin(event.origin)) return;
       const data = (message.data ?? {}) as Record<string, unknown>;
       recordMetaSignals({
         fbc: data.fbc ?? data._fbc,
         fbp: data.fbp ?? data._fbp,
         fbclid: data.fbclid,
-        eventSourceUrl: data.eventSourceUrl ?? data.pageUrl,
+        eventSourceUrl: data.parent_url ?? data.eventSourceUrl ?? data.pageUrl,
       });
     });
     return unsubscribe;
   }, [subscribeToType]);
+
 
 
   const value: GlobalAppContextType = {

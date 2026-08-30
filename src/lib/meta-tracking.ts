@@ -105,6 +105,29 @@ export function captureMetaSignalsFromUrl(): void {
   }
 }
 
+function readCookie(name: string): string | null {
+  try {
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * First-party path (App Proxy: /apps/apply on the storefront origin). The Pixel
+ * on the theme already wrote `_fbp` / `_fbc` as first-party cookies, so when we
+ * share that origin we can read them directly. Highest-fidelity source, so it
+ * runs before META_CONTEXT / query params.
+ */
+export function captureMetaSignalsFromCookies(): void {
+  if (typeof document === "undefined") return;
+  recordMetaSignals({
+    fbc: readCookie("_fbc"),
+    fbp: readCookie("_fbp"),
+  });
+}
+
 /** Stable per-visit event id shared by the Pixel and the Conversions API. */
 export function getMetaEventId(): string {
   try {
@@ -128,8 +151,12 @@ export function getMetaEventId(): string {
 /** Everything create-customer needs to fire a deduped CAPI event. */
 export function getMetaContext(): MetaContext {
   const cached = readCache();
+  // Never use the iframe URL as event_source_url: the storefront page the
+  // shopper was actually on is what Meta needs. parent_url (via META_CONTEXT)
+  // first, then the referrer, and only then our own URL as a last resort.
   const eventSourceUrl =
     cached.eventSourceUrl ??
+    (typeof document !== "undefined" && document.referrer ? document.referrer : null) ??
     (typeof window !== "undefined" ? window.location.href : null);
   return {
     eventId: getMetaEventId(),
@@ -139,3 +166,4 @@ export function getMetaContext(): MetaContext {
     eventSourceUrl,
   };
 }
+

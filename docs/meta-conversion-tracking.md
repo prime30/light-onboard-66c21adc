@@ -89,8 +89,16 @@ fires the browser Pixel on `APPLICATION_SUBMITTED` with the shared event id.
 
 Notes:
 
-- Append `?<ddApplyIframeParams()>` to the iframe `src` when you build it, or
-  rely on the `META_CONTEXT` postMessage alone (both paths are supported).
+- The live theme uses the `META_CONTEXT` postMessage only (no `fbp`/`fbc`/
+  `fbclid`/`parent_url` query params on first-party App Proxy iframe URLs). The
+  query-param path is kept for the legacy `apply.` subdomain.
+- On the App Proxy path the SPA shares the storefront origin, so it reads the
+  Pixel's own first-party `_fbp` / `_fbc` cookies directly. Cookies win over
+  forwarded values.
+- `event_source_url` always comes from `parent_url` (then `document.referrer`),
+  never the iframe URL.
+- The SPA never calls `fbq`. The parent fires the single browser
+  `CompleteRegistration` using the `metaEventId` from `APPLICATION_SUBMITTED`.
 - Target origin must be the SPA origin. When the SPA is served first-party via
   the App Proxy (`/apps/apply`), use `location.origin` instead.
 - In Ads Manager, optimize on the `CompleteRegistration` event for this dataset.
