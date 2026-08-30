@@ -1970,7 +1970,23 @@ Deno.serve(async (req: Request) => {
       internationalTags.push("au-nsw");
     }
 
-    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...internationalTags];
+    // Attribution tags so Shopify segments can filter paid-ad signups without
+    // parsing the customer note. Campaign tag is added only when tagged.
+    const attributionTags: string[] = [];
+    if (attribution.channel !== "direct") {
+      attributionTags.push(`source-${attribution.channel.replace(/_/g, "-")}`);
+    }
+    if (attribution.isPaidAds) attributionTags.push("paid-ads");
+    if (attribution.utmCampaign) {
+      const campaignTag = attribution.utmCampaign
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40);
+      if (campaignTag) attributionTags.push(`campaign-${campaignTag}`);
+    }
+
+    const newTags = [...accountTypeTags, ...preferredMethodTags, ...extraAdminTags, ...ghostShellTags, ...internationalTags, ...attributionTags];
 
     // Marketing consent - email and SMS are tracked separately for TCPA / GDPR
     // compliance. Each channel needs its own explicit opt-in checkbox in the UI;
