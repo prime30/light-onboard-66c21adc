@@ -78,6 +78,7 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   useEffect(() => {
     captureMetaSignalsFromCookies();
     captureMetaSignalsFromUrl();
+    captureAttributionFromUrl();
     const unsubscribe = subscribeToType("META_CONTEXT", (message, event) => {
       if (!isTrustedParentOrigin(event.origin)) return;
       const data = (message.data ?? {}) as Record<string, unknown>;
@@ -87,9 +88,12 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
         fbclid: data.fbclid,
         eventSourceUrl: data.parent_url ?? data.eventSourceUrl ?? data.pageUrl,
       });
+      // Campaign params live on the storefront landing URL, not our iframe URL.
+      captureAttributionFromParentPayload(data);
     });
     return unsubscribe;
   }, [subscribeToType]);
+
 
 
 
