@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
 import { ReferralAnalyticsPanel } from "@/components/admin/ReferralAnalyticsPanel";
+import { AdsAttributionPanel } from "@/components/admin/AdsAttributionPanel";
 import { RegistrationAnalyticsPanel } from "@/components/admin/RegistrationAnalyticsPanel";
 import { RegistrationYoYPanel } from "@/components/admin/RegistrationYoYPanel";
 import { HeliumSpikeInspectorPanel } from "@/components/admin/HeliumSpikeInspectorPanel";
@@ -1430,6 +1431,7 @@ const AdminSettingsPage = () => {
         {/* Analytics tab */}
         <div className={cn("space-y-8", activeTab !== "analytics" && "hidden")}>
           <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
+          <AdsAttributionPanel adminEmail={email} adminToken={token} />
           <RegistrationYoYPanel adminEmail={email} adminToken={token} />
           <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
           <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
