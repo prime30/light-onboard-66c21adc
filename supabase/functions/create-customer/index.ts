@@ -240,6 +240,115 @@ async function loadAppSettings(): Promise<{
 }
 
 // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Ad / campaign attribution. The SPA caches utm_* params, click ids and the
+// storefront landing URL for the visit (src/lib/attribution.ts) and sends them
+// on submit. We re-classify server-side so the channel label can never be
+// spoofed into something the raw signals do not support.
+// ------------------------------------------------------------------
+type AttributionClientContext = {
+  channel?: unknown;
+  utmSource?: unknown;
+  utmMedium?: unknown;
+  utmCampaign?: unknown;
+  utmContent?: unknown;
+  utmTerm?: unknown;
+  fbclid?: unknown;
+  gclid?: unknown;
+  ttclid?: unknown;
+  landingUrl?: unknown;
+  referrer?: unknown;
+};
+
+type NormalizedAttribution = {
+  channel: string;
+  channelLabel: string;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  fbclid: string | null;
+  gclid: string | null;
+  ttclid: string | null;
+  landingUrl: string | null;
+  referrer: string | null;
+  isPaidAds: boolean;
+};
+
+const ATTRIBUTION_LABELS: Record<string, string> = {
+  meta_ads: "Meta ads (Facebook / Instagram)",
+  google_ads: "Google ads",
+  tiktok_ads: "TikTok ads",
+  pinterest_ads: "Pinterest ads",
+  other_paid: "Other paid campaign",
+  email: "Email / Klaviyo",
+  organic_social: "Organic social",
+  campaign: "Tagged link (non-paid)",
+  direct: "Direct / organic",
+};
+
+const PAID_MEDIUMS = new Set([
+  "cpc", "ppc", "paid", "paidsocial", "paid_social", "paid-social",
+  "cpm", "display", "retargeting", "remarketing", "ads", "ad",
+]);
+
+function normalizeAttribution(raw: AttributionClientContext | null | undefined): NormalizedAttribution {
+  const str = (v: unknown): string | null => {
+    if (typeof v !== "string") return null;
+    const t = v.trim();
+    return t && t.length <= 400 ? t : null;
+  };
+  const utmSource = str(raw?.utmSource);
+  const utmMedium = str(raw?.utmMedium);
+  const utmCampaign = str(raw?.utmCampaign);
+  const fbclid = str(raw?.fbclid);
+  const gclid = str(raw?.gclid);
+  const ttclid = str(raw?.ttclid);
+
+  const source = (utmSource ?? "").toLowerCase();
+  const medium = (utmMedium ?? "").toLowerCase();
+  const campaign = (utmCampaign ?? "").toLowerCase();
+  const paid = PAID_MEDIUMS.has(medium) || /(^|[_-])ads?([_-]|$)/.test(campaign);
+  const isMetaSource = /facebook|fb|instagram|^ig$|meta/.test(source);
+
+  let channel = "direct";
+  if (fbclid || (isMetaSource && paid)) channel = "meta_ads";
+  else if (gclid || (/google|youtube|gdn/.test(source) && paid)) channel = "google_ads";
+  else if (ttclid || (/tiktok/.test(source) && paid)) channel = "tiktok_ads";
+  else if (/pinterest/.test(source) && paid) channel = "pinterest_ads";
+  else if (medium === "email" || /klaviyo|newsletter/.test(source)) channel = "email";
+  else if (paid) channel = "other_paid";
+  else if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) channel = "organic_social";
+  else if (source || medium || campaign) channel = "campaign";
+
+  return {
+    channel,
+    channelLabel: ATTRIBUTION_LABELS[channel] ?? channel,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent: str(raw?.utmContent),
+    utmTerm: str(raw?.utmTerm),
+    fbclid,
+    gclid,
+    ttclid,
+    landingUrl: str(raw?.landingUrl),
+    referrer: str(raw?.referrer),
+    isPaidAds: ["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"].includes(channel),
+  };
+}
+
+/** One-line summary used in the Shopify note and the Slack message. */
+function attributionSummary(a: NormalizedAttribution): string {
+  const bits: string[] = [a.channelLabel];
+  if (a.utmCampaign) bits.push(`campaign: ${a.utmCampaign}`);
+  if (a.utmContent) bits.push(`ad: ${a.utmContent}`);
+  else if (a.utmTerm) bits.push(`term: ${a.utmTerm}`);
+  if (!a.utmCampaign && a.utmSource) bits.push(`source: ${a.utmSource}`);
+  return bits.join(" · ");
+}
+
 // Slack notification: post every registration to the #applications
 // channel with the Instagram handle so the team can follow immediately.
 // Best-effort: failures are logged but never block the applicant.
@@ -251,6 +360,7 @@ async function sendSlackApplicantsNotification(payload: {
   countryCode?: string | null;
   accountType?: string | null;
   socialMediaHandle?: string | null;
+  attribution?: NormalizedAttribution | null;
 }): Promise<void> {
   const webhookUrl = Deno.env.get("SLACK_APPLICANTS_WEBHOOK");
   if (!webhookUrl) {
@@ -292,9 +402,29 @@ async function sendSlackApplicantsNotification(payload: {
           type: "mrkdwn",
           text: `*Account type:*\n${payload.accountType || "N/A"}`,
         },
+        {
+          type: "mrkdwn",
+          text: `*Came from:*\n${
+            payload.attribution
+              ? `${payload.attribution.isPaidAds ? ":dollar: " : ""}${attributionSummary(payload.attribution)}`
+              : "Unknown"
+          }`,
+        },
       ],
     },
   ];
+
+  if (payload.attribution?.landingUrl) {
+    blocks.push({
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `Landed on: ${payload.attribution.landingUrl}`,
+        },
+      ],
+    });
+  }
 
   if (normalizedHandle) {
     blocks.push({
@@ -855,6 +985,7 @@ Deno.serve(async (req: Request) => {
     honeypot?: unknown;
     formStartedAt?: unknown;
     meta?: MetaClientContext;
+    attribution?: AttributionClientContext;
   };
   try {
     requestBody = await req.json();
@@ -1360,6 +1491,11 @@ Deno.serve(async (req: Request) => {
   const auditErrors: Array<{ step: string; status: string; message: string; at: string }> = [];
   let auditSubmissionId: string | null = null;
 
+  // Where this signup came from (ads, campaign, direct). Re-derived server-side.
+  const attribution = normalizeAttribution(
+    (requestBody as { attribution?: AttributionClientContext }).attribution ?? null
+  );
+
   const auditPayloadForLog = (() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, confirm_password: _cpw, ...rest } = customer ?? {};
@@ -1411,6 +1547,7 @@ Deno.serve(async (req: Request) => {
           payload: auditPayloadForLog,
           ip_address: auditIp,
           user_agent: auditUa,
+          attribution,
         }),
       });
       if (insRes.ok) {
@@ -1897,6 +2034,8 @@ Deno.serve(async (req: Request) => {
       }
     }
     if (customer.social_media_handle) noteLines.push(`Social: ${customer.social_media_handle}`);
+    noteLines.push(`Came from: ${attributionSummary(attribution)}`);
+    if (attribution.landingUrl) noteLines.push(`Landing page: ${attribution.landingUrl}`);
     const applicationNote = noteLines.length
       ? `Application submitted ${consentTimestamp}\n${noteLines.join("\n")}`
       : "";
@@ -2410,6 +2549,7 @@ Deno.serve(async (req: Request) => {
           countryCode: (parseResult.data as { countryCode?: string }).countryCode ?? null,
           accountType: parseResult.data.accountType ?? null,
           socialMediaHandle: (parseResult.data as { socialMediaHandle?: string }).socialMediaHandle ?? null,
+          attribution,
         });
       } catch (err) {
         console.warn("Slack applicants notification tail threw (non-blocking):", err);

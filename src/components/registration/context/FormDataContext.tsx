@@ -33,6 +33,7 @@ import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { readAuGeoToken } from "@/hooks/useAuGeoVerification";
 import { getMetaContext } from "@/lib/meta-tracking";
+import { getAttributionContext } from "@/lib/attribution";
 // fetchWelcomeOfferEnabled is no longer called from the client - welcome-offer
 // minting moved server-side into the create-customer edge function.
 
@@ -201,6 +202,10 @@ export function FormDataProvider({
             // id so the server-side CompleteRegistration event dedupes with
             // the theme's browser Pixel event.
             meta: getMetaContext(),
+            // Campaign attribution (utm_*, click ids, landing page) so the
+            // server can label the signup's acquisition channel.
+            attribution: getAttributionContext(),
+
             auGeoToken:
               ((values as { countryCode?: string }).countryCode || "").toUpperCase() === "AU" &&
               (values as { email?: string }).email

@@ -1,0 +1,2 @@
+ALTER TABLE public.registration_submissions ADD COLUMN IF NOT EXISTS attribution jsonb;
+CREATE INDEX IF NOT EXISTS registration_submissions_attr_channel_idx ON public.registration_submissions ((attribution->>'channel'));

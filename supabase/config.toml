@@ -75,3 +75,6 @@ verify_jwt = false
 
 [functions.admin-stranded-accounts]
 verify_jwt = false
+
+[functions.admin-ads-attribution]
+verify_jwt = false
