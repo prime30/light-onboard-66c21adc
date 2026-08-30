@@ -205,6 +205,7 @@ export const ScheduleStep = () => {
       await supabase.functions.invoke("track-registration-lead", {
         method: "POST",
         body: {
+          ...getLeadAttributionFields(),
           email: values.email,
           phase: "step",
           lastStep: "schedule-waitlist",
