@@ -33,6 +33,7 @@ import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { readAuGeoToken } from "@/hooks/useAuGeoVerification";
 import { getMetaContext } from "@/lib/meta-tracking";
+import { getAttributionContext } from "@/lib/attribution";
 // fetchWelcomeOfferEnabled is no longer called from the client - welcome-offer
 // minting moved server-side into the create-customer edge function.
 
