@@ -201,6 +201,10 @@ export function FormDataProvider({
             // id so the server-side CompleteRegistration event dedupes with
             // the theme's browser Pixel event.
             meta: getMetaContext(),
+            // Campaign attribution (utm_*, click ids, landing page) so the
+            // server can label the signup's acquisition channel.
+            attribution: getAttributionContext(),
+
             auGeoToken:
               ((values as { countryCode?: string }).countryCode || "").toUpperCase() === "AU" &&
               (values as { email?: string }).email
