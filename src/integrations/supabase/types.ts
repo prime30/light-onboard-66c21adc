@@ -419,6 +419,7 @@ export type Database = {
       registration_submissions: {
         Row: {
           account_type: string | null
+          attribution: Json | null
           created_at: string
           email: string
           error_log: Json
@@ -433,6 +434,7 @@ export type Database = {
         }
         Insert: {
           account_type?: string | null
+          attribution?: Json | null
           created_at?: string
           email: string
           error_log?: Json
@@ -447,6 +449,7 @@ export type Database = {
         }
         Update: {
           account_type?: string | null
+          attribution?: Json | null
           created_at?: string
           email?: string
           error_log?: Json
