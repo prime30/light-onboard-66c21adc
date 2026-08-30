@@ -14,7 +14,12 @@ import {
   captureMetaSignalsFromUrl,
   recordMetaSignals,
 } from "@/lib/meta-tracking";
+import {
+  captureAttributionFromParentPayload,
+  captureAttributionFromUrl,
+} from "@/lib/attribution";
 import { isTrustedParentOrigin } from "@/lib/parent-origin";
+
 
 type GlobalAppContextType = {
   fontsLoaded: boolean;
