@@ -31,3 +31,14 @@ export function resolveParentOrigin(): string | null {
   }
   return allowedMessageOrigins.some((p) => matchesPattern(origin, p)) ? origin : null;
 }
+
+/**
+ * Trust gate for parent-supplied attribution payloads (e.g. META_CONTEXT).
+ * Only the storefront origins may set Meta signals. On the App Proxy path the
+ * parent shares our own origin, so that is trusted too.
+ */
+export function isTrustedParentOrigin(origin: string): boolean {
+  if (!origin) return false;
+  if (typeof window !== "undefined" && origin === window.location.origin) return true;
+  return allowedMessageOrigins.some((p) => matchesPattern(origin, p));
+}
