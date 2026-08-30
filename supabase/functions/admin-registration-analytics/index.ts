@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await supabase
     .from("registration_leads")
     .select(
-      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume, country_code",
+      "email, started_at, completed_at, account_type, last_step, last_field, validation_errors, device_type, viewport_width, founder_call_booked_at, founder_call_start_time, founder_call_no_show_at, first_order_at, first_order_value, monthly_order_volume, country_code, attribution_channel, attribution_campaign",
     )
     .gte("started_at", since)
     .order("started_at", { ascending: true });
@@ -130,6 +130,8 @@ Deno.serve(async (req: Request) => {
     founder_call_no_show_at: string | null;
     first_order_at: string | null;
     first_order_value: number | string | null;
+    attribution_channel?: string | null;
+    attribution_campaign?: string | null;
   };
 
 
@@ -973,6 +975,74 @@ Deno.serve(async (req: Request) => {
   };
 
 
+  // ---- funnel split by ad channel ----
+  // attribution_channel is written by track-registration-lead from the SPA's
+  // per-visit cache, so leads captured before tracking shipped read "untracked".
+  const CHANNEL_LABELS: Record<string, string> = {
+    meta_ads: "Meta ads",
+    google_ads: "Google ads",
+    tiktok_ads: "TikTok ads",
+    pinterest_ads: "Pinterest ads",
+    other_paid: "Other paid",
+    email: "Email / Klaviyo",
+    organic_social: "Organic social",
+    campaign: "Tagged link",
+    direct: "Direct / organic",
+    untracked: "Untracked (pre-tracking)",
+  };
+  const PAID_CHANNEL_KEYS = new Set(["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"]);
+
+  type ChannelAgg = {
+    started: number;
+    completed: number;
+    bounced: number;
+    inProgress: number;
+    purchasers: number;
+    topDropStep: Map<string, number>;
+  };
+  const channelMap = new Map<string, ChannelAgg>();
+  for (const r of leads) {
+    const key = r.attribution_channel && r.attribution_channel.length > 0 ? r.attribution_channel : "untracked";
+    const agg = channelMap.get(key) ?? {
+      started: 0, completed: 0, bounced: 0, inProgress: 0, purchasers: 0, topDropStep: new Map(),
+    };
+    agg.started += 1;
+    if (r.completed_at) {
+      agg.completed += 1;
+      if (r.first_order_at) agg.purchasers += 1;
+    } else if (r.started_at >= graceCutoff) {
+      agg.inProgress += 1;
+    } else {
+      agg.bounced += 1;
+      const step = r.last_step ?? "(none)";
+      agg.topDropStep.set(step, (agg.topDropStep.get(step) ?? 0) + 1);
+    }
+    channelMap.set(key, agg);
+  }
+
+  const channelFunnel = Array.from(channelMap.entries())
+    .map(([key, v]) => {
+      const eligible = v.started - v.inProgress;
+      const topDrop = Array.from(v.topDropStep.entries()).sort((a, b) => b[1] - a[1])[0] ?? null;
+      return {
+        key,
+        label: CHANNEL_LABELS[key] ?? key,
+        paid: PAID_CHANNEL_KEYS.has(key),
+        started: v.started,
+        completed: v.completed,
+        bounced: v.bounced,
+        inProgress: v.inProgress,
+        purchasers: v.purchasers,
+        completionRate: eligible > 0 ? Math.round((v.completed / eligible) * 1000) / 10 : 0,
+        purchaseRate: v.completed > 0 ? Math.round((v.purchasers / v.completed) * 1000) / 10 : 0,
+        topDropStep: topDrop ? { step: topDrop[0], count: topDrop[1] } : null,
+      };
+    })
+    .sort((a, b) => b.started - a.started);
+
+  const trackedLeads = leads.filter((r) => r.attribution_channel && r.attribution_channel.length > 0);
+  const paidLeads = trackedLeads.filter((r) => PAID_CHANNEL_KEYS.has(r.attribution_channel as string));
+
   return json({
     success: true,
     rangeDays: days,
@@ -1019,6 +1089,12 @@ Deno.serve(async (req: Request) => {
 
     recovery,
     accountTypeGate,
+    channelFunnel: {
+      rows: channelFunnel,
+      trackedLeads: trackedLeads.length,
+      paidLeads: paidLeads.length,
+      trackedRate: leads.length > 0 ? Math.round((trackedLeads.length / leads.length) * 1000) / 10 : 0,
+    },
   });
 });
 

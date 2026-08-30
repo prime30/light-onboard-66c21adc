@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getLeadAttributionFields } from "@/lib/attribution";
 import { ArrowLeft, Bell, Calendar as CalendarIcon, Check, Clock, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -204,6 +205,7 @@ export const ScheduleStep = () => {
       await supabase.functions.invoke("track-registration-lead", {
         method: "POST",
         body: {
+          ...getLeadAttributionFields(),
           email: values.email,
           phase: "step",
           lastStep: "schedule-waitlist",

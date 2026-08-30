@@ -99,6 +99,24 @@ type ApiResponse = {
     completionRate: number;
     purchaseRate: number;
   }[];
+  channelFunnel?: {
+    rows: {
+      key: string;
+      label: string;
+      paid: boolean;
+      started: number;
+      completed: number;
+      bounced: number;
+      inProgress: number;
+      purchasers: number;
+      completionRate: number;
+      purchaseRate: number;
+      topDropStep: { step: string; count: number } | null;
+    }[];
+    trackedLeads: number;
+    paidLeads: number;
+    trackedRate: number;
+  };
   dropOffSteps: DropOffRow[];
   dropOffFields?: DropOffFieldRow[];
   validationErrors?: ValidationErrorRow[];
@@ -550,6 +568,69 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
         </div>
       )}
 
+
+      {/* Ad channel funnel */}
+      {(data?.channelFunnel?.rows.length ?? 0) > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="flex items-baseline justify-between gap-3 mb-2">
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              By ad channel
+            </div>
+            <div className="text-[10px] text-muted-foreground tabular-nums">
+              {data!.channelFunnel!.paidLeads} from ads · {data!.channelFunnel!.trackedRate}% tracked
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-2">
+            Channel is captured on the visit that started the registration (click ids and campaign tags on the landing page). Leads from before attribution tracking shipped show as untracked. Completion % excludes in-progress leads.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="text-left py-1.5 pr-3 font-medium">Channel</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Started</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Completed</th>
+                  <th className="text-right py-1.5 px-2 font-medium">Purchase %</th>
+                  <th className="text-left py-1.5 pl-2 font-medium">Top drop-off</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {data!.channelFunnel!.rows.map((row) => (
+                  <tr key={row.key}>
+                    <td className="py-1.5 pr-3 font-medium">
+                      <span className={cn(row.key === "untracked" && "text-muted-foreground italic")}>
+                        {row.label}
+                      </span>
+                      {row.paid && (
+                        <span className="ml-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          paid
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums text-muted-foreground">
+                      {row.started}
+                      {row.inProgress > 0 && (
+                        <span className="text-[10px] opacity-60 ml-1">({row.inProgress} live)</span>
+                      )}
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {row.completed}
+                      <span className="text-[10px] opacity-70 ml-1">({row.completionRate}%)</span>
+                    </td>
+                    <td className="py-1.5 px-2 text-right tabular-nums">
+                      {row.purchaseRate}%
+                      <span className="text-[10px] opacity-70 ml-1">({row.purchasers})</span>
+                    </td>
+                    <td className="py-1.5 pl-2 text-muted-foreground truncate max-w-[180px]">
+                      {row.topDropStep ? `${row.topDropStep.step} (${row.topDropStep.count})` : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Drop-off steps */}
       {(data?.dropOffSteps?.length ?? 0) > 0 && (
