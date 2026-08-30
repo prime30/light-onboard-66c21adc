@@ -7,6 +7,7 @@
 // edge function. The function dedupes by email, so we never fire until the
 // user has typed a valid email.
 import { useEffect, useRef } from "react";
+import { getLeadAttributionFields } from "@/lib/attribution";
 import { supabase } from "@/integrations/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,6 +79,7 @@ export function useBounceTelemetry({
     void supabase.functions
       .invoke("track-registration-lead", {
         body: {
+          ...getLeadAttributionFields(),
           email: normalizedEmail,
           emailValidated,
           emailMarketingConsent: !!emailMarketingConsent,
@@ -126,6 +128,7 @@ export function useBounceTelemetry({
       void supabase.functions
         .invoke("track-registration-lead", {
           body: {
+            ...getLeadAttributionFields(),
             email: normalizedEmail,
           emailValidated,
           emailMarketingConsent: !!emailMarketingConsent,
@@ -155,6 +158,7 @@ export function useBounceTelemetry({
     void supabase.functions
       .invoke("track-registration-lead", {
         body: {
+          ...getLeadAttributionFields(),
           email: normalizedEmail,
           emailValidated,
           emailMarketingConsent: !!emailMarketingConsent,

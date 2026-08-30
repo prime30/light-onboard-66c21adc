@@ -201,3 +201,18 @@ export function getAttributionContext(): AttributionContext {
   const cached = readCache();
   return { ...cached, channel: classifyAttribution(cached) };
 }
+
+/**
+ * Flat fields for track-registration-lead so the completion funnel can be
+ * broken down by ad channel (leads are recorded before submission).
+ */
+export function getLeadAttributionFields(): {
+  attributionChannel: string;
+  attributionCampaign: string | null;
+} {
+  const ctx = getAttributionContext();
+  return {
+    attributionChannel: ctx.channel,
+    attributionCampaign: ctx.utmCampaign ?? ctx.utmSource ?? null,
+  };
+}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getLeadAttributionFields } from "@/lib/attribution";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
@@ -531,6 +532,7 @@ export const ContactBasicsStep = () => {
               supabase.functions
                 .invoke("track-registration-lead", {
                   body: {
+                    ...getLeadAttributionFields(),
                     email: value,
                     phase: "started",
                     // Server gates the promotional trigger on these.
