@@ -985,6 +985,7 @@ Deno.serve(async (req: Request) => {
     honeypot?: unknown;
     formStartedAt?: unknown;
     meta?: MetaClientContext;
+    attribution?: AttributionClientContext;
   };
   try {
     requestBody = await req.json();
@@ -1490,6 +1491,11 @@ Deno.serve(async (req: Request) => {
   const auditErrors: Array<{ step: string; status: string; message: string; at: string }> = [];
   let auditSubmissionId: string | null = null;
 
+  // Where this signup came from (ads, campaign, direct). Re-derived server-side.
+  const attribution = normalizeAttribution(
+    (requestBody as { attribution?: AttributionClientContext }).attribution ?? null
+  );
+
   const auditPayloadForLog = (() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, confirm_password: _cpw, ...rest } = customer ?? {};
@@ -1541,6 +1547,7 @@ Deno.serve(async (req: Request) => {
           payload: auditPayloadForLog,
           ip_address: auditIp,
           user_agent: auditUa,
+          attribution,
         }),
       });
       if (insRes.ok) {
@@ -2027,6 +2034,8 @@ Deno.serve(async (req: Request) => {
       }
     }
     if (customer.social_media_handle) noteLines.push(`Social: ${customer.social_media_handle}`);
+    noteLines.push(`Came from: ${attributionSummary(attribution)}`);
+    if (attribution.landingUrl) noteLines.push(`Landing page: ${attribution.landingUrl}`);
     const applicationNote = noteLines.length
       ? `Application submitted ${consentTimestamp}\n${noteLines.join("\n")}`
       : "";
@@ -2540,6 +2549,7 @@ Deno.serve(async (req: Request) => {
           countryCode: (parseResult.data as { countryCode?: string }).countryCode ?? null,
           accountType: parseResult.data.accountType ?? null,
           socialMediaHandle: (parseResult.data as { socialMediaHandle?: string }).socialMediaHandle ?? null,
+          attribution,
         });
       } catch (err) {
         console.warn("Slack applicants notification tail threw (non-blocking):", err);
