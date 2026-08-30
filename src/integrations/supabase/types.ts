@@ -323,6 +323,8 @@ export type Database = {
       registration_leads: {
         Row: {
           account_type: string | null
+          attribution_campaign: string | null
+          attribution_channel: string | null
           completed_at: string | null
           country_code: string | null
           created_at: string
@@ -354,6 +356,8 @@ export type Database = {
         }
         Insert: {
           account_type?: string | null
+          attribution_campaign?: string | null
+          attribution_channel?: string | null
           completed_at?: string | null
           country_code?: string | null
           created_at?: string
@@ -385,6 +389,8 @@ export type Database = {
         }
         Update: {
           account_type?: string | null
+          attribution_campaign?: string | null
+          attribution_channel?: string | null
           completed_at?: string | null
           country_code?: string | null
           created_at?: string
