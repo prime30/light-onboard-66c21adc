@@ -200,6 +200,10 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           <Button size="sm" variant="outline" onClick={sendResetEmail} disabled={busy}>
             {busy ? "Working..." : "Send reset email"}
           </Button>
+          <Button size="sm" variant="outline" onClick={sendActivationLink} disabled={busy}>
+            {busy ? "Working..." : "Send activation link"}
+          </Button>
+
 
         </div>
         {link && (
