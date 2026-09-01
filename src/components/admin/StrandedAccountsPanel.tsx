@@ -123,6 +123,34 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
     }
   };
 
+  // Support shortcut: send the customer a real Shopify password email straight
+  // from here. recover-password promotes invited or disabled customers to
+  // enabled first, so this works for both stranded and normal accounts.
+  const sendResetEmail = async () => {
+    const target = linkEmail.trim().toLowerCase();
+    if (!target.includes("@")) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        success: boolean;
+        data?: { channel?: string; sent?: boolean };
+        error?: string;
+      }>("recover-password", { body: { email: target } });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Could not send reset email");
+      }
+      toast.success(`Reset email sent to ${target} (${data.data?.channel ?? "recover"})`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not send reset email");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
   const tally = useMemo(() => Object.entries(audit?.stateTally ?? {}), [audit]);
 
   return (
