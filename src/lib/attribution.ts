@@ -37,6 +37,7 @@ export type AttributionContext = {
 
 export type AttributionChannel =
   | "meta_ads"
+  | "meta_click"
   | "google_ads"
   | "tiktok_ads"
   | "pinterest_ads"
@@ -185,13 +186,16 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   const paid = PAID_MEDIUMS.has(medium) || /(^|[_-])ads?([_-]|$)/.test(campaign);
 
   const isMetaSource = /facebook|fb|instagram|^ig$|meta/.test(source);
-  if (signals.fbclid || (isMetaSource && paid)) return "meta_ads";
+  // fbclid rides along on every link click from inside Facebook or Instagram
+  // (organic posts, bio links, DMs), so it alone does not mean paid traffic.
+  if (isMetaSource && paid) return "meta_ads";
   if (signals.gclid || (/google|youtube|gdn/.test(source) && paid)) return "google_ads";
   if (signals.ttclid || (/tiktok/.test(source) && paid)) return "tiktok_ads";
   if (/pinterest/.test(source) && paid) return "pinterest_ads";
   if (medium === "email" || /klaviyo|newsletter/.test(source)) return "email";
   if (paid) return "other_paid";
   if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) return "organic_social";
+  if (signals.fbclid) return "meta_click";
   if (source || medium || campaign) return "campaign";
   return "direct";
 }

@@ -278,6 +278,7 @@ type NormalizedAttribution = {
 
 const ATTRIBUTION_LABELS: Record<string, string> = {
   meta_ads: "Meta ads (Facebook / Instagram)",
+  meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
   tiktok_ads: "TikTok ads",
   pinterest_ads: "Pinterest ads",
@@ -313,13 +314,17 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   const isMetaSource = /facebook|fb|instagram|^ig$|meta/.test(source);
 
   let channel = "direct";
-  if (fbclid || (isMetaSource && paid)) channel = "meta_ads";
+  // fbclid is appended to any link clicked inside Facebook or Instagram,
+  // including organic posts, bio links and DMs. Only call it an ad when the
+  // campaign params actually say paid.
+  if (isMetaSource && paid) channel = "meta_ads";
   else if (gclid || (/google|youtube|gdn/.test(source) && paid)) channel = "google_ads";
   else if (ttclid || (/tiktok/.test(source) && paid)) channel = "tiktok_ads";
   else if (/pinterest/.test(source) && paid) channel = "pinterest_ads";
   else if (medium === "email" || /klaviyo|newsletter/.test(source)) channel = "email";
   else if (paid) channel = "other_paid";
   else if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) channel = "organic_social";
+  else if (fbclid) channel = "meta_click";
   else if (source || medium || campaign) channel = "campaign";
 
   return {

@@ -15,6 +15,7 @@ const ADMIN_EMAIL = "alex@dropdeadhair.com";
 
 const CHANNEL_LABELS: Record<string, string> = {
   meta_ads: "Meta ads",
+  meta_click: "Facebook / Instagram link click",
   google_ads: "Google ads",
   tiktok_ads: "TikTok ads",
   pinterest_ads: "Pinterest ads",
