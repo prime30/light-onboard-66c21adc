@@ -261,10 +261,31 @@ Deno.serve(async (req) => {
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     const errors = parsed.error.issues.map((i) => i.message);
+    const shape = (body ?? {}) as Record<string, unknown>;
+    console.error(
+      "ACTIVATION_PARAMS_MISSING",
+      JSON.stringify({
+        hasActivationUrl: !!shape.activationUrl,
+        hasToken: !!shape.token,
+        hasCustomerId: !!shape.customerId,
+        hasPassword: !!shape.password,
+        userAgent: req.headers.get("user-agent")?.slice(0, 200) ?? null,
+        issues: errors,
+      })
+    );
+    await recordActivationFailure({
+      email: typeof shape.emailHint === "string" ? shape.emailHint : null,
+      reason: "missing_params",
+      device: shape.device as FailureDevice | undefined,
+      userAgent: req.headers.get("user-agent"),
+    });
     return sendError(400, errors, "Validation failed");
   }
 
-  const { activationUrl: providedUrl, customerId, token, password } = parsed.data;
+  const { activationUrl: providedUrl, customerId, token, password, emailHint, device } = parsed.data;
+  const uaHeader = req.headers.get("user-agent");
+  const failure = (reason: string, code?: string | null) =>
+    recordActivationFailure({ email: emailHint, reason, code, device, userAgent: uaHeader });
 
   // Determine the activation endpoint. Shopify's invite email exposes
   // `customer.account_activation_url`, shaped:
@@ -427,6 +448,7 @@ Deno.serve(async (req) => {
                   "for customer",
                   derivedCustomerId
                 );
+                await failure("password_not_saved", put.state || null);
                 return sendError(
                   500,
                   [
@@ -487,6 +509,7 @@ Deno.serve(async (req) => {
                     ") for customer",
                     derivedCustomerId
                   );
+                  await failure("login_verification_failed", login.reason || null);
                   return sendError(
                     500,
                     [
@@ -518,6 +541,7 @@ Deno.serve(async (req) => {
           } else if (adminRes.status === 404) {
             // No such customer: the link's id/token pair is bogus.
             console.warn("[activate-account] Customer not found:", derivedCustomerId);
+            await failure("invalid_link", "CUSTOMER_NOT_FOUND");
             return sendError(
               400,
               ["This activation link is invalid or has already been used."],
@@ -537,6 +561,7 @@ Deno.serve(async (req) => {
           derivedCustomerId,
           "- refusing to report success"
         );
+        await failure("unverified");
         return sendError(
           500,
           [
@@ -637,18 +662,21 @@ Deno.serve(async (req) => {
     }
 
     if (responseText.includes("is invalid") || responseText.includes("invalid")) {
+      await failure("token_rejected", "INVALID");
       return sendError(400, [
         "This activation link is invalid or has already been used.",
       ], "Invalid activation link");
     }
 
     if (responseText.includes("expired")) {
+      await failure("token_expired", "EXPIRED");
       return sendError(400, [
         "This activation link has expired. Please contact support for a new activation link.",
       ], "Link expired");
     }
 
     console.error("Shopify activate response:", activateResponse!.status, responseText.substring(0, 500));
+    await failure("activation_failed", String(activateResponse!.status));
     return sendError(400, [
       "Unable to activate account. The link may be expired or invalid.",
     ], "Activation failed");
