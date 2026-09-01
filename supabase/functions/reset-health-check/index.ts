@@ -97,10 +97,6 @@ Deno.serve(async (req) => {
     sampleEmails: thisWeek.slice(0, 10).map((r) => r.email),
   };
 
-  const spiking =
-    thisWeek.length >= MIN_FAILURES &&
-    thisWeek.length >= Math.max(MIN_FAILURES, priorWeek.length * SPIKE_MULTIPLIER);
-
   // In-app webview share: an Instagram/TikTok-only spike points at the webview
   // handoff rather than the invite links themselves, so surface it in the alert.
   // Reason strings from activate-account are prefixed `activation_`, so the
@@ -116,6 +112,24 @@ Deno.serve(async (req) => {
     ? Math.round((webviewCount / thisWeek.length) * 100)
     : 0;
 
+  const isSpike = (current: number, prior: number) =>
+    current >= MIN_FAILURES && current >= Math.max(MIN_FAILURES, prior * SPIKE_MULTIPLIER);
+
+  // Each flow is evaluated on its own so an activation regression still pages
+  // even when overall volume looks normal (and vice versa).
+  const totalSpiking = isSpike(thisWeek.length, priorWeek.length);
+  const resetSpiking = isSpike(resetCount, priorResetCount);
+  const activationSpiking = isSpike(activationCount, priorActivationCount);
+  const spiking = totalSpiking || resetSpiking || activationSpiking;
+
+  const spikeLabel = activationSpiking
+    ? resetSpiking
+      ? "Reset and activation failures spiked"
+      : "Activation link failures spiked"
+    : resetSpiking
+      ? "Password reset failures spiked"
+      : "Link failures spiked";
+
   if (spiking) {
     try {
       await fetch(`${supabaseUrl}/functions/v1/notify-error`, {
@@ -128,12 +142,15 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           source: "reset-health-check",
           message:
-            `Link failures spiked: ${resetCount} reset + ${activationCount} activation ` +
+            `${spikeLabel}: ${resetCount} reset + ${activationCount} activation ` +
             `= ${thisWeek.length} affected accounts in the last 7 days ` +
             `(prior week: ${priorResetCount} reset + ${priorActivationCount} activation = ${priorWeek.length}). ` +
             `In-app browsers: ${webviewShare}% (${webviewCount}).`,
           context: {
             ...report,
+            spikeLabel,
+            resetSpiking,
+            activationSpiking,
             resetFailuresThisWeek: resetCount,
             activationFailuresThisWeek: activationCount,
             resetFailuresPriorWeek: priorResetCount,
@@ -147,6 +164,7 @@ Deno.serve(async (req) => {
       console.warn("reset-health-check notify failed:", e);
     }
   }
+
 
   const fullReport = {
     ...report,
