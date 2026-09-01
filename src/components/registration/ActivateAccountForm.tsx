@@ -18,6 +18,7 @@ import {
 } from "@/lib/validations/password-schemas";
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { ActivationRecovery } from "./ActivationRecovery";
+import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 // fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
@@ -389,6 +390,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             This activation link has expired. Enter your email below and we'll send a new password setup link.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
         <ActivationRecovery defaultEmail={getResetEmailHint() ?? ""} />
       </div>
     );
@@ -409,6 +411,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             This activation link is invalid or has already been used. Enter your email below and we'll send a new password setup link.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
         <ActivationRecovery defaultEmail={getResetEmailHint() ?? ""} />
       </div>
     );
@@ -429,6 +432,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             We couldn't read the setup link from your email. Enter your email below and we'll send a fresh one.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
         <ActivationRecovery defaultEmail={getResetEmailHint() ?? ""} />
       </div>
     );
