@@ -21,6 +21,7 @@ import { StorefrontTokensPanel } from "@/components/admin/StorefrontTokensPanel"
 import { KlaviyoBackfillPanel } from "@/components/admin/KlaviyoBackfillPanel";
 import { ResetHealthPanel } from "@/components/admin/ResetHealthPanel";
 import { CompetitorDomainsPanel } from "@/components/admin/CompetitorDomainsPanel";
+import { CompetitorAttemptsPanel } from "@/components/admin/CompetitorAttemptsPanel";
 import { StrandedAccountsPanel } from "@/components/admin/StrandedAccountsPanel";
 
 
