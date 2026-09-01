@@ -165,8 +165,20 @@ export const ContactBasicsStep = () => {
     if (lastCheckedRef.current === value) return;
 
     const applyResult = (
-      data: { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
+      data:
+        | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean; competitorBlocked?: boolean }
+        | undefined
     ) => {
+      if (data?.competitorBlocked) {
+        setEmailConflict({ email: value, message: COMPETITOR_EMAIL_MESSAGE });
+        setError("email", { type: "manual", message: COMPETITOR_EMAIL_MESSAGE });
+        toast.error("This email can't be used", {
+          id: `competitor-email:${value}`,
+          description: COMPETITOR_EMAIL_MESSAGE,
+          duration: 9000,
+        });
+        return;
+      }
       if (data?.exists) {
         // Account exists but was never activated. The backend prepares it for
         // verified recovery and sends a password setup link, bypassing the
@@ -203,7 +215,7 @@ export const ContactBasicsStep = () => {
     // Cache hit - skip the network round trip entirely.
     const cacheKey = `dde:check-email:v2:${value}`;
     const cached = cacheGet(cacheKey) as
-      | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean }
+      | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean; competitorBlocked?: boolean }
       | undefined;
     if (cached) {
       lastCheckedRef.current = value;
@@ -222,7 +234,9 @@ export const ContactBasicsStep = () => {
         if (current !== value) return;
         cacheSet(cacheKey, data ?? {});
         applyResult(
-          data as { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean } | undefined
+          data as
+            | { exists?: boolean; needsActivation?: boolean; inviteSent?: boolean; competitorBlocked?: boolean }
+            | undefined
         );
       } catch {
         // Fail silently - submit will still catch the conflict server-side.
