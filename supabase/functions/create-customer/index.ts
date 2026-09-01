@@ -320,7 +320,9 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   // campaign params actually say paid.
   if (isMetaSource && paid) channel = "meta_ads";
   else if (gclid || (/google|youtube|gdn/.test(source) && paid)) channel = "google_ads";
-  else if (ttclid || (/tiktok/.test(source) && paid)) channel = "tiktok_ads";
+  // ttclid behaves like fbclid: TikTok appends it to organic in-app link
+  // clicks too, so it only counts as an ad with paid campaign params.
+  else if (/tiktok/.test(source) && paid) channel = "tiktok_ads";
   else if (/pinterest/.test(source) && paid) channel = "pinterest_ads";
   else if (medium === "email" || /klaviyo|newsletter/.test(source)) channel = "email";
   else if (paid) channel = "other_paid";
