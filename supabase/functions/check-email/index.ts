@@ -78,12 +78,40 @@ Deno.serve(async (req: Request) => {
               _domain: blocked,
               _user_agent: req.headers.get("user-agent") ?? null,
             }),
-          }).catch(() => {});
+          })
+            .then(async () => {
+              // Internal alert once a single competitor domain has tried 3+ times.
+              const q =
+                `${backendUrl}/rest/v1/registration_leads?select=email,competitor_block_count` +
+                `&competitor_block_domain=eq.${encodeURIComponent(blocked)}&limit=500`;
+              const cRes = await fetch(q, { headers });
+              if (!cRes.ok) return;
+              const rows = (await cRes.json()) as { email: string; competitor_block_count: number | null }[];
+              const attempts = rows.reduce((n, r) => n + (r.competitor_block_count ?? 1), 0);
+              if (attempts < 3) return;
+              await fetch(`${backendUrl}/functions/v1/notify-error`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                  source: "check-email",
+                  message: `Competitor domain ${blocked} has attempted registration ${attempts} times across ${rows.length} email(s).`,
+                  context: {
+                    domain: blocked,
+                    attempts,
+                    uniqueEmails: rows.length,
+                    sampleEmails: rows.slice(0, 10).map((r) => r.email),
+                    flow: "check-email",
+                  },
+                }),
+              });
+            })
+            .catch(() => {});
           return new Response(
             JSON.stringify({ exists: false, competitorBlocked: true, competitorDomain: blocked }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+
       }
     }
   } catch (competitorErr) {
