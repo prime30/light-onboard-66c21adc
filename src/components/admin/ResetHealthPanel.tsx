@@ -18,6 +18,14 @@ interface Report {
   byDevice: Record<string, number>;
   byInAppBrowser: Record<string, number>;
   sampleEmails: string[];
+  resetFailuresThisWeek?: number;
+  activationFailuresThisWeek?: number;
+  resetFailuresPriorWeek?: number;
+  activationFailuresPriorWeek?: number;
+  inAppBrowserShare?: number;
+  inAppBrowserCount?: number;
+  resetSpiking?: boolean;
+  activationSpiking?: boolean;
 }
 
 interface Resp {
@@ -111,6 +119,32 @@ export function ResetHealthPanel({ adminToken }: Props) {
               <p className="text-xs text-muted-foreground">Change</p>
               <p className="text-2xl font-medium">
                 {delta === null ? "n/a" : `${delta > 0 ? "+" : ""}${delta}%`}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
+            <div className="rounded-[10px] border border-border/60 p-5">
+              <p className="text-xs text-muted-foreground">Password resets</p>
+              <p className="text-2xl font-medium">{report.resetFailuresThisWeek ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                prior week {report.resetFailuresPriorWeek ?? 0}
+                {report.resetSpiking ? " (spiking)" : ""}
+              </p>
+            </div>
+            <div className="rounded-[10px] border border-border/60 p-5">
+              <p className="text-xs text-muted-foreground">Activation links</p>
+              <p className="text-2xl font-medium">{report.activationFailuresThisWeek ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                prior week {report.activationFailuresPriorWeek ?? 0}
+                {report.activationSpiking ? " (spiking)" : ""}
+              </p>
+            </div>
+            <div className="rounded-[10px] border border-border/60 p-5">
+              <p className="text-xs text-muted-foreground">In-app browsers</p>
+              <p className="text-2xl font-medium">{report.inAppBrowserShare ?? 0}%</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {report.inAppBrowserCount ?? 0} of {report.affectedUsersThisWeek}
               </p>
             </div>
           </div>
