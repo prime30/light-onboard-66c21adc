@@ -16,8 +16,13 @@ interface CheckedRow {
   shopifyState: string;
   ordersCount: number;
   activationError: string | null;
+  competitorBlocked?: boolean;
+  competitorBlockCount?: number;
+  competitorBlockDomain?: string | null;
+  competitorBlockLastAt?: string | null;
   needsPassword: boolean;
 }
+
 
 interface AuditResp {
   success: boolean;
