@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { setCompetitorEmailDomains } from "@/lib/validations/competitor-email-domains";
 
 type Flags = {
   autoApprovalEnabled: boolean;
@@ -12,6 +13,7 @@ type Flags = {
   businessLocationStepEnabled: boolean;
   referralStepEnabled: boolean;
   summaryStepEnabled: boolean;
+  competitorEmailDomains?: string[];
 };
 
 const FLAGS_CACHE_KEY = "dd_app_flags_v1";
@@ -56,6 +58,7 @@ async function fetchFlags(): Promise<Flags> {
     if (error || !data) {
       // Keep the persisted values on a network failure rather than snapping
       // back to placeholder defaults (which would change the step list).
+      if (cachedFlags?.competitorEmailDomains) setCompetitorEmailDomains(cachedFlags.competitorEmailDomains);
       cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false };
       return cachedFlags;
     }
@@ -70,7 +73,11 @@ async function fetchFlags(): Promise<Flags> {
       businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
       referralStepEnabled: (data as Flags).referralStepEnabled !== false,
       summaryStepEnabled: !!(data as Flags).summaryStepEnabled,
+      competitorEmailDomains: Array.isArray((data as Flags).competitorEmailDomains)
+        ? (data as Flags).competitorEmailDomains
+        : [],
     };
+    setCompetitorEmailDomains(cachedFlags.competitorEmailDomains);
     flagsFresh = true;
     persistFlags(cachedFlags);
     return cachedFlags;
