@@ -19,6 +19,7 @@ import { FounderCallAnalyticsPanel } from "@/components/admin/FounderCallAnalyti
 import { FakeAccountAnalyticsPanel } from "@/components/admin/FakeAccountAnalyticsPanel";
 import { StorefrontTokensPanel } from "@/components/admin/StorefrontTokensPanel";
 import { KlaviyoBackfillPanel } from "@/components/admin/KlaviyoBackfillPanel";
+import { ResetHealthPanel } from "@/components/admin/ResetHealthPanel";
 import { StrandedAccountsPanel } from "@/components/admin/StrandedAccountsPanel";
 
 
@@ -1443,6 +1444,7 @@ const AdminSettingsPage = () => {
           <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
           <StorefrontTokensPanel adminEmail={email} adminToken={token} />
           <StrandedAccountsPanel adminEmail={email} adminToken={token} />
+          <ResetHealthPanel adminEmail={email} adminToken={token} />
           <KlaviyoBackfillPanel adminEmail={email} adminToken={token} />
         </div>
 
