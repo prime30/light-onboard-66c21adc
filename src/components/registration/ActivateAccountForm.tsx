@@ -87,11 +87,15 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          safeActivationUrl
-            ? { activationUrl: safeActivationUrl, password: data.password }
-            : { customerId, token, password: data.password }
-        ),
+        body: JSON.stringify({
+          ...(safeActivationUrl
+            ? { activationUrl: safeActivationUrl }
+            : { customerId, token }),
+          password: data.password,
+          emailHint: getResetEmailHint() || undefined,
+          device: getDeviceContext(),
+        }),
+
       }
     );
 
