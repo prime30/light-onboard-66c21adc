@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { ActivateAccountForm } from "@/components/registration/ActivateAccountForm";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
+import { resolveResetParams } from "@/lib/reset-params";
 
 export function ActivateAccountPage() {
   const [searchParams] = useSearchParams();
@@ -12,14 +13,24 @@ export function ActivateAccountPage() {
   const navigate = useNavigate();
   const { setMode } = useModeContext();
 
-  const token = searchParams.get("token");
-  const customerId = searchParams.get("customer_id");
-  const activationUrl = searchParams.get("activation_url");
   // Invite emails carry the recipient as ?email_hint= on the storefront root;
   // the theme overlay forwards it to the iframe as ?email=. Accept both so the
   // recovery form is prefilled even when the user opens the email on a
   // different device than the one that registered (no sessionStorage there).
-  const emailHint = searchParams.get("email_hint") || searchParams.get("email");
+  //
+  // Params are resolved against a durable stash so a reload or an in-app
+  // browser session reset does not turn a valid link into a dead end.
+  const resolved = useMemo(
+    () =>
+      resolveResetParams({
+        activationUrl: searchParams.get("activation_url"),
+        token: searchParams.get("token"),
+        customerId: searchParams.get("customer_id"),
+        emailHint: searchParams.get("email_hint") || searchParams.get("email"),
+      }),
+    [searchParams]
+  );
+  const { token, customerId, activationUrl, emailHint } = resolved;
 
   useEffect(() => {
     setMode("signin");
@@ -28,6 +39,7 @@ export function ActivateAccountPage() {
   useEffect(() => {
     if (emailHint) setResetEmailHint(emailHint);
   }, [emailHint]);
+
 
   // Redirect already-logged-in users - but ONLY if they were already logged
   // in when this page mounted. Otherwise activation's own auto-login flow
@@ -41,7 +53,14 @@ export function ActivateAccountPage() {
     }
   }, [customer.isLoggedIn, navigate]);
 
-  return <ActivateAccountForm token={token} customerId={customerId} activationUrl={activationUrl} />;
+  return (
+    <ActivateAccountForm
+      token={token ?? null}
+      customerId={customerId ?? null}
+      activationUrl={activationUrl ?? null}
+    />
+  );
+
 }
 
 export default ActivateAccountPage;
