@@ -21,6 +21,8 @@ import { ActivationRecovery } from "./ActivationRecovery";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { getDeviceContext } from "@/lib/device-context";
+
 // fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
 // server-side into the activate-account edge function.
 
