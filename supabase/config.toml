@@ -78,3 +78,6 @@ verify_jwt = false
 
 [functions.admin-ads-attribution]
 verify_jwt = false
+
+[functions.reset-health-check]
+verify_jwt = false

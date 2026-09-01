@@ -19,6 +19,7 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { getDeviceContext } from "@/lib/device-context";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { ActivationRecovery } from "./ActivationRecovery";
 
@@ -104,11 +105,16 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          safeResetUrl
-            ? { resetUrl: safeResetUrl, password: data.password }
-            : { customerId, token, password: data.password }
-        ),
+        body: JSON.stringify({
+          ...(safeResetUrl
+            ? { resetUrl: safeResetUrl }
+            : { customerId, token }),
+          password: data.password,
+          // Device / in-app-browser context so failed resets are attributable
+          // (see registration_leads.reset_failure_* columns).
+          emailHint: emailHint ?? getResetEmailHint() ?? undefined,
+          device: getDeviceContext(),
+        }),
       }
     );
 

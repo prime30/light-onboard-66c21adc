@@ -347,6 +347,13 @@ export type Database = {
           last_field: string | null
           last_step: string | null
           monthly_order_volume: string | null
+          reset_failure_code: string | null
+          reset_failure_count: number
+          reset_failure_device_type: string | null
+          reset_failure_in_app_browser: string | null
+          reset_failure_last_at: string | null
+          reset_failure_reason: string | null
+          reset_failure_user_agent: string | null
           started_at: string
           updated_at: string
           user_agent: string | null
@@ -380,6 +387,13 @@ export type Database = {
           last_field?: string | null
           last_step?: string | null
           monthly_order_volume?: string | null
+          reset_failure_code?: string | null
+          reset_failure_count?: number
+          reset_failure_device_type?: string | null
+          reset_failure_in_app_browser?: string | null
+          reset_failure_last_at?: string | null
+          reset_failure_reason?: string | null
+          reset_failure_user_agent?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -413,6 +427,13 @@ export type Database = {
           last_field?: string | null
           last_step?: string | null
           monthly_order_volume?: string | null
+          reset_failure_code?: string | null
+          reset_failure_count?: number
+          reset_failure_device_type?: string | null
+          reset_failure_in_app_browser?: string | null
+          reset_failure_last_at?: string | null
+          reset_failure_reason?: string | null
+          reset_failure_user_agent?: string | null
           started_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -512,6 +533,19 @@ export type Database = {
       get_welcome_offer_enabled: { Args: never; Returns: boolean }
       increment_registration_validation_errors: {
         Args: { _email: string; _fields: string[] }
+        Returns: undefined
+      }
+      record_reset_failure: {
+        Args: {
+          _code?: string
+          _device_type?: string
+          _email: string
+          _in_app_browser?: string
+          _reason: string
+          _user_agent?: string
+          _viewport_height?: number
+          _viewport_width?: number
+        }
         Returns: undefined
       }
     }

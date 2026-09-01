@@ -46,6 +46,16 @@ const bodySchema = z
     customerId: z.string().min(1).optional(),
     token: z.string().min(1).optional(),
     password: z.string().min(8, "Password must be at least 8 characters"),
+    emailHint: z.string().email().optional(),
+    device: z
+      .object({
+        type: z.string().max(20).optional(),
+        width: z.number().optional(),
+        height: z.number().optional(),
+        inAppBrowser: z.string().max(30).nullable().optional(),
+        userAgent: z.string().max(500).nullable().optional(),
+      })
+      .optional(),
   })
   .refine(
     (v) => !!v.resetUrl || (!!v.customerId && !!v.token),
@@ -230,6 +240,69 @@ async function lookupCustomerViaAdmin(
   };
 }
 
+
+// ---------------------------------------------------------------------------
+// Failure telemetry. Every dead-end reset (missing params, rejected/expired
+// token, no customer returned) is recorded against the lead row so in-app
+// webview drop-off becomes measurable, and so the weekly reset-health-check
+// job can spot an invite-link regression before support tickets pile up.
+// Fail-open: never let telemetry break the reset response.
+// ---------------------------------------------------------------------------
+type FailureDevice = {
+  type?: string;
+  width?: number;
+  height?: number;
+  inAppBrowser?: string | null;
+  userAgent?: string | null;
+};
+
+async function recordResetFailure(opts: {
+  email: string | null | undefined;
+  reason: string;
+  code?: string | null;
+  device?: FailureDevice;
+  userAgent?: string | null;
+}): Promise<void> {
+  const email = (opts.email || "").trim().toLowerCase();
+  if (!email) return;
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/record_reset_failure`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        _email: email,
+        _reason: opts.reason.slice(0, 60),
+        _code: (opts.code || "").slice(0, 60) || null,
+        _device_type: opts.device?.type?.slice(0, 20) ?? null,
+        _in_app_browser: opts.device?.inAppBrowser?.slice(0, 30) ?? null,
+        _user_agent: (opts.device?.userAgent || opts.userAgent || "")?.slice(0, 400) || null,
+        _viewport_width:
+          typeof opts.device?.width === "number" && opts.device.width > 0 && opts.device.width < 10000
+            ? Math.round(opts.device.width)
+            : null,
+        _viewport_height:
+          typeof opts.device?.height === "number" && opts.device.height > 0 && opts.device.height < 10000
+            ? Math.round(opts.device.height)
+            : null,
+      }),
+    });
+    if (!res.ok) {
+      console.warn("record_reset_failure failed:", res.status, (await res.text()).slice(0, 200));
+    }
+  } catch (e) {
+    console.warn("record_reset_failure threw:", e);
+  }
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
@@ -286,10 +359,17 @@ Deno.serve(async (req) => {
         issues: errors,
       })
     );
+    const shapeEmail = typeof shape.emailHint === "string" ? shape.emailHint : null;
+    await recordResetFailure({
+      email: shapeEmail,
+      reason: "missing_params",
+      device: shape.device as FailureDevice | undefined,
+      userAgent: req.headers.get("user-agent"),
+    });
     return sendError(400, errors, "Validation failed");
   }
 
-  const { resetUrl: providedResetUrl, customerId, token, password } = parsed.data;
+  const { resetUrl: providedResetUrl, customerId, token, password, emailHint, device } = parsed.data;
 
 
   // Account-invite emails carry an ACTIVATION url (/account/activate/{id}/{token}).
@@ -396,6 +476,14 @@ Deno.serve(async (req) => {
       );
 
 
+      await recordResetFailure({
+        email: emailHint,
+        reason: msg.includes("expired") || code === "EXPIRED" ? "token_expired" : "token_rejected",
+        code,
+        device,
+        userAgent: req.headers.get("user-agent"),
+      });
+
       // Map Shopify error codes to friendly states the client recognises.
       if (code === "TOKEN_INVALID" || msg.includes("invalid")) {
         return sendError(400, [
@@ -419,6 +507,12 @@ Deno.serve(async (req) => {
 
     if (!result?.customer?.id) {
       console.error("Storefront returned no customer:", JSON.stringify(result));
+      await recordResetFailure({
+        email: emailHint,
+        reason: "no_customer",
+        device,
+        userAgent: req.headers.get("user-agent"),
+      });
       return sendError(400, [
         "Unable to reset password. The link may be expired or invalid.",
       ], "Reset failed");
