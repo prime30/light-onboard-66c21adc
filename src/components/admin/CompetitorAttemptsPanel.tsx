@@ -167,9 +167,6 @@ export function CompetitorAttemptsPanel({ adminToken }: Props) {
           </div>
         </div>
       )}
-
-        </div>
-      )}
     </section>
   );
 }
