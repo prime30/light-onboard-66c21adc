@@ -150,6 +150,45 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
     }
   };
 
+  // One-click resend of Shopify's own account invite (activation) email.
+  // Enabled customers already have a password, so the backend reports that
+  // back instead of failing silently.
+  const sendActivationLink = async () => {
+    const target = linkEmail.trim().toLowerCase();
+    if (!target.includes("@")) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        success: boolean;
+        sent?: boolean;
+        state?: string;
+        alreadyEnabled?: boolean;
+        message?: string;
+        error?: string;
+        detail?: string;
+      }>("admin-stranded-accounts", {
+        body: { token: adminToken, action: "invite", linkEmail: target },
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.detail || data?.error || error?.message || "Could not send activation link");
+      }
+      if (data.sent) {
+        toast.success(data.message || `Activation invite sent to ${target}`);
+      } else {
+        toast.info(data.message || "No invite needed");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not send activation link");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
+
 
   const tally = useMemo(() => Object.entries(audit?.stateTally ?? {}), [audit]);
 
@@ -200,6 +239,10 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           <Button size="sm" variant="outline" onClick={sendResetEmail} disabled={busy}>
             {busy ? "Working..." : "Send reset email"}
           </Button>
+          <Button size="sm" variant="outline" onClick={sendActivationLink} disabled={busy}>
+            {busy ? "Working..." : "Send activation link"}
+          </Button>
+
 
         </div>
         {link && (
