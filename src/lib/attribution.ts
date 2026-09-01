@@ -29,6 +29,9 @@ export type AttributionContext = {
   /** Meta / Google / TikTok click ids, when present. */
   fbclid?: string | null;
   gclid?: string | null;
+  /** Google's cookieless click ids (iOS / consent-limited ad clicks). */
+  gbraid?: string | null;
+  wbraid?: string | null;
   ttclid?: string | null;
   /** Storefront page (or referrer) the applicant came from. */
   landingUrl?: string | null;
@@ -39,6 +42,7 @@ export type AttributionChannel =
   | "meta_ads"
   | "meta_click"
   | "google_ads"
+  | "google_click"
   | "tiktok_ads"
   | "tiktok_click"
   | "pinterest_ads"
@@ -85,6 +89,8 @@ export function recordAttributionSignals(input: {
   utmTerm?: unknown;
   fbclid?: unknown;
   gclid?: unknown;
+  gbraid?: unknown;
+  wbraid?: unknown;
   ttclid?: unknown;
   landingUrl?: unknown;
   referrer?: unknown;
@@ -98,6 +104,8 @@ export function recordAttributionSignals(input: {
     utmTerm: cached.utmTerm ?? clean(input.utmTerm),
     fbclid: cached.fbclid ?? clean(input.fbclid),
     gclid: cached.gclid ?? clean(input.gclid),
+    gbraid: cached.gbraid ?? clean(input.gbraid),
+    wbraid: cached.wbraid ?? clean(input.wbraid),
     ttclid: cached.ttclid ?? clean(input.ttclid),
     landingUrl: cached.landingUrl ?? clean(input.landingUrl),
     referrer: cached.referrer ?? clean(input.referrer),
@@ -115,7 +123,9 @@ function signalsFromSearch(search: string, landingUrl?: string | null) {
     utmContent: p.get("utm_content"),
     utmTerm: p.get("utm_term"),
     fbclid: p.get("fbclid"),
-    gclid: p.get("gclid") ?? p.get("gbraid") ?? p.get("wbraid"),
+    gclid: p.get("gclid"),
+    gbraid: p.get("gbraid"),
+    wbraid: p.get("wbraid"),
     ttclid: p.get("ttclid"),
     landingUrl: landingUrl ?? null,
   };
@@ -158,6 +168,8 @@ export function captureAttributionFromParentPayload(data: Record<string, unknown
     utmTerm: data.utm_term ?? data.utmTerm ?? fromParentUrl?.utmTerm,
     fbclid: data.fbclid ?? fromParentUrl?.fbclid,
     gclid: data.gclid ?? fromParentUrl?.gclid,
+    gbraid: data.gbraid ?? fromParentUrl?.gbraid,
+    wbraid: data.wbraid ?? fromParentUrl?.wbraid,
     ttclid: data.ttclid ?? fromParentUrl?.ttclid,
     landingUrl: parentUrl,
     referrer: data.referrer,
@@ -190,7 +202,12 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   // fbclid rides along on every link click from inside Facebook or Instagram
   // (organic posts, bio links, DMs), so it alone does not mean paid traffic.
   if (isMetaSource && paid) return "meta_ads";
+  const googleClickId = signals.gbraid || signals.wbraid;
   if (signals.gclid || (/google|youtube|gdn/.test(source) && paid)) return "google_ads";
+  // gbraid / wbraid are appended by Google on consent-limited clicks and can
+  // ride along without any campaign tags, so they only count as paid when the
+  // campaign params say so. Otherwise they land in their own bucket.
+  if (googleClickId && paid) return "google_ads";
   // ttclid behaves the same way on TikTok in-app link clicks.
   if (/tiktok/.test(source) && paid) return "tiktok_ads";
   if (/pinterest/.test(source) && paid) return "pinterest_ads";
@@ -199,6 +216,7 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) return "organic_social";
   if (signals.fbclid) return "meta_click";
   if (signals.ttclid) return "tiktok_click";
+  if (googleClickId) return "google_click";
   if (source || medium || campaign) return "campaign";
   return "direct";
 }
