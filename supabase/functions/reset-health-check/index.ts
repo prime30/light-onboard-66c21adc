@@ -101,6 +101,13 @@ Deno.serve(async (req) => {
     thisWeek.length >= MIN_FAILURES &&
     thisWeek.length >= Math.max(MIN_FAILURES, priorWeek.length * SPIKE_MULTIPLIER);
 
+  // In-app webview share: an Instagram/TikTok-only spike points at the webview
+  // handoff rather than the invite links themselves, so surface it in the alert.
+  const webviewCount = thisWeek.filter((r) => !!r.reset_failure_in_app_browser).length;
+  const webviewShare = thisWeek.length
+    ? Math.round((webviewCount / thisWeek.length) * 100)
+    : 0;
+
   if (spiking) {
     try {
       await fetch(`${supabaseUrl}/functions/v1/notify-error`, {
@@ -112,8 +119,8 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           source: "reset-health-check",
-          message: `Reset/invite link failures spiked: ${thisWeek.length} affected accounts in the last 7 days (prior week: ${priorWeek.length})`,
-          context: report,
+          message: `Reset/invite link failures spiked: ${thisWeek.length} affected accounts in the last 7 days (prior week: ${priorWeek.length}). In-app browsers: ${webviewShare}% (${webviewCount}).`,
+          context: { ...report, inAppBrowserShare: webviewShare, inAppBrowserCount: webviewCount },
         }),
       });
     } catch (e) {
@@ -121,6 +128,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  console.log("RESET_HEALTH_REPORT", JSON.stringify({ ...report, alerted: spiking }));
-  return json(200, { success: true, alerted: spiking, report });
+  const fullReport = { ...report, inAppBrowserShare: webviewShare, inAppBrowserCount: webviewCount };
+  console.log("RESET_HEALTH_REPORT", JSON.stringify({ ...fullReport, alerted: spiking }));
+  return json(200, { success: true, alerted: spiking, report: fullReport });
 });

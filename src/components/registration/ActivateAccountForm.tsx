@@ -21,6 +21,8 @@ import { ActivationRecovery } from "./ActivationRecovery";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { getDeviceContext } from "@/lib/device-context";
+
 // fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
 // server-side into the activate-account edge function.
 
@@ -87,11 +89,15 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          safeActivationUrl
-            ? { activationUrl: safeActivationUrl, password: data.password }
-            : { customerId, token, password: data.password }
-        ),
+        body: JSON.stringify({
+          ...(safeActivationUrl
+            ? { activationUrl: safeActivationUrl }
+            : { customerId, token }),
+          password: data.password,
+          emailHint: getResetEmailHint() || undefined,
+          device: getDeviceContext(),
+        }),
+
       }
     );
 

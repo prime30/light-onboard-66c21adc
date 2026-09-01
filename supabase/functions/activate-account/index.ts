@@ -158,11 +158,82 @@ const bodySchema = z
     customerId: z.string().min(1).optional(),
     token: z.string().min(1).optional(),
     password: z.string().min(8, "Password must be at least 8 characters"),
+    emailHint: z.string().email().optional(),
+    device: z
+      .object({
+        type: z.string().max(20).optional(),
+        width: z.number().optional(),
+        height: z.number().optional(),
+        inAppBrowser: z.string().max(30).nullable().optional(),
+        userAgent: z.string().max(500).nullable().optional(),
+      })
+      .optional(),
   })
   .refine(
     (v) => !!v.activationUrl || (!!v.customerId && !!v.token),
     { message: "activationUrl or (customerId and token) is required" }
   );
+
+// ---------------------------------------------------------------------------
+// Failure telemetry. Mirrors reset-password: every dead-end activation writes
+// reason + device context onto the lead row so the weekly reset-health-check
+// job sees invite-link regressions from both flows. Fail-open always.
+// ---------------------------------------------------------------------------
+type FailureDevice = {
+  type?: string;
+  width?: number;
+  height?: number;
+  inAppBrowser?: string | null;
+  userAgent?: string | null;
+};
+
+async function recordActivationFailure(opts: {
+  email: string | null | undefined;
+  reason: string;
+  code?: string | null;
+  device?: FailureDevice;
+  userAgent?: string | null;
+}): Promise<void> {
+  const email = (opts.email || "").trim().toLowerCase();
+  if (!email) return;
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/record_reset_failure`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        _email: email,
+        _reason: `activation_${opts.reason}`.slice(0, 60),
+        _code: (opts.code || "").slice(0, 60) || null,
+        _device_type: opts.device?.type?.slice(0, 20) ?? null,
+        _in_app_browser: opts.device?.inAppBrowser?.slice(0, 30) ?? null,
+        _user_agent: (opts.device?.userAgent || opts.userAgent || "")?.slice(0, 400) || null,
+        _viewport_width:
+          typeof opts.device?.width === "number" && opts.device.width > 0 && opts.device.width < 10000
+            ? Math.round(opts.device.width)
+            : null,
+        _viewport_height:
+          typeof opts.device?.height === "number" && opts.device.height > 0 && opts.device.height < 10000
+            ? Math.round(opts.device.height)
+            : null,
+      }),
+    });
+    if (!res.ok) {
+      console.warn("record_reset_failure (activation) failed:", res.status, (await res.text()).slice(0, 200));
+    }
+  } catch (e) {
+    console.warn("record_reset_failure (activation) threw:", e);
+  }
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -190,10 +261,31 @@ Deno.serve(async (req) => {
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     const errors = parsed.error.issues.map((i) => i.message);
+    const shape = (body ?? {}) as Record<string, unknown>;
+    console.error(
+      "ACTIVATION_PARAMS_MISSING",
+      JSON.stringify({
+        hasActivationUrl: !!shape.activationUrl,
+        hasToken: !!shape.token,
+        hasCustomerId: !!shape.customerId,
+        hasPassword: !!shape.password,
+        userAgent: req.headers.get("user-agent")?.slice(0, 200) ?? null,
+        issues: errors,
+      })
+    );
+    await recordActivationFailure({
+      email: typeof shape.emailHint === "string" ? shape.emailHint : null,
+      reason: "missing_params",
+      device: shape.device as FailureDevice | undefined,
+      userAgent: req.headers.get("user-agent"),
+    });
     return sendError(400, errors, "Validation failed");
   }
 
-  const { activationUrl: providedUrl, customerId, token, password } = parsed.data;
+  const { activationUrl: providedUrl, customerId, token, password, emailHint, device } = parsed.data;
+  const uaHeader = req.headers.get("user-agent");
+  const failure = (reason: string, code?: string | null) =>
+    recordActivationFailure({ email: emailHint, reason, code, device, userAgent: uaHeader });
 
   // Determine the activation endpoint. Shopify's invite email exposes
   // `customer.account_activation_url`, shaped:
@@ -356,6 +448,7 @@ Deno.serve(async (req) => {
                   "for customer",
                   derivedCustomerId
                 );
+                await failure("password_not_saved", put.state || null);
                 return sendError(
                   500,
                   [
@@ -416,6 +509,7 @@ Deno.serve(async (req) => {
                     ") for customer",
                     derivedCustomerId
                   );
+                  await failure("login_verification_failed", login.reason || null);
                   return sendError(
                     500,
                     [
@@ -447,6 +541,7 @@ Deno.serve(async (req) => {
           } else if (adminRes.status === 404) {
             // No such customer: the link's id/token pair is bogus.
             console.warn("[activate-account] Customer not found:", derivedCustomerId);
+            await failure("invalid_link", "CUSTOMER_NOT_FOUND");
             return sendError(
               400,
               ["This activation link is invalid or has already been used."],
@@ -466,6 +561,7 @@ Deno.serve(async (req) => {
           derivedCustomerId,
           "- refusing to report success"
         );
+        await failure("unverified");
         return sendError(
           500,
           [
@@ -566,18 +662,21 @@ Deno.serve(async (req) => {
     }
 
     if (responseText.includes("is invalid") || responseText.includes("invalid")) {
+      await failure("token_rejected", "INVALID");
       return sendError(400, [
         "This activation link is invalid or has already been used.",
       ], "Invalid activation link");
     }
 
     if (responseText.includes("expired")) {
+      await failure("token_expired", "EXPIRED");
       return sendError(400, [
         "This activation link has expired. Please contact support for a new activation link.",
       ], "Link expired");
     }
 
     console.error("Shopify activate response:", activateResponse!.status, responseText.substring(0, 500));
+    await failure("activation_failed", String(activateResponse!.status));
     return sendError(400, [
       "Unable to activate account. The link may be expired or invalid.",
     ], "Activation failed");
