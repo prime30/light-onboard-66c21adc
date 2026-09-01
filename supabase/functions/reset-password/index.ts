@@ -271,10 +271,26 @@ Deno.serve(async (req) => {
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     const errors = parsed.error.issues.map((i) => i.message);
+    // Log the shape of what arrived (never the password). Missing token /
+    // customerId / resetUrl means the storefront handoff was lost before the
+    // user ever got to submit, which is otherwise invisible in logs.
+    const shape = (body ?? {}) as Record<string, unknown>;
+    console.error(
+      "RESET_PARAMS_MISSING",
+      JSON.stringify({
+        hasResetUrl: !!shape.resetUrl,
+        hasToken: !!shape.token,
+        hasCustomerId: !!shape.customerId,
+        hasPassword: !!shape.password,
+        userAgent: req.headers.get("user-agent")?.slice(0, 200) ?? null,
+        issues: errors,
+      })
+    );
     return sendError(400, errors, "Validation failed");
   }
 
   const { resetUrl: providedResetUrl, customerId, token, password } = parsed.data;
+
 
   // Account-invite emails carry an ACTIVATION url (/account/activate/{id}/{token}).
   // customerResetByUrl does not accept those: it fails and the password is never
