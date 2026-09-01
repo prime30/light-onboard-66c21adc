@@ -174,6 +174,8 @@ Deno.serve(async (req) => {
     activationFailuresPriorWeek: priorActivationCount,
     inAppBrowserShare: webviewShare,
     inAppBrowserCount: webviewCount,
+    resetSpiking,
+    activationSpiking,
   };
   console.log("RESET_HEALTH_REPORT", JSON.stringify({ ...fullReport, alerted: spiking }));
   return json(200, { success: true, alerted: spiking, report: fullReport });
