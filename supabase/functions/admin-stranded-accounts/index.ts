@@ -328,7 +328,6 @@ Deno.serve(async (req: Request) => {
     const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, target);
     if (!cust) return json({ success: false, error: "customer_not_found" }, 404);
     if (cust.state === "enabled") {
-      await logSend(target, "admin_invite", false, cust.state, "already_enabled");
       return json({
         success: true,
         action,
