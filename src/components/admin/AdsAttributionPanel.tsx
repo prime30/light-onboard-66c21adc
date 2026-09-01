@@ -224,9 +224,10 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   );
 };
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
+const Stat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
   <div className="rounded-[10px] border border-border/50 p-2.5">
     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
     <p className="text-sm font-medium tabular-nums mt-0.5">{value}</p>
+    {hint && <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{hint}</p>}
   </div>
 );
