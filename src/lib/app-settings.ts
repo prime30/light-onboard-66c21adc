@@ -45,6 +45,7 @@ function persistFlags(flags: Flags) {
 }
 
 let cachedFlags: Flags | null = readPersistedFlags();
+if (cachedFlags?.competitorEmailDomains) setCompetitorEmailDomains(cachedFlags.competitorEmailDomains);
 let inFlightFlags: Promise<Flags> | null = null;
 
 /** True once the flags have been confirmed from the network this session. */
