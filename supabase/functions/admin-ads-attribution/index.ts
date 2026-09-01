@@ -169,6 +169,9 @@ Deno.serve(async (req: Request) => {
       campaignTally[key] ??= { channel, total: 0, completed: 0 };
       campaignTally[key].total += 1;
       if (completed) campaignTally[key].completed += 1;
+    } else if (SOCIAL_CLICK_CHANNELS.has(channel)) {
+      socialClickTotal += 1;
+      if (completed) socialClickCompleted += 1;
     }
 
     const day = (row.created_at ?? "").slice(0, 10);
