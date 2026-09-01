@@ -197,6 +197,10 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           <Button size="sm" variant="outline" onClick={mintLink} disabled={busy}>
             {busy ? "Working..." : "Mint setup link"}
           </Button>
+          <Button size="sm" variant="outline" onClick={sendResetEmail} disabled={busy}>
+            {busy ? "Working..." : "Send reset email"}
+          </Button>
+
         </div>
         {link && (
           <div className="text-xs space-y-1 pt-1">
