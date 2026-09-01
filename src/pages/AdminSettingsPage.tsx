@@ -1443,6 +1443,7 @@ const AdminSettingsPage = () => {
         {/* Integrity tab */}
         <div className={cn("space-y-8", activeTab !== "integrity" && "hidden")}>
           <CompetitorDomainsPanel token={token} />
+          <CompetitorAttemptsPanel adminToken={token} />
           <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
           <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
           <StorefrontTokensPanel adminEmail={email} adminToken={token} />
