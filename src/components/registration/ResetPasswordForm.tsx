@@ -395,7 +395,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     );
   }
 
-  // Missing params state
+  // Missing params state. The link itself may have been fine: social in-app
+  // browsers routinely drop the handoff. Offer a self-service fresh link and
+  // an "open in your real browser" nudge instead of a dead end.
   if (formState === "missing-params") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-5 md:px-6 lg:px-8 text-center space-y-6 max-w-[38rem] mx-auto w-full animate-step-enter-right">
@@ -404,21 +406,25 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Invalid Link
+            Link Incomplete
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            This link appears to be incomplete. Please use the link from your password reset email.
+            We couldn't read the reset link from your email. Enter your email below and we'll send a fresh one.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
+        <ActivationRecovery defaultEmail={emailHint ?? getResetEmailHint() ?? ""} />
         <Button
           onClick={handleClose}
-          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+          variant="ghost"
+          className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
         >
           {isInIframe ? "Close" : "Go to Store"}
         </Button>
       </div>
     );
   }
+
 
   // Rate limited state
   if (formState === "rate-limited") {
