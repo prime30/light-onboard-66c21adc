@@ -158,11 +158,82 @@ const bodySchema = z
     customerId: z.string().min(1).optional(),
     token: z.string().min(1).optional(),
     password: z.string().min(8, "Password must be at least 8 characters"),
+    emailHint: z.string().email().optional(),
+    device: z
+      .object({
+        type: z.string().max(20).optional(),
+        width: z.number().optional(),
+        height: z.number().optional(),
+        inAppBrowser: z.string().max(30).nullable().optional(),
+        userAgent: z.string().max(500).nullable().optional(),
+      })
+      .optional(),
   })
   .refine(
     (v) => !!v.activationUrl || (!!v.customerId && !!v.token),
     { message: "activationUrl or (customerId and token) is required" }
   );
+
+// ---------------------------------------------------------------------------
+// Failure telemetry. Mirrors reset-password: every dead-end activation writes
+// reason + device context onto the lead row so the weekly reset-health-check
+// job sees invite-link regressions from both flows. Fail-open always.
+// ---------------------------------------------------------------------------
+type FailureDevice = {
+  type?: string;
+  width?: number;
+  height?: number;
+  inAppBrowser?: string | null;
+  userAgent?: string | null;
+};
+
+async function recordActivationFailure(opts: {
+  email: string | null | undefined;
+  reason: string;
+  code?: string | null;
+  device?: FailureDevice;
+  userAgent?: string | null;
+}): Promise<void> {
+  const email = (opts.email || "").trim().toLowerCase();
+  if (!email) return;
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/record_reset_failure`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        _email: email,
+        _reason: `activation_${opts.reason}`.slice(0, 60),
+        _code: (opts.code || "").slice(0, 60) || null,
+        _device_type: opts.device?.type?.slice(0, 20) ?? null,
+        _in_app_browser: opts.device?.inAppBrowser?.slice(0, 30) ?? null,
+        _user_agent: (opts.device?.userAgent || opts.userAgent || "")?.slice(0, 400) || null,
+        _viewport_width:
+          typeof opts.device?.width === "number" && opts.device.width > 0 && opts.device.width < 10000
+            ? Math.round(opts.device.width)
+            : null,
+        _viewport_height:
+          typeof opts.device?.height === "number" && opts.device.height > 0 && opts.device.height < 10000
+            ? Math.round(opts.device.height)
+            : null,
+      }),
+    });
+    if (!res.ok) {
+      console.warn("record_reset_failure (activation) failed:", res.status, (await res.text()).slice(0, 200));
+    }
+  } catch (e) {
+    console.warn("record_reset_failure (activation) threw:", e);
+  }
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
