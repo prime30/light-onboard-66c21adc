@@ -124,12 +124,13 @@ Deno.serve(async (req: Request) => {
       uniqueDomains: Object.keys(byDomain).length,
       byDomain,
       repeatDomains,
-      recent: rows.slice(0, 20).map((r) => ({
+      recent: rows.slice(0, 200).map((r) => ({
         email: r.email,
         domain: r.competitor_block_domain,
         count: r.competitor_block_count ?? 1,
         lastAt: r.competitor_block_last_at,
       })),
+
     },
   });
 });
