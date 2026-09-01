@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate, Navigate } from "react-router";
 import { useAtom } from "jotai";
 import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { ResetPasswordForm } from "@/components/registration/ResetPasswordForm";
+import { resolveResetParams } from "@/lib/reset-params";
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -11,13 +12,27 @@ export function ResetPasswordPage() {
   const navigate = useNavigate();
   const { setMode } = useModeContext();
 
-  const token = searchParams.get("token");
-  const customerId = searchParams.get("customer_id");
-  const resetUrl = searchParams.get("reset_url");
-  const emailHint =
-    searchParams.get("email_hint") ||
-    searchParams.get("email") ||
-    searchParams.get("customer_email");
+  // Reset links are resolved against a durable stash: social in-app browsers
+  // (Instagram, Facebook) can drop the params the theme handed over, which
+  // used to surface as a bogus "link incomplete" screen.
+  const resolved = useMemo(
+    () =>
+      resolveResetParams({
+        token: searchParams.get("token"),
+        customerId: searchParams.get("customer_id"),
+        resetUrl: searchParams.get("reset_url") || searchParams.get("url"),
+        emailHint:
+          searchParams.get("email_hint") ||
+          searchParams.get("email") ||
+          searchParams.get("customer_email"),
+      }),
+    [searchParams]
+  );
+  const token = resolved.token ?? null;
+  const customerId = resolved.customerId ?? null;
+  const resetUrl = resolved.resetUrl ?? null;
+  const emailHint = resolved.emailHint ?? null;
+
 
   useEffect(() => {
     setMode("signin");
