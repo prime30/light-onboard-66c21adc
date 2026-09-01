@@ -135,6 +135,8 @@ Deno.serve(async (req: Request) => {
   let tracked = 0;
   let paidTotal = 0;
   let paidCompleted = 0;
+  let socialClickTotal = 0;
+  let socialClickCompleted = 0;
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
