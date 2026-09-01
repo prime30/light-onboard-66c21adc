@@ -3,6 +3,7 @@ import { countryCodes } from "../../data/country-codes.ts";
 import { formatPhoneNumber } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
+import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "./competitor-email-domains.ts";
 import {
   ALL_QUALIFICATION_VALUES,
   isCurrentQualificationForCountry,
@@ -181,7 +182,8 @@ const contactBasicsValidators = {
     .trim()
     .max(255, "Email must be less than 255 characters")
     .transform((val) => val.toLowerCase())
-    .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
+    .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE)
+      .refine((val) => !isCompetitorEmail(val), COMPETITOR_EMAIL_MESSAGE),
   phoneNumber: z
     .string({ error: "Phone number is required" })
     .min(1, "Phone number is required")
@@ -644,7 +646,8 @@ export const loginSchema = z.discriminatedUnion("formType", [
     email: z
       .email("Please enter a valid email address")
       .trim()
-      .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE),
+      .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE)
+      .refine((val) => !isCompetitorEmail(val), COMPETITOR_EMAIL_MESSAGE),
   }),
 ]);
 type BaseLoginFormData<T extends LoginFormType> = Extract<
