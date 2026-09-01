@@ -1227,6 +1227,37 @@ Deno.serve(async (req: Request) => {
         } catch (e) {
           console.warn("record_competitor_block threw (non-blocking):", e);
         }
+        // Internal alert once a single competitor domain has tried 3+ times.
+        try {
+          const q =
+            `${_url}/rest/v1/registration_leads?select=email,competitor_block_count` +
+            `&competitor_block_domain=eq.${encodeURIComponent(blockedDomain)}&limit=500`;
+          const cRes = await fetch(q, { headers });
+          if (cRes.ok) {
+            const rows = (await cRes.json()) as { email: string; competitor_block_count: number | null }[];
+            const attempts = rows.reduce((n, r) => n + (r.competitor_block_count ?? 1), 0);
+            if (attempts >= 3) {
+              void fetch(`${_url}/functions/v1/notify-error`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                  source: "create-customer",
+                  message: `Competitor domain ${blockedDomain} has attempted registration ${attempts} times across ${rows.length} email(s).`,
+                  context: {
+                    domain: blockedDomain,
+                    attempts,
+                    uniqueEmails: rows.length,
+                    sampleEmails: rows.slice(0, 10).map((r) => r.email),
+                    flow: "create-customer",
+                  },
+                }),
+              }).catch(() => {});
+            }
+          }
+        } catch (e) {
+          console.warn("competitor alert check threw (non-blocking):", e);
+        }
+
         await writeStandaloneAuditFailure({
           email: competitorEmail,
           accountType: parseResult.data.accountType,

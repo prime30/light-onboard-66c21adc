@@ -21,6 +21,7 @@ import { StorefrontTokensPanel } from "@/components/admin/StorefrontTokensPanel"
 import { KlaviyoBackfillPanel } from "@/components/admin/KlaviyoBackfillPanel";
 import { ResetHealthPanel } from "@/components/admin/ResetHealthPanel";
 import { CompetitorDomainsPanel } from "@/components/admin/CompetitorDomainsPanel";
+import { CompetitorAttemptsPanel } from "@/components/admin/CompetitorAttemptsPanel";
 import { StrandedAccountsPanel } from "@/components/admin/StrandedAccountsPanel";
 
 
@@ -1442,6 +1443,7 @@ const AdminSettingsPage = () => {
         {/* Integrity tab */}
         <div className={cn("space-y-8", activeTab !== "integrity" && "hidden")}>
           <CompetitorDomainsPanel token={token} />
+          <CompetitorAttemptsPanel adminToken={token} />
           <HeliumSpikeInspectorPanel adminEmail={email} adminToken={token} />
           <FakeAccountAnalyticsPanel adminEmail={email} adminToken={token} />
           <StorefrontTokensPanel adminEmail={email} adminToken={token} />
