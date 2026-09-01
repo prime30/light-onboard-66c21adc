@@ -33,6 +33,14 @@ type Data = {
   socialClickShare: number;
   channels: ChannelRow[];
   campaigns: CampaignRow[];
+  timeline?: TimelineRow[];
+};
+
+type TimelineRow = {
+  day: string;
+  total: number;
+  paid: number;
+  social: number;
 };
 
 interface Props {
@@ -188,6 +196,49 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               ))
             )}
           </div>
+
+          {(data.timeline?.length ?? 0) > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Daily paid vs social clicks
+                </p>
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-foreground" /> Paid ads
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-foreground/30" /> Social clicks
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-muted" /> Other
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-end gap-[3px] h-20">
+                {(data.timeline ?? []).map((d) => {
+                  const max = Math.max(1, ...(data.timeline ?? []).map((x) => x.total));
+                  const h = (n: number) => `${(n / max) * 100}%`;
+                  const other = Math.max(0, d.total - d.paid - d.social);
+                  return (
+                    <div
+                      key={d.day}
+                      className="flex-1 min-w-[3px] flex flex-col justify-end gap-[1px]"
+                      title={`${d.day}: ${d.paid} paid · ${d.social} social clicks · ${other} other (${d.total} total)`}
+                    >
+                      <div className="rounded-sm bg-muted" style={{ height: h(other) }} />
+                      <div className="rounded-sm bg-foreground/30" style={{ height: h(d.social) }} />
+                      <div className="rounded-sm bg-foreground" style={{ height: h(d.paid) }} />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground tabular-nums">
+                <span>{data.timeline?.[0]?.day}</span>
+                <span>{data.timeline?.[(data.timeline?.length ?? 1) - 1]?.day}</span>
+              </div>
+            </div>
+          )}
 
           {data.campaigns.length > 0 && (
             <details className="rounded-[10px] bg-muted/40 p-3">
