@@ -22,6 +22,7 @@ interface RequestBody {
   preferredMethodStepEnabled?: boolean;
   summaryStepEnabled?: boolean;
   extraCustomerTags?: string[];
+  competitorEmailDomains?: string[];
 }
 
 function sanitizeTags(input: unknown): string[] | null {
@@ -41,6 +42,23 @@ function sanitizeTags(input: unknown): string[] | null {
     if (seen.has(k)) continue;
     seen.add(k);
     out.push(t);
+  }
+  return out;
+}
+
+function sanitizeDomains(input: unknown): string[] | null {
+  if (!Array.isArray(input)) return null;
+  const cleaned = input
+    .filter((d): d is string => typeof d === "string")
+    .map((d) => d.trim().toLowerCase().replace(/^@/, "").replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
+    .filter((d) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d) && d.length <= 120)
+    .slice(0, 500);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const d of cleaned) {
+    if (seen.has(d)) continue;
+    seen.add(d);
+    out.push(d);
   }
   return out;
 }
@@ -141,12 +159,14 @@ Deno.serve(async (req: Request) => {
   const hasSummaryStepToggle = typeof body.summaryStepEnabled === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
+  const sanitizedDomains = sanitizeDomains(body.competitorEmailDomains);
+  const hasDomains = sanitizedDomains !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasReferralStepToggle && !hasSummaryStepToggle && !hasTags) {
+  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasReferralStepToggle && !hasSummaryStepToggle && !hasTags && !hasDomains) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled, extra_customer_tags")
+      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled, extra_customer_tags, competitor_email_domains")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -170,6 +190,7 @@ Deno.serve(async (req: Request) => {
   if (hasReferralStepToggle) update.referral_step_enabled = body.referralStepEnabled;
   if (hasSummaryStepToggle) update.summary_step_enabled = body.summaryStepEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
+  if (hasDomains) update.competitor_email_domains = sanitizedDomains;
 
   const { data, error } = await supabase
     .from("app_settings")
