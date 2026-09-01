@@ -17,6 +17,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   meta_ads: "Meta ads",
   meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
+  google_click: "Google click id, no campaign tag (unverified ad)",
   tiktok_ads: "TikTok ads",
   tiktok_click: "TikTok link click (not an ad)",
   pinterest_ads: "Pinterest ads",
@@ -128,7 +129,7 @@ Deno.serve(async (req: Request) => {
 
   const channelTally: Record<string, { total: number; completed: number }> = {};
   const campaignTally: Record<string, { channel: string; total: number; completed: number }> = {};
-  const timeline: Record<string, { total: number; paid: number }> = {};
+  const timeline: Record<string, { total: number; paid: number; social: number }> = {};
   const byAccountType: Record<string, Record<string, number>> = {};
 
   let total = 0;
@@ -176,9 +177,10 @@ Deno.serve(async (req: Request) => {
 
     const day = (row.created_at ?? "").slice(0, 10);
     if (day) {
-      timeline[day] ??= { total: 0, paid: 0 };
+      timeline[day] ??= { total: 0, paid: 0, social: 0 };
       timeline[day].total += 1;
       if (PAID_CHANNELS.has(channel)) timeline[day].paid += 1;
+      else if (SOCIAL_CLICK_CHANNELS.has(channel)) timeline[day].social += 1;
     }
 
     const acct = (row.account_type ?? "unknown").toString();
