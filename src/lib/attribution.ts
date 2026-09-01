@@ -191,12 +191,14 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   // (organic posts, bio links, DMs), so it alone does not mean paid traffic.
   if (isMetaSource && paid) return "meta_ads";
   if (signals.gclid || (/google|youtube|gdn/.test(source) && paid)) return "google_ads";
-  if (signals.ttclid || (/tiktok/.test(source) && paid)) return "tiktok_ads";
+  // ttclid behaves the same way on TikTok in-app link clicks.
+  if (/tiktok/.test(source) && paid) return "tiktok_ads";
   if (/pinterest/.test(source) && paid) return "pinterest_ads";
   if (medium === "email" || /klaviyo|newsletter/.test(source)) return "email";
   if (paid) return "other_paid";
   if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) return "organic_social";
   if (signals.fbclid) return "meta_click";
+  if (signals.ttclid) return "tiktok_click";
   if (source || medium || campaign) return "campaign";
   return "direct";
 }
