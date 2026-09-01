@@ -1168,6 +1168,81 @@ Deno.serve(async (req: Request) => {
     ]);
   }
 
+  // Competitor domain blocklist (admin-editable via app_settings).
+  // Server-side backstop: the client enforces this too, but never trust it.
+  {
+    const competitorEmail = parseResult.data.email;
+    const at = competitorEmail.lastIndexOf("@");
+    const emailDomain = at === -1 ? "" : competitorEmail.slice(at + 1).trim().toLowerCase();
+    const _url = Deno.env.get("SUPABASE_URL");
+    const _key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    let blockedDomain: string | null = null;
+
+    if (emailDomain && _url && _key) {
+      const headers = {
+        "Content-Type": "application/json",
+        apikey: _key,
+        Authorization: `Bearer ${_key}`,
+      };
+      try {
+        const res = await fetch(`${_url}/rest/v1/rpc/get_competitor_email_domains`, {
+          method: "POST",
+          headers,
+          body: "{}",
+        });
+        if (res.ok) {
+          const list = (await res.json()) as string[] | null;
+          const set = new Set((list ?? []).map((d) => String(d).trim().toLowerCase()).filter(Boolean));
+          if (set.has(emailDomain)) {
+            blockedDomain = emailDomain;
+          } else {
+            const parts = emailDomain.split(".");
+            for (let i = 1; i < parts.length - 1; i++) {
+              const candidate = parts.slice(i).join(".");
+              if (set.has(candidate)) {
+                blockedDomain = candidate;
+                break;
+              }
+            }
+          }
+        } else {
+          console.warn("competitor domain lookup failed:", res.status);
+        }
+      } catch (e) {
+        console.warn("competitor domain lookup threw (fail open):", e);
+      }
+
+      if (blockedDomain) {
+        console.log("Competitor email rejected:", competitorEmail, blockedDomain);
+        try {
+          await fetch(`${_url}/rest/v1/rpc/record_competitor_block`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              _email: competitorEmail,
+              _domain: blockedDomain,
+              _user_agent: req.headers.get("user-agent") ?? null,
+            }),
+          });
+        } catch (e) {
+          console.warn("record_competitor_block threw (non-blocking):", e);
+        }
+        await writeStandaloneAuditFailure({
+          email: competitorEmail,
+          accountType: parseResult.data.accountType,
+          step: "competitor_email",
+          field: "email",
+          message: `Competitor email domain blocked: ${blockedDomain}`,
+          payload: parseResult.data as unknown as Record<string, unknown>,
+          req,
+        });
+        return sendError(400, [
+          "email: We don't allow direct competitors to purchase our products. Please use a different email if this is a mistake.",
+        ]);
+      }
+    }
+  }
+
   // ----------------------------------------------------------------
   // AU geo enforcement. If the applicant claims countryCode "AU" they
   // MUST present a valid HMAC token from verify-au-geo (IP or GPS).

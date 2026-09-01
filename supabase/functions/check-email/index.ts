@@ -41,6 +41,55 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Competitor domain blocklist (admin-editable via app_settings). Checked
+  // before any Helium lookup so blocked applicants get an immediate answer.
+  try {
+    const backendUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (backendUrl && serviceKey) {
+      const headers = {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      };
+      const res = await fetch(`${backendUrl}/rest/v1/rpc/get_competitor_email_domains`, {
+        method: "POST",
+        headers,
+        body: "{}",
+      });
+      if (res.ok) {
+        const list = (await res.json()) as string[] | null;
+        const set = new Set((list ?? []).map((d) => String(d).trim().toLowerCase()).filter(Boolean));
+        const domain = email.slice(email.lastIndexOf("@") + 1);
+        let blocked = set.has(domain) ? domain : null;
+        if (!blocked) {
+          const parts = domain.split(".");
+          for (let i = 1; i < parts.length - 1; i++) {
+            const candidate = parts.slice(i).join(".");
+            if (set.has(candidate)) { blocked = candidate; break; }
+          }
+        }
+        if (blocked) {
+          void fetch(`${backendUrl}/rest/v1/rpc/record_competitor_block`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              _email: email,
+              _domain: blocked,
+              _user_agent: req.headers.get("user-agent") ?? null,
+            }),
+          }).catch(() => {});
+          return new Response(
+            JSON.stringify({ exists: false, competitorBlocked: true, competitorDomain: blocked }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+  } catch (competitorErr) {
+    console.warn("check-email: competitor lookup threw (fail open):", competitorErr);
+  }
+
   const apiKey = Deno.env.get("HELIUM_PRIVATE_ACCESS_TOKEN");
   if (!apiKey) {
     console.error("HELIUM_PRIVATE_ACCESS_TOKEN missing");
