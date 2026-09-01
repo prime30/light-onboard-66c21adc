@@ -134,10 +134,22 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Stat label="Submissions" value={data.total.toString()} />
-            <Stat label="From ads" value={data.paidTotal.toString()} />
-            <Stat label="Ad share" value={`${data.paidShare}%`} />
             <Stat label="Tracked" value={`${data.trackedRate}%`} />
+            <Stat
+              label="Paid ads"
+              value={data.paidTotal.toString()}
+              hint={`${data.paidShare}% of signups · ${data.paidCompleted} completed`}
+            />
+            <Stat
+              label="Social link clicks"
+              value={(data.socialClickTotal ?? 0).toString()}
+              hint={`${data.socialClickShare ?? 0}% of signups · ${data.socialClickCompleted ?? 0} completed`}
+            />
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Social link clicks are free in-app taps from Facebook, Instagram or TikTok
+            (fbclid / ttclid without paid campaign params). They are never counted as ads.
+          </p>
 
           <div className="space-y-1.5">
             {data.channels.length === 0 ? (
