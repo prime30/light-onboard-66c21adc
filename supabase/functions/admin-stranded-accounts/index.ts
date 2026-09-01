@@ -32,7 +32,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const STOREFRONT_API_VERSION = "2024-10";
 
-type Action = "audit" | "repair" | "link";
+type Action = "audit" | "repair" | "link" | "invite";
 type Scope = "flagged" | "all";
 
 interface RequestBody {
@@ -40,7 +40,7 @@ interface RequestBody {
   password?: string;
   token?: string;
   action?: Action;
-  /** For action "link": the single customer email to mint a setup link for. */
+  /** For actions "link" and "invite": the single customer email to target. */
   linkEmail?: string;
   scope?: Scope;
   days?: number;
@@ -174,7 +174,65 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   const action: Action =
-    body.action === "repair" ? "repair" : body.action === "link" ? "link" : "audit";
+    body.action === "repair"
+      ? "repair"
+      : body.action === "link"
+        ? "link"
+        : body.action === "invite"
+          ? "invite"
+          : "audit";
+
+  // ---------------- INVITE ----------------
+  // Sends Shopify's own account invite (activation) email for one customer.
+  // Use this when the applicant needs the standard invite again rather than a
+  // password reset. Enabled customers cannot be invited: Shopify rejects it,
+  // so we say so plainly instead of surfacing a raw 422.
+  if (action === "invite") {
+    const target = String(body.linkEmail ?? "").trim().toLowerCase();
+    if (!target.includes("@")) return json({ success: false, error: "linkEmail required" }, 400);
+
+    const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, target);
+    if (!cust) return json({ success: false, error: "customer_not_found" }, 404);
+    if (cust.state === "enabled") {
+      return json({
+        success: true,
+        action,
+        email: target,
+        state: cust.state,
+        sent: false,
+        alreadyEnabled: true,
+        message: "This customer already has a password. Send a password reset instead.",
+      });
+    }
+
+    const inviteRes = await fetch(
+      `https://${DOMAIN}/admin/api/${VERSION}/customers/${cust.id}/send_invite.json`,
+      {
+        method: "POST",
+        headers: { "X-Shopify-Access-Token": ADMIN_TOKEN, "Content-Type": "application/json" },
+        body: JSON.stringify({ customer_invite: {} }),
+      },
+    );
+    const inviteText = await inviteRes.text();
+    if (!inviteRes.ok) {
+      console.error("[admin-stranded-accounts] send_invite failed:", inviteRes.status, inviteText.slice(0, 300));
+      return json({
+        success: false,
+        error: "invite_send_failed",
+        detail: inviteText.slice(0, 300),
+      }, 502);
+    }
+
+    return json({
+      success: true,
+      action,
+      email: target,
+      state: cust.state,
+      shopifyId: cust.id,
+      sent: true,
+      message: `Activation invite sent to ${target}`,
+    });
+  }
 
   // ---------------- LINK ----------------
   // Mints a Shopify account activation URL directly (no email round-trip) and
