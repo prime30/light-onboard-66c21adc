@@ -384,6 +384,18 @@ Deno.serve(async (req) => {
       const code: string = first.code || "";
       const msg: string = (first.message || "").toLowerCase();
 
+      // Surface dead links in logs so support cases stop being invisible.
+      console.error(
+        "RESET_TOKEN_REJECTED",
+        JSON.stringify({
+          code,
+          message: (first.message || "").slice(0, 200),
+          customerId: resetCustomerId,
+          userAgent: req.headers.get("user-agent")?.slice(0, 200) ?? null,
+        })
+      );
+
+
       // Map Shopify error codes to friendly states the client recognises.
       if (code === "TOKEN_INVALID" || msg.includes("invalid")) {
         return sendError(400, [
