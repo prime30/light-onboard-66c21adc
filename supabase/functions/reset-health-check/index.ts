@@ -103,6 +103,14 @@ Deno.serve(async (req) => {
 
   // In-app webview share: an Instagram/TikTok-only spike points at the webview
   // handoff rather than the invite links themselves, so surface it in the alert.
+  // Reason strings from activate-account are prefixed `activation_`, so the
+  // subject line can say which flow is actually breaking.
+  const isActivation = (r: LeadRow) => (r.reset_failure_reason ?? "").startsWith("activation_");
+  const activationCount = thisWeek.filter(isActivation).length;
+  const resetCount = thisWeek.length - activationCount;
+  const priorActivationCount = priorWeek.filter(isActivation).length;
+  const priorResetCount = priorWeek.length - priorActivationCount;
+
   const webviewCount = thisWeek.filter((r) => !!r.reset_failure_in_app_browser).length;
   const webviewShare = thisWeek.length
     ? Math.round((webviewCount / thisWeek.length) * 100)
@@ -119,8 +127,20 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           source: "reset-health-check",
-          message: `Reset/invite link failures spiked: ${thisWeek.length} affected accounts in the last 7 days (prior week: ${priorWeek.length}). In-app browsers: ${webviewShare}% (${webviewCount}).`,
-          context: { ...report, inAppBrowserShare: webviewShare, inAppBrowserCount: webviewCount },
+          message:
+            `Link failures spiked: ${resetCount} reset + ${activationCount} activation ` +
+            `= ${thisWeek.length} affected accounts in the last 7 days ` +
+            `(prior week: ${priorResetCount} reset + ${priorActivationCount} activation = ${priorWeek.length}). ` +
+            `In-app browsers: ${webviewShare}% (${webviewCount}).`,
+          context: {
+            ...report,
+            resetFailuresThisWeek: resetCount,
+            activationFailuresThisWeek: activationCount,
+            resetFailuresPriorWeek: priorResetCount,
+            activationFailuresPriorWeek: priorActivationCount,
+            inAppBrowserShare: webviewShare,
+            inAppBrowserCount: webviewCount,
+          },
         }),
       });
     } catch (e) {
@@ -128,7 +148,15 @@ Deno.serve(async (req) => {
     }
   }
 
-  const fullReport = { ...report, inAppBrowserShare: webviewShare, inAppBrowserCount: webviewCount };
+  const fullReport = {
+    ...report,
+    resetFailuresThisWeek: resetCount,
+    activationFailuresThisWeek: activationCount,
+    resetFailuresPriorWeek: priorResetCount,
+    activationFailuresPriorWeek: priorActivationCount,
+    inAppBrowserShare: webviewShare,
+    inAppBrowserCount: webviewCount,
+  };
   console.log("RESET_HEALTH_REPORT", JSON.stringify({ ...fullReport, alerted: spiking }));
   return json(200, { success: true, alerted: spiking, report: fullReport });
 });
