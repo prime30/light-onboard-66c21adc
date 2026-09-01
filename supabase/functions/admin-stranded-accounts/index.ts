@@ -32,7 +32,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const STOREFRONT_API_VERSION = "2024-10";
 
-type Action = "audit" | "repair" | "link" | "invite";
+type Action = "audit" | "repair" | "link" | "invite" | "reset" | "sends";
 type Scope = "flagged" | "all";
 
 interface RequestBody {
@@ -180,7 +180,84 @@ Deno.serve(async (req: Request) => {
         ? "link"
         : body.action === "invite"
           ? "invite"
-          : "audit";
+          : body.action === "reset"
+            ? "reset"
+            : body.action === "sends"
+              ? "sends"
+              : "audit";
+
+  // Every support-triggered email is written to admin_support_sends so repeat
+  // sends to the same person are visible instead of living only in someone's
+  // memory of what they clicked.
+  const logSend = async (
+    email: string,
+    channel: string,
+    ok: boolean,
+    shopifyState?: string | null,
+    detail?: string | null,
+  ) => {
+    try {
+      await supabase.from("admin_support_sends").insert({
+        email,
+        channel,
+        ok,
+        shopify_state: shopifyState ?? null,
+        detail: detail ? String(detail).slice(0, 500) : null,
+      });
+    } catch (e) {
+      console.warn("[admin-stranded-accounts] logSend failed:", e);
+    }
+  };
+
+  // ---------------- SENDS ----------------
+  // Recent support-email history, newest first, so the panel can show whether
+  // this person has already been emailed today.
+  if (action === "sends") {
+    const target = String(body.linkEmail ?? "").trim().toLowerCase();
+    let q = supabase
+      .from("admin_support_sends")
+      .select("email,channel,ok,shopify_state,detail,created_at")
+      .order("created_at", { ascending: false })
+      .limit(Math.min(Number(body.limit) || 25, 100));
+    if (target.includes("@")) q = q.eq("email", target);
+    const { data, error } = await q;
+    if (error) return json({ success: false, error: error.message }, 502);
+    return json({ success: true, action, sends: data ?? [] });
+  }
+
+  // ---------------- RESET ----------------
+  // Server-side proxy for the panel's "Send reset email" button so the send is
+  // logged with admin context instead of looking like a customer self-serve
+  // recovery.
+  if (action === "reset") {
+    const target = String(body.linkEmail ?? "").trim().toLowerCase();
+    if (!target.includes("@")) return json({ success: false, error: "linkEmail required" }, 400);
+
+    let ok = false;
+    let detail = "";
+    let channel = "recover";
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/recover-password`, {
+        method: "POST",
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: target }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      ok = res.ok && payload?.success !== false;
+      channel = payload?.data?.channel ?? channel;
+      if (!ok) detail = payload?.error ?? `HTTP ${res.status}`;
+    } catch (e) {
+      detail = e instanceof Error ? e.message : "reset_failed";
+    }
+
+    await logSend(target, `admin_reset:${channel}`, ok, null, ok ? null : detail);
+    if (!ok) return json({ success: false, error: "reset_send_failed", detail }, 502);
+    return json({ success: true, action, email: target, sent: true, channel });
+  }
 
   // ---------------- INVITE ----------------
   // Sends Shopify's own account invite (activation) email for one customer.
@@ -194,6 +271,7 @@ Deno.serve(async (req: Request) => {
     const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, target);
     if (!cust) return json({ success: false, error: "customer_not_found" }, 404);
     if (cust.state === "enabled") {
+      await logSend(target, "admin_invite", false, cust.state, "already_enabled");
       return json({
         success: true,
         action,
@@ -216,6 +294,7 @@ Deno.serve(async (req: Request) => {
     const inviteText = await inviteRes.text();
     if (!inviteRes.ok) {
       console.error("[admin-stranded-accounts] send_invite failed:", inviteRes.status, inviteText.slice(0, 300));
+      await logSend(target, "admin_invite", false, cust.state, inviteText.slice(0, 300));
       return json({
         success: false,
         error: "invite_send_failed",
@@ -223,6 +302,7 @@ Deno.serve(async (req: Request) => {
       }, 502);
     }
 
+    await logSend(target, "admin_invite", true, cust.state, null);
     return json({
       success: true,
       action,

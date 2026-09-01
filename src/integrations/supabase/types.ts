@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_support_sends: {
+        Row: {
+          channel: string
+          created_at: string
+          detail: string | null
+          email: string
+          id: string
+          ok: boolean
+          shopify_state: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          detail?: string | null
+          email: string
+          id?: string
+          ok?: boolean
+          shopify_state?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          detail?: string | null
+          email?: string
+          id?: string
+          ok?: boolean
+          shopify_state?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           auto_approval_enabled: boolean
