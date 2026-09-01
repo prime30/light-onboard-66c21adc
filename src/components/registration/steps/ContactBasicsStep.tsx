@@ -20,6 +20,7 @@ import { countries } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "@/lib/validations/competitor-email-domains";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoApproval, useBusinessLocationStepEnabled } from "@/lib/app-settings";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
@@ -147,6 +148,18 @@ export const ContactBasicsStep = () => {
       if (errors.email?.type === "manual") clearErrors("email");
     }
     if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+
+    // Competitor domains: block immediately, no network round trip.
+    if (isCompetitorEmail(value)) {
+      setEmailConflict({ email: value, message: COMPETITOR_EMAIL_MESSAGE });
+      setError("email", { type: "manual", message: COMPETITOR_EMAIL_MESSAGE });
+      toast.error("This email can't be used", {
+        id: `competitor-email:${value}`,
+        description: COMPETITOR_EMAIL_MESSAGE,
+        duration: 9000,
+      });
+      return;
+    }
 
 
     if (lastCheckedRef.current === value) return;
