@@ -28,6 +28,9 @@ type Data = {
   paidTotal: number;
   paidCompleted: number;
   paidShare: number;
+  socialClickTotal: number;
+  socialClickCompleted: number;
+  socialClickShare: number;
   channels: ChannelRow[];
   campaigns: CampaignRow[];
 };
