@@ -343,7 +343,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             This password reset link has expired. Please request a new one from the login page.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
         <div className="w-full space-y-2">
+
           <Button
             onClick={handleRequestNewLink}
             className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
@@ -376,7 +378,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             This reset link is invalid or has already been used. Please request a new password reset.
           </FadeText>
         </div>
+        <InAppBrowserNotice />
         <div className="w-full space-y-2">
+
           <Button
             onClick={handleRequestNewLink}
             className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
