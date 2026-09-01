@@ -28,6 +28,9 @@ type Data = {
   paidTotal: number;
   paidCompleted: number;
   paidShare: number;
+  socialClickTotal: number;
+  socialClickCompleted: number;
+  socialClickShare: number;
   channels: ChannelRow[];
   campaigns: CampaignRow[];
 };
@@ -131,10 +134,22 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Stat label="Submissions" value={data.total.toString()} />
-            <Stat label="From ads" value={data.paidTotal.toString()} />
-            <Stat label="Ad share" value={`${data.paidShare}%`} />
             <Stat label="Tracked" value={`${data.trackedRate}%`} />
+            <Stat
+              label="Paid ads"
+              value={data.paidTotal.toString()}
+              hint={`${data.paidShare}% of signups · ${data.paidCompleted} completed`}
+            />
+            <Stat
+              label="Social link clicks"
+              value={(data.socialClickTotal ?? 0).toString()}
+              hint={`${data.socialClickShare ?? 0}% of signups · ${data.socialClickCompleted ?? 0} completed`}
+            />
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Social link clicks are free in-app taps from Facebook, Instagram or TikTok
+            (fbclid / ttclid without paid campaign params). They are never counted as ads.
+          </p>
 
           <div className="space-y-1.5">
             {data.channels.length === 0 ? (
@@ -209,9 +224,10 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   );
 };
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
+const Stat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
   <div className="rounded-[10px] border border-border/50 p-2.5">
     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
     <p className="text-sm font-medium tabular-nums mt-0.5">{value}</p>
+    {hint && <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{hint}</p>}
   </div>
 );

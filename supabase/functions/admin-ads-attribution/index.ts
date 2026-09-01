@@ -15,9 +15,10 @@ const ADMIN_EMAIL = "alex@dropdeadhair.com";
 
 const CHANNEL_LABELS: Record<string, string> = {
   meta_ads: "Meta ads",
-  meta_click: "Facebook / Instagram link click",
+  meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
   tiktok_ads: "TikTok ads",
+  tiktok_click: "TikTok link click (not an ad)",
   pinterest_ads: "Pinterest ads",
   other_paid: "Other paid",
   email: "Email / Klaviyo",
@@ -34,6 +35,10 @@ const PAID_CHANNELS = new Set([
   "pinterest_ads",
   "other_paid",
 ]);
+
+// In-app link clicks (fbclid / ttclid without paid campaign params). Free
+// traffic from social apps, tracked separately from ad spend.
+const SOCIAL_CLICK_CHANNELS = new Set(["meta_click", "tiktok_click", "organic_social"]);
 
 interface RequestBody {
   email?: string;
@@ -130,6 +135,8 @@ Deno.serve(async (req: Request) => {
   let tracked = 0;
   let paidTotal = 0;
   let paidCompleted = 0;
+  let socialClickTotal = 0;
+  let socialClickCompleted = 0;
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
@@ -162,6 +169,9 @@ Deno.serve(async (req: Request) => {
       campaignTally[key] ??= { channel, total: 0, completed: 0 };
       campaignTally[key].total += 1;
       if (completed) campaignTally[key].completed += 1;
+    } else if (SOCIAL_CLICK_CHANNELS.has(channel)) {
+      socialClickTotal += 1;
+      if (completed) socialClickCompleted += 1;
     }
 
     const day = (row.created_at ?? "").slice(0, 10);
@@ -208,6 +218,9 @@ Deno.serve(async (req: Request) => {
     paidTotal,
     paidCompleted,
     paidShare: total === 0 ? 0 : Math.round((paidTotal / total) * 1000) / 10,
+    socialClickTotal,
+    socialClickCompleted,
+    socialClickShare: total === 0 ? 0 : Math.round((socialClickTotal / total) * 1000) / 10,
     channels,
     campaigns,
     byAccountType,

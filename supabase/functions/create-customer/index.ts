@@ -281,6 +281,7 @@ const ATTRIBUTION_LABELS: Record<string, string> = {
   meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
   tiktok_ads: "TikTok ads",
+  tiktok_click: "TikTok link click (not an ad)",
   pinterest_ads: "Pinterest ads",
   other_paid: "Other paid campaign",
   email: "Email / Klaviyo",
@@ -319,12 +320,15 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   // campaign params actually say paid.
   if (isMetaSource && paid) channel = "meta_ads";
   else if (gclid || (/google|youtube|gdn/.test(source) && paid)) channel = "google_ads";
-  else if (ttclid || (/tiktok/.test(source) && paid)) channel = "tiktok_ads";
+  // ttclid behaves like fbclid: TikTok appends it to organic in-app link
+  // clicks too, so it only counts as an ad with paid campaign params.
+  else if (/tiktok/.test(source) && paid) channel = "tiktok_ads";
   else if (/pinterest/.test(source) && paid) channel = "pinterest_ads";
   else if (medium === "email" || /klaviyo|newsletter/.test(source)) channel = "email";
   else if (paid) channel = "other_paid";
   else if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) channel = "organic_social";
   else if (fbclid) channel = "meta_click";
+  else if (ttclid) channel = "tiktok_click";
   else if (source || medium || campaign) channel = "campaign";
 
   return {
