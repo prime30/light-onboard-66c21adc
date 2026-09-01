@@ -281,6 +281,7 @@ const ATTRIBUTION_LABELS: Record<string, string> = {
   meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
   tiktok_ads: "TikTok ads",
+  tiktok_click: "TikTok link click (not an ad)",
   pinterest_ads: "Pinterest ads",
   other_paid: "Other paid campaign",
   email: "Email / Klaviyo",
