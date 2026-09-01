@@ -112,6 +112,39 @@ Deno.serve(async (req) => {
     ? Math.round((webviewCount / thisWeek.length) * 100)
     : 0;
 
+  // Paid vs free social-click split for the last 7 days of leads, so the
+  // weekly summary says where the week's traffic actually came from.
+  const PAID_SET = new Set(["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"]);
+  const SOCIAL_SET = new Set(["meta_click", "tiktok_click", "organic_social"]);
+  let attributionSplit = { total: 0, paidAds: 0, socialClicks: 0, unverified: 0, other: 0 };
+  try {
+    const attrRes = await fetch(
+      `${supabaseUrl}/rest/v1/registration_leads?select=attribution_channel` +
+        `&started_at=gte.${weekAgo}&limit=5000`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (attrRes.ok) {
+      const attrRows = (await attrRes.json()) as { attribution_channel: string | null }[];
+      for (const r of attrRows) {
+        const ch = r.attribution_channel ?? "";
+        attributionSplit.total += 1;
+        if (PAID_SET.has(ch)) attributionSplit.paidAds += 1;
+        else if (SOCIAL_SET.has(ch)) attributionSplit.socialClicks += 1;
+        else if (ch === "google_click") attributionSplit.unverified += 1;
+        else attributionSplit.other += 1;
+      }
+    } else {
+      console.warn("reset-health-check attribution query failed:", attrRes.status);
+    }
+  } catch (e) {
+    console.warn("reset-health-check attribution query threw:", e);
+  }
+  const attributionLine =
+    `Traffic split (7d): ${attributionSplit.paidAds} paid ads, ` +
+    `${attributionSplit.socialClicks} free social link clicks, ` +
+    `${attributionSplit.unverified} unverified Google click ids, ` +
+    `${attributionSplit.other} other, of ${attributionSplit.total} leads.`;
+
   const isSpike = (current: number, prior: number) =>
     current >= MIN_FAILURES && current >= Math.max(MIN_FAILURES, prior * SPIKE_MULTIPLIER);
 
@@ -145,7 +178,7 @@ Deno.serve(async (req) => {
             `${spikeLabel}: ${resetCount} reset + ${activationCount} activation ` +
             `= ${thisWeek.length} affected accounts in the last 7 days ` +
             `(prior week: ${priorResetCount} reset + ${priorActivationCount} activation = ${priorWeek.length}). ` +
-            `In-app browsers: ${webviewShare}% (${webviewCount}).`,
+            `In-app browsers: ${webviewShare}% (${webviewCount}). ${attributionLine}`,
           context: {
             ...report,
             spikeLabel,
@@ -157,6 +190,8 @@ Deno.serve(async (req) => {
             activationFailuresPriorWeek: priorActivationCount,
             inAppBrowserShare: webviewShare,
             inAppBrowserCount: webviewCount,
+            attributionSplit,
+            attributionLine,
           },
         }),
       });
@@ -176,6 +211,8 @@ Deno.serve(async (req) => {
     inAppBrowserCount: webviewCount,
     resetSpiking,
     activationSpiking,
+    attributionSplit,
+    attributionLine,
   };
   console.log("RESET_HEALTH_REPORT", JSON.stringify({ ...fullReport, alerted: spiking }));
   return json(200, { success: true, alerted: spiking, report: fullReport });

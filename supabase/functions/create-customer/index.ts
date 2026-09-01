@@ -255,6 +255,8 @@ type AttributionClientContext = {
   utmTerm?: unknown;
   fbclid?: unknown;
   gclid?: unknown;
+  gbraid?: unknown;
+  wbraid?: unknown;
   ttclid?: unknown;
   landingUrl?: unknown;
   referrer?: unknown;
@@ -270,6 +272,8 @@ type NormalizedAttribution = {
   utmTerm: string | null;
   fbclid: string | null;
   gclid: string | null;
+  gbraid: string | null;
+  wbraid: string | null;
   ttclid: string | null;
   landingUrl: string | null;
   referrer: string | null;
@@ -280,6 +284,7 @@ const ATTRIBUTION_LABELS: Record<string, string> = {
   meta_ads: "Meta ads (Facebook / Instagram)",
   meta_click: "Facebook / Instagram link click (not an ad)",
   google_ads: "Google ads",
+  google_click: "Google click id, no campaign tag (unverified ad)",
   tiktok_ads: "TikTok ads",
   tiktok_click: "TikTok link click (not an ad)",
   pinterest_ads: "Pinterest ads",
@@ -306,6 +311,9 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   const utmCampaign = str(raw?.utmCampaign);
   const fbclid = str(raw?.fbclid);
   const gclid = str(raw?.gclid);
+  const gbraid = str(raw?.gbraid);
+  const wbraid = str(raw?.wbraid);
+  const googleClickId = gbraid ?? wbraid;
   const ttclid = str(raw?.ttclid);
 
   const source = (utmSource ?? "").toLowerCase();
@@ -320,6 +328,10 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   // campaign params actually say paid.
   if (isMetaSource && paid) channel = "meta_ads";
   else if (gclid || (/google|youtube|gdn/.test(source) && paid)) channel = "google_ads";
+  // gbraid / wbraid arrive on consent-limited Google clicks and can appear
+  // with no campaign tags at all, so they only count as ads when the params
+  // confirm paid traffic.
+  else if (googleClickId && paid) channel = "google_ads";
   // ttclid behaves like fbclid: TikTok appends it to organic in-app link
   // clicks too, so it only counts as an ad with paid campaign params.
   else if (/tiktok/.test(source) && paid) channel = "tiktok_ads";
@@ -329,6 +341,7 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   else if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) channel = "organic_social";
   else if (fbclid) channel = "meta_click";
   else if (ttclid) channel = "tiktok_click";
+  else if (googleClickId) channel = "google_click";
   else if (source || medium || campaign) channel = "campaign";
 
   return {
@@ -341,6 +354,8 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
     utmTerm: str(raw?.utmTerm),
     fbclid,
     gclid,
+    gbraid,
+    wbraid,
     ttclid,
     landingUrl: str(raw?.landingUrl),
     referrer: str(raw?.referrer),
