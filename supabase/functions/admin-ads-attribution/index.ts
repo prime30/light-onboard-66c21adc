@@ -36,6 +36,10 @@ const PAID_CHANNELS = new Set([
   "other_paid",
 ]);
 
+// In-app link clicks (fbclid / ttclid without paid campaign params). Free
+// traffic from social apps, tracked separately from ad spend.
+const SOCIAL_CLICK_CHANNELS = new Set(["meta_click", "tiktok_click", "organic_social"]);
+
 interface RequestBody {
   email?: string;
   password?: string;
