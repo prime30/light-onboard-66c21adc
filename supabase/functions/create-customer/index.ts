@@ -328,6 +328,7 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   else if (paid) channel = "other_paid";
   else if (isMetaSource || /tiktok|pinterest|youtube/.test(source)) channel = "organic_social";
   else if (fbclid) channel = "meta_click";
+  else if (ttclid) channel = "tiktok_click";
   else if (source || medium || campaign) channel = "campaign";
 
   return {
