@@ -39,6 +39,15 @@ interface RepairResp {
   error?: string;
 }
 
+interface SendRow {
+  email: string;
+  channel: string;
+  ok: boolean;
+  shopify_state: string | null;
+  detail: string | null;
+  created_at: string;
+}
+
 interface LinkResp {
   success: boolean;
   email?: string;
@@ -94,6 +103,7 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
   };
 
   const [linkEmail, setLinkEmail] = useState("");
+  const [sends, setSends] = useState<SendRow[] | null>(null);
   const [link, setLink] = useState<LinkResp | null>(null);
 
   const mintLink = async () => {
@@ -136,13 +146,17 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
     try {
       const { data, error } = await supabase.functions.invoke<{
         success: boolean;
-        data?: { channel?: string; sent?: boolean };
+        channel?: string;
         error?: string;
-      }>("recover-password", { body: { email: target } });
+        detail?: string;
+      }>("admin-stranded-accounts", {
+        body: { token: adminToken, action: "reset", linkEmail: target },
+      });
       if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || "Could not send reset email");
+        throw new Error(data?.detail || data?.error || error?.message || "Could not send reset email");
       }
-      toast.success(`Reset email sent to ${target} (${data.data?.channel ?? "recover"})`);
+      toast.success(`Reset email sent to ${target} (${data.channel ?? "recover"})`);
+      void loadSends(target);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not send reset email");
     } finally {
@@ -177,6 +191,7 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
       }
       if (data.sent) {
         toast.success(data.message || `Activation invite sent to ${target}`);
+        void loadSends(target);
       } else {
         toast.info(data.message || "No invite needed");
       }
@@ -189,6 +204,23 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
 
 
 
+
+  // Support-send history so repeat emails to the same person are obvious.
+  const loadSends = async (email?: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        success: boolean;
+        sends?: SendRow[];
+        error?: string;
+      }>("admin-stranded-accounts", {
+        body: { token: adminToken, action: "sends", linkEmail: email ?? linkEmail.trim().toLowerCase(), limit: 25 },
+      });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
+      setSends(data.sends ?? []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not load send history");
+    }
+  };
 
   const tally = useMemo(() => Object.entries(audit?.stateTally ?? {}), [audit]);
 
@@ -242,9 +274,29 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
           <Button size="sm" variant="outline" onClick={sendActivationLink} disabled={busy}>
             {busy ? "Working..." : "Send activation link"}
           </Button>
+          <Button size="sm" variant="ghost" onClick={() => loadSends()} disabled={busy}>
+            Send history
+          </Button>
 
 
         </div>
+        {sends && (
+          <div className="pt-2 text-[11px] space-y-1">
+            <p className="text-muted-foreground">
+              {sends.length === 0 ? "No support emails logged yet." : "Recent support emails"}
+            </p>
+            <ul className="max-h-48 overflow-auto space-y-1 font-mono">
+              {sends.map((r, i) => (
+                <li key={`${r.email}-${r.created_at}-${i}`} className={r.ok ? "text-muted-foreground" : "text-destructive"}>
+                  <span className="text-foreground">{r.email}</span> · {r.channel} ·{" "}
+                  {new Date(r.created_at).toLocaleString()}
+                  {r.detail ? ` · ${r.detail}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {link && (
           <div className="text-xs space-y-1 pt-1">
             <div className="text-muted-foreground">
