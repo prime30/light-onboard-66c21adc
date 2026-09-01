@@ -49,6 +49,7 @@ export type Database = {
           auto_approval_enabled: boolean
           business_location_step_enabled: boolean
           business_operation_step_enabled: boolean
+          competitor_email_domains: string[]
           discount_metafields_enabled: boolean
           extra_customer_tags: string[]
           founder_call_enabled: boolean
@@ -67,6 +68,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           business_location_step_enabled?: boolean
           business_operation_step_enabled?: boolean
+          competitor_email_domains?: string[]
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
@@ -85,6 +87,7 @@ export type Database = {
           auto_approval_enabled?: boolean
           business_location_step_enabled?: boolean
           business_operation_step_enabled?: boolean
+          competitor_email_domains?: string[]
           discount_metafields_enabled?: boolean
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
@@ -355,6 +358,9 @@ export type Database = {
           account_type: string | null
           attribution_campaign: string | null
           attribution_channel: string | null
+          competitor_block_count: number
+          competitor_block_domain: string | null
+          competitor_block_last_at: string | null
           completed_at: string | null
           country_code: string | null
           created_at: string
@@ -395,6 +401,9 @@ export type Database = {
           account_type?: string | null
           attribution_campaign?: string | null
           attribution_channel?: string | null
+          competitor_block_count?: number
+          competitor_block_domain?: string | null
+          competitor_block_last_at?: string | null
           completed_at?: string | null
           country_code?: string | null
           created_at?: string
@@ -435,6 +444,9 @@ export type Database = {
           account_type?: string | null
           attribution_campaign?: string | null
           attribution_channel?: string | null
+          competitor_block_count?: number
+          competitor_block_domain?: string | null
+          competitor_block_last_at?: string | null
           completed_at?: string | null
           country_code?: string | null
           created_at?: string
@@ -557,12 +569,24 @@ export type Database = {
     }
     Functions: {
       get_auto_approval_enabled: { Args: never; Returns: boolean }
+      get_competitor_email_domains: { Args: never; Returns: string[] }
       get_discount_metafields_enabled: { Args: never; Returns: boolean }
       get_extra_customer_tags: { Args: never; Returns: string[] }
       get_founder_call_high_volume_only: { Args: never; Returns: boolean }
       get_welcome_offer_enabled: { Args: never; Returns: boolean }
       increment_registration_validation_errors: {
         Args: { _email: string; _fields: string[] }
+        Returns: undefined
+      }
+      record_competitor_block: {
+        Args: {
+          _device_type?: string
+          _domain?: string
+          _email: string
+          _user_agent?: string
+          _viewport_height?: number
+          _viewport_width?: number
+        }
         Returns: undefined
       }
       record_reset_failure: {
