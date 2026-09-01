@@ -40,6 +40,7 @@ export type AttributionChannel =
   | "meta_click"
   | "google_ads"
   | "tiktok_ads"
+  | "tiktok_click"
   | "pinterest_ads"
   | "other_paid"
   | "email"
