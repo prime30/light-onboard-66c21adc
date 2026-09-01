@@ -463,6 +463,34 @@ Deno.serve(async (req: Request) => {
     if (candidates.length >= limit) break;
   }
 
+  // Competitor block context for the audited emails (written by check-email /
+  // create-customer when a blocklisted domain tries to register).
+  type BlockInfo = { count: number; domain: string | null; lastAt: string | null };
+  const blocks = new Map<string, BlockInfo>();
+  if (candidates.length > 0) {
+    try {
+      const { data: leadRows } = await supabase
+        .from("registration_leads")
+        .select("email, competitor_block_count, competitor_block_last_at, competitor_block_domain")
+        .in("email", candidates.map((c) => c.email))
+        .gt("competitor_block_count", 0);
+      for (const l of (leadRows ?? []) as Array<{
+        email: string;
+        competitor_block_count: number | null;
+        competitor_block_last_at: string | null;
+        competitor_block_domain: string | null;
+      }>) {
+        blocks.set((l.email ?? "").toLowerCase(), {
+          count: l.competitor_block_count ?? 0,
+          domain: l.competitor_block_domain,
+          lastAt: l.competitor_block_last_at,
+        });
+      }
+    } catch (e) {
+      console.warn("[admin-stranded-accounts] competitor block lookup failed:", e);
+    }
+  }
+
   const checked = await mapLimited(candidates, 4, async (r) => {
     const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, r.email);
     const activationError = (() => {
@@ -470,6 +498,11 @@ Deno.serve(async (req: Request) => {
       const hit = log.find((l) => /activation|password/i.test(l.step ?? "") || /activation|customerRecover/i.test(l.message ?? ""));
       return hit ? `${hit.step}: ${(hit.message ?? "").slice(0, 140)}` : null;
     })();
+    const competitorLog = (() => {
+      const log = Array.isArray(r.error_log) ? (r.error_log as Array<{ step?: string; message?: string }>) : [];
+      return log.some((l) => (l.step ?? "") === "competitor_email");
+    })();
+    const block = blocks.get(r.email) ?? null;
     return {
       email: r.email,
       submissionStatus: r.status,
@@ -478,9 +511,14 @@ Deno.serve(async (req: Request) => {
       shopifyState: cust?.state ?? "not_found",
       ordersCount: cust?.orders_count ?? 0,
       activationError,
+      competitorBlocked: !!block || competitorLog,
+      competitorBlockCount: block?.count ?? (competitorLog ? 1 : 0),
+      competitorBlockDomain: block?.domain ?? null,
+      competitorBlockLastAt: block?.lastAt ?? null,
       needsPassword: !!cust && (cust.state === "invited" || cust.state === "disabled"),
     };
   });
+
 
   const stranded = checked.filter((c) => c.needsPassword);
   const tally: Record<string, number> = {};

@@ -16,8 +16,13 @@ interface CheckedRow {
   shopifyState: string;
   ordersCount: number;
   activationError: string | null;
+  competitorBlocked?: boolean;
+  competitorBlockCount?: number;
+  competitorBlockDomain?: string | null;
+  competitorBlockLastAt?: string | null;
   needsPassword: boolean;
 }
+
 
 interface AuditResp {
   success: boolean;
@@ -349,6 +354,16 @@ export function StrandedAccountsPanel({ adminToken }: Props) {
                     {s.activationError && (
                       <span className="text-muted-foreground/70 basis-full font-mono">{s.activationError}</span>
                     )}
+                    {s.competitorBlocked && (
+                      <span className="basis-full text-destructive">
+                        Competitor block{s.competitorBlockDomain ? `: ${s.competitorBlockDomain}` : ""}
+                        {s.competitorBlockCount ? ` · ${s.competitorBlockCount}x` : ""}
+                        {s.competitorBlockLastAt
+                          ? ` · last ${new Date(s.competitorBlockLastAt).toLocaleDateString()}`
+                          : ""}
+                      </span>
+                    )}
+
                   </li>
                 ))}
               </ul>
