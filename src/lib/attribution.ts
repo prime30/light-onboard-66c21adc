@@ -131,18 +131,49 @@ function signalsFromSearch(search: string, landingUrl?: string | null) {
   };
 }
 
+/**
+ * Campaign params carried on a referring URL. When the applicant lands on the
+ * storefront with ?utm_source=...&fbclid=... and then taps through to the
+ * registration app, our own URL is clean and the only surviving copy of those
+ * params is the referrer, so we parse it as a fallback.
+ */
+function signalsFromUrlString(url: string | null | undefined) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (!parsed.search) return null;
+    return signalsFromSearch(parsed.search, url);
+  } catch {
+    return null;
+  }
+}
+
 /** Capture whatever the SPA URL and referrer already carry. */
 export function captureAttributionFromUrl(): void {
   if (typeof window === "undefined") return;
   try {
+    const referrer = typeof document !== "undefined" ? document.referrer || null : null;
+    const own = signalsFromSearch(window.location.search);
+    const fromReferrer = signalsFromUrlString(referrer);
     recordAttributionSignals({
-      ...signalsFromSearch(window.location.search),
-      referrer: typeof document !== "undefined" ? document.referrer || null : null,
+      utmSource: own.utmSource ?? fromReferrer?.utmSource,
+      utmMedium: own.utmMedium ?? fromReferrer?.utmMedium,
+      utmCampaign: own.utmCampaign ?? fromReferrer?.utmCampaign,
+      utmContent: own.utmContent ?? fromReferrer?.utmContent,
+      utmTerm: own.utmTerm ?? fromReferrer?.utmTerm,
+      fbclid: own.fbclid ?? fromReferrer?.fbclid,
+      gclid: own.gclid ?? fromReferrer?.gclid,
+      gbraid: own.gbraid ?? fromReferrer?.gbraid,
+      wbraid: own.wbraid ?? fromReferrer?.wbraid,
+      ttclid: own.ttclid ?? fromReferrer?.ttclid,
+      landingUrl: fromReferrer?.landingUrl,
+      referrer,
     });
   } catch {
     // Malformed URL - ignore.
   }
 }
+
 
 /**
  * Capture campaign signals out of a META_CONTEXT payload. The theme sends the
