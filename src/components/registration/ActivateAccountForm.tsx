@@ -232,8 +232,10 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       if (errorMsg.includes("already been activated") || errorMsg.includes("already active")) {
         setFormState("already-active");
       } else if (errorMsg.includes("expired")) {
+        clearResetParams();
         setFormState("expired");
       } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        clearResetParams();
         setFormState("invalid");
       } else if (failResult.statusCode === 429) {
         setFormState("rate-limited");
