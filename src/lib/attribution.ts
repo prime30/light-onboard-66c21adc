@@ -173,6 +173,7 @@ export function captureAttributionFromUrl(): void {
       gbraid: own.gbraid ?? fromReferrer?.gbraid,
       wbraid: own.wbraid ?? fromReferrer?.wbraid,
       ttclid: own.ttclid ?? fromReferrer?.ttclid,
+      affiliateRef: own.affiliateRef ?? fromReferrer?.affiliateRef,
       landingUrl: fromReferrer?.landingUrl,
       referrer,
     });
