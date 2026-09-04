@@ -19,6 +19,7 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { clearResetParams } from "@/lib/reset-params";
 import { getDeviceContext } from "@/lib/device-context";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { ActivationRecovery } from "./ActivationRecovery";
@@ -132,6 +133,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
       clearResetEmailHint();
+      // Link is single use: drop the stashed params so a later visit without
+      // params never replays a consumed token.
+      clearResetParams();
 
       setResetCustomer({
         firstName: payload?.firstName ?? null,
@@ -235,8 +239,10 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
       if (errorMsg.includes("expired")) {
+        clearResetParams();
         setFormState("expired");
       } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        clearResetParams();
         setFormState("invalid");
       } else if (failResult.statusCode === 429) {
         setFormState("rate-limited");

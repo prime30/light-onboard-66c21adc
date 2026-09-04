@@ -17,17 +17,21 @@ export function ResetPasswordPage() {
   // used to surface as a bogus "link incomplete" screen.
   const resolved = useMemo(
     () =>
-      resolveResetParams({
-        token: searchParams.get("token"),
-        customerId: searchParams.get("customer_id"),
-        resetUrl: searchParams.get("reset_url") || searchParams.get("url"),
-        emailHint:
-          searchParams.get("email_hint") ||
-          searchParams.get("email") ||
-          searchParams.get("customer_email"),
-      }),
+      resolveResetParams(
+        {
+          token: searchParams.get("token"),
+          customerId: searchParams.get("customer_id"),
+          resetUrl: searchParams.get("reset_url") || searchParams.get("url"),
+          emailHint:
+            searchParams.get("email_hint") ||
+            searchParams.get("email") ||
+            searchParams.get("customer_email"),
+        },
+        { kind: "reset", fresh: searchParams.has("fresh") }
+      ),
     [searchParams]
   );
+
   const token = resolved.token ?? null;
   const customerId = resolved.customerId ?? null;
   const resetUrl = resolved.resetUrl ?? null;

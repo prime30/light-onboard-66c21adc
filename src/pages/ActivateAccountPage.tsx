@@ -22,14 +22,18 @@ export function ActivateAccountPage() {
   // browser session reset does not turn a valid link into a dead end.
   const resolved = useMemo(
     () =>
-      resolveResetParams({
-        activationUrl: searchParams.get("activation_url"),
-        token: searchParams.get("token"),
-        customerId: searchParams.get("customer_id"),
-        emailHint: searchParams.get("email_hint") || searchParams.get("email"),
-      }),
+      resolveResetParams(
+        {
+          activationUrl: searchParams.get("activation_url"),
+          token: searchParams.get("token"),
+          customerId: searchParams.get("customer_id"),
+          emailHint: searchParams.get("email_hint") || searchParams.get("email"),
+        },
+        { kind: "activation", fresh: searchParams.has("fresh") }
+      ),
     [searchParams]
   );
+
   const { token, customerId, activationUrl, emailHint } = resolved;
 
   useEffect(() => {

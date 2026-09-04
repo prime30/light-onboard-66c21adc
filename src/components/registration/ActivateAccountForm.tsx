@@ -21,6 +21,7 @@ import { ActivationRecovery } from "./ActivationRecovery";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
+import { clearResetParams } from "@/lib/reset-params";
 import { getDeviceContext } from "@/lib/device-context";
 
 // fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
@@ -112,6 +113,9 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         payload?.email ?? getResetEmailHint() ?? null;
       const customerFirstName = payload?.firstName ?? null;
       clearResetEmailHint();
+      // Link is single use: drop the stashed params so a later visit without
+      // params never replays a consumed token.
+      clearResetParams();
 
       setActivatedEmail(customerEmail);
       sendMessage("ACCOUNT_ACTIVATED", { customerId, email: customerEmail });
@@ -228,8 +232,10 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       if (errorMsg.includes("already been activated") || errorMsg.includes("already active")) {
         setFormState("already-active");
       } else if (errorMsg.includes("expired")) {
+        clearResetParams();
         setFormState("expired");
       } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        clearResetParams();
         setFormState("invalid");
       } else if (failResult.statusCode === 429) {
         setFormState("rate-limited");
