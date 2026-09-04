@@ -67,7 +67,7 @@ function ConflictPills({ navigate }: { navigate: (to: string) => void }) {
       </button>
       <button
         type="button"
-        onClick={() => navigate("/reset-password")}
+        onClick={() => navigate("/reset-password?fresh=1")}
         className="group/reset inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-muted/60 hover:bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors"
       >
         <span>Forgot password?</span>
