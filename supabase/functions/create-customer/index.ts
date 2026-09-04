@@ -306,15 +306,41 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
     const t = v.trim();
     return t && t.length <= 400 ? t : null;
   };
-  const utmSource = str(raw?.utmSource);
-  const utmMedium = str(raw?.utmMedium);
-  const utmCampaign = str(raw?.utmCampaign);
-  const fbclid = str(raw?.fbclid);
-  const gclid = str(raw?.gclid);
-  const gbraid = str(raw?.gbraid);
-  const wbraid = str(raw?.wbraid);
+  // Campaign params usually land on the storefront URL, not on the registration
+  // app URL, so the referrer is often the only surviving copy of them.
+  const referrer = str(raw?.referrer);
+  const landingUrl = str(raw?.landingUrl);
+  const paramsFrom = (url: string | null): URLSearchParams | null => {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      return parsed.search ? parsed.searchParams : null;
+    } catch {
+      return null;
+    }
+  };
+  const fallbacks = [paramsFrom(landingUrl), paramsFrom(referrer)].filter(
+    (p): p is URLSearchParams => Boolean(p),
+  );
+  const pick = (value: string | null, key: string): string | null => {
+    if (value) return value;
+    for (const params of fallbacks) {
+      const found = str(params.get(key));
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const utmSource = pick(str(raw?.utmSource), "utm_source");
+  const utmMedium = pick(str(raw?.utmMedium), "utm_medium");
+  const utmCampaign = pick(str(raw?.utmCampaign), "utm_campaign");
+  const fbclid = pick(str(raw?.fbclid), "fbclid");
+  const gclid = pick(str(raw?.gclid), "gclid");
+  const gbraid = pick(str(raw?.gbraid), "gbraid");
+  const wbraid = pick(str(raw?.wbraid), "wbraid");
   const googleClickId = gbraid ?? wbraid;
-  const ttclid = str(raw?.ttclid);
+  const ttclid = pick(str(raw?.ttclid), "ttclid");
+
 
   const source = (utmSource ?? "").toLowerCase();
   const medium = (utmMedium ?? "").toLowerCase();
