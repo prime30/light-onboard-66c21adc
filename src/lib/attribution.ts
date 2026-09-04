@@ -94,6 +94,7 @@ export function recordAttributionSignals(input: {
   gbraid?: unknown;
   wbraid?: unknown;
   ttclid?: unknown;
+  affiliateRef?: unknown;
   landingUrl?: unknown;
   referrer?: unknown;
 }): void {
@@ -109,6 +110,7 @@ export function recordAttributionSignals(input: {
     gbraid: cached.gbraid ?? clean(input.gbraid),
     wbraid: cached.wbraid ?? clean(input.wbraid),
     ttclid: cached.ttclid ?? clean(input.ttclid),
+    affiliateRef: cached.affiliateRef ?? clean(input.affiliateRef),
     landingUrl: cached.landingUrl ?? clean(input.landingUrl),
     referrer: cached.referrer ?? clean(input.referrer),
   };
