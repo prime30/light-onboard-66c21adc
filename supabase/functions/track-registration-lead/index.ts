@@ -53,6 +53,9 @@ interface Payload {
   /** Ad / campaign channel for this visit, from src/lib/attribution.ts. */
   attributionChannel?: string | null;
   attributionCampaign?: string | null;
+  /** Full referring URL / storefront landing URL, kept for spot checks. */
+  attributionReferrer?: string | null;
+  attributionLandingUrl?: string | null;
 }
 
 
@@ -148,6 +151,7 @@ Deno.serve(async (req: Request) => {
   // stable for the visit because it comes from the SPA's sessionStorage cache.
   const ATTRIBUTION_CHANNELS = [
     "meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid",
+    "meta_click", "google_click", "tiktok_click",
     "email", "organic_social", "campaign", "direct",
   ];
   const attributionChannel =
@@ -158,6 +162,14 @@ Deno.serve(async (req: Request) => {
     typeof payload.attributionCampaign === "string" && payload.attributionCampaign.trim().length > 0
       ? payload.attributionCampaign.trim().slice(0, 200)
       : null;
+  const cleanUrl = (v: unknown): string | null => {
+    if (typeof v !== "string") return null;
+    const t = v.trim();
+    if (!t || !/^https?:\/\//i.test(t)) return null;
+    return t.slice(0, 1000);
+  };
+  const attributionReferrer = cleanUrl(payload.attributionReferrer);
+  const attributionLandingUrl = cleanUrl(payload.attributionLandingUrl);
 
 
   // Capture lightweight request metadata for audit.
@@ -200,6 +212,8 @@ Deno.serve(async (req: Request) => {
     if (countryCode) upsertBody.country_code = countryCode;
     if (attributionChannel) upsertBody.attribution_channel = attributionChannel;
     if (attributionCampaign) upsertBody.attribution_campaign = attributionCampaign;
+    if (attributionReferrer) upsertBody.attribution_referrer = attributionReferrer;
+    if (attributionLandingUrl) upsertBody.attribution_landing_url = attributionLandingUrl;
 
     // ---- Prefix-typing dedupe ----
     // Users typing their email blur the field mid-type ("@yahoo.c", "@yahoo.co",

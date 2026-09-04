@@ -138,6 +138,10 @@ Deno.serve(async (req: Request) => {
   let paidCompleted = 0;
   let socialClickTotal = 0;
   let socialClickCompleted = 0;
+  // Ad-ish visits (any click id or campaign param) split by whether the link
+  // carried a utm_campaign tag. Untagged ad clicks cannot be credited reliably.
+  let taggedClicks = 0;
+  let untaggedClicks = 0;
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
@@ -173,6 +177,21 @@ Deno.serve(async (req: Request) => {
     } else if (SOCIAL_CLICK_CHANNELS.has(channel)) {
       socialClickTotal += 1;
       if (completed) socialClickCompleted += 1;
+    }
+
+    const hasClickId = Boolean(
+      attr &&
+        (attr.fbclid || attr.gclid || attr.gbraid || attr.wbraid || attr.ttclid),
+    );
+    const hasCampaignTag = Boolean(
+      attr && typeof attr.utmCampaign === "string" && attr.utmCampaign.trim(),
+    );
+    const hasAnyUtm = Boolean(
+      attr && (attr.utmSource || attr.utmMedium || attr.utmCampaign),
+    );
+    if (hasClickId || hasAnyUtm) {
+      if (hasCampaignTag) taggedClicks += 1;
+      else untaggedClicks += 1;
     }
 
     const day = (row.created_at ?? "").slice(0, 10);
@@ -223,6 +242,12 @@ Deno.serve(async (req: Request) => {
     socialClickTotal,
     socialClickCompleted,
     socialClickShare: total === 0 ? 0 : Math.round((socialClickTotal / total) * 1000) / 10,
+    taggedClicks,
+    untaggedClicks,
+    taggedShare:
+      taggedClicks + untaggedClicks === 0
+        ? 0
+        : Math.round((taggedClicks / (taggedClicks + untaggedClicks)) * 1000) / 10,
     channels,
     campaigns,
     byAccountType,

@@ -31,6 +31,9 @@ type Data = {
   socialClickTotal: number;
   socialClickCompleted: number;
   socialClickShare: number;
+  taggedClicks?: number;
+  untaggedClicks?: number;
+  taggedShare?: number;
   channels: ChannelRow[];
   campaigns: CampaignRow[];
   timeline?: TimelineRow[];
@@ -158,6 +161,33 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
             Social link clicks are free in-app taps from Facebook, Instagram or TikTok
             (fbclid / ttclid without paid campaign params). They are never counted as ads.
           </p>
+
+          {(() => {
+            const tagged = data.taggedClicks ?? 0;
+            const untagged = data.untaggedClicks ?? 0;
+            const sum = tagged + untagged;
+            if (sum === 0) return null;
+            const pct = data.taggedShare ?? 0;
+            return (
+              <div className="space-y-1.5 rounded-[10px] bg-muted/40 p-3">
+                <div className="flex items-center justify-between text-[12px]">
+                  <span>Tagged ad clicks vs untagged</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {tagged} tagged · {untagged} untagged · {pct}% tagged
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden flex">
+                  <div className="h-full bg-foreground" style={{ width: `${(tagged / sum) * 100}%` }} />
+                  <div className="h-full bg-foreground/25" style={{ width: `${(untagged / sum) * 100}%` }} />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Untagged means the visit arrived with a click id or source but no
+                  utm_campaign, so it cannot be credited to a specific ad. Add
+                  utm_campaign to every ad link to shrink this number.
+                </p>
+              </div>
+            );
+          })()}
 
           <div className="space-y-1.5">
             {data.channels.length === 0 ? (
