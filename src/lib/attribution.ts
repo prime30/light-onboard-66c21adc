@@ -182,30 +182,27 @@ export function captureAttributionFromUrl(): void {
  */
 export function captureAttributionFromParentPayload(data: Record<string, unknown>): void {
   const parentUrl = clean(data.parent_url) ?? clean(data.landing_url) ?? clean(data.pageUrl);
-  let fromParentUrl: ReturnType<typeof signalsFromSearch> | null = null;
-  if (parentUrl) {
-    try {
-      fromParentUrl = signalsFromSearch(new URL(parentUrl).search, parentUrl);
-    } catch {
-      fromParentUrl = null;
-    }
-  }
+  const fromParentUrl = signalsFromUrlString(parentUrl);
+  // The storefront referrer is the last place the ad params survive when the
+  // visitor already navigated a page or two before opening registration.
+  const fromReferrer = signalsFromUrlString(clean(data.referrer));
   recordAttributionSignals({
     // Explicit fields the theme forwards win over parsing its URL.
-    utmSource: data.utm_source ?? data.utmSource ?? fromParentUrl?.utmSource,
-    utmMedium: data.utm_medium ?? data.utmMedium ?? fromParentUrl?.utmMedium,
-    utmCampaign: data.utm_campaign ?? data.utmCampaign ?? fromParentUrl?.utmCampaign,
-    utmContent: data.utm_content ?? data.utmContent ?? fromParentUrl?.utmContent,
-    utmTerm: data.utm_term ?? data.utmTerm ?? fromParentUrl?.utmTerm,
-    fbclid: data.fbclid ?? fromParentUrl?.fbclid,
-    gclid: data.gclid ?? fromParentUrl?.gclid,
-    gbraid: data.gbraid ?? fromParentUrl?.gbraid,
-    wbraid: data.wbraid ?? fromParentUrl?.wbraid,
-    ttclid: data.ttclid ?? fromParentUrl?.ttclid,
-    landingUrl: parentUrl,
+    utmSource: data.utm_source ?? data.utmSource ?? fromParentUrl?.utmSource ?? fromReferrer?.utmSource,
+    utmMedium: data.utm_medium ?? data.utmMedium ?? fromParentUrl?.utmMedium ?? fromReferrer?.utmMedium,
+    utmCampaign: data.utm_campaign ?? data.utmCampaign ?? fromParentUrl?.utmCampaign ?? fromReferrer?.utmCampaign,
+    utmContent: data.utm_content ?? data.utmContent ?? fromParentUrl?.utmContent ?? fromReferrer?.utmContent,
+    utmTerm: data.utm_term ?? data.utmTerm ?? fromParentUrl?.utmTerm ?? fromReferrer?.utmTerm,
+    fbclid: data.fbclid ?? fromParentUrl?.fbclid ?? fromReferrer?.fbclid,
+    gclid: data.gclid ?? fromParentUrl?.gclid ?? fromReferrer?.gclid,
+    gbraid: data.gbraid ?? fromParentUrl?.gbraid ?? fromReferrer?.gbraid,
+    wbraid: data.wbraid ?? fromParentUrl?.wbraid ?? fromReferrer?.wbraid,
+    ttclid: data.ttclid ?? fromParentUrl?.ttclid ?? fromReferrer?.ttclid,
+    landingUrl: parentUrl ?? fromReferrer?.landingUrl,
     referrer: data.referrer,
   });
 }
+
 
 const PAID_MEDIUMS = new Set([
   "cpc",
