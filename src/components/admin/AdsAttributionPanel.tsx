@@ -31,6 +31,9 @@ type Data = {
   socialClickTotal: number;
   socialClickCompleted: number;
   socialClickShare: number;
+  taggedClicks?: number;
+  untaggedClicks?: number;
+  taggedShare?: number;
   channels: ChannelRow[];
   campaigns: CampaignRow[];
   timeline?: TimelineRow[];
