@@ -131,6 +131,9 @@ function signalsFromSearch(search: string, landingUrl?: string | null) {
     gbraid: p.get("gbraid"),
     wbraid: p.get("wbraid"),
     ttclid: p.get("ttclid"),
+    // UpPromote uses sca_ref; other affiliate apps use ref / aff / via.
+    affiliateRef:
+      p.get("sca_ref") ?? p.get("ref") ?? p.get("aff") ?? p.get("affiliate") ?? p.get("via"),
     landingUrl: landingUrl ?? null,
   };
 }
