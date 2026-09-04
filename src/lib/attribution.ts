@@ -262,10 +262,14 @@ export function getAttributionContext(): AttributionContext {
 export function getLeadAttributionFields(): {
   attributionChannel: string;
   attributionCampaign: string | null;
+  attributionReferrer: string | null;
+  attributionLandingUrl: string | null;
 } {
   const ctx = getAttributionContext();
   return {
     attributionChannel: ctx.channel,
     attributionCampaign: ctx.utmCampaign ?? ctx.utmSource ?? null,
+    attributionReferrer: ctx.referrer ?? null,
+    attributionLandingUrl: ctx.landingUrl ?? null,
   };
 }
