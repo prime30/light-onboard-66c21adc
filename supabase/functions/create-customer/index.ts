@@ -376,18 +376,19 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
     utmSource,
     utmMedium,
     utmCampaign,
-    utmContent: str(raw?.utmContent),
-    utmTerm: str(raw?.utmTerm),
+    utmContent: pick(str(raw?.utmContent), "utm_content"),
+    utmTerm: pick(str(raw?.utmTerm), "utm_term"),
     fbclid,
     gclid,
     gbraid,
     wbraid,
     ttclid,
-    landingUrl: str(raw?.landingUrl),
-    referrer: str(raw?.referrer),
+    landingUrl,
+    referrer,
     isPaidAds: ["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"].includes(channel),
   };
 }
+
 
 /** One-line summary used in the Shopify note and the Slack message. */
 function attributionSummary(a: NormalizedAttribution): string {
