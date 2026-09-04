@@ -215,6 +215,8 @@ export function captureAttributionFromParentPayload(data: Record<string, unknown
     gbraid: data.gbraid ?? fromParentUrl?.gbraid ?? fromReferrer?.gbraid,
     wbraid: data.wbraid ?? fromParentUrl?.wbraid ?? fromReferrer?.wbraid,
     ttclid: data.ttclid ?? fromParentUrl?.ttclid ?? fromReferrer?.ttclid,
+    affiliateRef:
+      data.sca_ref ?? data.affiliateRef ?? fromParentUrl?.affiliateRef ?? fromReferrer?.affiliateRef,
     landingUrl: firstLandingUrl ?? parentUrl ?? fromReferrer?.landingUrl,
     referrer: data.referrer,
   });
