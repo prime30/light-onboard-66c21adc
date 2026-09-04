@@ -51,6 +51,7 @@ export type AttributionChannel =
   | "other_paid"
   | "email"
   | "organic_social"
+  | "affiliate"
   | "campaign"
   | "direct";
 
@@ -264,6 +265,8 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   if (signals.fbclid) return "meta_click";
   if (signals.ttclid) return "tiktok_click";
   if (googleClickId) return "google_click";
+  // Affiliate / creator referral links (UpPromote sca_ref and friends).
+  if (signals.affiliateRef) return "affiliate";
   if (source || medium || campaign) return "campaign";
   return "direct";
 }
@@ -287,7 +290,10 @@ export function getLeadAttributionFields(): {
   const ctx = getAttributionContext();
   return {
     attributionChannel: ctx.channel,
-    attributionCampaign: ctx.utmCampaign ?? ctx.utmSource ?? null,
+    attributionCampaign:
+      ctx.utmCampaign ??
+      ctx.utmSource ??
+      (ctx.affiliateRef ? `affiliate:${ctx.affiliateRef}` : null),
     attributionReferrer: ctx.referrer ?? null,
     attributionLandingUrl: ctx.landingUrl ?? null,
   };
