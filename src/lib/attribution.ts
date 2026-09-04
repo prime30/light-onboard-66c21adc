@@ -182,7 +182,16 @@ export function captureAttributionFromUrl(): void {
  */
 export function captureAttributionFromParentPayload(data: Record<string, unknown>): void {
   const parentUrl = clean(data.parent_url) ?? clean(data.landing_url) ?? clean(data.pageUrl);
-  const fromParentUrl = signalsFromUrlString(parentUrl);
+  // The storefront's remembered FIRST landing URL of the session. This is the
+  // only copy of the ad params once the shopper browsed a page or two before
+  // opening registration, so it wins over the current parent URL.
+  const firstLandingUrl =
+    clean(data.first_landing_url) ??
+    clean(data.firstLandingUrl) ??
+    clean(data.entry_url) ??
+    clean(data.session_landing_url);
+  const fromParentUrl =
+    signalsFromUrlString(firstLandingUrl) ?? signalsFromUrlString(parentUrl);
   // The storefront referrer is the last place the ad params survive when the
   // visitor already navigated a page or two before opening registration.
   const fromReferrer = signalsFromUrlString(clean(data.referrer));
