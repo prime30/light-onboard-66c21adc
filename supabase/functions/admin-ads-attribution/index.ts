@@ -24,6 +24,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   other_paid: "Other paid",
   email: "Email / Klaviyo",
   organic_social: "Organic social",
+  affiliate: "Affiliate / creator referral link",
   campaign: "Tagged link",
   direct: "Direct / organic",
   untracked: "Untracked (before tracking)",

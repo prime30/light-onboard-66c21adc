@@ -152,7 +152,7 @@ Deno.serve(async (req: Request) => {
   const ATTRIBUTION_CHANNELS = [
     "meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid",
     "meta_click", "google_click", "tiktok_click",
-    "email", "organic_social", "campaign", "direct",
+    "email", "organic_social", "affiliate", "campaign", "direct",
   ];
   const attributionChannel =
     typeof payload.attributionChannel === "string" && ATTRIBUTION_CHANNELS.includes(payload.attributionChannel)

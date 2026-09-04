@@ -33,6 +33,8 @@ export type AttributionContext = {
   gbraid?: string | null;
   wbraid?: string | null;
   ttclid?: string | null;
+  /** UpPromote / affiliate referral id (sca_ref, ref, aff, via). */
+  affiliateRef?: string | null;
   /** Storefront page (or referrer) the applicant came from. */
   landingUrl?: string | null;
   referrer?: string | null;
@@ -49,6 +51,7 @@ export type AttributionChannel =
   | "other_paid"
   | "email"
   | "organic_social"
+  | "affiliate"
   | "campaign"
   | "direct";
 
@@ -92,6 +95,7 @@ export function recordAttributionSignals(input: {
   gbraid?: unknown;
   wbraid?: unknown;
   ttclid?: unknown;
+  affiliateRef?: unknown;
   landingUrl?: unknown;
   referrer?: unknown;
 }): void {
@@ -107,6 +111,7 @@ export function recordAttributionSignals(input: {
     gbraid: cached.gbraid ?? clean(input.gbraid),
     wbraid: cached.wbraid ?? clean(input.wbraid),
     ttclid: cached.ttclid ?? clean(input.ttclid),
+    affiliateRef: cached.affiliateRef ?? clean(input.affiliateRef),
     landingUrl: cached.landingUrl ?? clean(input.landingUrl),
     referrer: cached.referrer ?? clean(input.referrer),
   };
@@ -127,6 +132,9 @@ function signalsFromSearch(search: string, landingUrl?: string | null) {
     gbraid: p.get("gbraid"),
     wbraid: p.get("wbraid"),
     ttclid: p.get("ttclid"),
+    // UpPromote uses sca_ref; other affiliate apps use ref / aff / via.
+    affiliateRef:
+      p.get("sca_ref") ?? p.get("ref") ?? p.get("aff") ?? p.get("affiliate") ?? p.get("via"),
     landingUrl: landingUrl ?? null,
   };
 }
@@ -166,6 +174,7 @@ export function captureAttributionFromUrl(): void {
       gbraid: own.gbraid ?? fromReferrer?.gbraid,
       wbraid: own.wbraid ?? fromReferrer?.wbraid,
       ttclid: own.ttclid ?? fromReferrer?.ttclid,
+      affiliateRef: own.affiliateRef ?? fromReferrer?.affiliateRef,
       landingUrl: fromReferrer?.landingUrl,
       referrer,
     });
@@ -207,6 +216,8 @@ export function captureAttributionFromParentPayload(data: Record<string, unknown
     gbraid: data.gbraid ?? fromParentUrl?.gbraid ?? fromReferrer?.gbraid,
     wbraid: data.wbraid ?? fromParentUrl?.wbraid ?? fromReferrer?.wbraid,
     ttclid: data.ttclid ?? fromParentUrl?.ttclid ?? fromReferrer?.ttclid,
+    affiliateRef:
+      data.sca_ref ?? data.affiliateRef ?? fromParentUrl?.affiliateRef ?? fromReferrer?.affiliateRef,
     landingUrl: firstLandingUrl ?? parentUrl ?? fromReferrer?.landingUrl,
     referrer: data.referrer,
   });
@@ -254,6 +265,8 @@ export function classifyAttribution(signals: CachedAttribution): AttributionChan
   if (signals.fbclid) return "meta_click";
   if (signals.ttclid) return "tiktok_click";
   if (googleClickId) return "google_click";
+  // Affiliate / creator referral links (UpPromote sca_ref and friends).
+  if (signals.affiliateRef) return "affiliate";
   if (source || medium || campaign) return "campaign";
   return "direct";
 }
@@ -277,7 +290,10 @@ export function getLeadAttributionFields(): {
   const ctx = getAttributionContext();
   return {
     attributionChannel: ctx.channel,
-    attributionCampaign: ctx.utmCampaign ?? ctx.utmSource ?? null,
+    attributionCampaign:
+      ctx.utmCampaign ??
+      ctx.utmSource ??
+      (ctx.affiliateRef ? `affiliate:${ctx.affiliateRef}` : null),
     attributionReferrer: ctx.referrer ?? null,
     attributionLandingUrl: ctx.landingUrl ?? null,
   };
