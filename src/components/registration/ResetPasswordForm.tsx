@@ -239,8 +239,10 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
       if (errorMsg.includes("expired")) {
+        clearResetParams();
         setFormState("expired");
       } else if (errorMsg.includes("invalid") || errorMsg.includes("already been used")) {
+        clearResetParams();
         setFormState("invalid");
       } else if (failResult.statusCode === 429) {
         setFormState("rate-limited");
