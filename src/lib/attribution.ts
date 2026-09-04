@@ -33,6 +33,8 @@ export type AttributionContext = {
   gbraid?: string | null;
   wbraid?: string | null;
   ttclid?: string | null;
+  /** UpPromote / affiliate referral id (sca_ref, ref, aff, via). */
+  affiliateRef?: string | null;
   /** Storefront page (or referrer) the applicant came from. */
   landingUrl?: string | null;
   referrer?: string | null;
