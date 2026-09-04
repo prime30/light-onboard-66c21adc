@@ -258,6 +258,7 @@ type AttributionClientContext = {
   gbraid?: unknown;
   wbraid?: unknown;
   ttclid?: unknown;
+  affiliateRef?: unknown;
   landingUrl?: unknown;
   referrer?: unknown;
 };
@@ -275,6 +276,7 @@ type NormalizedAttribution = {
   gbraid: string | null;
   wbraid: string | null;
   ttclid: string | null;
+  affiliateRef: string | null;
   landingUrl: string | null;
   referrer: string | null;
   isPaidAds: boolean;
@@ -291,6 +293,7 @@ const ATTRIBUTION_LABELS: Record<string, string> = {
   other_paid: "Other paid campaign",
   email: "Email / Klaviyo",
   organic_social: "Organic social",
+  affiliate: "Affiliate / creator referral link",
   campaign: "Tagged link (non-paid)",
   direct: "Direct / organic",
 };
@@ -340,6 +343,13 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   const wbraid = pick(str(raw?.wbraid), "wbraid");
   const googleClickId = gbraid ?? wbraid;
   const ttclid = pick(str(raw?.ttclid), "ttclid");
+  // UpPromote appends sca_ref to affiliate and creator links.
+  const affiliateRef =
+    pick(str(raw?.affiliateRef), "sca_ref") ??
+    pick(null, "ref") ??
+    pick(null, "aff") ??
+    pick(null, "affiliate") ??
+    pick(null, "via");
 
 
   const source = (utmSource ?? "").toLowerCase();
@@ -368,6 +378,7 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
   else if (fbclid) channel = "meta_click";
   else if (ttclid) channel = "tiktok_click";
   else if (googleClickId) channel = "google_click";
+  else if (affiliateRef) channel = "affiliate";
   else if (source || medium || campaign) channel = "campaign";
 
   return {
@@ -383,6 +394,7 @@ function normalizeAttribution(raw: AttributionClientContext | null | undefined):
     gbraid,
     wbraid,
     ttclid,
+    affiliateRef,
     landingUrl,
     referrer,
     isPaidAds: ["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"].includes(channel),
@@ -397,6 +409,7 @@ function attributionSummary(a: NormalizedAttribution): string {
   if (a.utmContent) bits.push(`ad: ${a.utmContent}`);
   else if (a.utmTerm) bits.push(`term: ${a.utmTerm}`);
   if (!a.utmCampaign && a.utmSource) bits.push(`source: ${a.utmSource}`);
+  if (a.affiliateRef) bits.push(`affiliate ref: ${a.affiliateRef}`);
   return bits.join(" · ");
 }
 
