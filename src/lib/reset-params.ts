@@ -12,6 +12,10 @@
 const KEY = "dd:reset-params";
 const MAX_AGE_MS = 60 * 60 * 1000; // 1 hour, matches Shopify link lifetime.
 
+/** Which flow the stashed link belongs to. A reset token is never a valid
+ * activation token (and vice versa), so the stash is scoped. */
+export type ResetParamsKind = "reset" | "activation";
+
 export interface ResetParams {
   resetUrl?: string | null;
   activationUrl?: string | null;
@@ -22,7 +26,9 @@ export interface ResetParams {
 
 interface StoredResetParams extends ResetParams {
   savedAt: number;
+  kind?: ResetParamsKind;
 }
+
 
 function stores(): Storage[] {
   const list: Storage[] = [];
