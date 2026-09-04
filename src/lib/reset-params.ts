@@ -49,9 +49,9 @@ function hasAny(params: ResetParams): boolean {
   return !!(params.resetUrl || params.activationUrl || (params.token && params.customerId));
 }
 
-export function saveResetParams(params: ResetParams): void {
+export function saveResetParams(params: ResetParams, kind?: ResetParamsKind): void {
   if (!hasAny(params)) return;
-  const payload: StoredResetParams = { ...params, savedAt: Date.now() };
+  const payload: StoredResetParams = { ...params, kind, savedAt: Date.now() };
   const serialized = JSON.stringify(payload);
   for (const store of stores()) {
     try {
@@ -62,7 +62,7 @@ export function saveResetParams(params: ResetParams): void {
   }
 }
 
-export function readResetParams(): ResetParams | null {
+export function readResetParams(kind?: ResetParamsKind): ResetParams | null {
   for (const store of stores()) {
     try {
       const raw = store.getItem(KEY);
@@ -72,6 +72,8 @@ export function readResetParams(): ResetParams | null {
         store.removeItem(KEY);
         continue;
       }
+      // Never hand a reset link to the activation flow or the reverse.
+      if (kind && parsed.kind && parsed.kind !== kind) continue;
       if (!hasAny(parsed)) continue;
       return parsed;
     } catch {
@@ -95,13 +97,25 @@ export function clearResetParams(): void {
  * Merges the params found in the URL with anything previously stashed.
  * URL always wins. Anything present is re-persisted so a mid-flow reload or
  * an in-app browser session reset does not strand the user.
+ *
+ * The stash is scoped by flow, and it is skipped entirely when the caller
+ * signals a deliberately fresh start (for example the "Forgot password?"
+ * link), so a link that was already used is never silently reapplied.
  */
-export function resolveResetParams(fromUrl: ResetParams): ResetParams {
+export function resolveResetParams(
+  fromUrl: ResetParams,
+  options: { kind?: ResetParamsKind; fresh?: boolean } = {}
+): ResetParams {
+  const { kind, fresh } = options;
   if (hasAny(fromUrl)) {
-    saveResetParams(fromUrl);
+    saveResetParams(fromUrl, kind);
     return fromUrl;
   }
-  const stored = readResetParams();
+  if (fresh) {
+    clearResetParams();
+    return fromUrl;
+  }
+  const stored = readResetParams(kind);
   if (!stored) return fromUrl;
   return {
     resetUrl: fromUrl.resetUrl ?? stored.resetUrl ?? null,
@@ -111,3 +125,4 @@ export function resolveResetParams(fromUrl: ResetParams): ResetParams {
     emailHint: fromUrl.emailHint ?? stored.emailHint ?? null,
   };
 }
+
