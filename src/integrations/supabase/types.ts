@@ -358,6 +358,8 @@ export type Database = {
           account_type: string | null
           attribution_campaign: string | null
           attribution_channel: string | null
+          attribution_landing_url: string | null
+          attribution_referrer: string | null
           competitor_block_count: number
           competitor_block_domain: string | null
           competitor_block_last_at: string | null
@@ -401,6 +403,8 @@ export type Database = {
           account_type?: string | null
           attribution_campaign?: string | null
           attribution_channel?: string | null
+          attribution_landing_url?: string | null
+          attribution_referrer?: string | null
           competitor_block_count?: number
           competitor_block_domain?: string | null
           competitor_block_last_at?: string | null
@@ -444,6 +448,8 @@ export type Database = {
           account_type?: string | null
           attribution_campaign?: string | null
           attribution_channel?: string | null
+          attribution_landing_url?: string | null
+          attribution_referrer?: string | null
           competitor_block_count?: number
           competitor_block_domain?: string | null
           competitor_block_last_at?: string | null
