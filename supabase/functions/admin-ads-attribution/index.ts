@@ -143,6 +143,13 @@ Deno.serve(async (req: Request) => {
   // carried a utm_campaign tag. Untagged ad clicks cannot be credited reliably.
   let taggedClicks = 0;
   let untaggedClicks = 0;
+  // Affiliate / creator referral links (UpPromote sca_ref and friends).
+  let affiliateTotal = 0;
+  let affiliateCompleted = 0;
+  const refTally: Record<string, { total: number; completed: number; untaggedAd: number }> = {};
+  // Referral tag present on what looks like a paid ad link, but no utm_campaign
+  // tag, so the ad cannot be credited.
+  let refWithoutCampaign = 0;
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
@@ -193,6 +200,22 @@ Deno.serve(async (req: Request) => {
     if (hasClickId || hasAnyUtm) {
       if (hasCampaignTag) taggedClicks += 1;
       else untaggedClicks += 1;
+    }
+
+    const affiliateRef =
+      attr && typeof attr.affiliateRef === "string" && attr.affiliateRef.trim()
+        ? attr.affiliateRef.trim()
+        : null;
+    if (affiliateRef) {
+      affiliateTotal += 1;
+      if (completed) affiliateCompleted += 1;
+      refTally[affiliateRef] ??= { total: 0, completed: 0, untaggedAd: 0 };
+      refTally[affiliateRef].total += 1;
+      if (completed) refTally[affiliateRef].completed += 1;
+      if ((hasClickId || PAID_CHANNELS.has(channel)) && !hasCampaignTag) {
+        refWithoutCampaign += 1;
+        refTally[affiliateRef].untaggedAd += 1;
+      }
     }
 
     const day = (row.created_at ?? "").slice(0, 10);
@@ -249,6 +272,14 @@ Deno.serve(async (req: Request) => {
       taggedClicks + untaggedClicks === 0
         ? 0
         : Math.round((taggedClicks / (taggedClicks + untaggedClicks)) * 1000) / 10,
+    affiliateTotal,
+    affiliateCompleted,
+    affiliateShare: total === 0 ? 0 : Math.round((affiliateTotal / total) * 1000) / 10,
+    refWithoutCampaign,
+    topRefs: Object.entries(refTally)
+      .map(([ref, v]) => ({ ref, ...v }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 15),
     channels,
     campaigns,
     byAccountType,
