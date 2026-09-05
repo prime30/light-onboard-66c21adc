@@ -490,6 +490,20 @@ async function sendSlackApplicantsNotification(payload: {
     });
   }
 
+  // Affiliate signups: show the page the visitor came from so the team can
+  // tell the affiliate exactly which of their links or posts drove it.
+  if (payload.attribution?.affiliateRef && payload.attribution?.referrer) {
+    blocks.push({
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `Affiliate ${payload.attribution.affiliateRef} referred from: ${payload.attribution.referrer}`,
+        },
+      ],
+    });
+  }
+
   if (normalizedHandle) {
     blocks.push({
       type: "section",
