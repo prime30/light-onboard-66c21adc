@@ -34,9 +34,21 @@ type Data = {
   taggedClicks?: number;
   untaggedClicks?: number;
   taggedShare?: number;
+  affiliateTotal?: number;
+  affiliateCompleted?: number;
+  affiliateShare?: number;
+  refWithoutCampaign?: number;
+  topRefs?: RefRow[];
   channels: ChannelRow[];
   campaigns: CampaignRow[];
   timeline?: TimelineRow[];
+};
+
+type RefRow = {
+  ref: string;
+  total: number;
+  completed: number;
+  untaggedAd: number;
 };
 
 type TimelineRow = {
@@ -143,7 +155,7 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         )
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             <Stat label="Submissions" value={data.total.toString()} />
             <Stat label="Tracked" value={`${data.trackedRate}%`} />
             <Stat
@@ -155,6 +167,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               label="Social link clicks"
               value={(data.socialClickTotal ?? 0).toString()}
               hint={`${data.socialClickShare ?? 0}% of signups · ${data.socialClickCompleted ?? 0} completed`}
+            />
+            <Stat
+              label="Affiliate referrals"
+              value={(data.affiliateTotal ?? 0).toString()}
+              hint={`${data.affiliateShare ?? 0}% of signups · ${data.affiliateCompleted ?? 0} completed`}
             />
           </div>
           <p className="text-[11px] text-muted-foreground">
@@ -188,6 +205,50 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               </div>
             );
           })()}
+
+          {(data.topRefs?.length ?? 0) > 0 && (
+            <div className="space-y-2 rounded-[10px] bg-muted/40 p-3">
+              <div className="flex items-center justify-between text-[12px]">
+                <span>Top referral ids</span>
+                {(data.refWithoutCampaign ?? 0) > 0 && (
+                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
+                    {data.refWithoutCampaign} ad link{(data.refWithoutCampaign ?? 0) === 1 ? "" : "s"} missing campaign tag
+                  </span>
+                )}
+              </div>
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="text-left text-muted-foreground">
+                    <th className="font-medium pb-1.5 pr-3">Ref id</th>
+                    <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
+                    <th className="font-medium pb-1.5 px-2 text-right">Completed</th>
+                    <th className="font-medium pb-1.5 pl-2 text-right">Untagged ad links</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.topRefs ?? []).map((r) => (
+                    <tr key={r.ref} className="border-t border-border/40">
+                      <td className="py-1 pr-3 text-foreground/80 truncate max-w-[220px]">{r.ref}</td>
+                      <td className="py-1 px-2 text-right tabular-nums">{r.total}</td>
+                      <td className="py-1 px-2 text-right tabular-nums">{r.completed}</td>
+                      <td className="py-1 pl-2 text-right tabular-nums">
+                        {r.untaggedAd > 0 ? (
+                          <span className="text-amber-600">{r.untaggedAd}</span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[11px] text-muted-foreground">
+                Untagged ad links arrived with a referral id and an ad click id but no
+                utm_campaign, so the sale cannot be tied to a specific ad. Add
+                utm_campaign to those affiliate ad links.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             {data.channels.length === 0 ? (

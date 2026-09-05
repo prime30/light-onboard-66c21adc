@@ -21,6 +21,11 @@ type Submission = {
   created_at: string;
   updated_at: string;
   payload: Record<string, unknown>;
+  attribution?: {
+    affiliateRef?: string | null;
+    channelLabel?: string | null;
+    utmCampaign?: string | null;
+  } | null;
 };
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
@@ -221,6 +226,7 @@ export const SubmissionsLogPanel = ({ adminEmail, adminToken }: Props) => {
                       {new Date(s.created_at).toLocaleString()}
                       {s.helium_customer_id && ` · Helium ${s.helium_customer_id}`}
                       {s.shopify_customer_id && ` · Shopify ${s.shopify_customer_id}`}
+                      {s.attribution?.affiliateRef && ` · Ref ${s.attribution.affiliateRef}`}
                     </div>
                   </div>
                 </button>

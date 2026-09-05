@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
   let query = supabase
     .from("registration_submissions")
     .select(
-      "id, email, account_type, status, helium_customer_id, shopify_customer_id, error_log, ip_address, created_at, updated_at, payload"
+      "id, email, account_type, status, helium_customer_id, shopify_customer_id, error_log, ip_address, created_at, updated_at, payload, attribution"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
