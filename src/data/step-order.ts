@@ -136,7 +136,7 @@ export function getStepOrder(
   countryCode?: string,
   hiddenSteps?: Step[]
 ): Step[] {
-  if (!accountType) return ["account-type"];
+  if (!accountType) return ["account-type", "contact-basics"];
   let order = STEP_ORDER[accountType] || STEP_ORDER.professional;
   // Australia has no licensing/qualification/salon-licence requirement for
   // hair-extension services, so the entire "license" step is skipped for
