@@ -296,6 +296,9 @@ export const OnboardingForm = ({
           </div>
         </button>
       </div>
+      )}
+
+
 
       <p className="text-sm text-muted-foreground text-center animate-stagger-3">
         Already a member?{" "}
