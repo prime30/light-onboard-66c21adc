@@ -454,7 +454,9 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const goToPrevStep = () => {
-    const previousStepNumber = Math.max(currentStepNumber - 1, 0);
+    // Never step back into the hidden intro screen.
+    const minStepNumber = Math.max(steps.indexOf("account-type"), 0);
+    const previousStepNumber = Math.max(currentStepNumber - 1, minStepNumber);
     const prevStep = steps[previousStepNumber] || currentStep;
     goToStep(prevStep);
   };
