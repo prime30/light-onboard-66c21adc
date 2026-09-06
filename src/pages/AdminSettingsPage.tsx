@@ -715,7 +715,18 @@ const AdminSettingsPage = () => {
     });
   };
 
+  const handleSignOut = () => {
+    try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+    setToken("");
+    setPassword("");
+    setAuthed(false);
+    setAdminMode(false);
+    setSessionExpired(false);
+    toast({ title: "Signed out", description: "Admin session ended on this device." });
+  };
+
   if (!authed) {
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <form
