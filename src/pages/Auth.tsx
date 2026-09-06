@@ -374,73 +374,6 @@ const Auth = () => {
           mode === "signin" || currentStep === "onboarding" ? handleMainSwipeEnd : undefined
         }
       >
-        {/* Mobile/Tablet Hero Banner - Only shown on onboarding step, scrolls with content */}
-        {mode === "signup" && currentStep === "onboarding" && (
-          <div
-            className="lg:hidden cursor-pointer active:scale-[0.98] transition-transform w-full max-w-[38rem] mb-1"
-            onClick={() => {
-              mainScrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
-              goToNextStep();
-            }}
-          >
-            <div className="rounded-[20px] sm:rounded-[24px] p-4 sm:p-5 overflow-hidden relative">
-              {/* Hero image background with parallax */}
-              <img
-                src={salonHero}
-                alt="Professional salon"
-                width={608}
-                height={730}
-                className="absolute inset-0 w-full h-[120%] object-cover rounded-[20px] sm:rounded-[24px] transition-transform duration-100 ease-out"
-                style={{ transform: `translateY(-${Math.min(parallaxOffset, 30)}px)` }}
-              />
-              {/* Dark overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/60 rounded-[20px] sm:rounded-[24px]" />
-
-              <div className="relative z-10">
-                <div className="flex-1 min-w-0">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/10 backdrop-blur-sm border border-background/10 mb-2 animate-fade-in">
-                    <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-background/80" />
-                    <span className="text-[8px] font-medium text-background/80 uppercase tracking-widest">
-                      Exclusively professional
-                    </span>
-                  </div>
-                   <div
-                    className="animate-fade-in"
-                    style={{
-                      animationDelay: "100ms",
-                      animationFillMode: "backwards",
-                    }}
-                  >
-                    <FadeText
-                      as="h2"
-                      variant="light"
-                      className="font-termina font-medium uppercase text-2xl sm:text-3xl text-background leading-tight text-balance"
-                    >
-                      Apply for a pro account
-                    </FadeText>
-                  </div>
-                  <div
-                    className="animate-fade-in mt-2"
-                    style={{
-                      animationDelay: "200ms",
-                      animationFillMode: "backwards",
-                    }}
-                  >
-                    <FadeText
-                      as="p"
-                      variant="light"
-                      className="text-xs sm:text-sm text-background/60"
-                    >
-                      Unlock wholesale pricing on the industries best{" "}
-                      <span className="whitespace-nowrap">hair and tools.</span>
-                    </FadeText>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div
           key={`${mode}-${currentStep}`}
           data-registration-form
@@ -462,20 +395,7 @@ const Auth = () => {
                     : "animate-step-enter-left"
           )}
         >
-          {currentStep === "onboarding" && (
-            <OnboardingForm
-              onSignIn={() => {
-                setModeTransitionDirection("right");
-                navigate("/login");
-              }}
-              onStartRegistration={() => {
-                setModeTransitionDirection("right");
-                setCurrentStep("contact-basics");
-              }}
-            />
-          )}
-          {currentStep !== "onboarding" && (
-            <Suspense fallback={null}>
+          <Suspense fallback={null}>
               {currentStep === "account-type" && <AccountTypeForm />}
               {currentStep === "business-operation" && <BusinessOperationStep />}
               {currentStep === "business-location" && <BusinessLocationStep />}
