@@ -144,61 +144,64 @@ const AdminSettingsPage = () => {
     }
     setEmail(session.email);
     setToken(session.token);
-    void supabase.functions
-      .invoke("admin-toggle-setting", { body: { token: session.token } })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error || !data?.success) {
-          try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
-          return;
-        }
-        setAuthed(true);
-        setAdminMode(true);
-        const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
-        setExtraTags(Array.isArray(tags) ? tags : []);
-        if (typeof data?.setting?.gated_offer_enabled === "boolean") {
-          setGatedOffer(data.setting.gated_offer_enabled);
-        }
-        if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
-          setWelcomeOffer(data.setting.welcome_offer_enabled);
-        }
-        if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
-          setMetafieldsEnabled(data.setting.discount_metafields_enabled);
-        } else {
-          setMetafieldsEnabled(true);
-        }
-        if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
-          setFounderHighVolume(data.setting.founder_call_high_volume_only);
-        } else {
-          setFounderHighVolume(false);
-        }
-        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
-          setBizOpStepOn(data.setting.business_operation_step_enabled);
-        } else {
-          setBizOpStepOn(true);
-        }
-        if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
-          setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
-        } else {
-          setOrderVolumeStepOn(true);
-        }
-        if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
-          setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
-        } else {
-          setPreferredMethodStepOn(true);
-        }
-        setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-        setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
-        if (typeof data?.setting?.founder_call_enabled === "boolean") {
-          setFounderCallOn(data.setting.founder_call_enabled);
-        } else {
-          setFounderCallOn(true);
-        }
-      })
-      .catch(() => {
-        /* keep on login screen if verification fails */
-      });
+    // Verify with a raw fetch: an expired/invalid token returns 401, which the
+    // functions SDK would surface as a thrown/logged error. Here it is just a
+    // normal response and we quietly fall back to the login screen.
+    void (async () => {
+      let data: { success?: boolean; setting?: Record<string, unknown> } | null = null;
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-toggle-setting`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ token: session.token }),
+          }
+        );
+        data = res.ok ? await res.json() : null;
+      } catch {
+        data = null;
+      }
+      if (cancelled) return;
+      if (!data?.success) {
+        try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+        setToken("");
+        return;
+      }
+      const s: Record<string, unknown> = data.setting ?? {};
+      setAuthed(true);
+      setAdminMode(true);
+      const tags = (s.extra_customer_tags ?? []) as string[];
+      setExtraTags(Array.isArray(tags) ? tags : []);
+      if (typeof s.gated_offer_enabled === "boolean") setGatedOffer(s.gated_offer_enabled);
+      if (typeof s.welcome_offer_enabled === "boolean") setWelcomeOffer(s.welcome_offer_enabled);
+      setMetafieldsEnabled(
+        typeof s.discount_metafields_enabled === "boolean" ? s.discount_metafields_enabled : true
+      );
+      setFounderHighVolume(
+        typeof s.founder_call_high_volume_only === "boolean" ? s.founder_call_high_volume_only : false
+      );
+      setBizOpStepOn(
+        typeof s.business_operation_step_enabled === "boolean" ? s.business_operation_step_enabled : true
+      );
+      setOrderVolumeStepOn(
+        typeof s.order_volume_step_enabled === "boolean" ? s.order_volume_step_enabled : true
+      );
+      setPreferredMethodStepOn(
+        typeof s.preferred_method_step_enabled === "boolean" ? s.preferred_method_step_enabled : true
+      );
+      setBusinessLocationStepOn(!!s.business_location_step_enabled);
+      setReferralStepOn(s.referral_step_enabled !== false);
+      setSummaryStepOn(s.summary_step_enabled !== false);
+      setFounderCallOn(
+        typeof s.founder_call_enabled === "boolean" ? s.founder_call_enabled : true
+      );
+    })();
+
     return () => {
       cancelled = true;
     };
