@@ -195,7 +195,7 @@ export function FormDataProvider({
       const submitterEmail = (values as { email?: string }).email;
       const auToken = isAu && submitterEmail ? readAuGeoToken(submitterEmail) : null;
       if (isAu && !auToken) {
-        setSubmitErrorMessage(
+        reportSubmitErrorMessage(
           "We couldn't verify you're located in Australia. Please allow location access on the summary step, or disable any VPN and refresh."
         );
         return;
@@ -270,7 +270,7 @@ export function FormDataProvider({
               return `${display}: ${message}`;
             })
             .join("\n");
-          setSubmitErrorMessage(
+          reportSubmitErrorMessage(
             `Some required information is missing or invalid:\n${friendlyList}`
           );
           // Signal FormContext to navigate to the first offending field.
@@ -280,7 +280,7 @@ export function FormDataProvider({
             bump: (prev?.bump ?? 0) + 1,
           }));
         } else {
-          setSubmitErrorMessage(result.error);
+          reportSubmitErrorMessage(result.error);
         }
 
         // Map server-side phone errors back to the phone field so the user
@@ -483,7 +483,7 @@ export function FormDataProvider({
         type: "validation",
         message,
       });
-      setSubmitErrorMessage(message);
+      reportSubmitErrorMessage(message);
     }
   );
 
@@ -710,7 +710,7 @@ export function FormDataProvider({
       if (errors?.root?.form && !isSubmitting && previousValuesSignature !== null && previousValuesSignature !== valuesSignature) {
         clearErrors("root.form");
         setErrorActions([]);
-        setSubmitErrorMessage(null);
+        reportSubmitErrorMessage(null);
       }
     },
     [clearErrors, isSubmitting]
