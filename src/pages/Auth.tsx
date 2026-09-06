@@ -4,7 +4,6 @@ import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AuthFooter } from "@/components/registration/AuthFooter";
 import { AdminJumpButton } from "@/components/registration/AdminJumpButton";
-import { OnboardingForm } from "@/components/registration/steps/OnboardingForm";
 import { FormSkeleton } from "@/components/registration/FormSkeleton";
 import type { Step } from "@/types/auth";
 
@@ -26,7 +25,6 @@ const AssessingStep = lazy(() => import("@/components/registration/steps/Assessi
 const SuccessForm = lazy(() => import("@/components/registration/steps/SuccessForm").then(m => ({ default: m.SuccessForm })));
 const ScheduleStep = lazy(() => import("@/components/registration/steps/ScheduleStep").then(m => ({ default: m.ScheduleStep })));
 const ScheduleConfirmedStep = lazy(() => import("@/components/registration/steps/ScheduleConfirmedStep").then(m => ({ default: m.ScheduleConfirmedStep })));
-import salonHero from "@/assets/salon-hero.jpg";
 import { FadeText } from "@/components/registration/FadeText";
 import { useUploadFile } from "@/contexts";
 import { useStepContext, useFormData } from "@/components/registration/context";
@@ -379,20 +377,15 @@ const Auth = () => {
           data-registration-form
           className={cn(
             "w-full max-w-[38rem]",
-            currentStep === "onboarding" && "lg:flex-1 lg:flex lg:flex-col lg:min-h-0",
             currentStep === "success"
               ? "animate-fade-in"
               : mode === "signin"
                 ? modeTransitionDirection === "right"
                   ? "animate-step-enter-right"
                   : "animate-step-enter-left"
-                : currentStep === "onboarding"
-                  ? modeTransitionDirection === "left"
-                    ? "animate-step-enter-left"
-                    : "animate-step-enter-right"
-                  : transitionDirection === "forward"
-                    ? "animate-step-enter-right"
-                    : "animate-step-enter-left"
+                : transitionDirection === "forward"
+                  ? "animate-step-enter-right"
+                  : "animate-step-enter-left"
           )}
         >
           <Suspense fallback={null}>
