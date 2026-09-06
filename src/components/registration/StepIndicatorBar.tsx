@@ -50,7 +50,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
   // Memoize the translation calculation to prevent unnecessary re-renders
   const translateX = useMemo(() => {
-    return ((displayTotalSteps + 1) / 2 - getCurrentStepNumber - 1) * 40;
+    return ((displayTotalSteps - 1) / 2 - getCurrentStepNumber) * 40;
   }, [displayTotalSteps, getCurrentStepNumber]);
 
   // Memoize step validation states to prevent re-renders when other steps change.
