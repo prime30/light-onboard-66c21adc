@@ -123,9 +123,12 @@ function FormContextProvider({ children }: { children: ReactNode }) {
         acceptsMarketing,
         acceptsSmsMarketing,
       } as Partial<AllRegistrationFormData>);
-      setCurrentStep("success");
+      // The "assessing" review screen owns its own hand-off to success once
+      // the approval animation finishes, so don't cut it short here.
+      if (currentStep !== "assessing") setCurrentStep("success");
     }
-  }, [email, isSubmitSuccessful, reset, setCurrentStep, watch]);
+  }, [email, isSubmitSuccessful, reset, setCurrentStep, watch, currentStep]);
+
 
 
   // Sync email to global app context. Email is used for uploading files,
