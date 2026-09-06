@@ -134,64 +134,11 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
             transform: `translateX(${translateX}px)`,
           }}
         >
-          {/* Intro/Onboarding step with icon */}
-          <button
-            type="button"
-            onClick={() => isAdmin && currentStep !== "onboarding" && goToStep("onboarding")}
-            disabled={!isAdmin}
-            aria-label="Go to introduction step"
-            className={cn(
-              "flex items-center transition-opacity",
-              isAdmin ? "cursor-pointer hover:opacity-100" : "cursor-default"
-            )}
-            style={{
-              opacity: currentStep === "onboarding" ? 1 : 0.6,
-              transform: `scale(${currentStep === "onboarding" ? 1 : 0.85})`,
-              transition: "all 0.5s ease-out",
-            }}
-          >
-            <div
-              className={cn(
-                "relative flex items-center justify-center transition-all duration-500",
-                "w-[20px] h-[20px]"
-              )}
-            >
-              {/* Active step glow ring */}
-              {currentStep === "onboarding" && (
-                <>
-                  <div className="absolute inset-[3px] rounded-full border border-foreground/30 animate-[ripple_2s_ease-out_infinite]" />
-                  <div className="absolute inset-[3px] rounded-full border border-foreground/20 animate-[ripple_2s_ease-out_infinite_0.5s]" />
-                </>
-              )}
-              <div
-                className={cn(
-                  "rounded-full transition-all duration-500 flex items-center justify-center",
-                  currentStep === "onboarding"
-                    ? "w-[6px] h-[6px] bg-foreground"
-                    : "w-[20px] h-[20px] bg-[hsl(142_71%_75%)] dark:bg-[hsl(142_71%_30%)] text-[hsl(142_71%_25%)] dark:text-[hsl(142_71%_75%)]"
-                )}
-              >
-                {currentStep !== "onboarding" && (
-                  <Check className="w-[10px] h-[10px]" strokeWidth={3} />
-                )}
-              </div>
-            </div>
-          </button>
-
-          {/* Connecting line after intro */}
-          <div className="relative h-px w-[10px] bg-border/60 rounded-full overflow-hidden mx-[5px]">
-            <div
-              className={cn(
-                "absolute inset-0 bg-foreground/50 rounded-full origin-left transition-transform duration-500 ease-out",
-                currentStep !== "onboarding" ? "scale-x-100" : "scale-x-0"
-              )}
-            />
-          </div>
-
           {/* Regular numbered steps */}
           {currentStepValidationStates.map(({ step, status }, i) => {
             const stepNum = i + 1;
-            const stepIndex = i + 1; // actual index in steps array (skip onboarding at 0)
+            const stepIndex = i; // actual index in steps array
+
             const currentStepNum = getCurrentStepNumber;
             const distance = Math.abs(stepIndex - currentStepNum);
             const isActive = stepIndex === currentStepNum;
