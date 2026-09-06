@@ -82,8 +82,7 @@ export function StepProvider({ children }: StepProviderProps) {
     summaryStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  // The intro screen is hidden: the flow opens directly on account type.
-  // "onboarding" stays in the steps array so step numbering is unchanged.
+  // The intro screen is removed: the flow opens directly on the contact step.
   const [currentStep, setCurrentStep] = useState<Step>("contact-basics");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
 
@@ -93,7 +92,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     if (flagsLoading) {
-      const pending: Step[] = ["onboarding", "contact-basics"];
+      const pending: Step[] = ["contact-basics"];
       return {
         steps: pending,
         totalSteps: pending.length,
@@ -110,7 +109,6 @@ export function StepProvider({ children }: StepProviderProps) {
     if (!businessLocationStepEnabled && autoApprove) hiddenSteps.push("business-location");
     if (!referralStepEnabled) hiddenSteps.push("preferences");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
-    newSteps.unshift("onboarding");
     if (summaryStepEnabled) {
       newSteps.push("summary");
     }
