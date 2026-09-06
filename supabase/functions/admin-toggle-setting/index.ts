@@ -22,6 +22,7 @@ interface RequestBody {
   preferredMethodStepEnabled?: boolean;
   summaryStepEnabled?: boolean;
   gatedOfferEnabled?: boolean;
+  welcomeOfferStepEnabled?: boolean;
   extraCustomerTags?: string[];
   competitorEmailDomains?: string[];
 }
@@ -159,16 +160,17 @@ Deno.serve(async (req: Request) => {
   const hasReferralStepToggle = typeof body.referralStepEnabled === "boolean";
   const hasSummaryStepToggle = typeof body.summaryStepEnabled === "boolean";
   const hasGatedOfferToggle = typeof body.gatedOfferEnabled === "boolean";
+  const hasWelcomeOfferStepToggle = typeof body.welcomeOfferStepEnabled === "boolean";
   const sanitizedTags = sanitizeTags(body.extraCustomerTags);
   const hasTags = sanitizedTags !== null;
   const sanitizedDomains = sanitizeDomains(body.competitorEmailDomains);
   const hasDomains = sanitizedDomains !== null;
 
   // Verify-only request (no changes)
-  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasReferralStepToggle && !hasSummaryStepToggle && !hasGatedOfferToggle && !hasTags && !hasDomains) {
+  if (!hasToggle && !hasWelcomeToggle && !hasMetafieldsToggle && !hasFounderHighVolumeToggle && !hasFounderEnabledToggle && !hasBizOpStepToggle && !hasOrderVolStepToggle && !hasPreferredMethodStepToggle && !hasReferralStepToggle && !hasSummaryStepToggle && !hasGatedOfferToggle && !hasWelcomeOfferStepToggle && !hasTags && !hasDomains) {
     const { data: current, error: readErr } = await supabase
       .from("app_settings")
-      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled, gated_offer_enabled, extra_customer_tags, competitor_email_domains")
+      .select("auto_approval_enabled, welcome_offer_enabled, discount_metafields_enabled, founder_call_high_volume_only, founder_call_enabled, business_operation_step_enabled, order_volume_step_enabled, preferred_method_step_enabled, business_location_step_enabled, referral_step_enabled, summary_step_enabled, gated_offer_enabled, welcome_offer_step_enabled, extra_customer_tags, competitor_email_domains")
       .eq("singleton", true)
       .single();
     if (readErr) {
@@ -192,6 +194,7 @@ Deno.serve(async (req: Request) => {
   if (hasReferralStepToggle) update.referral_step_enabled = body.referralStepEnabled;
   if (hasSummaryStepToggle) update.summary_step_enabled = body.summaryStepEnabled;
   if (hasGatedOfferToggle) update.gated_offer_enabled = body.gatedOfferEnabled;
+  if (hasWelcomeOfferStepToggle) update.welcome_offer_step_enabled = body.welcomeOfferStepEnabled;
   if (hasTags) update.extra_customer_tags = sanitizedTags;
   if (hasDomains) update.competitor_email_domains = sanitizedDomains;
 

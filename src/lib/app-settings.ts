@@ -14,6 +14,7 @@ type Flags = {
   referralStepEnabled: boolean;
   summaryStepEnabled: boolean;
   gatedOfferEnabled: boolean;
+  welcomeOfferStepEnabled: boolean;
   competitorEmailDomains?: string[];
 };
 
@@ -61,7 +62,7 @@ async function fetchFlags(): Promise<Flags> {
       // Keep the persisted values on a network failure rather than snapping
       // back to placeholder defaults (which would change the step list).
       if (cachedFlags?.competitorEmailDomains) setCompetitorEmailDomains(cachedFlags.competitorEmailDomains);
-      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false, gatedOfferEnabled: false };
+      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false, gatedOfferEnabled: false, welcomeOfferStepEnabled: false };
       return cachedFlags;
     }
     cachedFlags = {
@@ -76,6 +77,7 @@ async function fetchFlags(): Promise<Flags> {
       referralStepEnabled: (data as Flags).referralStepEnabled !== false,
       summaryStepEnabled: !!(data as Flags).summaryStepEnabled,
       gatedOfferEnabled: !!(data as Flags).gatedOfferEnabled,
+      welcomeOfferStepEnabled: !!(data as Flags).welcomeOfferStepEnabled,
       competitorEmailDomains: Array.isArray((data as Flags).competitorEmailDomains)
         ? (data as Flags).competitorEmailDomains
         : [],
@@ -123,6 +125,9 @@ function useFlag(pick: (f: Flags) => boolean): { enabled: boolean; loading: bool
 
 export function useAutoApproval() {
   return useFlag((f) => f.autoApprovalEnabled);
+}
+export function useWelcomeOfferStepEnabled() {
+  return useFlag((f) => f.welcomeOfferStepEnabled);
 }
 export function useWelcomeOffer() {
   return useFlag((f) => f.welcomeOfferEnabled);
