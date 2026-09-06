@@ -58,7 +58,7 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   // their schema technically validates (steps made only of optional or
   // defaulted fields would otherwise light up green before being visited).
   const currentStepValidationStates = useMemo(() => {
-    const relevantSteps = steps.slice(1); // Skip onboarding only; flag is rendered separately
+    const relevantSteps = steps; // The intro step no longer exists
     return relevantSteps.map((step) => ({
       step,
       status: visitedSteps.has(step) ? completedSteps[step] || "in-progress" : "untouched",
