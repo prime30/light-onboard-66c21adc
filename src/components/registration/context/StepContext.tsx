@@ -118,8 +118,9 @@ export function StepProvider({ children }: StepProviderProps) {
     // before the application is reviewed. If the summary step is hidden, the
     // create-password step becomes the final real submit gate.
     if (autoApprove && accountType) {
-      newSteps.push("welcome-offer", "assessing", "create-password");
+      newSteps.push("assessing", "create-password");
     }
+
 
     const totalSteps = newSteps.length;
     const currentStepNumber = newSteps.indexOf(currentStep);
