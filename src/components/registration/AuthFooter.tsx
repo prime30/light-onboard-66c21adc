@@ -424,7 +424,7 @@ export function AuthFooter({
 
     if (shouldRunDuplicateEmailCheck) {
       const continueAfterCheck = () => {
-        if (isFauxSubmitStep) goToStep("welcome-offer");
+        if (isFauxSubmitStep) goToStep("assessing");
         else submitForm();
       };
       setPreflightChecking(true);
@@ -451,7 +451,7 @@ export function AuthFooter({
     // registration request.
     if (isFinalStep) {
       if (isFauxSubmitStep) {
-        goToStep("welcome-offer");
+        goToStep("assessing");
       } else {
         submitForm();
       }
@@ -543,7 +543,7 @@ export function AuthFooter({
                 currentStep === "schedule"
                   ? () => goToStep("success")
                   : isLatePasswordStep
-                    ? () => goToStep("welcome-offer")
+                    ? () => goToStep("assessing")
                     : goToPrevStep
               }
               aria-label="Go back"
