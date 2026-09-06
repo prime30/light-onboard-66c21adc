@@ -23,7 +23,8 @@ import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
 import { RegistrationLayoutOutletContext } from "../RegistrationLayout";
 import { useBusinessOperationStepEnabled, useOrderVolumeStepEnabled, usePreferredMethodStepEnabled, useBusinessLocationStepEnabled,
-  useReferralStepEnabled, useSummaryStepEnabled, useAutoApproval } from "@/lib/app-settings";
+  useReferralStepEnabled, useSummaryStepEnabled,
+  useWelcomeOfferStepEnabled, useAutoApproval } from "@/lib/app-settings";
 import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 
 export type StepContextType = {
@@ -67,6 +68,7 @@ export function StepProvider({ children }: StepProviderProps) {
   const { enabled: businessLocationStepEnabled, loading: businessLocationLoading } = useBusinessLocationStepEnabled();
   const { enabled: referralStepEnabled, loading: referralLoading } = useReferralStepEnabled();
   const { enabled: summaryStepEnabled, loading: summaryStepLoading } = useSummaryStepEnabled();
+  const { enabled: welcomeOfferStepEnabled, loading: welcomeOfferStepLoading } = useWelcomeOfferStepEnabled();
 
   // Until every flag has resolved we do not know the real step list. Building
   // it from placeholder defaults and then rebuilding once the flags land is
@@ -79,7 +81,8 @@ export function StepProvider({ children }: StepProviderProps) {
     preferredMethodLoading ||
     businessLocationLoading ||
     referralLoading ||
-    summaryStepLoading;
+    summaryStepLoading ||
+    welcomeOfferStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   // The intro screen is removed: the flow opens directly on the contact step.
@@ -108,6 +111,8 @@ export function StepProvider({ children }: StepProviderProps) {
     // auto-approval is on.
     if (!businessLocationStepEnabled && autoApprove) hiddenSteps.push("business-location");
     if (!referralStepEnabled) hiddenSteps.push("preferences");
+    // Email/SMS opt-in screen: hidden unless the admin toggle turns it on.
+    if (!welcomeOfferStepEnabled) hiddenSteps.push("welcome-offer");
     const newSteps = getStepOrder(accountType, autoApprove, countryCode, hiddenSteps).slice();
     if (summaryStepEnabled) {
       newSteps.push("summary");
@@ -129,7 +134,7 @@ export function StepProvider({ children }: StepProviderProps) {
       totalSteps,
       currentStepNumber,
     };
-  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled, summaryStepEnabled]);
+  }, [accountType, countryCode, currentStep, autoApprove, flagsLoading, bizOpStepEnabled, orderVolumeStepEnabled, preferredMethodStepEnabled, businessLocationStepEnabled, referralStepEnabled, summaryStepEnabled, welcomeOfferStepEnabled]);
 
   useEffect(() => {
     if (!steps.includes(currentStep)) return;

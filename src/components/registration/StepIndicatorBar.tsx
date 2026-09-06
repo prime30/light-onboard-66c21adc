@@ -12,9 +12,8 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   // Get all step data from context
   const {
     currentStep,
-    totalSteps: displayTotalSteps,
     completedSteps,
-    steps,
+    steps: allSteps,
     visitedSteps,
     goToStep,
     goToNextStep,
@@ -23,6 +22,12 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
 
   const { mode } = useModeContext();
   const isAdmin = useAdminMode();
+
+  // The "assessing" review animation is not a question the applicant answers,
+  // so it is left out of the numbered dots. This keeps the count equal to the
+  // number of real screens now that the intro and opt-in pages are gone.
+  const steps = useMemo(() => allSteps.filter((s) => s !== "assessing"), [allSteps]);
+  const displayTotalSteps = steps.length;
 
   const [inDelay, setInDelay] = useState(true);
   const accountType = watch("accountType");
@@ -43,7 +48,13 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
   // array - they conceptually sit one past the last real step (where the
   // flag is rendered), so map them there.
   const getCurrentStepNumber = useMemo(() => {
-    if (currentStep === "success" || currentStep === "schedule" || currentStep === "schedule-confirmed") return steps.length;
+    if (
+      currentStep === "success" ||
+      currentStep === "schedule" ||
+      currentStep === "schedule-confirmed" ||
+      currentStep === "assessing"
+    )
+      return steps.length;
     const index = steps.indexOf(currentStep);
     return index === -1 ? 0 : index;
   }, [currentStep, steps]);
