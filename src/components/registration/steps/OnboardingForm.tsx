@@ -221,7 +221,9 @@ export const OnboardingForm = ({
         </div>
       </div>
 
-      {/* Offer highlight — locked teaser, code revealed only after opt-in */}
+      {/* Offer highlight - locked teaser, code revealed only after opt-in.
+          Hidden unless the gated offer is switched on in admin settings. */}
+      {gatedOfferEnabled && (
       <div
         className={cn(
           "w-full max-w-md mx-auto animate-stagger-3",
