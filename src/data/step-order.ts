@@ -144,11 +144,12 @@ export function getStepOrder(
   if (hiddenSteps?.length) {
     order = order.filter((s) => !hiddenSteps.includes(s));
   }
+  // The email/SMS opt-in ("welcome offer") page is hidden from the flow to keep
+  // signup as short as possible. Consent defaults are kept as-is.
+  order = order.filter((s) => s !== "welcome-offer");
   if (!autoApprove) return order;
-  // In auto-approval mode both the password step AND the welcome-offer
-  // (subscribe) step move to AFTER the summary/assessing sequence - the
-  // subscribe page now comes right after the password is set.
-  return order.filter((s) => s !== "create-password" && s !== "welcome-offer");
+  return order.filter((s) => s !== "create-password");
+
 }
 
 export const stepValidations: Record<Step, ZodObject | null> = {
