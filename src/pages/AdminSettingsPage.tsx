@@ -175,8 +175,10 @@ const AdminSettingsPage = () => {
       if (!data?.success) {
         try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
         setToken("");
+        setSessionExpired(true);
         return;
       }
+
       const s: Record<string, unknown> = data.setting ?? {};
       setAuthed(true);
       setAdminMode(true);
