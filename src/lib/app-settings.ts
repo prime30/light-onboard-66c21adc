@@ -13,6 +13,7 @@ type Flags = {
   businessLocationStepEnabled: boolean;
   referralStepEnabled: boolean;
   summaryStepEnabled: boolean;
+  gatedOfferEnabled: boolean;
   competitorEmailDomains?: string[];
 };
 
@@ -60,7 +61,7 @@ async function fetchFlags(): Promise<Flags> {
       // Keep the persisted values on a network failure rather than snapping
       // back to placeholder defaults (which would change the step list).
       if (cachedFlags?.competitorEmailDomains) setCompetitorEmailDomains(cachedFlags.competitorEmailDomains);
-      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false };
+      cachedFlags = cachedFlags ?? { autoApprovalEnabled: false, welcomeOfferEnabled: false, founderCallHighVolumeOnly: false, founderCallEnabled: true, businessOperationStepEnabled: true, orderVolumeStepEnabled: true, preferredMethodStepEnabled: true, businessLocationStepEnabled: false, referralStepEnabled: true, summaryStepEnabled: false, gatedOfferEnabled: false };
       return cachedFlags;
     }
     cachedFlags = {
@@ -74,6 +75,7 @@ async function fetchFlags(): Promise<Flags> {
       businessLocationStepEnabled: !!(data as Flags).businessLocationStepEnabled,
       referralStepEnabled: (data as Flags).referralStepEnabled !== false,
       summaryStepEnabled: !!(data as Flags).summaryStepEnabled,
+      gatedOfferEnabled: !!(data as Flags).gatedOfferEnabled,
       competitorEmailDomains: Array.isArray((data as Flags).competitorEmailDomains)
         ? (data as Flags).competitorEmailDomains
         : [],
@@ -191,4 +193,14 @@ export function useBusinessLocationStepEnabled() {
 const pickSummaryStep = (f: Flags) => f.summaryStepEnabled;
 export function useSummaryStepEnabled() {
   return useFlag(pickSummaryStep);
+}
+
+/**
+ * Gated "15% off first order" promo (revealed only after opting in to both
+ * email and SMS). Hidden by default so the signup flow stays as short as
+ * possible; opt in via admin settings.
+ */
+const pickGatedOffer = (f: Flags) => f.gatedOfferEnabled;
+export function useGatedOfferEnabled() {
+  return useFlag(pickGatedOffer);
 }
