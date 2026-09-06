@@ -316,55 +316,34 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
         </div>
       )}
 
-      <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
-        <div className="relative" ref={dropdownRef}>
+      <div className="space-y-2.5" data-field="account-type">
+        <div className="relative input-glow input-ripple rounded-form" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
             className={cn(
-              "relative w-full p-[15px] sm:p-5 rounded-form sm:rounded-[20px] border-2 text-left group",
-              "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-              isOpen || selectedType
-                ? "border-foreground/20 bg-foreground/[0.012]"
-                : "border-border hover:border-foreground/20 hover:bg-foreground/[0.012]"
+              "h-input w-full rounded-form bg-muted border border-border/50 px-3 text-left text-sm",
+              "flex items-center justify-between gap-2 outline-none transition-all duration-300",
+              isOpen && "border-foreground/20 bg-background"
             )}
           >
-            <div className="flex items-center gap-[15px] sm:gap-5">
-              <div
-                className={cn(
-                  "w-10 h-10 sm:w-12 sm:h-12 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 transition-all duration-300",
-                  selectedType ? "bg-foreground" : "bg-muted"
-                )}
-              >
-                {selectedType ? (
-                  <selectedType.icon className="w-5 h-5 sm:w-6 sm:h-6 text-background" />
-                ) : (
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm sm:text-base font-medium text-foreground">
-                  {selectedType ? selectedType.title : "Select your account type"}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {selectedType ? selectedType.description : "Choose the option that fits you best"}
-                </p>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-300",
-                  isOpen && "rotate-180"
-                )}
-              />
-            </div>
+            <span className={cn("truncate", selectedType ? "text-foreground" : "text-muted-foreground/60")}>
+              {selectedType ? selectedType.title : "Select an option..."}
+            </span>
+            <ChevronDown
+              className={cn(
+                "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200",
+                isOpen && "rotate-180"
+              )}
+            />
           </button>
 
           {isOpen && (
             <div
               role="listbox"
-              className="absolute z-50 left-0 right-0 mt-[5px] p-[5px] rounded-form sm:rounded-[20px] border border-border/60 bg-background shadow-modal backdrop-blur-xl animate-fade-in max-h-[50vh] overflow-y-auto"
+              className="absolute z-50 left-0 right-0 mt-[5px] p-1 rounded-form-sm border border-border/60 bg-background shadow-modal animate-fade-in max-h-[50vh] overflow-y-auto"
             >
               {types.map((type) => (
                 <button
@@ -377,37 +356,15 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
                     handleAccountTypeSelect(type.id);
                   }}
                   className={cn(
-                    "w-full flex items-start gap-[10px] p-[10px] sm:p-[15px] rounded-form-sm text-left transition-colors duration-200",
+                    "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-form-sm text-left text-sm transition-colors duration-200",
                     accountType === type.id
-                      ? "bg-foreground/[0.04]"
-                      : "hover:bg-foreground/[0.025]"
+                      ? "bg-foreground/[0.04] text-foreground"
+                      : "text-foreground hover:bg-foreground/[0.025]"
                   )}
                 >
-                  <div className="w-9 h-9 rounded-form-sm flex items-center justify-center flex-shrink-0 bg-muted">
-                    <type.icon className="w-[18px] h-[18px] text-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{type.title}</p>
-                    <p className="text-xs text-muted-foreground">{type.description}</p>
-                    <div className="hidden sm:flex flex-wrap gap-[5px] mt-2">
-                      {type.features.map((feature, i) => {
-                        const FeatureIcon = feature.icon;
-                        return (
-                          <span
-                            key={i}
-                            className="inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full bg-muted text-muted-foreground"
-                          >
-                            {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
-                            {feature.label}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <span className="truncate">{type.title}</span>
                   {accountType === type.id && (
-                    <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-background" strokeWidth={3} />
-                    </div>
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={3} />
                   )}
                 </button>
               ))}
@@ -426,17 +383,9 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
                     .from("not_stylist_events")
                     .insert({ device_type, viewport_width: w, viewport_height: h });
                 }}
-                className="w-full flex items-center gap-[10px] p-[10px] sm:p-[15px] rounded-form-sm text-left transition-colors duration-200 hover:bg-foreground/[0.025] border-t border-border/40 mt-[5px]"
+                className="w-full flex items-center px-3 py-2 rounded-form-sm text-left text-sm text-muted-foreground hover:bg-foreground/[0.025] hover:text-foreground transition-colors duration-200"
               >
-                <div className="w-9 h-9 rounded-form-sm flex items-center justify-center flex-shrink-0 bg-muted">
-                  <UserX className="w-[18px] h-[18px] text-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">I am not a stylist</p>
-                  <p className="text-xs text-muted-foreground">
-                    Looking for Drop Dead as a customer
-                  </p>
-                </div>
+                I am not a stylist
               </button>
             </div>
           )}
