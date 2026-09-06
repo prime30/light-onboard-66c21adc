@@ -16,7 +16,7 @@ import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
-import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly, useFounderCallEnabled } from "@/lib/app-settings";
+import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly, useFounderCallEnabled, useGatedOfferEnabled } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { prefetchStep } from "@/lib/step-prefetch";
@@ -115,7 +115,8 @@ export const SuccessForm = () => {
 
   // Fallback nudge when founder call is globally disabled and the welcome
   // offer flow is off: promote SALONTRIAL15 for their first order.
-  const showSalonTrial15Nudge = !founderCallEnabled && !welcomeOfferEnabled;
+  const { enabled: gatedOfferEnabled } = useGatedOfferEnabled();
+  const showSalonTrial15Nudge = gatedOfferEnabled && !founderCallEnabled && !welcomeOfferEnabled;
 
   // The pro trial code is gated behind BOTH marketing opt-ins captured during
   // registration (texts + email): subscribers see the code, everyone else sees

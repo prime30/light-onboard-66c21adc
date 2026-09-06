@@ -54,6 +54,7 @@ export type Database = {
           extra_customer_tags: string[]
           founder_call_enabled: boolean
           founder_call_high_volume_only: boolean
+          gated_offer_enabled: boolean
           id: string
           order_volume_step_enabled: boolean
           preferred_method_step_enabled: boolean
@@ -73,6 +74,7 @@ export type Database = {
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
+          gated_offer_enabled?: boolean
           id?: string
           order_volume_step_enabled?: boolean
           preferred_method_step_enabled?: boolean
@@ -92,6 +94,7 @@ export type Database = {
           extra_customer_tags?: string[]
           founder_call_enabled?: boolean
           founder_call_high_volume_only?: boolean
+          gated_offer_enabled?: boolean
           id?: string
           order_volume_step_enabled?: boolean
           preferred_method_step_enabled?: boolean

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Check, GraduationCap, Lock, Tag, ArrowRight } from "lucide-react";
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
-import { useAutoApproval } from "@/lib/app-settings";
+import { useAutoApproval, useGatedOfferEnabled } from "@/lib/app-settings";
 import { FadeText } from "../FadeText";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -128,6 +128,7 @@ export const OnboardingForm = ({
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
   const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: gatedOfferEnabled } = useGatedOfferEnabled();
   const [offerActive, setOfferActive] = useState(false);
 
   const finalStep = autoApprove
@@ -221,7 +222,9 @@ export const OnboardingForm = ({
         </div>
       </div>
 
-      {/* Offer highlight — locked teaser, code revealed only after opt-in */}
+      {/* Offer highlight - locked teaser, code revealed only after opt-in.
+          Hidden unless the gated offer is switched on in admin settings. */}
+      {gatedOfferEnabled && (
       <div
         className={cn(
           "w-full max-w-md mx-auto animate-stagger-3",
@@ -294,6 +297,9 @@ export const OnboardingForm = ({
           </div>
         </button>
       </div>
+      )}
+
+
 
       <p className="text-sm text-muted-foreground text-center animate-stagger-3">
         Already a member?{" "}
