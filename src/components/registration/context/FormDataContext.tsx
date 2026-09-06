@@ -64,6 +64,7 @@ export type FormDataContextType = {
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
   submitErrorMessage: string | null;
+  submitFailureCount: number;
   serverErrorField: { field: ValidFieldNames; bump: number } | null;
   emailConflict: EmailConflict;
   setEmailConflict: (conflict: EmailConflict) => void;
@@ -133,6 +134,23 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  // How many account-creation attempts have failed. Bumped on each fresh
+  // error (not on re-setting the same message), and reset whenever the error
+  // is cleared, so the password screen can escalate to "contact us" after
+  // the applicant has retried a couple of times on their own.
+  const [submitFailureCount, setSubmitFailureCount] = useState(0);
+
+  const reportSubmitErrorMessage = useCallback(
+    (message: string | null) => {
+      setSubmitErrorMessage(message);
+      if (message === null) {
+        setSubmitFailureCount(0);
+        return;
+      }
+      setSubmitFailureCount((prev) => (submitErrorMessage === null ? prev + 1 : prev));
+    },
+    [submitErrorMessage]
+  );
   // Tracks the first field returned by a server-side validation error so
   // FormContext can auto-navigate to the step that owns it. Bumped on every
   // failed submit (even when the field repeats) via a monotonic counter.
