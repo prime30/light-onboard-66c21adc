@@ -82,7 +82,9 @@ export function StepProvider({ children }: StepProviderProps) {
     summaryStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
+  // The intro screen is hidden: the flow opens directly on account type.
+  // "onboarding" stays in the steps array so step numbering is unchanged.
+  const [currentStep, setCurrentStep] = useState<Step>("account-type");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
 
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
