@@ -134,19 +134,17 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
-  // How many account-creation attempts have failed. Bumped on every failure
-  // (even when the server repeats the same message) and reset whenever the
-  // error is cleared, so the password screen can escalate to "contact us"
-  // after the applicant has retried a couple of times on their own.
+  // How many account-creation attempts have failed. Bumped in the real-submit
+  // failure branch (see submitForm) and never reset, so the password screen
+  // can escalate to "contact us" after the applicant has retried a couple of
+  // times on their own. The error message itself is cleared between attempts
+  // (the footer does that before entering the review screen), which is why
+  // this lives on its own rather than being derived from the message.
   const [submitFailureCount, setSubmitFailureCount] = useState(0);
 
   const reportSubmitErrorMessage = useCallback((message: string | null) => {
     setSubmitErrorMessage(message);
-    if (message === null) {
-      setSubmitFailureCount(0);
-      return;
-    }
-    setSubmitFailureCount((prev) => prev + 1);
+    if (message === null) setSubmitErrorActions([]);
   }, []);
   // Tracks the first field returned by a server-side validation error so
   // FormContext can auto-navigate to the step that owns it. Bumped on every
