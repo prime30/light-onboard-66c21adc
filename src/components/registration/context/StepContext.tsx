@@ -82,7 +82,9 @@ export function StepProvider({ children }: StepProviderProps) {
     summaryStepLoading;
 
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-  const [currentStep, setCurrentStep] = useState<Step>("onboarding");
+  // The intro screen is hidden: the flow opens directly on account type.
+  // "onboarding" stays in the steps array so step numbering is unchanged.
+  const [currentStep, setCurrentStep] = useState<Step>("account-type");
   const [dirtySteps, setDirtySteps] = useState<Set<Step>>(() => new Set());
 
   const [completedSteps, setCompletedSteps] = useState<Record<Step, ValidationStatus>>(
@@ -452,7 +454,9 @@ export function StepProvider({ children }: StepProviderProps) {
   };
 
   const goToPrevStep = () => {
-    const previousStepNumber = Math.max(currentStepNumber - 1, 0);
+    // Never step back into the hidden intro screen.
+    const minStepNumber = Math.max(steps.indexOf("account-type"), 0);
+    const previousStepNumber = Math.max(currentStepNumber - 1, minStepNumber);
     const prevStep = steps[previousStepNumber] || currentStep;
     goToStep(prevStep);
   };
