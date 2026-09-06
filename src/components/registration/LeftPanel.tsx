@@ -13,6 +13,7 @@ const TestimonialCarousel = lazy(() =>
   import("./helpers/TestimonialCarousel").then((m) => ({ default: m.TestimonialCarousel }))
 );
 import { useGlobalApp } from "@/contexts/GlobalAppProvider";
+import { useGatedOfferEnabled } from "@/lib/app-settings";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
@@ -278,7 +279,7 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
       {/* Feature Pills - Fixed (do not re-animate on carousel) */}
       {mode === "signup" && !isNotEligible && (
         <div className="absolute left-5 md:left-5 lg:left-10 right-5 md:right-5 lg:right-10 bottom-[90px] lg:bottom-[110px] hidden xl:flex flex-wrap gap-2.5 z-10 pointer-events-none">
-          {features.map((feature, i) => (
+          {visibleFeatures.map((feature, i) => (
             <div
               key={i}
               className="pointer-events-auto animate-haptic-pop"

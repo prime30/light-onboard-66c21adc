@@ -45,6 +45,8 @@ const AdminSettingsPage = () => {
   const [loadingSetting, setLoadingSetting] = useState(true);
   const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
+  const [gatedOffer, setGatedOffer] = useState<boolean | null>(null);
+  const [updatingGatedOffer, setUpdatingGatedOffer] = useState(false);
   const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
   const [founderHighVolume, setFounderHighVolume] = useState<boolean | null>(null);
@@ -104,10 +106,11 @@ const AdminSettingsPage = () => {
     let cancelled = false;
     supabase.functions.invoke("public-app-flags", { body: {} }).then(({ data }) => {
       if (cancelled) return;
-      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean };
+      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean; gatedOfferEnabled?: boolean };
       setAutoApproval(!!flags.autoApprovalEnabled);
       setLoadingSetting(false);
       setWelcomeOffer(!!flags.welcomeOfferEnabled);
+      setGatedOffer(!!flags.gatedOfferEnabled);
     });
     return () => {
       cancelled = true;
@@ -153,6 +156,9 @@ const AdminSettingsPage = () => {
         setAdminMode(true);
         const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
         setExtraTags(Array.isArray(tags) ? tags : []);
+        if (typeof data?.setting?.gated_offer_enabled === "boolean") {
+          setGatedOffer(data.setting.gated_offer_enabled);
+        }
         if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
           setWelcomeOffer(data.setting.welcome_offer_enabled);
         }
@@ -234,6 +240,9 @@ const AdminSettingsPage = () => {
 
       const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
       setExtraTags(Array.isArray(tags) ? tags : []);
+      if (typeof data?.setting?.gated_offer_enabled === "boolean") {
+        setGatedOffer(data.setting.gated_offer_enabled);
+      }
       if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
         setWelcomeOffer(data.setting.welcome_offer_enabled);
       }
@@ -346,6 +355,39 @@ const AdminSettingsPage = () => {
       toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
     } finally {
       setUpdatingWelcome(false);
+    }
+  };
+
+  const handleGatedOfferToggle = async (next: boolean) => {
+    if (gatedOffer === null) return;
+    const previous = gatedOffer;
+    setGatedOffer(next);
+    setUpdatingGatedOffer(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { token, gatedOfferEnabled: next },
+      });
+      if (error || !data?.success) {
+        setGatedOffer(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "15% off promo enabled" : "15% off promo hidden",
+        description: next
+          ? "Signup shows the 15% off teaser and the double opt-in unlock."
+          : "Signup stays short with no discount teaser or opt-in unlock.",
+      });
+    } catch (err) {
+      console.error(err);
+      setGatedOffer(previous);
+      toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
+    } finally {
+      setUpdatingGatedOffer(false);
     }
   };
 
@@ -796,6 +838,45 @@ const AdminSettingsPage = () => {
                 }
               >
                 {autoApproval ? "Auto-approval ON" : "Manual review (24h notice)"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Gated 15% off first order (double opt-in) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">
+                15% off first order (double opt-in)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                When enabled, signup shows the locked 15% off teaser and reveals the
+                SALONTRIAL15 code on the success screen once the stylist opts in to both
+                email and texts. When disabled, none of it appears and signup stays as
+                quick as possible.
+              </p>
+            </div>
+            {gatedOffer === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={gatedOffer}
+                onCheckedChange={handleGatedOfferToggle}
+                disabled={updatingGatedOffer}
+                aria-label="Toggle 15% off first order promo"
+              />
+            )}
+          </div>
+          {gatedOffer !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={
+                  gatedOffer ? "text-status-green font-medium" : "font-medium text-foreground"
+                }
+              >
+                {gatedOffer ? "Promo shown" : "Hidden (fastest signup)"}
               </span>
             </div>
           )}
