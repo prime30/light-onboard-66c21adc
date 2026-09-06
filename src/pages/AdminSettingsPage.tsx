@@ -144,14 +144,36 @@ const AdminSettingsPage = () => {
     }
     setEmail(session.email);
     setToken(session.token);
-    void supabase.functions
-      .invoke("admin-toggle-setting", { body: { token: session.token } })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error || !data?.success) {
-          try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
-          return;
-        }
+    // Verify with a raw fetch: an expired/invalid token returns 401, which the
+    // functions SDK would surface as a thrown/logged error. Here it is just a
+    // normal response and we quietly fall back to the login screen.
+    void (async () => {
+      let data: { success?: boolean; setting?: Record<string, unknown> } | null = null;
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-toggle-setting`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ token: session.token }),
+          }
+        );
+        data = res.ok ? await res.json() : null;
+      } catch {
+        data = null;
+      }
+      if (cancelled) return;
+      if (!data?.success) {
+        try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+        setToken("");
+        return;
+      }
+      {
+
         setAuthed(true);
         setAdminMode(true);
         const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
