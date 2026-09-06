@@ -509,7 +509,7 @@ export const ContactBasicsStep = () => {
         </p>
       </div>
 
-      <div data-field="account-type-inline" className="animate-stagger-1">
+      <div data-field="account-type-inline" className="relative z-40 animate-stagger-1">
         <AccountTypeForm embedded />
       </div>
 
