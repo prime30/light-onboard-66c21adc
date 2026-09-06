@@ -31,6 +31,7 @@ export type AuthFormContextType = {
   isSubmitting: ReturnType<typeof useFormData>["isSubmitting"];
   errorActions: ReturnType<typeof useFormData>["errorActions"];
   submitErrorMessage: ReturnType<typeof useFormData>["submitErrorMessage"];
+  submitFailureCount: ReturnType<typeof useFormData>["submitFailureCount"];
   emailConflict: ReturnType<typeof useFormData>["emailConflict"];
   setEmailConflict: ReturnType<typeof useFormData>["setEmailConflict"];
   setSubmitError: ReturnType<typeof useFormData>["setSubmitError"];

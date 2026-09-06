@@ -749,17 +749,17 @@ export function FormDataProvider({
         | null
     ) => {
       if (!input) {
-        setSubmitErrorMessage(null);
+        reportSubmitErrorMessage(null);
         setErrorActions([]);
         clearErrors("root.form");
         return;
       }
       const { message, actions = [] } = input;
-      setSubmitErrorMessage(message);
+      reportSubmitErrorMessage(message);
       setErrorActions(actions);
       setError("root.form", { type: "manual", message });
     },
-    [setError, clearErrors]
+    [setError, clearErrors, reportSubmitErrorMessage]
   );
 
   const value: FormDataContextType = {
@@ -784,6 +784,7 @@ export function FormDataProvider({
     isSubmitting,
     errorActions,
     submitErrorMessage,
+    submitFailureCount,
     serverErrorField,
     emailConflict,
     setEmailConflict,
