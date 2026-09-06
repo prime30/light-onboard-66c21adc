@@ -65,7 +65,12 @@ export function AuthFooter({
   const visibleSubmitError = submitErrorMessage || errors.root?.form?.message;
 
   const isScheduleConfirmedStep = currentStep === "schedule-confirmed";
-  const showBackButton = mode === "signup" && currentStep !== "onboarding" && !isScheduleConfirmedStep;
+  // The intro screen is hidden, so account-type is the first screen: no back button there.
+  const showBackButton =
+    mode === "signup" &&
+    currentStep !== "onboarding" &&
+    currentStep !== "account-type" &&
+    !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
   // When auto-approval is ON, the welcome-offer step is collected BEFORE the
   // faux "assessing" review animation, and the create-password step is the
