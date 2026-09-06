@@ -71,8 +71,9 @@ export const AssessingStep = () => {
 
   // If the submit failed, drop back to the password step where the error and
   // any field-level problems are shown.
+  const errorAtMount = useRef(submitErrorMessage);
   useEffect(() => {
-    if (!submitErrorMessage) return;
+    if (!submitErrorMessage || submitErrorMessage === errorAtMount.current) return;
     goToStep("create-password");
   }, [submitErrorMessage, goToStep]);
 
