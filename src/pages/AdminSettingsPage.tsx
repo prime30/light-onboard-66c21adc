@@ -36,6 +36,8 @@ const AdminSettingsPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string>("");
+  const [sessionExpired, setSessionExpired] = useState(false);
+
   const [verifying, setVerifying] = useState(false);
   type AdminTab = "analytics" | "integrity" | "submissions" | "settings";
   const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
@@ -140,8 +142,11 @@ const AdminSettingsPage = () => {
     if (!session?.email || !session?.token) return;
     if (session.expiresAt && session.expiresAt * 1000 < Date.now()) {
       try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+      setEmail(session.email);
+      setSessionExpired(true);
       return;
     }
+
     setEmail(session.email);
     setToken(session.token);
     // Verify with a raw fetch: an expired/invalid token returns 401, which the
@@ -170,8 +175,10 @@ const AdminSettingsPage = () => {
       if (!data?.success) {
         try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
         setToken("");
+        setSessionExpired(true);
         return;
       }
+
       const s: Record<string, unknown> = data.setting ?? {};
       setAuthed(true);
       setAdminMode(true);
@@ -230,7 +237,9 @@ const AdminSettingsPage = () => {
       setToken(issuedToken);
       setPassword(""); // never keep the raw password in memory after login
       setAuthed(true);
+      setSessionExpired(false);
       setAdminMode(true);
+
       try {
         sessionStorage.setItem(
           ADMIN_SESSION_KEY,
@@ -706,7 +715,18 @@ const AdminSettingsPage = () => {
     });
   };
 
+  const handleSignOut = () => {
+    try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+    setToken("");
+    setPassword("");
+    setAuthed(false);
+    setAdminMode(false);
+    setSessionExpired(false);
+    toast({ title: "Signed out", description: "Admin session ended on this device." });
+  };
+
   if (!authed) {
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <form
@@ -724,6 +744,14 @@ const AdminSettingsPage = () => {
               </p>
             </div>
           </div>
+
+          {sessionExpired && (
+            <p className="text-xs text-center text-muted-foreground bg-muted/60 border border-border/50 rounded-[10px] px-3 py-2">
+              Session expired, please sign in again.
+            </p>
+          )}
+
+
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -778,7 +806,17 @@ const AdminSettingsPage = () => {
             <h1 className="text-2xl font-semibold text-foreground">Admin</h1>
             <p className="text-sm text-muted-foreground">Signed in as {email}</p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={handleSignOut}
+          >
+            Sign out
+          </Button>
         </div>
+
 
         {/* Sticky top nav */}
         <nav className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-background/85 backdrop-blur border-b border-border/50">
