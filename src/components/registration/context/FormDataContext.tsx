@@ -144,7 +144,6 @@ export function FormDataProvider({
 
   const reportSubmitErrorMessage = useCallback((message: string | null) => {
     setSubmitErrorMessage(message);
-    if (message === null) setSubmitErrorActions([]);
   }, []);
   // Tracks the first field returned by a server-side validation error so
   // FormContext can auto-navigate to the step that owns it. Bumped on every
