@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Eye, EyeOff, Lock, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Lock, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -70,6 +70,9 @@ export const CreatePasswordStep = () => {
     currentStep,
     clearErrors,
     setError,
+    submitErrorMessage,
+    isSubmitting,
+    goToStep,
   } = useForm();
 
   
@@ -234,7 +237,25 @@ export const CreatePasswordStep = () => {
         </div>
       </div>
 
-      {/* Submit error is rendered once in AuthFooter for this step */}
+      {/* Account creation failed on the review screen: show why, and let the
+          applicant try again without re-entering anything. */}
+      {submitErrorMessage && (
+        <div className="p-[15px] rounded-form border border-destructive/30 bg-destructive/5 space-y-2.5 animate-fade-in">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+            <p className="text-sm text-destructive leading-relaxed">{submitErrorMessage}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => goToStep("assessing")}
+            disabled={isSubmitting || !confirmValid}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Try again
+          </button>
+        </div>
+      )}
 
     </div>
   );
