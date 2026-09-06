@@ -415,8 +415,7 @@ const Auth = () => {
               )}
               {currentStep === "schedule" && <ScheduleStep />}
               {currentStep === "schedule-confirmed" && <ScheduleConfirmedStep />}
-            </Suspense>
-          )}
+          </Suspense>
         </div>
       </main>
 
