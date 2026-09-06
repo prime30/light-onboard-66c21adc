@@ -11,11 +11,12 @@ import {
   UserX,
   ArrowLeft,
   Search,
+  ChevronDown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
@@ -108,6 +109,8 @@ export const AccountTypeForm = () => {
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
   const [showNotStylist, setShowNotStylist] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const geoCountry = useGeoCountry();
   const currentCountry = watch("countryCode");
@@ -226,6 +229,30 @@ export const AccountTypeForm = () => {
     },
   ];
 
+  const selectedType = useMemo(
+    () => types.find((t) => t.id === accountType) ?? null,
+    [types, accountType]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      if (!dropdownRef.current) return;
+      if (!dropdownRef.current.contains(event.target as Node)) setIsOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen]);
+
   if (showNotStylist) {
     return (
       <div className="space-y-[clamp(15px,2.5vh,30px)]">
@@ -286,157 +313,132 @@ export const AccountTypeForm = () => {
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
-        {types.map((type, index) => (
+        <div className="relative" ref={dropdownRef}>
           <button
-            key={type.id}
             type="button"
-            onClick={() => handleAccountTypeSelect(accountType === type.id ? null : type.id)}
-
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
             className={cn(
-              "relative w-full p-[15px] sm:p-5 rounded-form sm:rounded-[20px] border-2 text-left group overflow-hidden",
-              "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-              "hover:-translate-y-0.5 active:scale-[0.98]",
-              accountType === type.id
-                ? "border-foreground/20 bg-foreground/[0.04] shadow-sm"
-                : "border-border hover:border-foreground/20 hover:bg-foreground/[0.04] hover:shadow-sm"
+              "relative w-full p-[15px] sm:p-5 rounded-form sm:rounded-[20px] border-2 text-left group",
+              "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+              isOpen || selectedType
+                ? "border-foreground/20 bg-foreground/[0.012]"
+                : "border-border hover:border-foreground/20 hover:bg-foreground/[0.012]"
             )}
-            style={{
-              animationDelay: `${index * 0.05}s`,
-              transform: accountType === type.id ? "translateY(-2px)" : undefined,
-            }}
           >
-            <div
-              className={cn(
-                "absolute top-[15px] sm:top-5 right-[15px] sm:right-5 w-6 h-6 rounded-full bg-foreground flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                accountType === type.id ? "scale-100 opacity-100" : "scale-0 opacity-0"
-              )}
-            >
-              <Check
+            <div className="flex items-center gap-[15px] sm:gap-5">
+              <div
                 className={cn(
-                  "w-[14px] h-[14px] text-background transition-transform duration-300 delay-100",
-                  accountType === type.id ? "scale-100" : "scale-0"
+                  "w-10 h-10 sm:w-12 sm:h-12 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                  selectedType ? "bg-foreground" : "bg-muted"
                 )}
-                strokeWidth={3}
+              >
+                {selectedType ? (
+                  <selectedType.icon className="w-5 h-5 sm:w-6 sm:h-6 text-background" />
+                ) : (
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm sm:text-base font-medium text-foreground">
+                  {selectedType ? selectedType.title : "Select your account type"}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {selectedType ? selectedType.description : "Choose the option that fits you best"}
+                </p>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-300",
+                  isOpen && "rotate-180"
+                )}
               />
             </div>
+          </button>
 
-            <div className="relative">
-              {/* Top row: Icon + Content */}
-              <div className="flex items-start gap-[15px] sm:gap-5">
-                {/* Icon with haptic bounce */}
-                <div
+          {isOpen && (
+            <div
+              role="listbox"
+              className="absolute z-50 left-0 right-0 mt-[5px] p-[5px] rounded-form sm:rounded-[20px] border border-border/60 bg-background shadow-modal backdrop-blur-xl animate-fade-in max-h-[50vh] overflow-y-auto"
+            >
+              {types.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  role="option"
+                  aria-selected={accountType === type.id}
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleAccountTypeSelect(type.id);
+                  }}
                   className={cn(
-                    "w-10 h-10 sm:w-12 sm:h-12 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+                    "w-full flex items-start gap-[10px] p-[10px] sm:p-[15px] rounded-form-sm text-left transition-colors duration-200",
                     accountType === type.id
-                      ? "bg-foreground scale-110"
-                      : "bg-muted group-hover:scale-105 group-hover:bg-muted/60"
+                      ? "bg-foreground/[0.04]"
+                      : "hover:bg-foreground/[0.025]"
                   )}
                 >
-                  <type.icon
-                    className={cn(
-                      "w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300",
-                      accountType === type.id
-                        ? "text-background scale-110"
-                        : "text-foreground group-hover:scale-105"
-                    )}
-                  />
-                </div>
-
-                <div className="flex-1 min-w-0 pr-8">
-                  <p
-                    className={cn(
-                      "text-sm sm:text-base font-medium text-foreground transition-all duration-300",
-                      accountType === type.id && "translate-x-0.5"
-                    )}
-                  >
-                    {type.title}
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{type.description}</p>
-                  {/* Features - inline on desktop */}
-                  <div className="hidden sm:flex flex-wrap gap-[5px] mt-2.5">
-                    {type.features.map((feature, i) => {
-                      const FeatureIcon = feature.icon;
-                      return (
-                        <span
-                          key={i}
-                          className={cn(
-                            "inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300",
-                            accountType === type.id
-                              ? "bg-foreground/8 text-foreground/70"
-                              : "bg-muted text-muted-foreground"
-                          )}
-                          style={{
-                            transitionDelay: `${i * 50}ms`,
-                          }}
-                        >
-                          {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
-                          {feature.label}
-                        </span>
-                      );
-                    })}
+                  <div className="w-9 h-9 rounded-form-sm flex items-center justify-center flex-shrink-0 bg-muted">
+                    <type.icon className="w-[18px] h-[18px] text-foreground" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{type.title}</p>
+                    <p className="text-xs text-muted-foreground">{type.description}</p>
+                    <div className="hidden sm:flex flex-wrap gap-[5px] mt-2">
+                      {type.features.map((feature, i) => {
+                        const FeatureIcon = feature.icon;
+                        return (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full bg-muted text-muted-foreground"
+                          >
+                            {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
+                            {feature.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {accountType === type.id && (
+                    <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-background" strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                role="option"
+                aria-selected={false}
+                onClick={() => {
+                  setIsOpen(false);
+                  setShowNotStylist(true);
+                  const w = typeof window !== "undefined" ? window.innerWidth : 0;
+                  const h = typeof window !== "undefined" ? window.innerHeight : 0;
+                  const device_type = w < 640 ? "mobile" : w < 1024 ? "tablet" : "desktop";
+                  void supabase
+                    .from("not_stylist_events")
+                    .insert({ device_type, viewport_width: w, viewport_height: h });
+                }}
+                className="w-full flex items-center gap-[10px] p-[10px] sm:p-[15px] rounded-form-sm text-left transition-colors duration-200 hover:bg-foreground/[0.025] border-t border-border/40 mt-[5px]"
+              >
+                <div className="w-9 h-9 rounded-form-sm flex items-center justify-center flex-shrink-0 bg-muted">
+                  <UserX className="w-[18px] h-[18px] text-foreground" />
                 </div>
-              </div>
-
-              {/* Features - hidden on mobile */}
-              <div className="hidden flex-wrap gap-[5px] mt-3 pt-3 border-t border-border/40">
-                {type.features.map((feature, i) => {
-                  const FeatureIcon = feature.icon;
-                  return (
-                    <span
-                      key={i}
-                      className={cn(
-                        "inline-flex items-center gap-1 text-[10px] px-2.5 py-[5px] rounded-full transition-all duration-300",
-                        accountType === type.id
-                          ? "bg-foreground/5 text-foreground/70"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                      style={{
-                        transitionDelay: `${i * 50}ms`,
-                      }}
-                    >
-                      {FeatureIcon && <FeatureIcon className="w-3 h-3" />}
-                      {feature.label}
-                    </span>
-                  );
-                })}
-              </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">I am not a stylist</p>
+                  <p className="text-xs text-muted-foreground">
+                    Looking for Drop Dead as a customer
+                  </p>
+                </div>
+              </button>
             </div>
-          </button>
-        ))}
-
-        <button
-          type="button"
-          onClick={() => {
-            setShowNotStylist(true);
-            const w = typeof window !== "undefined" ? window.innerWidth : 0;
-            const h = typeof window !== "undefined" ? window.innerHeight : 0;
-            const device_type = w < 640 ? "mobile" : w < 1024 ? "tablet" : "desktop";
-            void supabase
-              .from("not_stylist_events")
-              .insert({ device_type, viewport_width: w, viewport_height: h });
-          }}
-          className={cn(
-            "relative w-full p-[15px] sm:p-4 rounded-form sm:rounded-[20px] border-2 border-dashed border-border text-left group",
-            "transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-            "hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-foreground/[0.04] active:scale-[0.98]"
           )}
-        >
-          <div className="flex items-center gap-[15px] sm:gap-5">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-form-sm sm:rounded-form flex items-center justify-center flex-shrink-0 bg-muted group-hover:bg-muted/60 transition-all duration-300">
-              <UserX className="w-5 h-5 text-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm sm:text-base font-medium text-foreground">
-                I am not a stylist
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Looking for Drop Dead as a customer
-              </p>
-            </div>
-          </div>
-        </button>
+        </div>
       </div>
+
 
       {/* Non-professional link - hidden for now */}
     </div>
