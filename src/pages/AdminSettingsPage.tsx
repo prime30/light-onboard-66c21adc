@@ -36,6 +36,8 @@ const AdminSettingsPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string>("");
+  const [sessionExpired, setSessionExpired] = useState(false);
+
   const [verifying, setVerifying] = useState(false);
   type AdminTab = "analytics" | "integrity" | "submissions" | "settings";
   const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
