@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Check, Eye, EyeOff, Lock, RotateCcw, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Headphones, Lock, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
