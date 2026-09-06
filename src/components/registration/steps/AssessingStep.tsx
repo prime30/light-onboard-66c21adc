@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
@@ -32,7 +32,7 @@ const TOTAL_DURATION_MS = 8000;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
-  const { goToStep, watch } = useForm();
+  const { goToStep, watch, submitForm, isSubmitSuccessful, submitErrorMessage } = useForm();
   const countryCode = watch("countryCode") as string | undefined;
   const MILESTONES = getMilestones(countryCode);
   const [progress, setProgress] = useState(0);
@@ -59,14 +59,32 @@ export const AssessingStep = () => {
     };
   }, []);
 
-  // After 100%, hold for a beat, then advance to create-password.
+  // The real backend submit fires here (the password was collected on the
+  // previous step), so the review animation plays while the account is
+  // actually created.
+  const submitted = useRef(false);
   useEffect(() => {
-    if (!done) return;
+    if (submitted.current) return;
+    submitted.current = true;
+    void submitForm();
+  }, [submitForm]);
+
+  // If the submit failed, drop back to the password step where the error and
+  // any field-level problems are shown.
+  const errorAtMount = useRef(submitErrorMessage);
+  useEffect(() => {
+    if (!submitErrorMessage || submitErrorMessage === errorAtMount.current) return;
+    goToStep("create-password");
+  }, [submitErrorMessage, goToStep]);
+
+  // After 100% AND a successful submit, hold for a beat, then show success.
+  useEffect(() => {
+    if (!done || !isSubmitSuccessful) return;
     const t = window.setTimeout(() => {
-      goToStep("create-password");
+      goToStep("success");
     }, 1300);
     return () => window.clearTimeout(t);
-  }, [done, goToStep]);
+  }, [done, isSubmitSuccessful, goToStep]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] py-10 animate-fade-in text-center">
@@ -115,7 +133,7 @@ export const AssessingStep = () => {
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {done
-              ? "Just set a password to continue."
+              ? "Setting up your account."
               : "Your application is being assessed. This will only take a moment."}
           </p>
         </div>

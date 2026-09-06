@@ -152,7 +152,7 @@ export function AuthFooter({
     if (isScheduleConfirmedStep) return "Go to shop";
     // Late password step in auto-approval mode is now the final real submit gate.
     if (isLatePasswordStep && isFinalStep) return "Create account & continue";
-    if (isLatePasswordStep) return "Continue";
+    if (isLatePasswordStep) return "Create account & continue";
     // While flags are still loading the step list is a placeholder prefix; don't
     // label the first real step as "Submit application" until the full flow is known.
     if (autoApproveLoading && currentStep !== "onboarding") return "Continue";
@@ -424,7 +424,7 @@ export function AuthFooter({
 
     if (shouldRunDuplicateEmailCheck) {
       const continueAfterCheck = () => {
-        if (isFauxSubmitStep) goToStep("assessing");
+        if (isFauxSubmitStep) goToStep("create-password");
         else submitForm();
       };
       setPreflightChecking(true);
@@ -451,7 +451,7 @@ export function AuthFooter({
     // registration request.
     if (isFinalStep) {
       if (isFauxSubmitStep) {
-        goToStep("assessing");
+        goToStep("create-password");
       } else {
         submitForm();
       }
@@ -543,7 +543,7 @@ export function AuthFooter({
                 currentStep === "schedule"
                   ? () => goToStep("success")
                   : isLatePasswordStep
-                    ? () => goToStep("assessing")
+                    ? goToPrevStep
                     : goToPrevStep
               }
               aria-label="Go back"
