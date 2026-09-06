@@ -64,6 +64,7 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           welcome_offer_enabled: boolean
+          welcome_offer_step_enabled: boolean
         }
         Insert: {
           auto_approval_enabled?: boolean
@@ -84,6 +85,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           welcome_offer_enabled?: boolean
+          welcome_offer_step_enabled?: boolean
         }
         Update: {
           auto_approval_enabled?: boolean
@@ -104,6 +106,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           welcome_offer_enabled?: boolean
+          welcome_offer_step_enabled?: boolean
         }
         Relationships: []
       }
