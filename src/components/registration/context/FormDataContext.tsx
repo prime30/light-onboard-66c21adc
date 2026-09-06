@@ -232,6 +232,10 @@ export function FormDataProvider({
       if (result.success === false) {
         console.log("set error");
         setErrorActions(result.actions || []);
+        // One more creation attempt burned, whether the server rejected the
+        // payload or threw. Counted here (not in reportSubmitErrorMessage) so
+        // pre-flight conflicts and validation blocks don't inflate it.
+        setSubmitFailureCount((prev) => prev + 1);
 
         // Server returns Zod errors as "fieldPath: message" strings (see
         // create-customer index.ts). Parse them back into per-field errors
