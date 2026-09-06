@@ -48,6 +48,8 @@ const AdminSettingsPage = () => {
   const [welcomeOffer, setWelcomeOffer] = useState<boolean | null>(null);
   const [updatingWelcome, setUpdatingWelcome] = useState(false);
   const [gatedOffer, setGatedOffer] = useState<boolean | null>(null);
+  const [optInStep, setOptInStep] = useState<boolean | null>(null);
+  const [updatingOptInStep, setUpdatingOptInStep] = useState(false);
   const [updatingGatedOffer, setUpdatingGatedOffer] = useState(false);
   const [metafieldsEnabled, setMetafieldsEnabled] = useState<boolean | null>(null);
   const [updatingMetafields, setUpdatingMetafields] = useState(false);
@@ -108,11 +110,12 @@ const AdminSettingsPage = () => {
     let cancelled = false;
     supabase.functions.invoke("public-app-flags", { body: {} }).then(({ data }) => {
       if (cancelled) return;
-      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean; gatedOfferEnabled?: boolean };
+      const flags = (data ?? {}) as { autoApprovalEnabled?: boolean; welcomeOfferEnabled?: boolean; gatedOfferEnabled?: boolean; welcomeOfferStepEnabled?: boolean };
       setAutoApproval(!!flags.autoApprovalEnabled);
       setLoadingSetting(false);
       setWelcomeOffer(!!flags.welcomeOfferEnabled);
       setGatedOffer(!!flags.gatedOfferEnabled);
+      setOptInStep(!!flags.welcomeOfferStepEnabled);
     });
     return () => {
       cancelled = true;
@@ -367,6 +370,35 @@ const AdminSettingsPage = () => {
       toast({ title: "Error", description: "Could not save the setting.", variant: "destructive" });
     } finally {
       setUpdatingWelcome(false);
+    }
+  };
+
+  const handleOptInStepToggle = async (next: boolean) => {
+    if (optInStep === null) return;
+    const previous = optInStep;
+    setOptInStep(next);
+    setUpdatingOptInStep(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-toggle-setting", {
+        body: { token, welcomeOfferStepEnabled: next },
+      });
+      if (error || !data?.success) {
+        setOptInStep(previous);
+        toast({
+          title: "Failed to update",
+          description: "Could not save the setting.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: next ? "Opt-in page shown" : "Opt-in page hidden",
+        description: next
+          ? "Applicants will see the email and texts opt-in screen again."
+          : "The opt-in screen is hidden from the apply flow.",
+      });
+    } finally {
+      setUpdatingOptInStep(false);
     }
   };
 
@@ -918,6 +950,39 @@ const AdminSettingsPage = () => {
                 }
               >
                 {gatedOffer ? "Promo shown" : "Hidden (fastest signup)"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Email/SMS opt-in page (testing toggle) */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-medium text-foreground">Email and texts opt-in page</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Off by default so signup stays short. Turn it on to bring the opt-in screen
+                back into the apply flow for testing.
+              </p>
+            </div>
+            {optInStep === null ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground shrink-0 mt-1" />
+            ) : (
+              <Switch
+                checked={optInStep}
+                onCheckedChange={handleOptInStepToggle}
+                disabled={updatingOptInStep}
+                aria-label="Toggle email and texts opt-in page"
+              />
+            )}
+          </div>
+          {optInStep !== null && (
+            <div className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+              Current state:{" "}
+              <span
+                className={optInStep ? "text-status-green font-medium" : "font-medium text-foreground"}
+              >
+                {optInStep ? "Shown in flow" : "Hidden (fastest signup)"}
               </span>
             </div>
           )}
