@@ -144,9 +144,9 @@ export function getStepOrder(
   if (hiddenSteps?.length) {
     order = order.filter((s) => !hiddenSteps.includes(s));
   }
-  // The email/SMS opt-in ("welcome offer") page is hidden from the flow to keep
-  // signup as short as possible. Consent defaults are kept as-is.
-  order = order.filter((s) => s !== "welcome-offer");
+  // The email/SMS opt-in ("welcome offer") page is hidden by default to keep
+  // signup as short as possible; an admin toggle can bring it back for testing
+  // by leaving it out of `hiddenSteps`. Consent defaults are kept as-is.
   if (!autoApprove) return order;
   return order.filter((s) => s !== "create-password");
 
