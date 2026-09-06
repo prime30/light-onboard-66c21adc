@@ -204,6 +204,14 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   const { fontsLoaded } = useGlobalApp();
   const { pathname } = useLocation();
   const isNotEligible = pathname === "/not-eligible";
+  // The "15% off" pill is part of the gated first-order promo, so it follows
+  // the same admin switch.
+  const { enabled: gatedOfferEnabled } = useGatedOfferEnabled();
+  const visibleFeatures = gatedOfferEnabled
+    ? features
+    : features.filter((f) => f.label !== "15% off");
+
+
 
   const changeSlide = useCallback((next: number) => {
     if (next === currentSlide) return;
