@@ -44,7 +44,7 @@ async function verifyAdminToken(token: string, secret: string): Promise<boolean>
     return true;
   } catch { return false; }
 }
-async function issueAdminToken(email: string, secret: string, ttlSeconds = 60 * 60 * 8): Promise<{ token: string; expiresAt: number }> {
+async function issueAdminToken(email: string, secret: string, ttlSeconds = 60 * 60 * 12): Promise<{ token: string; expiresAt: number }> {
   const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
   const b = btoa(JSON.stringify({ email, exp: expiresAt })).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
   const s = await _hmacB64u(secret, b);
