@@ -172,55 +172,36 @@ const AdminSettingsPage = () => {
         setToken("");
         return;
       }
-      {
+      const s: Record<string, unknown> = data.setting ?? {};
+      setAuthed(true);
+      setAdminMode(true);
+      const tags = (s.extra_customer_tags ?? []) as string[];
+      setExtraTags(Array.isArray(tags) ? tags : []);
+      if (typeof s.gated_offer_enabled === "boolean") setGatedOffer(s.gated_offer_enabled);
+      if (typeof s.welcome_offer_enabled === "boolean") setWelcomeOffer(s.welcome_offer_enabled);
+      setMetafieldsEnabled(
+        typeof s.discount_metafields_enabled === "boolean" ? s.discount_metafields_enabled : true
+      );
+      setFounderHighVolume(
+        typeof s.founder_call_high_volume_only === "boolean" ? s.founder_call_high_volume_only : false
+      );
+      setBizOpStepOn(
+        typeof s.business_operation_step_enabled === "boolean" ? s.business_operation_step_enabled : true
+      );
+      setOrderVolumeStepOn(
+        typeof s.order_volume_step_enabled === "boolean" ? s.order_volume_step_enabled : true
+      );
+      setPreferredMethodStepOn(
+        typeof s.preferred_method_step_enabled === "boolean" ? s.preferred_method_step_enabled : true
+      );
+      setBusinessLocationStepOn(!!s.business_location_step_enabled);
+      setReferralStepOn(s.referral_step_enabled !== false);
+      setSummaryStepOn(s.summary_step_enabled !== false);
+      setFounderCallOn(
+        typeof s.founder_call_enabled === "boolean" ? s.founder_call_enabled : true
+      );
+    })();
 
-        setAuthed(true);
-        setAdminMode(true);
-        const tags = (data?.setting?.extra_customer_tags ?? []) as string[];
-        setExtraTags(Array.isArray(tags) ? tags : []);
-        if (typeof data?.setting?.gated_offer_enabled === "boolean") {
-          setGatedOffer(data.setting.gated_offer_enabled);
-        }
-        if (typeof data?.setting?.welcome_offer_enabled === "boolean") {
-          setWelcomeOffer(data.setting.welcome_offer_enabled);
-        }
-        if (typeof data?.setting?.discount_metafields_enabled === "boolean") {
-          setMetafieldsEnabled(data.setting.discount_metafields_enabled);
-        } else {
-          setMetafieldsEnabled(true);
-        }
-        if (typeof data?.setting?.founder_call_high_volume_only === "boolean") {
-          setFounderHighVolume(data.setting.founder_call_high_volume_only);
-        } else {
-          setFounderHighVolume(false);
-        }
-        if (typeof data?.setting?.business_operation_step_enabled === "boolean") {
-          setBizOpStepOn(data.setting.business_operation_step_enabled);
-        } else {
-          setBizOpStepOn(true);
-        }
-        if (typeof data?.setting?.order_volume_step_enabled === "boolean") {
-          setOrderVolumeStepOn(data.setting.order_volume_step_enabled);
-        } else {
-          setOrderVolumeStepOn(true);
-        }
-        if (typeof data?.setting?.preferred_method_step_enabled === "boolean") {
-          setPreferredMethodStepOn(data.setting.preferred_method_step_enabled);
-        } else {
-          setPreferredMethodStepOn(true);
-        }
-        setBusinessLocationStepOn(!!data?.setting?.business_location_step_enabled);
-        setReferralStepOn(data?.setting?.referral_step_enabled !== false);
-        setSummaryStepOn(data?.setting?.summary_step_enabled !== false);
-        if (typeof data?.setting?.founder_call_enabled === "boolean") {
-          setFounderCallOn(data.setting.founder_call_enabled);
-        } else {
-          setFounderCallOn(true);
-        }
-      })
-      .catch(() => {
-        /* keep on login screen if verification fails */
-      });
     return () => {
       cancelled = true;
     };
