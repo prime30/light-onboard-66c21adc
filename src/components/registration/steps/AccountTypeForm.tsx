@@ -95,7 +95,7 @@ type RenderAccountTypeProps = {
   features: { label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }[];
 };
 
-export const AccountTypeForm = () => {
+export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const {
     watch,
     setValue,
@@ -182,11 +182,11 @@ export const AccountTypeForm = () => {
 
       // No existing progress or same type selected, proceed directly
       executeAccountTypeSelect(type, previousType || null);
-      if (type) {
+      if (type && !embedded) {
         setPendingAdvance(true);
       }
     },
-    [accountType, executeAccountTypeSelect, hasFormProgress]
+    [accountType, executeAccountTypeSelect, hasFormProgress, embedded]
   );
 
 
@@ -296,7 +296,7 @@ export const AccountTypeForm = () => {
   }
 
   return (
-    <div className="space-y-[clamp(12px,2vh,25px)]">
+    <div className={embedded ? "space-y-2.5" : "space-y-[clamp(12px,2vh,25px)]"}>
       <AccountTypeConfirmationOverlay
         showAccountTypeConfirm={showAccountTypeConfirm}
         setShowAccountTypeConfirm={setShowAccountTypeConfirm}
@@ -306,11 +306,15 @@ export const AccountTypeForm = () => {
         accountType={accountType}
         goToNextStep={goToNextStep}
       />
-      <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-        <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Tell us who you are
-        </h1>
-      </div>
+      {embedded ? (
+        <p className="text-sm font-medium text-foreground">Tell us who you are*</p>
+      ) : (
+        <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
+          <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
+            Tell us who you are
+          </h1>
+        </div>
+      )}
 
       <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
         <div className="relative" ref={dropdownRef}>

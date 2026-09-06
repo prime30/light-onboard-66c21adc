@@ -90,7 +90,6 @@ export const STEP_DISPLAY_NAMES: Record<Step, string> = {
  */
 export const STEP_ORDER: Record<string, Step[]> = {
   professional: [
-    "account-type",
     "contact-basics",
     "business-operation",
     "create-password",
@@ -101,7 +100,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "welcome-offer",
   ],
   salon: [
-    "account-type",
     "contact-basics",
     "business-location",
     "create-password",
@@ -111,7 +109,6 @@ export const STEP_ORDER: Record<string, Step[]> = {
     "welcome-offer",
   ],
   student: [
-    "account-type",
     "contact-basics",
     "school-info",
     "create-password",
@@ -136,7 +133,7 @@ export function getStepOrder(
   countryCode?: string,
   hiddenSteps?: Step[]
 ): Step[] {
-  if (!accountType) return ["account-type"];
+  if (!accountType) return ["contact-basics"];
   let order = STEP_ORDER[accountType] || STEP_ORDER.professional;
   // Australia has no licensing/qualification/salon-licence requirement for
   // hair-extension services, so the entire "license" step is skipped for
@@ -191,6 +188,11 @@ export function getStepSchema(step: Step, accountType: AccountType): ZodObject |
   if (step === "license" && accountType === "salon") {
     return salonLicenseStepSchema;
   }
+  // The account type selector now lives inline on Contact Information, so the
+  // contact step also gates on a chosen account type.
+  if (step === "contact-basics") {
+    return contactBasicsStepSchema.extend(accountTypeSchema.shape);
+  }
   return stepValidations[step];
 }
 
@@ -204,6 +206,10 @@ export const fieldsForStep: Record<Step, ValidFieldNames[]> = Object.fromEntries
 // Salons need salonSize + salonStructure + licenseProofFiles surfaced as
 // "missing fields" on the license step. Inject them into the field map for the
 // license step so the popover/shake helpers treat them as required.
+fieldsForStep["contact-basics"] = [
+  ...new Set([...fieldsForStep["contact-basics"], "accountType" as ValidFieldNames]),
+];
+
 fieldsForStep.license = [
   ...new Set([
     ...fieldsForStep.license,

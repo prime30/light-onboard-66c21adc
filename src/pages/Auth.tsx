@@ -125,7 +125,7 @@ const Auth = () => {
     const searchParams = new URLSearchParams(location.search);
     const stepParam = searchParams.get("step");
     if (stepParam === "1") {
-      setCurrentStep("account-type");
+      setCurrentStep("contact-basics");
       // Clear the query param
       window.history.replaceState({}, document.title, location.pathname);
       return;
@@ -470,7 +470,7 @@ const Auth = () => {
               }}
               onStartRegistration={() => {
                 setModeTransitionDirection("right");
-                setCurrentStep("account-type");
+                setCurrentStep("contact-basics");
               }}
             />
           )}

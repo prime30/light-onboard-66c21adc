@@ -18,6 +18,7 @@ import type { UploadFileItem } from "@/contexts";
 import { countryCodes } from "@/data/country-codes";
 import { countries } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
+import { AccountTypeForm } from "./AccountTypeForm";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
 import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "@/lib/validations/competitor-email-domains";
@@ -506,6 +507,10 @@ export const ContactBasicsStep = () => {
           <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
           <span>Your information is secure and never shared with third parties.</span>
         </p>
+      </div>
+
+      <div data-field="account-type-inline" className="relative z-40 animate-stagger-1">
+        <AccountTypeForm embedded />
       </div>
 
       {/* A real <form> element is what lets iOS Safari / Chrome offer grouped

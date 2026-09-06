@@ -70,6 +70,7 @@ export function AuthFooter({
     mode === "signup" &&
     currentStep !== "onboarding" &&
     currentStep !== "account-type" &&
+    currentStep !== "contact-basics" &&
     !isScheduleConfirmedStep;
   const isSummaryStep = currentStep === "summary";
   // When auto-approval is ON, the welcome-offer step is collected BEFORE the
