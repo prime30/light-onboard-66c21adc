@@ -237,7 +237,9 @@ const AdminSettingsPage = () => {
       setToken(issuedToken);
       setPassword(""); // never keep the raw password in memory after login
       setAuthed(true);
+      setSessionExpired(false);
       setAdminMode(true);
+
       try {
         sessionStorage.setItem(
           ADMIN_SESSION_KEY,
