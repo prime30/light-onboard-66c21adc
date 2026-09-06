@@ -795,7 +795,17 @@ const AdminSettingsPage = () => {
             <h1 className="text-2xl font-semibold text-foreground">Admin</h1>
             <p className="text-sm text-muted-foreground">Signed in as {email}</p>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={handleSignOut}
+          >
+            Sign out
+          </Button>
         </div>
+
 
         {/* Sticky top nav */}
         <nav className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-background/85 backdrop-blur border-b border-border/50">
