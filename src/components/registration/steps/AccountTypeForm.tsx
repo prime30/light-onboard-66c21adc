@@ -11,11 +11,12 @@ import {
   UserX,
   ArrowLeft,
   Search,
+  ChevronDown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { AccountType } from "@/lib/validations/auth-schemas";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
@@ -108,6 +109,8 @@ export const AccountTypeForm = () => {
   const [showAccountTypeConfirm, setShowAccountTypeConfirm] = useState(false);
   const [pendingAccountType, setPendingAccountType] = useState<AccountType | null>(null);
   const [showNotStylist, setShowNotStylist] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const geoCountry = useGeoCountry();
   const currentCountry = watch("countryCode");
@@ -226,6 +229,30 @@ export const AccountTypeForm = () => {
     },
   ];
 
+  const selectedType = useMemo(
+    () => types.find((t) => t.id === accountType) ?? null,
+    [types, accountType]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      if (!dropdownRef.current) return;
+      if (!dropdownRef.current.contains(event.target as Node)) setIsOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen]);
+
   if (showNotStylist) {
     return (
       <div className="space-y-[clamp(15px,2.5vh,30px)]">
@@ -286,7 +313,7 @@ export const AccountTypeForm = () => {
       </div>
 
       <div className="space-y-2.5 sm:space-y-[15px]" data-field="account-type">
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}
