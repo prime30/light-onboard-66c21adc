@@ -25,10 +25,16 @@ const MIDDLE_MILESTONE_BY_COUNTRY: Record<string, string> = {
 const getMilestones = (countryCode: string | undefined): Milestone[] => [
   { label: "Reviewing your application", at: 35 },
   { label: MIDDLE_MILESTONE_BY_COUNTRY[(countryCode ?? "US").toUpperCase()] ?? "Verifying your details", at: 70 },
-  { label: "Setting up account", at: 100 },
+  { label: "Creating your account", at: 100 },
 ];
 
 const TOTAL_DURATION_MS = 8000;
+/**
+ * Minimum time the review screen stays on screen. Account creation is often
+ * faster than the animation, and bouncing away early (on success OR on an
+ * error) looks like a glitch, so both outcomes wait for this floor.
+ */
+const MIN_VISIBLE_MS = 3200;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
@@ -37,6 +43,7 @@ export const AssessingStep = () => {
   const MILESTONES = getMilestones(countryCode);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
+  const mountedAt = useRef(performance.now());
 
   useEffect(() => {
     const start = performance.now();
@@ -74,7 +81,9 @@ export const AssessingStep = () => {
   const errorAtMount = useRef(submitErrorMessage);
   useEffect(() => {
     if (!submitErrorMessage || submitErrorMessage === errorAtMount.current) return;
-    goToStep("create-password");
+    const remaining = Math.max(0, MIN_VISIBLE_MS - (performance.now() - mountedAt.current));
+    const t = window.setTimeout(() => goToStep("create-password"), remaining);
+    return () => window.clearTimeout(t);
   }, [submitErrorMessage, goToStep]);
 
   // After 100% AND a successful submit, hold for a beat, then show success.
@@ -129,11 +138,11 @@ export const AssessingStep = () => {
         {/* Heading */}
         <div className="space-y-2.5">
           <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl text-foreground leading-[1.1] text-balance">
-            {done ? "You're approved!" : "Reviewing your application"}
+            {done ? "Account ready" : "Reviewing your application"}
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {done
-              ? "Setting up your account."
+              ? "You're approved and your account is set up."
               : "Your application is being assessed. This will only take a moment."}
           </p>
         </div>
