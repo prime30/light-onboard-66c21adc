@@ -93,7 +93,7 @@ export function StepProvider({ children }: StepProviderProps) {
 
   const { steps, totalSteps, currentStepNumber } = useMemo(() => {
     if (flagsLoading) {
-      const pending: Step[] = ["onboarding", "account-type", "contact-basics"];
+      const pending: Step[] = ["onboarding", "contact-basics"];
       return {
         steps: pending,
         totalSteps: pending.length,
