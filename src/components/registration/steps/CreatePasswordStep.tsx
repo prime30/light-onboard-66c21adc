@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Check, Eye, EyeOff, Lock, RotateCcw, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Headphones, Lock, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,7 @@ export const CreatePasswordStep = () => {
     clearErrors,
     setError,
     submitErrorMessage,
+    submitFailureCount,
     isSubmitting,
     goToStep,
   } = useForm();
@@ -245,15 +246,32 @@ export const CreatePasswordStep = () => {
             <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
             <p className="text-sm text-destructive leading-relaxed">{submitErrorMessage}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => goToStep("assessing")}
-            disabled={isSubmitting || !confirmValid}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Try again
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => goToStep("assessing")}
+              disabled={isSubmitting || !confirmValid}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Try again
+            </button>
+            {/* Two failed attempts means retrying isn't helping - hand them a
+                human instead of another loop. */}
+            {submitFailureCount >= 2 && (
+              <a
+                href={`mailto:hello@dropdeadextensions.com?subject=${encodeURIComponent(
+                  "Trouble creating my wholesale account"
+                )}&body=${encodeURIComponent(
+                  `I've tried ${submitFailureCount} times and keep seeing:\n${submitErrorMessage ?? ""}\n\nMy email: `
+                )}`}
+                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-form-sm border border-foreground/15 text-sm text-foreground/80 hover:text-foreground hover:border-foreground/30 transition-colors"
+              >
+                <Headphones className="w-3.5 h-3.5" />
+                Contact us
+              </a>
+            )}
+          </div>
         </div>
       )}
 

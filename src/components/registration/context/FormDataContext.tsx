@@ -64,6 +64,7 @@ export type FormDataContextType = {
   isSubmitting: boolean;
   errorActions: Array<{ type: string; label: string; url?: string }>;
   submitErrorMessage: string | null;
+  submitFailureCount: number;
   serverErrorField: { field: ValidFieldNames; bump: number } | null;
   emailConflict: EmailConflict;
   setEmailConflict: (conflict: EmailConflict) => void;
@@ -133,6 +134,17 @@ export function FormDataProvider({
     Array<{ type: string; label: string; url?: string }>
   >([]);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null);
+  // How many account-creation attempts have failed. Bumped in the real-submit
+  // failure branch (see submitForm) and never reset, so the password screen
+  // can escalate to "contact us" after the applicant has retried a couple of
+  // times on their own. The error message itself is cleared between attempts
+  // (the footer does that before entering the review screen), which is why
+  // this lives on its own rather than being derived from the message.
+  const [submitFailureCount, setSubmitFailureCount] = useState(0);
+
+  const reportSubmitErrorMessage = useCallback((message: string | null) => {
+    setSubmitErrorMessage(message);
+  }, []);
   // Tracks the first field returned by a server-side validation error so
   // FormContext can auto-navigate to the step that owns it. Bumped on every
   // failed submit (even when the field repeats) via a monotonic counter.
@@ -177,7 +189,7 @@ export function FormDataProvider({
       const submitterEmail = (values as { email?: string }).email;
       const auToken = isAu && submitterEmail ? readAuGeoToken(submitterEmail) : null;
       if (isAu && !auToken) {
-        setSubmitErrorMessage(
+        reportSubmitErrorMessage(
           "We couldn't verify you're located in Australia. Please allow location access on the summary step, or disable any VPN and refresh."
         );
         return;
@@ -219,6 +231,10 @@ export function FormDataProvider({
       if (result.success === false) {
         console.log("set error");
         setErrorActions(result.actions || []);
+        // One more creation attempt burned, whether the server rejected the
+        // payload or threw. Counted here (not in reportSubmitErrorMessage) so
+        // pre-flight conflicts and validation blocks don't inflate it.
+        setSubmitFailureCount((prev) => prev + 1);
 
         // Server returns Zod errors as "fieldPath: message" strings (see
         // create-customer index.ts). Parse them back into per-field errors
@@ -252,7 +268,7 @@ export function FormDataProvider({
               return `${display}: ${message}`;
             })
             .join("\n");
-          setSubmitErrorMessage(
+          reportSubmitErrorMessage(
             `Some required information is missing or invalid:\n${friendlyList}`
           );
           // Signal FormContext to navigate to the first offending field.
@@ -262,7 +278,7 @@ export function FormDataProvider({
             bump: (prev?.bump ?? 0) + 1,
           }));
         } else {
-          setSubmitErrorMessage(result.error);
+          reportSubmitErrorMessage(result.error);
         }
 
         // Map server-side phone errors back to the phone field so the user
@@ -465,7 +481,7 @@ export function FormDataProvider({
         type: "validation",
         message,
       });
-      setSubmitErrorMessage(message);
+      reportSubmitErrorMessage(message);
     }
   );
 
@@ -692,7 +708,7 @@ export function FormDataProvider({
       if (errors?.root?.form && !isSubmitting && previousValuesSignature !== null && previousValuesSignature !== valuesSignature) {
         clearErrors("root.form");
         setErrorActions([]);
-        setSubmitErrorMessage(null);
+        reportSubmitErrorMessage(null);
       }
     },
     [clearErrors, isSubmitting]
@@ -731,17 +747,17 @@ export function FormDataProvider({
         | null
     ) => {
       if (!input) {
-        setSubmitErrorMessage(null);
+        reportSubmitErrorMessage(null);
         setErrorActions([]);
         clearErrors("root.form");
         return;
       }
       const { message, actions = [] } = input;
-      setSubmitErrorMessage(message);
+      reportSubmitErrorMessage(message);
       setErrorActions(actions);
       setError("root.form", { type: "manual", message });
     },
-    [setError, clearErrors]
+    [setError, clearErrors, reportSubmitErrorMessage]
   );
 
   const value: FormDataContextType = {
@@ -766,6 +782,7 @@ export function FormDataProvider({
     isSubmitting,
     errorActions,
     submitErrorMessage,
+    submitFailureCount,
     serverErrorField,
     emailConflict,
     setEmailConflict,
