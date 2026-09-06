@@ -142,8 +142,11 @@ const AdminSettingsPage = () => {
     if (!session?.email || !session?.token) return;
     if (session.expiresAt && session.expiresAt * 1000 < Date.now()) {
       try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+      setEmail(session.email);
+      setSessionExpired(true);
       return;
     }
+
     setEmail(session.email);
     setToken(session.token);
     // Verify with a raw fetch: an expired/invalid token returns 401, which the
