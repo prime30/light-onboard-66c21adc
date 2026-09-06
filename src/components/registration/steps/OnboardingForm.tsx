@@ -128,6 +128,7 @@ export const OnboardingForm = ({
 }: OnboardingFormProps) => {
   const { fontsLoaded } = useGlobalApp();
   const { enabled: autoApprove } = useAutoApproval();
+  const { enabled: gatedOfferEnabled } = useGatedOfferEnabled();
   const [offerActive, setOfferActive] = useState(false);
 
   const finalStep = autoApprove
