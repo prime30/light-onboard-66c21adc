@@ -725,6 +725,14 @@ const AdminSettingsPage = () => {
             </div>
           </div>
 
+          {sessionExpired && (
+            <p className="text-xs text-center text-muted-foreground bg-muted/60 border border-border/50 rounded-[10px] px-3 py-2">
+              Session expired, please sign in again.
+            </p>
+          )}
+
+
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="admin-email">Email</Label>
