@@ -85,18 +85,19 @@ export const AssessingStep = () => {
   }, [submitForm]);
 
   // If the submit failed, drop back to the password step where the error and
-  // any field-level problems are shown.
-  const errorAtMount = useRef(submitErrorMessage);
+  // any field-level problems are shown. Tracked by failure count rather than
+  // message text so a repeated identical error still bounces back.
+  const failuresAtMount = useRef(submitFailureCount);
   useEffect(() => {
-    if (!submitErrorMessage || submitErrorMessage === errorAtMount.current) return;
+    if (submitFailureCount <= failuresAtMount.current) return;
     const remaining = Math.max(0, MIN_VISIBLE_MS - (performance.now() - mountedAt.current));
     const t = window.setTimeout(() => goToStep("create-password"), remaining);
     return () => window.clearTimeout(t);
-  }, [submitErrorMessage, goToStep]);
+  }, [submitFailureCount, goToStep]);
 
   // After 100% AND a successful submit, hold for a beat, then show success.
   useEffect(() => {
-    if (!done || !isSubmitSuccessful) return;
+    if (!done || !succeeded) return;
     const t = window.setTimeout(() => {
       goToStep("success");
     }, 1300);
