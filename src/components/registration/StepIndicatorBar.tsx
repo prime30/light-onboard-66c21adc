@@ -111,6 +111,10 @@ export const StepIndicatorBar = memo(function StepIndicatorBar() {
     stepSwipeEndX.current = null;
   }, [goToNextStep, goToPrevStep, isAdmin]);
 
+  // The flow is short enough now that a step counter adds nothing, so the
+  // numbered dots are not rendered at all.
+  return null;
+
   // Only show for signup mode
   if (mode !== "signup") return null;
 
