@@ -257,12 +257,6 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
     return (
       <div className="space-y-[clamp(15px,2.5vh,30px)]">
         <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
-          <div className="inline-flex items-center gap-2.5 px-[15px] py-[6px] rounded-full bg-muted border border-border/50 mb-[5px] animate-badge-pop">
-            <UserX className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.15em]">
-              Trade only
-            </span>
-          </div>
           <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
             {isAU ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
           </h1>
