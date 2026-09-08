@@ -272,6 +272,7 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
             extensions can help.
           </p>
         </div>
+      </div>
     );
   }
 
