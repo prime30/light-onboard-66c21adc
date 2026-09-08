@@ -74,6 +74,7 @@ export const CreatePasswordStep = () => {
     submitFailureCount,
     isSubmitting,
     goToStep,
+    setSubmitError,
   } = useForm();
 
   
