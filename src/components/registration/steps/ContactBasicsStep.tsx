@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, ShieldCheck } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as SelectPrimitive from "@radix-ui/react-select";
 
