@@ -267,8 +267,9 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
             {isAU ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
-            Drop Dead is a trade-only brand. Ask your stylist about Drop Dead pricing. If you
-            don't have a stylist who offers extensions, search your area for extensionists.
+            Drop Dead is a trade-only brand, so these products are sold to licensed stylists. If
+            you have a stylist, ask them about Drop Dead. If not, a salon near you that offers
+            extensions can help.
           </p>
         </div>
 
