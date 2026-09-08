@@ -501,7 +501,7 @@ export const ContactBasicsStep = () => {
     <div className="space-y-[clamp(12px,2vh,25px)]">
       <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Your Contact Information
+          You're on your way to pro access
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground/80 flex items-center justify-center gap-1.5 pt-1">
           <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
