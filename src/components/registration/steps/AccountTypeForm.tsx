@@ -271,6 +271,13 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
             you have a stylist, ask them about Drop Dead. If not, a salon near you that offers
             extensions can help.
           </p>
+          <button
+            type="button"
+            onClick={() => setShowNotStylist(false)}
+            className="text-sm text-muted-foreground/60 underline underline-offset-4 decoration-muted-foreground/30 hover:text-foreground transition-colors duration-200"
+          >
+            Actually, I am a stylist
+          </button>
         </div>
       </div>
     );
