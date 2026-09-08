@@ -8,9 +8,6 @@ import {
   ShieldCheck,
   FileCheck,
   Check,
-  UserX,
-  
-  
   ChevronDown,
 } from "lucide-react";
 
