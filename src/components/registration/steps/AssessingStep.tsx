@@ -102,7 +102,7 @@ export const AssessingStep = () => {
       goToStep("success");
     }, 1300);
     return () => window.clearTimeout(t);
-  }, [done, isSubmitSuccessful, goToStep]);
+  }, [done, succeeded, goToStep]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] py-10 animate-fade-in text-center">
