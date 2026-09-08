@@ -38,12 +38,20 @@ const MIN_VISIBLE_MS = 3200;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
-  const { goToStep, watch, submitForm, isSubmitSuccessful, submitErrorMessage } = useForm();
+  const { goToStep, watch, submitForm, isSubmitSuccessful, submitErrorMessage, submitFailureCount } =
+    useForm();
   const countryCode = watch("countryCode") as string | undefined;
   const MILESTONES = getMilestones(countryCode);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const mountedAt = useRef(performance.now());
+  // react-hook-form's post-submit reset() clears isSubmitSuccessful, and the
+  // submit usually resolves long before the animation finishes, so latch the
+  // success once seen instead of reading the transient flag later.
+  const [succeeded, setSucceeded] = useState(false);
+  useEffect(() => {
+    if (isSubmitSuccessful) setSucceeded(true);
+  }, [isSubmitSuccessful]);
 
   useEffect(() => {
     const start = performance.now();
