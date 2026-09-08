@@ -10,7 +10,7 @@ import {
   Check,
   UserX,
   ArrowLeft,
-  Search,
+  
   ChevronDown,
 } from "lucide-react";
 
@@ -273,15 +273,6 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
         </div>
 
         <div className="space-y-2.5 sm:space-y-[15px] max-w-md mx-auto w-full">
-          <a
-            href="https://www.google.com/search?q=hair+extensionists+near+me"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-sm sm:text-base transition-colors"
-          >
-            <Search className="w-4 h-4" />
-            Find an extensionist near you
-          </a>
           <button
             type="button"
             onClick={() => setShowNotStylist(false)}
