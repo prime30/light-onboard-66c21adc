@@ -74,6 +74,7 @@ export const CreatePasswordStep = () => {
     submitFailureCount,
     isSubmitting,
     goToStep,
+    setSubmitError,
   } = useForm();
 
   
@@ -249,7 +250,10 @@ export const CreatePasswordStep = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => goToStep("assessing")}
+              onClick={() => {
+                setSubmitError(null);
+                goToStep("assessing");
+              }}
               disabled={isSubmitting || !confirmValid}
               className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
             >

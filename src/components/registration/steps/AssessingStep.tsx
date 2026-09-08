@@ -38,12 +38,20 @@ const MIN_VISIBLE_MS = 3200;
 const TICK_MS = 40;
 
 export const AssessingStep = () => {
-  const { goToStep, watch, submitForm, isSubmitSuccessful, submitErrorMessage } = useForm();
+  const { goToStep, watch, submitForm, isSubmitSuccessful, submitErrorMessage, submitFailureCount } =
+    useForm();
   const countryCode = watch("countryCode") as string | undefined;
   const MILESTONES = getMilestones(countryCode);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const mountedAt = useRef(performance.now());
+  // react-hook-form's post-submit reset() clears isSubmitSuccessful, and the
+  // submit usually resolves long before the animation finishes, so latch the
+  // success once seen instead of reading the transient flag later.
+  const [succeeded, setSucceeded] = useState(false);
+  useEffect(() => {
+    if (isSubmitSuccessful) setSucceeded(true);
+  }, [isSubmitSuccessful]);
 
   useEffect(() => {
     const start = performance.now();
@@ -77,23 +85,24 @@ export const AssessingStep = () => {
   }, [submitForm]);
 
   // If the submit failed, drop back to the password step where the error and
-  // any field-level problems are shown.
-  const errorAtMount = useRef(submitErrorMessage);
+  // any field-level problems are shown. Tracked by failure count rather than
+  // message text so a repeated identical error still bounces back.
+  const failuresAtMount = useRef(submitFailureCount);
   useEffect(() => {
-    if (!submitErrorMessage || submitErrorMessage === errorAtMount.current) return;
+    if (submitFailureCount <= failuresAtMount.current) return;
     const remaining = Math.max(0, MIN_VISIBLE_MS - (performance.now() - mountedAt.current));
     const t = window.setTimeout(() => goToStep("create-password"), remaining);
     return () => window.clearTimeout(t);
-  }, [submitErrorMessage, goToStep]);
+  }, [submitFailureCount, goToStep]);
 
   // After 100% AND a successful submit, hold for a beat, then show success.
   useEffect(() => {
-    if (!done || !isSubmitSuccessful) return;
+    if (!done || !succeeded) return;
     const t = window.setTimeout(() => {
       goToStep("success");
     }, 1300);
     return () => window.clearTimeout(t);
-  }, [done, isSubmitSuccessful, goToStep]);
+  }, [done, succeeded, goToStep]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] py-10 animate-fade-in text-center">
