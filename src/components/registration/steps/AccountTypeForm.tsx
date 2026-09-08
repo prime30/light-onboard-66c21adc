@@ -272,18 +272,6 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
             extensions can help.
           </p>
         </div>
-
-        <div className="space-y-2.5 sm:space-y-[15px] max-w-md mx-auto w-full">
-          <button
-            type="button"
-            onClick={() => setShowNotStylist(false)}
-            className="w-full inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back
-          </button>
-        </div>
-      </div>
     );
   }
 
