@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ArrowRight, Check, CheckCircle2, ExternalLink, Loader2, XCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, ShieldCheck } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as SelectPrimitive from "@radix-ui/react-select";
 
@@ -503,10 +503,6 @@ export const ContactBasicsStep = () => {
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
           You're on your way to pro access
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground/80 flex items-center justify-center gap-1.5 pt-1">
-          <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-          <span>Your information is secure and never shared with third parties.</span>
-        </p>
       </div>
 
       <div data-field="account-type-inline" className="relative z-40 animate-stagger-1">
