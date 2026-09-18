@@ -488,24 +488,78 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                       <th className="font-medium pb-1.5 pr-3">Campaign</th>
                       <th className="font-medium pb-1.5 px-2">Channel</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
-                      <th className="font-medium pb-1.5 px-2 text-right">Completed</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Purchases</th>
-                      <th className="font-medium pb-1.5 pl-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Spend</th>
+                      <th className="font-medium pb-1.5 pl-2 text-right">Return</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.campaigns.map((c) => (
-                      <tr key={c.key} className="border-t border-border/40">
-                        <td className="py-1 pr-3 text-foreground/80">{c.campaign}</td>
-                        <td className="py-1 px-2 text-muted-foreground">{c.channelLabel}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.count}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.completed}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
-                        <td className="py-1 pl-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
-                      </tr>
-                    ))}
+                    {data.campaigns.map((c) => {
+                      const draft = costDraft[c.key];
+                      const dirty = draft !== undefined && Number(draft) !== (c.cost ?? 0);
+                      return (
+                        <tr key={c.key} className="border-t border-border/40">
+                          <td className="py-1 pr-3 text-foreground/80">{c.campaign}</td>
+                          <td className="py-1 px-2 text-muted-foreground">{c.channelLabel}</td>
+                          <td className="py-1 px-2 text-right tabular-nums">
+                            {c.count}
+                            <span className="text-muted-foreground"> · {c.completed}</span>
+                          </td>
+                          <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
+                          <td className="py-1 px-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
+                          <td className="py-1 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="text-muted-foreground">$</span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={draft ?? String(c.cost ?? 0)}
+                                onChange={(e) =>
+                                  setCostDraft((d) => ({ ...d, [c.key]: e.target.value }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveCost(c);
+                                }}
+                                className="w-16 rounded-[10px] border border-border/60 bg-background px-1.5 py-0.5 text-right text-[11px] tabular-nums outline-none focus:border-foreground/40"
+                              />
+                              {dirty && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 px-2 text-[10px]"
+                                  disabled={savingCost === c.key}
+                                  onClick={() => saveCost(c)}
+                                >
+                                  {savingCost === c.key ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    "Save"
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-1 pl-2 text-right tabular-nums">
+                            {c.roas == null ? (
+                              <span className="text-muted-foreground">—</span>
+                            ) : (
+                              <span
+                                className={cn(
+                                  c.roas >= 1 ? "text-emerald-600" : "text-amber-600"
+                                )}
+                              >
+                                {c.roas.toFixed(2)}x
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+
               </div>
             </details>
           )}
