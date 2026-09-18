@@ -294,6 +294,7 @@ Deno.serve(async (req: Request) => {
     uniqueEmails: emails.length,
     matchedLeads: leadsByEmail.size,
     updated,
+    firstOrderUpdated,
     skipped,
     daysBack,
   });
