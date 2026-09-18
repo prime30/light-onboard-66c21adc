@@ -259,6 +259,7 @@ Deno.serve(async (req: Request) => {
       if (completed) paidCompleted += 1;
       paidOrders += orderCount;
       paidRevenue += orderValue;
+      paidBuyers += buyerCount;
       const campaign =
         (typeof attr?.utmCampaign === "string" && attr.utmCampaign) ||
         (typeof attr?.utmSource === "string" && attr.utmSource) ||
