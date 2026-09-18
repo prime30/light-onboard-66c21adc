@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ChannelRow = {
@@ -30,7 +30,26 @@ type CampaignRow = {
   roas?: number | null;
   profit?: number | null;
   costPerSignup?: number | null;
+  costSource?: string | null;
+  metaSpend?: number | null;
+  metaImpressions?: number | null;
+  metaClicks?: number | null;
+  metaLinkClicks?: number | null;
+  metaPurchases?: number | null;
+  metaRevenue?: number | null;
+  metaRoas?: number | null;
 };
+
+type MetaOnlyRow = {
+  campaign: string;
+  spend: number;
+  clicks: number;
+  linkClicks: number;
+  purchases: number;
+  revenue: number;
+};
+
+
 
 
 type Data = {
@@ -68,6 +87,20 @@ type Data = {
   socialRevenue?: number;
   affiliateOrders?: number;
   affiliateRevenue?: number;
+  metaConnected?: boolean;
+  metaSpend?: number;
+  metaImpressions?: number;
+  metaClicks?: number;
+  metaLinkClicks?: number;
+  metaPurchases?: number;
+  metaRevenue?: number;
+  metaRoas?: number | null;
+  metaCostPerLead?: number | null;
+  metaCurrency?: string;
+  metaSyncedAt?: string | null;
+  metaOnlyCampaigns?: MetaOnlyRow[];
+
+
 
   topRefs?: RefRow[];
   channels: ChannelRow[];
@@ -110,6 +143,8 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   // Ad spend inputs, keyed by "channel::campaign".
   const [costDraft, setCostDraft] = useState<Record<string, string>>({});
   const [savingCost, setSavingCost] = useState<string | null>(null);
+  const [syncingMeta, setSyncingMeta] = useState(false);
+  const [metaNote, setMetaNote] = useState<string | null>(null);
 
 
 
@@ -176,6 +211,31 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     [adminToken, costDraft, fetchData]
   );
 
+  // Pulls fresh spend and results from the Meta ad account.
+  const syncMeta = useCallback(async () => {
+    setSyncingMeta(true);
+    setMetaNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke("meta-ads-sync", {
+        body: { token: adminToken, daysBack: Math.max(sinceDays, 90) },
+      });
+      if (invokeErr || !res?.success) {
+        setMetaNote(res?.error ?? invokeErr?.message ?? "Could not pull figures from Meta.");
+        return;
+      }
+      setMetaNote(
+        `Pulled ${res.rowsWritten ?? 0} campaign days from Meta: ${money(res.spend ?? 0)} spend, ${
+          res.purchases ?? 0
+        } purchases reported.`,
+      );
+      await fetchData();
+    } catch (e) {
+      setMetaNote(e instanceof Error ? e.message : "Could not pull figures from Meta.");
+    } finally {
+      setSyncingMeta(false);
+    }
+  }, [adminToken, fetchData, sinceDays]);
 
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
