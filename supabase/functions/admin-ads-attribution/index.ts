@@ -199,13 +199,18 @@ Deno.serve(async (req: Request) => {
   // Purchases and revenue, overall and for paid / social / affiliate cohorts.
   let ordersTotal = 0;
   let revenueTotal = 0;
+  let buyersTotal = 0;
+  let repeatOrdersTotal = 0;
+  let repeatRevenueTotal = 0;
   let paidOrders = 0;
   let paidRevenue = 0;
+  let paidBuyers = 0;
   let socialOrders = 0;
   let socialRevenue = 0;
   let affiliateOrders = 0;
   let affiliateRevenue = 0;
   const countedOrderEmails = new Set<string>();
+
 
 
 
