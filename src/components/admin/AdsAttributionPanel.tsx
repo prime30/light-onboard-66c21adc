@@ -18,6 +18,7 @@ type ChannelRow = {
 
 type CampaignRow = {
   key: string;
+  channel?: string;
   channelLabel: string;
   campaign: string;
   count: number;
@@ -25,7 +26,12 @@ type CampaignRow = {
   orders?: number;
   revenue?: number;
   aov?: number;
+  cost?: number;
+  roas?: number | null;
+  profit?: number | null;
+  costPerSignup?: number | null;
 };
+
 
 type Data = {
   total: number;
