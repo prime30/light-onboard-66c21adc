@@ -232,6 +232,8 @@ Deno.serve(async (req) => {
             inAppBrowserCount: webviewCount,
             attributionSplit,
             attributionLine,
+            revenue,
+            revenueLine,
           },
         }),
       });
