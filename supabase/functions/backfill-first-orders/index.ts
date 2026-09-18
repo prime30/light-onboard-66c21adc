@@ -96,13 +96,21 @@ Deno.serve(async (req: Request) => {
   if (!adminPassword) return json({ success: false, error: "Server misconfigured" }, 500);
   let _authed = false;
   let _authedEmail = email;
-  if (providedToken) {
+  // Internal calls (cron / maintenance) may authenticate with the service role
+  // key instead of an admin session.
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (bearer && serviceRoleKey && bearer === serviceRoleKey) {
+    _authed = true;
+    _authedEmail = ADMIN_EMAIL;
+  } else if (providedToken) {
     _authed = await verifyAdminToken(providedToken, adminPassword);
     if (_authed) _authedEmail = ADMIN_EMAIL;
   } else {
     const password = body.password ?? "";
     _authed = email === ADMIN_EMAIL && password === adminPassword;
   }
+
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
 
