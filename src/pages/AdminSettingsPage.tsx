@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check, BarChart3, ShieldAlert, Inbox } from "lucide-react";
+import { Loader2, Lock, Settings as SettingsIcon, X, Tag as TagIcon, Gift, Check, BarChart3, ShieldAlert, Inbox, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setAdminMode } from "@/lib/admin-mode";
 import { SubmissionsLogPanel } from "@/components/admin/SubmissionsLogPanel";
@@ -39,7 +39,7 @@ const AdminSettingsPage = () => {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   const [verifying, setVerifying] = useState(false);
-  type AdminTab = "analytics" | "integrity" | "submissions" | "settings";
+  type AdminTab = "analytics" | "ads" | "integrity" | "submissions" | "settings";
   const [activeTab, setActiveTab] = useState<AdminTab>("analytics");
 
   const [autoApproval, setAutoApproval] = useState<boolean | null>(null);
@@ -855,6 +855,7 @@ const AdminSettingsPage = () => {
           <div className="flex flex-wrap gap-1">
             {([
               ["analytics", "Analytics", BarChart3],
+              ["ads", "Ads", Megaphone],
               ["integrity", "Integrity", ShieldAlert],
               ["submissions", "Submissions", Inbox],
               ["settings", "Settings", SettingsIcon],
@@ -1621,10 +1622,14 @@ const AdminSettingsPage = () => {
         {/* Analytics tab */}
         <div className={cn("space-y-8", activeTab !== "analytics" && "hidden")}>
           <RegistrationAnalyticsPanel adminEmail={email} adminToken={token} />
-          <AdsAttributionPanel adminEmail={email} adminToken={token} />
           <RegistrationYoYPanel adminEmail={email} adminToken={token} />
           <FounderCallAnalyticsPanel adminEmail={email} adminToken={token} />
           <ReferralAnalyticsPanel adminEmail={email} adminToken={token} />
+        </div>
+
+        {/* Ads tab */}
+        <div className={cn("space-y-8", activeTab !== "ads" && "hidden")}>
+          <AdsAttributionPanel adminEmail={email} adminToken={token} />
         </div>
 
         {/* Integrity tab */}
