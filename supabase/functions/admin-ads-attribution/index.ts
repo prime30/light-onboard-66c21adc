@@ -112,12 +112,33 @@ Deno.serve(async (req: Request) => {
 
   const { data, error } = await supabase
     .from("registration_submissions")
-    .select("attribution, account_type, status, created_at, payload")
+    .select("attribution, account_type, status, created_at, payload, email")
     .gte("created_at", sinceIso);
 
   if (error) {
     console.error("admin-ads-attribution query failed:", error);
     return json({ success: false, error: "Failed to query submissions" }, 500);
+  }
+
+  // First purchases (stamped by backfill-first-orders) keyed by lowercased
+  // email, so revenue can be credited to the channel the signup came from.
+  const { data: leadRows, error: leadErr } = await supabase
+    .from("registration_leads")
+    .select("email, first_order_at, first_order_value")
+    .not("first_order_at", "is", null);
+
+  if (leadErr) {
+    console.error("admin-ads-attribution leads query failed:", leadErr);
+  }
+
+  const orderByEmail = new Map<string, { at: string | null; value: number }>();
+  for (const l of (leadRows ?? []) as { email?: string | null; first_order_at?: string | null; first_order_value?: number | string | null }[]) {
+    const key = (l.email ?? "").trim().toLowerCase();
+    if (!key) continue;
+    orderByEmail.set(key, {
+      at: l.first_order_at ?? null,
+      value: Number(l.first_order_value ?? 0) || 0,
+    });
   }
 
   type Row = {
@@ -126,11 +147,12 @@ Deno.serve(async (req: Request) => {
     status?: string | null;
     created_at?: string | null;
     payload?: Record<string, unknown> | null;
+    email?: string | null;
   };
 
-  const channelTally: Record<string, { total: number; completed: number }> = {};
-  const campaignTally: Record<string, { channel: string; total: number; completed: number }> = {};
-  const timeline: Record<string, { total: number; paid: number; social: number }> = {};
+  const channelTally: Record<string, { total: number; completed: number; orders: number; revenue: number }> = {};
+  const campaignTally: Record<string, { channel: string; total: number; completed: number; orders: number; revenue: number }> = {};
+  const timeline: Record<string, { total: number; paid: number; social: number; paidRevenue: number }> = {};
   const byAccountType: Record<string, Record<string, number>> = {};
 
   let total = 0;
@@ -150,6 +172,16 @@ Deno.serve(async (req: Request) => {
   // Referral tag present on what looks like a paid ad link, but no utm_campaign
   // tag, so the ad cannot be credited.
   let refWithoutCampaign = 0;
+  // Purchases and revenue, overall and for paid / social / affiliate cohorts.
+  let ordersTotal = 0;
+  let revenueTotal = 0;
+  let paidOrders = 0;
+  let paidRevenue = 0;
+  let socialOrders = 0;
+  let socialRevenue = 0;
+  let affiliateOrders = 0;
+  let affiliateRevenue = 0;
+
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
