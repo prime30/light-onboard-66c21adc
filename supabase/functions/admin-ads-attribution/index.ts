@@ -120,26 +120,50 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Failed to query submissions" }, 500);
   }
 
-  // First purchases (stamped by backfill-first-orders) keyed by lowercased
-  // email, so revenue can be credited to the channel the signup came from.
+  // Purchases (stamped by backfill-first-orders) keyed by lowercased email, so
+  // revenue can be credited to the channel the signup came from. When lifetime
+  // totals are present (orders_count / orders_revenue) they are used, so repeat
+  // purchases count too; otherwise it falls back to the first order alone.
   const { data: leadRows, error: leadErr } = await supabase
     .from("registration_leads")
-    .select("email, first_order_at, first_order_value")
+    .select("email, first_order_at, first_order_value, orders_count, orders_revenue")
     .not("first_order_at", "is", null);
 
   if (leadErr) {
     console.error("admin-ads-attribution leads query failed:", leadErr);
   }
 
-  const orderByEmail = new Map<string, { at: string | null; value: number }>();
-  for (const l of (leadRows ?? []) as { email?: string | null; first_order_at?: string | null; first_order_value?: number | string | null }[]) {
+  const orderByEmail = new Map<string, { at: string | null; count: number; value: number; firstValue: number }>();
+  for (const l of (leadRows ?? []) as {
+    email?: string | null;
+    first_order_at?: string | null;
+    first_order_value?: number | string | null;
+    orders_count?: number | null;
+    orders_revenue?: number | string | null;
+  }[]) {
     const key = (l.email ?? "").trim().toLowerCase();
     if (!key) continue;
+    const firstValue = Number(l.first_order_value ?? 0) || 0;
+    const lifetimeCount = Number(l.orders_count ?? 0) || 0;
+    const lifetimeRevenue = Number(l.orders_revenue ?? 0) || 0;
     orderByEmail.set(key, {
       at: l.first_order_at ?? null,
-      value: Number(l.first_order_value ?? 0) || 0,
+      count: lifetimeCount > 0 ? lifetimeCount : 1,
+      value: lifetimeRevenue > 0 ? lifetimeRevenue : firstValue,
+      firstValue,
     });
   }
+
+  // Ad spend per channel + campaign, entered by hand in the admin panel.
+  const { data: costRows, error: costErr } = await supabase
+    .from("campaign_costs")
+    .select("channel, campaign, cost, currency, note, updated_at");
+  if (costErr) console.error("admin-ads-attribution cost query failed:", costErr);
+  const costByKey = new Map<string, number>();
+  for (const c of (costRows ?? []) as { channel?: string | null; campaign?: string | null; cost?: number | string | null }[]) {
+    costByKey.set(`${c.channel ?? ""}::${c.campaign ?? ""}`, Number(c.cost ?? 0) || 0);
+  }
+
 
   type Row = {
     attribution?: Record<string, unknown> | null;
