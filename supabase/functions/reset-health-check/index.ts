@@ -113,37 +113,77 @@ Deno.serve(async (req) => {
     : 0;
 
   // Paid vs free social-click split for the last 7 days of leads, so the
-  // weekly summary says where the week's traffic actually came from.
+  // weekly summary says where the week's traffic actually came from. Revenue is
+  // included so the alert shows money, not just signup counts.
   const PAID_SET = new Set(["meta_ads", "google_ads", "tiktok_ads", "pinterest_ads", "other_paid"]);
   const SOCIAL_SET = new Set(["meta_click", "tiktok_click", "organic_social"]);
-  let attributionSplit = { total: 0, paidAds: 0, socialClicks: 0, unverified: 0, other: 0 };
+  const attributionSplit = { total: 0, paidAds: 0, socialClicks: 0, unverified: 0, other: 0 };
+  const revenue = {
+    buyers: 0,
+    orders: 0,
+    revenue: 0,
+    paidBuyers: 0,
+    paidOrders: 0,
+    paidRevenue: 0,
+  };
   try {
     const attrRes = await fetch(
-      `${supabaseUrl}/rest/v1/registration_leads?select=attribution_channel` +
+      `${supabaseUrl}/rest/v1/registration_leads?select=attribution_channel,first_order_value,orders_count,orders_revenue` +
         `&started_at=gte.${weekAgo}&limit=5000`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
     );
     if (attrRes.ok) {
-      const attrRows = (await attrRes.json()) as { attribution_channel: string | null }[];
+      const attrRows = (await attrRes.json()) as {
+        attribution_channel: string | null;
+        first_order_value: number | string | null;
+        orders_count: number | null;
+        orders_revenue: number | string | null;
+      }[];
       for (const r of attrRows) {
         const ch = r.attribution_channel ?? "";
         attributionSplit.total += 1;
-        if (PAID_SET.has(ch)) attributionSplit.paidAds += 1;
+        const isPaid = PAID_SET.has(ch);
+        if (isPaid) attributionSplit.paidAds += 1;
         else if (SOCIAL_SET.has(ch)) attributionSplit.socialClicks += 1;
         else if (ch === "google_click") attributionSplit.unverified += 1;
         else attributionSplit.other += 1;
+
+        const first = Number(r.first_order_value ?? 0) || 0;
+        const lifetimeRevenue = Number(r.orders_revenue ?? 0) || 0;
+        const lifetimeCount = Number(r.orders_count ?? 0) || 0;
+        const value = lifetimeRevenue > 0 ? lifetimeRevenue : first;
+        const count = lifetimeCount > 0 ? lifetimeCount : value > 0 ? 1 : 0;
+        if (count > 0) {
+          revenue.buyers += 1;
+          revenue.orders += count;
+          revenue.revenue += value;
+          if (isPaid) {
+            revenue.paidBuyers += 1;
+            revenue.paidOrders += count;
+            revenue.paidRevenue += value;
+          }
+        }
       }
+      revenue.revenue = Math.round(revenue.revenue * 100) / 100;
+      revenue.paidRevenue = Math.round(revenue.paidRevenue * 100) / 100;
     } else {
       console.warn("reset-health-check attribution query failed:", attrRes.status);
     }
   } catch (e) {
     console.warn("reset-health-check attribution query threw:", e);
   }
+  const usd = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
   const attributionLine =
     `Traffic split (7d): ${attributionSplit.paidAds} paid ads, ` +
     `${attributionSplit.socialClicks} free social link clicks, ` +
     `${attributionSplit.unverified} unverified Google click ids, ` +
     `${attributionSplit.other} other, of ${attributionSplit.total} leads.`;
+  const revenueLine =
+    `Revenue from this week's signups: ${usd(revenue.revenue)} across ${revenue.orders} ` +
+    `orders from ${revenue.buyers} customers (paid ads: ${usd(revenue.paidRevenue)} ` +
+    `from ${revenue.paidOrders} orders / ${revenue.paidBuyers} customers). ` +
+    `Only orders already synced from the store are counted.`;
+
 
   const isSpike = (current: number, prior: number) =>
     current >= MIN_FAILURES && current >= Math.max(MIN_FAILURES, prior * SPIKE_MULTIPLIER);
