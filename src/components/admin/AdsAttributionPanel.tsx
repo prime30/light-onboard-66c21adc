@@ -490,6 +490,8 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                       <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Purchases</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Meta purchases</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Meta revenue</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Spend</th>
                       <th className="font-medium pb-1.5 pl-2 text-right">Return</th>
                     </tr>
@@ -508,6 +510,12 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                           </td>
                           <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
                           <td className="py-1 px-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
+                          <td className="py-1 px-2 text-right tabular-nums text-muted-foreground">
+                            {c.metaPurchases == null ? "—" : c.metaPurchases}
+                          </td>
+                          <td className="py-1 px-2 text-right tabular-nums text-muted-foreground">
+                            {c.metaRevenue == null ? "—" : money(c.metaRevenue)}
+                          </td>
                           <td className="py-1 px-2 text-right">
                             <div className="flex items-center justify-end gap-1">
                               <span className="text-muted-foreground">$</span>
