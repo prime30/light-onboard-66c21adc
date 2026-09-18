@@ -218,7 +218,7 @@ Deno.serve(async (req) => {
             `${spikeLabel}: ${resetCount} reset + ${activationCount} activation ` +
             `= ${thisWeek.length} affected accounts in the last 7 days ` +
             `(prior week: ${priorResetCount} reset + ${priorActivationCount} activation = ${priorWeek.length}). ` +
-            `In-app browsers: ${webviewShare}% (${webviewCount}). ${attributionLine}`,
+            `In-app browsers: ${webviewShare}% (${webviewCount}). ${attributionLine} ${revenueLine}`,
           context: {
             ...report,
             spikeLabel,
