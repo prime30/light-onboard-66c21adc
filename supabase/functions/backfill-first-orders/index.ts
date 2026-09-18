@@ -158,15 +158,24 @@ Deno.serve(async (req: Request) => {
       const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
       if (!e) continue;
       const total = Number(o.total_price ?? 0);
+      const value = Number.isFinite(total) ? total : 0;
       const cur = earliest.get(e);
       if (!cur || o.created_at < cur.created_at) {
         earliest.set(e, {
           id: String(o.id),
           created_at: o.created_at,
-          total: Number.isFinite(total) ? total : 0,
+          total: value,
         });
       }
+      // Lifetime totals across every order in the window, so revenue per
+      // channel reflects repeat purchases and not just the first order.
+      const agg = lifetime.get(e) ?? { count: 0, revenue: 0, lastAt: o.created_at };
+      agg.count += 1;
+      agg.revenue += value;
+      if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
+      lifetime.set(e, agg);
     }
+
 
     url = parseLinkHeader(res.headers.get("link") ?? res.headers.get("Link"));
     // Be polite to Shopify rate limits.
