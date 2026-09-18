@@ -319,6 +319,102 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
 
           </div>
 
+          <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  What Meta reports vs what we verified
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {data.metaConnected
+                    ? `Pulled straight from your Meta ad account${
+                        data.metaSyncedAt
+                          ? `, last updated ${new Date(data.metaSyncedAt).toLocaleString()}`
+                          : ""
+                      }.`
+                    : "No Meta figures pulled in yet for this range. Use Sync Meta to pull spend and results from the ad account."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="shrink-0"
+                onClick={syncMeta}
+                disabled={syncingMeta}
+              >
+                {syncingMeta ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 mr-1.5" /> Sync Meta
+                  </>
+                )}
+              </Button>
+            </div>
+            {metaNote && <p className="text-[11px] text-muted-foreground">{metaNote}</p>}
+            {data.metaConnected && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Stat
+                    label="Meta ad spend"
+                    value={money(data.metaSpend ?? 0)}
+                    hint={`${(data.metaImpressions ?? 0).toLocaleString()} impressions · ${(
+                      data.metaLinkClicks ?? 0
+                    ).toLocaleString()} link clicks`}
+                  />
+                  <Stat
+                    label="Meta says purchases"
+                    value={(data.metaPurchases ?? 0).toString()}
+                    hint={`${money(data.metaRevenue ?? 0)} reported revenue`}
+                  />
+                  <Stat
+                    label="We verified purchases"
+                    value={(data.paidOrders ?? 0).toString()}
+                    hint={`${money(data.paidRevenue ?? 0)} matched by email`}
+                  />
+                  <Stat
+                    label="Meta return on spend"
+                    value={data.metaRoas == null ? "—" : `${data.metaRoas.toFixed(2)}x`}
+                    hint={
+                      data.metaCostPerLead == null
+                        ? undefined
+                        : `${money(data.metaCostPerLead)} per paid signup we saw`
+                    }
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Meta counts a sale when someone clicked or saw an ad within its
+                  attribution window, even on untagged links. Ours only counts signups
+                  that arrived with a campaign tag and later ordered with the same email,
+                  so ours is the lower, verifiable floor.
+                </p>
+                {(data.metaOnlyCampaigns?.length ?? 0) > 0 && (
+                  <div className="space-y-1 rounded-[10px] bg-muted/40 p-2.5">
+                    <p className="text-[11px]">Meta campaigns we cannot match to signups</p>
+                    {(data.metaOnlyCampaigns ?? []).map((m) => (
+                      <div
+                        key={m.campaign}
+                        className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground"
+                      >
+                        <span className="truncate">{m.campaign}</span>
+                        <span className="tabular-nums shrink-0">
+                          {money(m.spend)} spent · {m.purchases} Meta purchases
+                        </span>
+                      </div>
+                    ))}
+                    <p className="text-[11px] text-muted-foreground">
+                      These are usually ads whose links carry no utm_campaign tag, so their
+                      signups land in direct instead.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+
+
           {(() => {
             const tagged = data.taggedClicks ?? 0;
             const untagged = data.untaggedClicks ?? 0;
