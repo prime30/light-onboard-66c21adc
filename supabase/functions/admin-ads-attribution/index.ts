@@ -47,7 +47,14 @@ interface RequestBody {
   password?: string;
   token?: string;
   sinceDays?: number;
+  // "setCampaignCost" saves ad spend for one channel + campaign, then returns.
+  action?: string;
+  channel?: string;
+  campaign?: string;
+  cost?: number | string;
+  note?: string;
 }
+
 
 async function _hmacB64u(key: string, msg: string): Promise<string> {
   const enc = new TextEncoder();
