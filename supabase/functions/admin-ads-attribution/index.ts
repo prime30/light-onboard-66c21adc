@@ -540,6 +540,23 @@ Deno.serve(async (req: Request) => {
     affiliateOrders,
     affiliateRevenue: round2(affiliateRevenue),
 
+    // Meta's own reported figures for the same window, pulled from the ad
+    // account by meta-ads-sync. These are Meta's modelled numbers, not ours.
+    metaConnected: (metaRows ?? []).length > 0,
+    metaSpend: round2(metaSpend),
+    metaImpressions,
+    metaClicks,
+    metaLinkClicks,
+    metaPurchases: round2(metaPurchases),
+    metaRevenue: round2(metaPurchaseValue),
+    metaRoas: metaSpend > 0 ? Math.round((metaPurchaseValue / metaSpend) * 100) / 100 : null,
+    metaCostPerLead: metaSpend > 0 && paidTotal > 0 ? round2(metaSpend / paidTotal) : null,
+    metaCurrency,
+    metaSyncedAt,
+    metaOnlyCampaigns,
+
+
+
 
     topRefs: Object.entries(refTally)
       .map(([ref, v]) => ({ ref, ...v }))
