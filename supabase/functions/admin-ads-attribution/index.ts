@@ -441,30 +441,60 @@ Deno.serve(async (req: Request) => {
 
   const campaigns = Object.entries(campaignTally)
     .map(([key, v]) => {
-      const cost = costByKey.get(key) ?? 0;
+      const campaignName = key.split("::")[1] ?? "";
+      const meta = metaByName.get(campaignName.trim().toLowerCase());
+      if (meta) metaMatched.add(campaignName.trim().toLowerCase());
+      // Manual spend wins when entered, otherwise Meta's own spend is used.
+      const manualCost = costByKey.get(key) ?? 0;
+      const cost = manualCost > 0 ? manualCost : meta ? meta.spend : 0;
       const revenue = round2(v.revenue);
       return {
         key,
         channel: v.channel,
         channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
-        campaign: key.split("::")[1] ?? "",
+        campaign: campaignName,
         count: v.total,
         completed: v.completed,
         orders: v.orders,
         revenue,
         aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
         cost: round2(cost),
+        costSource: manualCost > 0 ? "manual" : meta ? "meta" : null,
         roas: cost > 0 ? Math.round((v.revenue / cost) * 100) / 100 : null,
         profit: cost > 0 ? round2(v.revenue - cost) : null,
         costPerSignup: cost > 0 && v.total > 0 ? round2(cost / v.total) : null,
+        // Meta's own reported numbers for the same campaign, side by side.
+        metaSpend: meta ? round2(meta.spend) : null,
+        metaImpressions: meta ? meta.impressions : null,
+        metaClicks: meta ? meta.clicks : null,
+        metaLinkClicks: meta ? meta.linkClicks : null,
+        metaPurchases: meta ? round2(meta.purchases) : null,
+        metaRevenue: meta ? round2(meta.purchaseValue) : null,
+        metaRoas: meta && meta.spend > 0 ? Math.round((meta.purchaseValue / meta.spend) * 100) / 100 : null,
       };
     })
     .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
 
+  // Meta campaigns that spent money in this range but never matched one of our
+  // tagged signups, usually because the ad link carried no utm_campaign tag.
+  const metaOnlyCampaigns = [...metaByName.entries()]
+    .filter(([nameKey]) => !metaMatched.has(nameKey))
+    .map(([, m]) => ({
+      campaign: m.name,
+      spend: round2(m.spend),
+      clicks: m.clicks,
+      linkClicks: m.linkClicks,
+      purchases: round2(m.purchases),
+      revenue: round2(m.purchaseValue),
+    }))
+    .sort((a, b) => b.spend - a.spend)
+    .slice(0, 15);
+
   // Spend entered for campaigns that appear in this range, so the panel can
   // show blended return on ad spend.
   const paidCost = campaigns.reduce((n, c) => n + c.cost, 0);
+
 
   return json({
     success: true,
