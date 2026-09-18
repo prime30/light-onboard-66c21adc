@@ -298,6 +298,9 @@ Deno.serve(async (req: Request) => {
       paid: PAID_CHANNELS.has(key),
       count: v.total,
       completed: v.completed,
+      orders: v.orders,
+      revenue: round2(v.revenue),
+      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
       pct: total === 0 ? 0 : Math.round((v.total / total) * 1000) / 10,
     }))
     .sort((a, b) => b.count - a.count);
@@ -310,8 +313,11 @@ Deno.serve(async (req: Request) => {
       campaign: key.split("::")[1] ?? "",
       count: v.total,
       completed: v.completed,
+      orders: v.orders,
+      revenue: round2(v.revenue),
+      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
     }))
-    .sort((a, b) => b.count - a.count)
+    .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
 
   return json({
@@ -336,6 +342,20 @@ Deno.serve(async (req: Request) => {
     affiliateCompleted,
     affiliateShare: total === 0 ? 0 : Math.round((affiliateTotal / total) * 1000) / 10,
     refWithoutCampaign,
+    // Purchases and revenue, credited to the channel the signup came from.
+    // Values are first orders stamped by backfill-first-orders (one per
+    // customer), so they are a floor on total revenue, not lifetime value.
+    ordersTotal,
+    revenueTotal: round2(revenueTotal),
+    paidOrders,
+    paidRevenue: round2(paidRevenue),
+    paidAov: paidOrders === 0 ? 0 : round2(paidRevenue / paidOrders),
+    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidOrders / paidTotal) * 1000) / 10,
+    socialOrders,
+    socialRevenue: round2(socialRevenue),
+    affiliateOrders,
+    affiliateRevenue: round2(affiliateRevenue),
+
     topRefs: Object.entries(refTally)
       .map(([ref, v]) => ({ ref, ...v }))
       .sort((a, b) => b.total - a.total)
