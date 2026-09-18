@@ -220,53 +220,71 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // 3) Compute updates (only when earlier than existing, or never set).
+  // 3) Compute updates. First-order fields only move backwards in time (safe
+  // re-runs); lifetime totals are always refreshed from the window.
   const nowIso = new Date().toISOString();
   type Upd = {
     email: string;
-    first_order_at: string;
-    first_order_value: number;
-    first_order_id: string;
-    first_order_synced_at: string;
+    first: {
+      first_order_at: string;
+      first_order_value: number;
+      first_order_id: string;
+      first_order_synced_at: string;
+    } | null;
+    orders_count: number;
+    orders_revenue: number;
+    last_order_at: string | null;
   };
   const updates: Upd[] = [];
   let skipped = 0;
   for (const [e, lead] of leadsByEmail.entries()) {
     const o = earliest.get(e)!;
-    if (lead.first_order_at && lead.first_order_at <= o.created_at) {
-      skipped += 1;
-      continue;
-    }
+    const agg = lifetime.get(e);
+    const firstStale = !lead.first_order_at || lead.first_order_at > o.created_at;
+    if (!firstStale) skipped += 1;
     updates.push({
       email: e,
-      first_order_at: o.created_at,
-      first_order_value: o.total,
-      first_order_id: o.id,
-      first_order_synced_at: nowIso,
+      first: firstStale
+        ? {
+            first_order_at: o.created_at,
+            first_order_value: o.total,
+            first_order_id: o.id,
+            first_order_synced_at: nowIso,
+          }
+        : null,
+      orders_count: agg?.count ?? 0,
+      orders_revenue: Math.round((agg?.revenue ?? 0) * 100) / 100,
+      last_order_at: agg?.lastAt ?? null,
     });
   }
 
   let updated = 0;
+  let firstOrderUpdated = 0;
   if (!dryRun) {
     for (const u of updates) {
+      const patch: Record<string, unknown> = {
+        orders_count: u.orders_count,
+        orders_revenue: u.orders_revenue,
+        last_order_at: u.last_order_at,
+        orders_synced_at: nowIso,
+      };
+      if (u.first) Object.assign(patch, u.first);
       const { error } = await supabase
         .from("registration_leads")
-        .update({
-          first_order_at: u.first_order_at,
-          first_order_value: u.first_order_value,
-          first_order_id: u.first_order_id,
-          first_order_synced_at: u.first_order_synced_at,
-        })
+        .update(patch)
         .eq("email", u.email);
       if (error) {
         console.error("[backfill-first-orders] update failed", u.email, error);
         continue;
       }
       updated += 1;
+      if (u.first) firstOrderUpdated += 1;
     }
   } else {
     updated = updates.length;
+    firstOrderUpdated = updates.filter((u) => u.first).length;
   }
+
 
   return json({
     success: true,
