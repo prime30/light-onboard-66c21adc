@@ -139,6 +139,45 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     fetchData();
   }, [fetchData]);
 
+  const saveCost = useCallback(
+    async (row: CampaignRow) => {
+      const raw = costDraft[row.key];
+      const cost = Number((raw ?? "").replace(/[^0-9.]/g, ""));
+      if (!Number.isFinite(cost) || cost < 0) return;
+      setSavingCost(row.key);
+      setError(null);
+      try {
+        const { data: res, error: invokeErr } = await supabase.functions.invoke(
+          "admin-ads-attribution",
+          {
+            body: {
+              token: adminToken,
+              action: "setCampaignCost",
+              channel: row.channel ?? row.key.split("::")[0],
+              campaign: row.campaign || row.key.split("::")[1],
+              cost,
+            },
+          }
+        );
+        if (invokeErr || !res?.success) {
+          setError(res?.error ?? invokeErr?.message ?? "Failed to save spend");
+          return;
+        }
+        setCostDraft((d) => {
+          const next = { ...d };
+          delete next[row.key];
+          return next;
+        });
+        await fetchData();
+      } finally {
+        setSavingCost(null);
+      }
+    },
+    [adminToken, costDraft, fetchData]
+  );
+
+
+
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
 
   return (
