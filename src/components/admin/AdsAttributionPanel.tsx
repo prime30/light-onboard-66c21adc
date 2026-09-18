@@ -107,6 +107,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   const [sinceDays, setSinceDays] = useState(30);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Ad spend inputs, keyed by "channel::campaign".
+  const [costDraft, setCostDraft] = useState<Record<string, string>>({});
+  const [savingCost, setSavingCost] = useState<string | null>(null);
+
+
 
   const fetchData = useCallback(async () => {
     setLoading(true);
