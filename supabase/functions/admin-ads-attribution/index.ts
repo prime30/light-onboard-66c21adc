@@ -204,6 +204,63 @@ Deno.serve(async (req: Request) => {
     costByKey.set(`${c.channel ?? ""}::${c.campaign ?? ""}`, Number(c.cost ?? 0) || 0);
   }
 
+  // Meta's own reported figures, pulled by meta-ads-sync. Matched to our
+  // campaigns by campaign name (the utm_campaign tag on the ad link).
+  const { data: metaRows, error: metaErr } = await supabase
+    .from("meta_ads_daily")
+    .select("campaign_name, day, spend, impressions, clicks, link_clicks, purchases, purchase_value, currency, synced_at")
+    .gte("day", sinceIso.slice(0, 10));
+  if (metaErr) console.error("admin-ads-attribution meta query failed:", metaErr);
+
+  type MetaAgg = {
+    name: string;
+    spend: number;
+    impressions: number;
+    clicks: number;
+    linkClicks: number;
+    purchases: number;
+    purchaseValue: number;
+  };
+  const metaByName = new Map<string, MetaAgg>();
+  let metaSpend = 0;
+  let metaPurchases = 0;
+  let metaPurchaseValue = 0;
+  let metaImpressions = 0;
+  let metaClicks = 0;
+  let metaLinkClicks = 0;
+  let metaCurrency = "USD";
+  let metaSyncedAt: string | null = null;
+  for (const m of (metaRows ?? []) as Record<string, unknown>[]) {
+    const name = String(m.campaign_name ?? "").trim();
+    const nameKey = name.toLowerCase();
+    const spend = Number(m.spend ?? 0) || 0;
+    const impressions = Number(m.impressions ?? 0) || 0;
+    const clicks = Number(m.clicks ?? 0) || 0;
+    const linkClicks = Number(m.link_clicks ?? 0) || 0;
+    const purchases = Number(m.purchases ?? 0) || 0;
+    const purchaseValue = Number(m.purchase_value ?? 0) || 0;
+    metaSpend += spend;
+    metaImpressions += impressions;
+    metaClicks += clicks;
+    metaLinkClicks += linkClicks;
+    metaPurchases += purchases;
+    metaPurchaseValue += purchaseValue;
+    if (typeof m.currency === "string" && m.currency) metaCurrency = m.currency;
+    const syncedAt = typeof m.synced_at === "string" ? m.synced_at : null;
+    if (syncedAt && (!metaSyncedAt || syncedAt > metaSyncedAt)) metaSyncedAt = syncedAt;
+    if (!nameKey) continue;
+    const agg = metaByName.get(nameKey) ??
+      { name, spend: 0, impressions: 0, clicks: 0, linkClicks: 0, purchases: 0, purchaseValue: 0 };
+    agg.spend += spend;
+    agg.impressions += impressions;
+    agg.clicks += clicks;
+    agg.linkClicks += linkClicks;
+    agg.purchases += purchases;
+    agg.purchaseValue += purchaseValue;
+    metaByName.set(nameKey, agg);
+  }
+  const metaMatched = new Set<string>();
+
 
   type Row = {
     attribution?: Record<string, unknown> | null;
