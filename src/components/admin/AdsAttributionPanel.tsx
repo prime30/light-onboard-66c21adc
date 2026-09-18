@@ -262,7 +262,7 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               <Stat
                 label="Paid ad purchases"
                 value={(data.paidOrders ?? 0).toString()}
-                hint={`${data.paidPurchaseRate ?? 0}% of paid signups bought`}
+                hint={`${data.paidPurchaseRate ?? 0}% of paid signups bought · ${data.paidBuyers ?? 0} customers`}
               />
               <Stat label="Paid ad revenue" value={money(data.paidRevenue ?? 0)} />
               <Stat label="Average order" value={money(data.paidAov ?? 0)} />
@@ -270,6 +270,35 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                 label="All channels"
                 value={money(data.revenueTotal ?? 0)}
                 hint={`${data.ordersTotal ?? 0} purchases in range`}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Stat
+                label="Ad spend entered"
+                value={money(data.paidCost ?? 0)}
+                hint={
+                  (data.paidCost ?? 0) > 0
+                    ? `${money(data.paidCostPerSignup ?? 0)} per signup`
+                    : "Add spend per campaign below"
+                }
+              />
+              <Stat
+                label="Return on ad spend"
+                value={data.paidRoas == null ? "—" : `${data.paidRoas.toFixed(2)}x`}
+                hint={
+                  data.paidRoas == null
+                    ? "Needs ad spend"
+                    : `${money((data.paidRevenue ?? 0) - (data.paidCost ?? 0))} above spend`
+                }
+              />
+              <Stat
+                label="Cost per purchase"
+                value={data.paidCostPerPurchase == null ? "—" : money(data.paidCostPerPurchase)}
+              />
+              <Stat
+                label="Repeat purchases"
+                value={(data.repeatOrdersTotal ?? 0).toString()}
+                hint={`${money(data.repeatRevenueTotal ?? 0)} beyond first orders`}
               />
             </div>
             <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
@@ -283,10 +312,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Revenue is each customer's first order, matched by email to the channel
-              their signup came from. It is a floor, not lifetime spend, and it only
-              covers orders already pulled in from the store.
+              Revenue counts every order a customer has placed, matched by email to the
+              channel their signup came from. It only covers orders already pulled in
+              from the store, so run the purchases sync to keep it current.
             </p>
+
           </div>
 
           {(() => {
