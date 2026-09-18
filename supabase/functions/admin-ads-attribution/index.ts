@@ -343,19 +343,31 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => b.count - a.count);
 
   const campaigns = Object.entries(campaignTally)
-    .map(([key, v]) => ({
-      key,
-      channel: v.channel,
-      channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
-      campaign: key.split("::")[1] ?? "",
-      count: v.total,
-      completed: v.completed,
-      orders: v.orders,
-      revenue: round2(v.revenue),
-      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
-    }))
+    .map(([key, v]) => {
+      const cost = costByKey.get(key) ?? 0;
+      const revenue = round2(v.revenue);
+      return {
+        key,
+        channel: v.channel,
+        channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
+        campaign: key.split("::")[1] ?? "",
+        count: v.total,
+        completed: v.completed,
+        orders: v.orders,
+        revenue,
+        aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
+        cost: round2(cost),
+        roas: cost > 0 ? Math.round((v.revenue / cost) * 100) / 100 : null,
+        profit: cost > 0 ? round2(v.revenue - cost) : null,
+        costPerSignup: cost > 0 && v.total > 0 ? round2(cost / v.total) : null,
+      };
+    })
     .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
+
+  // Spend entered for campaigns that appear in this range, so the panel can
+  // show blended return on ad spend.
+  const paidCost = campaigns.reduce((n, c) => n + c.cost, 0);
 
   return json({
     success: true,
@@ -380,18 +392,27 @@ Deno.serve(async (req: Request) => {
     affiliateShare: total === 0 ? 0 : Math.round((affiliateTotal / total) * 1000) / 10,
     refWithoutCampaign,
     // Purchases and revenue, credited to the channel the signup came from.
-    // Values are first orders stamped by backfill-first-orders (one per
-    // customer), so they are a floor on total revenue, not lifetime value.
+    // Includes repeat orders for every customer whose orders have been synced
+    // by backfill-first-orders, so it only covers orders already pulled in.
     ordersTotal,
     revenueTotal: round2(revenueTotal),
+    buyersTotal,
+    repeatOrdersTotal,
+    repeatRevenueTotal: round2(repeatRevenueTotal),
     paidOrders,
     paidRevenue: round2(paidRevenue),
+    paidBuyers,
     paidAov: paidOrders === 0 ? 0 : round2(paidRevenue / paidOrders),
-    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidOrders / paidTotal) * 1000) / 10,
+    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidBuyers / paidTotal) * 1000) / 10,
+    paidCost: round2(paidCost),
+    paidRoas: paidCost > 0 ? Math.round((paidRevenue / paidCost) * 100) / 100 : null,
+    paidCostPerSignup: paidCost > 0 && paidTotal > 0 ? round2(paidCost / paidTotal) : null,
+    paidCostPerPurchase: paidCost > 0 && paidOrders > 0 ? round2(paidCost / paidOrders) : null,
     socialOrders,
     socialRevenue: round2(socialRevenue),
     affiliateOrders,
     affiliateRevenue: round2(affiliateRevenue),
+
 
     topRefs: Object.entries(refTally)
       .map(([ref, v]) => ({ ref, ...v }))
