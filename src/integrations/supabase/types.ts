@@ -254,6 +254,60 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_ads_daily: {
+        Row: {
+          account_id: string
+          campaign_id: string
+          campaign_name: string
+          clicks: number
+          created_at: string
+          currency: string
+          day: string
+          id: string
+          impressions: number
+          leads: number
+          link_clicks: number
+          purchase_value: number
+          purchases: number
+          spend: number
+          synced_at: string
+        }
+        Insert: {
+          account_id: string
+          campaign_id: string
+          campaign_name?: string
+          clicks?: number
+          created_at?: string
+          currency?: string
+          day: string
+          id?: string
+          impressions?: number
+          leads?: number
+          link_clicks?: number
+          purchase_value?: number
+          purchases?: number
+          spend?: number
+          synced_at?: string
+        }
+        Update: {
+          account_id?: string
+          campaign_id?: string
+          campaign_name?: string
+          clicks?: number
+          created_at?: string
+          currency?: string
+          day?: string
+          id?: string
+          impressions?: number
+          leads?: number
+          link_clicks?: number
+          purchase_value?: number
+          purchases?: number
+          spend?: number
+          synced_at?: string
+        }
+        Relationships: []
+      }
       not_stylist_events: {
         Row: {
           created_at: string

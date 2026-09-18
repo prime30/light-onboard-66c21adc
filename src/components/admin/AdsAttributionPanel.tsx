@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ChannelRow = {
@@ -30,7 +30,26 @@ type CampaignRow = {
   roas?: number | null;
   profit?: number | null;
   costPerSignup?: number | null;
+  costSource?: string | null;
+  metaSpend?: number | null;
+  metaImpressions?: number | null;
+  metaClicks?: number | null;
+  metaLinkClicks?: number | null;
+  metaPurchases?: number | null;
+  metaRevenue?: number | null;
+  metaRoas?: number | null;
 };
+
+type MetaOnlyRow = {
+  campaign: string;
+  spend: number;
+  clicks: number;
+  linkClicks: number;
+  purchases: number;
+  revenue: number;
+};
+
+
 
 
 type Data = {
@@ -68,6 +87,20 @@ type Data = {
   socialRevenue?: number;
   affiliateOrders?: number;
   affiliateRevenue?: number;
+  metaConnected?: boolean;
+  metaSpend?: number;
+  metaImpressions?: number;
+  metaClicks?: number;
+  metaLinkClicks?: number;
+  metaPurchases?: number;
+  metaRevenue?: number;
+  metaRoas?: number | null;
+  metaCostPerLead?: number | null;
+  metaCurrency?: string;
+  metaSyncedAt?: string | null;
+  metaOnlyCampaigns?: MetaOnlyRow[];
+
+
 
   topRefs?: RefRow[];
   channels: ChannelRow[];
@@ -110,6 +143,8 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   // Ad spend inputs, keyed by "channel::campaign".
   const [costDraft, setCostDraft] = useState<Record<string, string>>({});
   const [savingCost, setSavingCost] = useState<string | null>(null);
+  const [syncingMeta, setSyncingMeta] = useState(false);
+  const [metaNote, setMetaNote] = useState<string | null>(null);
 
 
 
@@ -176,6 +211,31 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     [adminToken, costDraft, fetchData]
   );
 
+  // Pulls fresh spend and results from the Meta ad account.
+  const syncMeta = useCallback(async () => {
+    setSyncingMeta(true);
+    setMetaNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke("meta-ads-sync", {
+        body: { token: adminToken, daysBack: Math.max(sinceDays, 90) },
+      });
+      if (invokeErr || !res?.success) {
+        setMetaNote(res?.error ?? invokeErr?.message ?? "Could not pull figures from Meta.");
+        return;
+      }
+      setMetaNote(
+        `Pulled ${res.rowsWritten ?? 0} campaign days from Meta: ${money(res.spend ?? 0)} spend, ${
+          res.purchases ?? 0
+        } purchases reported.`,
+      );
+      await fetchData();
+    } catch (e) {
+      setMetaNote(e instanceof Error ? e.message : "Could not pull figures from Meta.");
+    } finally {
+      setSyncingMeta(false);
+    }
+  }, [adminToken, fetchData, sinceDays]);
 
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
@@ -318,6 +378,102 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
             </p>
 
           </div>
+
+          <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  What Meta reports vs what we verified
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {data.metaConnected
+                    ? `Pulled straight from your Meta ad account${
+                        data.metaSyncedAt
+                          ? `, last updated ${new Date(data.metaSyncedAt).toLocaleString()}`
+                          : ""
+                      }.`
+                    : "No Meta figures pulled in yet for this range. Use Sync Meta to pull spend and results from the ad account."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="shrink-0"
+                onClick={syncMeta}
+                disabled={syncingMeta}
+              >
+                {syncingMeta ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 mr-1.5" /> Sync Meta
+                  </>
+                )}
+              </Button>
+            </div>
+            {metaNote && <p className="text-[11px] text-muted-foreground">{metaNote}</p>}
+            {data.metaConnected && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Stat
+                    label="Meta ad spend"
+                    value={money(data.metaSpend ?? 0)}
+                    hint={`${(data.metaImpressions ?? 0).toLocaleString()} impressions · ${(
+                      data.metaLinkClicks ?? 0
+                    ).toLocaleString()} link clicks`}
+                  />
+                  <Stat
+                    label="Meta says purchases"
+                    value={(data.metaPurchases ?? 0).toString()}
+                    hint={`${money(data.metaRevenue ?? 0)} reported revenue`}
+                  />
+                  <Stat
+                    label="We verified purchases"
+                    value={(data.paidOrders ?? 0).toString()}
+                    hint={`${money(data.paidRevenue ?? 0)} matched by email`}
+                  />
+                  <Stat
+                    label="Meta return on spend"
+                    value={data.metaRoas == null ? "—" : `${data.metaRoas.toFixed(2)}x`}
+                    hint={
+                      data.metaCostPerLead == null
+                        ? undefined
+                        : `${money(data.metaCostPerLead)} per paid signup we saw`
+                    }
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Meta counts a sale when someone clicked or saw an ad within its
+                  attribution window, even on untagged links. Ours only counts signups
+                  that arrived with a campaign tag and later ordered with the same email,
+                  so ours is the lower, verifiable floor.
+                </p>
+                {(data.metaOnlyCampaigns?.length ?? 0) > 0 && (
+                  <div className="space-y-1 rounded-[10px] bg-muted/40 p-2.5">
+                    <p className="text-[11px]">Meta campaigns we cannot match to signups</p>
+                    {(data.metaOnlyCampaigns ?? []).map((m) => (
+                      <div
+                        key={m.campaign}
+                        className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground"
+                      >
+                        <span className="truncate">{m.campaign}</span>
+                        <span className="tabular-nums shrink-0">
+                          {money(m.spend)} spent · {m.purchases} Meta purchases
+                        </span>
+                      </div>
+                    ))}
+                    <p className="text-[11px] text-muted-foreground">
+                      These are usually ads whose links carry no utm_campaign tag, so their
+                      signups land in direct instead.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+
 
           {(() => {
             const tagged = data.taggedClicks ?? 0;
@@ -490,6 +646,8 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                       <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Purchases</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Meta purchases</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Meta revenue</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Spend</th>
                       <th className="font-medium pb-1.5 pl-2 text-right">Return</th>
                     </tr>
@@ -508,6 +666,12 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                           </td>
                           <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
                           <td className="py-1 px-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
+                          <td className="py-1 px-2 text-right tabular-nums text-muted-foreground">
+                            {c.metaPurchases == null ? "—" : c.metaPurchases}
+                          </td>
+                          <td className="py-1 px-2 text-right tabular-nums text-muted-foreground">
+                            {c.metaRevenue == null ? "—" : money(c.metaRevenue)}
+                          </td>
                           <td className="py-1 px-2 text-right">
                             <div className="flex items-center justify-end gap-1">
                               <span className="text-muted-foreground">$</span>

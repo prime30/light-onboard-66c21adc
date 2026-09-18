@@ -204,6 +204,63 @@ Deno.serve(async (req: Request) => {
     costByKey.set(`${c.channel ?? ""}::${c.campaign ?? ""}`, Number(c.cost ?? 0) || 0);
   }
 
+  // Meta's own reported figures, pulled by meta-ads-sync. Matched to our
+  // campaigns by campaign name (the utm_campaign tag on the ad link).
+  const { data: metaRows, error: metaErr } = await supabase
+    .from("meta_ads_daily")
+    .select("campaign_name, day, spend, impressions, clicks, link_clicks, purchases, purchase_value, currency, synced_at")
+    .gte("day", sinceIso.slice(0, 10));
+  if (metaErr) console.error("admin-ads-attribution meta query failed:", metaErr);
+
+  type MetaAgg = {
+    name: string;
+    spend: number;
+    impressions: number;
+    clicks: number;
+    linkClicks: number;
+    purchases: number;
+    purchaseValue: number;
+  };
+  const metaByName = new Map<string, MetaAgg>();
+  let metaSpend = 0;
+  let metaPurchases = 0;
+  let metaPurchaseValue = 0;
+  let metaImpressions = 0;
+  let metaClicks = 0;
+  let metaLinkClicks = 0;
+  let metaCurrency = "USD";
+  let metaSyncedAt: string | null = null;
+  for (const m of (metaRows ?? []) as Record<string, unknown>[]) {
+    const name = String(m.campaign_name ?? "").trim();
+    const nameKey = name.toLowerCase();
+    const spend = Number(m.spend ?? 0) || 0;
+    const impressions = Number(m.impressions ?? 0) || 0;
+    const clicks = Number(m.clicks ?? 0) || 0;
+    const linkClicks = Number(m.link_clicks ?? 0) || 0;
+    const purchases = Number(m.purchases ?? 0) || 0;
+    const purchaseValue = Number(m.purchase_value ?? 0) || 0;
+    metaSpend += spend;
+    metaImpressions += impressions;
+    metaClicks += clicks;
+    metaLinkClicks += linkClicks;
+    metaPurchases += purchases;
+    metaPurchaseValue += purchaseValue;
+    if (typeof m.currency === "string" && m.currency) metaCurrency = m.currency;
+    const syncedAt = typeof m.synced_at === "string" ? m.synced_at : null;
+    if (syncedAt && (!metaSyncedAt || syncedAt > metaSyncedAt)) metaSyncedAt = syncedAt;
+    if (!nameKey) continue;
+    const agg = metaByName.get(nameKey) ??
+      { name, spend: 0, impressions: 0, clicks: 0, linkClicks: 0, purchases: 0, purchaseValue: 0 };
+    agg.spend += spend;
+    agg.impressions += impressions;
+    agg.clicks += clicks;
+    agg.linkClicks += linkClicks;
+    agg.purchases += purchases;
+    agg.purchaseValue += purchaseValue;
+    metaByName.set(nameKey, agg);
+  }
+  const metaMatched = new Set<string>();
+
 
   type Row = {
     attribution?: Record<string, unknown> | null;
@@ -384,30 +441,60 @@ Deno.serve(async (req: Request) => {
 
   const campaigns = Object.entries(campaignTally)
     .map(([key, v]) => {
-      const cost = costByKey.get(key) ?? 0;
+      const campaignName = key.split("::")[1] ?? "";
+      const meta = metaByName.get(campaignName.trim().toLowerCase());
+      if (meta) metaMatched.add(campaignName.trim().toLowerCase());
+      // Manual spend wins when entered, otherwise Meta's own spend is used.
+      const manualCost = costByKey.get(key) ?? 0;
+      const cost = manualCost > 0 ? manualCost : meta ? meta.spend : 0;
       const revenue = round2(v.revenue);
       return {
         key,
         channel: v.channel,
         channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
-        campaign: key.split("::")[1] ?? "",
+        campaign: campaignName,
         count: v.total,
         completed: v.completed,
         orders: v.orders,
         revenue,
         aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
         cost: round2(cost),
+        costSource: manualCost > 0 ? "manual" : meta ? "meta" : null,
         roas: cost > 0 ? Math.round((v.revenue / cost) * 100) / 100 : null,
         profit: cost > 0 ? round2(v.revenue - cost) : null,
         costPerSignup: cost > 0 && v.total > 0 ? round2(cost / v.total) : null,
+        // Meta's own reported numbers for the same campaign, side by side.
+        metaSpend: meta ? round2(meta.spend) : null,
+        metaImpressions: meta ? meta.impressions : null,
+        metaClicks: meta ? meta.clicks : null,
+        metaLinkClicks: meta ? meta.linkClicks : null,
+        metaPurchases: meta ? round2(meta.purchases) : null,
+        metaRevenue: meta ? round2(meta.purchaseValue) : null,
+        metaRoas: meta && meta.spend > 0 ? Math.round((meta.purchaseValue / meta.spend) * 100) / 100 : null,
       };
     })
     .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
 
+  // Meta campaigns that spent money in this range but never matched one of our
+  // tagged signups, usually because the ad link carried no utm_campaign tag.
+  const metaOnlyCampaigns = [...metaByName.entries()]
+    .filter(([nameKey]) => !metaMatched.has(nameKey))
+    .map(([, m]) => ({
+      campaign: m.name,
+      spend: round2(m.spend),
+      clicks: m.clicks,
+      linkClicks: m.linkClicks,
+      purchases: round2(m.purchases),
+      revenue: round2(m.purchaseValue),
+    }))
+    .sort((a, b) => b.spend - a.spend)
+    .slice(0, 15);
+
   // Spend entered for campaigns that appear in this range, so the panel can
   // show blended return on ad spend.
   const paidCost = campaigns.reduce((n, c) => n + c.cost, 0);
+
 
   return json({
     success: true,
@@ -452,6 +539,23 @@ Deno.serve(async (req: Request) => {
     socialRevenue: round2(socialRevenue),
     affiliateOrders,
     affiliateRevenue: round2(affiliateRevenue),
+
+    // Meta's own reported figures for the same window, pulled from the ad
+    // account by meta-ads-sync. These are Meta's modelled numbers, not ours.
+    metaConnected: (metaRows ?? []).length > 0,
+    metaSpend: round2(metaSpend),
+    metaImpressions,
+    metaClicks,
+    metaLinkClicks,
+    metaPurchases: round2(metaPurchases),
+    metaRevenue: round2(metaPurchaseValue),
+    metaRoas: metaSpend > 0 ? Math.round((metaPurchaseValue / metaSpend) * 100) / 100 : null,
+    metaCostPerLead: metaSpend > 0 && paidTotal > 0 ? round2(metaSpend / paidTotal) : null,
+    metaCurrency,
+    metaSyncedAt,
+    metaOnlyCampaigns,
+
+
 
 
     topRefs: Object.entries(refTally)
