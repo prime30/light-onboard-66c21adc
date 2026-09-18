@@ -114,6 +114,39 @@ Deno.serve(async (req: Request) => {
   }
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+  // Save ad spend for a single channel + campaign pair.
+  if (body.action === "setCampaignCost") {
+    const channel = (body.channel ?? "").trim();
+    const campaign = (body.campaign ?? "").trim();
+    const cost = Number(body.cost ?? 0);
+    if (!channel || !campaign) {
+      return json({ success: false, error: "channel and campaign are required" }, 400);
+    }
+    if (!Number.isFinite(cost) || cost < 0 || cost > 100_000_000) {
+      return json({ success: false, error: "cost must be a positive number" }, 400);
+    }
+    const { error: upsertErr } = await supabase
+      .from("campaign_costs")
+      .upsert(
+        {
+          channel,
+          campaign,
+          cost,
+          note: (body.note ?? "").toString().slice(0, 500) || null,
+          updated_by: ADMIN_EMAIL,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "channel,campaign" },
+      );
+    if (upsertErr) {
+      console.error("admin-ads-attribution cost upsert failed:", upsertErr);
+      return json({ success: false, error: "Failed to save cost" }, 500);
+    }
+    return json({ success: true, saved: { channel, campaign, cost } });
+  }
+
+
+
   const sinceDays = Math.min(Math.max(Number(body.sinceDays ?? 30), 1), 3650);
   const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
 
