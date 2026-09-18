@@ -18,6 +18,7 @@ type ChannelRow = {
 
 type CampaignRow = {
   key: string;
+  channel?: string;
   channelLabel: string;
   campaign: string;
   count: number;
@@ -25,7 +26,12 @@ type CampaignRow = {
   orders?: number;
   revenue?: number;
   aov?: number;
+  cost?: number;
+  roas?: number | null;
+  profit?: number | null;
+  costPerSignup?: number | null;
 };
+
 
 type Data = {
   total: number;
@@ -46,14 +52,23 @@ type Data = {
   refWithoutCampaign?: number;
   ordersTotal?: number;
   revenueTotal?: number;
+  buyersTotal?: number;
+  repeatOrdersTotal?: number;
+  repeatRevenueTotal?: number;
   paidOrders?: number;
   paidRevenue?: number;
+  paidBuyers?: number;
   paidAov?: number;
   paidPurchaseRate?: number;
+  paidCost?: number;
+  paidRoas?: number | null;
+  paidCostPerSignup?: number | null;
+  paidCostPerPurchase?: number | null;
   socialOrders?: number;
   socialRevenue?: number;
   affiliateOrders?: number;
   affiliateRevenue?: number;
+
   topRefs?: RefRow[];
   channels: ChannelRow[];
   campaigns: CampaignRow[];
@@ -92,6 +107,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   const [sinceDays, setSinceDays] = useState(30);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Ad spend inputs, keyed by "channel::campaign".
+  const [costDraft, setCostDraft] = useState<Record<string, string>>({});
+  const [savingCost, setSavingCost] = useState<string | null>(null);
+
+
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -118,6 +138,45 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const saveCost = useCallback(
+    async (row: CampaignRow) => {
+      const raw = costDraft[row.key];
+      const cost = Number((raw ?? "").replace(/[^0-9.]/g, ""));
+      if (!Number.isFinite(cost) || cost < 0) return;
+      setSavingCost(row.key);
+      setError(null);
+      try {
+        const { data: res, error: invokeErr } = await supabase.functions.invoke(
+          "admin-ads-attribution",
+          {
+            body: {
+              token: adminToken,
+              action: "setCampaignCost",
+              channel: row.channel ?? row.key.split("::")[0],
+              campaign: row.campaign || row.key.split("::")[1],
+              cost,
+            },
+          }
+        );
+        if (invokeErr || !res?.success) {
+          setError(res?.error ?? invokeErr?.message ?? "Failed to save spend");
+          return;
+        }
+        setCostDraft((d) => {
+          const next = { ...d };
+          delete next[row.key];
+          return next;
+        });
+        await fetchData();
+      } finally {
+        setSavingCost(null);
+      }
+    },
+    [adminToken, costDraft, fetchData]
+  );
+
+
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
 
@@ -203,7 +262,7 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               <Stat
                 label="Paid ad purchases"
                 value={(data.paidOrders ?? 0).toString()}
-                hint={`${data.paidPurchaseRate ?? 0}% of paid signups bought`}
+                hint={`${data.paidPurchaseRate ?? 0}% of paid signups bought · ${data.paidBuyers ?? 0} customers`}
               />
               <Stat label="Paid ad revenue" value={money(data.paidRevenue ?? 0)} />
               <Stat label="Average order" value={money(data.paidAov ?? 0)} />
@@ -211,6 +270,35 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                 label="All channels"
                 value={money(data.revenueTotal ?? 0)}
                 hint={`${data.ordersTotal ?? 0} purchases in range`}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Stat
+                label="Ad spend entered"
+                value={money(data.paidCost ?? 0)}
+                hint={
+                  (data.paidCost ?? 0) > 0
+                    ? `${money(data.paidCostPerSignup ?? 0)} per signup`
+                    : "Add spend per campaign below"
+                }
+              />
+              <Stat
+                label="Return on ad spend"
+                value={data.paidRoas == null ? "—" : `${data.paidRoas.toFixed(2)}x`}
+                hint={
+                  data.paidRoas == null
+                    ? "Needs ad spend"
+                    : `${money((data.paidRevenue ?? 0) - (data.paidCost ?? 0))} above spend`
+                }
+              />
+              <Stat
+                label="Cost per purchase"
+                value={data.paidCostPerPurchase == null ? "—" : money(data.paidCostPerPurchase)}
+              />
+              <Stat
+                label="Repeat purchases"
+                value={(data.repeatOrdersTotal ?? 0).toString()}
+                hint={`${money(data.repeatRevenueTotal ?? 0)} beyond first orders`}
               />
             </div>
             <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
@@ -224,10 +312,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Revenue is each customer's first order, matched by email to the channel
-              their signup came from. It is a floor, not lifetime spend, and it only
-              covers orders already pulled in from the store.
+              Revenue counts every order a customer has placed, matched by email to the
+              channel their signup came from. It only covers orders already pulled in
+              from the store, so run the purchases sync to keep it current.
             </p>
+
           </div>
 
           {(() => {
@@ -399,24 +488,78 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                       <th className="font-medium pb-1.5 pr-3">Campaign</th>
                       <th className="font-medium pb-1.5 px-2">Channel</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
-                      <th className="font-medium pb-1.5 px-2 text-right">Completed</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Purchases</th>
-                      <th className="font-medium pb-1.5 pl-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Revenue</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Spend</th>
+                      <th className="font-medium pb-1.5 pl-2 text-right">Return</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.campaigns.map((c) => (
-                      <tr key={c.key} className="border-t border-border/40">
-                        <td className="py-1 pr-3 text-foreground/80">{c.campaign}</td>
-                        <td className="py-1 px-2 text-muted-foreground">{c.channelLabel}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.count}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.completed}</td>
-                        <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
-                        <td className="py-1 pl-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
-                      </tr>
-                    ))}
+                    {data.campaigns.map((c) => {
+                      const draft = costDraft[c.key];
+                      const dirty = draft !== undefined && Number(draft) !== (c.cost ?? 0);
+                      return (
+                        <tr key={c.key} className="border-t border-border/40">
+                          <td className="py-1 pr-3 text-foreground/80">{c.campaign}</td>
+                          <td className="py-1 px-2 text-muted-foreground">{c.channelLabel}</td>
+                          <td className="py-1 px-2 text-right tabular-nums">
+                            {c.count}
+                            <span className="text-muted-foreground"> · {c.completed}</span>
+                          </td>
+                          <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
+                          <td className="py-1 px-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
+                          <td className="py-1 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="text-muted-foreground">$</span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={draft ?? String(c.cost ?? 0)}
+                                onChange={(e) =>
+                                  setCostDraft((d) => ({ ...d, [c.key]: e.target.value }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveCost(c);
+                                }}
+                                className="w-16 rounded-[10px] border border-border/60 bg-background px-1.5 py-0.5 text-right text-[11px] tabular-nums outline-none focus:border-foreground/40"
+                              />
+                              {dirty && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 px-2 text-[10px]"
+                                  disabled={savingCost === c.key}
+                                  onClick={() => saveCost(c)}
+                                >
+                                  {savingCost === c.key ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    "Save"
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-1 pl-2 text-right tabular-nums">
+                            {c.roas == null ? (
+                              <span className="text-muted-foreground">—</span>
+                            ) : (
+                              <span
+                                className={cn(
+                                  c.roas >= 1 ? "text-emerald-600" : "text-amber-600"
+                                )}
+                              >
+                                {c.roas.toFixed(2)}x
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+
               </div>
             </details>
           )}

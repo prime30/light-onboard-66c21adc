@@ -47,7 +47,14 @@ interface RequestBody {
   password?: string;
   token?: string;
   sinceDays?: number;
+  // "setCampaignCost" saves ad spend for one channel + campaign, then returns.
+  action?: string;
+  channel?: string;
+  campaign?: string;
+  cost?: number | string;
+  note?: string;
 }
+
 
 async function _hmacB64u(key: string, msg: string): Promise<string> {
   const enc = new TextEncoder();
@@ -107,6 +114,39 @@ Deno.serve(async (req: Request) => {
   }
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+  // Save ad spend for a single channel + campaign pair.
+  if (body.action === "setCampaignCost") {
+    const channel = (body.channel ?? "").trim();
+    const campaign = (body.campaign ?? "").trim();
+    const cost = Number(body.cost ?? 0);
+    if (!channel || !campaign) {
+      return json({ success: false, error: "channel and campaign are required" }, 400);
+    }
+    if (!Number.isFinite(cost) || cost < 0 || cost > 100_000_000) {
+      return json({ success: false, error: "cost must be a positive number" }, 400);
+    }
+    const { error: upsertErr } = await supabase
+      .from("campaign_costs")
+      .upsert(
+        {
+          channel,
+          campaign,
+          cost,
+          note: (body.note ?? "").toString().slice(0, 500) || null,
+          updated_by: ADMIN_EMAIL,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "channel,campaign" },
+      );
+    if (upsertErr) {
+      console.error("admin-ads-attribution cost upsert failed:", upsertErr);
+      return json({ success: false, error: "Failed to save cost" }, 500);
+    }
+    return json({ success: true, saved: { channel, campaign, cost } });
+  }
+
+
+
   const sinceDays = Math.min(Math.max(Number(body.sinceDays ?? 30), 1), 3650);
   const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
 
@@ -120,26 +160,50 @@ Deno.serve(async (req: Request) => {
     return json({ success: false, error: "Failed to query submissions" }, 500);
   }
 
-  // First purchases (stamped by backfill-first-orders) keyed by lowercased
-  // email, so revenue can be credited to the channel the signup came from.
+  // Purchases (stamped by backfill-first-orders) keyed by lowercased email, so
+  // revenue can be credited to the channel the signup came from. When lifetime
+  // totals are present (orders_count / orders_revenue) they are used, so repeat
+  // purchases count too; otherwise it falls back to the first order alone.
   const { data: leadRows, error: leadErr } = await supabase
     .from("registration_leads")
-    .select("email, first_order_at, first_order_value")
+    .select("email, first_order_at, first_order_value, orders_count, orders_revenue")
     .not("first_order_at", "is", null);
 
   if (leadErr) {
     console.error("admin-ads-attribution leads query failed:", leadErr);
   }
 
-  const orderByEmail = new Map<string, { at: string | null; value: number }>();
-  for (const l of (leadRows ?? []) as { email?: string | null; first_order_at?: string | null; first_order_value?: number | string | null }[]) {
+  const orderByEmail = new Map<string, { at: string | null; count: number; value: number; firstValue: number }>();
+  for (const l of (leadRows ?? []) as {
+    email?: string | null;
+    first_order_at?: string | null;
+    first_order_value?: number | string | null;
+    orders_count?: number | null;
+    orders_revenue?: number | string | null;
+  }[]) {
     const key = (l.email ?? "").trim().toLowerCase();
     if (!key) continue;
+    const firstValue = Number(l.first_order_value ?? 0) || 0;
+    const lifetimeCount = Number(l.orders_count ?? 0) || 0;
+    const lifetimeRevenue = Number(l.orders_revenue ?? 0) || 0;
     orderByEmail.set(key, {
       at: l.first_order_at ?? null,
-      value: Number(l.first_order_value ?? 0) || 0,
+      count: lifetimeCount > 0 ? lifetimeCount : 1,
+      value: lifetimeRevenue > 0 ? lifetimeRevenue : firstValue,
+      firstValue,
     });
   }
+
+  // Ad spend per channel + campaign, entered by hand in the admin panel.
+  const { data: costRows, error: costErr } = await supabase
+    .from("campaign_costs")
+    .select("channel, campaign, cost, currency, note, updated_at");
+  if (costErr) console.error("admin-ads-attribution cost query failed:", costErr);
+  const costByKey = new Map<string, number>();
+  for (const c of (costRows ?? []) as { channel?: string | null; campaign?: string | null; cost?: number | string | null }[]) {
+    costByKey.set(`${c.channel ?? ""}::${c.campaign ?? ""}`, Number(c.cost ?? 0) || 0);
+  }
+
 
   type Row = {
     attribution?: Record<string, unknown> | null;
@@ -175,13 +239,18 @@ Deno.serve(async (req: Request) => {
   // Purchases and revenue, overall and for paid / social / affiliate cohorts.
   let ordersTotal = 0;
   let revenueTotal = 0;
+  let buyersTotal = 0;
+  let repeatOrdersTotal = 0;
+  let repeatRevenueTotal = 0;
   let paidOrders = 0;
   let paidRevenue = 0;
+  let paidBuyers = 0;
   let socialOrders = 0;
   let socialRevenue = 0;
   let affiliateOrders = 0;
   let affiliateRevenue = 0;
   const countedOrderEmails = new Set<string>();
+
 
 
 
@@ -202,15 +271,22 @@ Deno.serve(async (req: Request) => {
     if (channel !== "untracked") tracked += 1;
     const completed = (row.status ?? "") === "succeeded";
 
-    // Credit the first purchase once per email, even if the person submitted
-    // the form more than once.
+    // Credit purchases once per email, even if the person submitted the form
+    // more than once. orderCount includes repeat orders when they are synced.
     const emailKey = (row.email ?? "").trim().toLowerCase();
     const order = emailKey && !countedOrderEmails.has(emailKey) ? orderByEmail.get(emailKey) : undefined;
     if (order && emailKey) countedOrderEmails.add(emailKey);
-    const orderCount = order ? 1 : 0;
+    const orderCount = order ? order.count : 0;
     const orderValue = order ? order.value : 0;
+    const buyerCount = order ? 1 : 0;
+    const repeatOrderCount = order ? Math.max(0, order.count - 1) : 0;
+    const repeatRevenue = order ? Math.max(0, order.value - order.firstValue) : 0;
     ordersTotal += orderCount;
     revenueTotal += orderValue;
+    buyersTotal += buyerCount;
+    repeatOrdersTotal += repeatOrderCount;
+    repeatRevenueTotal += repeatRevenue;
+
 
     channelTally[channel] ??= { total: 0, completed: 0, orders: 0, revenue: 0 };
     channelTally[channel].total += 1;
@@ -223,6 +299,7 @@ Deno.serve(async (req: Request) => {
       if (completed) paidCompleted += 1;
       paidOrders += orderCount;
       paidRevenue += orderValue;
+      paidBuyers += buyerCount;
       const campaign =
         (typeof attr?.utmCampaign === "string" && attr.utmCampaign) ||
         (typeof attr?.utmSource === "string" && attr.utmSource) ||
@@ -306,19 +383,31 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => b.count - a.count);
 
   const campaigns = Object.entries(campaignTally)
-    .map(([key, v]) => ({
-      key,
-      channel: v.channel,
-      channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
-      campaign: key.split("::")[1] ?? "",
-      count: v.total,
-      completed: v.completed,
-      orders: v.orders,
-      revenue: round2(v.revenue),
-      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
-    }))
+    .map(([key, v]) => {
+      const cost = costByKey.get(key) ?? 0;
+      const revenue = round2(v.revenue);
+      return {
+        key,
+        channel: v.channel,
+        channelLabel: CHANNEL_LABELS[v.channel] ?? v.channel,
+        campaign: key.split("::")[1] ?? "",
+        count: v.total,
+        completed: v.completed,
+        orders: v.orders,
+        revenue,
+        aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
+        cost: round2(cost),
+        roas: cost > 0 ? Math.round((v.revenue / cost) * 100) / 100 : null,
+        profit: cost > 0 ? round2(v.revenue - cost) : null,
+        costPerSignup: cost > 0 && v.total > 0 ? round2(cost / v.total) : null,
+      };
+    })
     .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
+
+  // Spend entered for campaigns that appear in this range, so the panel can
+  // show blended return on ad spend.
+  const paidCost = campaigns.reduce((n, c) => n + c.cost, 0);
 
   return json({
     success: true,
@@ -343,18 +432,27 @@ Deno.serve(async (req: Request) => {
     affiliateShare: total === 0 ? 0 : Math.round((affiliateTotal / total) * 1000) / 10,
     refWithoutCampaign,
     // Purchases and revenue, credited to the channel the signup came from.
-    // Values are first orders stamped by backfill-first-orders (one per
-    // customer), so they are a floor on total revenue, not lifetime value.
+    // Includes repeat orders for every customer whose orders have been synced
+    // by backfill-first-orders, so it only covers orders already pulled in.
     ordersTotal,
     revenueTotal: round2(revenueTotal),
+    buyersTotal,
+    repeatOrdersTotal,
+    repeatRevenueTotal: round2(repeatRevenueTotal),
     paidOrders,
     paidRevenue: round2(paidRevenue),
+    paidBuyers,
     paidAov: paidOrders === 0 ? 0 : round2(paidRevenue / paidOrders),
-    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidOrders / paidTotal) * 1000) / 10,
+    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidBuyers / paidTotal) * 1000) / 10,
+    paidCost: round2(paidCost),
+    paidRoas: paidCost > 0 ? Math.round((paidRevenue / paidCost) * 100) / 100 : null,
+    paidCostPerSignup: paidCost > 0 && paidTotal > 0 ? round2(paidCost / paidTotal) : null,
+    paidCostPerPurchase: paidCost > 0 && paidOrders > 0 ? round2(paidCost / paidOrders) : null,
     socialOrders,
     socialRevenue: round2(socialRevenue),
     affiliateOrders,
     affiliateRevenue: round2(affiliateRevenue),
+
 
     topRefs: Object.entries(refTally)
       .map(([ref, v]) => ({ ref, ...v }))

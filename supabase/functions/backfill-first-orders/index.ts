@@ -96,13 +96,21 @@ Deno.serve(async (req: Request) => {
   if (!adminPassword) return json({ success: false, error: "Server misconfigured" }, 500);
   let _authed = false;
   let _authedEmail = email;
-  if (providedToken) {
+  // Internal calls (cron / maintenance) may authenticate with the service role
+  // key instead of an admin session.
+  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (bearer && serviceRoleKey && bearer === serviceRoleKey) {
+    _authed = true;
+    _authedEmail = ADMIN_EMAIL;
+  } else if (providedToken) {
     _authed = await verifyAdminToken(providedToken, adminPassword);
     if (_authed) _authedEmail = ADMIN_EMAIL;
   } else {
     const password = body.password ?? "";
     _authed = email === ADMIN_EMAIL && password === adminPassword;
   }
+
   if (!_authed) return json({ success: false, error: "Invalid credentials" }, 401);
   const _adminEmail = _authedEmail;
 
@@ -123,6 +131,9 @@ Deno.serve(async (req: Request) => {
 
   // 1) Page through Shopify orders, capturing earliest per email.
   const earliest = new Map<string, { id: string; created_at: string; total: number }>();
+  // Every order per email in the window: count, revenue and most recent date.
+  const lifetime = new Map<string, { count: number; revenue: number; lastAt: string }>();
+
 
   let url: string | null =
     `https://${shopDomain}/admin/api/${ADMIN_API_VERSION}/orders.json` +
@@ -158,15 +169,24 @@ Deno.serve(async (req: Request) => {
       const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
       if (!e) continue;
       const total = Number(o.total_price ?? 0);
+      const value = Number.isFinite(total) ? total : 0;
       const cur = earliest.get(e);
       if (!cur || o.created_at < cur.created_at) {
         earliest.set(e, {
           id: String(o.id),
           created_at: o.created_at,
-          total: Number.isFinite(total) ? total : 0,
+          total: value,
         });
       }
+      // Lifetime totals across every order in the window, so revenue per
+      // channel reflects repeat purchases and not just the first order.
+      const agg = lifetime.get(e) ?? { count: 0, revenue: 0, lastAt: o.created_at };
+      agg.count += 1;
+      agg.revenue += value;
+      if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
+      lifetime.set(e, agg);
     }
+
 
     url = parseLinkHeader(res.headers.get("link") ?? res.headers.get("Link"));
     // Be polite to Shopify rate limits.
@@ -208,53 +228,71 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // 3) Compute updates (only when earlier than existing, or never set).
+  // 3) Compute updates. First-order fields only move backwards in time (safe
+  // re-runs); lifetime totals are always refreshed from the window.
   const nowIso = new Date().toISOString();
   type Upd = {
     email: string;
-    first_order_at: string;
-    first_order_value: number;
-    first_order_id: string;
-    first_order_synced_at: string;
+    first: {
+      first_order_at: string;
+      first_order_value: number;
+      first_order_id: string;
+      first_order_synced_at: string;
+    } | null;
+    orders_count: number;
+    orders_revenue: number;
+    last_order_at: string | null;
   };
   const updates: Upd[] = [];
   let skipped = 0;
   for (const [e, lead] of leadsByEmail.entries()) {
     const o = earliest.get(e)!;
-    if (lead.first_order_at && lead.first_order_at <= o.created_at) {
-      skipped += 1;
-      continue;
-    }
+    const agg = lifetime.get(e);
+    const firstStale = !lead.first_order_at || lead.first_order_at > o.created_at;
+    if (!firstStale) skipped += 1;
     updates.push({
       email: e,
-      first_order_at: o.created_at,
-      first_order_value: o.total,
-      first_order_id: o.id,
-      first_order_synced_at: nowIso,
+      first: firstStale
+        ? {
+            first_order_at: o.created_at,
+            first_order_value: o.total,
+            first_order_id: o.id,
+            first_order_synced_at: nowIso,
+          }
+        : null,
+      orders_count: agg?.count ?? 0,
+      orders_revenue: Math.round((agg?.revenue ?? 0) * 100) / 100,
+      last_order_at: agg?.lastAt ?? null,
     });
   }
 
   let updated = 0;
+  let firstOrderUpdated = 0;
   if (!dryRun) {
     for (const u of updates) {
+      const patch: Record<string, unknown> = {
+        orders_count: u.orders_count,
+        orders_revenue: u.orders_revenue,
+        last_order_at: u.last_order_at,
+        orders_synced_at: nowIso,
+      };
+      if (u.first) Object.assign(patch, u.first);
       const { error } = await supabase
         .from("registration_leads")
-        .update({
-          first_order_at: u.first_order_at,
-          first_order_value: u.first_order_value,
-          first_order_id: u.first_order_id,
-          first_order_synced_at: u.first_order_synced_at,
-        })
+        .update(patch)
         .eq("email", u.email);
       if (error) {
         console.error("[backfill-first-orders] update failed", u.email, error);
         continue;
       }
       updated += 1;
+      if (u.first) firstOrderUpdated += 1;
     }
   } else {
     updated = updates.length;
+    firstOrderUpdated = updates.filter((u) => u.first).length;
   }
+
 
   return json({
     success: true,
@@ -264,6 +302,7 @@ Deno.serve(async (req: Request) => {
     uniqueEmails: emails.length,
     matchedLeads: leadsByEmail.size,
     updated,
+    firstOrderUpdated,
     skipped,
     daysBack,
   });

@@ -110,6 +110,42 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_costs: {
+        Row: {
+          campaign: string
+          channel: string
+          cost: number
+          created_at: string
+          currency: string
+          id: string
+          note: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          campaign: string
+          channel: string
+          cost?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          campaign?: string
+          channel?: string
+          cost?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       error_alerts: {
         Row: {
           alert_key: string
@@ -389,8 +425,12 @@ export type Database = {
           klaviyo_started_event_at: string | null
           klaviyo_synced_at: string | null
           last_field: string | null
+          last_order_at: string | null
           last_step: string | null
           monthly_order_volume: string | null
+          orders_count: number
+          orders_revenue: number
+          orders_synced_at: string | null
           reset_failure_code: string | null
           reset_failure_count: number
           reset_failure_device_type: string | null
@@ -434,8 +474,12 @@ export type Database = {
           klaviyo_started_event_at?: string | null
           klaviyo_synced_at?: string | null
           last_field?: string | null
+          last_order_at?: string | null
           last_step?: string | null
           monthly_order_volume?: string | null
+          orders_count?: number
+          orders_revenue?: number
+          orders_synced_at?: string | null
           reset_failure_code?: string | null
           reset_failure_count?: number
           reset_failure_device_type?: string | null
@@ -479,8 +523,12 @@ export type Database = {
           klaviyo_started_event_at?: string | null
           klaviyo_synced_at?: string | null
           last_field?: string | null
+          last_order_at?: string | null
           last_step?: string | null
           monthly_order_volume?: string | null
+          orders_count?: number
+          orders_revenue?: number
+          orders_synced_at?: string | null
           reset_failure_code?: string | null
           reset_failure_count?: number
           reset_failure_device_type?: string | null
