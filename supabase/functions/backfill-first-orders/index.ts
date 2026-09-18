@@ -123,6 +123,9 @@ Deno.serve(async (req: Request) => {
 
   // 1) Page through Shopify orders, capturing earliest per email.
   const earliest = new Map<string, { id: string; created_at: string; total: number }>();
+  // Every order per email in the window: count, revenue and most recent date.
+  const lifetime = new Map<string, { count: number; revenue: number; lastAt: string }>();
+
 
   let url: string | null =
     `https://${shopDomain}/admin/api/${ADMIN_API_VERSION}/orders.json` +
