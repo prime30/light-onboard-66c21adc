@@ -52,14 +52,23 @@ type Data = {
   refWithoutCampaign?: number;
   ordersTotal?: number;
   revenueTotal?: number;
+  buyersTotal?: number;
+  repeatOrdersTotal?: number;
+  repeatRevenueTotal?: number;
   paidOrders?: number;
   paidRevenue?: number;
+  paidBuyers?: number;
   paidAov?: number;
   paidPurchaseRate?: number;
+  paidCost?: number;
+  paidRoas?: number | null;
+  paidCostPerSignup?: number | null;
+  paidCostPerPurchase?: number | null;
   socialOrders?: number;
   socialRevenue?: number;
   affiliateOrders?: number;
   affiliateRevenue?: number;
+
   topRefs?: RefRow[];
   channels: ChannelRow[];
   campaigns: CampaignRow[];
