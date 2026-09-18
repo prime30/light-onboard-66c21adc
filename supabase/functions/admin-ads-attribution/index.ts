@@ -226,15 +226,22 @@ Deno.serve(async (req: Request) => {
     if (channel !== "untracked") tracked += 1;
     const completed = (row.status ?? "") === "succeeded";
 
-    // Credit the first purchase once per email, even if the person submitted
-    // the form more than once.
+    // Credit purchases once per email, even if the person submitted the form
+    // more than once. orderCount includes repeat orders when they are synced.
     const emailKey = (row.email ?? "").trim().toLowerCase();
     const order = emailKey && !countedOrderEmails.has(emailKey) ? orderByEmail.get(emailKey) : undefined;
     if (order && emailKey) countedOrderEmails.add(emailKey);
-    const orderCount = order ? 1 : 0;
+    const orderCount = order ? order.count : 0;
     const orderValue = order ? order.value : 0;
+    const buyerCount = order ? 1 : 0;
+    const repeatOrderCount = order ? Math.max(0, order.count - 1) : 0;
+    const repeatRevenue = order ? Math.max(0, order.value - order.firstValue) : 0;
     ordersTotal += orderCount;
     revenueTotal += orderValue;
+    buyersTotal += buyerCount;
+    repeatOrdersTotal += repeatOrderCount;
+    repeatRevenueTotal += repeatRevenue;
+
 
     channelTally[channel] ??= { total: 0, completed: 0, orders: 0, revenue: 0 };
     channelTally[channel].total += 1;
