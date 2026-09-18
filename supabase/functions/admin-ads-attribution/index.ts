@@ -181,6 +181,9 @@ Deno.serve(async (req: Request) => {
   let socialRevenue = 0;
   let affiliateOrders = 0;
   let affiliateRevenue = 0;
+  const countedOrderEmails = new Set<string>();
+
+
 
 
   for (const row of (data ?? []) as Row[]) {
