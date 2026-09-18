@@ -10,6 +10,9 @@ type ChannelRow = {
   paid: boolean;
   count: number;
   completed: number;
+  orders?: number;
+  revenue?: number;
+  aov?: number;
   pct: number;
 };
 
@@ -19,6 +22,9 @@ type CampaignRow = {
   campaign: string;
   count: number;
   completed: number;
+  orders?: number;
+  revenue?: number;
+  aov?: number;
 };
 
 type Data = {
@@ -38,6 +44,16 @@ type Data = {
   affiliateCompleted?: number;
   affiliateShare?: number;
   refWithoutCampaign?: number;
+  ordersTotal?: number;
+  revenueTotal?: number;
+  paidOrders?: number;
+  paidRevenue?: number;
+  paidAov?: number;
+  paidPurchaseRate?: number;
+  socialOrders?: number;
+  socialRevenue?: number;
+  affiliateOrders?: number;
+  affiliateRevenue?: number;
   topRefs?: RefRow[];
   channels: ChannelRow[];
   campaigns: CampaignRow[];
@@ -179,6 +195,41 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
             (fbclid / ttclid without paid campaign params). They are never counted as ads.
           </p>
 
+          <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Purchases and revenue from paid ads
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Stat
+                label="Paid ad purchases"
+                value={(data.paidOrders ?? 0).toString()}
+                hint={`${data.paidPurchaseRate ?? 0}% of paid signups bought`}
+              />
+              <Stat label="Paid ad revenue" value={money(data.paidRevenue ?? 0)} />
+              <Stat label="Average order" value={money(data.paidAov ?? 0)} />
+              <Stat
+                label="All channels"
+                value={money(data.revenueTotal ?? 0)}
+                hint={`${data.ordersTotal ?? 0} purchases in range`}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+              <span>
+                Social link clicks: {data.socialOrders ?? 0} purchases ·{" "}
+                {money(data.socialRevenue ?? 0)}
+              </span>
+              <span>
+                Affiliate referrals: {data.affiliateOrders ?? 0} purchases ·{" "}
+                {money(data.affiliateRevenue ?? 0)}
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Revenue is each customer's first order, matched by email to the channel
+              their signup came from. It is a floor, not lifetime spend, and it only
+              covers orders already pulled in from the store.
+            </p>
+          </div>
+
           {(() => {
             const tagged = data.taggedClicks ?? 0;
             const untagged = data.untaggedClicks ?? 0;
@@ -272,6 +323,11 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                     </span>
                     <span className="text-muted-foreground tabular-nums">
                       {c.count} · {c.pct}% · {c.completed} completed
+                      {(c.orders ?? 0) > 0 && (
+                        <span className="text-foreground/70">
+                          {" "}· {c.orders} bought · {money(c.revenue ?? 0)}
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -343,7 +399,9 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                       <th className="font-medium pb-1.5 pr-3">Campaign</th>
                       <th className="font-medium pb-1.5 px-2">Channel</th>
                       <th className="font-medium pb-1.5 px-2 text-right">Signups</th>
-                      <th className="font-medium pb-1.5 pl-2 text-right">Completed</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Completed</th>
+                      <th className="font-medium pb-1.5 px-2 text-right">Purchases</th>
+                      <th className="font-medium pb-1.5 pl-2 text-right">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -352,7 +410,9 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                         <td className="py-1 pr-3 text-foreground/80">{c.campaign}</td>
                         <td className="py-1 px-2 text-muted-foreground">{c.channelLabel}</td>
                         <td className="py-1 px-2 text-right tabular-nums">{c.count}</td>
-                        <td className="py-1 pl-2 text-right tabular-nums">{c.completed}</td>
+                        <td className="py-1 px-2 text-right tabular-nums">{c.completed}</td>
+                        <td className="py-1 px-2 text-right tabular-nums">{c.orders ?? 0}</td>
+                        <td className="py-1 pl-2 text-right tabular-nums">{money(c.revenue ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -365,6 +425,13 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     </div>
   );
 };
+
+const money = (n: number) =>
+  n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: n >= 1000 ? 0 : 2,
+  });
 
 const Stat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
   <div className="rounded-[10px] border border-border/50 p-2.5">
