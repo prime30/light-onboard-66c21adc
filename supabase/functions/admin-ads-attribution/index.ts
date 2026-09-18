@@ -112,12 +112,33 @@ Deno.serve(async (req: Request) => {
 
   const { data, error } = await supabase
     .from("registration_submissions")
-    .select("attribution, account_type, status, created_at, payload")
+    .select("attribution, account_type, status, created_at, payload, email")
     .gte("created_at", sinceIso);
 
   if (error) {
     console.error("admin-ads-attribution query failed:", error);
     return json({ success: false, error: "Failed to query submissions" }, 500);
+  }
+
+  // First purchases (stamped by backfill-first-orders) keyed by lowercased
+  // email, so revenue can be credited to the channel the signup came from.
+  const { data: leadRows, error: leadErr } = await supabase
+    .from("registration_leads")
+    .select("email, first_order_at, first_order_value")
+    .not("first_order_at", "is", null);
+
+  if (leadErr) {
+    console.error("admin-ads-attribution leads query failed:", leadErr);
+  }
+
+  const orderByEmail = new Map<string, { at: string | null; value: number }>();
+  for (const l of (leadRows ?? []) as { email?: string | null; first_order_at?: string | null; first_order_value?: number | string | null }[]) {
+    const key = (l.email ?? "").trim().toLowerCase();
+    if (!key) continue;
+    orderByEmail.set(key, {
+      at: l.first_order_at ?? null,
+      value: Number(l.first_order_value ?? 0) || 0,
+    });
   }
 
   type Row = {
@@ -126,11 +147,12 @@ Deno.serve(async (req: Request) => {
     status?: string | null;
     created_at?: string | null;
     payload?: Record<string, unknown> | null;
+    email?: string | null;
   };
 
-  const channelTally: Record<string, { total: number; completed: number }> = {};
-  const campaignTally: Record<string, { channel: string; total: number; completed: number }> = {};
-  const timeline: Record<string, { total: number; paid: number; social: number }> = {};
+  const channelTally: Record<string, { total: number; completed: number; orders: number; revenue: number }> = {};
+  const campaignTally: Record<string, { channel: string; total: number; completed: number; orders: number; revenue: number }> = {};
+  const timeline: Record<string, { total: number; paid: number; social: number; paidRevenue: number }> = {};
   const byAccountType: Record<string, Record<string, number>> = {};
 
   let total = 0;
@@ -150,6 +172,19 @@ Deno.serve(async (req: Request) => {
   // Referral tag present on what looks like a paid ad link, but no utm_campaign
   // tag, so the ad cannot be credited.
   let refWithoutCampaign = 0;
+  // Purchases and revenue, overall and for paid / social / affiliate cohorts.
+  let ordersTotal = 0;
+  let revenueTotal = 0;
+  let paidOrders = 0;
+  let paidRevenue = 0;
+  let socialOrders = 0;
+  let socialRevenue = 0;
+  let affiliateOrders = 0;
+  let affiliateRevenue = 0;
+  const countedOrderEmails = new Set<string>();
+
+
+
 
   for (const row of (data ?? []) as Row[]) {
     // Skip internal test users the same way the other analytics do.
@@ -167,24 +202,42 @@ Deno.serve(async (req: Request) => {
     if (channel !== "untracked") tracked += 1;
     const completed = (row.status ?? "") === "succeeded";
 
-    channelTally[channel] ??= { total: 0, completed: 0 };
+    // Credit the first purchase once per email, even if the person submitted
+    // the form more than once.
+    const emailKey = (row.email ?? "").trim().toLowerCase();
+    const order = emailKey && !countedOrderEmails.has(emailKey) ? orderByEmail.get(emailKey) : undefined;
+    if (order && emailKey) countedOrderEmails.add(emailKey);
+    const orderCount = order ? 1 : 0;
+    const orderValue = order ? order.value : 0;
+    ordersTotal += orderCount;
+    revenueTotal += orderValue;
+
+    channelTally[channel] ??= { total: 0, completed: 0, orders: 0, revenue: 0 };
     channelTally[channel].total += 1;
     if (completed) channelTally[channel].completed += 1;
+    channelTally[channel].orders += orderCount;
+    channelTally[channel].revenue += orderValue;
 
     if (PAID_CHANNELS.has(channel)) {
       paidTotal += 1;
       if (completed) paidCompleted += 1;
+      paidOrders += orderCount;
+      paidRevenue += orderValue;
       const campaign =
         (typeof attr?.utmCampaign === "string" && attr.utmCampaign) ||
         (typeof attr?.utmSource === "string" && attr.utmSource) ||
         "(no campaign tag)";
       const key = `${channel}::${campaign}`;
-      campaignTally[key] ??= { channel, total: 0, completed: 0 };
+      campaignTally[key] ??= { channel, total: 0, completed: 0, orders: 0, revenue: 0 };
       campaignTally[key].total += 1;
       if (completed) campaignTally[key].completed += 1;
+      campaignTally[key].orders += orderCount;
+      campaignTally[key].revenue += orderValue;
     } else if (SOCIAL_CLICK_CHANNELS.has(channel)) {
       socialClickTotal += 1;
       if (completed) socialClickCompleted += 1;
+      socialOrders += orderCount;
+      socialRevenue += orderValue;
     }
 
     const hasClickId = Boolean(
@@ -209,6 +262,8 @@ Deno.serve(async (req: Request) => {
     if (affiliateRef) {
       affiliateTotal += 1;
       if (completed) affiliateCompleted += 1;
+      affiliateOrders += orderCount;
+      affiliateRevenue += orderValue;
       refTally[affiliateRef] ??= { total: 0, completed: 0, untaggedAd: 0 };
       refTally[affiliateRef].total += 1;
       if (completed) refTally[affiliateRef].completed += 1;
@@ -220,16 +275,21 @@ Deno.serve(async (req: Request) => {
 
     const day = (row.created_at ?? "").slice(0, 10);
     if (day) {
-      timeline[day] ??= { total: 0, paid: 0, social: 0 };
+      timeline[day] ??= { total: 0, paid: 0, social: 0, paidRevenue: 0 };
       timeline[day].total += 1;
-      if (PAID_CHANNELS.has(channel)) timeline[day].paid += 1;
-      else if (SOCIAL_CLICK_CHANNELS.has(channel)) timeline[day].social += 1;
+      if (PAID_CHANNELS.has(channel)) {
+        timeline[day].paid += 1;
+        timeline[day].paidRevenue += orderValue;
+      } else if (SOCIAL_CLICK_CHANNELS.has(channel)) timeline[day].social += 1;
     }
 
     const acct = (row.account_type ?? "unknown").toString();
     byAccountType[acct] ??= {};
     byAccountType[acct][channel] = (byAccountType[acct][channel] ?? 0) + 1;
   }
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
 
   const channels = Object.entries(channelTally)
     .map(([key, v]) => ({
@@ -238,6 +298,9 @@ Deno.serve(async (req: Request) => {
       paid: PAID_CHANNELS.has(key),
       count: v.total,
       completed: v.completed,
+      orders: v.orders,
+      revenue: round2(v.revenue),
+      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
       pct: total === 0 ? 0 : Math.round((v.total / total) * 1000) / 10,
     }))
     .sort((a, b) => b.count - a.count);
@@ -250,8 +313,11 @@ Deno.serve(async (req: Request) => {
       campaign: key.split("::")[1] ?? "",
       count: v.total,
       completed: v.completed,
+      orders: v.orders,
+      revenue: round2(v.revenue),
+      aov: v.orders === 0 ? 0 : round2(v.revenue / v.orders),
     }))
-    .sort((a, b) => b.count - a.count)
+    .sort((a, b) => b.revenue - a.revenue || b.count - a.count)
     .slice(0, 25);
 
   return json({
@@ -276,6 +342,20 @@ Deno.serve(async (req: Request) => {
     affiliateCompleted,
     affiliateShare: total === 0 ? 0 : Math.round((affiliateTotal / total) * 1000) / 10,
     refWithoutCampaign,
+    // Purchases and revenue, credited to the channel the signup came from.
+    // Values are first orders stamped by backfill-first-orders (one per
+    // customer), so they are a floor on total revenue, not lifetime value.
+    ordersTotal,
+    revenueTotal: round2(revenueTotal),
+    paidOrders,
+    paidRevenue: round2(paidRevenue),
+    paidAov: paidOrders === 0 ? 0 : round2(paidRevenue / paidOrders),
+    paidPurchaseRate: paidTotal === 0 ? 0 : Math.round((paidOrders / paidTotal) * 1000) / 10,
+    socialOrders,
+    socialRevenue: round2(socialRevenue),
+    affiliateOrders,
+    affiliateRevenue: round2(affiliateRevenue),
+
     topRefs: Object.entries(refTally)
       .map(([ref, v]) => ({ ref, ...v }))
       .sort((a, b) => b.total - a.total)
