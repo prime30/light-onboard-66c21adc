@@ -140,17 +140,36 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  // 1) Page through Shopify orders, capturing earliest per email.
-  const earliest = new Map<string, { id: string; created_at: string; total: number }>();
+  // 1) Page through Shopify orders, capturing earliest per email and per phone.
+  type First = { id: string; created_at: string; total: number };
+  type Agg = { count: number; revenue: number; lastAt: string };
+  const earliest = new Map<string, First>();
   // Every order per email in the window: count, revenue and most recent date.
-  const lifetime = new Map<string, { count: number; revenue: number; lastAt: string }>();
+  const lifetime = new Map<string, Agg>();
+  // Same two maps keyed by the last 10 digits of the phone on the order, used
+  // as a fallback when someone checks out with a different email address.
+  const earliestByPhone = new Map<string, First>();
+  const lifetimeByPhone = new Map<string, Agg>();
 
+  function noteFirst(map: Map<string, First>, key: string, o: ShopifyOrder, value: number) {
+    const cur = map.get(key);
+    if (!cur || o.created_at < cur.created_at) {
+      map.set(key, { id: String(o.id), created_at: o.created_at, total: value });
+    }
+  }
+  function noteAgg(map: Map<string, Agg>, key: string, o: ShopifyOrder, value: number) {
+    const agg = map.get(key) ?? { count: 0, revenue: 0, lastAt: o.created_at };
+    agg.count += 1;
+    agg.revenue += value;
+    if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
+    map.set(key, agg);
+  }
 
   let url: string | null =
     `https://${shopDomain}/admin/api/${ADMIN_API_VERSION}/orders.json` +
     `?status=any&limit=250` +
     `&created_at_min=${encodeURIComponent(sinceIso)}` +
-    `&fields=id,email,created_at,total_price,customer`;
+    `&fields=id,email,created_at,total_price,customer,phone,shipping_address,billing_address`;
 
   let pages = 0;
   let totalOrdersSeen = 0;
@@ -177,26 +196,25 @@ Deno.serve(async (req: Request) => {
     totalOrdersSeen += orders.length;
 
     for (const o of orders) {
-      const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
-      if (!e) continue;
       const total = Number(o.total_price ?? 0);
       const value = Number.isFinite(total) ? total : 0;
-      const cur = earliest.get(e);
-      if (!cur || o.created_at < cur.created_at) {
-        earliest.set(e, {
-          id: String(o.id),
-          created_at: o.created_at,
-          total: value,
-        });
+      const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
+      if (e) {
+        noteFirst(earliest, e, o, value);
+        // Lifetime totals across every order in the window, so revenue per
+        // channel reflects repeat purchases and not just the first order.
+        noteAgg(lifetime, e, o, value);
       }
-      // Lifetime totals across every order in the window, so revenue per
-      // channel reflects repeat purchases and not just the first order.
-      const agg = lifetime.get(e) ?? { count: 0, revenue: 0, lastAt: o.created_at };
-      agg.count += 1;
-      agg.revenue += value;
-      if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
-      lifetime.set(e, agg);
+      const pk = phoneKey(o.phone) ||
+        phoneKey(o.customer?.phone) ||
+        phoneKey(o.shipping_address?.phone) ||
+        phoneKey(o.billing_address?.phone);
+      if (pk) {
+        noteFirst(earliestByPhone, pk, o, value);
+        noteAgg(lifetimeByPhone, pk, o, value);
+      }
     }
+
 
 
     url = parseLinkHeader(res.headers.get("link") ?? res.headers.get("Link"));
