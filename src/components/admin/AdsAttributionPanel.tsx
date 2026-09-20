@@ -370,11 +370,20 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                 Affiliate referrals: {data.affiliateOrders ?? 0} purchases ·{" "}
                 {money(data.affiliateRevenue ?? 0)}
               </span>
+              {(data.preSignupBuyers ?? 0) > 0 && (
+                <span>
+                  Already customers before signing up: {data.preSignupBuyers} ·{" "}
+                  {money(data.preSignupRevenue ?? 0)} (not counted)
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Revenue counts every order a customer has placed, matched by email to the
-              channel their signup came from. It only covers orders already pulled in
-              from the store, so run the purchases sync to keep it current.
+              Revenue counts orders from customers whose first ever order came at or
+              after their signup, matched by email to the channel that signup came
+              from. People who were already buying before they signed up are listed
+              separately and left out, so an existing customer cannot make a campaign
+              look profitable. It only covers orders already pulled in from the store,
+              so run the purchases sync to keep it current.
             </p>
 
           </div>
