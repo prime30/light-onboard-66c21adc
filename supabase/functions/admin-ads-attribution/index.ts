@@ -307,6 +307,10 @@ Deno.serve(async (req: Request) => {
   let affiliateOrders = 0;
   let affiliateRevenue = 0;
   const countedOrderEmails = new Set<string>();
+  // Customers who were already buying before they signed up, so their orders
+  // are reported apart from the figures used to judge the ads.
+  let preSignupBuyers = 0;
+  let preSignupRevenue = 0;
 
 
 
@@ -331,8 +335,26 @@ Deno.serve(async (req: Request) => {
     // Credit purchases once per email, even if the person submitted the form
     // more than once. orderCount includes repeat orders when they are synced.
     const emailKey = (row.email ?? "").trim().toLowerCase();
-    const order = emailKey && !countedOrderEmails.has(emailKey) ? orderByEmail.get(emailKey) : undefined;
-    if (order && emailKey) countedOrderEmails.add(emailKey);
+    const matched = emailKey && !countedOrderEmails.has(emailKey) ? orderByEmail.get(emailKey) : undefined;
+    if (matched && emailKey) countedOrderEmails.add(emailKey);
+
+    // Only credit a customer whose first order came at or after the signup.
+    // Someone who was already buying before they ever clicked the ad is an
+    // existing customer: their order history says nothing about the ad, so it
+    // is reported separately instead of inflating revenue and return on spend.
+    // A one day grace window covers an order placed just before the form was
+    // finished in the same session.
+    const signupAt = row.created_at ? Date.parse(row.created_at) : NaN;
+    const firstOrderAt = matched?.at ? Date.parse(matched.at) : NaN;
+    const preSignup = Number.isFinite(signupAt) && Number.isFinite(firstOrderAt)
+      ? firstOrderAt < signupAt - 86_400_000
+      : false;
+    const order = matched && !preSignup ? matched : undefined;
+    if (matched && preSignup) {
+      preSignupBuyers += 1;
+      preSignupRevenue += matched.value;
+    }
+
     const orderCount = order ? order.count : 0;
     const orderValue = order ? order.value : 0;
     const buyerCount = order ? 1 : 0;
@@ -521,6 +543,10 @@ Deno.serve(async (req: Request) => {
     // Purchases and revenue, credited to the channel the signup came from.
     // Includes repeat orders for every customer whose orders have been synced
     // by backfill-first-orders, so it only covers orders already pulled in.
+    // Customers whose first order predates their signup are excluded here and
+    // reported as preSignupBuyers / preSignupRevenue instead.
+    preSignupBuyers,
+    preSignupRevenue: round2(preSignupRevenue),
     ordersTotal,
     revenueTotal: round2(revenueTotal),
     buyersTotal,
