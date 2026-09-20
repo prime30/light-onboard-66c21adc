@@ -578,6 +578,13 @@ Deno.serve(async (req: Request) => {
     // reported as preSignupBuyers / preSignupRevenue instead.
     preSignupBuyers,
     preSignupRevenue: round2(preSignupRevenue),
+    // Buyers matched by phone number because the checkout email differed.
+    phoneMatchedBuyers,
+    phoneMatchedRevenue: round2(phoneMatchedRevenue),
+    // When the purchase sync last wrote figures, and how many signups it covers.
+    ordersSyncedAt,
+    ordersSyncedLeads,
+
     ordersTotal,
     revenueTotal: round2(revenueTotal),
     buyersTotal,
