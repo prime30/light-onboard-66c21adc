@@ -332,6 +332,10 @@ Deno.serve(async (req: Request) => {
   // are reported apart from the figures used to judge the ads.
   let preSignupBuyers = 0;
   let preSignupRevenue = 0;
+  // Buyers found by phone number because they checked out with another email.
+  let phoneMatchedBuyers = 0;
+  let phoneMatchedRevenue = 0;
+
 
 
 
