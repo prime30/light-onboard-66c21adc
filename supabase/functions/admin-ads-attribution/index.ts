@@ -380,7 +380,13 @@ Deno.serve(async (req: Request) => {
       preSignupRevenue += matched.value;
     }
 
+    if (order && order.matchedBy === "phone") {
+      phoneMatchedBuyers += 1;
+      phoneMatchedRevenue += order.value;
+    }
+
     const orderCount = order ? order.count : 0;
+
     const orderValue = order ? order.value : 0;
     const buyerCount = order ? 1 : 0;
     const repeatOrderCount = order ? Math.max(0, order.count - 1) : 0;
