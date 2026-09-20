@@ -244,8 +244,50 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     }
   }, [adminToken, fetchData, sinceDays]);
 
+  // Pulls store orders in, matching by email first and phone number second.
+  const [syncingOrders, setSyncingOrders] = useState(false);
+  const [ordersNote, setOrdersNote] = useState<string | null>(null);
+  const syncOrders = useCallback(async () => {
+    setSyncingOrders(true);
+    setOrdersNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "backfill-first-orders",
+        { body: { token: adminToken, daysBack: 1095 } },
+      );
+      if (invokeErr || !res?.success) {
+        setOrdersNote(res?.error ?? invokeErr?.message ?? "Could not pull orders from the store.");
+        return;
+      }
+      setOrdersNote(
+        `Read ${res.totalOrdersSeen ?? 0} orders, matched ${res.matchedLeads ?? 0} signups (${
+          res.phoneMatched ?? 0
+        } by phone number).`,
+      );
+      await fetchData();
+    } catch (e) {
+      setOrdersNote(e instanceof Error ? e.message : "Could not pull orders from the store.");
+    } finally {
+      setSyncingOrders(false);
+    }
+  }, [adminToken, fetchData]);
+
+  const syncAgeHours = data?.ordersSyncedAt
+    ? (Date.now() - Date.parse(data.ordersSyncedAt)) / 3_600_000
+    : null;
+  const syncStale = syncAgeHours == null || syncAgeHours > 36;
+  const syncAgeLabel =
+    syncAgeHours == null
+      ? "never"
+      : syncAgeHours < 1
+        ? "just now"
+        : syncAgeHours < 48
+          ? `${Math.round(syncAgeHours)} hours ago`
+          : `${Math.round(syncAgeHours / 24)} days ago`;
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
+
 
   return (
     <div className="space-y-4 rounded-[15px] border border-border/50 p-5">
