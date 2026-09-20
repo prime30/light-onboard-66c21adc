@@ -89,6 +89,11 @@ type Data = {
   affiliateRevenue?: number;
   preSignupBuyers?: number;
   preSignupRevenue?: number;
+  phoneMatchedBuyers?: number;
+  phoneMatchedRevenue?: number;
+  ordersSyncedAt?: string | null;
+  ordersSyncedLeads?: number;
+
   metaConnected?: boolean;
   metaSpend?: number;
   metaImpressions?: number;
@@ -239,8 +244,50 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     }
   }, [adminToken, fetchData, sinceDays]);
 
+  // Pulls store orders in, matching by email first and phone number second.
+  const [syncingOrders, setSyncingOrders] = useState(false);
+  const [ordersNote, setOrdersNote] = useState<string | null>(null);
+  const syncOrders = useCallback(async () => {
+    setSyncingOrders(true);
+    setOrdersNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "backfill-first-orders",
+        { body: { token: adminToken, daysBack: 1095 } },
+      );
+      if (invokeErr || !res?.success) {
+        setOrdersNote(res?.error ?? invokeErr?.message ?? "Could not pull orders from the store.");
+        return;
+      }
+      setOrdersNote(
+        `Read ${res.totalOrdersSeen ?? 0} orders, matched ${res.matchedLeads ?? 0} signups (${
+          res.phoneMatched ?? 0
+        } by phone number).`,
+      );
+      await fetchData();
+    } catch (e) {
+      setOrdersNote(e instanceof Error ? e.message : "Could not pull orders from the store.");
+    } finally {
+      setSyncingOrders(false);
+    }
+  }, [adminToken, fetchData]);
+
+  const syncAgeHours = data?.ordersSyncedAt
+    ? (Date.now() - Date.parse(data.ordersSyncedAt)) / 3_600_000
+    : null;
+  const syncStale = syncAgeHours == null || syncAgeHours > 36;
+  const syncAgeLabel =
+    syncAgeHours == null
+      ? "never"
+      : syncAgeHours < 1
+        ? "just now"
+        : syncAgeHours < 48
+          ? `${Math.round(syncAgeHours)} hours ago`
+          : `${Math.round(syncAgeHours / 24)} days ago`;
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
+
 
   return (
     <div className="space-y-4 rounded-[15px] border border-border/50 p-5">
@@ -317,9 +364,47 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
           </p>
 
           <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Purchases and revenue from paid ads
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Purchases and revenue from paid ads
+                </p>
+                <p
+                  className={cn(
+                    "text-[11px] mt-0.5",
+                    syncStale ? "text-destructive" : "text-muted-foreground",
+                  )}
+                >
+                  Purchases last synced {syncAgeLabel}
+                  {data.ordersSyncedAt
+                    ? ` (${new Date(data.ordersSyncedAt).toLocaleString()})`
+                    : ""}
+                  {(data.ordersSyncedLeads ?? 0) > 0
+                    ? ` · ${data.ordersSyncedLeads} signups checked`
+                    : ""}
+                  {syncStale ? " · figures may be out of date" : ""}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={syncOrders}
+                disabled={syncingOrders}
+                className="text-[11px]"
+              >
+                {syncingOrders ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                <span className="ml-1.5">Sync purchases</span>
+              </Button>
+            </div>
+            {ordersNote && (
+              <p className="text-[11px] text-muted-foreground">{ordersNote}</p>
+            )}
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <Stat
                 label="Paid ad purchases"
@@ -378,15 +463,23 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                   {money(data.preSignupRevenue ?? 0)} (not counted)
                 </span>
               )}
+              {(data.phoneMatchedBuyers ?? 0) > 0 && (
+                <span>
+                  Found by phone number: {data.phoneMatchedBuyers} customers ·{" "}
+                  {money(data.phoneMatchedRevenue ?? 0)}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-muted-foreground">
               Revenue counts orders from customers whose first ever order came at or
-              after their signup, matched by email to the channel that signup came
-              from. People who were already buying before they signed up are listed
+              after their signup. A signup is matched to a customer by email, and by
+              phone number when they checked out with a different email address.
+              People who were already buying before they signed up are listed
               separately and left out, so an existing customer cannot make a campaign
               look profitable. It only covers orders already pulled in from the store,
               so run the purchases sync to keep it current.
             </p>
+
 
           </div>
 

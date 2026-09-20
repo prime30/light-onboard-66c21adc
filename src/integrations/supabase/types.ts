@@ -483,6 +483,7 @@ export type Database = {
           last_step: string | null
           monthly_order_volume: string | null
           orders_count: number
+          orders_matched_by: string | null
           orders_revenue: number
           orders_synced_at: string | null
           reset_failure_code: string | null
@@ -532,6 +533,7 @@ export type Database = {
           last_step?: string | null
           monthly_order_volume?: string | null
           orders_count?: number
+          orders_matched_by?: string | null
           orders_revenue?: number
           orders_synced_at?: string | null
           reset_failure_code?: string | null
@@ -581,6 +583,7 @@ export type Database = {
           last_step?: string | null
           monthly_order_volume?: string | null
           orders_count?: number
+          orders_matched_by?: string | null
           orders_revenue?: number
           orders_synced_at?: string | null
           reset_failure_code?: string | null

@@ -32,8 +32,18 @@ type ShopifyOrder = {
   email: string | null;
   created_at: string;
   total_price: string | null;
-  customer?: { email?: string | null } | null;
+  phone?: string | null;
+  customer?: { email?: string | null; phone?: string | null } | null;
+  shipping_address?: { phone?: string | null } | null;
+  billing_address?: { phone?: string | null } | null;
 };
+
+// Last 10 digits, so +1 (480) 555-1234 and 4805551234 match each other.
+function phoneKey(raw?: string | null): string {
+  const digits = String(raw ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return "";
+  return digits.slice(-10);
+}
 
 function parseLinkHeader(link: string | null): string | null {
   if (!link) return null;
@@ -45,6 +55,7 @@ function parseLinkHeader(link: string | null): string | null {
   }
   return null;
 }
+
 
 
 // --- Admin auth (token or password) -----------------------------------------
@@ -129,17 +140,36 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  // 1) Page through Shopify orders, capturing earliest per email.
-  const earliest = new Map<string, { id: string; created_at: string; total: number }>();
+  // 1) Page through Shopify orders, capturing earliest per email and per phone.
+  type First = { id: string; created_at: string; total: number };
+  type Agg = { count: number; revenue: number; lastAt: string };
+  const earliest = new Map<string, First>();
   // Every order per email in the window: count, revenue and most recent date.
-  const lifetime = new Map<string, { count: number; revenue: number; lastAt: string }>();
+  const lifetime = new Map<string, Agg>();
+  // Same two maps keyed by the last 10 digits of the phone on the order, used
+  // as a fallback when someone checks out with a different email address.
+  const earliestByPhone = new Map<string, First>();
+  const lifetimeByPhone = new Map<string, Agg>();
 
+  function noteFirst(map: Map<string, First>, key: string, o: ShopifyOrder, value: number) {
+    const cur = map.get(key);
+    if (!cur || o.created_at < cur.created_at) {
+      map.set(key, { id: String(o.id), created_at: o.created_at, total: value });
+    }
+  }
+  function noteAgg(map: Map<string, Agg>, key: string, o: ShopifyOrder, value: number) {
+    const agg = map.get(key) ?? { count: 0, revenue: 0, lastAt: o.created_at };
+    agg.count += 1;
+    agg.revenue += value;
+    if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
+    map.set(key, agg);
+  }
 
   let url: string | null =
     `https://${shopDomain}/admin/api/${ADMIN_API_VERSION}/orders.json` +
     `?status=any&limit=250` +
     `&created_at_min=${encodeURIComponent(sinceIso)}` +
-    `&fields=id,email,created_at,total_price,customer`;
+    `&fields=id,email,created_at,total_price,customer,phone,shipping_address,billing_address`;
 
   let pages = 0;
   let totalOrdersSeen = 0;
@@ -166,26 +196,25 @@ Deno.serve(async (req: Request) => {
     totalOrdersSeen += orders.length;
 
     for (const o of orders) {
-      const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
-      if (!e) continue;
       const total = Number(o.total_price ?? 0);
       const value = Number.isFinite(total) ? total : 0;
-      const cur = earliest.get(e);
-      if (!cur || o.created_at < cur.created_at) {
-        earliest.set(e, {
-          id: String(o.id),
-          created_at: o.created_at,
-          total: value,
-        });
+      const e = (o.email ?? o.customer?.email ?? "").trim().toLowerCase();
+      if (e) {
+        noteFirst(earliest, e, o, value);
+        // Lifetime totals across every order in the window, so revenue per
+        // channel reflects repeat purchases and not just the first order.
+        noteAgg(lifetime, e, o, value);
       }
-      // Lifetime totals across every order in the window, so revenue per
-      // channel reflects repeat purchases and not just the first order.
-      const agg = lifetime.get(e) ?? { count: 0, revenue: 0, lastAt: o.created_at };
-      agg.count += 1;
-      agg.revenue += value;
-      if (o.created_at > agg.lastAt) agg.lastAt = o.created_at;
-      lifetime.set(e, agg);
+      const pk = phoneKey(o.phone) ||
+        phoneKey(o.customer?.phone) ||
+        phoneKey(o.shipping_address?.phone) ||
+        phoneKey(o.billing_address?.phone);
+      if (pk) {
+        noteFirst(earliestByPhone, pk, o, value);
+        noteAgg(lifetimeByPhone, pk, o, value);
+      }
     }
+
 
 
     url = parseLinkHeader(res.headers.get("link") ?? res.headers.get("Link"));
@@ -193,8 +222,42 @@ Deno.serve(async (req: Request) => {
     if (url) await new Promise((r) => setTimeout(r, 250));
   }
 
-  // 2) Pull matching registration_leads.
-  const emails = Array.from(earliest.keys());
+  // 2) Phone numbers the applicants gave us, so an order placed with a
+  // different email address can still be matched back to the signup.
+  const leadPhone = new Map<string, string>(); // email -> last 10 digits
+  const emailsByPhone = new Map<string, string[]>();
+  for (let from = 0; from < 20000; from += 1000) {
+    const { data: subs, error: subErr } = await supabase
+      .from("registration_submissions")
+      .select("email, payload")
+      .range(from, from + 999);
+    if (subErr) {
+      console.error("[backfill-first-orders] submission lookup failed", subErr);
+      break;
+    }
+    for (const s of subs ?? []) {
+      const em = String((s as { email?: string | null }).email ?? "").trim().toLowerCase();
+      if (!em || leadPhone.has(em)) continue;
+      const p = ((s as { payload?: Record<string, unknown> | null }).payload ?? {}) as Record<string, unknown>;
+      const raw = String(p.phoneNumber ?? p.phone_number ?? p.phone ?? "");
+      const cc = String(p.phoneCountryCode ?? p.phone_country_code ?? "");
+      const k = phoneKey(raw) || phoneKey(`${cc}${raw}`);
+      if (!k) continue;
+      leadPhone.set(em, k);
+      const list = emailsByPhone.get(k) ?? [];
+      list.push(em);
+      emailsByPhone.set(k, list);
+    }
+    if (!subs || subs.length < 1000) break;
+  }
+
+  // 3) Pull matching registration_leads: anyone whose email bought, plus anyone
+  // whose phone number appears on an order.
+  const candidates = new Set<string>(earliest.keys());
+  for (const pk of earliestByPhone.keys()) {
+    for (const em of emailsByPhone.get(pk) ?? []) candidates.add(em);
+  }
+  const emails = Array.from(candidates);
   if (emails.length === 0) {
     return json({
       success: true,
@@ -228,7 +291,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // 3) Compute updates. First-order fields only move backwards in time (safe
+  // 4) Compute updates. First-order fields only move backwards in time (safe
   // re-runs); lifetime totals are always refreshed from the window.
   const nowIso = new Date().toISOString();
   type Upd = {
@@ -242,12 +305,19 @@ Deno.serve(async (req: Request) => {
     orders_count: number;
     orders_revenue: number;
     last_order_at: string | null;
+    orders_matched_by: string;
   };
   const updates: Upd[] = [];
   let skipped = 0;
+  let phoneMatched = 0;
   for (const [e, lead] of leadsByEmail.entries()) {
-    const o = earliest.get(e)!;
-    const agg = lifetime.get(e);
+    const byEmail = earliest.get(e);
+    const pk = leadPhone.get(e) ?? "";
+    const o = byEmail ?? (pk ? earliestByPhone.get(pk) : undefined);
+    if (!o) continue;
+    const matchedBy = byEmail ? "email" : "phone";
+    if (!byEmail) phoneMatched += 1;
+    const agg = byEmail ? lifetime.get(e) : (pk ? lifetimeByPhone.get(pk) : undefined);
     const firstStale = !lead.first_order_at || lead.first_order_at > o.created_at;
     if (!firstStale) skipped += 1;
     updates.push({
@@ -263,8 +333,10 @@ Deno.serve(async (req: Request) => {
       orders_count: agg?.count ?? 0,
       orders_revenue: Math.round((agg?.revenue ?? 0) * 100) / 100,
       last_order_at: agg?.lastAt ?? null,
+      orders_matched_by: matchedBy,
     });
   }
+
 
   let updated = 0;
   let firstOrderUpdated = 0;
@@ -275,7 +347,9 @@ Deno.serve(async (req: Request) => {
         orders_revenue: u.orders_revenue,
         last_order_at: u.last_order_at,
         orders_synced_at: nowIso,
+        orders_matched_by: u.orders_matched_by,
       };
+
       if (u.first) Object.assign(patch, u.first);
       const { error } = await supabase
         .from("registration_leads")
@@ -303,7 +377,9 @@ Deno.serve(async (req: Request) => {
     matchedLeads: leadsByEmail.size,
     updated,
     firstOrderUpdated,
+    phoneMatched,
     skipped,
+
     daysBack,
   });
 });

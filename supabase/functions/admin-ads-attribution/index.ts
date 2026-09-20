@@ -166,20 +166,21 @@ Deno.serve(async (req: Request) => {
   // purchases count too; otherwise it falls back to the first order alone.
   const { data: leadRows, error: leadErr } = await supabase
     .from("registration_leads")
-    .select("email, first_order_at, first_order_value, orders_count, orders_revenue")
+    .select("email, first_order_at, first_order_value, orders_count, orders_revenue, orders_matched_by")
     .not("first_order_at", "is", null);
 
   if (leadErr) {
     console.error("admin-ads-attribution leads query failed:", leadErr);
   }
 
-  const orderByEmail = new Map<string, { at: string | null; count: number; value: number; firstValue: number }>();
+  const orderByEmail = new Map<string, { at: string | null; count: number; value: number; firstValue: number; matchedBy: string }>();
   for (const l of (leadRows ?? []) as {
     email?: string | null;
     first_order_at?: string | null;
     first_order_value?: number | string | null;
     orders_count?: number | null;
     orders_revenue?: number | string | null;
+    orders_matched_by?: string | null;
   }[]) {
     const key = (l.email ?? "").trim().toLowerCase();
     if (!key) continue;
@@ -191,8 +192,28 @@ Deno.serve(async (req: Request) => {
       count: lifetimeCount > 0 ? lifetimeCount : 1,
       value: lifetimeRevenue > 0 ? lifetimeRevenue : firstValue,
       firstValue,
+      matchedBy: l.orders_matched_by ?? "email",
     });
   }
+
+  // Freshness of the purchase sync, so a failed overnight run is obvious.
+  let ordersSyncedAt: string | null = null;
+  let ordersSyncedLeads = 0;
+  {
+    const { data: syncRow } = await supabase
+      .from("registration_leads")
+      .select("orders_synced_at")
+      .not("orders_synced_at", "is", null)
+      .order("orders_synced_at", { ascending: false })
+      .limit(1);
+    ordersSyncedAt = (syncRow?.[0]?.orders_synced_at as string | null) ?? null;
+    const { count } = await supabase
+      .from("registration_leads")
+      .select("email", { count: "exact", head: true })
+      .not("orders_synced_at", "is", null);
+    ordersSyncedLeads = count ?? 0;
+  }
+
 
   // Ad spend per channel + campaign, entered by hand in the admin panel.
   const { data: costRows, error: costErr } = await supabase
@@ -311,6 +332,10 @@ Deno.serve(async (req: Request) => {
   // are reported apart from the figures used to judge the ads.
   let preSignupBuyers = 0;
   let preSignupRevenue = 0;
+  // Buyers found by phone number because they checked out with another email.
+  let phoneMatchedBuyers = 0;
+  let phoneMatchedRevenue = 0;
+
 
 
 
@@ -355,7 +380,13 @@ Deno.serve(async (req: Request) => {
       preSignupRevenue += matched.value;
     }
 
+    if (order && order.matchedBy === "phone") {
+      phoneMatchedBuyers += 1;
+      phoneMatchedRevenue += order.value;
+    }
+
     const orderCount = order ? order.count : 0;
+
     const orderValue = order ? order.value : 0;
     const buyerCount = order ? 1 : 0;
     const repeatOrderCount = order ? Math.max(0, order.count - 1) : 0;
@@ -547,6 +578,13 @@ Deno.serve(async (req: Request) => {
     // reported as preSignupBuyers / preSignupRevenue instead.
     preSignupBuyers,
     preSignupRevenue: round2(preSignupRevenue),
+    // Buyers matched by phone number because the checkout email differed.
+    phoneMatchedBuyers,
+    phoneMatchedRevenue: round2(phoneMatchedRevenue),
+    // When the purchase sync last wrote figures, and how many signups it covers.
+    ordersSyncedAt,
+    ordersSyncedLeads,
+
     ordersTotal,
     revenueTotal: round2(revenueTotal),
     buyersTotal,
