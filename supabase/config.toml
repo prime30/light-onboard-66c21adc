@@ -81,3 +81,9 @@ verify_jwt = false
 
 [functions.reset-health-check]
 verify_jwt = false
+
+[functions.nightly-orders-sync]
+verify_jwt = false
+
+[functions.meta-ads-sync]
+verify_jwt = false
