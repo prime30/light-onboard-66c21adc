@@ -222,8 +222,42 @@ Deno.serve(async (req: Request) => {
     if (url) await new Promise((r) => setTimeout(r, 250));
   }
 
-  // 2) Pull matching registration_leads.
-  const emails = Array.from(earliest.keys());
+  // 2) Phone numbers the applicants gave us, so an order placed with a
+  // different email address can still be matched back to the signup.
+  const leadPhone = new Map<string, string>(); // email -> last 10 digits
+  const emailsByPhone = new Map<string, string[]>();
+  for (let from = 0; from < 20000; from += 1000) {
+    const { data: subs, error: subErr } = await supabase
+      .from("registration_submissions")
+      .select("email, payload")
+      .range(from, from + 999);
+    if (subErr) {
+      console.error("[backfill-first-orders] submission lookup failed", subErr);
+      break;
+    }
+    for (const s of subs ?? []) {
+      const em = String((s as { email?: string | null }).email ?? "").trim().toLowerCase();
+      if (!em || leadPhone.has(em)) continue;
+      const p = ((s as { payload?: Record<string, unknown> | null }).payload ?? {}) as Record<string, unknown>;
+      const raw = String(p.phoneNumber ?? p.phone_number ?? p.phone ?? "");
+      const cc = String(p.phoneCountryCode ?? p.phone_country_code ?? "");
+      const k = phoneKey(raw) || phoneKey(`${cc}${raw}`);
+      if (!k) continue;
+      leadPhone.set(em, k);
+      const list = emailsByPhone.get(k) ?? [];
+      list.push(em);
+      emailsByPhone.set(k, list);
+    }
+    if (!subs || subs.length < 1000) break;
+  }
+
+  // 3) Pull matching registration_leads: anyone whose email bought, plus anyone
+  // whose phone number appears on an order.
+  const candidates = new Set<string>(earliest.keys());
+  for (const pk of earliestByPhone.keys()) {
+    for (const em of emailsByPhone.get(pk) ?? []) candidates.add(em);
+  }
+  const emails = Array.from(candidates);
   if (emails.length === 0) {
     return json({
       success: true,
@@ -257,7 +291,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // 3) Compute updates. First-order fields only move backwards in time (safe
+  // 4) Compute updates. First-order fields only move backwards in time (safe
   // re-runs); lifetime totals are always refreshed from the window.
   const nowIso = new Date().toISOString();
   type Upd = {
@@ -271,12 +305,19 @@ Deno.serve(async (req: Request) => {
     orders_count: number;
     orders_revenue: number;
     last_order_at: string | null;
+    orders_matched_by: string;
   };
   const updates: Upd[] = [];
   let skipped = 0;
+  let phoneMatched = 0;
   for (const [e, lead] of leadsByEmail.entries()) {
-    const o = earliest.get(e)!;
-    const agg = lifetime.get(e);
+    const byEmail = earliest.get(e);
+    const pk = leadPhone.get(e) ?? "";
+    const o = byEmail ?? (pk ? earliestByPhone.get(pk) : undefined);
+    if (!o) continue;
+    const matchedBy = byEmail ? "email" : "phone";
+    if (!byEmail) phoneMatched += 1;
+    const agg = byEmail ? lifetime.get(e) : (pk ? lifetimeByPhone.get(pk) : undefined);
     const firstStale = !lead.first_order_at || lead.first_order_at > o.created_at;
     if (!firstStale) skipped += 1;
     updates.push({
@@ -292,8 +333,10 @@ Deno.serve(async (req: Request) => {
       orders_count: agg?.count ?? 0,
       orders_revenue: Math.round((agg?.revenue ?? 0) * 100) / 100,
       last_order_at: agg?.lastAt ?? null,
+      orders_matched_by: matchedBy,
     });
   }
+
 
   let updated = 0;
   let firstOrderUpdated = 0;
