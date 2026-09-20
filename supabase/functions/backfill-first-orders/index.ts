@@ -347,7 +347,9 @@ Deno.serve(async (req: Request) => {
         orders_revenue: u.orders_revenue,
         last_order_at: u.last_order_at,
         orders_synced_at: nowIso,
+        orders_matched_by: u.orders_matched_by,
       };
+
       if (u.first) Object.assign(patch, u.first);
       const { error } = await supabase
         .from("registration_leads")
