@@ -364,9 +364,47 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
           </p>
 
           <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Purchases and revenue from paid ads
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Purchases and revenue from paid ads
+                </p>
+                <p
+                  className={cn(
+                    "text-[11px] mt-0.5",
+                    syncStale ? "text-destructive" : "text-muted-foreground",
+                  )}
+                >
+                  Purchases last synced {syncAgeLabel}
+                  {data.ordersSyncedAt
+                    ? ` (${new Date(data.ordersSyncedAt).toLocaleString()})`
+                    : ""}
+                  {(data.ordersSyncedLeads ?? 0) > 0
+                    ? ` · ${data.ordersSyncedLeads} signups checked`
+                    : ""}
+                  {syncStale ? " · figures may be out of date" : ""}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={syncOrders}
+                disabled={syncingOrders}
+                className="text-[11px]"
+              >
+                {syncingOrders ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                <span className="ml-1.5">Sync purchases</span>
+              </Button>
+            </div>
+            {ordersNote && (
+              <p className="text-[11px] text-muted-foreground">{ordersNote}</p>
+            )}
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <Stat
                 label="Paid ad purchases"
