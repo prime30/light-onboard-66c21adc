@@ -32,8 +32,18 @@ type ShopifyOrder = {
   email: string | null;
   created_at: string;
   total_price: string | null;
-  customer?: { email?: string | null } | null;
+  phone?: string | null;
+  customer?: { email?: string | null; phone?: string | null } | null;
+  shipping_address?: { phone?: string | null } | null;
+  billing_address?: { phone?: string | null } | null;
 };
+
+// Last 10 digits, so +1 (480) 555-1234 and 4805551234 match each other.
+function phoneKey(raw?: string | null): string {
+  const digits = String(raw ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return "";
+  return digits.slice(-10);
+}
 
 function parseLinkHeader(link: string | null): string | null {
   if (!link) return null;
@@ -45,6 +55,7 @@ function parseLinkHeader(link: string | null): string | null {
   }
   return null;
 }
+
 
 
 // --- Admin auth (token or password) -----------------------------------------
