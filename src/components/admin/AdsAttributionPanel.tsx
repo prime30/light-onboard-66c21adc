@@ -89,6 +89,11 @@ type Data = {
   affiliateRevenue?: number;
   preSignupBuyers?: number;
   preSignupRevenue?: number;
+  phoneMatchedBuyers?: number;
+  phoneMatchedRevenue?: number;
+  ordersSyncedAt?: string | null;
+  ordersSyncedLeads?: number;
+
   metaConnected?: boolean;
   metaSpend?: number;
   metaImpressions?: number;
