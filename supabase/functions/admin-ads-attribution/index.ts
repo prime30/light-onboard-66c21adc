@@ -543,6 +543,10 @@ Deno.serve(async (req: Request) => {
     // Purchases and revenue, credited to the channel the signup came from.
     // Includes repeat orders for every customer whose orders have been synced
     // by backfill-first-orders, so it only covers orders already pulled in.
+    // Customers whose first order predates their signup are excluded here and
+    // reported as preSignupBuyers / preSignupRevenue instead.
+    preSignupBuyers,
+    preSignupRevenue: round2(preSignupRevenue),
     ordersTotal,
     revenueTotal: round2(revenueTotal),
     buyersTotal,
