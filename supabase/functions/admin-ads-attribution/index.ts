@@ -307,6 +307,10 @@ Deno.serve(async (req: Request) => {
   let affiliateOrders = 0;
   let affiliateRevenue = 0;
   const countedOrderEmails = new Set<string>();
+  // Customers who were already buying before they signed up, so their orders
+  // are reported apart from the figures used to judge the ads.
+  let preSignupBuyers = 0;
+  let preSignupRevenue = 0;
 
 
 
