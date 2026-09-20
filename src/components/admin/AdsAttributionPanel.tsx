@@ -463,15 +463,23 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                   {money(data.preSignupRevenue ?? 0)} (not counted)
                 </span>
               )}
+              {(data.phoneMatchedBuyers ?? 0) > 0 && (
+                <span>
+                  Found by phone number: {data.phoneMatchedBuyers} customers ·{" "}
+                  {money(data.phoneMatchedRevenue ?? 0)}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-muted-foreground">
               Revenue counts orders from customers whose first ever order came at or
-              after their signup, matched by email to the channel that signup came
-              from. People who were already buying before they signed up are listed
+              after their signup. A signup is matched to a customer by email, and by
+              phone number when they checked out with a different email address.
+              People who were already buying before they signed up are listed
               separately and left out, so an existing customer cannot make a campaign
               look profitable. It only covers orders already pulled in from the store,
               so run the purchases sync to keep it current.
             </p>
+
 
           </div>
 
