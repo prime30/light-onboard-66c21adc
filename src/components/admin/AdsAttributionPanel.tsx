@@ -87,6 +87,8 @@ type Data = {
   socialRevenue?: number;
   affiliateOrders?: number;
   affiliateRevenue?: number;
+  preSignupBuyers?: number;
+  preSignupRevenue?: number;
   metaConnected?: boolean;
   metaSpend?: number;
   metaImpressions?: number;
