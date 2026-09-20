@@ -377,7 +377,9 @@ Deno.serve(async (req: Request) => {
     matchedLeads: leadsByEmail.size,
     updated,
     firstOrderUpdated,
+    phoneMatched,
     skipped,
+
     daysBack,
   });
 });
