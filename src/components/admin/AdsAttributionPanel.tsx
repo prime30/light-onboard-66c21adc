@@ -483,32 +483,61 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                     syncStale ? "text-destructive" : "text-muted-foreground",
                   )}
                 >
-                  Purchases last synced {syncAgeLabel}
-                  {data.ordersSyncedAt
-                    ? ` (${new Date(data.ordersSyncedAt).toLocaleString()})`
+                  Last order received {orderAgeLabel}
+                  {data.lastOrderReceivedAt
+                    ? ` (${new Date(data.lastOrderReceivedAt).toLocaleString()})`
                     : ""}
+                  {webhookLive
+                    ? ` · ${data.webhookOrders ?? 0} orders received live, ${
+                        data.webhookMatchedOrders ?? 0
+                      } matched to signups`
+                    : " · live order feed not turned on yet"}
+                  {webhookStale && webhookLive
+                    ? " · nothing for over 2 days, check the store connection"
+                    : ""}
+                </p>
+                <p className="text-[11px] mt-0.5 text-muted-foreground">
+                  Weekly double check last ran {syncAgeLabel}
                   {(data.ordersSyncedLeads ?? 0) > 0
                     ? ` · ${data.ordersSyncedLeads} signups checked`
                     : ""}
-                  {syncStale ? " · figures may be out of date" : ""}
+                  {syncStale ? " · overdue" : ""}
                 </p>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={syncOrders}
-                disabled={syncingOrders}
-                className="text-[11px]"
-              >
-                {syncingOrders ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-3.5 h-3.5" />
+              <div className="flex flex-wrap gap-1.5">
+                {!webhookLive && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={connectLiveOrders}
+                    disabled={connectingWebhook}
+                    className="text-[11px]"
+                  >
+                    {connectingWebhook && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+                    Turn on live orders
+                  </Button>
                 )}
-                <span className="ml-1.5">Sync purchases</span>
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={syncOrders}
+                  disabled={syncingOrders}
+                  className="text-[11px]"
+                >
+                  {syncingOrders ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  )}
+                  <span className="ml-1.5">Double check now</span>
+                </Button>
+              </div>
             </div>
+            {webhookNote && (
+              <p className="text-[11px] text-muted-foreground">{webhookNote}</p>
+            )}
             {ordersNote && (
               <p className="text-[11px] text-muted-foreground">{ordersNote}</p>
             )}
