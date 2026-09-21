@@ -93,6 +93,8 @@ type Data = {
   phoneMatchedRevenue?: number;
   ordersSyncedAt?: string | null;
   ordersSyncedLeads?: number;
+  speedToPurchase?: SpeedToPurchase;
+
 
   metaConnected?: boolean;
   metaSpend?: number;
@@ -113,6 +115,56 @@ type Data = {
   channels: ChannelRow[];
   campaigns: CampaignRow[];
   timeline?: TimelineRow[];
+};
+
+type SpeedStat = {
+  buyers: number;
+  median: number | null;
+  avg: number | null;
+  within24h: number;
+  within7d: number;
+  within30d: number;
+  over30d: number;
+};
+
+type SlowBuyerRow = {
+  email: string;
+  days: number;
+  revenue: number;
+  channel: string;
+  channelLabel: string;
+  campaign: string | null;
+  accountType: string | null;
+  signedUpAt: string | null;
+  firstOrderAt: string | null;
+};
+
+type FollowUpLead = {
+  email: string;
+  days: number;
+  channel: string;
+  channelLabel: string;
+  accountType: string | null;
+  signedUpAt: string | null;
+};
+
+type SpeedToPurchase = {
+  completed: number;
+  preSignupBuyers: number;
+  all: SpeedStat;
+  paid: SpeedStat & { completed: number; revenue: number };
+  organic: SpeedStat & { completed: number; revenue: number };
+  conversionRate: number;
+  paidConversionRate: number;
+  organicConversionRate: number;
+  slowBuyers: SlowBuyerRow[];
+  followUp: {
+    total: number;
+    d7to14: number;
+    d14to30: number;
+    d30plus: number;
+    leads: FollowUpLead[];
+  };
 };
 
 type RefRow = {
@@ -483,6 +535,189 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
 
           </div>
 
+          {data.speedToPurchase && (
+            <div className="space-y-3 rounded-[10px] border border-border/50 p-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Speed to first purchase
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  How long after finishing the form people place their first ever
+                  order. Counts every completed registration, all time, and leaves out
+                  the {data.speedToPurchase.preSignupBuyers} who were already
+                  customers before signing up.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <Stat
+                  label="Registrants who bought"
+                  value={`${data.speedToPurchase.conversionRate}%`}
+                  hint={`${data.speedToPurchase.all.buyers} of ${data.speedToPurchase.completed} completed registrations`}
+                />
+                <Stat
+                  label="Typical speed (median)"
+                  value={fmtDays(data.speedToPurchase.all.median)}
+                  hint="Half buy faster than this"
+                />
+                <Stat
+                  label="Average speed"
+                  value={fmtDays(data.speedToPurchase.all.avg)}
+                  hint="Pulled up by slow buyers"
+                />
+                <Stat
+                  label="Bought within 24 hours"
+                  value={data.speedToPurchase.all.within24h.toString()}
+                  hint={
+                    data.speedToPurchase.all.buyers > 0
+                      ? `${Math.round(
+                          (data.speedToPurchase.all.within24h /
+                            data.speedToPurchase.all.buyers) *
+                            100,
+                        )}% of buyers`
+                      : "No buyers yet"
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-muted-foreground">
+                <span>Within 24 hours: {data.speedToPurchase.all.within24h}</span>
+                <span>Within a week: {data.speedToPurchase.all.within7d}</span>
+                <span>Within a month: {data.speedToPurchase.all.within30d}</span>
+                <span>Longer than a month: {data.speedToPurchase.all.over30d}</span>
+              </div>
+
+              <div className="rounded-[10px] bg-muted/30 p-3 space-y-2">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Paid ads vs everyone else
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px]">
+                    <thead className="text-muted-foreground">
+                      <tr className="text-left">
+                        <th className="py-1 pr-3 font-normal">Source</th>
+                        <th className="py-1 pr-3 font-normal">Registrations</th>
+                        <th className="py-1 pr-3 font-normal">Bought</th>
+                        <th className="py-1 pr-3 font-normal">Median</th>
+                        <th className="py-1 pr-3 font-normal">Average</th>
+                        <th className="py-1 pr-3 font-normal">Within 24h</th>
+                        <th className="py-1 pr-3 font-normal">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        {
+                          label: "Paid ads",
+                          s: data.speedToPurchase.paid,
+                          rate: data.speedToPurchase.paidConversionRate,
+                        },
+                        {
+                          label: "Organic and everything else",
+                          s: data.speedToPurchase.organic,
+                          rate: data.speedToPurchase.organicConversionRate,
+                        },
+                      ].map((r) => (
+                        <tr key={r.label} className="border-t border-border/40">
+                          <td className="py-1.5 pr-3">{r.label}</td>
+                          <td className="py-1.5 pr-3">{r.s.completed}</td>
+                          <td className="py-1.5 pr-3">
+                            {r.s.buyers} ({r.rate}%)
+                          </td>
+                          <td className="py-1.5 pr-3">{fmtDays(r.s.median)}</td>
+                          <td className="py-1.5 pr-3">{fmtDays(r.s.avg)}</td>
+                          <td className="py-1.5 pr-3">{r.s.within24h}</td>
+                          <td className="py-1.5 pr-3">{money(r.s.revenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="rounded-[10px] bg-muted/30 p-3 space-y-2">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Past 7 days with no order
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {data.speedToPurchase.followUp.total} registrations are over a
+                      week old with no purchase found. Most buyers order within a day,
+                      so these need a follow-up email.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="text-[11px] shrink-0"
+                    disabled={data.speedToPurchase.followUp.leads.length === 0}
+                    onClick={() =>
+                      downloadFollowUpCsv(data.speedToPurchase!.followUp.leads)
+                    }
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
+                    Download follow-up list
+                  </Button>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
+                  <span>7 to 14 days: {data.speedToPurchase.followUp.d7to14}</span>
+                  <span>14 to 30 days: {data.speedToPurchase.followUp.d14to30}</span>
+                  <span>Over 30 days: {data.speedToPurchase.followUp.d30plus}</span>
+                </div>
+              </div>
+
+              <div className="rounded-[10px] bg-muted/30 p-3 space-y-2">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Slow buyers (took over 30 days)
+                </p>
+                {data.speedToPurchase.slowBuyers.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    Nobody took longer than a month.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[11px]">
+                      <thead className="text-muted-foreground">
+                        <tr className="text-left">
+                          <th className="py-1 pr-3 font-normal">Email</th>
+                          <th className="py-1 pr-3 font-normal">Days to buy</th>
+                          <th className="py-1 pr-3 font-normal">Revenue</th>
+                          <th className="py-1 pr-3 font-normal">Came from</th>
+                          <th className="py-1 pr-3 font-normal">Signed up</th>
+                          <th className="py-1 pr-3 font-normal">First order</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.speedToPurchase.slowBuyers.map((b) => (
+                          <tr key={b.email} className="border-t border-border/40">
+                            <td className="py-1.5 pr-3">{b.email}</td>
+                            <td className="py-1.5 pr-3">{Math.round(b.days)}</td>
+                            <td className="py-1.5 pr-3">{money(b.revenue)}</td>
+                            <td className="py-1.5 pr-3">
+                              {b.campaign ? `${b.channelLabel} · ${b.campaign}` : b.channelLabel}
+                            </td>
+                            <td className="py-1.5 pr-3">
+                              {b.signedUpAt
+                                ? new Date(b.signedUpAt).toLocaleDateString()
+                                : "—"}
+                            </td>
+                            <td className="py-1.5 pr-3">
+                              {b.firstOrderAt
+                                ? new Date(b.firstOrderAt).toLocaleDateString()
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+
           <div className="space-y-2 rounded-[10px] border border-border/50 p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -851,3 +1086,35 @@ const Stat = ({ label, value, hint }: { label: string; value: string; hint?: str
     {hint && <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{hint}</p>}
   </div>
 );
+
+// Days rendered the way a person reads them: hours under a day, days above.
+const fmtDays = (d: number | null | undefined) => {
+  if (d == null) return "—";
+  if (d < 1) return `${Math.max(1, Math.round(d * 24))}h`;
+  if (d < 10) return `${d.toFixed(1)} days`;
+  return `${Math.round(d)} days`;
+};
+
+// Follow-up list for signups past a week with no order, as a spreadsheet file.
+function downloadFollowUpCsv(leads: FollowUpLead[]) {
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [
+    ["email", "days_since_signup", "came_from", "account_type", "signed_up_at"].join(","),
+    ...leads.map((l) =>
+      [
+        esc(l.email),
+        String(l.days),
+        esc(l.channelLabel),
+        esc(l.accountType ?? ""),
+        esc(l.signedUpAt ?? ""),
+      ].join(","),
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `no-purchase-follow-up-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}

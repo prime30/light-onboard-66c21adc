@@ -214,6 +214,157 @@ Deno.serve(async (req: Request) => {
     ordersSyncedLeads = count ?? 0;
   }
 
+  // ---- Speed to first purchase -------------------------------------------
+  // Read straight from registration_leads (the signup record) so this covers
+  // every completed registration, not only rows with an attribution blob.
+  // A buyer counts as new when their first ever order came at or after the
+  // signup (one day grace for an order placed while finishing the form).
+  const speedDays: number[] = [];
+  const paidSpeedDays: number[] = [];
+  const organicSpeedDays: number[] = [];
+  let speedCompleted = 0;
+  let speedPaidCompleted = 0;
+  let speedOrganicCompleted = 0;
+  let speedPreSignup = 0;
+  let speedPaidRevenue = 0;
+  let speedOrganicRevenue = 0;
+  const slowBuyers: {
+    email: string;
+    days: number;
+    revenue: number;
+    channel: string;
+    channelLabel: string;
+    campaign: string | null;
+    accountType: string | null;
+    signedUpAt: string | null;
+    firstOrderAt: string | null;
+  }[] = [];
+  const followUp: {
+    email: string;
+    days: number;
+    channel: string;
+    channelLabel: string;
+    accountType: string | null;
+    signedUpAt: string | null;
+  }[] = [];
+  let followUp7to14 = 0;
+  let followUp14to30 = 0;
+  let followUp30plus = 0;
+  {
+    const { data: leadRows, error: leadErr } = await supabase
+      .from("registration_leads")
+      .select(
+        "email, created_at, completed_at, first_order_at, orders_revenue, first_order_value, attribution_channel, attribution_campaign, account_type",
+      )
+      .not("completed_at", "is", null)
+      .limit(20000);
+    if (leadErr) console.error("admin-ads-attribution speed query failed:", leadErr);
+    const DAY = 86_400_000;
+    const now = Date.now();
+    for (const l of (leadRows ?? []) as Record<string, unknown>[]) {
+      const email = String(l.email ?? "").trim().toLowerCase();
+      if (!email) continue;
+      const startedRaw = (l.completed_at as string | null) ?? (l.created_at as string | null);
+      const startedAt = startedRaw ? Date.parse(startedRaw) : NaN;
+      if (!Number.isFinite(startedAt)) continue;
+      const channel = String(l.attribution_channel ?? "untracked") || "untracked";
+      const isPaid = PAID_CHANNELS.has(channel);
+      const revenue = Number(l.orders_revenue ?? 0) || Number(l.first_order_value ?? 0) || 0;
+      speedCompleted += 1;
+      if (isPaid) speedPaidCompleted += 1;
+      else speedOrganicCompleted += 1;
+
+      const firstOrderRaw = l.first_order_at as string | null;
+      const firstOrderAt = firstOrderRaw ? Date.parse(firstOrderRaw) : NaN;
+      if (!Number.isFinite(firstOrderAt)) {
+        const waiting = (now - startedAt) / DAY;
+        if (waiting >= 7) {
+          if (waiting < 14) followUp7to14 += 1;
+          else if (waiting < 30) followUp14to30 += 1;
+          else followUp30plus += 1;
+          followUp.push({
+            email,
+            days: Math.round(waiting * 10) / 10,
+            channel,
+            channelLabel: CHANNEL_LABELS[channel] ?? channel,
+            accountType: (l.account_type as string | null) ?? null,
+            signedUpAt: startedRaw,
+          });
+        }
+        continue;
+      }
+      if (firstOrderAt < startedAt - DAY) {
+        speedPreSignup += 1;
+        continue;
+      }
+      const days = Math.max(0, (firstOrderAt - startedAt) / DAY);
+      speedDays.push(days);
+      if (isPaid) {
+        paidSpeedDays.push(days);
+        speedPaidRevenue += revenue;
+      } else {
+        organicSpeedDays.push(days);
+        speedOrganicRevenue += revenue;
+      }
+      if (days > 30) {
+        slowBuyers.push({
+          email,
+          days: Math.round(days * 10) / 10,
+          revenue: Math.round(revenue * 100) / 100,
+          channel,
+          channelLabel: CHANNEL_LABELS[channel] ?? channel,
+          campaign: (l.attribution_campaign as string | null) ?? null,
+          accountType: (l.account_type as string | null) ?? null,
+          signedUpAt: startedRaw,
+          firstOrderAt: firstOrderRaw,
+        });
+      }
+    }
+    slowBuyers.sort((a, b) => b.days - a.days);
+    followUp.sort((a, b) => a.days - b.days);
+  }
+
+  const stat = (xs: number[]) => {
+    if (xs.length === 0) {
+      return { buyers: 0, median: null as number | null, avg: null as number | null, within24h: 0, within7d: 0, within30d: 0, over30d: 0 };
+    }
+    const sorted = [...xs].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+    const avg = sorted.reduce((n, x) => n + x, 0) / sorted.length;
+    return {
+      buyers: sorted.length,
+      median: Math.round(median * 100) / 100,
+      avg: Math.round(avg * 100) / 100,
+      within24h: sorted.filter((d) => d <= 1).length,
+      within7d: sorted.filter((d) => d <= 7).length,
+      within30d: sorted.filter((d) => d <= 30).length,
+      over30d: sorted.filter((d) => d > 30).length,
+    };
+  };
+
+  const speedToPurchase = {
+    completed: speedCompleted,
+    preSignupBuyers: speedPreSignup,
+    all: stat(speedDays),
+    paid: { ...stat(paidSpeedDays), completed: speedPaidCompleted, revenue: Math.round(speedPaidRevenue * 100) / 100 },
+    organic: { ...stat(organicSpeedDays), completed: speedOrganicCompleted, revenue: Math.round(speedOrganicRevenue * 100) / 100 },
+    conversionRate: speedCompleted === 0 ? 0 : Math.round((speedDays.length / speedCompleted) * 1000) / 10,
+    paidConversionRate: speedPaidCompleted === 0 ? 0 : Math.round((paidSpeedDays.length / speedPaidCompleted) * 1000) / 10,
+    organicConversionRate:
+      speedOrganicCompleted === 0 ? 0 : Math.round((organicSpeedDays.length / speedOrganicCompleted) * 1000) / 10,
+    slowBuyers: slowBuyers.slice(0, 50),
+    followUp: {
+      total: followUp.length,
+      d7to14: followUp7to14,
+      d14to30: followUp14to30,
+      d30plus: followUp30plus,
+      leads: followUp.slice(0, 500),
+    },
+  };
+
+
+
 
   // Ad spend per channel + campaign, entered by hand in the admin panel.
   const { data: costRows, error: costErr } = await supabase
@@ -584,6 +735,10 @@ Deno.serve(async (req: Request) => {
     // When the purchase sync last wrote figures, and how many signups it covers.
     ordersSyncedAt,
     ordersSyncedLeads,
+    // How long after signing up people place their first ever order, plus the
+    // signups past 7 days with no order (the follow-up list).
+    speedToPurchase,
+
 
     ordersTotal,
     revenueTotal: round2(revenueTotal),
