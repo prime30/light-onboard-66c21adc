@@ -14,7 +14,7 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
-import { useAutoApproval, useSummaryStepEnabled } from "@/lib/app-settings";
+import { useAutoApproval, useSummaryStepEnabled, useGatedOfferEnabled } from "@/lib/app-settings";
 
 export const WelcomeOfferStep = () => {
   const {
@@ -72,9 +72,12 @@ export const WelcomeOfferStep = () => {
     ),
   }));
 
-  const toggleSms = () => {
-    if (smsOn) {
+  // One opt-in covers both channels: selecting it subscribes the user to texts
+  // AND emails, so we set both consent fields together.
+  const toggleSubscribe = () => {
+    if (smsOn || emailOn) {
       setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
+      setValue("acceptsMarketing", false, dirtyFieldOptions);
       return;
     }
     setPhoneError(null);
@@ -84,10 +87,7 @@ export const WelcomeOfferStep = () => {
       return;
     }
     setValue("acceptsSmsMarketing", true, dirtyFieldOptions);
-  };
-
-  const toggleEmail = () => {
-    setValue("acceptsMarketing", !emailOn, dirtyFieldOptions);
+    setValue("acceptsMarketing", true, dirtyFieldOptions);
   };
 
   // Render the step's actions into the shared sticky footer slot at the bottom of the viewport
