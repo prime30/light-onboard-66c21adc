@@ -650,6 +650,72 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_orders: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          currency: string
+          email: string | null
+          financial_status: string | null
+          is_test: boolean
+          matched_by: string | null
+          matched_email: string | null
+          net_amount: number | null
+          order_created_at: string
+          order_number: string | null
+          phone_last10: string | null
+          raw: Json
+          received_at: string
+          refunded_amount: number
+          shopify_order_id: string
+          topic: string | null
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          financial_status?: string | null
+          is_test?: boolean
+          matched_by?: string | null
+          matched_email?: string | null
+          net_amount?: number | null
+          order_created_at: string
+          order_number?: string | null
+          phone_last10?: string | null
+          raw?: Json
+          received_at?: string
+          refunded_amount?: number
+          shopify_order_id: string
+          topic?: string | null
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          financial_status?: string | null
+          is_test?: boolean
+          matched_by?: string | null
+          matched_email?: string | null
+          net_amount?: number | null
+          order_created_at?: string
+          order_number?: string | null
+          phone_last10?: string | null
+          raw?: Json
+          received_at?: string
+          refunded_amount?: number
+          shopify_order_id?: string
+          topic?: string | null
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       welcome_offer_codes: {
         Row: {
           code: string
@@ -695,6 +761,7 @@ export type Database = {
         Args: { _email: string; _fields: string[] }
         Returns: undefined
       }
+      match_and_recompute_order: { Args: { _order_id: string }; Returns: Json }
       record_competitor_block: {
         Args: {
           _device_type?: string

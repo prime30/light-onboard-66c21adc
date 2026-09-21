@@ -93,6 +93,11 @@ type Data = {
   phoneMatchedRevenue?: number;
   ordersSyncedAt?: string | null;
   ordersSyncedLeads?: number;
+  lastOrderReceivedAt?: string | null;
+  lastOrderPlacedAt?: string | null;
+  webhookOrders?: number;
+  webhookOrders24h?: number;
+  webhookMatchedOrders?: number;
   speedToPurchase?: SpeedToPurchase;
 
 
@@ -325,10 +330,47 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     }
   }, [adminToken, fetchData]);
 
+  // Turns on the live order feed from the store (one click, safe to repeat).
+  const [connectingWebhook, setConnectingWebhook] = useState(false);
+  const [webhookNote, setWebhookNote] = useState<string | null>(null);
+  const connectLiveOrders = useCallback(async () => {
+    setConnectingWebhook(true);
+    setWebhookNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "setup-shopify-order-webhooks",
+        { body: { token: adminToken } },
+      );
+      if (invokeErr || !res?.success) {
+        setWebhookNote(
+          res?.error ??
+            invokeErr?.message ??
+            "Could not turn on the live order feed. Check the store connection.",
+        );
+        return;
+      }
+      const created = (res.created ?? []) as string[];
+      const already = (res.alreadyThere ?? []) as string[];
+      setWebhookNote(
+        created.length > 0
+          ? `Live orders turned on (${created.length} notifications added${
+              already.length ? `, ${already.length} already on` : ""
+            }).`
+          : "Live orders were already turned on.",
+      );
+      await fetchData();
+    } catch (e) {
+      setWebhookNote(e instanceof Error ? e.message : "Could not turn on the live order feed.");
+    } finally {
+      setConnectingWebhook(false);
+    }
+  }, [adminToken, fetchData]);
+
   const syncAgeHours = data?.ordersSyncedAt
     ? (Date.now() - Date.parse(data.ordersSyncedAt)) / 3_600_000
     : null;
-  const syncStale = syncAgeHours == null || syncAgeHours > 36;
+  const syncStale = syncAgeHours == null || syncAgeHours > 8 * 24;
   const syncAgeLabel =
     syncAgeHours == null
       ? "never"
@@ -337,6 +379,20 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         : syncAgeHours < 48
           ? `${Math.round(syncAgeHours)} hours ago`
           : `${Math.round(syncAgeHours / 24)} days ago`;
+
+  const orderAgeHours = data?.lastOrderReceivedAt
+    ? (Date.now() - Date.parse(data.lastOrderReceivedAt)) / 3_600_000
+    : null;
+  const webhookLive = (data?.webhookOrders ?? 0) > 0;
+  const webhookStale = !webhookLive || orderAgeHours == null || orderAgeHours > 48;
+  const orderAgeLabel =
+    orderAgeHours == null
+      ? "never"
+      : orderAgeHours < 1
+        ? "just now"
+        : orderAgeHours < 48
+          ? `${Math.round(orderAgeHours)} hours ago`
+          : `${Math.round(orderAgeHours / 24)} days ago`;
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
 
@@ -424,35 +480,64 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                 <p
                   className={cn(
                     "text-[11px] mt-0.5",
-                    syncStale ? "text-destructive" : "text-muted-foreground",
+                    webhookStale ? "text-destructive" : "text-muted-foreground",
                   )}
                 >
-                  Purchases last synced {syncAgeLabel}
-                  {data.ordersSyncedAt
-                    ? ` (${new Date(data.ordersSyncedAt).toLocaleString()})`
+                  Last order received {orderAgeLabel}
+                  {data.lastOrderReceivedAt
+                    ? ` (${new Date(data.lastOrderReceivedAt).toLocaleString()})`
                     : ""}
+                  {webhookLive
+                    ? ` · ${data.webhookOrders ?? 0} orders received live, ${
+                        data.webhookMatchedOrders ?? 0
+                      } matched to signups`
+                    : " · live order feed not turned on yet"}
+                  {webhookStale && webhookLive
+                    ? " · nothing for over 2 days, check the store connection"
+                    : ""}
+                </p>
+                <p className="text-[11px] mt-0.5 text-muted-foreground">
+                  Weekly double check last ran {syncAgeLabel}
                   {(data.ordersSyncedLeads ?? 0) > 0
                     ? ` · ${data.ordersSyncedLeads} signups checked`
                     : ""}
-                  {syncStale ? " · figures may be out of date" : ""}
+                  {syncStale ? " · overdue" : ""}
                 </p>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={syncOrders}
-                disabled={syncingOrders}
-                className="text-[11px]"
-              >
-                {syncingOrders ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-3.5 h-3.5" />
+              <div className="flex flex-wrap gap-1.5">
+                {!webhookLive && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={connectLiveOrders}
+                    disabled={connectingWebhook}
+                    className="text-[11px]"
+                  >
+                    {connectingWebhook && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+                    Turn on live orders
+                  </Button>
                 )}
-                <span className="ml-1.5">Sync purchases</span>
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={syncOrders}
+                  disabled={syncingOrders}
+                  className="text-[11px]"
+                >
+                  {syncingOrders ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  )}
+                  <span className="ml-1.5">Double check now</span>
+                </Button>
+              </div>
             </div>
+            {webhookNote && (
+              <p className="text-[11px] text-muted-foreground">{webhookNote}</p>
+            )}
             {ordersNote && (
               <p className="text-[11px] text-muted-foreground">{ordersNote}</p>
             )}
@@ -528,8 +613,10 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               phone number when they checked out with a different email address.
               People who were already buying before they signed up are listed
               separately and left out, so an existing customer cannot make a campaign
-              look profitable. It only covers orders already pulled in from the store,
-              so run the purchases sync to keep it current.
+              look profitable. Orders arrive from the store the moment they are
+              placed, and refunds or cancellations remove themselves, so the
+              figures keep themselves current. The weekly double check exists
+              only to catch anything the live feed misses.
             </p>
 
 
