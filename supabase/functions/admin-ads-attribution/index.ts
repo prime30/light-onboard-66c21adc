@@ -214,6 +214,41 @@ Deno.serve(async (req: Request) => {
     ordersSyncedLeads = count ?? 0;
   }
 
+  // Live order webhook health: when did the store last hand us an order, and
+  // how many has it delivered. A silent webhook shows up as a stale timestamp.
+  let lastOrderReceivedAt: string | null = null;
+  let lastOrderPlacedAt: string | null = null;
+  let webhookOrders = 0;
+  let webhookOrders24h = 0;
+  let webhookMatchedOrders = 0;
+  {
+    const { data: recent } = await supabase
+      .from("shop_orders")
+      .select("received_at, order_created_at")
+      .order("received_at", { ascending: false })
+      .limit(1);
+    lastOrderReceivedAt = (recent?.[0]?.received_at as string | null) ?? null;
+    lastOrderPlacedAt = (recent?.[0]?.order_created_at as string | null) ?? null;
+
+    const { count: total } = await supabase
+      .from("shop_orders")
+      .select("shopify_order_id", { count: "exact", head: true });
+    webhookOrders = total ?? 0;
+
+    const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+    const { count: recent24 } = await supabase
+      .from("shop_orders")
+      .select("shopify_order_id", { count: "exact", head: true })
+      .gte("received_at", dayAgo);
+    webhookOrders24h = recent24 ?? 0;
+
+    const { count: matched } = await supabase
+      .from("shop_orders")
+      .select("shopify_order_id", { count: "exact", head: true })
+      .not("matched_email", "is", null);
+    webhookMatchedOrders = matched ?? 0;
+  }
+
   // ---- Speed to first purchase -------------------------------------------
   // Read straight from registration_leads (the signup record) so this covers
   // every completed registration, not only rows with an attribution blob.
