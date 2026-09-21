@@ -770,6 +770,12 @@ Deno.serve(async (req: Request) => {
     // When the purchase sync last wrote figures, and how many signups it covers.
     ordersSyncedAt,
     ordersSyncedLeads,
+    // Live order webhook health.
+    lastOrderReceivedAt,
+    lastOrderPlacedAt,
+    webhookOrders,
+    webhookOrders24h,
+    webhookMatchedOrders,
     // How long after signing up people place their first ever order, plus the
     // signups past 7 days with no order (the follow-up list).
     speedToPurchase,
