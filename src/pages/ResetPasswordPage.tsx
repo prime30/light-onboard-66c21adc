@@ -42,6 +42,39 @@ export function ResetPasswordPage() {
     setMode("signin");
   }, [setMode]);
 
+  // Report what actually arrived on this screen. Email clients (Outlook and
+  // Gmail link wrappers especially) can truncate or re-encode the reset URL,
+  // which previously left no trace unless the customer managed to submit.
+  useEffect(() => {
+    let cancelled = false;
+    const payload = {
+      flow: "reset",
+      resolved: !!(resetUrl || (token && customerId)),
+      href: typeof window !== "undefined" ? window.location.href : null,
+      resetUrl,
+      emailHint,
+      device: getDeviceContext(),
+    };
+    void fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-reset-landing`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {
+      if (cancelled) return;
+      // Telemetry only, never block the reset.
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally fires once per landing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Redirect already-logged-in users, unless a reset just succeeded and the
   // success screen is intentionally being held while the parent theme logs in.
   useEffect(() => {
