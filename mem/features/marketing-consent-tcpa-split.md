@@ -23,3 +23,5 @@ Email and SMS marketing consent are tracked separately for TCPA / GDPR complianc
 - Consent logging is best-effort (non-blocking on failure)
 
 **Table:** `marketing_consent_log` - `user_id` and `shopify_customer_id` both nullable so consent can be recorded at sign-up before a Supabase session exists.
+
+**Combined opt-in (Sept 2026):** the welcome-offer step shows ONE row, "Text me when I'm approved to shop & with pro-only deals". Selecting it sets BOTH `acceptsSmsMarketing` and `acceptsMarketing` (texts + email); deselecting clears both. A valid mobile number is still required before it can be selected. The separate email-only row was removed. `welcome_offer_step_enabled` and `business_location_step_enabled` now default to true.
