@@ -171,7 +171,7 @@ export const WelcomeOfferStep = () => {
     <div className="space-y-[clamp(12px,2vh,25px)]">
     <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Save 15% on your first order
+          {offerOn ? "Save 15% on your first order" : "Know the moment you're approved"}
         </h1>
       </div>
 
@@ -179,15 +179,16 @@ export const WelcomeOfferStep = () => {
         <div className="rounded-[15px] border border-border/40 bg-muted/40 backdrop-blur-md p-[20px] space-y-[20px]">
           <div className="text-center space-y-[5px]">
             <h2 className="font-grotesk text-[17px] font-medium text-foreground leading-[1.3]">
-              Subscribe and Save
+              {offerOn ? "Subscribe and save" : "Stay in the loop"}
             </h2>
           </div>
 
           <OptInRow
-            checked={smsOn}
-            onClick={toggleSms}
-            badge="Save 15%"
+            checked={subscribed}
+            onClick={toggleSubscribe}
+            badge={offerOn ? "Save 15%" : undefined}
             title="Text me when I'm approved to shop & with pro-only deals"
+            description="We'll text and email you the moment you're approved, plus pro-only deals."
             legal={
               <>
                 By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
