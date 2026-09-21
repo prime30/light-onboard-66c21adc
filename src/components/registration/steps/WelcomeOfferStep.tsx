@@ -54,6 +54,8 @@ export const WelcomeOfferStep = () => {
 
   const smsOn = !!acceptsSmsMarketing;
   const emailOn = !!acceptsMarketing;
+  const subscribed = smsOn || emailOn;
+  const { enabled: offerOn } = useGatedOfferEnabled();
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
@@ -212,12 +214,6 @@ export const WelcomeOfferStep = () => {
                 .
               </>
             }
-          />
-          <OptInRow
-            checked={emailOn}
-            onClick={toggleEmail}
-            badge="Save 15%"
-            title="Email me when I'm approved to shop & with pro-only deals"
           />
         </div>
 
