@@ -93,6 +93,11 @@ type Data = {
   phoneMatchedRevenue?: number;
   ordersSyncedAt?: string | null;
   ordersSyncedLeads?: number;
+  lastOrderReceivedAt?: string | null;
+  lastOrderPlacedAt?: string | null;
+  webhookOrders?: number;
+  webhookOrders24h?: number;
+  webhookMatchedOrders?: number;
   speedToPurchase?: SpeedToPurchase;
 
 
@@ -325,10 +330,47 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
     }
   }, [adminToken, fetchData]);
 
+  // Turns on the live order feed from the store (one click, safe to repeat).
+  const [connectingWebhook, setConnectingWebhook] = useState(false);
+  const [webhookNote, setWebhookNote] = useState<string | null>(null);
+  const connectLiveOrders = useCallback(async () => {
+    setConnectingWebhook(true);
+    setWebhookNote(null);
+    setError(null);
+    try {
+      const { data: res, error: invokeErr } = await supabase.functions.invoke(
+        "setup-shopify-order-webhooks",
+        { body: { token: adminToken } },
+      );
+      if (invokeErr || !res?.success) {
+        setWebhookNote(
+          res?.error ??
+            invokeErr?.message ??
+            "Could not turn on the live order feed. Check the store connection.",
+        );
+        return;
+      }
+      const created = (res.created ?? []) as string[];
+      const already = (res.alreadyThere ?? []) as string[];
+      setWebhookNote(
+        created.length > 0
+          ? `Live orders turned on (${created.length} notifications added${
+              already.length ? `, ${already.length} already on` : ""
+            }).`
+          : "Live orders were already turned on.",
+      );
+      await fetchData();
+    } catch (e) {
+      setWebhookNote(e instanceof Error ? e.message : "Could not turn on the live order feed.");
+    } finally {
+      setConnectingWebhook(false);
+    }
+  }, [adminToken, fetchData]);
+
   const syncAgeHours = data?.ordersSyncedAt
     ? (Date.now() - Date.parse(data.ordersSyncedAt)) / 3_600_000
     : null;
-  const syncStale = syncAgeHours == null || syncAgeHours > 36;
+  const syncStale = syncAgeHours == null || syncAgeHours > 8 * 24;
   const syncAgeLabel =
     syncAgeHours == null
       ? "never"
@@ -337,6 +379,20 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         : syncAgeHours < 48
           ? `${Math.round(syncAgeHours)} hours ago`
           : `${Math.round(syncAgeHours / 24)} days ago`;
+
+  const orderAgeHours = data?.lastOrderReceivedAt
+    ? (Date.now() - Date.parse(data.lastOrderReceivedAt)) / 3_600_000
+    : null;
+  const webhookLive = (data?.webhookOrders ?? 0) > 0;
+  const webhookStale = !webhookLive || orderAgeHours == null || orderAgeHours > 48;
+  const orderAgeLabel =
+    orderAgeHours == null
+      ? "never"
+      : orderAgeHours < 1
+        ? "just now"
+        : orderAgeHours < 48
+          ? `${Math.round(orderAgeHours)} hours ago`
+          : `${Math.round(orderAgeHours / 24)} days ago`;
 
   const maxCount = Math.max(1, ...(data?.channels.map((c) => c.count) ?? [0]));
 
