@@ -480,7 +480,7 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
                 <p
                   className={cn(
                     "text-[11px] mt-0.5",
-                    syncStale ? "text-destructive" : "text-muted-foreground",
+                    webhookStale ? "text-destructive" : "text-muted-foreground",
                   )}
                 >
                   Last order received {orderAgeLabel}
