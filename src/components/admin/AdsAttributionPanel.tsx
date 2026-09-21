@@ -1086,3 +1086,35 @@ const Stat = ({ label, value, hint }: { label: string; value: string; hint?: str
     {hint && <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{hint}</p>}
   </div>
 );
+
+// Days rendered the way a person reads them: hours under a day, days above.
+const fmtDays = (d: number | null | undefined) => {
+  if (d == null) return "—";
+  if (d < 1) return `${Math.max(1, Math.round(d * 24))}h`;
+  if (d < 10) return `${d.toFixed(1)} days`;
+  return `${Math.round(d)} days`;
+};
+
+// Follow-up list for signups past a week with no order, as a spreadsheet file.
+function downloadFollowUpCsv(leads: FollowUpLead[]) {
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [
+    ["email", "days_since_signup", "came_from", "account_type", "signed_up_at"].join(","),
+    ...leads.map((l) =>
+      [
+        esc(l.email),
+        String(l.days),
+        esc(l.channelLabel),
+        esc(l.accountType ?? ""),
+        esc(l.signedUpAt ?? ""),
+      ].join(","),
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `no-purchase-follow-up-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
