@@ -5,6 +5,7 @@ import { customerAtom } from "@/contexts/store";
 import { useModeContext } from "@/components/registration/context/ModeContext";
 import { ResetPasswordForm } from "@/components/registration/ResetPasswordForm";
 import { resolveResetParams } from "@/lib/reset-params";
+import { getDeviceContext } from "@/lib/device-context";
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
