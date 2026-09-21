@@ -613,8 +613,10 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
               phone number when they checked out with a different email address.
               People who were already buying before they signed up are listed
               separately and left out, so an existing customer cannot make a campaign
-              look profitable. It only covers orders already pulled in from the store,
-              so run the purchases sync to keep it current.
+              look profitable. Orders arrive from the store the moment they are
+              placed, and refunds or cancellations remove themselves, so the
+              figures keep themselves current. The weekly double check exists
+              only to catch anything the live feed misses.
             </p>
 
 
