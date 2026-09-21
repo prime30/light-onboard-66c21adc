@@ -280,15 +280,12 @@ export function useCustomerLogin({
 
   const forgotPassword = useCallback(
     async ({ email }: ForgotPasswordData) => {
-      // In iframe: delegate to parent Shopify theme (native customer/recover flow).
-      if (isInIframe) {
-        sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
-        return;
-      }
-
-      // Standalone: call our recover-password edge function directly and
-      // emit the same FormUpdateData callback shape so SignInForm reacts
-      // identically in both modes.
+      // Single recovery path for every mode (embedded and standalone).
+      // The embedded form used to delegate to the parent Shopify theme's
+      // native /account/recover flow, which bypassed invited-account
+      // promotion, token handling and failure logging. That was the cause of
+      // the repeat "reset link sends me back to login" reports, so both modes
+      // now call our recover-password function.
       forgotPasswordUpdate?.({ status: "submitting" });
       try {
         const res = await fetch(
@@ -316,8 +313,18 @@ export function useCustomerLogin({
                 ? "Too many requests. Please wait a moment."
                 : "Couldn't send reset email. Please try again."),
           });
+          // Last-resort safety net: if our function is unavailable while
+          // embedded, let the parent theme try its native recover form so the
+          // customer is not left with no email at all.
+          if (isInIframe && res.status >= 500) {
+            sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
+          }
         }
       } catch (_err) {
+        if (isInIframe) {
+          sendMessage(IframeMessageTypes.USER_FORGOT_PASSWORD, { email });
+          return;
+        }
         forgotPasswordUpdate?.({
           status: "error",
           message: "Couldn't send reset email. Please check your connection and try again.",
@@ -326,6 +333,7 @@ export function useCustomerLogin({
     },
     [isInIframe, sendMessage, forgotPasswordUpdate]
   );
+
 
   return { customer, login, forgotPassword };
 }
