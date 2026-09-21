@@ -93,6 +93,8 @@ type Data = {
   phoneMatchedRevenue?: number;
   ordersSyncedAt?: string | null;
   ordersSyncedLeads?: number;
+  speedToPurchase?: SpeedToPurchase;
+
 
   metaConnected?: boolean;
   metaSpend?: number;
@@ -113,6 +115,56 @@ type Data = {
   channels: ChannelRow[];
   campaigns: CampaignRow[];
   timeline?: TimelineRow[];
+};
+
+type SpeedStat = {
+  buyers: number;
+  median: number | null;
+  avg: number | null;
+  within24h: number;
+  within7d: number;
+  within30d: number;
+  over30d: number;
+};
+
+type SlowBuyerRow = {
+  email: string;
+  days: number;
+  revenue: number;
+  channel: string;
+  channelLabel: string;
+  campaign: string | null;
+  accountType: string | null;
+  signedUpAt: string | null;
+  firstOrderAt: string | null;
+};
+
+type FollowUpLead = {
+  email: string;
+  days: number;
+  channel: string;
+  channelLabel: string;
+  accountType: string | null;
+  signedUpAt: string | null;
+};
+
+type SpeedToPurchase = {
+  completed: number;
+  preSignupBuyers: number;
+  all: SpeedStat;
+  paid: SpeedStat & { completed: number; revenue: number };
+  organic: SpeedStat & { completed: number; revenue: number };
+  conversionRate: number;
+  paidConversionRate: number;
+  organicConversionRate: number;
+  slowBuyers: SlowBuyerRow[];
+  followUp: {
+    total: number;
+    d7to14: number;
+    d14to30: number;
+    d30plus: number;
+    leads: FollowUpLead[];
+  };
 };
 
 type RefRow = {
