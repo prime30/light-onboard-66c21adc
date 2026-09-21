@@ -219,12 +219,6 @@ Deno.serve(async (req: Request) => {
   // every completed registration, not only rows with an attribution blob.
   // A buyer counts as new when their first ever order came at or after the
   // signup (one day grace for an order placed while finishing the form).
-  type SpeedBucket = {
-    label: string;
-    buyers: number;
-    days: number[];
-    revenue: number;
-  };
   const speedDays: number[] = [];
   const paidSpeedDays: number[] = [];
   const organicSpeedDays: number[] = [];
@@ -368,7 +362,6 @@ Deno.serve(async (req: Request) => {
       leads: followUp.slice(0, 500),
     },
   };
-  void (null as unknown as SpeedBucket);
 
 
 
