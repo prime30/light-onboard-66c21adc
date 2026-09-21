@@ -14,7 +14,7 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
-import { useAutoApproval, useSummaryStepEnabled } from "@/lib/app-settings";
+import { useAutoApproval, useSummaryStepEnabled, useGatedOfferEnabled } from "@/lib/app-settings";
 
 export const WelcomeOfferStep = () => {
   const {
@@ -54,6 +54,8 @@ export const WelcomeOfferStep = () => {
 
   const smsOn = !!acceptsSmsMarketing;
   const emailOn = !!acceptsMarketing;
+  const subscribed = smsOn || emailOn;
+  const { enabled: offerOn } = useGatedOfferEnabled();
 
   const countryCodeOptions = countryCodes.map((country) => ({
     value: country.iso,
@@ -72,9 +74,12 @@ export const WelcomeOfferStep = () => {
     ),
   }));
 
-  const toggleSms = () => {
-    if (smsOn) {
+  // One opt-in covers both channels: selecting it subscribes the user to texts
+  // AND emails, so we set both consent fields together.
+  const toggleSubscribe = () => {
+    if (smsOn || emailOn) {
       setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
+      setValue("acceptsMarketing", false, dirtyFieldOptions);
       return;
     }
     setPhoneError(null);
@@ -84,10 +89,7 @@ export const WelcomeOfferStep = () => {
       return;
     }
     setValue("acceptsSmsMarketing", true, dirtyFieldOptions);
-  };
-
-  const toggleEmail = () => {
-    setValue("acceptsMarketing", !emailOn, dirtyFieldOptions);
+    setValue("acceptsMarketing", true, dirtyFieldOptions);
   };
 
   // Render the step's actions into the shared sticky footer slot at the bottom of the viewport
@@ -171,7 +173,7 @@ export const WelcomeOfferStep = () => {
     <div className="space-y-[clamp(12px,2vh,25px)]">
     <div className="pt-[clamp(8px,1.5vh,16px)] space-y-[clamp(5px,1vh,10px)] text-center animate-stagger-1">
         <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-          Save 15% on your first order
+          {offerOn ? "Save 15% on your first order" : "Know the moment you're approved"}
         </h1>
       </div>
 
@@ -179,15 +181,16 @@ export const WelcomeOfferStep = () => {
         <div className="rounded-[15px] border border-border/40 bg-muted/40 backdrop-blur-md p-[20px] space-y-[20px]">
           <div className="text-center space-y-[5px]">
             <h2 className="font-grotesk text-[17px] font-medium text-foreground leading-[1.3]">
-              Subscribe and Save
+              {offerOn ? "Subscribe and save" : "Stay in the loop"}
             </h2>
           </div>
 
           <OptInRow
-            checked={smsOn}
-            onClick={toggleSms}
-            badge="Save 15%"
+            checked={subscribed}
+            onClick={toggleSubscribe}
+            badge={offerOn ? "Save 15%" : undefined}
             title="Text me when I'm approved to shop & with pro-only deals"
+            description="We'll text and email you the moment you're approved, plus pro-only deals."
             legal={
               <>
                 By checking this box, you agree to receive recurring automated texts (approx. 4 msgs/month) from
@@ -211,12 +214,6 @@ export const WelcomeOfferStep = () => {
                 .
               </>
             }
-          />
-          <OptInRow
-            checked={emailOn}
-            onClick={toggleEmail}
-            badge="Save 15%"
-            title="Email me when I'm approved to shop & with pro-only deals"
           />
         </div>
 
