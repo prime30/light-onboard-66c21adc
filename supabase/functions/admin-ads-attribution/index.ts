@@ -547,7 +547,7 @@ Deno.serve(async (req: Request) => {
 
 
 
-  for (const row of (data ?? []) as Row[]) {
+  for (const row of (data as unknown as Row[])) {
     // Skip internal test users the same way the other analytics do.
     const payload = row.payload ?? {};
     const firstName = (
