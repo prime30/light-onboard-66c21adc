@@ -150,10 +150,20 @@ Deno.serve(async (req: Request) => {
   const sinceDays = Math.min(Math.max(Number(body.sinceDays ?? 30), 1), 3650);
   const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
 
-  const { data, error } = await supabase
-    .from("registration_submissions")
-    .select("attribution, account_type, status, created_at, payload, email")
-    .gte("created_at", sinceIso);
+  // Page past the 1000-row read cap so long date ranges count every signup.
+  const data: Record<string, unknown>[] = [];
+  let error: unknown = null;
+  for (let from = 0; from < 50000; from += 1000) {
+    const { data: page, error: pageErr } = await supabase
+      .from("registration_submissions")
+      .select("attribution, account_type, status, created_at, payload, email")
+      .gte("created_at", sinceIso)
+      .order("id", { ascending: true })
+      .range(from, from + 999);
+    if (pageErr) { error = pageErr; break; }
+    data.push(...((page ?? []) as Record<string, unknown>[]));
+    if (!page || page.length < 1000) break;
+  }
 
   if (error) {
     console.error("admin-ads-attribution query failed:", error);
