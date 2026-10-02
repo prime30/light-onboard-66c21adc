@@ -126,6 +126,8 @@ export const FounderCallAnalyticsPanel = ({ adminEmail, adminToken }: Props) => 
       );
       if (invokeErr || !res?.success) {
         setBackfillResult(`Sync error: ${res?.error ?? invokeErr?.message ?? "failed"}`);
+      } else if (res.started) {
+        setBackfillResult("Sync started in the background. Refresh in a few minutes to see updated first orders.");
       } else {
         setBackfillResult(
           `Synced first orders - scanned ${res.totalOrdersSeen} orders across ${res.pages} pages, ${res.uniqueEmails} unique emails, ${res.matchedLeads} matched leads, ${res.updated} updated, ${res.skipped} already current.`,
