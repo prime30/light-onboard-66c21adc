@@ -96,3 +96,6 @@ verify_jwt = false
 
 [functions.setup-shopify-order-webhooks]
 verify_jwt = false
+
+[functions.tmp-diag-customer]
+verify_jwt = false
