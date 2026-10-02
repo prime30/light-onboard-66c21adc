@@ -138,6 +138,11 @@ Deno.serve(async (req: Request) => {
   const dryRun = !!body.dryRun;
   const sinceIso = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
 
+  // Large windows (years of orders) exceed the 150s request limit, so by
+  // default the work runs in the background and the caller gets 202 right away.
+  const runInBackground = (body as { background?: boolean }).background !== false;
+
+  const run = async (): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceKey);
 
   // 1) Page through Shopify orders, capturing earliest per email and per phone.
@@ -382,4 +387,15 @@ Deno.serve(async (req: Request) => {
 
     daysBack,
   });
+  };
+
+  if (runInBackground) {
+    const task = run()
+      .then(async (r) => console.log("[backfill-first-orders] done", await r.clone().text()))
+      .catch((e) => console.error("[backfill-first-orders] background run failed", e));
+    // deno-lint-ignore no-explicit-any
+    (globalThis as any).EdgeRuntime?.waitUntil?.(task);
+    return json({ success: true, started: true, daysBack }, 202);
+  }
+  return await run();
 });
