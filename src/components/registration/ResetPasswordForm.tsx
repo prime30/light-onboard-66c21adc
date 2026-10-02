@@ -60,6 +60,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     !resetUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
+  // True when the server already emailed a replacement link for a dead one.
+  const [freshLinkSent, setFreshLinkSent] = useState(false);
+  const freshLinkEmail = emailHint ?? getResetEmailHint() ?? null;
   
   const [resetCustomer, setResetCustomer] = useState<{
     firstName: string | null;
@@ -238,6 +241,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
+      setFreshLinkSent(errorMsg.includes("emailed you a fresh link"));
       if (errorMsg.includes("expired")) {
         clearResetParams();
         setFormState("expired");
@@ -352,7 +356,11 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             Link Expired
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            This password reset link has expired. Please request a new one from the login page.
+            {freshLinkSent ? (
+              <>This link has expired, so we just emailed a fresh one{freshLinkEmail ? <> to <span className="text-foreground/80">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
+            ) : (
+              "This password reset link has expired. Please request a new one from the login page."
+            )}
           </FadeText>
         </div>
         <InAppBrowserNotice />
@@ -384,10 +392,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Invalid Link
+            {freshLinkSent ? "Check your email" : "Invalid link"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            This reset link is invalid or has already been used. Please request a new password reset.
+            {freshLinkSent ? (
+              <>This link was already used or replaced by a newer one, so we just emailed a fresh link{freshLinkEmail ? <> to <span className="text-foreground/80">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
+            ) : (
+              "This reset link is invalid or has already been used. Please request a new password reset."
+            )}
           </FadeText>
         </div>
         <InAppBrowserNotice />

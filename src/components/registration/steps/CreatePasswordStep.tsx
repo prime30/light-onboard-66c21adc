@@ -144,6 +144,9 @@ export const CreatePasswordStep = () => {
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="At least 8 characters"
               {...register("password")}
               className={cn(
@@ -209,6 +212,9 @@ export const CreatePasswordStep = () => {
               id="confirmPassword"
               type={showConfirm ? "text" : "password"}
               autoComplete="new-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="Re-enter your password"
               {...register("confirmPassword")}
               className={cn(

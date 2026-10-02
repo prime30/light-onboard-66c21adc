@@ -256,6 +256,30 @@ type FailureDevice = {
   userAgent?: string | null;
 };
 
+// When a reset link is rejected (already used, replaced by a newer email, or
+// expired) the customer used to hit a dead end and had to start over. Instead
+// we send a brand new link right away through the verified recovery service,
+// so the newest email in their inbox always works.
+async function sendFreshResetLink(email: string | null | undefined): Promise<boolean> {
+  const normalized = (email || "").trim().toLowerCase();
+  if (!normalized) return false;
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return false;
+  try {
+    const res = await fetch(`${url}/functions/v1/recover-password`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalized }),
+    });
+    console.log("RESET_FRESH_LINK_SENT", JSON.stringify({ ok: res.ok, status: res.status }));
+    return res.ok;
+  } catch (err) {
+    console.error("RESET_FRESH_LINK_ERROR", err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
 async function recordResetFailure(opts: {
   email: string | null | undefined;
   reason: string;
@@ -476,24 +500,35 @@ Deno.serve(async (req) => {
       );
 
 
+      const isExpired = msg.includes("expired") || code === "EXPIRED";
+      const isDeadLink = isExpired || code === "TOKEN_INVALID" || msg.includes("invalid reset url") || msg.includes("invalid");
+
       await recordResetFailure({
         email: emailHint,
-        reason: msg.includes("expired") || code === "EXPIRED" ? "token_expired" : "token_rejected",
-        code,
+        reason: isExpired ? "token_expired" : "token_rejected",
+        // Keep Shopify's message too, so a password-rule rejection can never
+        // again be mistaken for a dead link.
+        code: `${code}:${(first.message || "").slice(0, 40)}`,
         device,
         userAgent: req.headers.get("user-agent"),
       });
 
+      // Self-heal dead links: email a fresh one immediately.
+      const freshSent = isDeadLink ? await sendFreshResetLink(emailHint) : false;
+      const freshNote = freshSent
+        ? " We just emailed you a fresh link. Open the newest email from us, older ones stop working."
+        : " Please request a new password reset.";
+
       // Map Shopify error codes to friendly states the client recognises.
-      if (code === "TOKEN_INVALID" || msg.includes("invalid")) {
+      if (isExpired) {
         return sendError(400, [
-          "This reset link is invalid or has already been used. Please request a new password reset.",
-        ], "Invalid reset link");
-      }
-      if (msg.includes("expired") || code === "EXPIRED") {
-        return sendError(400, [
-          "This reset link has expired. Please request a new password reset email.",
+          `This reset link has expired.${freshNote}`,
         ], "Link expired");
+      }
+      if (isDeadLink) {
+        return sendError(400, [
+          `This reset link is invalid or has already been used.${freshNote}`,
+        ], "Invalid reset link");
       }
       if (code === "PASSWORD_STARTS_OR_ENDS_WITH_WHITESPACE") {
         return sendError(400, ["Password cannot start or end with whitespace."], "Invalid password");
@@ -553,6 +588,8 @@ Deno.serve(async (req) => {
         );
       }
     }
+
+    console.log("RESET_OK", JSON.stringify({ customerId: resetCustomerId, hasEmail: !!email }));
 
     return sendSuccess(
       {

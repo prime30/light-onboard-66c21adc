@@ -52,6 +52,11 @@ export function TextInput<TFieldValues extends FieldValues = FieldValues>({
           type={type}
           placeholder={placeholder}
           onChange={onChange}
+          // Phones must never capitalise or "correct" a password, otherwise
+          // the saved password silently differs from what the person typed.
+          {...(type === "password" || /password/i.test(String(name))
+            ? { autoCapitalize: "none", autoCorrect: "off", spellCheck: false }
+            : {})}
           {...(register ? register(name, { valueAsNumber }) : {})}
           className={cn(
             "h-input rounded-form bg-muted border-border/50 focus:border-foreground/20 focus:bg-background transition-all duration-300",
