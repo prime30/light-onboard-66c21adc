@@ -150,10 +150,20 @@ Deno.serve(async (req: Request) => {
   const sinceDays = Math.min(Math.max(Number(body.sinceDays ?? 30), 1), 3650);
   const sinceIso = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
 
-  const { data, error } = await supabase
-    .from("registration_submissions")
-    .select("attribution, account_type, status, created_at, payload, email")
-    .gte("created_at", sinceIso);
+  // Page past the 1000-row read cap so long date ranges count every signup.
+  const data: Record<string, unknown>[] = [];
+  let error: unknown = null;
+  for (let from = 0; from < 50000; from += 1000) {
+    const { data: page, error: pageErr } = await supabase
+      .from("registration_submissions")
+      .select("attribution, account_type, status, created_at, payload, email")
+      .gte("created_at", sinceIso)
+      .order("id", { ascending: true })
+      .range(from, from + 999);
+    if (pageErr) { error = pageErr; break; }
+    data.push(...((page ?? []) as Record<string, unknown>[]));
+    if (!page || page.length < 1000) break;
+  }
 
   if (error) {
     console.error("admin-ads-attribution query failed:", error);
@@ -286,17 +296,27 @@ Deno.serve(async (req: Request) => {
   let followUp14to30 = 0;
   let followUp30plus = 0;
   {
-    const { data: leadRows, error: leadErr } = await supabase
-      .from("registration_leads")
-      .select(
-        "email, created_at, completed_at, first_order_at, orders_revenue, first_order_value, attribution_channel, attribution_campaign, account_type",
-      )
-      .not("completed_at", "is", null)
-      .limit(20000);
-    if (leadErr) console.error("admin-ads-attribution speed query failed:", leadErr);
+    // The API caps each read at 1000 rows, so page through every completed signup.
+    const leadRows: Record<string, unknown>[] = [];
+    for (let from = 0; from < 50000; from += 1000) {
+      const { data: page, error: leadErr } = await supabase
+        .from("registration_leads")
+        .select(
+          "email, created_at, completed_at, first_order_at, orders_revenue, first_order_value, attribution_channel, attribution_campaign, account_type",
+        )
+        .not("completed_at", "is", null)
+        .order("id", { ascending: true })
+        .range(from, from + 999);
+      if (leadErr) {
+        console.error("admin-ads-attribution speed query failed:", leadErr);
+        break;
+      }
+      leadRows.push(...((page ?? []) as Record<string, unknown>[]));
+      if (!page || page.length < 1000) break;
+    }
     const DAY = 86_400_000;
     const now = Date.now();
-    for (const l of (leadRows ?? []) as Record<string, unknown>[]) {
+    for (const l of leadRows) {
       const email = String(l.email ?? "").trim().toLowerCase();
       if (!email) continue;
       const startedRaw = (l.completed_at as string | null) ?? (l.created_at as string | null);
@@ -527,7 +547,7 @@ Deno.serve(async (req: Request) => {
 
 
 
-  for (const row of (data ?? []) as Row[]) {
+  for (const row of (data as unknown as Row[])) {
     // Skip internal test users the same way the other analytics do.
     const payload = row.payload ?? {};
     const firstName = (
