@@ -286,17 +286,27 @@ Deno.serve(async (req: Request) => {
   let followUp14to30 = 0;
   let followUp30plus = 0;
   {
-    const { data: leadRows, error: leadErr } = await supabase
-      .from("registration_leads")
-      .select(
-        "email, created_at, completed_at, first_order_at, orders_revenue, first_order_value, attribution_channel, attribution_campaign, account_type",
-      )
-      .not("completed_at", "is", null)
-      .limit(20000);
-    if (leadErr) console.error("admin-ads-attribution speed query failed:", leadErr);
+    // The API caps each read at 1000 rows, so page through every completed signup.
+    const leadRows: Record<string, unknown>[] = [];
+    for (let from = 0; from < 50000; from += 1000) {
+      const { data: page, error: leadErr } = await supabase
+        .from("registration_leads")
+        .select(
+          "email, created_at, completed_at, first_order_at, orders_revenue, first_order_value, attribution_channel, attribution_campaign, account_type",
+        )
+        .not("completed_at", "is", null)
+        .order("id", { ascending: true })
+        .range(from, from + 999);
+      if (leadErr) {
+        console.error("admin-ads-attribution speed query failed:", leadErr);
+        break;
+      }
+      leadRows.push(...((page ?? []) as Record<string, unknown>[]));
+      if (!page || page.length < 1000) break;
+    }
     const DAY = 86_400_000;
     const now = Date.now();
-    for (const l of (leadRows ?? []) as Record<string, unknown>[]) {
+    for (const l of leadRows) {
       const email = String(l.email ?? "").trim().toLowerCase();
       if (!email) continue;
       const startedRaw = (l.completed_at as string | null) ?? (l.created_at as string | null);
