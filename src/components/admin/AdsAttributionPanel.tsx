@@ -317,6 +317,10 @@ export const AdsAttributionPanel = ({ adminEmail, adminToken }: Props) => {
         setOrdersNote(res?.error ?? invokeErr?.message ?? "Could not pull orders from the store.");
         return;
       }
+      if (res.started) {
+        setOrdersNote("Sync started. It runs in the background and takes a few minutes. Refresh shortly to see updated numbers.");
+        return;
+      }
       setOrdersNote(
         `Read ${res.totalOrdersSeen ?? 0} orders, matched ${res.matchedLeads ?? 0} signups (${
           res.phoneMatched ?? 0
