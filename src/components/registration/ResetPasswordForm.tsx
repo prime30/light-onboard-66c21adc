@@ -24,6 +24,7 @@ import { clearResetParams } from "@/lib/reset-params";
 import { getDeviceContext } from "@/lib/device-context";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { ActivationRecovery } from "./ActivationRecovery";
+import { useThemeLoginResult } from "@/hooks/use-theme-login-result";
 
 
 type FormState =
@@ -70,6 +71,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     email: string | null;
   }>({ firstName: null, email: null });
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const themeLogin = useThemeLoginResult(
+    isInIframe && formState === "success" && autoLoginStatus === "succeeded"
+  );
   const {
     register,
     handleSubmit,
@@ -323,7 +327,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             Your password has been changed successfully.
             {autoLoginStatus === "succeeded" ? (
               isInIframe ? (
-                <> Close this window to continue. If you're not signed in, log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : null} and your new password.</>
+                themeLogin === "pending" || themeLogin === "idle" ? (
+                  <> Signing you in to the store…</>
+                ) : themeLogin === "confirmed" ? (
+                  <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
+                ) : (
+                  <> Close this window to continue. If you're not signed in, log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : null} and your new password.</>
+                )
               ) : (
                 <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
               )
