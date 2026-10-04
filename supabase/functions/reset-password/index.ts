@@ -273,6 +273,17 @@ async function sendFreshResetLink(email: string | null | undefined): Promise<boo
       body: JSON.stringify({ email: normalized }),
     });
     console.log("RESET_FRESH_LINK_SENT", JSON.stringify({ ok: res.ok, status: res.status }));
+    if (res.ok) {
+      // Record the real send time; the cooldown reads only this column.
+      await fetch(
+        `${url}/rest/v1/registration_leads?email=eq.${encodeURIComponent(normalized)}`,
+        {
+          method: "PATCH",
+          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ fresh_reset_link_sent_at: new Date().toISOString() }),
+        },
+      ).catch(() => {});
+    }
     return res.ok;
   } catch (err) {
     console.error("RESET_FRESH_LINK_ERROR", err instanceof Error ? err.message : String(err));
@@ -327,7 +338,7 @@ async function recordResetFailure(opts: {
   }
 }
 
-// Most recent recorded reset failure for this email (ms epoch), or null.
+// When we last actually emailed a fresh reset link to this email (ms epoch), or null.
 async function getLastResetFailureAt(email: string | null | undefined): Promise<number | null> {
   const normalized = (email || "").trim().toLowerCase();
   if (!normalized) return null;
@@ -336,12 +347,12 @@ async function getLastResetFailureAt(email: string | null | undefined): Promise<
   if (!url || !key) return null;
   try {
     const res = await fetch(
-      `${url}/rest/v1/registration_leads?select=reset_failure_last_at&email=eq.${encodeURIComponent(normalized)}&limit=1`,
+      `${url}/rest/v1/registration_leads?select=fresh_reset_link_sent_at&email=eq.${encodeURIComponent(normalized)}&limit=1`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) return null;
-    const rows = (await res.json()) as { reset_failure_last_at: string | null }[];
-    const at = rows?.[0]?.reset_failure_last_at;
+    const rows = (await res.json()) as { fresh_reset_link_sent_at: string | null }[];
+    const at = rows?.[0]?.fresh_reset_link_sent_at;
     return at ? Date.parse(at) : null;
   } catch {
     return null;

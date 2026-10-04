@@ -474,6 +474,7 @@ export type Database = {
           founder_call_invitee_uri: string | null
           founder_call_no_show_at: string | null
           founder_call_start_time: string | null
+          fresh_reset_link_sent_at: string | null
           id: string
           ip_address: string | null
           klaviyo_started_event_at: string | null
@@ -524,6 +525,7 @@ export type Database = {
           founder_call_invitee_uri?: string | null
           founder_call_no_show_at?: string | null
           founder_call_start_time?: string | null
+          fresh_reset_link_sent_at?: string | null
           id?: string
           ip_address?: string | null
           klaviyo_started_event_at?: string | null
@@ -574,6 +576,7 @@ export type Database = {
           founder_call_invitee_uri?: string | null
           founder_call_no_show_at?: string | null
           founder_call_start_time?: string | null
+          fresh_reset_link_sent_at?: string | null
           id?: string
           ip_address?: string | null
           klaviyo_started_event_at?: string | null

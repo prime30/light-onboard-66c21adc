@@ -1,0 +1,1 @@
+ALTER TABLE public.registration_leads ADD COLUMN IF NOT EXISTS fresh_reset_link_sent_at timestamptz;
