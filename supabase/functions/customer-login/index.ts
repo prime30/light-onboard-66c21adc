@@ -41,6 +41,9 @@ function sendSuccess<T>(data: T, message?: string) {
 const bodySchema = z.object({
   email: z.string().email("Valid email is required"),
   password: z.string().min(1, "Password is required"),
+  // Set by the embedded sign-in form after the storefront said "wrong
+  // password", to check whether the password was actually right.
+  diagnostic: z.string().max(40).optional(),
 });
 
 const STOREFRONT_API_VERSION = "2024-10";
@@ -168,7 +171,7 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { email, password } = parsed.data;
+  const { email, password, diagnostic } = parsed.data;
   const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
   if (!storefrontToken) {
     return sendError(500, ["Server configuration error"]);
@@ -217,6 +220,7 @@ Deno.serve(async (req) => {
       const code: string = first.code || "";
       const msg: string = (first.message || "").toLowerCase();
 
+      if (diagnostic) console.log("LOGIN_DIAG_REJECTED", JSON.stringify({ diagnostic, code }));
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
         // Shopify intentionally does not distinguish wrong password from
         // missing account at this endpoint. Return a generic message.
@@ -231,6 +235,27 @@ Deno.serve(async (req) => {
     }
 
     const tokenObj = result?.customerAccessToken;
+    if (diagnostic && tokenObj?.accessToken) {
+      // The storefront rejected a password that is actually correct. Record it
+      // so it shows up next to reset failures in the admin panel.
+      console.error("LOGIN_REJECTED_BUT_PASSWORD_VALID", JSON.stringify({ diagnostic }));
+      try {
+        const u = Deno.env.get("SUPABASE_URL");
+        const k = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (u && k) {
+          await fetch(`${u}/rest/v1/rpc/record_reset_failure`, {
+            method: "POST",
+            headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              _email: email.trim().toLowerCase(),
+              _reason: "login_rejected_password_valid",
+              _code: diagnostic.slice(0, 60),
+              _user_agent: req.headers.get("user-agent")?.slice(0, 400) ?? null,
+            }),
+          });
+        }
+      } catch { /* telemetry only */ }
+    }
     if (!tokenObj?.accessToken) {
       console.error("Storefront returned no token:", JSON.stringify(result));
       return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");

@@ -327,6 +327,52 @@ async function recordResetFailure(opts: {
   }
 }
 
+// Most recent recorded reset failure for this email (ms epoch), or null.
+async function getLastResetFailureAt(email: string | null | undefined): Promise<number | null> {
+  const normalized = (email || "").trim().toLowerCase();
+  if (!normalized) return null;
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/registration_leads?select=reset_failure_last_at&email=eq.${encodeURIComponent(normalized)}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as { reset_failure_last_at: string | null }[];
+    const at = rows?.[0]?.reset_failure_last_at;
+    return at ? Date.parse(at) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Verify an email + password pair against the store and return a session.
+async function storefrontSignIn(
+  domain: string,
+  storefrontToken: string,
+  email: string,
+  password: string,
+): Promise<{ accessToken: string; expiresAt: string } | null> {
+  try {
+    const res = await fetch(`https://${domain}/api/${STOREFRONT_API_VERSION}/graphql.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": storefrontToken },
+      body: JSON.stringify({
+        query: `mutation t($input: CustomerAccessTokenCreateInput!) { customerAccessTokenCreate(input: $input) { customerAccessToken { accessToken expiresAt } customerUserErrors { code message } } }`,
+        variables: { input: { email, password } },
+      }),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const t = j?.data?.customerAccessTokenCreate?.customerAccessToken;
+    return t?.accessToken ? { accessToken: t.accessToken, expiresAt: t.expiresAt } : null;
+  } catch {
+    return null;
+  }
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
@@ -500,8 +546,48 @@ Deno.serve(async (req) => {
       );
 
 
+      // "Password must be different" means the password they just typed is
+      // ALREADY their password, so their login was right all along. Instead of
+      // a dead end, sign them in with it.
+      const isSamePassword =
+        msg.includes("must be different") ||
+        msg.includes("used before") ||
+        msg.includes("previously used") ||
+        msg.includes("same as your current");
+      if (isSamePassword) {
+        let signInEmail = (emailHint || "").trim().toLowerCase() || null;
+        if (!signInEmail && ADMIN_TOKEN) {
+          try {
+            const c = await lookupCustomerViaAdmin(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, resetCustomerId, null);
+            signInEmail = c.email?.toLowerCase() ?? null;
+          } catch { /* fall through */ }
+        }
+        const login = signInEmail ? await storefrontSignIn(SHOPIFY_STORE_DOMAIN, storefrontToken, signInEmail, password) : null;
+        await recordResetFailure({
+          email: signInEmail || emailHint,
+          reason: login ? "same_password_signed_in" : "same_password_signin_failed",
+          code: `${code}:${(first.message || "").slice(0, 40)}`,
+          device,
+          userAgent: req.headers.get("user-agent"),
+        });
+        console.log("RESET_SAME_PASSWORD", JSON.stringify({ customerId: resetCustomerId, signedIn: !!login }));
+        if (login) {
+          return sendSuccess(
+            { reset: true, samePassword: true, email: signInEmail, firstName: null, accessToken: login.accessToken, expiresAt: login.expiresAt },
+            "That is already your password. Signing you in."
+          );
+        }
+        return sendError(400, [
+          "That's already your password. Go back and sign in with it, or choose a different new password.",
+        ], "Same password");
+      }
+
       const isExpired = msg.includes("expired") || code === "EXPIRED";
       const isDeadLink = isExpired || code === "TOKEN_INVALID" || msg.includes("invalid reset url") || msg.includes("invalid");
+
+      // Read the previous failure BEFORE recording this one, so we can tell a
+      // repeat tap apart from a first failure.
+      const previousFailureAt = isDeadLink ? await getLastResetFailureAt(emailHint) : null;
 
       await recordResetFailure({
         email: emailHint,
@@ -513,11 +599,18 @@ Deno.serve(async (req) => {
         userAgent: req.headers.get("user-agent"),
       });
 
-      // Self-heal dead links: email a fresh one immediately.
-      const freshSent = isDeadLink ? await sendFreshResetLink(emailHint) : false;
+      // Self-heal dead links by emailing a fresh one, but only once per 15
+      // minutes. Every new email kills the previous link, so auto-sending on
+      // every failure used to destroy the very link the customer was about to
+      // open (people tapping an older email got stuck in a loop).
+      const recentlySent =
+        !!previousFailureAt && Date.now() - previousFailureAt < 15 * 60 * 1000;
+      const freshSent = isDeadLink && !recentlySent ? await sendFreshResetLink(emailHint) : false;
       const freshNote = freshSent
         ? " We just emailed you a fresh link. Open the newest email from us, older ones stop working."
-        : " Please request a new password reset.";
+        : recentlySent
+          ? " We already emailed you a newer link a few minutes ago. Open the most recent email from us (check spam too). Older emails no longer work."
+          : " Please request a new password reset.";
 
       // Map Shopify error codes to friendly states the client recognises.
       if (isExpired) {
