@@ -33,6 +33,7 @@ export type LoginErrorKind =
   | "wrong_password"
   | "unactivated"
   | "rate_limited"
+  | "store_handoff"
   | "generic";
 
 export type LoginErrorState = {
@@ -194,10 +195,14 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
                 return;
               }
               setIsSubmitting(false);
+              // The background sign-in keeps failing even though the password
+              // is correct (usually a store bot check that a background
+              // request can't pass). Offer a real sign-in on the store page,
+              // where any check can be completed by the customer.
               setLoginError({
-                kind: "generic",
+                kind: "store_handoff",
                 message:
-                  "Your password is correct, but the store didn't finish signing you in. Wait a minute and tap Sign in again, or email hello@dropdeadextensions.com.",
+                  "Your password is correct. Tap below to finish signing in on the store page.",
               });
             }
           );
@@ -573,6 +578,34 @@ async function verifyPasswordWithStore(
   }
 }
 
+// Real (top-level) sign-in on the store's own login page. Used when the
+// background sign-in fails but the password is verified correct: a full page
+// submit lets the customer pass any bot check the store shows.
+const STORE_LOGIN_URL = "https://dropdeadextensions.com/account/login";
+function submitStoreLogin(email: string, password: string) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = STORE_LOGIN_URL;
+  form.target = "_top";
+  form.acceptCharset = "UTF-8";
+  const fields: Record<string, string> = {
+    form_type: "customer_login",
+    utf8: "\u2713",
+    "customer[email]": email,
+    "customer[password]": password,
+    return_url: "/",
+  };
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export const SignInForm = () => {
   const navigate = useNavigate();
   const { email, ssoContext } = useGlobalApp();
@@ -847,6 +880,16 @@ export const SignInForm = () => {
                   className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
                 >
                   Reset your password
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {loginError.kind === "store_handoff" && (
+                <button
+                  type="button"
+                  onClick={() => submitStoreLogin(watch("email"), watch("password"))}
+                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                >
+                  Finish signing in
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               )}
