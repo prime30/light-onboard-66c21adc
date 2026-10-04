@@ -1043,6 +1043,22 @@ Deno.serve(async (req: Request) => {
   const trackedLeads = leads.filter((r) => r.attribution_channel && r.attribution_channel.length > 0);
   const paidLeads = trackedLeads.filter((r) => PAID_CHANNEL_KEYS.has(r.attribution_channel as string));
 
+  // Blocked re-applications: existing-account signups stopped by the
+  // create-customer 409 ("You already have an account..."). Logged as failed
+  // registration_submissions with error_log step "email_already_applied".
+  const { data: blockedRows } = await supabase
+    .from("registration_submissions")
+    .select("email, created_at")
+    .eq("status", "failed")
+    .contains("error_log", [{ step: "email_already_applied" }])
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  const blockedReapplications = {
+    count: blockedRows?.length ?? 0,
+    recent: (blockedRows ?? []).slice(0, 10).map((r) => ({ email: r.email as string, at: r.created_at as string })),
+  };
+
   return json({
     success: true,
     rangeDays: days,
