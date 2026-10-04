@@ -247,6 +247,12 @@ Deno.serve(async (req) => {
       const msg: string = (first.message || "").toLowerCase();
 
       if (diagnostic) console.log("LOGIN_DIAG_REJECTED", JSON.stringify({ diagnostic, code }));
+      await recordLoginOutcome({
+        email,
+        reason: "login_rejected",
+        code: `${code}:${(first.message || "").slice(0, 40)}`,
+        userAgent: req.headers.get("user-agent"),
+      });
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
         // Shopify intentionally does not distinguish wrong password from
         // missing account at this endpoint. Return a generic message.
@@ -284,8 +290,19 @@ Deno.serve(async (req) => {
     }
     if (!tokenObj?.accessToken) {
       console.error("Storefront returned no token:", JSON.stringify(result));
+      await recordLoginOutcome({
+        email,
+        reason: "login_no_token",
+        userAgent: req.headers.get("user-agent"),
+      });
       return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
     }
+
+    await recordLoginOutcome({
+      email,
+      reason: "login_ok",
+      userAgent: req.headers.get("user-agent"),
+    });
 
     return sendSuccess(
       {
