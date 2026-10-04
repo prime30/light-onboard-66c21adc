@@ -161,6 +161,10 @@ type ApiResponse = {
     noSelectionRate: number;
     notStylistClicks: number;
   };
+  blockedReapplications?: {
+    count: number;
+    recent: { email: string; at: string }[];
+  };
   error?: string;
 };
 
@@ -282,6 +286,36 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
           loading={loading && !data}
         />
       </div>
+
+      {/* Blocked re-applications */}
+      {data?.blockedReapplications && data.blockedReapplications.count > 0 && (
+        <div className="rounded-[10px] border border-border/50 p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+            Blocked re-applications
+          </div>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            People who tried to apply again with an email that already has an account. They were told to sign in
+            with their existing password instead.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <Tile
+              icon={<AlertCircle className="w-3.5 h-3.5 text-destructive" />}
+              label="Blocked in range"
+              value={data.blockedReapplications.count}
+            />
+          </div>
+          {data.blockedReapplications.recent.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {data.blockedReapplications.recent.map((r) => (
+                <div key={`${r.email}-${r.at}`} className="flex items-center justify-between text-[11px]">
+                  <span className="text-foreground/80">{r.email}</span>
+                  <span className="text-muted-foreground">{new Date(r.at).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Abandoned-registration recovery */}
       {data?.recovery && data.recovery.eligibleCount > 0 && (
