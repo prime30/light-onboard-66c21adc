@@ -327,6 +327,52 @@ async function recordResetFailure(opts: {
   }
 }
 
+// Most recent recorded reset failure for this email (ms epoch), or null.
+async function getLastResetFailureAt(email: string | null | undefined): Promise<number | null> {
+  const normalized = (email || "").trim().toLowerCase();
+  if (!normalized) return null;
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/registration_leads?select=reset_failure_last_at&email=eq.${encodeURIComponent(normalized)}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as { reset_failure_last_at: string | null }[];
+    const at = rows?.[0]?.reset_failure_last_at;
+    return at ? Date.parse(at) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Verify an email + password pair against the store and return a session.
+async function storefrontSignIn(
+  domain: string,
+  storefrontToken: string,
+  email: string,
+  password: string,
+): Promise<{ accessToken: string; expiresAt: string } | null> {
+  try {
+    const res = await fetch(`https://${domain}/api/${STOREFRONT_API_VERSION}/graphql.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": storefrontToken },
+      body: JSON.stringify({
+        query: `mutation t($input: CustomerAccessTokenCreateInput!) { customerAccessTokenCreate(input: $input) { customerAccessToken { accessToken expiresAt } customerUserErrors { code message } } }`,
+        variables: { input: { email, password } },
+      }),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const t = j?.data?.customerAccessTokenCreate?.customerAccessToken;
+    return t?.accessToken ? { accessToken: t.accessToken, expiresAt: t.expiresAt } : null;
+  } catch {
+    return null;
+  }
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {

@@ -241,7 +241,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     } else {
       const failResult = result as { error: string; statusCode: number };
       const errorMsg = failResult.error || "";
-      setFreshLinkSent(errorMsg.includes("emailed you a fresh link"));
+      setFreshLinkSent(
+        errorMsg.includes("emailed you a fresh link") || errorMsg.includes("emailed you a newer link")
+      );
       if (errorMsg.includes("expired")) {
         clearResetParams();
         setFormState("expired");
