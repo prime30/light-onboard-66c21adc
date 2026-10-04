@@ -1,4 +1,37 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+
+// When the app is served first-party on the store's own domain (App Proxy at
+// /apps/apply), the app's own session is NOT the store's session. Post the
+// store's native login form so Shopify sets its customer cookie; otherwise
+// the customer sees "you're all set" and is still signed out of the store.
+function submitStorefrontLogin(email: string, password: string, returnTo = "/account") {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "/account/login";
+  form.style.display = "none";
+  const fields: Record<string, string> = {
+    form_type: "customer_login",
+    utf8: "✓",
+    "customer[email]": email,
+    "customer[password]": password,
+    return_url: returnTo,
+  };
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function isOnStorefrontDomain(): boolean {
+  if (typeof window === "undefined") return false;
+  return /(^|\.)dropdeadextensions\.com$/i.test(window.location.hostname) &&
+    window.location.pathname.startsWith("/apps/");
+}
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Check, Loader2, AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
@@ -69,6 +102,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     email: string | null;
   }>({ firstName: null, email: null });
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const storeCredsRef = useRef<{ email: string; password: string } | null>(null);
   const {
     register,
     handleSubmit,
@@ -132,6 +166,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       // captured by SignInForm via setResetEmailHint().
       const customerEmail =
         payload?.email ?? emailHint ?? getResetEmailHint() ?? null;
+      if (customerEmail) storeCredsRef.current = { email: customerEmail, password: data.password };
       // Hint is single-use - clear regardless of which path resolved it
       // so a subsequent reset attempt with a different email isn't
       // contaminated.
@@ -296,6 +331,11 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         : "Continue to store";
 
     const handleSuccessCta = () => {
+      const creds = storeCredsRef.current;
+      if (!isInIframe && creds && isOnStorefrontDomain()) {
+        submitStorefrontLogin(creds.email, creds.password);
+        return;
+      }
       if (autoLoginStatus === "failed" || autoLoginStatus === "rate_limited") {
         window.location.href = withBasename("/login");
         return;
