@@ -66,7 +66,8 @@ Deno.serve(async (req) => {
   try {
     const res = await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?select=${select}` +
-        `&reset_failure_last_at=gte.${twoWeeksAgo}&order=reset_failure_last_at.desc&limit=2000`,
+        `&reset_failure_last_at=gte.${twoWeeksAgo}&order=reset_failure_last_at.desc&limit=2000` +
+        `&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
     );
     if (!res.ok) {
