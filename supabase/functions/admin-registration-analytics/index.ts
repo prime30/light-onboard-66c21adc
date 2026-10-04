@@ -1111,6 +1111,7 @@ Deno.serve(async (req: Request) => {
       paidLeads: paidLeads.length,
       trackedRate: leads.length > 0 ? Math.round((trackedLeads.length / leads.length) * 1000) / 10 : 0,
     },
+    blockedReapplications,
   });
 });
 
