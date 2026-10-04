@@ -323,7 +323,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             Your password has been changed successfully.
             {autoLoginStatus === "succeeded" ? (
               isInIframe ? (
-                <> Close this window and you'll be signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null} automatically.</>
+                <> Close this window to continue. If you're not signed in, log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : null} and your new password.</>
               ) : (
                 <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
               )
