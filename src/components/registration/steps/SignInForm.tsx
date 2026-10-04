@@ -143,6 +143,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   // isLoggedIn:true never arrives. If the watchdog fires, treat it as a
   // failed login and surface "contact support" instead of a stale success.
   const successWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCredsRef = useRef<{ email: string; password: string } | null>(null);
+  const loginRetriedRef = useRef(false);
+  const loginRef = useRef<((c: { email: string; password: string }) => void) | null>(null);
   const clearSuccessWatchdog = useCallback(() => {
     if (successWatchdogRef.current) {
       clearTimeout(successWatchdogRef.current);
@@ -170,7 +173,37 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       if (message.status === "error") {
         clearSuccessWatchdog();
         setIsLoginSuccessful(false);
-        setLoginError(classifyLoginError(message.message));
+        const classified = classifyLoginError(message.message);
+        const creds = lastCredsRef.current;
+        // The storefront answers "Invalid email or password" for ANY failed
+        // login (throttling, bot checks, network), not only a wrong password.
+        // Before telling someone their password is wrong, check it directly.
+        if (isInIframe && classified?.kind === "wrong_password" && creds) {
+          setIsSubmitting(true);
+          const isRetry = loginRetriedRef.current;
+          void verifyPasswordWithStore(creds, isRetry ? "parent_rejected_retry" : "parent_rejected").then(
+            (valid) => {
+              if (!valid) {
+                setIsSubmitting(false);
+                setLoginError(classified);
+                return;
+              }
+              if (!isRetry) {
+                loginRetriedRef.current = true;
+                setTimeout(() => loginRef.current?.(creds), 1500);
+                return;
+              }
+              setIsSubmitting(false);
+              setLoginError({
+                kind: "generic",
+                message:
+                  "Your password is correct, but the store didn't finish signing you in. Wait a minute and tap Sign in again, or email hello@dropdeadextensions.com.",
+              });
+            }
+          );
+          return;
+        }
+        setLoginError(classified);
       }
 
       if (message.status === "success") {
@@ -270,6 +303,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     loginUpdate,
     forgotPasswordUpdate,
   });
+  loginRef.current = login;
 
   const email = watch("email");
 
@@ -379,6 +413,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           return;
         }
 
+        lastCredsRef.current = { email: data.email, password: data.password };
+        loginRetriedRef.current = false;
         login({
           email: data.email,
           password: data.password,
@@ -512,6 +548,29 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     isPrecheckingEmail,
     hasAttemptedSubmit,
   };
+}
+
+// Checks an email + password directly with the store (no cookies, no session
+// change on the storefront). Returns true only when the password is correct.
+async function verifyPasswordWithStore(
+  creds: { email: string; password: string },
+  diagnostic: string
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ ...creds, diagnostic }),
+    });
+    const json = (await res.json().catch(() => null)) as { success?: boolean } | null;
+    return !!json?.success;
+  } catch {
+    return false;
+  }
 }
 
 export const SignInForm = () => {
