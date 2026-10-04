@@ -1512,6 +1512,13 @@ Deno.serve(async (req: Request) => {
           // auto-approval is on. We just need to surface that this happened.
           const custState: string | null = json?.customer?.state ?? null;
           const ordersCount: number = Number(json?.customer?.orders_count ?? 0);
+          // An "enabled" Shopify account already has a password. Soft-merging
+          // would silently drop the newly typed password (activation only
+          // works on invited/disabled accounts) and fall through to a surprise
+          // reset email. Treat it as an existing account and block instead.
+          if (custState === "enabled") {
+            alreadyApplied = true;
+          }
           if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
             isGhostShell = true;
             console.log(
@@ -1550,7 +1557,7 @@ Deno.serve(async (req: Request) => {
         payload: parseResult.data as unknown as Record<string, unknown>,
         req,
       });
-      return sendError(409, ["Customer already exists with this email address"], "Conflict", [
+      return sendError(409, ["You already have an account with this email. Please sign in with your existing password."], "Conflict", [
         {
           type: "LOGIN",
           label: "Go to Login",
