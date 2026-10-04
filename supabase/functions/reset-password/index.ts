@@ -684,6 +684,15 @@ Deno.serve(async (req) => {
 
     console.log("RESET_OK", JSON.stringify({ customerId: resetCustomerId, hasEmail: !!email }));
 
+    // Permanent record of the success, so a later "I reset it and still can't
+    // get in" support case can be checked against facts instead of guesses.
+    await recordResetFailure({
+      email: email || emailHint,
+      reason: "reset_succeeded",
+      device,
+      userAgent: req.headers.get("user-agent"),
+    });
+
     return sendSuccess(
       {
         reset: true,
