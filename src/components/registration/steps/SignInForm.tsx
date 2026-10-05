@@ -915,7 +915,11 @@ export const SignInForm = () => {
 
         {loginError && (
           <div
-            className="text-destructive text-sm text-left py-2.5 px-3 rounded-form bg-destructive/10 border border-destructive/20 w-full flex items-start gap-2"
+            className={`text-sm text-left py-2.5 px-3 rounded-form w-full flex items-start gap-2 ${
+              loginError.kind === "store_handoff"
+                ? "text-foreground bg-muted/60 border border-border"
+                : "text-destructive bg-destructive/10 border border-destructive/20"
+            }`}
             role="alert"
             aria-live="polite"
           >
@@ -976,7 +980,7 @@ export const SignInForm = () => {
           className={`w-full h-button rounded-full font-medium text-base py-3 transition-colors ${
             isLoginSuccessful
               ? "bg-success text-success-foreground hover:bg-success/90 disabled:opacity-100"
-              : hasAttemptedSubmit && loginError
+            : hasAttemptedSubmit && loginError && loginError.kind !== "store_handoff"
                 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 : "bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
           }`}
@@ -990,7 +994,7 @@ export const SignInForm = () => {
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             </>
-          ) : hasAttemptedSubmit && loginError ? (
+          ) : hasAttemptedSubmit && loginError && loginError.kind !== "store_handoff" ? (
             <>
               <AlertCircle className="w-4 h-4 mr-2" />
               Login failed
