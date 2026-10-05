@@ -10,11 +10,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Bumped by every PR that changes this function, so a probe can tell which
-// version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "A-20261005";
-const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
-
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
   return new Response(
     JSON.stringify({
@@ -25,22 +20,15 @@ function sendError(statusCode: number, errors: string[], message?: string, kind?
       error: errors[0],
       kind,
     }),
-    { status: statusCode, headers: jsonHeaders }
+    { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
 
 function sendSuccess<T>(data: T, message?: string) {
   return new Response(
     JSON.stringify({ success: true, statusCode: 200, data, message }),
-    { status: 200, headers: jsonHeaders }
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
-}
-
-// Same-site paths only: "/x" ok; "//host" and "/\host" are off-site.
-// Must match currentStorePath() in src/components/registration/steps/SignInForm.tsx:
-// a path the SPA sends that fails here is rejected with 400.
-function isSameSitePath(p: string): boolean {
-  return /^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p);
 }
 
 const bodySchema = z.object({
@@ -231,9 +219,6 @@ Deno.serve(async (req) => {
   }
 
   const { email, password, return_to } = parsed.data;
-  if (return_to && !isSameSitePath(return_to)) {
-    return sendError(400, ["Invalid return path."], "Invalid return_to", "invalid_return_to");
-  }
   const normEmail = email.trim().toLowerCase();
   const userAgent = req.headers.get("user-agent");
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
@@ -354,7 +339,10 @@ Deno.serve(async (req) => {
       email: normEmail,
       created_at: new Date().toISOString(),
     };
-    if (return_to) customerData.return_to = return_to;
+    // Same-site paths only: "/x" ok; "//host" and "/\host" are off-site.
+    if (return_to && /^\/(?![\/\\])/.test(return_to) && !/[\\\s]/.test(return_to)) {
+      customerData.return_to = return_to;
+    }
 
     const multipassUrl = await buildMultipassUrl(SHOPIFY_STORE_DOMAIN, MULTIPASS_SECRET, customerData);
 
