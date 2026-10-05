@@ -886,7 +886,7 @@ export const SignInForm = () => {
               {loginError.kind === "store_handoff" && (
                 <button
                   type="button"
-                  onClick={() => submitStoreLogin(watch("email"), watch("password"))}
+                  onClick={() => void finishSigningIn(watch("email"), watch("password"))}
                   className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
                 >
                   Finish signing in
