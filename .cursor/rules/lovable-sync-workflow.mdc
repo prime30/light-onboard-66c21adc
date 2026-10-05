@@ -38,6 +38,8 @@ This repo is two-way synced with a Lovable project. Lovable only reads and write
 1. **Edge functions do NOT redeploy on a GitHub merge (confirmed 2026-10-05, PR #5).** Production still ran the old code more than 6 minutes after the merge. After merging a change to `supabase/functions/<name>/`, ask Lovable's agent (Lovable MCP `send_message`, or the user in the editor) to deploy that function with no code changes, naming only the changed functions.
 2. **Migrations merged from GitHub: still UNVERIFIED.** Confirm on the first PR that adds one, then update this item. Until then, assume Lovable must apply it and check that the schema change actually exists.
 
+Measured on 2026-10-05 (login PR A rollback rehearsal, PRs #8 to #10): merge to new code live took 1 to 1.5 minutes each way when Lovable's agent was asked right after the merge (`send_message` with `wait: false`, then poll the header every 15 s). A function rollback is a revert PR plus that deploy request.
+
 Verify a function deploy instead of trusting the deploy message. Have the function return a version header (for example `X-Function-Version`) and check it with `curl.exe -s -D - -o NUL` against the live URL. An unauthenticated request is enough, since the 401 response carries the header too.
 
 Lovable's agent may fix unrelated build errors while it is there and commit them to `main`. Review those commits (`git log`, `git show --stat`) after each request.
