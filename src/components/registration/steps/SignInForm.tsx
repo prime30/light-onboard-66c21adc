@@ -181,31 +181,30 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         // Before telling someone their password is wrong, check it directly.
         if (isInIframe && classified?.kind === "wrong_password" && creds) {
           setIsSubmitting(true);
-          const isRetry = loginRetriedRef.current;
-          void verifyPasswordWithStore(creds, isRetry ? "parent_rejected_retry" : "parent_rejected").then(
-            (valid) => {
-              if (!valid) {
-                setIsSubmitting(false);
-                setLoginError(classified);
-                return;
-              }
-              if (!isRetry) {
-                loginRetriedRef.current = true;
-                setTimeout(() => loginRef.current?.(creds), 1500);
-                return;
-              }
-              setIsSubmitting(false);
-              // The background sign-in keeps failing even though the password
-              // is correct (usually a store bot check that a background
-              // request can't pass). Offer a real sign-in on the store page,
-              // where any check can be completed by the customer.
+          void verifyPasswordWithStore(creds, "parent_rejected").then((result) => {
+            if (result === "valid") {
+              // Password is correct but the background sign-in failed. Go
+              // straight to Multipass (no retry, no extra tap).
+              void finishSigningIn(creds.email, creds.password);
+              return;
+            }
+            setIsSubmitting(false);
+            if (result === "throttled") {
+              setLoginError({
+                kind: "rate_limited",
+                message: "Too many sign-in attempts. Please wait a minute and try again.",
+              });
+              return;
+            }
+            if (result === "error") {
               setLoginError({
                 kind: "store_handoff",
-                message:
-                  "Your password is correct. Tap below to finish signing in on the store page.",
+                message: "We couldn't reach the store. Tap below to sign in on the store page.",
               });
+              return;
             }
-          );
+            setLoginError(classified);
+          });
           return;
         }
         setLoginError(classified);
@@ -560,7 +559,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 async function verifyPasswordWithStore(
   creds: { email: string; password: string },
   diagnostic: string
-): Promise<boolean> {
+): Promise<"valid" | "invalid" | "throttled" | "error"> {
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
       method: "POST",
@@ -571,11 +570,32 @@ async function verifyPasswordWithStore(
       },
       body: JSON.stringify({ ...creds, diagnostic }),
     });
-    const json = (await res.json().catch(() => null)) as { success?: boolean } | null;
-    return !!json?.success;
+    const json = (await res.json().catch(() => null)) as { success?: boolean; kind?: string } | null;
+    if (json?.success) return "valid";
+    if (res.status === 429 || json?.kind === "rate_limited") return "throttled";
+    if (res.status === 401 || res.status === 403) return "invalid";
+    return "error";
   } catch {
-    return false;
+    return "error";
   }
+}
+
+// The page underneath the pop-up (same site), so sign-in lands back there and
+// keeps the cart. Only same-site paths are returned.
+function currentStorePath(): string {
+  const safe = (p: string) => (/^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p) ? p : "/");
+  try {
+    const loc = window.top!.location;
+    if (loc.host === "dropdeadextensions.com" || loc.host.endsWith(".dropdeadextensions.com")) {
+      const p = loc.pathname + loc.search;
+      if (!p.startsWith("/apps/apply")) return safe(p);
+    }
+  } catch { /* cross-origin */ }
+  try {
+    const ref = new URL(document.referrer);
+    if (ref.host.endsWith("dropdeadextensions.com")) return safe(ref.pathname + ref.search);
+  } catch { /* no referrer */ }
+  return "/";
 }
 
 // Real (top-level) sign-in on the store's own login page. Used when the
@@ -593,7 +613,7 @@ function submitStoreLogin(email: string, password: string) {
     utf8: "\u2713",
     "customer[email]": email,
     "customer[password]": password,
-    return_url: "/",
+    return_url: currentStorePath(),
   };
   for (const [name, value] of Object.entries(fields)) {
     const input = document.createElement("input");
@@ -619,7 +639,7 @@ async function multipassSignIn(email: string, password: string): Promise<boolean
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ email, password, return_to: "/account" }),
+      body: JSON.stringify({ email, password, return_to: currentStorePath() }),
     });
     const json = (await res.json().catch(() => null)) as
       | { success?: boolean; data?: { multipassUrl?: string } }

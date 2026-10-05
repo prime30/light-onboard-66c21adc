@@ -212,7 +212,54 @@ Deno.serve(async (req) => {
   }
 
   const { email, password, return_to } = parsed.data;
+  const normEmail = email.trim().toLowerCase();
   const userAgent = req.headers.get("user-agent");
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+
+  const SB_URL = Deno.env.get("SUPABASE_URL")!;
+  const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const sbHeaders = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
+
+  // Gate 1: only mint for an email whose password the app just confirmed as
+  // correct while the store's background sign-in failed (recorded by
+  // customer-login as login_rejected_password_valid in the last 3 minutes).
+  try {
+    const since = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+    const r = await fetch(
+      `${SB_URL}/rest/v1/registration_leads?select=reset_failure_reason,reset_failure_last_at&email=eq.${encodeURIComponent(normEmail)}&limit=1`,
+      { headers: sbHeaders }
+    );
+    const rows = (await r.json()) as Array<{ reset_failure_reason: string | null; reset_failure_last_at: string | null }>;
+    const row = rows?.[0];
+    if (!row || row.reset_failure_reason !== "login_rejected_password_valid" || !row.reset_failure_last_at || row.reset_failure_last_at < since) {
+      return sendError(403, ["Sign-in link not available."], "Not eligible", "not_eligible");
+    }
+  } catch {
+    return sendError(403, ["Sign-in link not available."], "Not eligible", "not_eligible");
+  }
+
+  // Gate 2: cap attempts per email (5/hour) and per IP (20/hour).
+  try {
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const countOf = async (filter: string) => {
+      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&created_at=gte.${hourAgo}`, {
+        headers: { ...sbHeaders, Prefer: "count=exact", Range: "0-0" },
+      });
+      const cr = r.headers.get("content-range") || "*/0";
+      return parseInt(cr.split("/")[1] || "0", 10) || 0;
+    };
+    const emailCount = await countOf(`email=eq.${encodeURIComponent(normEmail)}`);
+    const ipCount = ip ? await countOf(`ip=eq.${encodeURIComponent(ip)}`) : 0;
+    await fetch(`${SB_URL}/rest/v1/multipass_attempts`, {
+      method: "POST",
+      headers: sbHeaders,
+      body: JSON.stringify({ email: normEmail, ip, outcome: emailCount >= 5 || ipCount >= 20 ? "capped" : "attempt" }),
+    });
+    if (emailCount >= 5 || ipCount >= 20) {
+      await recordLoginOutcome({ email, reason: "multipass_capped", userAgent });
+      return sendError(429, ["Too many attempts. Please wait a while and try again."], "Rate limited", "rate_limited");
+    }
+  } catch { /* fail closed below is too strict; gate 1 already passed */ }
 
   // Step 1: verify the password against the store. Never mint a Multipass
   // URL for credentials the store itself rejects.
@@ -248,11 +295,23 @@ Deno.serve(async (req) => {
     const json = await response.json();
     const result = json.data?.customerAccessTokenCreate;
     const userErrors = result?.customerUserErrors ?? [];
+    const topErrors: Array<{ message?: string; extensions?: { code?: string } }> = json.errors ?? [];
+    const isThrottle = (code: string, msg: string) =>
+      code === "THROTTLED" || /throttl|limit exceeded|too many/i.test(msg);
+
+    if (topErrors.some((e) => isThrottle(e.extensions?.code || "", e.message || ""))) {
+      await recordLoginOutcome({ email, reason: "multipass_throttled", userAgent });
+      return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
+    }
 
     if (userErrors.length > 0) {
       const first = userErrors[0];
       const code: string = first.code || "";
       const msg: string = (first.message || "").toLowerCase();
+      if (isThrottle(code, msg)) {
+        await recordLoginOutcome({ email, reason: "multipass_throttled", code, userAgent });
+        return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
+      }
       await recordLoginOutcome({ email, reason: "multipass_rejected", code: `${code}:${(first.message || "").slice(0, 40)}`, userAgent });
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
         return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
@@ -265,15 +324,16 @@ Deno.serve(async (req) => {
 
     if (!result?.customerAccessToken?.accessToken) {
       await recordLoginOutcome({ email, reason: "multipass_no_token", userAgent });
-      return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
+      return sendError(502, ["Unable to reach the store. Please try again."], "Upstream error", "upstream");
     }
 
     // Step 2: password verified. Mint the Multipass URL.
     const customerData: Record<string, unknown> = {
-      email: email.trim().toLowerCase(),
+      email: normEmail,
       created_at: new Date().toISOString(),
     };
-    if (return_to && return_to.startsWith("/")) {
+    // Same-site paths only: "/x" ok; "//host" and "/\host" are off-site.
+    if (return_to && /^\/(?![\/\\])/.test(return_to) && !/[\\\s]/.test(return_to)) {
       customerData.return_to = return_to;
     }
 

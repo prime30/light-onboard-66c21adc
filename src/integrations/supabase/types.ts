@@ -308,6 +308,30 @@ export type Database = {
         }
         Relationships: []
       }
+      multipass_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip: string | null
+          outcome: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip?: string | null
+          outcome?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip?: string | null
+          outcome?: string | null
+        }
+        Relationships: []
+      }
       not_stylist_events: {
         Row: {
           created_at: string
