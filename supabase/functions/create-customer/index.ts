@@ -609,7 +609,18 @@ function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string |
   // Dial code path: "+1" or bare digits like "1".
   if (cc.startsWith("+") || /^\d+$/.test(cc)) {
     const code = cc.startsWith("+") ? cc : `+${cc || "1"}`;
-    return `${code}${cleanPhone}`;
+    // Users often type the country code into the number field too (e.g.
+    // "1641039779" with "+1" selected). Strip the duplicated dial code.
+    const codeDigits = code.replace(/\D/g, "");
+    let digits = cleanPhone;
+    if (
+      codeDigits &&
+      digits.startsWith(codeDigits) &&
+      digits.length - codeDigits.length >= 7
+    ) {
+      digits = digits.slice(codeDigits.length);
+    }
+    return `${code}${digits}`;
   }
   // ISO region path: let libphonenumber attach the right dial code.
   if (/^[A-Za-z]{2}$/.test(cc)) {
