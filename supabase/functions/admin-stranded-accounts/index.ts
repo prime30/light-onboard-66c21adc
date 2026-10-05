@@ -32,7 +32,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 // Bumped by every PR that changes this function, so a probe can tell whether
 // a GitHub merge actually redeployed it.
-const FUNCTION_VERSION = "diag-20261005";
+const FUNCTION_VERSION = "diag-20261005b";
 const STOREFRONT_API_VERSION = "2024-10";
 
 type Action = "audit" | "repair" | "link" | "invite" | "reset" | "sends" | "blocked";
@@ -408,7 +408,8 @@ Deno.serve(async (req: Request) => {
       .from("registration_submissions")
       .select("email, created_at")
       .eq("status", "failed")
-      .contains("error_log", [{ step: "email_already_applied" }])
+      // postgrest-js sends JS arrays as Postgres array literals; jsonb needs a JSON string.
+      .contains("error_log", JSON.stringify([{ step: "email_already_applied" }]))
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(1000);
