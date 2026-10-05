@@ -147,7 +147,7 @@
 
 **Key Rule**: Every reset email goes through `recover-password`. Do not add a second cooldown in a caller, and never send a forced reset from a customer-facing path (`force` is honored only with the service-role key).
 
-**Files**: `supabase/functions/recover-password/index.ts`, `supabase/functions/reset-password/index.ts`, `supabase/functions/admin-stranded-accounts/index.ts`, migration `20261005230000_*`
+**Files**: `supabase/functions/recover-password/index.ts`, `supabase/functions/reset-password/index.ts`, `supabase/functions/admin-stranded-accounts/index.ts`, migration `20261005224939_*`
 
 ---
 
