@@ -677,6 +677,33 @@ export type Database = {
         }
         Relationships: []
       }
+      reset_email_sends: {
+        Row: {
+          email: string
+          last_sent_at: string
+          last_source: string | null
+          prev_sent_at: string | null
+          send_count: number
+          updated_at: string
+        }
+        Insert: {
+          email: string
+          last_sent_at: string
+          last_source?: string | null
+          prev_sent_at?: string | null
+          send_count?: number
+          updated_at?: string
+        }
+        Update: {
+          email?: string
+          last_sent_at?: string
+          last_source?: string | null
+          prev_sent_at?: string | null
+          send_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_orders: {
         Row: {
           cancelled_at: string | null
@@ -778,6 +805,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_reset_send: {
+        Args: { _cooldown_seconds: number; _email: string; _source?: string }
+        Returns: string
+      }
       get_auto_approval_enabled: { Args: never; Returns: boolean }
       get_competitor_email_domains: { Args: never; Returns: string[] }
       get_discount_metafields_enabled: { Args: never; Returns: boolean }
@@ -811,6 +842,10 @@ export type Database = {
           _viewport_height?: number
           _viewport_width?: number
         }
+        Returns: undefined
+      }
+      release_reset_send: {
+        Args: { _claimed_at: string; _email: string }
         Returns: undefined
       }
     }
