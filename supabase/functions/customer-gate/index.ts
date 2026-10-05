@@ -13,7 +13,13 @@
  * client. Email is the only client-supplied input and is validated.
  */
 
-import { z } from "npm:zod@3.23.8";
+// Inlined email validation (project rule: inline schemas in edge functions,
+// no npm:zod import which the Deno check cannot resolve against package.json).
+function parseEmail(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const v = raw.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 320 ? v : null;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
