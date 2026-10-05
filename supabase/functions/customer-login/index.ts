@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "A-20261005";
+const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
+
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
   return new Response(
     JSON.stringify({
@@ -18,9 +23,24 @@ function sendError(statusCode: number, errors: string[], message?: string, kind?
     }),
     {
       status: statusCode,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: jsonHeaders,
     }
   );
+}
+
+type ShopifyError = { code?: string; message?: string; extensions?: { code?: string } };
+
+// Storefront reports throttling either as a top-level GraphQL error or as a
+// customerUserError, depending on which limiter tripped.
+function isThrottled(json: {
+  errors?: ShopifyError[];
+  data?: { customerAccessTokenCreate?: { customerUserErrors?: ShopifyError[] } };
+}): boolean {
+  const hit = (c: string, m: string) => c === "THROTTLED" || /throttl|limit exceeded|too many/i.test(m);
+  const top = json.errors ?? [];
+  const user = json.data?.customerAccessTokenCreate?.customerUserErrors ?? [];
+  return top.some((e) => hit(e.extensions?.code || "", e.message || "")) ||
+    user.some((e) => hit(e.code || "", e.message || ""));
 }
 
 function sendSuccess<T>(data: T, message?: string) {
@@ -33,7 +53,7 @@ function sendSuccess<T>(data: T, message?: string) {
     }),
     {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: jsonHeaders,
     }
   );
 }
@@ -240,6 +260,11 @@ Deno.serve(async (req) => {
 
     const json = await response.json();
 
+    if (isThrottled(json)) {
+      await recordLoginOutcome({ email, reason: "login_throttled", userAgent: req.headers.get("user-agent") });
+      return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
+    }
+
     if (json.errors?.length) {
       console.error("Storefront GraphQL errors:", JSON.stringify(json.errors));
       return sendError(400, ["Unable to log in. Please try again."], "Login failed");
@@ -247,15 +272,6 @@ Deno.serve(async (req) => {
 
     const result = json.data?.customerAccessTokenCreate;
     const userErrors = result?.customerUserErrors ?? [];
-
-    const topErrors: Array<{ message?: string; extensions?: { code?: string } }> = json.errors ?? [];
-    const isThrottle = (c: string, m: string) => c === "THROTTLED" || /throttl|limit exceeded|too many/i.test(m);
-    const throttled = topErrors.some((e) => isThrottle(e.extensions?.code || "", e.message || "")) ||
-      userErrors.some((e: { code?: string; message?: string }) => isThrottle(e.code || "", e.message || ""));
-    if (throttled) {
-      await recordLoginOutcome({ email, reason: "login_throttled", userAgent: req.headers.get("user-agent") });
-      return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
-    }
 
     if (userErrors.length > 0) {
       const first = userErrors[0];
