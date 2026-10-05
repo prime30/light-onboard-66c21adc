@@ -96,7 +96,21 @@ Deno.serve(async (req) => {
     byDevice: tally(thisWeek, "reset_failure_device_type"),
     byInAppBrowser: tally(thisWeek, "reset_failure_in_app_browser"),
     sampleEmails: thisWeek.slice(0, 10).map((r) => r.email),
+    signInLimits: { throttled: 0, capped: 0 },
   };
+
+  // Every throttled (store) and capped (our limit) sign-in is logged as its
+  // own row, so these are true counts, not last-state per customer.
+  try {
+    const countOutcome = async (outcome: string) => {
+      const r = await fetch(
+        `${supabaseUrl}/rest/v1/multipass_attempts?select=id&outcome=eq.${outcome}&created_at=gte.${weekAgo}`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: "count=exact", Range: "0-0" } },
+      );
+      return parseInt((r.headers.get("content-range") || "*/0").split("/")[1] || "0", 10) || 0;
+    };
+    report.signInLimits = { throttled: await countOutcome("throttled"), capped: await countOutcome("capped") };
+  } catch { /* leave zeros */ }
 
   // In-app webview share: an Instagram/TikTok-only spike points at the webview
   // handoff rather than the invite links themselves, so surface it in the alert.
