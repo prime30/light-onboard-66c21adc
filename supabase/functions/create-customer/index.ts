@@ -3,10 +3,15 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 
 
 // CORS headers
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "B-20261005";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 // ------------------------------------------------------------------
@@ -2320,6 +2325,8 @@ Deno.serve(async (req: Request) => {
     // null means password activation was not required for this submission.
     // When required, this must become true before we return success.
     let accountPasswordVerified: boolean | null = null;
+    // What the recover-password fallback did when direct password setup failed.
+    let activationFallback: "sent" | "recently_sent" | "failed" | null = null;
 
     // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
@@ -2723,15 +2730,25 @@ Deno.serve(async (req: Request) => {
                     apikey: serviceKey,
                     "Content-Type": "application/json",
                   },
-                  body: JSON.stringify({ email: customer.email }),
+                  body: JSON.stringify({ email: customer.email, source: "create_customer_chain_c" }),
                 });
                 if (!recoveryRes.ok) {
+                  activationFallback = "failed";
                   recordAuditFailure(
                     "activation_fallback",
                     `verified recovery HTTP ${recoveryRes.status}: ${(await recoveryRes.text()).substring(0, 200)}`
                   );
+                } else {
+                  const recoveryJson = await recoveryRes.json().catch(() => null) as { data?: { reason?: string } } | null;
+                  if (recoveryJson?.data?.reason === "recently_sent") {
+                    activationFallback = "recently_sent";
+                    recordAuditFailure("activation_fallback_recent", "reset email already sent inside the cooldown window");
+                  } else {
+                    activationFallback = "sent";
+                  }
                 }
               } catch (recoverErr) {
+                activationFallback = "failed";
                 recordAuditFailure(
                   "activation_fallback",
                   `fallback threw: ${recoverErr instanceof Error ? recoverErr.message : String(recoverErr)}`
@@ -2789,7 +2806,9 @@ Deno.serve(async (req: Request) => {
         error_log: auditErrors,
       });
       return sendError(502, [
-        "Your professional account was created, but we could not confirm your password was saved. Please contact hello@dropdeadextensions.com so we can finish setup before you try to sign in.",
+        activationFallback === "sent" || activationFallback === "recently_sent"
+          ? "Your account was created, but we couldn't set your password. We've emailed you a link to set it (check spam). Use the newest email from us."
+          : "Your professional account was created, but we could not confirm your password was saved. Please contact hello@dropdeadextensions.com so we can finish setup before you try to sign in.",
       ]);
     }
 

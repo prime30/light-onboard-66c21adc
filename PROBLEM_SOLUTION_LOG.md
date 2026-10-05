@@ -132,6 +132,25 @@
 
 ---
 
+## PSL-009: One Password Reset Email at a Time
+
+**Symptom**: Customers tapped a reset link and got "invalid or already used", even though it was the email they had just received. Repeat taps, the forgot form, activation recovery, and the self-heal in `reset-password` each sent another email, and every new Shopify reset email kills the previous link.
+
+**Root Cause**: The only cooldown lived in one caller (`reset-password` self-heal, 15 min). Every other sender called `recover-password` directly.
+
+**Fix**: `recover-password` claims a slot in `reset_email_sends` (RPC `claim_reset_send`) before any Shopify write. Inside the window (default 600 s) it answers `200 { data: { sent: false, reason: "recently_sent" } }` and sends nothing. When Shopify does not accept the send, the claim is released (`release_reset_send`). Unknown emails and failed Admin lookups never claim. If the RPC is unavailable it logs `RESET_CLAIM_UNAVAILABLE` and sends anyway. `reset-password` dead-link responses carry `freshLink: "sent" | "recently_sent" | "none"`.
+
+**Support playbook**:
+- "No reset email": check spam, then `select email, last_sent_at, last_source, send_count from reset_email_sends where email = '<email>';`. Under 10 minutes since `last_sent_at` is intended. Otherwise use Stranded Accounts "Send reset" (forced: bypasses the window, still recorded as `admin_stranded`, and replaces any outstanding link).
+- Many customers affected: set `RESET_EMAIL_COOLDOWN_SECONDS=0` in the function secrets (kill switch), then revert the PR and redeploy `recover-password`.
+- `RESET_RELEASE_FAILED` in logs: that one customer sees "recently sent" until the window ends; force-send if they are waiting.
+
+**Key Rule**: Every reset email goes through `recover-password`. Do not add a second cooldown in a caller, and never send a forced reset from a customer-facing path (`force` is honored only with the service-role key).
+
+**Files**: `supabase/functions/recover-password/index.ts`, `supabase/functions/reset-password/index.ts`, `supabase/functions/admin-stranded-accounts/index.ts`, migration `20261005230000_*`
+
+---
+
 ## Anti-Patterns to Avoid
 
 1. **Never use `opacity-0 animate-fade-in` for initial renders** - causes FOUC. Use it only for elements entering *after* user interaction.

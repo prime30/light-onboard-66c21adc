@@ -32,7 +32,7 @@ const corsHeaders = {
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 // Bumped by every PR that changes this function, so a probe can tell whether
 // a GitHub merge actually redeployed it.
-const FUNCTION_VERSION = "diag-20261005b";
+const FUNCTION_VERSION = "B-20261005";
 const STOREFRONT_API_VERSION = "2024-10";
 
 type Action = "audit" | "repair" | "link" | "invite" | "reset" | "sends" | "blocked";
@@ -249,10 +249,11 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${SERVICE_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: target }),
+        // Support sends bypass the customer cooldown; the send is still recorded.
+        body: JSON.stringify({ email: target, force: true, source: "admin_stranded" }),
       });
       const payload = await res.json().catch(() => ({}));
-      ok = res.ok && payload?.success !== false;
+      ok = res.ok && payload?.success !== false && payload?.data?.sent !== false;
       channel = payload?.data?.channel ?? channel;
       if (!ok) detail = payload?.error ?? `HTTP ${res.status}`;
     } catch (e) {
@@ -504,9 +505,11 @@ Deno.serve(async (req: Request) => {
             apikey: SERVICE_KEY,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, force: true, source: "admin_stranded" }),
         });
         if (!res.ok) return { email, ok: false, channel: "verified_recovery", detail: `HTTP ${res.status}: ${(await res.text()).slice(0, 160)}` };
+        const payload = await res.json().catch(() => null);
+        if (payload?.data?.sent === false) return { email, ok: false, channel: "verified_recovery", detail: payload?.data?.reason ?? "not_sent" };
         return { email, ok: true, channel: "verified_recovery", detail: cust.state };
       } catch (e) {
         return { email, ok: false, channel: "none", detail: e instanceof Error ? e.message : String(e) };

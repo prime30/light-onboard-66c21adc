@@ -21,7 +21,7 @@ This repo is two-way synced with a Lovable project. Lovable only reads and write
 - Force-push or rebase `main`.
 - Rename or move the GitHub repo (it breaks the Lovable link).
 - Edit files in Lovable while an open PR touches them.
-- Commit secrets. Shopify tokens and `SHOPIFY_MULTIPASS_SECRET` live in Lovable/Supabase settings. `.env` only holds public keys (`VITE_SUPABASE_*`).
+- Commit secrets. Shopify tokens and `SHOPIFY_MULTIPASS_SECRET` live in Lovable/Supabase settings. `.env` only holds public keys (`VITE_SUPABASE_*`). Local-only values (admin and test account passwords) go in `.env.local`, which is gitignored. `RESET_EMAIL_COOLDOWN_SECONDS` (function setting, default 600, `0` disables the reset email cooldown) is the reset kill switch.
 - Rewrite `mem/`. It is Lovable's memory: read it for context, don't edit it from Cursor.
 - Use em dashes or en dashes in any text (see `mem/preferences/no-em-dashes.md`).
 - Commit the test account password.
@@ -29,7 +29,7 @@ This repo is two-way synced with a Lovable project. Lovable only reads and write
 ## Testing
 
 - `npm run dev` runs the screens locally, but they call the live Supabase edge functions. A function change only takes effect after it is merged and deployed, so local runs exercise the old function code until then.
-- Sign-in test account: `dd-test-trial@example.com`. Ask the user for the password each session.
+- Sign-in test account: `newdduser@spamok.com` (a public inbox, so it is a throwaway with no wholesale access). Credentials are `TEST_ACCOUNT_EMAIL` and `TEST_ACCOUNT_PASSWORD` in `.env.local`; read them in scripts without printing them.
 
 ## Deploys
 
