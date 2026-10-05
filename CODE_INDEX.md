@@ -232,8 +232,8 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 |----------|---------|
 | `customer-login/` | Storefront password check with throttling; records login outcome reasons |
 | `multipass-login/` | Verifies password, mints a Shopify Multipass login URL |
-| `reset-password/` | Shopify reset via `customerResetByUrl` |
-| `recover-password/` | Sends a Shopify reset email (`customerRecover`) |
+| `reset-password/` | Shopify reset via `customerResetByUrl`; dead links self-heal through `recover-password` and report `freshLink` |
+| `recover-password/` | Sends a Shopify reset email (`customerRecover`). One email per address per `RESET_EMAIL_COOLDOWN_SECONDS` (default 600) via `reset_email_sends`; `force` for service-role callers only (PSL-009) |
 | `activate-account/` | Shopify account activation + storefront sign-in check |
 | `customer-gate/` | Circle/Syndicate SSO eligibility (at least 1 order) |
 | `log-reset-landing/` | Logs what arrives on the reset screen |
@@ -273,7 +273,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `admin-registration-analytics/`, `admin-registration-yoy/` | Funnel and year-over-year analytics |
 | `admin-referral-analytics/`, `admin-ads-attribution/` | Referral and ad attribution |
 | `admin-fake-account-analysis/`, `admin-competitor-attempts/` | Fraud and competitor signals |
-| `admin-stranded-accounts/` | Applicants without a usable password; reissue setup emails. Action `blocked` (read-only): applicants turned away as "already has an account", classified by Shopify state and tags |
+| `admin-stranded-accounts/` | Applicants without a usable password; reissue setup emails (forced past the reset cooldown). Action `blocked` (read-only): applicants turned away as "already has an account", classified by Shopify state and tags |
 | `admin-revoke-account/` | Reject an account and revoke B2B tags in Shopify |
 | `admin-helium-audit/`, `admin-helium-customers-range/`, `admin-backfill-helium-customers/` | Helium Customer Fields audit and backfill |
 

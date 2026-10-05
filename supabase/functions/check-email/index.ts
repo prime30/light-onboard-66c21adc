@@ -2,10 +2,15 @@
 // Returns { exists: boolean } based on a Customer Fields lookup.
 // Inlined cors + helpers per project convention.
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "B-20261005";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -223,7 +228,7 @@ Deno.serve(async (req: Request) => {
                apikey: serviceKey,
                "Content-Type": "application/json",
              },
-             body: JSON.stringify({ email }),
+             body: JSON.stringify({ email, source: "check_email" }),
            });
            inviteSent = recoveryRes.ok;
            if (!recoveryRes.ok) {

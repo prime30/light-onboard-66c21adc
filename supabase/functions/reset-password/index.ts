@@ -1,12 +1,17 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "B-20261005";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
-function sendError(statusCode: number, errors: string[], message?: string) {
+function sendError(statusCode: number, errors: string[], message?: string, extras?: Record<string, unknown>) {
   return new Response(
     JSON.stringify({
       success: false,
@@ -14,6 +19,7 @@ function sendError(statusCode: number, errors: string[], message?: string) {
       message: message || "Error",
       errorMessage: errors,
       error: errors[0],
+      ...extras,
     }),
     {
       status: statusCode,
@@ -259,35 +265,28 @@ type FailureDevice = {
 // When a reset link is rejected (already used, replaced by a newer email, or
 // expired) the customer used to hit a dead end and had to start over. Instead
 // we send a brand new link right away through the verified recovery service,
-// so the newest email in their inbox always works.
-async function sendFreshResetLink(email: string | null | undefined): Promise<boolean> {
+// so the newest email in their inbox always works. recover-password enforces
+// the one-email-per-window cooldown, so a repeat tap does not kill the link
+// that was just sent.
+async function sendFreshResetLink(email: string | null | undefined): Promise<"sent" | "recently_sent" | "failed"> {
   const normalized = (email || "").trim().toLowerCase();
-  if (!normalized) return false;
+  if (!normalized) return "failed";
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key) return false;
+  if (!url || !key) return "failed";
   try {
     const res = await fetch(`${url}/functions/v1/recover-password`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalized }),
+      body: JSON.stringify({ email: normalized, source: "reset_self_heal" }),
     });
-    console.log("RESET_FRESH_LINK_SENT", JSON.stringify({ ok: res.ok, status: res.status }));
-    if (res.ok) {
-      // Record the real send time; the cooldown reads only this column.
-      await fetch(
-        `${url}/rest/v1/registration_leads?email=eq.${encodeURIComponent(normalized)}`,
-        {
-          method: "PATCH",
-          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ fresh_reset_link_sent_at: new Date().toISOString() }),
-        },
-      ).catch(() => {});
-    }
-    return res.ok;
+    const json = await res.json().catch(() => null) as { data?: { sent?: boolean; reason?: string } } | null;
+    const outcome = !res.ok ? "failed" : json?.data?.reason === "recently_sent" ? "recently_sent" : "sent";
+    console.log("RESET_FRESH_LINK_SENT", JSON.stringify({ ok: res.ok, status: res.status, outcome }));
+    return outcome;
   } catch (err) {
     console.error("RESET_FRESH_LINK_ERROR", err instanceof Error ? err.message : String(err));
-    return false;
+    return "failed";
   }
 }
 
@@ -335,27 +334,6 @@ async function recordResetFailure(opts: {
     }
   } catch (e) {
     console.warn("record_reset_failure threw:", e);
-  }
-}
-
-// When we last actually emailed a fresh reset link to this email (ms epoch), or null.
-async function getLastResetFailureAt(email: string | null | undefined): Promise<number | null> {
-  const normalized = (email || "").trim().toLowerCase();
-  if (!normalized) return null;
-  const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key) return null;
-  try {
-    const res = await fetch(
-      `${url}/rest/v1/registration_leads?select=fresh_reset_link_sent_at&email=eq.${encodeURIComponent(normalized)}&limit=1`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
-    );
-    if (!res.ok) return null;
-    const rows = (await res.json()) as { fresh_reset_link_sent_at: string | null }[];
-    const at = rows?.[0]?.fresh_reset_link_sent_at;
-    return at ? Date.parse(at) : null;
-  } catch {
-    return null;
   }
 }
 
@@ -596,10 +574,6 @@ Deno.serve(async (req) => {
       const isExpired = msg.includes("expired") || code === "EXPIRED";
       const isDeadLink = isExpired || code === "TOKEN_INVALID" || msg.includes("invalid reset url") || msg.includes("invalid");
 
-      // Read the previous failure BEFORE recording this one, so we can tell a
-      // repeat tap apart from a first failure.
-      const previousFailureAt = isDeadLink ? await getLastResetFailureAt(emailHint) : null;
-
       await recordResetFailure({
         email: emailHint,
         reason: isExpired ? "token_expired" : "token_rejected",
@@ -610,16 +584,14 @@ Deno.serve(async (req) => {
         userAgent: req.headers.get("user-agent"),
       });
 
-      // Self-heal dead links by emailing a fresh one, but only once per 15
-      // minutes. Every new email kills the previous link, so auto-sending on
-      // every failure used to destroy the very link the customer was about to
-      // open (people tapping an older email got stuck in a loop).
-      const recentlySent =
-        !!previousFailureAt && Date.now() - previousFailureAt < 15 * 60 * 1000;
-      const freshSent = isDeadLink && !recentlySent ? await sendFreshResetLink(emailHint) : false;
-      const freshNote = freshSent
+      // Self-heal dead links by emailing a fresh one. Every new email kills the
+      // previous link; recover-password's cooldown answers "recently_sent"
+      // instead of sending again, so a repeat tap keeps the newest link alive.
+      const fresh = isDeadLink ? await sendFreshResetLink(emailHint) : "failed";
+      const freshLink = fresh === "failed" ? "none" : fresh;
+      const freshNote = fresh === "sent"
         ? " We just emailed you a fresh link. Open the newest email from us, older ones stop working."
-        : recentlySent
+        : fresh === "recently_sent"
           ? " We already emailed you a newer link a few minutes ago. Open the most recent email from us (check spam too). Older emails no longer work."
           : " Please request a new password reset.";
 
@@ -627,12 +599,12 @@ Deno.serve(async (req) => {
       if (isExpired) {
         return sendError(400, [
           `This reset link has expired.${freshNote}`,
-        ], "Link expired");
+        ], "Link expired", { freshLink });
       }
       if (isDeadLink) {
         return sendError(400, [
           `This reset link is invalid or has already been used.${freshNote}`,
-        ], "Invalid reset link");
+        ], "Invalid reset link", { freshLink });
       }
       if (code === "PASSWORD_STARTS_OR_ENDS_WITH_WHITESPACE") {
         return sendError(400, ["Password cannot start or end with whitespace."], "Invalid password");
