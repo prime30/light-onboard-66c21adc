@@ -273,7 +273,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `admin-registration-analytics/`, `admin-registration-yoy/` | Funnel and year-over-year analytics |
 | `admin-referral-analytics/`, `admin-ads-attribution/` | Referral and ad attribution |
 | `admin-fake-account-analysis/`, `admin-competitor-attempts/` | Fraud and competitor signals |
-| `admin-stranded-accounts/` | Applicants without a usable password; reissue setup emails |
+| `admin-stranded-accounts/` | Applicants without a usable password; reissue setup emails. Action `blocked` (read-only): applicants turned away as "already has an account", classified by Shopify state and tags |
 | `admin-revoke-account/` | Reject an account and revoke B2B tags in Shopify |
 | `admin-helium-audit/`, `admin-helium-customers-range/`, `admin-backfill-helium-customers/` | Helium Customer Fields audit and backfill |
 

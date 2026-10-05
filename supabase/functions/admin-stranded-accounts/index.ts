@@ -30,9 +30,12 @@ const corsHeaders = {
 };
 
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
+// Bumped by every PR that changes this function, so a probe can tell whether
+// a GitHub merge actually redeployed it.
+const FUNCTION_VERSION = "diag-20261005";
 const STOREFRONT_API_VERSION = "2024-10";
 
-type Action = "audit" | "repair" | "link" | "invite" | "reset" | "sends";
+type Action = "audit" | "repair" | "link" | "invite" | "reset" | "sends" | "blocked";
 type Scope = "flagged" | "all";
 
 interface RequestBody {
@@ -79,7 +82,7 @@ async function verifyAdminToken(token: string, secret: string): Promise<boolean>
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION },
   });
 }
 
@@ -184,7 +187,9 @@ Deno.serve(async (req: Request) => {
             ? "reset"
             : body.action === "sends"
               ? "sends"
-              : "audit";
+              : body.action === "blocked"
+                ? "blocked"
+                : "audit";
 
   // Every support-triggered email is written to admin_support_sends so repeat
   // sends to the same person are visible instead of living only in someone's
@@ -388,6 +393,94 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+
+  // ---------------- BLOCKED ----------------
+  // Read-only. Lists applicants create-customer turned away as "already has an
+  // account" (audit step email_already_applied) and what Shopify says about
+  // each one now, so we can tell returning wholesale customers (Account type
+  // tag) apart from enabled accounts that never finished our application.
+  // Makes no writes to Shopify or the database.
+  if (action === "blocked") {
+    const days = Math.min(Math.max(Number(body.days ?? 60), 1), 365);
+    const since = new Date(Date.now() - days * 86400_000).toISOString();
+
+    const { data: blockedRows, error: blockedErr } = await supabase
+      .from("registration_submissions")
+      .select("email, created_at")
+      .eq("status", "failed")
+      .contains("error_log", [{ step: "email_already_applied" }])
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    if (blockedErr) return json({ success: false, error: blockedErr.message }, 502);
+
+    const blockedAt = new Map<string, { first: string; last: string; count: number }>();
+    for (const r of (blockedRows ?? []) as Array<{ email: string; created_at: string }>) {
+      const email = (r.email ?? "").trim().toLowerCase();
+      if (!email) continue;
+      const cur = blockedAt.get(email);
+      if (!cur) blockedAt.set(email, { first: r.created_at, last: r.created_at, count: 1 });
+      else {
+        cur.count += 1;
+        if (r.created_at < cur.first) cur.first = r.created_at;
+        if (r.created_at > cur.last) cur.last = r.created_at;
+      }
+    }
+    const emails = [...blockedAt.keys()].slice(0, 200);
+
+    // Every other submission for these emails, to spot our own registrations
+    // that got far enough to create the account but never tagged it.
+    const history = new Map<string, Record<string, number>>();
+    if (emails.length) {
+      const { data: histRows } = await supabase
+        .from("registration_submissions")
+        .select("email, status, error_log")
+        .in("email", emails)
+        .limit(5000);
+      for (const h of (histRows ?? []) as Array<{ email: string; status: string; error_log: unknown }>) {
+        const log = Array.isArray(h.error_log) ? (h.error_log as Array<{ step?: string }>) : [];
+        if (log.some((l) => l.step === "email_already_applied")) continue;
+        const email = (h.email ?? "").trim().toLowerCase();
+        const counts = history.get(email) ?? {};
+        counts[h.status] = (counts[h.status] ?? 0) + 1;
+        history.set(email, counts);
+      }
+    }
+
+    const results = await mapLimited(emails, 3, async (email) => {
+      const cust = await lookupCustomer(DOMAIN, ADMIN_TOKEN, VERSION, email);
+      const tagStr = cust?.tags ?? "";
+      const hasAccountTypeTag = tagStr.split(",").some((t) => /^account type:/i.test(t.trim()));
+      const ownSubmissions = history.get(email) ?? {};
+      // Only submissions that reached Helium or Shopify could have created the account.
+      const hadOwnSubmission = ["helium_ok", "shopify_ok", "succeeded", "pending"].some((s) => (ownSubmissions[s] ?? 0) > 0);
+      const classification = !cust
+        ? "not_found"
+        : hasAccountTypeTag
+          ? "returning_wholesale"
+          : cust.state !== "enabled"
+            ? "not_enabled_should_merge"
+            : hadOwnSubmission
+              ? "enabled_untagged_our_partial_registration"
+              : "enabled_untagged_never_applied";
+      return {
+        email,
+        classification,
+        timesBlocked: blockedAt.get(email)?.count ?? 0,
+        firstBlockedAt: blockedAt.get(email)?.first ?? null,
+        lastBlockedAt: blockedAt.get(email)?.last ?? null,
+        shopifyState: cust?.state ?? "not_found",
+        shopifyCreatedAt: cust?.created_at ?? null,
+        ordersCount: cust?.orders_count ?? 0,
+        tags: tagStr.slice(0, 300),
+        ownSubmissions,
+      };
+    });
+
+    const tally: Record<string, number> = {};
+    for (const r of results) tally[r.classification] = (tally[r.classification] ?? 0) + 1;
+    return json({ success: true, action, days, blockedEmails: results.length, tally, results });
+  }
 
   // ---------------- REPAIR ----------------
   if (action === "repair") {
