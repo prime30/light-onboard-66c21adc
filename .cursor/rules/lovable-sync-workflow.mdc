@@ -17,7 +17,7 @@ This repo is two-way synced with a Lovable project. Lovable only reads and write
 
 ## Never
 
-- Push directly to `main`.
+- Push directly to `main`. Don't even commit on `main`: `.githooks/post-commit` auto-pushes `HEAD` when `core.hooksPath` points at `.githooks`.
 - Force-push or rebase `main`.
 - Rename or move the GitHub repo (it breaks the Lovable link).
 - Edit files in Lovable while an open PR touches them.
