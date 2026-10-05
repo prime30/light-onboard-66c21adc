@@ -61,7 +61,7 @@ async function hmacB64(secret: string, raw: Uint8Array): Promise<string> {
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, raw);
+  const sig = await crypto.subtle.sign("HMAC", key, raw as unknown as BufferSource);
   return btoa(String.fromCharCode(...new Uint8Array(sig)));
 }
 

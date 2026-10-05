@@ -305,7 +305,7 @@ async function uploadToStagedTarget(
   const fd = new FormData();
   // Parameters MUST come before the file part.
   for (const p of target.parameters) fd.append(p.name, p.value);
-  fd.append("file", new Blob([bytes], { type: mimeType }), filename);
+  fd.append("file", new Blob([bytes as unknown as BlobPart], { type: mimeType }), filename);
 
   let res: Response;
   try {
