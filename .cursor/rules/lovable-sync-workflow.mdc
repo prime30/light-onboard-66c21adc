@@ -1,0 +1,41 @@
+---
+description: Lovable two-way sync workflow and never-do list for this repo
+alwaysApply: true
+---
+
+# Lovable sync workflow
+
+This repo is two-way synced with a Lovable project. Lovable only reads and writes `main`, and every Lovable edit lands on `main` as a commit. Anything merged to `main` on GitHub shows up in Lovable.
+
+## Every change from Cursor
+
+1. `git checkout main && git pull` (Lovable commits constantly, so always start fresh).
+2. Create a branch, make the change, commit.
+3. `git push -u origin <branch>`, then open a PR with `gh pr create`.
+4. Merge on GitHub with squash (`gh pr merge --squash`).
+5. `git checkout main && git pull` again.
+
+## Never
+
+- Push directly to `main`. Don't even commit on `main`: `.githooks/post-commit` auto-pushes `HEAD` when `core.hooksPath` points at `.githooks`.
+- Force-push or rebase `main`.
+- Rename or move the GitHub repo (it breaks the Lovable link).
+- Edit files in Lovable while an open PR touches them.
+- Commit secrets. Shopify tokens and `SHOPIFY_MULTIPASS_SECRET` live in Lovable/Supabase settings. `.env` only holds public keys (`VITE_SUPABASE_*`).
+- Rewrite `mem/`. It is Lovable's memory: read it for context, don't edit it from Cursor.
+- Use em dashes or en dashes in any text (see `mem/preferences/no-em-dashes.md`).
+- Commit the test account password.
+
+## Testing
+
+- `npm run dev` runs the screens locally, but they call the live Supabase edge functions. A function change only takes effect after it is merged and deployed, so local runs exercise the old function code until then.
+- Sign-in test account: `dd-test-trial@example.com`. Ask the user for the password each session.
+
+## Deploys (UNVERIFIED, confirm on the first PR that touches these, then update this section)
+
+`mem/index.md` says "Frontend manual, Backend auto": the frontend goes live only when someone clicks Publish in Lovable, while backend changes deploy on their own. That describes Lovable-made edits. Still unknown for changes merged from GitHub:
+
+1. Do Supabase edge functions redeploy automatically when a change to `supabase/functions/` is merged?
+2. Are migration files merged from GitHub applied, or only migrations Lovable creates itself?
+
+Until confirmed, tell the user after merging a function or migration change that it may need a manual redeploy or apply from Lovable, and check that it actually took effect.
