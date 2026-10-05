@@ -27,9 +27,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const BodySchema = z.object({
-  email: z.string().email().max(320).transform((v) => v.trim().toLowerCase()),
-});
 
 interface ShopifyCustomerNode {
   id: string;
