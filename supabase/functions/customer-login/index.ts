@@ -298,11 +298,15 @@ Deno.serve(async (req) => {
       return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
     }
 
-    await recordLoginOutcome({
-      email,
-      reason: "login_ok",
-      userAgent: req.headers.get("user-agent"),
-    });
+    // Diagnostic calls that found a valid password already recorded
+    // "login_rejected_password_valid" above; don't overwrite it with login_ok.
+    if (!diagnostic) {
+      await recordLoginOutcome({
+        email,
+        reason: "login_ok",
+        userAgent: req.headers.get("user-agent"),
+      });
+    }
 
     return sendSuccess(
       {
