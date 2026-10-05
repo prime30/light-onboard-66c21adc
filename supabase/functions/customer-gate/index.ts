@@ -150,15 +150,15 @@ Deno.serve(async (req) => {
     );
   }
 
-  const parsed = BodySchema.safeParse(parsedBody);
-  if (!parsed.success) {
+  const email = parseEmail((parsedBody as Record<string, unknown>).email);
+  if (!email) {
     return new Response(
-      JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
+      JSON.stringify({ error: "A valid email is required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  const result = await lookupCustomer(parsed.data.email);
+  const result = await lookupCustomer(email);
 
   return new Response(JSON.stringify(result), {
     status: 200,
