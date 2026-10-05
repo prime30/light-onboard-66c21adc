@@ -18,6 +18,7 @@ interface Report {
   byDevice: Record<string, number>;
   byInAppBrowser: Record<string, number>;
   sampleEmails: string[];
+  signInLimits?: { throttled: number; capped: number };
   resetFailuresThisWeek?: number;
   activationFailuresThisWeek?: number;
   resetFailuresPriorWeek?: number;
@@ -148,6 +149,20 @@ export function ResetHealthPanel({ adminToken }: Props) {
               </p>
             </div>
           </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="rounded-[10px] border border-border/60 p-5">
+              <p className="text-xs text-muted-foreground">Throttled by the store</p>
+              <p className="text-2xl font-medium">{report.signInLimits?.throttled ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">Sign-in checks Shopify slowed down, last 7 days</p>
+            </div>
+            <div className="rounded-[10px] border border-border/60 p-5">
+              <p className="text-xs text-muted-foreground">Capped by our limit</p>
+              <p className="text-2xl font-medium">{report.signInLimits?.capped ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">Store sign-in links refused for too many tries, last 7 days</p>
+            </div>
+          </div>
+
 
           {alerted && (
             <p className="text-sm text-destructive">

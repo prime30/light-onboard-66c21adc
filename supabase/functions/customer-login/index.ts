@@ -142,6 +142,13 @@ async function recordLoginOutcome(opts: {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) return;
   try {
+    if (opts.reason.endsWith("_throttled")) {
+      await fetch(`${url}/rest/v1/multipass_attempts`, {
+        method: "POST",
+        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: opts.email.trim().toLowerCase(), outcome: "throttled" }),
+      }).catch(() => {});
+    }
     await fetch(`${url}/rest/v1/rpc/record_reset_failure`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

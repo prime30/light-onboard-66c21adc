@@ -179,9 +179,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         // The storefront answers "Invalid email or password" for ANY failed
         // login (throttling, bot checks, network), not only a wrong password.
         // Before telling someone their password is wrong, check it directly.
-        if (isInIframe && classified?.kind === "wrong_password" && creds) {
+        const isChallenge = message.reason === "challenge";
+        if (isInIframe && (isChallenge || classified?.kind === "wrong_password") && creds) {
           setIsSubmitting(true);
-          void verifyPasswordWithStore(creds, "parent_rejected").then((result) => {
+          void verifyPasswordWithStore(creds, isChallenge ? "parent_challenge" : "parent_rejected").then((result) => {
             if (result === "valid") {
               // Password is correct but the background sign-in failed. Go
               // straight to Multipass (no retry, no extra tap).

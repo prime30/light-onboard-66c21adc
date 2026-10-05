@@ -76,6 +76,9 @@ export type FormUpdateData =
   | {
       status: "error";
       message: string;
+      // Machine-readable cause from the theme. "challenge" = the store showed
+      // its bot check, so a background sign-in can't finish.
+      reason?: "challenge" | "invalid_credentials" | "throttled" | "unactivated" | "store_error" | string;
     };
 
 type UseCustomerLoginProps = {
