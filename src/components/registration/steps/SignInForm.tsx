@@ -606,6 +606,44 @@ function submitStoreLogin(email: string, password: string) {
   form.submit();
 }
 
+// Multipass sign-in: the backend verifies the password, then mints a signed
+// store URL that logs the customer in directly. No storefront form, so no
+// bot/human check can block it. Returns false when Multipass is not
+// configured or the mint fails, so callers can fall back to the form.
+async function multipassSignIn(email: string, password: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ email, password, return_to: "/account" }),
+    });
+    const json = (await res.json().catch(() => null)) as
+      | { success?: boolean; data?: { multipassUrl?: string } }
+      | null;
+    const url = json?.data?.multipassUrl;
+    if (!json?.success || !url) return false;
+    try {
+      window.top!.location.href = url;
+    } catch {
+      window.location.href = url;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Finish a verified-correct sign-in: prefer Multipass (no human check),
+// fall back to the store's own login form.
+async function finishSigningIn(email: string, password: string) {
+  const ok = await multipassSignIn(email, password);
+  if (!ok) submitStoreLogin(email, password);
+}
+
 export const SignInForm = () => {
   const navigate = useNavigate();
   const { email, ssoContext } = useGlobalApp();
