@@ -20,6 +20,7 @@ interface RequestBody {
   orderVolumeStepEnabled?: boolean;
   businessLocationStepEnabled?: boolean;
   preferredMethodStepEnabled?: boolean;
+  referralStepEnabled?: boolean;
   summaryStepEnabled?: boolean;
   gatedOfferEnabled?: boolean;
   welcomeOfferStepEnabled?: boolean;

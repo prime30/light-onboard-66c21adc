@@ -137,10 +137,7 @@ type CustomerNode = {
   endsAtMetafield: { value: string } | null;
 };
 
-async function listRecentActivations(
-  createdDays: number,
-  updatedHours: number
-): Promise<Array<{
+type RecentActivation = {
   id: string;
   numericId: number;
   email: string | null;
@@ -151,7 +148,14 @@ async function listRecentActivations(
   existingCode: string | null;
   existingEndsAt: string | null;
   hasUnexpiredCode: boolean;
-}>> {
+};
+
+// Named return type (not ReturnType<typeof fn>) so the function's type is not
+// circular with the `out` array declared inside it.
+async function listRecentActivations(
+  createdDays: number,
+  updatedHours: number
+): Promise<RecentActivation[]> {
   const createdSinceMs = Date.now() - createdDays * 24 * 60 * 60 * 1000;
   const updatedSinceMs = Date.now() - updatedHours * 60 * 60 * 1000;
   const createdSince = new Date(createdSinceMs).toISOString();
@@ -161,17 +165,22 @@ async function listRecentActivations(
   // Exclude customers already tagged with the color ring tag.
   const queryStr = `state:enabled AND created_at:>'${createdSince}' AND updated_at:>'${updatedSince}' AND NOT tag:'has color ring'`;
 
-  const out: Awaited<ReturnType<typeof listRecentActivations>> = [];
+  const out: RecentActivation[] = [];
   let after: string | null = null;
   const now = Date.now();
   // Hard cap: 5 pages × 100 = 500 customers per backfill run.
   for (let page = 0; page < 5; page++) {
-    const res = await shopifyGraphQL<{
+    type CustomersPage = {
       customers: {
         pageInfo: { hasNextPage: boolean; endCursor: string | null };
         nodes: CustomerNode[];
       };
-    }>(LIST_QUERY, { query: queryStr, first: 100, after }, "recentActivations");
+    };
+    const res: ShopifyResponse<CustomersPage> = await shopifyGraphQL<CustomersPage>(
+      LIST_QUERY,
+      { query: queryStr, first: 100, after },
+      "recentActivations"
+    );
 
     const nodes = res.data?.customers?.nodes ?? [];
     for (const c of nodes) {

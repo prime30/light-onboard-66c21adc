@@ -13,7 +13,13 @@
  * client. Email is the only client-supplied input and is validated.
  */
 
-import { z } from "npm:zod@3.23.8";
+// Inlined email validation (project rule: inline schemas in edge functions,
+// no npm:zod import which the Deno check cannot resolve against package.json).
+function parseEmail(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const v = raw.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 320 ? v : null;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,9 +27,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const BodySchema = z.object({
-  email: z.string().email().max(320).transform((v) => v.trim().toLowerCase()),
-});
 
 interface ShopifyCustomerNode {
   id: string;
@@ -147,15 +150,15 @@ Deno.serve(async (req) => {
     );
   }
 
-  const parsed = BodySchema.safeParse(parsedBody);
-  if (!parsed.success) {
+  const email = parseEmail((parsedBody as Record<string, unknown>).email);
+  if (!email) {
     return new Response(
-      JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
+      JSON.stringify({ error: "A valid email is required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  const result = await lookupCustomer(parsed.data.email);
+  const result = await lookupCustomer(email);
 
   return new Response(JSON.stringify(result), {
     status: 200,
