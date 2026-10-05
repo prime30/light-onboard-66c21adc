@@ -583,6 +583,8 @@ async function verifyPasswordWithStore(
 
 // The page underneath the pop-up (same site), so sign-in lands back there and
 // keeps the cart. Only same-site paths are returned.
+// Must match isSameSitePath() in supabase/functions/multipass-login/index.ts:
+// the server rejects any return_to that fails its check with 400.
 function currentStorePath(): string {
   const safe = (p: string) => (/^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p) ? p : "/");
   try {
