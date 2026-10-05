@@ -170,12 +170,17 @@ async function listRecentActivations(
   const now = Date.now();
   // Hard cap: 5 pages × 100 = 500 customers per backfill run.
   for (let page = 0; page < 5; page++) {
-    const res = await shopifyGraphQL<{
+    type CustomersPage = {
       customers: {
         pageInfo: { hasNextPage: boolean; endCursor: string | null };
         nodes: CustomerNode[];
       };
-    }>(LIST_QUERY, { query: queryStr, first: 100, after }, "recentActivations");
+    };
+    const res: ShopifyResponse<CustomersPage> = await shopifyGraphQL<CustomersPage>(
+      LIST_QUERY,
+      { query: queryStr, first: 100, after },
+      "recentActivations"
+    );
 
     const nodes = res.data?.customers?.nodes ?? [];
     for (const c of nodes) {
