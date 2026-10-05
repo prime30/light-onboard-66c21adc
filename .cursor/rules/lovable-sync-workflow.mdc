@@ -31,11 +31,13 @@ This repo is two-way synced with a Lovable project. Lovable only reads and write
 - `npm run dev` runs the screens locally, but they call the live Supabase edge functions. A function change only takes effect after it is merged and deployed, so local runs exercise the old function code until then.
 - Sign-in test account: `dd-test-trial@example.com`. Ask the user for the password each session.
 
-## Deploys (UNVERIFIED, confirm on the first PR that touches these, then update this section)
+## Deploys
 
-`mem/index.md` says "Frontend manual, Backend auto": the frontend goes live only when someone clicks Publish in Lovable, while backend changes deploy on their own. That describes Lovable-made edits. Still unknown for changes merged from GitHub:
+`mem/index.md` says "Frontend manual, Backend auto": the frontend goes live only when someone clicks Publish in Lovable, while backend changes deploy on their own. That describes Lovable-made edits. For changes merged from GitHub:
 
-1. Do Supabase edge functions redeploy automatically when a change to `supabase/functions/` is merged?
-2. Are migration files merged from GitHub applied, or only migrations Lovable creates itself?
+1. **Edge functions do NOT redeploy on a GitHub merge (confirmed 2026-10-05, PR #5).** Production still ran the old code more than 6 minutes after the merge. After merging a change to `supabase/functions/<name>/`, ask Lovable's agent (Lovable MCP `send_message`, or the user in the editor) to deploy that function with no code changes, naming only the changed functions.
+2. **Migrations merged from GitHub: still UNVERIFIED.** Confirm on the first PR that adds one, then update this item. Until then, assume Lovable must apply it and check that the schema change actually exists.
 
-Until confirmed, tell the user after merging a function or migration change that it may need a manual redeploy or apply from Lovable, and check that it actually took effect.
+Verify a function deploy instead of trusting the deploy message. Have the function return a version header (for example `X-Function-Version`) and check it with `curl.exe -s -D - -o NUL` against the live URL. An unauthenticated request is enough, since the 401 response carries the header too.
+
+Lovable's agent may fix unrelated build errors while it is there and commit them to `main`. Review those commits (`git log`, `git show --stat`) after each request.
