@@ -165,7 +165,7 @@ async function listRecentActivations(
   // Exclude customers already tagged with the color ring tag.
   const queryStr = `state:enabled AND created_at:>'${createdSince}' AND updated_at:>'${updatedSince}' AND NOT tag:'has color ring'`;
 
-  const out: Awaited<ReturnType<typeof listRecentActivations>> = [];
+  const out: RecentActivation[] = [];
   let after: string | null = null;
   const now = Date.now();
   // Hard cap: 5 pages × 100 = 500 customers per backfill run.
