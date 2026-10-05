@@ -2,7 +2,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "B-20261005";
+const FUNCTION_VERSION = "B2-20261005";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -319,6 +319,12 @@ Deno.serve(async (req) => {
     const json = await response.json();
     if (json.errors?.length) {
       console.error("Storefront GraphQL errors for", email, ":", JSON.stringify(json.errors));
+      // Shopify's per-address reset limit arrives here as a top-level error
+      // ("Resetting password limit exceeded", code THROTTLED): nothing was sent.
+      const throttledTop = json.errors.some((e: { message?: string; extensions?: { code?: string } }) =>
+        e.extensions?.code === "THROTTLED" || /throttl|limit exceeded/i.test(e.message || "")
+      );
+      if (throttledTop) return sendError(429, ["Too many requests. Please wait a moment before trying again."], "Rate limited");
       return sendSuccess({ sent: true }, "If an account exists, a reset email has been sent.");
     }
 
