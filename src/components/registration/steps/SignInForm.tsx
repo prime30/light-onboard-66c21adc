@@ -994,7 +994,7 @@ export const SignInForm = () => {
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             </>
-          ) : hasAttemptedSubmit && loginError ? (
+          ) : hasAttemptedSubmit && loginError && loginError.kind !== "store_handoff" ? (
             <>
               <AlertCircle className="w-4 h-4 mr-2" />
               Login failed
