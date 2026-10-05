@@ -1,0 +1,14 @@
+---
+description: Boundary between this app and the Shopify theme repo that hosts it
+alwaysApply: true
+---
+
+# Theme boundary
+
+The Shopify theme that hosts this app in an iframe is a separate repo at `C:\Users\alexm\dawn-migration`.
+
+- **Read-only from here.** Read theme files for context, never edit, commit, or push in that repo from this workspace.
+- **The postMessage contract lives in the theme repo:** `C:\Users\alexm\dawn-migration\docs\contracts\apply-spa-login-handoff.md`. It is the source of truth for messages between the app and the theme (`USER_LOGIN`, `LOGIN_STATUS` with its `reason` field, `CLOSE_IFRAME`, and the rest). Read it before touching any of those messages.
+- **App side of the contract:** `src/hooks/messages.ts`, `src/hooks/use-iframe-comm.ts`, `src/data/allowed-origins.ts`, and the forms that sign people in (`SignInForm.tsx`, `ResetPasswordForm.tsx`, `ActivateAccountForm.tsx`, `FormDataContext.tsx`).
+- **Change the contract only together with the theme side.** If a change adds, removes, renames, or reshapes a message or field, stop and tell the user: the theme and the contract doc must be updated in the theme repo as a matching change. Don't ship a one-sided contract change.
+- If this repo's code and the contract doc disagree, the doc wins. Report the mismatch instead of "fixing" the doc from here.
