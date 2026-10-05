@@ -241,10 +241,20 @@ Deno.serve(async (req) => {
     const result = json.data?.customerAccessTokenCreate;
     const userErrors = result?.customerUserErrors ?? [];
 
+    const topErrors: Array<{ message?: string; extensions?: { code?: string } }> = json.errors ?? [];
+    const isThrottle = (c: string, m: string) => c === "THROTTLED" || /throttl|limit exceeded|too many/i.test(m);
+    const throttled = topErrors.some((e) => isThrottle(e.extensions?.code || "", e.message || "")) ||
+      userErrors.some((e: { code?: string; message?: string }) => isThrottle(e.code || "", e.message || ""));
+    if (throttled) {
+      await recordLoginOutcome({ email, reason: "login_throttled", userAgent: req.headers.get("user-agent") });
+      return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
+    }
+
     if (userErrors.length > 0) {
       const first = userErrors[0];
       const code: string = first.code || "";
       const msg: string = (first.message || "").toLowerCase();
+
 
       if (diagnostic) console.log("LOGIN_DIAG_REJECTED", JSON.stringify({ diagnostic, code }));
       await recordLoginOutcome({
@@ -295,7 +305,7 @@ Deno.serve(async (req) => {
         reason: "login_no_token",
         userAgent: req.headers.get("user-agent"),
       });
-      return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
+      return sendError(502, ["Unable to reach the store. Please try again."], "Upstream error", "upstream");
     }
 
     // Diagnostic calls that found a valid password already recorded
