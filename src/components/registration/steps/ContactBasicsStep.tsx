@@ -20,7 +20,7 @@ import { countries } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { AccountTypeForm } from "./AccountTypeForm";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
-import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { formatPhoneNumber, isNanpPhoneCountry, normalizeEmailInput } from "@/lib/validations/form-utils";
 import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "@/lib/validations/competitor-email-domains";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoApproval, useBusinessLocationStepEnabled } from "@/lib/app-settings";
@@ -133,7 +133,7 @@ export const ContactBasicsStep = () => {
 
   // Debounced check: does an account already exist with this email?
   const email = watch("email");
-  const normalizedEmail = (email ?? "").trim().toLowerCase();
+  const normalizedEmail = normalizeEmailInput(email ?? "").toLowerCase();
   const matchingEmailConflict = emailConflict?.email === normalizedEmail ? emailConflict : null;
   const emailDisplayError = errors.email || (
     matchingEmailConflict
@@ -143,7 +143,7 @@ export const ContactBasicsStep = () => {
   const lastCheckedRef = useRef<string | null>(null);
   const lastTrackedLeadRef = useRef<string | null>(null);
   useEffect(() => {
-    const value = (email ?? "").trim().toLowerCase();
+    const value = normalizeEmailInput(email ?? "").toLowerCase();
     if (emailConflict && emailConflict.email !== value) {
       setEmailConflict(null);
       if (errors.email?.type === "manual") clearErrors("email");
@@ -231,7 +231,7 @@ export const ContactBasicsStep = () => {
         });
         if (error) return;
         lastCheckedRef.current = value;
-        const current = (watch("email") ?? "").trim().toLowerCase();
+        const current = normalizeEmailInput(watch("email") ?? "").toLowerCase();
         if (current !== value) return;
         cacheSet(cacheKey, data ?? {});
         applyResult(
@@ -612,7 +612,11 @@ export const ContactBasicsStep = () => {
             isValid={getValidationStatus("email") === "complete" && !matchingEmailConflict}
             prefixIcon={<EmailPrefixIcon emailError={!!emailDisplayError} />}
             onBlur={(event) => {
-              const value = (event.target.value ?? "").trim().toLowerCase();
+              const raw = event.target.value ?? "";
+              const value = normalizeEmailInput(raw).toLowerCase();
+              if (value !== raw.trim().toLowerCase()) {
+                setValue("email", normalizeEmailInput(raw), { shouldValidate: true });
+              }
               if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
               if (lastTrackedLeadRef.current === value) return;
               lastTrackedLeadRef.current = value;
@@ -708,13 +712,13 @@ export const ContactBasicsStep = () => {
                 type="tel"
                 register={register}
                 error={errors.phoneNumber}
-                placeholder="(555) 123-4567"
+                placeholder={isNanpPhoneCountry(phoneCountryCode) ? "(555) 123-4567" : "Mobile number"}
                 autoComplete="tel-national"
                 inputMode="tel"
                 isValid={getValidationStatus("phoneNumber") === "complete"}
                 prefixIcon={<PhonePrefixIcon error={!!errors.phoneNumber} />}
                 onBlur={(event) => {
-                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                  setValue("phoneNumber", formatPhoneNumber(event.target.value, phoneCountryCode));
                 }}
               />
             </div>

@@ -204,11 +204,12 @@ export function StepProvider({ children }: StepProviderProps) {
         // to. Gate Continue on the same rule so users can't advance with
         // a checked SMS box and an empty/invalid number.
         if (step === "preferences" || step === "welcome-offer") {
-          const { acceptsSmsMarketing, phoneNumber } = values as {
+          const { acceptsSmsMarketing, phoneNumber, phoneCountryCode } = values as {
             acceptsSmsMarketing?: boolean;
             phoneNumber?: string;
+            phoneCountryCode?: string;
           };
-          if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+          if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "", phoneCountryCode)) {
             return false;
           }
         }
@@ -385,11 +386,12 @@ export function StepProvider({ children }: StepProviderProps) {
     }
 
     if (currentStep === "preferences" || currentStep === "welcome-offer") {
-      const { acceptsSmsMarketing, phoneNumber } = watch() as {
+      const { acceptsSmsMarketing, phoneNumber, phoneCountryCode } = watch() as {
         acceptsSmsMarketing?: boolean;
         phoneNumber?: string;
+        phoneCountryCode?: string;
       };
-      if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "")) {
+      if (acceptsSmsMarketing && !isValidPhoneNumber(phoneNumber ?? "", phoneCountryCode)) {
         setShowValidationErrors(true);
         toast({
           title: "Please add a valid phone number for SMS updates",

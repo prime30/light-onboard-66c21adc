@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { countryCodes } from "../../data/country-codes.ts";
-import { formatPhoneNumber } from "./form-utils.ts";
+import { isValidPhoneNumber, normalizeEmailInput } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
 import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "./competitor-email-domains.ts";
@@ -69,9 +69,12 @@ export type FileUploadField = z.Infer<ReturnType<typeof fileUploadSchema>>;
 // Phone number validation - allow common separators and an optional leading "+".
 // Pasting "+1 (415) 555-1212" or "+44 20 7946 0958" should pass.
 const phoneRegex = /^\+?[\d\s\-().]+$/;
-const isValidPhoneNumber = (phone: string): boolean => {
+// Field-level bound only. The exact rule depends on the phone country (+1 needs
+// 10 digits), so it is checked where both fields are visible: the superRefine
+// below and getStepSchema("contact-basics").
+const isPlausiblePhoneLength = (phone: string): boolean => {
   const digits = phone.replace(/\D/g, "");
-  return digits.length >= 10 && digits.length <= 15;
+  return digits.length >= 7 && digits.length <= 15;
 };
 
 // Zip / postal code patterns per country. Falls back to a permissive
@@ -178,8 +181,8 @@ const contactBasicsValidators = {
     .optional(),
   email: z
     .string({ error: "Please enter a valid email address" })
+    .overwrite(normalizeEmailInput)
     .email("Please enter a valid email address")
-    .trim()
     .max(255, "Email must be less than 255 characters")
     .transform((val) => val.toLowerCase())
     .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE)
@@ -188,8 +191,8 @@ const contactBasicsValidators = {
     .string({ error: "Phone number is required" })
     .min(1, "Phone number is required")
     .refine((val) => phoneRegex.test(val), "Please enter a valid phone number")
-    .refine((val) => isValidPhoneNumber(val), "Please enter a valid phone number")
-    .transform((val) => formatPhoneNumber(val)),
+    .refine((val) => isPlausiblePhoneLength(val), "Please enter a valid phone number")
+    .transform((val) => val.trim()),
   phoneCountryCode: z
     .string({ error: "Country code is required" })
     .min(1, "Country code is required")
@@ -597,7 +600,23 @@ export const registrationSchema = z
         path: ["taxExemptFile"],
       });
     }
-  });
+  })
+  // Country-aware phone length (+1 needs exactly 10 digits). `when` makes it run
+  // while other steps are still empty, so the field shows the error as people type.
+  .refine(
+    (data) => {
+      const d = data as { phoneNumber?: string; phoneCountryCode?: string };
+      return !d.phoneNumber || isValidPhoneNumber(d.phoneNumber, d.phoneCountryCode);
+    },
+    {
+      message: "Please enter a valid phone number",
+      path: ["phoneNumber"],
+      when: (payload) => {
+        const v = payload.value as { phoneNumber?: unknown } | undefined;
+        return typeof v?.phoneNumber === "string" && v.phoneNumber.trim() !== "";
+      },
+    }
+  );
 
 // Type exports for each account type
 export type RegistrationFormData = z.infer<typeof registrationSchema>;

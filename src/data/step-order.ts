@@ -16,6 +16,7 @@ import {
   welcomeOfferSchema,
 } from "@/lib/validations/auth-schemas";
 import type { Step, AccountType } from "@/types/auth";
+import { isValidPhoneNumber } from "@/lib/validations/form-utils";
 import { ZodObject } from "zod";
 
 /**
@@ -198,6 +199,13 @@ export function getStepSchema(step: Step, accountType: AccountType): ZodObject |
     return contactBasicsStepSchema
       .extend({ ...accountTypeSchema.shape, ...taxExemptionSchema.shape })
       .superRefine((data, ctx) => {
+        if (data.phoneNumber && !isValidPhoneNumber(data.phoneNumber, data.phoneCountryCode)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please enter a valid phone number",
+            path: ["phoneNumber"],
+          });
+        }
         const files = data.taxExemptFile;
         if (data.taxExempt && (!Array.isArray(files) || files.length === 0)) {
           ctx.addIssue({

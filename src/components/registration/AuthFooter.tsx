@@ -11,7 +11,7 @@ import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "
 import { useCloseIframe } from "@/hooks/messages";
 import { supabase } from "@/integrations/supabase/client";
 import { buildRegistrationCloseExtras } from "@/lib/founder-call-eligibility";
-import { isValidPhoneNumber } from "@/lib/validations/form-utils";
+import { isValidPhoneNumber, normalizeEmailInput } from "@/lib/validations/form-utils";
 import { toast } from "sonner";
 
 interface AuthFooterProps {
@@ -252,7 +252,7 @@ export function AuthFooter({
   // animation or the late password step and hits a hard server error there.
   type PreflightConflict = { field: "email" | "phoneNumber"; message: string };
   const runConflictPreflight = useCallback(async (): Promise<PreflightConflict | null> => {
-    const email = ((watch("email") as string | undefined) ?? "").trim().toLowerCase();
+    const email = normalizeEmailInput((watch("email") as string | undefined) ?? "").toLowerCase();
     const phoneNumber = String(watch("phoneNumber") ?? "");
     const phoneCountryCode = String(watch("phoneCountryCode") ?? "");
     const emailReq = email
@@ -328,7 +328,7 @@ export function AuthFooter({
       if (currentStep === "preferences") {
         const sms = watch("acceptsSmsMarketing") as boolean | undefined;
         const phone = watch("phoneNumber") as string | undefined;
-        if (sms && !isValidPhoneNumber(phone ?? "")) {
+        if (sms && !isValidPhoneNumber(phone ?? "", watch("phoneCountryCode") as string | undefined)) {
           toast.error("Please add a valid phone number for SMS updates", {
             description: "Or uncheck the SMS opt-in to continue.",
           });
