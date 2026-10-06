@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "T1-20261006";
+const FUNCTION_VERSION = "T2-20261006";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1162,7 +1162,7 @@ Deno.serve(async (req: Request) => {
     console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt, formElapsedMs });
     notifyBlocked("timing", { elapsed, formStartedAt, formElapsedMs }, requestBody);
     return sendError(400, [
-      "Your application was submitted before the page finished loading, so we couldn't process it (error SPAM-TIME). Please refresh the page and press Submit again. If it keeps happening, email hello@dropdeadextensions.com and we'll finish your application for you.",
+      "Something went wrong submitting your application (error SPAM-TIME). Please email hello@dropdeadextensions.com with this code and we'll help you finish.",
     ]);
   }
 
