@@ -19,7 +19,7 @@ import { LoginFormData, loginSchema } from "@/lib/validations/auth-schemas";
 import { dirtyFieldOptions } from "../context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { FormUpdateData, useCustomerLogin } from "@/hooks/messages";
 import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
@@ -77,6 +77,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   // Drives the destructive button state - we only want to show "Login failed"
   // styling after a real submission attempt, not from background prechecks.
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  // `/login?forgot=1` (reset-link recovery, "already have an account" Reset
+  // password) must paint the forgot view first, not slide in from login.
+  const [searchParams] = useSearchParams();
+  const forgotParam = searchParams.get("forgot") === "1";
 
   const { register, watch, setValue, formState, handleSubmit, setError, clearErrors, subscribe } =
     useForm<z.Infer<typeof loginSchema>>({
@@ -84,11 +88,18 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       defaultValues: {
         email: "",
         password: "",
-        formType: "login",
+        formType: forgotParam ? "forgot_password" : "login",
       },
       resolver: zodResolver(loginSchema),
     });
   const { errors } = formState;
+
+  // Same-instance navigation to `/login?forgot=1` (theme NAVIGATE while
+  // already on /login). Only acts when the param turns on, so an in-page
+  // "Back to login" is never reverted.
+  useEffect(() => {
+    if (forgotParam) setValue("formType", "forgot_password");
+  }, [forgotParam, setValue]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -702,7 +713,7 @@ export const SignInForm = () => {
   }, []);
 
   useEffect(() => {
-    register("formType", { value: "login" });
+    register("formType");
   }, [register]);
 
   const showForgotPassword = watch("formType") === "forgot_password";

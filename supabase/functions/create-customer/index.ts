@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "B-20261005";
+const FUNCTION_VERSION = "C-20261005";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,6 +122,20 @@ function sendError(
       status: statusCode,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     }
+  );
+}
+
+// An enabled Shopify account already has a password. The applicant signs in
+// or resets it; resubmitting would re-merge the data and get the same 409.
+function sendAlreadyHasAccount() {
+  return sendError(
+    409,
+    ["You already have a Drop Dead account with this email. Sign in with your existing password, or reset it."],
+    "Conflict",
+    [
+      { type: "LOGIN", label: "Sign in", url: "/login" },
+      { type: "RESET_PASSWORD", label: "Reset password", url: "/login?forgot=1" },
+    ]
   );
 }
 
@@ -1485,6 +1499,36 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Helium has the customer but no shopify_id yet. Without the Shopify id the
+  // enabled-account check below is skipped and the application soft-merges,
+  // later falling through to a surprise reset email. Only the Shopify id is
+  // set: the soft-merge target must stay the Helium id.
+  if (existingCustomer && !existingShopifyId && shopifyDomain && shopifyAdminToken) {
+    try {
+      const sres = await fetch(
+        `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
+          `email:${requestBody.data.email}`
+        )}&fields=id,state`,
+        {
+          method: "GET",
+          headers: {
+            "X-Shopify-Access-Token": shopifyAdminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (sres.ok) {
+        const sjson = await sres.json();
+        const sCust = sjson?.customers?.[0];
+        if (sCust?.id) existingShopifyId = sCust.id;
+      } else {
+        console.warn("Shopify search for Helium record without shopify_id failed:", sres.status);
+      }
+    } catch (e) {
+      console.warn("Shopify search for Helium record without shopify_id threw (non-blocking):", e);
+    }
+  }
+
   // If a customer already exists, decide whether to soft-merge or block.
   // We treat the presence of an "Account type:" Shopify tag as proof the
   // customer has already completed a B2B application. Anything else
@@ -1496,6 +1540,7 @@ Deno.serve(async (req: Request) => {
   let isGhostShell = false;
   if (existingCustomerId) {
     let alreadyApplied = false;
+    let blockReason = "";
     if (existingShopifyId && shopifyDomain && shopifyAdminToken) {
       try {
         const tagRes = await fetch(
@@ -1513,6 +1558,7 @@ Deno.serve(async (req: Request) => {
           const tagStr: string = json?.customer?.tags ?? "";
           const tagList = tagStr.split(",").map((t: string) => t.trim());
           alreadyApplied = tagList.some((t: string) => /^account type:/i.test(t));
+          if (alreadyApplied) blockReason = "account type tag";
 
           // Ghost-shell detection: third-party apps (Smile.io, Klaviyo,
           // Yotpo, Loox) auto-provision Shopify customers in state=disabled
@@ -1534,6 +1580,7 @@ Deno.serve(async (req: Request) => {
           // reset email. Treat it as an existing account and block instead.
           if (custState === "enabled") {
             alreadyApplied = true;
+            blockReason = blockReason ? `${blockReason}, enabled` : "enabled";
           }
           if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
             isGhostShell = true;
@@ -1569,17 +1616,11 @@ Deno.serve(async (req: Request) => {
         accountType: parseResult.data.accountType,
         step: "email_already_applied",
         field: "email",
-        message: "Customer already has a prior application",
+        message: `Customer already has a prior application (${blockReason})`,
         payload: parseResult.data as unknown as Record<string, unknown>,
         req,
       });
-      return sendError(409, ["You already have an account with this email. Please sign in with your existing password."], "Conflict", [
-        {
-          type: "LOGIN",
-          label: "Go to Login",
-          url: "/login",
-        },
-      ]);
+      return sendAlreadyHasAccount();
     }
 
     console.log(
@@ -2327,6 +2368,8 @@ Deno.serve(async (req: Request) => {
     let accountPasswordVerified: boolean | null = null;
     // What the recover-password fallback did when direct password setup failed.
     let activationFallback: "sent" | "recently_sent" | "failed" | null = null;
+    // Chain C found the account already enabled: answer the guard's 409.
+    let alreadyEnabledConflict = false;
 
     // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
@@ -2712,13 +2755,40 @@ Deno.serve(async (req: Request) => {
               const txt = await urlRes.text();
               activationFailureDetail = `account_activation_url fetch returned ${urlRes.status}: ${txt.substring(0, 200)}`;
               recordAuditFailure("auto_activation", activationFailureDetail);
+              // Shopify refuses an activation URL for an account that already
+              // has a password. That customer must sign in or reset, never
+              // get a reset email they didn't ask for.
+              try {
+                const stateRes = await shopifyFetch(
+                  `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,state`,
+                  {
+                    method: "GET",
+                    headers: {
+                      "X-Shopify-Access-Token": shopifyAdminToken,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+                if (stateRes.ok) {
+                  const stateJson = await stateRes.json();
+                  if (stateJson?.customer?.state === "enabled") {
+                    alreadyEnabledConflict = true;
+                    recordAuditFailure(
+                      "email_already_applied_late",
+                      "Customer already has a prior application (enabled, found at activation)"
+                    );
+                  }
+                }
+              } catch (stateErr) {
+                console.warn("Customer state check after activation URL failure threw:", stateErr);
+              }
             }
 
             // If direct password setup failed, send the customer through the
             // verified recovery function. That function prepares and verifies
             // invited/disabled accounts before sending a reset email. It never
             // uses the broken storefront account-invite template.
-            if (!activated) {
+            if (!activated && !alreadyEnabledConflict) {
               try {
                 const backendUrl = Deno.env.get("SUPABASE_URL");
                 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -2794,6 +2864,11 @@ Deno.serve(async (req: Request) => {
     // Wait for all independent tails to complete before finalizing
     // the audit row. allSettled - one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
+
+    if (alreadyEnabledConflict) {
+      await updateAuditRow({ status: "failed", error_log: auditErrors });
+      return sendAlreadyHasAccount();
+    }
 
     // A completed registration must never be reported when the customer still
     // cannot sign in. This was the silent failure that stranded accounts while
