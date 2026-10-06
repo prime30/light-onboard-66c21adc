@@ -24,7 +24,7 @@ import { useAtom } from "jotai/react";
 import z from "zod";
 import { useApiClient } from "@/hooks/use-api-client";
 import { supabase } from "@/integrations/supabase/client";
-import { readHoneypotValue, readFormStartedAt } from "@/components/registration/HoneypotField";
+import { readHoneypotValue, readFormStartedAt, readFormElapsedMs } from "@/components/registration/HoneypotField";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
 import { setPendingLogin } from "@/lib/pending-login";
@@ -210,6 +210,7 @@ export function FormDataProvider({
             data: values,
             honeypot: readHoneypotValue(),
             formStartedAt: readFormStartedAt(),
+            formElapsedMs: readFormElapsedMs(),
             // Meta ads attribution: forwarded click ids plus the shared event
             // id so the server-side CompleteRegistration event dedupes with
             // the theme's browser Pixel event.
