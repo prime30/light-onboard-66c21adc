@@ -586,6 +586,17 @@ export const registrationSchema = z
       // so no additional country-scoped rule is needed here.
 
     }
+
+    // A tax exemption claim needs its document wherever the toggle is shown
+    // (Business Location, or Contact Information for students).
+    const t = data as { taxExempt?: boolean; taxExemptFile?: unknown };
+    if (t.taxExempt && (!Array.isArray(t.taxExemptFile) || t.taxExemptFile.length === 0)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Tax exemption document is required when claiming tax exemption",
+        path: ["taxExemptFile"],
+      });
+    }
   });
 
 // Type exports for each account type

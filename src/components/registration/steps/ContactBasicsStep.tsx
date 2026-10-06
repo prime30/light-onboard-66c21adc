@@ -468,7 +468,8 @@ export const ContactBasicsStep = () => {
   const taxExempt = watch("taxExempt");
   const taxExemptFile = watch("taxExemptFile");
   const taxFileRef = useRef<HTMLDivElement>(null);
-  const showTaxExemption = country === "US" && !businessLocationStepVisible;
+  const isStudent = accountType === "student";
+  const showTaxExemption = country === "US" && (isStudent || !businessLocationStepVisible);
   const handleTaxToggle = (checked: boolean) => {
     setValue("taxExempt", checked, dirtyFieldOptions);
     if (!checked) {
@@ -496,6 +497,64 @@ export const ContactBasicsStep = () => {
       </span>
     ),
   }));
+
+  const taxExemptionBlock = (
+    <div className="space-y-3 pt-2">
+      <label
+        className={cn(
+          "relative flex items-start gap-3 group cursor-pointer",
+          taxExempt === true && "text-foreground"
+        )}
+      >
+        <Checkbox
+          checked={taxExempt === true}
+          onCheckedChange={(checked) => handleTaxToggle(!!checked)}
+          className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+        />
+        <span className="inline-flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          Do you want to upload a tax exemption?
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em] shrink-0">
+            Not required
+          </span>
+        </span>
+      </label>
+
+      <div
+        ref={taxFileRef}
+        className={cn(
+          "grid transition-all duration-400",
+          taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+        style={{
+          transitionTimingFunction:
+            taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
+        }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={cn(taxExempt === true && "animate-haptic-pop")}
+            data-field="tax-document"
+          >
+            <MultiFileUpload
+              files={
+                Array.isArray(taxExemptFile) &&
+                taxExemptFile.every((item) => typeof item === "object")
+                  ? (taxExemptFile as UploadFileItem[])
+                  : []
+              }
+              onFilesChange={(files: UploadFileItem[]) =>
+                setValue("taxExemptFile", files, dirtyFieldOptions)
+              }
+              placeholder="Upload your state tax-exempt license"
+              error={!!licenseErrors.taxExemptFile}
+              errorMessage="Please upload your tax exemption document"
+              maxFiles={1}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)]">
@@ -731,65 +790,15 @@ export const ContactBasicsStep = () => {
               </div>
             )}
 
-            {/* Tax exemption (US only) — secondary to license input */}
-            {showTaxExemption && (
-              <div className="space-y-3 pt-2">
-                <label
-                  className={cn(
-                    "relative flex items-start gap-3 group cursor-pointer",
-                    taxExempt === true && "text-foreground"
-                  )}
-                >
-                  <Checkbox
-                    checked={taxExempt === true}
-                    onCheckedChange={(checked) => handleTaxToggle(!!checked)}
-                    className="rounded-full mt-0.5 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
-                  />
-                  <span className="inline-flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    Do you want to upload a tax exemption?
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em] shrink-0">
-                      Not required
-                    </span>
-                  </span>
-                </label>
-
-                <div
-                  ref={taxFileRef}
-                  className={cn(
-                    "grid transition-all duration-400",
-                    taxExempt === true ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                  )}
-                  style={{
-                    transitionTimingFunction:
-                      taxExempt === true ? "cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease-out",
-                  }}
-                >
-                  <div className="overflow-hidden">
-                    <div
-                      className={cn(taxExempt === true && "animate-haptic-pop")}
-                      data-field="tax-document"
-                    >
-                      <MultiFileUpload
-                        files={
-                          Array.isArray(taxExemptFile) &&
-                          taxExemptFile.every((item) => typeof item === "object")
-                            ? (taxExemptFile as UploadFileItem[])
-                            : []
-                        }
-                        onFilesChange={(files: UploadFileItem[]) =>
-                          setValue("taxExemptFile", files, dirtyFieldOptions)
-                        }
-                        placeholder="Upload your state tax-exempt license"
-                        error={!!licenseErrors.taxExemptFile}
-                        errorMessage="Please upload your tax exemption document"
-                        maxFiles={1}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Tax exemption (US only), secondary to license input */}
+            {showTaxExemption && taxExemptionBlock}
           </div>
+        )}
+
+        {/* Students have no credential section and no Business Location step,
+            so this is their only place to claim tax exemption. */}
+        {showTaxExemption && isStudent && (
+          <div className="animate-stagger-5">{taxExemptionBlock}</div>
         )}
 
         {/* Instagram handle - required for every registration */}
