@@ -8,7 +8,11 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "A-20261005";
+const FUNCTION_VERSION = "D-20261005";
+
+// Keeps the word "activate": older SPA bundles classify by wording and match
+// "activate" before "password". Same text in multipass-login.
+const UNACTIVATED_MESSAGE = "Your account isn't activated yet. Request a setup link to set your password.";
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -64,7 +68,40 @@ const bodySchema = z.object({
   // Set by the embedded sign-in form after the storefront said "wrong
   // password", to check whether the password was actually right.
   diagnostic: z.string().max(40).optional(),
+  // "sign_in" from the SPA's standalone sign-in. Internal password-verify
+  // callers never send it, so they keep the plain 401.
+  context: z.string().max(20).optional(),
 });
+
+// Admin state for a storefront "wrong password": invited/disabled accounts
+// have no password yet. null on any lookup problem, so the caller falls back
+// to the plain 401 (an Admin 429 must not turn into extra calls).
+async function lookupCustomerState(
+  domain: string,
+  adminToken: string,
+  adminVersion: string,
+  email: string
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://${domain}/admin/api/${adminVersion}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}&fields=id,email,state`,
+      { headers: { "X-Shopify-Access-Token": adminToken } }
+    );
+    if (!res.ok) {
+      console.warn("LOGIN_UNACTIVATED_LOOKUP_FAILED", res.status);
+      return null;
+    }
+    const json = await res.json();
+    const wanted = email.trim().toLowerCase();
+    const cust = (json?.customers ?? []).find(
+      (c: { email?: string }) => (c.email || "").toLowerCase() === wanted
+    );
+    return cust?.state ?? "not_found";
+  } catch (e) {
+    console.warn("LOGIN_UNACTIVATED_LOOKUP_FAILED", e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
 
 const STOREFRONT_API_VERSION = "2024-10";
 
@@ -224,7 +261,7 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { email, password, diagnostic } = parsed.data;
+  const { email, password, diagnostic, context } = parsed.data;
   const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
   if (!storefrontToken) {
     return sendError(500, ["Server configuration error"]);
@@ -287,14 +324,26 @@ Deno.serve(async (req) => {
         userAgent: req.headers.get("user-agent"),
       });
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
+        // Storefront answers the same for a wrong password and for an account
+        // that never set one. Only customer-facing sign-ins ask Admin which.
+        if (diagnostic || context === "sign_in") {
+          const state = await lookupCustomerState(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION, email);
+          if (state === "invited" || state === "disabled") {
+            await recordLoginOutcome({
+              email,
+              reason: "login_unactivated",
+              code: state,
+              userAgent: req.headers.get("user-agent"),
+            });
+            return sendError(403, [UNACTIVATED_MESSAGE], "Unactivated", "unactivated");
+          }
+        }
         // Shopify intentionally does not distinguish wrong password from
         // missing account at this endpoint. Return a generic message.
         return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
       }
       if (code === "CUSTOMER_DISABLED" || msg.includes("disabled") || msg.includes("activate")) {
-        return sendError(403, [
-          "Your account isn't activated yet. Check your email for an activation link.",
-        ], "Unactivated", "unactivated");
+        return sendError(403, [UNACTIVATED_MESSAGE], "Unactivated", "unactivated");
       }
       return sendError(400, [first.message || "Unable to log in."], "Login failed");
     }
