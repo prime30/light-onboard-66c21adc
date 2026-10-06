@@ -18,7 +18,11 @@ interface EdgeFunctionErrorResponse {
   message?: string;
   errorMessage?: string[];
   actions?: ErrorAction[];
+  freshLink?: FreshLink;
 }
+
+/** What reset-password did about a dead link: emailed a new one, one was already sent, or nothing. */
+export type FreshLink = "sent" | "recently_sent" | "none";
 
 /**
  * Enhanced error response with actions from backend
@@ -27,6 +31,7 @@ export interface ParsedErrorResponse {
   message: string | ReactNode;
   actions: ErrorAction[];
   statusCode: number;
+  freshLink?: FreshLink;
 }
 
 /**
@@ -114,6 +119,7 @@ function formatStructuredError(
     message,
     actions: errorData.actions || [],
     statusCode,
+    ...(errorData.freshLink ? { freshLink: errorData.freshLink } : {}),
   };
 }
 
@@ -204,6 +210,7 @@ export async function handleApiResponse<T = unknown>(
       error: string;
       actions: ErrorAction[];
       statusCode: number;
+      freshLink?: FreshLink;
     }
 > {
   if (response.ok) {
@@ -229,6 +236,7 @@ export async function handleApiResponse<T = unknown>(
         typeof errorResponse.message === "string" ? errorResponse.message : "An error occurred",
       actions: errorResponse.actions,
       statusCode: errorResponse.statusCode,
+      freshLink: errorResponse.freshLink,
     };
   }
 }

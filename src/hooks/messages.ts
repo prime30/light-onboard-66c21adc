@@ -72,14 +72,24 @@ type ForgotPasswordData = {
 export type FormUpdateData =
   | {
       status: "success" | "submitting" | "confirmed";
+      // Forgot password only: an email already went out inside the cooldown.
+      reason?: "recently_sent";
     }
   | {
       status: "error";
       message: string;
-      // Machine-readable cause from the theme. "challenge" = the store showed
-      // its bot check, so a background sign-in can't finish.
-      reason?: "challenge" | "invalid_credentials" | "throttled" | "unactivated" | "store_error" | string;
+      // Machine-readable cause. Theme LOGIN_STATUS values plus "unactivated"
+      // from customer-login. "challenge" = the store showed its bot check, so
+      // a background sign-in can't finish.
+      reason?: "rejected" | "rate_limited" | "challenge" | "store_error" | "network" | "unactivated" | string;
     };
+
+// customer-login `kind` -> the theme's LOGIN_STATUS reason vocabulary.
+const LOGIN_KIND_TO_REASON: Record<string, string> = {
+  invalid_credentials: "rejected",
+  rate_limited: "rate_limited",
+  unactivated: "unactivated",
+};
 
 type UseCustomerLoginProps = {
   loginUpdate?: (message: FormUpdateData) => void;
@@ -231,7 +241,7 @@ export function useCustomerLogin({
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, context: "sign_in" }),
           }
         );
         const json = await res.json().catch(() => ({}));
@@ -269,12 +279,16 @@ export function useCustomerLogin({
               (res.status === 429
                 ? "Too many attempts. Please wait a moment."
                 : "Incorrect email or password."),
+            reason:
+              (typeof json?.kind === "string" ? LOGIN_KIND_TO_REASON[json.kind] : undefined) ??
+              (res.status === 429 ? "rate_limited" : res.status >= 500 ? "store_error" : undefined),
           });
         }
       } catch (_err) {
         loginUpdate?.({
           status: "error",
           message: "Couldn't sign in. Please check your connection and try again.",
+          reason: "network",
         });
       }
     },
@@ -300,12 +314,15 @@ export function useCustomerLogin({
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, source: "spa_forgot" }),
           }
         );
         const json = await res.json().catch(() => ({}));
         if (res.ok && json?.success) {
-          forgotPasswordUpdate?.({ status: "success" });
+          forgotPasswordUpdate?.({
+            status: "success",
+            ...(json?.data?.reason === "recently_sent" ? { reason: "recently_sent" as const } : {}),
+          });
         } else {
           forgotPasswordUpdate?.({
             status: "error",
