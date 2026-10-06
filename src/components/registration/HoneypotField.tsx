@@ -34,6 +34,9 @@ export const FORM_START_FIELD_NAME = "hp_x9f2_ts";
 
 // Module-level so it's set once per page load, not per mount.
 const formStartedAt: number = typeof Date !== "undefined" ? Date.now() : 0;
+// Monotonic page-open time. The device wall clock can be far off (a phone set
+// an hour fast), so the server checks this duration instead of formStartedAt.
+const formStartedPerf: number = typeof performance !== "undefined" ? performance.now() : 0;
 
 export function HoneypotField() {
   return (
@@ -105,4 +108,9 @@ export function readHoneypotValue(): string {
 
 export function readFormStartedAt(): number {
   return formStartedAt;
+}
+
+export function readFormElapsedMs(): number {
+  if (typeof performance === "undefined") return 0;
+  return Math.round(performance.now() - formStartedPerf);
 }

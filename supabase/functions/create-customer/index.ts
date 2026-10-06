@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "C2-20261005";
+const FUNCTION_VERSION = "T1-20261006";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1140,13 +1140,27 @@ Deno.serve(async (req: Request) => {
   // because a restored session (sessionStorage resume) legitimately reaches the
   // summary and submits seconds after page load - formStartedAt is captured at
   // page load, so a returning user's elapsed time can be very small.
+  //
+  // formElapsedMs is measured on the page's monotonic clock, so it is right even
+  // when the device clock is wrong. Older bundles only send formStartedAt (the
+  // device's Date.now()); a phone clock set fast makes Date.now() - formStartedAt
+  // negative for a real applicant, so a negative value is clock skew, not a bot.
   const MIN_FORM_FILL_MS = 1000;
   const formStartedAtRaw = (requestBody as { formStartedAt?: unknown }).formStartedAt;
   const formStartedAt = typeof formStartedAtRaw === "number" ? formStartedAtRaw : NaN;
-  const elapsed = Date.now() - formStartedAt;
-  if (!Number.isFinite(formStartedAt) || elapsed < MIN_FORM_FILL_MS || elapsed < 0) {
-    console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt });
-    notifyBlocked("timing", { elapsed, formStartedAt }, requestBody);
+  const formElapsedRaw = (requestBody as { formElapsedMs?: unknown }).formElapsedMs;
+  const formElapsedMs = typeof formElapsedRaw === "number" && Number.isFinite(formElapsedRaw) ? formElapsedRaw : NaN;
+  const clockElapsed = Date.now() - formStartedAt;
+  const elapsed = Number.isFinite(formElapsedMs) ? formElapsedMs : clockElapsed;
+  const tooFast = Number.isFinite(formElapsedMs)
+    ? formElapsedMs < MIN_FORM_FILL_MS
+    : !Number.isFinite(formStartedAt) || (clockElapsed >= 0 && clockElapsed < MIN_FORM_FILL_MS);
+  if (Number.isFinite(formStartedAt) && clockElapsed < 0) {
+    console.log("Device clock ahead of server", { skewMs: -clockElapsed, formElapsedMs });
+  }
+  if (tooFast) {
+    console.log("Form-fill timing check failed - rejecting request", { elapsed, formStartedAt, formElapsedMs });
+    notifyBlocked("timing", { elapsed, formStartedAt, formElapsedMs }, requestBody);
     return sendError(400, [
       "Your application was submitted before the page finished loading, so we couldn't process it (error SPAM-TIME). Please refresh the page and press Submit again. If it keeps happening, email hello@dropdeadextensions.com and we'll finish your application for you.",
     ]);
