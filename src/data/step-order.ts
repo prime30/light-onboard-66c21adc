@@ -192,7 +192,21 @@ export function getStepSchema(step: Step, accountType: AccountType): ZodObject |
   // The account type selector now lives inline on Contact Information, so the
   // contact step also gates on a chosen account type.
   if (step === "contact-basics") {
-    return contactBasicsStepSchema.extend(accountTypeSchema.shape);
+    // The tax exemption toggle can also live here (US students, or when the
+    // Business Location step is off). Checked means a document is required:
+    // a claim without one still makes the Shopify customer tax exempt.
+    return contactBasicsStepSchema
+      .extend({ ...accountTypeSchema.shape, ...taxExemptionSchema.shape })
+      .superRefine((data, ctx) => {
+        const files = data.taxExemptFile;
+        if (data.taxExempt && (!Array.isArray(files) || files.length === 0)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Tax exemption document is required when claiming tax exemption",
+            path: ["taxExemptFile"],
+          });
+        }
+      });
   }
   return stepValidations[step];
 }
