@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "A-20261005";
+const FUNCTION_VERSION = "D-20261005";
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -339,7 +339,8 @@ Deno.serve(async (req) => {
         return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
       }
       if (code === "CUSTOMER_DISABLED" || msg.includes("disabled") || msg.includes("activate")) {
-        return sendError(403, ["Your account isn't activated yet. Check your email for an activation link."], "Unactivated", "unactivated");
+        // Same text as customer-login's `unactivated`: one kind, one message.
+        return sendError(403, ["Your account isn't activated yet. Request a setup link to set your password."], "Unactivated", "unactivated");
       }
       return sendError(400, [first.message || "Unable to log in."], "Login failed");
     }
