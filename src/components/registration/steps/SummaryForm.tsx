@@ -224,6 +224,7 @@ export const SummaryForm = () => {
                     key={index}
                     type="button"
                     variant="destructive"
+                    className="min-h-[45px] w-full sm:w-auto"
                     onClick={() => {
                       if (action.url) {
                         navigate(action.url);

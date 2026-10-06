@@ -493,9 +493,9 @@ export function AuthFooter({
       )}
     >
       <div className="lg:max-w-[38rem] mx-auto flex flex-col gap-[10px]">
-        {/* On the password step the failure (and its "Try again" button) is
+        {/* On the password and summary steps the failure (and its actions) is
             rendered in the step body instead, so it is not duplicated here. */}
-        {visibleSubmitError && currentStep !== "create-password" && (isFinalGateStep || steps[steps.indexOf(currentStep) + 1] === "assessing") && (
+        {visibleSubmitError && currentStep !== "create-password" && !isSummaryStep && (isFinalGateStep || steps[steps.indexOf(currentStep) + 1] === "assessing") && (
           <div className="flex items-start gap-3 rounded-form border border-destructive/30 bg-destructive/10 p-4 shadow-[0_10px_30px_-20px_hsl(var(--destructive)/0.45)]">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
             <div className="flex-1 space-y-3">
@@ -512,6 +512,7 @@ export function AuthFooter({
                       key={index}
                       type="button"
                       variant="destructive"
+                      className="min-h-[45px] w-full sm:w-auto"
                       onClick={() => action.url && navigate(action.url)}
                     >
                       {action.label}

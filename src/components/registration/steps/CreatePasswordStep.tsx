@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { AlertCircle, Check, Eye, EyeOff, Headphones, Lock, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -75,7 +76,9 @@ export const CreatePasswordStep = () => {
     isSubmitting,
     goToStep,
     setSubmitError,
+    errorActions,
   } = useForm();
+  const navigate = useNavigate();
 
   
   const password = (watch("password") as string | undefined) ?? "";
@@ -254,18 +257,38 @@ export const CreatePasswordStep = () => {
             <p className="text-sm text-destructive leading-relaxed">{submitErrorMessage}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setSubmitError(null);
-                goToStep("assessing");
-              }}
-              disabled={isSubmitting || !confirmValid}
-              className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Try again
-            </button>
+            {/* Server actions (e.g. an existing account: Sign in / Reset
+                password) replace "Try again": resubmitting gets the same 409. */}
+            {errorActions.length > 0 ? (
+              errorActions.map((action, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => action.url && navigate(action.url)}
+                  className={cn(
+                    "inline-flex items-center justify-center min-h-[45px] w-full sm:w-auto px-4 rounded-form-sm text-sm font-medium transition-opacity hover:opacity-90 touch-manipulation",
+                    index === 0
+                      ? "bg-foreground text-background"
+                      : "border border-foreground/15 text-foreground/80 hover:text-foreground hover:border-foreground/30"
+                  )}
+                >
+                  {action.label}
+                </button>
+              ))
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitError(null);
+                  goToStep("assessing");
+                }}
+                disabled={isSubmitting || !confirmValid}
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-form-sm bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Try again
+              </button>
+            )}
             {/* Two failed attempts means retrying isn't helping - hand them a
                 human instead of another loop. */}
             {submitFailureCount >= 2 && (
