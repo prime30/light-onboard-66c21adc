@@ -126,7 +126,9 @@ export const SuccessForm = () => {
   const smsSubscribed = smsOptedIn && emailOptedIn;
 
   const phoneNumber = watch("phoneNumber") as string | undefined;
-  const formattedPhone = phoneNumber ? formatPhoneNumber(phoneNumber) : "";
+  const formattedPhone = phoneNumber
+    ? formatPhoneNumber(phoneNumber, watch("phoneCountryCode") as string | undefined)
+    : "";
 
   // Late opt-in from the success screen: flips the missing consent and, once
   // both are on, re-emits SUBSCRIPTION_STATUS so the parent theme unlocks the

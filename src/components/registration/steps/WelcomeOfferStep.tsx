@@ -243,7 +243,10 @@ export const WelcomeOfferStep = () => {
                 autoComplete="tel-national"
                 autoFocus
                 onBlur={(event) => {
-                  setValue("phoneNumber", formatPhoneNumber(event.target.value));
+                  setValue(
+                    "phoneNumber",
+                    formatPhoneNumber(event.target.value, watch("phoneCountryCode") as string | undefined)
+                  );
                 }}
               />
             </div>
