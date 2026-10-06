@@ -23,7 +23,7 @@ import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 import { clearResetParams } from "@/lib/reset-params";
 import { getDeviceContext } from "@/lib/device-context";
-import { useThemeLoginResult } from "@/hooks/use-theme-login-result";
+import { themeLoginFailureCopy, useThemeLoginResult } from "@/hooks/use-theme-login-result";
 
 // fetchWelcomeOfferEnabled is no longer used - welcome-offer minting moved
 // server-side into the activate-account edge function.
@@ -272,12 +272,12 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
       formState === "success" &&
       autoLoginStatus === "succeeded" &&
       isInIframe &&
-      themeLogin === "confirmed"
+      themeLogin.result === "confirmed"
     ) {
       const t = setTimeout(() => closeIframe(), 1800);
       return () => clearTimeout(t);
     }
-  }, [formState, autoLoginStatus, isInIframe, closeIframe, themeLogin]);
+  }, [formState, autoLoginStatus, isInIframe, closeIframe, themeLogin.result]);
 
 
   // Signing-in state (auto-login in progress after activation)
@@ -347,12 +347,14 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
             Your account is ready.
             {autoLoginStatus === "succeeded" ? (
-              isInIframe && (themeLogin === "pending" || themeLogin === "idle") ? (
+              isInIframe && (themeLogin.result === "pending" || themeLogin.result === "idle") ? (
                 <> Signing you in to the store…</>
-              ) : !isInIframe || themeLogin === "confirmed" ? (
-                <> You're signed in{activatedEmail ? <> as <span className="text-foreground/80">{activatedEmail}</span></> : null}.</>
+              ) : !isInIframe || themeLogin.result === "confirmed" ? (
+                <> You're signed in{activatedEmail ? <> as <span className="text-foreground/80 break-words">{activatedEmail}</span></> : null}.</>
+              ) : themeLogin.result === "failed" ? (
+                <> {themeLoginFailureCopy(themeLogin.reason)}</>
               ) : (
-                <> Close this window to continue. If you're not signed in, log in{activatedEmail ? <> with <span className="text-foreground/80">{activatedEmail}</span></> : null} and your new password.</>
+                <> Close this window to continue. If you're not signed in, log in{activatedEmail ? <> with <span className="text-foreground/80 break-words">{activatedEmail}</span></> : null} and your new password.</>
               )
             ) : (
               <> You can now log in{activatedEmail ? <> with <span className="text-foreground/80">{activatedEmail}</span></> : <> with your new password</>}.</>

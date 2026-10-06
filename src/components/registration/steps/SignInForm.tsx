@@ -49,6 +49,7 @@ type UseSignInFormReturn = {
   errors: ReturnType<typeof useForm<LoginFormData>>["formState"]["errors"];
   isSubmitting: boolean;
   isPasswordReset: boolean;
+  resetRecentlySent: boolean;
   isLoginSuccessful: boolean;
   rememberMe: boolean;
   setRememberMe: React.Dispatch<React.SetStateAction<boolean>>;
@@ -65,11 +66,29 @@ type SignInFormProps = {
   initialEmail?: string;
 };
 
+const INLINE_ACTION_CLASS =
+  "inline-flex items-center gap-1 min-h-[45px] touch-manipulation text-foreground underline underline-offset-2 hover:no-underline font-medium";
+
+const WRONG_PASSWORD_ERROR: LoginErrorState = {
+  kind: "wrong_password",
+  message: "Incorrect password. Please try again or reset your password.",
+};
+const RATE_LIMITED_ERROR: LoginErrorState = {
+  kind: "rate_limited",
+  message: "Too many attempts. Please wait a moment before trying again.",
+};
+// Same sentence customer-login and multipass-login send for kind "unactivated".
+const UNACTIVATED_ERROR: LoginErrorState = {
+  kind: "unactivated",
+  message: "Your account isn't activated yet. Request a setup link to set your password.",
+};
+
 function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { initialEmail } = props;
   const { setEmail, ssoContext, isInIframe } = useGlobalApp();
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [resetRecentlySent, setResetRecentlySent] = useState(false);
   const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorState>(null);
   const [forgotPasswordError, setForgotPasswordError] = useState<LoginErrorState>(null);
@@ -116,23 +135,24 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   // for both unknown email and wrong password. We pre-flight existence via
   // the customer-gate edge function, so by the time we get here the account
   // is known to exist (or the gate was degraded) - treat as wrong password.
-  const classifyLoginError = useCallback((raw: string): LoginErrorState => {
+  // `reason` (theme LOGIN_STATUS or customer-login `kind`) wins; the wording
+  // checks below only run for older theme builds that send no reason.
+  const classifyLoginError = useCallback((raw: string, reason?: string): LoginErrorState => {
+    if (reason === "rejected") return WRONG_PASSWORD_ERROR;
+    if (reason === "rate_limited") return RATE_LIMITED_ERROR;
+    if (reason === "unactivated") return UNACTIVATED_ERROR;
+    if (reason === "store_error" || reason === "network") {
+      return { kind: "generic", message: raw || "Something went wrong. Please try again." };
+    }
     const msg = (raw || "").toLowerCase();
     if (!msg) {
       return { kind: "generic", message: "Something went wrong. Please try again." };
     }
     if (msg.includes("rate") || msg.includes("too many") || msg.includes("429")) {
-      return {
-        kind: "rate_limited",
-        message: "Too many attempts. Please wait a moment before trying again.",
-      };
+      return RATE_LIMITED_ERROR;
     }
     if (msg.includes("activate") || msg.includes("not activated") || msg.includes("inactive")) {
-      return {
-        kind: "unactivated",
-        message:
-          "Your account hasn't been activated yet. Check your email for the activation link.",
-      };
+      return UNACTIVATED_ERROR;
     }
     if (
       msg.includes("unidentified") ||
@@ -141,10 +161,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       msg.includes("password") ||
       msg.includes("credentials")
     ) {
-      return {
-        kind: "wrong_password",
-        message: "Incorrect password. Please try again or reset your password.",
-      };
+      return WRONG_PASSWORD_ERROR;
     }
     return { kind: "generic", message: raw };
   }, []);
@@ -185,7 +202,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       if (message.status === "error") {
         clearSuccessWatchdog();
         setIsLoginSuccessful(false);
-        const classified = classifyLoginError(message.message);
+        const classified = classifyLoginError(message.message, message.reason);
         const creds = lastCredsRef.current;
         // The storefront answers "Invalid email or password" for ANY failed
         // login (throttling, bot checks, network), not only a wrong password.
@@ -201,6 +218,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
               return;
             }
             setIsSubmitting(false);
+            if (result === "unactivated") {
+              setLoginError(UNACTIVATED_ERROR);
+              return;
+            }
             if (result === "throttled") {
               setLoginError({
                 kind: "rate_limited",
@@ -308,6 +329,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
       if (message.status === "success") {
         setForgotPasswordError(null);
+        setResetRecentlySent(message.reason === "recently_sent");
         setValue("formType", "login");
         setIsPasswordReset(true);
       }
@@ -553,6 +575,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     onSubmit,
     isSubmitting,
     isPasswordReset,
+    resetRecentlySent,
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
@@ -571,7 +594,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 async function verifyPasswordWithStore(
   creds: { email: string; password: string },
   diagnostic: string
-): Promise<"valid" | "invalid" | "throttled" | "error"> {
+): Promise<"valid" | "invalid" | "unactivated" | "throttled" | "error"> {
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
       method: "POST",
@@ -584,6 +607,7 @@ async function verifyPasswordWithStore(
     });
     const json = (await res.json().catch(() => null)) as { success?: boolean; kind?: string } | null;
     if (json?.success) return "valid";
+    if (json?.kind === "unactivated") return "unactivated";
     if (res.status === 429 || json?.kind === "rate_limited") return "throttled";
     if (res.status === 401 || res.status === 403) return "invalid";
     return "error";
@@ -690,6 +714,7 @@ export const SignInForm = () => {
     onSubmit,
     isSubmitting,
     isPasswordReset,
+    resetRecentlySent,
     isLoginSuccessful,
     rememberMe,
     setRememberMe,
@@ -819,8 +844,9 @@ export const SignInForm = () => {
         </div>
 
         <button
+          type="button"
           onClick={() => setValue("formType", "login")}
-          className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
+          className="flex items-center justify-center gap-2 w-full min-h-[45px] touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors pt-2 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
           Back to login
@@ -856,7 +882,9 @@ export const SignInForm = () => {
 
         {isPasswordReset && (
           <div className="text-status-green text-sm text-left py-2 px-3 rounded-form bg-status-green/10 border border-status-green/30 w-full">
-            Password reset email sent! Check your email for a link to reset your password.
+            {resetRecentlySent
+              ? "We just sent you a link a few minutes ago. Use the newest email from us (check spam too). Nothing after 10 minutes? Request another."
+              : "Password reset email sent! Check your email for a link to reset your password."}
           </div>
         )}
 
@@ -940,21 +968,13 @@ export const SignInForm = () => {
             <div className="flex-1 space-y-1">
               <p>{loginError.message}</p>
               {loginError.kind === "no_account" && (
-                <button
-                  type="button"
-                  onClick={goToApply}
-                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
-                >
+                <button type="button" onClick={goToApply} className={INLINE_ACTION_CLASS}>
                   Apply for access
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               )}
               {loginError.kind === "wrong_password" && (
-                <button
-                  type="button"
-                  onClick={switchToForgotPassword}
-                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
-                >
+                <button type="button" onClick={switchToForgotPassword} className={INLINE_ACTION_CLASS}>
                   Reset your password
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
@@ -963,20 +983,17 @@ export const SignInForm = () => {
                 <button
                   type="button"
                   onClick={() => void finishSigningIn(watch("email"), watch("password"))}
-                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                  className={INLINE_ACTION_CLASS}
                 >
                   Finish signing in
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               )}
               {loginError.kind === "unactivated" && (
-                <a
-                  href="mailto:hello@dropdeadextensions.com"
-                  className="inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
-                >
-                  Contact support
+                <button type="button" onClick={switchToForgotPassword} className={INLINE_ACTION_CLASS}>
+                  Email me a setup link
                   <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
+                </button>
               )}
             </div>
           </div>

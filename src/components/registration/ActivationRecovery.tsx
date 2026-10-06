@@ -20,6 +20,7 @@ export function ActivationRecovery({ defaultEmail = "" }: { defaultEmail?: strin
   const { apiCall } = useApiClient();
   const [email, setEmail] = useState(defaultEmail);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [recentlySent, setRecentlySent] = useState(false);
   const [error, setError] = useState("");
 
   const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -28,15 +29,16 @@ export function ActivationRecovery({ defaultEmail = "" }: { defaultEmail?: strin
     if (!emailLooksValid || status === "sending") return;
     setStatus("sending");
     setError("");
-    const result = await apiCall(
+    const result = await apiCall<{ data?: { reason?: string } }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recover-password`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), source: "activation_recovery" }),
       }
     );
     if (result.success) {
+      setRecentlySent(result.data?.data?.reason === "recently_sent");
       setStatus("sent");
     } else {
       setError(
@@ -54,8 +56,19 @@ export function ActivationRecovery({ defaultEmail = "" }: { defaultEmail?: strin
           Check your email
         </p>
         <p className="text-sm text-muted-foreground/80 leading-relaxed">
-          We sent a password setup link to {email.trim().toLowerCase()}. It arrives within a couple
-          of minutes. Check spam if you don't see it.
+          {recentlySent ? (
+            <>
+              We already sent a setup link to{" "}
+              <span className="break-words">{email.trim().toLowerCase()}</span> a few minutes ago.
+              Use the newest email from us (check spam too).
+            </>
+          ) : (
+            <>
+              We sent a password setup link to{" "}
+              <span className="break-words">{email.trim().toLowerCase()}</span>. It arrives within a
+              couple of minutes. Check spam if you don't see it.
+            </>
+          )}
         </p>
       </div>
     );

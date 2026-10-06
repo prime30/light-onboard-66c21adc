@@ -38,6 +38,7 @@ export function useApiClient() {
           error: string;
           actions: ParsedErrorResponse["actions"];
           statusCode: number;
+          freshLink?: ParsedErrorResponse["freshLink"];
         }
     > => {
       try {

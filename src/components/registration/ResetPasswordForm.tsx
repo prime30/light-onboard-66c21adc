@@ -24,8 +24,11 @@ import { clearResetParams } from "@/lib/reset-params";
 import { getDeviceContext } from "@/lib/device-context";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
 import { ActivationRecovery } from "./ActivationRecovery";
-import { useThemeLoginResult } from "@/hooks/use-theme-login-result";
+import { themeLoginFailureCopy, useThemeLoginResult } from "@/hooks/use-theme-login-result";
+import type { FreshLink } from "@/lib/error-parser";
 
+const RECENTLY_SENT_COPY =
+  "We already emailed you a newer link a few minutes ago. Open the most recent email from us (check spam too). Older emails no longer work.";
 
 type FormState =
   | "form"
@@ -62,8 +65,9 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     !resetUrlIsTrusted ? "invalid" : hasParams ? "form" : "missing-params"
   );
   const [serverError, setServerError] = useState<string>("");
-  // True when the server already emailed a replacement link for a dead one.
-  const [freshLinkSent, setFreshLinkSent] = useState(false);
+  // What the server did about a dead link: emailed a replacement now, one was
+  // already emailed inside the cooldown, or nothing.
+  const [freshLink, setFreshLink] = useState<FreshLink>("none");
   const freshLinkEmail = emailHint ?? getResetEmailHint() ?? null;
   
   const [resetCustomer, setResetCustomer] = useState<{
@@ -244,10 +248,15 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         setFormState("success");
       }
     } else {
-      const failResult = result as { error: string; statusCode: number };
+      const failResult = result as { error: string; statusCode: number; freshLink?: FreshLink };
       const errorMsg = failResult.error || "";
-      setFreshLinkSent(
-        errorMsg.includes("emailed you a fresh link") || errorMsg.includes("emailed you a newer link")
+      setFreshLink(
+        failResult.freshLink ??
+          (errorMsg.includes("emailed you a newer link")
+            ? "recently_sent"
+            : errorMsg.includes("emailed you a fresh link")
+              ? "sent"
+              : "none")
       );
       if (errorMsg.includes("expired")) {
         clearResetParams();
@@ -327,12 +336,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             Your password has been changed successfully.
             {autoLoginStatus === "succeeded" ? (
               isInIframe ? (
-                themeLogin === "pending" || themeLogin === "idle" ? (
+                themeLogin.result === "pending" || themeLogin.result === "idle" ? (
                   <> Signing you in to the store…</>
-                ) : themeLogin === "confirmed" ? (
-                  <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
+                ) : themeLogin.result === "confirmed" ? (
+                  <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80 break-words">{resetCustomer.email}</span></> : null}.</>
+                ) : themeLogin.result === "failed" ? (
+                  <> {themeLoginFailureCopy(themeLogin.reason)}</>
                 ) : (
-                  <> Close this window to continue. If you're not signed in, log in{resetCustomer.email ? <> with <span className="text-foreground/80">{resetCustomer.email}</span></> : null} and your new password.</>
+                  <> Close this window to continue. If you're not signed in, log in{resetCustomer.email ? <> with <span className="text-foreground/80 break-words">{resetCustomer.email}</span></> : null} and your new password.</>
                 )
               ) : (
                 <> You're signed in{resetCustomer.email ? <> as <span className="text-foreground/80">{resetCustomer.email}</span></> : null}.</>
@@ -366,11 +377,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            Link Expired
+            {freshLink === "recently_sent" ? "Check your email" : "Link Expired"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            {freshLinkSent ? (
-              <>This link has expired, so we just emailed a fresh one{freshLinkEmail ? <> to <span className="text-foreground/80">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
+            {freshLink === "recently_sent" ? (
+              RECENTLY_SENT_COPY
+            ) : freshLink === "sent" ? (
+              <>This link has expired, so we just emailed a fresh one{freshLinkEmail ? <> to <span className="text-foreground/80 break-words">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
             ) : (
               "This password reset link has expired. Please request a new one from the login page."
             )}
@@ -405,11 +418,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         </div>
         <div className="space-y-2">
           <FadeText as="h1" className="font-termina font-medium uppercase text-2xl sm:text-3xl text-foreground leading-[1.1]">
-            {freshLinkSent ? "Check your email" : "Invalid link"}
+            {freshLink === "none" ? "Invalid link" : "Check your email"}
           </FadeText>
           <FadeText as="p" className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed">
-            {freshLinkSent ? (
-              <>This link was already used or replaced by a newer one, so we just emailed a fresh link{freshLinkEmail ? <> to <span className="text-foreground/80">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
+            {freshLink === "recently_sent" ? (
+              RECENTLY_SENT_COPY
+            ) : freshLink === "sent" ? (
+              <>This link was already used or replaced by a newer one, so we just emailed a fresh link{freshLinkEmail ? <> to <span className="text-foreground/80 break-words">{freshLinkEmail}</span></> : null}. Open the newest email from us. Older ones stop working.</>
             ) : (
               "This reset link is invalid or has already been used. Please request a new password reset."
             )}
