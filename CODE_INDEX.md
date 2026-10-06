@@ -214,7 +214,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 **Registration and sign-up**
 | Function | Purpose |
 |----------|---------|
-| `create-customer/` | Creates Shopify customer + Supabase profile; activates server-side when auto-approval is on (Chain C). An enabled Shopify account (found up front, or late when Chain C can't get an activation URL) gets a 409 with Sign in / Reset password actions and never a reset email |
+| `create-customer/` | Creates Shopify customer + Supabase profile; activates server-side when auto-approval is on (Chain C). An enabled Shopify account (found up front, or late when Chain C can't get an activation URL) gets a 409 with Sign in / Reset password actions and never a reset email. Existing Shopify customers are found by exact email (`customerByIdentifier`, search as fallback); a Helium "email already taken" 422 soft-merges onto a not-yet-activated account instead of failing |
 | `track-registration-lead/` | Captures incomplete registrations and syncs to Klaviyo |
 | `check-email/` | Email-exists check for ContactBasicsStep |
 | `check-phone/` | Phone validity + uniqueness check |
