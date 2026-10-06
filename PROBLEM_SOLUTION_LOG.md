@@ -142,7 +142,8 @@
 
 **Support playbook**:
 - "No reset email": check spam, then `select email, last_sent_at, last_source, send_count from reset_email_sends where email = '<email>';`. Under 10 minutes since `last_sent_at` is intended. Otherwise use Stranded Accounts "Send reset" (forced: bypasses the window, still recorded as `admin_stranded`, and replaces any outstanding link).
-- Many customers affected: set `RESET_EMAIL_COOLDOWN_SECONDS=0` in the function secrets (kill switch), then revert the PR and redeploy `recover-password`.
+- Many customers affected: set `RESET_EMAIL_COOLDOWN_SECONDS=0` in the function secrets (kill switch; Lovable can't edit a secret, so delete it and add it again with `0`). It takes effect in about a minute with no redeploy. Deleting the secret without re-adding it restores the 600 s default. If the cooldown code itself is at fault, revert the PR and redeploy `recover-password`.
+- `recover-password` answers 429 when Shopify's own reset limit is hit (top-level `THROTTLED`, PR #14). That is Shopify's limit, not ours: the customer waits and retries.
 - `RESET_RELEASE_FAILED` in logs: that one customer sees "recently sent" until the window ends; force-send if they are waiting.
 
 **Key Rule**: Every reset email goes through `recover-password`. Do not add a second cooldown in a caller, and never send a forced reset from a customer-facing path (`force` is honored only with the service-role key).
