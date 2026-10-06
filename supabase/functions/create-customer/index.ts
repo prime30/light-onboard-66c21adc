@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "C-20261005";
+const FUNCTION_VERSION = "C2-20261005";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,6 +137,40 @@ function sendAlreadyHasAccount() {
       { type: "RESET_PASSWORD", label: "Reset password", url: "/login?forgot=1" },
     ]
   );
+}
+
+type ShopifyCustomerMatch = { id: number; state: string; tags: string[]; ordersCount: number };
+
+// Exact email lookup. Unlike customers/search.json it does not go through the
+// search index, which can miss a customer created seconds earlier (Klaviyo or
+// storefront signup right before applying). Returns null when no customer has
+// this email; throws on API errors so callers can fall back to search.
+async function findShopifyCustomerByEmail(
+  domain: string,
+  adminToken: string,
+  email: string
+): Promise<ShopifyCustomerMatch | null> {
+  const res = await fetch(`https://${domain}/admin/api/2026-07/graphql.json`, {
+    method: "POST",
+    headers: { "X-Shopify-Access-Token": adminToken, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query:
+        "query CustomerByEmail($email: String!) { customer: customerByIdentifier(identifier: { emailAddress: $email }) { legacyResourceId state tags numberOfOrders } }",
+      variables: { email: email.trim().toLowerCase() },
+    }),
+  });
+  if (!res.ok) throw new Error(`customerByIdentifier HTTP ${res.status}`);
+  const json = await res.json();
+  if (json?.errors?.length) throw new Error(`customerByIdentifier: ${JSON.stringify(json.errors).slice(0, 200)}`);
+  const c = json?.data?.customer;
+  if (!c) return null;
+  return {
+    id: Number(c.legacyResourceId),
+    // GraphQL states are upper case; the REST API and the rest of this file use lower case.
+    state: String(c.state ?? "").toLowerCase(),
+    tags: Array.isArray(c.tags) ? c.tags : [],
+    ordersCount: Number(c.numberOfOrders ?? 0),
+  };
 }
 
 // Standalone audit-row write for early-reject paths that fail BEFORE the
@@ -1465,7 +1499,23 @@ Deno.serve(async (req: Request) => {
   // to Helium would then fail 422 "email has already been taken" because
   // Shopify enforces unique emails. Look directly in Shopify Admin so we
   // can soft-merge via shopify_id instead.
-  if (!existingCustomer && shopifyDomain && shopifyAdminToken) {
+  // The direct lookup runs first; the search fallbacks below still run
+  // whenever it found nothing.
+  if ((!existingCustomer || !existingShopifyId) && shopifyDomain && shopifyAdminToken) {
+    try {
+      const match = await findShopifyCustomerByEmail(shopifyDomain, shopifyAdminToken, requestBody.data.email);
+      if (match?.id) {
+        existingShopifyId = match.id;
+        // Without a Helium record, Helium's PUT accepts the shopify_id; with
+        // one, the soft-merge target must stay the Helium id.
+        if (!existingCustomer) existingCustomerId = match.id;
+      }
+    } catch (e) {
+      console.warn("Shopify direct email lookup failed, falling back to search:", e);
+    }
+  }
+
+  if (!existingCustomer && !existingShopifyId && shopifyDomain && shopifyAdminToken) {
     try {
       const sres = await fetch(
         `https://${shopifyDomain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(
@@ -1981,13 +2031,56 @@ Deno.serve(async (req: Request) => {
     console.log(
       `Sending ${targetMethod} to Customer Fields API (${isSoftMerge ? "soft-merge" : "create"})...`
     );
-    const apiResponse = await fetch(targetUrl, {
+    let apiResponse = await fetch(targetUrl, {
       method: targetMethod,
       headers: apiHeaders,
       body: JSON.stringify(customerFieldsRequest),
     });
 
-    const responseText = await apiResponse.text();
+    let responseText = await apiResponse.text();
+
+    const isEmailTaken = (status: number, text: string) => {
+      const lower = text.toLowerCase();
+      return status === 422 && lower.includes('"email"') && lower.includes("already");
+    };
+
+    // The create collided with a Shopify customer the lookups above missed.
+    // An enabled or already-applied account gets the sign-in answer; a
+    // not-yet-activated one is soft-merged, as a resubmit would be.
+    const lookupDomain = Deno.env.get("SHOPIFY_STORE_DOMAIN");
+    const lookupToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    if (!isSoftMerge && isEmailTaken(apiResponse.status, responseText) && lookupDomain && lookupToken) {
+      let match: ShopifyCustomerMatch | null = null;
+      try {
+        match = await findShopifyCustomerByEmail(lookupDomain, lookupToken, requestBody.data.email);
+      } catch (e) {
+        console.warn("Shopify direct email lookup after Helium 422 failed:", e);
+      }
+      const hasAccountTypeTag = !!match?.tags.some((t) => /^account type:/i.test(t.trim()));
+      if (!match || match.state === "enabled" || hasAccountTypeTag) {
+        const reason = !match ? "lookup missed" : hasAccountTypeTag ? "account type tag" : "enabled";
+        recordAuditFailure(
+          "email_already_applied_late",
+          `Customer already has a prior application (${reason}, found at create)`
+        );
+        await updateAuditRow({ status: "failed", error_log: auditErrors });
+        return sendAlreadyHasAccount();
+      }
+      console.log("Helium create hit an existing Shopify customer - soft-merging onto:", match.id);
+      recordAuditFailure(
+        "helium_create_retry",
+        `Email taken at create; soft-merging onto Shopify customer ${match.id} (${match.state})`
+      );
+      existingCustomerId = match.id;
+      existingShopifyId = match.id;
+      isGhostShell = match.state === "disabled" && match.ordersCount === 0;
+      apiResponse = await fetch(`${customerFieldsApiUrl}/${match.id}.json`, {
+        method: "PUT",
+        headers: apiHeaders,
+        body: JSON.stringify(customerFieldsRequest),
+      });
+      responseText = await apiResponse.text();
+    }
 
     if (!apiResponse.ok) {
       // Log full upstream detail server-side only; never echo raw API
@@ -2012,10 +2105,8 @@ Deno.serve(async (req: Request) => {
             "PHONE_IN_USE"
           );
         }
-        if (lower.includes('"email"') && lower.includes("already")) {
-          return sendError(409, ["Customer already exists with this email address"], "Conflict", [
-            { type: "LOGIN", label: "Go to Login", url: "/login" },
-          ]);
+        if (isEmailTaken(apiResponse.status, responseText)) {
+          return sendAlreadyHasAccount();
         }
       }
 
