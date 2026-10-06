@@ -417,7 +417,8 @@ const Auth = () => {
       {mode === "signup" && currentStep === "welcome-offer" && (
         <div
           id="step-footer-slot"
-          className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:px-[25px] lg:py-[clamp(15px,2.5vh,30px)] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-form border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)] animate-slide-up-fade"
+          // Same classes as the shared AuthFooter <footer>; keep them in sync.
+          className="sticky bottom-[10px] mx-[10px] bg-background p-2.5 sm:p-5 lg:px-[25px] lg:py-[clamp(15px,2.5vh,30px)] pb-[max(0.625rem,env(safe-area-inset-bottom))] rounded-full border border-border/30 shadow-[0_0_20px_-5px_rgba(0,0,0,0.12)] lg:bottom-0 lg:mx-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:shadow-none animate-slide-up-fade"
         />
       )}
 
