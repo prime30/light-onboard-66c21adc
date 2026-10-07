@@ -1,9 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+const FUNCTION_VERSION = "G1-20261007";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 const BUCKET_NAME = "registration-documents";
@@ -169,8 +172,8 @@ Deno.serve(async (req) => {
       case "webp":
         contentType = "image/webp";
         break;
-      case "svg":
-        contentType = "image/svg+xml";
+      case "pdf":
+        contentType = "application/pdf";
         break;
     }
 
@@ -178,6 +181,7 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": contentType,
+        "X-Content-Type-Options": "nosniff",
         "Cache-Control": "public, max-age=3600",
         "Content-Disposition": `inline; filename="${imagePath.split("/").pop()}"`,
       },

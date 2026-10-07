@@ -81,10 +81,17 @@ const isImageFile = (file: File) => {
 };
 
 const formatAcceptedTypes = (accept: string) => {
-  return accept
-    .split(",")
-    .map((t) => t.trim().toUpperCase().replace(".", ""))
-    .join(", ");
+  const types = Array.from(
+    new Set(
+      accept
+        .split(",")
+        .map((t) => t.trim().toUpperCase().replace(".", ""))
+        .map((t) => (t === "JPEG" ? "JPG" : t))
+        .filter(Boolean)
+    )
+  );
+  if (types.length <= 1) return types.join("");
+  return `${types.slice(0, -1).join(", ")} or ${types[types.length - 1]}`;
 };
 
 const formatFileSize = (bytes: number) => {
@@ -587,7 +594,8 @@ export const MultiFileUpload = ({
                   {isDragOver ? "Drop files here" : placeholder}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Drag & drop or click to browse • {files.length}/{maxFiles} files
+                  {formatAcceptedTypes(accept)}, up to {formatFileSizeLimit(maxFileSize)}
+                  {maxFiles > 1 && ` • ${files.length}/${maxFiles} files`}
                 </p>
               </div>
               <Button
