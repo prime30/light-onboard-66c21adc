@@ -22,6 +22,7 @@ import { AccountTypeForm } from "./AccountTypeForm";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
 import { formatPhoneNumber, isNanpPhoneCountry, normalizeEmailInput } from "@/lib/validations/form-utils";
 import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "@/lib/validations/competitor-email-domains";
+import { suggestEmailDomainFix } from "@/lib/validations/email-typos";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoApproval, useBusinessLocationStepEnabled } from "@/lib/app-settings";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
@@ -134,6 +135,7 @@ export const ContactBasicsStep = () => {
   // Debounced check: does an account already exist with this email?
   const email = watch("email");
   const normalizedEmail = normalizeEmailInput(email ?? "").toLowerCase();
+  const emailTypoFix = suggestEmailDomainFix(normalizedEmail);
   const matchingEmailConflict = emailConflict?.email === normalizedEmail ? emailConflict : null;
   const emailDisplayError = errors.email || (
     matchingEmailConflict
@@ -142,6 +144,30 @@ export const ContactBasicsStep = () => {
   );
   const lastCheckedRef = useRef<string | null>(null);
   const lastTrackedLeadRef = useRef<string | null>(null);
+  const trackStartedLead = (value: string, emailValidated: boolean) => {
+    if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
+    if (suggestEmailDomainFix(value)) return;
+    if (lastTrackedLeadRef.current === value) return;
+    lastTrackedLeadRef.current = value;
+    supabase.functions
+      .invoke("track-registration-lead", {
+        body: {
+          ...getLeadAttributionFields(),
+          email: value,
+          phase: "started",
+          // Server gates the promotional trigger on these.
+          emailValidated,
+          emailMarketingConsent: !!watch("acceptsMarketing"),
+          accountType: watch("accountType") ?? null,
+          lastStep: "contact-basics",
+          firstName: watch("firstName") ?? null,
+          lastName: watch("lastName") ?? null,
+        },
+      })
+      .catch(() => {
+        // Non-blocking
+      });
+  };
   useEffect(() => {
     const value = normalizeEmailInput(email ?? "").toLowerCase();
     if (emailConflict && emailConflict.email !== value) {
@@ -617,31 +643,26 @@ export const ContactBasicsStep = () => {
               if (value !== raw.trim().toLowerCase()) {
                 setValue("email", normalizeEmailInput(raw), { shouldValidate: true });
               }
-              if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return;
-              if (lastTrackedLeadRef.current === value) return;
-              lastTrackedLeadRef.current = value;
-              supabase.functions
-                .invoke("track-registration-lead", {
-                  body: {
-                    ...getLeadAttributionFields(),
-                    email: value,
-                    phase: "started",
-                    // Server gates the promotional trigger on these.
-                    emailValidated: getValidationStatus("email") === "complete",
-                    emailMarketingConsent: !!watch("acceptsMarketing"),
-                    accountType: watch("accountType") ?? null,
-                    lastStep: "contact-basics",
-                    firstName: watch("firstName") ?? null,
-                    lastName: watch("lastName") ?? null,
-                  },
-                })
-                .catch(() => {
-                  // Non-blocking
-                });
+              trackStartedLead(value, getValidationStatus("email") === "complete");
             }}
           />
           {matchingEmailConflict && (
             <ConflictPills navigate={navigate} />
+          )}
+          {emailTypoFix && !matchingEmailConflict && (
+            <div className="mt-2.5 flex items-center animate-fade-in">
+              <button
+                type="button"
+                onClick={() => {
+                  setValue("email", emailTypoFix, { shouldValidate: true, shouldDirty: true });
+                  trackStartedLead(emailTypoFix.toLowerCase(), true);
+                }}
+                className="group/typo inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-muted/60 hover:bg-muted px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                <span>Use {emailTypoFix}</span>
+                <ArrowRight className="w-3 h-3 transition-transform group-hover/typo:translate-x-0.5" />
+              </button>
+            </div>
           )}
         </div>
 

@@ -6,9 +6,11 @@
 // All sends are fire-and-forget through the existing track-registration-lead
 // edge function. The function dedupes by email, so we never fire until the
 // user has typed a valid email.
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getLeadAttributionFields } from "@/lib/attribution";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeEmailInput } from "@/lib/validations/form-utils";
+import { suggestEmailDomainFix } from "@/lib/validations/email-typos";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SESSION_KEY = "dd_bounce_telemetry_v1";
@@ -45,8 +47,30 @@ export function useBounceTelemetry({
   const errorQueueRef = useRef<Set<string>>(new Set());
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const normalizedEmail = (email ?? "").trim().toLowerCase();
-  const hasEmail = EMAIL_RE.test(normalizedEmail);
+  // Only an email the person has finished typing is sent: the value when they
+  // leave the email field, or the current value when the step changes. The
+  // live value would send a lead per keystroke ("x@gmail.c", "x@gmail.co").
+  const liveEmail = normalizeEmailInput(email ?? "").toLowerCase();
+  const liveEmailRef = useRef(liveEmail);
+  liveEmailRef.current = liveEmail;
+  const [normalizedEmail, setNormalizedEmail] = useState(liveEmail);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const handler = (e: FocusEvent) => {
+      const t = e.target as HTMLInputElement | null;
+      if (t?.getAttribute?.("name") !== "email") return;
+      setNormalizedEmail(normalizeEmailInput(t.value ?? "").toLowerCase());
+    };
+    document.addEventListener("focusout", handler, true);
+    return () => document.removeEventListener("focusout", handler, true);
+  }, []);
+
+  useEffect(() => {
+    setNormalizedEmail(liveEmailRef.current);
+  }, [currentStep]);
+
+  const hasEmail = EMAIL_RE.test(normalizedEmail) && !suggestEmailDomainFix(normalizedEmail);
   // The server only fires the promotional "Started Registration" metric when
   // the email actually cleared client-side validation.
   const emailValidated = hasEmail && !(errors as Record<string, unknown>)?.email;

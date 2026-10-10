@@ -18,11 +18,16 @@
 //     → Klaviyo re-evaluates flow filters at every step, so completing
 //       registration silently drops users from the remaining sequence.
 
+import { suggestEmailDomainFix } from "./email-typos.ts";
+
+const FUNCTION_VERSION = "L1-20261009";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -107,6 +112,7 @@ Deno.serve(async (req: Request) => {
   if (!EMAIL_RE.test(email)) return json(200, { skipped: "invalid_email" });
 
   const phase: Phase = payload.phase ?? "started";
+  if (phase !== "completed" && suggestEmailDomainFix(email)) return json(200, { skipped: "email_domain_typo" });
   const accountType = payload.accountType ?? null;
   const lastStep = payload.lastStep ?? null;
   const lastField = payload.lastField ?? null;
