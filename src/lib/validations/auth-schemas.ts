@@ -4,6 +4,7 @@ import { isValidPhoneNumber, normalizeEmailInput } from "./form-utils.ts";
 import { UploadFileItem, uploadFileItemSchema } from "./file-schema.ts";
 import { isDisposableEmail } from "./disposable-email-domains.ts";
 import { COMPETITOR_EMAIL_MESSAGE, isCompetitorEmail } from "./competitor-email-domains.ts";
+import { suggestEmailDomainFix } from "./email-typos.ts";
 import {
   ALL_QUALIFICATION_VALUES,
   isCurrentQualificationForCountry,
@@ -186,7 +187,11 @@ const contactBasicsValidators = {
     .max(255, "Email must be less than 255 characters")
     .transform((val) => val.toLowerCase())
     .refine((val) => !isDisposableEmail(val), DISPOSABLE_EMAIL_MESSAGE)
-      .refine((val) => !isCompetitorEmail(val), COMPETITOR_EMAIL_MESSAGE),
+      .refine((val) => !isCompetitorEmail(val), COMPETITOR_EMAIL_MESSAGE)
+    .superRefine((val, ctx) => {
+      const suggestion = suggestEmailDomainFix(val);
+      if (suggestion) ctx.addIssue({ code: "custom", message: `Did you mean ${suggestion}?` });
+    }),
   phoneNumber: z
     .string({ error: "Phone number is required" })
     .min(1, "Phone number is required")
