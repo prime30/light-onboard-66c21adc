@@ -275,6 +275,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `admin-fake-account-analysis/`, `admin-competitor-attempts/` | Fraud and competitor signals |
 | `admin-stranded-accounts/` | Applicants without a usable password; reissue setup emails (forced past the reset cooldown). Action `blocked` (read-only): applicants turned away as "already has an account", classified by Shopify state and tags |
 | `admin-revoke-account/` | Reject an account and revoke B2B tags in Shopify |
+| `admin-fix-customer-email/` | Correct a misspelled email domain on Shopify customers (`gmail.con` to `gmail.com`). Check-only unless `apply: true`; skips mismatches and addresses already in use |
 | `admin-helium-audit/`, `admin-helium-customers-range/`, `admin-backfill-helium-customers/` | Helium Customer Fields audit and backfill |
 
 **One-off backfills and internal**
