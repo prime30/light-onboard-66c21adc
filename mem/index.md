@@ -12,6 +12,7 @@ Use `ReturnType<typeof setTimeout>` to avoid NodeJS.Timeout errors.
 Support email is **hello@dropdeadextensions.com** (NOT support@…).
 
 ## Memories
+- [Welcome credit strategy](mem://features/welcome-credit-strategy) - $25 store credit for newly approved stylists, benefit positioning, supersedes no-incentive
 - [Carousel manual navigation](mem://features/carousel-with-manual-navigation) - Crossfade transition, manual navigation, eager preloading
 - [Magnetic hover interactions](mem://design/magnetic-hover-interactions) - Magnetic hover strength 0.12-0.15, cursor remains default
 - [Directional step transitions](mem://features/directional-step-transition-animations) - Next slides from right, back slides from left
