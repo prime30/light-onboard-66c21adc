@@ -9,15 +9,12 @@ import methodKeratinTips from "@/assets/method-keratin-tips.webp?url";
 import methodSecretapes from "@/assets/method-secretapes.webp?url";
 import methodVolumeWeft from "@/assets/method-volume-weft.webp?url";
 import blogResaleLicense from "@/assets/blog-resale-license.jpg?url";
-import colorRingProduct from "@/assets/color-ring-product.png?url";
-
 const STEP_IMAGE_URLS: string[] = [
   methodSuperweft,
   methodKeratinTips,
   methodSecretapes,
   methodVolumeWeft,
   blogResaleLicense,
-  colorRingProduct,
 ];
 
 const warmedImages = new Set<string>();

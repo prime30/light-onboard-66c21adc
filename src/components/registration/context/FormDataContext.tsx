@@ -17,6 +17,7 @@ import {
 } from "@/lib/validations/auth-schemas";
 import { countries } from "@/data/locations";
 import { countryCodes } from "@/data/country-codes";
+import { welcomeOfferKind } from "@/data/welcome-offer";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Control, FormState, useForm, UseFormRegister } from "react-hook-form";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
@@ -78,6 +79,9 @@ export type FormDataContextType = {
   ) => void;
   discountCode: string | null;
   discountExpiry: string | null;
+  // True once the create-customer response has been read, with or without a
+  // welcome code, so the success screen can tell "still loading" from "none".
+  welcomeOfferSettled: boolean;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -156,6 +160,7 @@ export function FormDataProvider({
   const lastSubscribedValuesSignature = useRef<string | null>(null);
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
+  const [welcomeOfferSettled, setWelcomeOfferSettled] = useState(false);
 
   const {
     register,
@@ -414,6 +419,7 @@ export function FormDataProvider({
                 type: "dd:welcome_offer",
                 code: welcomeOffer.code,
                 endsAt: welcomeOffer.endsAt ?? null,
+                kind: welcomeOfferKind(welcomeOffer.code),
               },
               "*"
             );
@@ -424,6 +430,7 @@ export function FormDataProvider({
       } catch (err) {
         console.warn("welcome_offer extraction failed (non-blocking):", err);
       }
+      setWelcomeOfferSettled(true);
 
 
       return result.data;
@@ -790,6 +797,7 @@ export function FormDataProvider({
     setSubmitError,
     discountCode,
     discountExpiry,
+    welcomeOfferSettled,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;
