@@ -224,7 +224,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `get-image/` | Reads stored images |
 | `address-autocomplete/` | Google Places autocomplete proxy |
 | `address-details/` | Google Places details proxy |
-| `generate-discount/` | Creates a Shopify discount code (called from activation and registration) |
+| `generate-discount/` | Mints the $25 pro welcome code (`PRO25-`, $100 min, 30 days, locked to the customer), one live code per customer via `welcome_offer_codes`; writes the welcome metafields and the Klaviyo `Pro Welcome Code Issued` event. Internal-only (called from create-customer, activate-account, backfill-welcome-offers) |
 | `public-app-flags/` | Public read of the app_settings flags the SPA needs at boot |
 
 **Sign-in, reset, activation** (pair with the theme contract, see `.cursor/rules/theme-boundary.mdc`)
