@@ -216,6 +216,9 @@ export const SuccessForm = () => {
     : welcomeOfferSettled || welcomeOfferTimedOut
       ? "failed"
       : "loading";
+  // The code is minted at approval: a manually approved applicant gets it
+  // when they activate from the invite email, not here.
+  const showWelcomeOffer = welcomeOfferEnabled && (autoApproved || !!discountCode);
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
@@ -437,7 +440,7 @@ export const SuccessForm = () => {
         </div>
       </div>
 
-      {welcomeOfferEnabled && (
+      {showWelcomeOffer && (
         <ProWelcomeCard
           code={discountCode}
           endsAt={discountExpiry}
