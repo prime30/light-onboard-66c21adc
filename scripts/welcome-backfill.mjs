@@ -35,7 +35,7 @@ if (cmd === "list" || cmd === "apply") {
 
   const batch = Math.min(Number(a1) || 10, 100);
   const max = Number(a2) || todo.length;
-  const tally = { minted: 0, already_live: 0, already_issued: 0, pending: 0, no_customer: 0, rejected: 0, error: 0 };
+  const tally = { minted: 0, already_live: 0, already_issued: 0, pending: 0, no_customer: 0, rejected: 0, method50_issued: 0, error: 0 };
   const errors = [];
   for (let i = 0; i < Math.min(todo.length, max); i += batch) {
     const ids = todo.slice(i, Math.min(i + batch, max));

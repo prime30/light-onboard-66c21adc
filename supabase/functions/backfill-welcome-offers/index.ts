@@ -319,6 +319,7 @@ type ApplyOutcome =
   | "pending"
   | "no_customer"
   | "rejected"
+  | "method50_issued"
   | "error";
 
 async function issueViaMinter(numericId: string): Promise<{
@@ -350,7 +351,8 @@ async function issueViaMinter(numericId: string): Promise<{
     }
     const err = String(body?.error ?? `HTTP ${res.status}`);
     const outcome: ApplyOutcome =
-      err === "already_issued" || err === "pending" || err === "no_customer" || err === "rejected"
+      err === "already_issued" || err === "pending" || err === "no_customer" || err === "rejected" ||
+        err === "method50_issued"
         ? err
         : "error";
     return { success: false, outcome, error: err };
@@ -525,7 +527,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const tally: Record<ApplyOutcome, number> = {
-        minted: 0, already_live: 0, already_issued: 0, pending: 0, no_customer: 0, rejected: 0, error: 0,
+        minted: 0, already_live: 0, already_issued: 0, pending: 0, no_customer: 0, rejected: 0, method50_issued: 0, error: 0,
       };
       for (const r of results) tally[r.outcome]++;
       const created = tally.minted;
