@@ -1,0 +1,2 @@
+ALTER TABLE public.welcome_offer_codes ADD COLUMN IF NOT EXISTS deactivated_at timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS welcome_offer_codes_one_live_pro25 ON public.welcome_offer_codes (shopify_customer_id) WHERE code LIKE 'PRO25-%' AND deactivated_at IS NULL;
