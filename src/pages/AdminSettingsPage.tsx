@@ -361,7 +361,7 @@ const AdminSettingsPage = () => {
       toast({
         title: next ? "Welcome offer enabled" : "Welcome offer disabled",
         description: next
-          ? "Success screen will show the 30% Color Ring discount."
+          ? "Success screen will show the $25 pro welcome code."
           : "Success screen will invite users to schedule a founder call instead.",
       });
     } catch (err) {
@@ -999,15 +999,15 @@ const AdminSettingsPage = () => {
           )}
         </div>
 
-        {/* Welcome offer (30% Color Ring) */}
+        {/* Welcome offer ($25 pro welcome code) */}
         <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
           <div className="flex items-start justify-between gap-6">
             <div className="space-y-1">
               <h2 className="text-base font-medium text-foreground">
-                Color Ring welcome offer
+                $25 pro welcome code
               </h2>
               <p className="text-sm text-muted-foreground">
-                When enabled, the success screen shows the 30% off Color Ring discount.
+                When enabled, new pros get a one-use $25 off $100+ code (30 days) on the success screen.
                 When disabled, users are invited to schedule a founder call with Kristi instead.
               </p>
             </div>

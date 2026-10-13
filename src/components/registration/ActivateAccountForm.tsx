@@ -19,6 +19,8 @@ import {
 import { isTrustedShopifyUrl } from "@/lib/trusted-shopify-url";
 import { ActivationRecovery } from "./ActivationRecovery";
 import { InAppBrowserNotice } from "./InAppBrowserNotice";
+import { ProWelcomeCard } from "./ProWelcomeCard";
+import { welcomeOfferKind } from "@/data/welcome-offer";
 import { withBasename } from "@/lib/router-basename";
 import { getResetEmailHint, clearResetEmailHint } from "@/lib/reset-email-hint";
 import { clearResetParams } from "@/lib/reset-params";
@@ -66,6 +68,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   const [serverError, setServerError] = useState<string>("");
   const [activatedEmail, setActivatedEmail] = useState<string | null>(null);
   const [autoLoginStatus, setAutoLoginStatus] = useState<AutoLoginStatus>("idle");
+  const [welcomeOffer, setWelcomeOffer] = useState<{ code: string; endsAt: string | null } | null>(null);
   const themeLogin = useThemeLoginResult(
     isInIframe && formState === "success" && autoLoginStatus === "succeeded"
   );
@@ -134,12 +137,14 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
           (payload as { welcomeOffer?: { code?: string; endsAt?: string | null } } | undefined)
             ?.welcomeOffer ?? null;
         if (welcomeOffer?.code) {
+          setWelcomeOffer({ code: welcomeOffer.code, endsAt: welcomeOffer.endsAt ?? null });
           try {
             window.parent?.postMessage(
               {
                 type: "dd:welcome_offer",
                 code: welcomeOffer.code,
                 endsAt: welcomeOffer.endsAt ?? null,
+                kind: welcomeOfferKind(welcomeOffer.code),
               },
               "*"
             );
@@ -266,18 +271,20 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
   // Auto-close iframe after a successful auto-login so the user lands on
   // their (now-logged-in) storefront without an extra "Close" click. Mirrors
   // registration success UX. Manual-login fallbacks keep the explicit CTA.
-  // Only auto-close once the theme has confirmed the sign-in.
+  // Only auto-close once the theme has confirmed the sign-in, and never while
+  // a welcome code is on screen waiting to be copied.
   useEffect(() => {
     if (
       formState === "success" &&
       autoLoginStatus === "succeeded" &&
       isInIframe &&
-      themeLogin.result === "confirmed"
+      themeLogin.result === "confirmed" &&
+      !welcomeOffer
     ) {
       const t = setTimeout(() => closeIframe(), 1800);
       return () => clearTimeout(t);
     }
-  }, [formState, autoLoginStatus, isInIframe, closeIframe, themeLogin.result]);
+  }, [formState, autoLoginStatus, isInIframe, closeIframe, themeLogin.result, welcomeOffer]);
 
 
   // Signing-in state (auto-login in progress after activation)
@@ -366,6 +373,11 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             </FadeText>
           )}
         </div>
+        {welcomeOffer && (
+          <div className="w-full">
+            <ProWelcomeCard code={welcomeOffer.code} endsAt={welcomeOffer.endsAt} status="ready" />
+          </div>
+        )}
         <Button
           onClick={handleSuccessCta}
           className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"

@@ -52,6 +52,7 @@
 | `MobileSavingProgress.tsx` | Mobile save indicator |
 | `StepValidationIcon.tsx` | Check/error icon per step |
 | `ActivateAccountForm.tsx` | Account activation form (signs in via theme on success) |
+| `ProWelcomeCard.tsx` | $25 pro welcome code card (SuccessForm, ActivateAccountForm success) |
 | `ResetPasswordForm.tsx` | Password reset form (signs in via theme on success) |
 | `ActivationRecovery.tsx` | Self-service setup-link recovery when activation fails |
 | `AuGeoVerificationGate.tsx` | Blocks the Australia path until AU location is verified |
@@ -79,7 +80,7 @@
 | `ScheduleStep.tsx` | Founder call booking (Calendly) |
 | `ScheduleConfirmedStep.tsx` | Founder call confirmation |
 | `WelcomeOfferStep.tsx` | Welcome offer / discount |
-| `SuccessForm.tsx` | Post-submission confirmation |
+| `SuccessForm.tsx` | Post-submission confirmation, shows `ProWelcomeCard` when the welcome offer is on |
 | `SignInForm.tsx` | Login form |
 
 ### `src/components/registration/helpers/` - Left panel sub-components
@@ -124,7 +125,7 @@
 | `messages.ts` | PostMessage types + `useCustomerLogin`, `useCloseIframe` |
 | `use-iframe-comm.ts` | PostMessage communication with Shopify parent |
 | `use-theme-login-result.ts` | Waits for the theme's `LOGIN_STATUS` / `CUSTOMER_DATA` reply after `USER_LOGIN` |
-| `use-iframe-cart.ts` | Cart actions via the parent theme |
+| `use-iframe-cart.ts` | Cart actions via the parent theme (no callers since the ring offer was removed) |
 | `use-standalone-session.ts` | Already-logged-in redirect when running outside the iframe |
 | `use-api-client.ts` | Fetch wrapper for edge functions |
 | `use-address-autocomplete.tsx` | Google Places autocomplete |
@@ -135,7 +136,6 @@
 | `use-mobile.tsx` | Responsive breakpoint detection |
 | `use-modal-swipe.ts` | Bottom sheet swipe-to-dismiss |
 | `use-magnetic.tsx` | Magnetic hover effect for elements |
-| `use-countdown.tsx` | Timer for rate-limiting UI |
 | `use-font-loaded.tsx` | Font load detection |
 | `use-safari-viewport-fix.ts` | iOS viewport height fix |
 | `use-scroll.ts` | Scroll position tracking |
@@ -186,6 +186,7 @@
 | `country-codes.ts` | Phone country codes |
 | `locations.ts` | US states list |
 | `allowed-origins.ts` | Allowed iframe parent origins |
+| `welcome-offer.ts` | $25 pro welcome code display terms, `kind` from the code prefix |
 
 ### `src/services/` - API service layer
 | File | Purpose |
