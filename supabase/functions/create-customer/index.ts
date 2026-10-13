@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "PRO25-M50-20261013";
+const FUNCTION_VERSION = "PRO25-GUEST-20261013";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -3061,6 +3061,7 @@ Deno.serve(async (req: Request) => {
     // response when the SPA flag is on (otherwise the SPA would render it).
     let welcomeOffer: { code: string; endsAt: string | null } | null = null;
     let welcomeOfferIneligible = false;
+    let guestOffer: { code: string; endsAt: string | null } | null = null;
     try {
       let welcomeEnabled = false;
       let metafieldsEnabled = false;
@@ -3112,6 +3113,9 @@ Deno.serve(async (req: Request) => {
           // Method 50 holders never get PRO25, so the SPA must not promise one.
           if (discountRes.status === 403 && j?.error === "method50_issued") {
             welcomeOfferIneligible = true;
+            if (typeof j?.guestOffer?.code === "string") {
+              guestOffer = { code: j.guestOffer.code, endsAt: j.guestOffer.endsAt ?? null };
+            }
           } else {
             console.warn("generate-discount internal call failed:", discountRes.status);
           }
@@ -3122,10 +3126,14 @@ Deno.serve(async (req: Request) => {
     }
 
     const response: FunctionResponse<
-      CustomerFieldsResponse & { welcomeOffer?: typeof welcomeOffer; welcomeOfferIneligible?: boolean }
+      CustomerFieldsResponse & {
+        welcomeOffer?: typeof welcomeOffer;
+        welcomeOfferIneligible?: boolean;
+        guestOffer?: typeof guestOffer;
+      }
     > = {
       success: true,
-      data: { ...customerFieldsData, welcomeOffer, welcomeOfferIneligible },
+      data: { ...customerFieldsData, welcomeOffer, welcomeOfferIneligible, guestOffer },
       statusCode: 200,
     };
 

@@ -5,6 +5,7 @@ import { useCloseIframe } from "@/hooks/messages";
 import { Button } from "@/components/ui/button";
 import kristiAvatar from "@/assets/avatars/kristi.png";
 import { ProWelcomeCard } from "@/components/registration/ProWelcomeCard";
+import { GuestOfferCard } from "@/components/registration/GuestOfferCard";
 import { useFormData } from "@/components/registration/context";
 import { useForm } from "@/components/registration/context/FormContext";
 import { useStepContext } from "@/components/registration/context/StepContext";
@@ -19,7 +20,8 @@ import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 
 export const SuccessForm = () => {
-  const { discountCode, discountExpiry, welcomeOfferSettled, welcomeOfferIneligible } = useFormData();
+  const { discountCode, discountExpiry, welcomeOfferSettled, welcomeOfferIneligible, guestOffer } =
+    useFormData();
   const { enabled: autoApproved } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
@@ -450,7 +452,11 @@ export const SuccessForm = () => {
         />
       )}
 
-      {!showFounderCallNudge && (!welcomeOfferEnabled || welcomeOfferIneligible) && (
+      {guestOffer && (
+        <GuestOfferCard code={guestOffer.code} endsAt={guestOffer.endsAt} onShop={closeToShop} />
+      )}
+
+      {!showFounderCallNudge && !guestOffer && (!welcomeOfferEnabled || welcomeOfferIneligible) && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
             <div className="relative overflow-hidden p-5 rounded-[20px] border border-status-green/30 bg-muted/40 text-left">

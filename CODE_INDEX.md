@@ -52,7 +52,9 @@
 | `MobileSavingProgress.tsx` | Mobile save indicator |
 | `StepValidationIcon.tsx` | Check/error icon per step |
 | `ActivateAccountForm.tsx` | Account activation form (signs in via theme on success) |
+| `OfferCodeCard.tsx` | Shared code card (title, copyable code, expiry, shop button) behind the two cards below |
 | `ProWelcomeCard.tsx` | $25 pro welcome code card (SuccessForm, ActivateAccountForm success) |
+| `GuestOfferCard.tsx` | Reminder of an unused METHOD50 code from the theme's guest popup (SuccessForm) |
 | `ResetPasswordForm.tsx` | Password reset form (signs in via theme on success) |
 | `ActivationRecovery.tsx` | Self-service setup-link recovery when activation fails |
 | `AuGeoVerificationGate.tsx` | Blocks the Australia path until AU location is verified |
@@ -80,7 +82,7 @@
 | `ScheduleStep.tsx` | Founder call booking (Calendly) |
 | `ScheduleConfirmedStep.tsx` | Founder call confirmation |
 | `WelcomeOfferStep.tsx` | Welcome offer / discount |
-| `SuccessForm.tsx` | Post-submission confirmation, shows `ProWelcomeCard` when the welcome offer is on |
+| `SuccessForm.tsx` | Post-submission confirmation, shows `ProWelcomeCard` when the welcome offer is on, or `GuestOfferCard` for METHOD50 holders |
 | `SignInForm.tsx` | Login form |
 
 ### `src/components/registration/helpers/` - Left panel sub-components
@@ -187,6 +189,7 @@
 | `locations.ts` | US states list |
 | `allowed-origins.ts` | Allowed iframe parent origins |
 | `welcome-offer.ts` | $25 pro welcome code display terms, `kind` from the code prefix |
+| `guest-offer.ts` | METHOD50 display terms (amount, product), mirrored from the theme's guest-offer function |
 
 ### `src/services/` - API service layer
 | File | Purpose |

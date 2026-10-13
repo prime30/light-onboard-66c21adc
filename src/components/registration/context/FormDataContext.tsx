@@ -84,6 +84,8 @@ export type FormDataContextType = {
   welcomeOfferSettled: boolean;
   // The server refused a code for this customer (Method 50 holders).
   welcomeOfferIneligible: boolean;
+  // Their unused METHOD50 code from the theme's guest popup, if any.
+  guestOffer: { code: string; endsAt: string | null } | null;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -164,6 +166,7 @@ export function FormDataProvider({
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
   const [welcomeOfferSettled, setWelcomeOfferSettled] = useState(false);
   const [welcomeOfferIneligible, setWelcomeOfferIneligible] = useState(false);
+  const [guestOffer, setGuestOffer] = useState<{ code: string; endsAt: string | null } | null>(null);
 
   const {
     register,
@@ -410,6 +413,10 @@ export function FormDataProvider({
           null;
         if ((envelope?.data?.welcomeOfferIneligible ?? envelope?.welcomeOfferIneligible) === true) {
           setWelcomeOfferIneligible(true);
+        }
+        const guest = envelope?.data?.guestOffer ?? envelope?.guestOffer ?? null;
+        if (typeof guest?.code === "string") {
+          setGuestOffer({ code: guest.code, endsAt: guest.endsAt ?? null });
         }
         if (welcomeOffer?.code) {
           setDiscountCode(welcomeOffer.code);
@@ -805,6 +812,7 @@ export function FormDataProvider({
     discountExpiry,
     welcomeOfferSettled,
     welcomeOfferIneligible,
+    guestOffer,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;
