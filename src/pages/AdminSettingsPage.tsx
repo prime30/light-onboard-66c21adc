@@ -708,27 +708,37 @@ const AdminSettingsPage = () => {
     if (selectedIds.size === 0) return;
     setApplyingOffers(true);
     try {
-      const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
-        body: {
-          token,
-          mode: "apply",
-          customerIds: Array.from(selectedIds),
-        },
-      });
-
-      if (error || !data?.success) {
-        toast({
-          title: "Backfill failed",
-          description: data?.error || "Could not issue offers.",
-          variant: "destructive",
+      // The function accepts at most 100 customers per call.
+      const ids = Array.from(selectedIds);
+      const results: BackfillResult[] = [];
+      let created = 0;
+      let failed = 0;
+      for (let i = 0; i < ids.length; i += 100) {
+        const { data, error } = await supabase.functions.invoke("backfill-welcome-offers", {
+          body: {
+            token,
+            mode: "apply",
+            customerIds: ids.slice(i, i + 100),
+          },
         });
-        return;
+
+        if (error || !data?.success) {
+          setApplyResults(results);
+          toast({
+            title: "Backfill failed",
+            description: data?.error || "Could not issue codes.",
+            variant: "destructive",
+          });
+          return;
+        }
+        results.push(...((data.results ?? []) as BackfillResult[]));
+        created += data.created ?? 0;
+        failed += data.failed ?? 0;
       }
-      const results = (data.results ?? []) as BackfillResult[];
       setApplyResults(results);
       toast({
         title: "Backfill complete",
-        description: `${data.created} issued · ${data.failed} failed`,
+        description: `${created} issued · ${failed} failed`,
       });
     } catch (err) {
       console.error(err);
@@ -1409,13 +1419,14 @@ const AdminSettingsPage = () => {
             </div>
             <div className="space-y-1">
               <h2 className="text-base font-medium text-foreground">
-                Welcome offer backfill
+                $25 pro welcome code backfill
               </h2>
               <p className="text-sm text-muted-foreground">
                 Find recently activated customers (Shopify state{" "}
-                <code className="text-xs">enabled</code>) and issue a fresh 48h Color Ring
-                discount. Defaults to customers created in the last 14 days whose record
-                was touched in the last 48h.
+                <code className="text-xs">enabled</code>) and issue the $25 pro welcome
+                code ($100 minimum, 30 days). Customers who already hold a live code keep
+                it. Defaults to customers created in the last 14 days whose record was
+                touched in the last 48h.
               </p>
             </div>
           </div>
@@ -1594,7 +1605,7 @@ const AdminSettingsPage = () => {
 
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-xs text-muted-foreground">
-                      Issuing resets the clock to a fresh 48h for each selected customer.
+                      One code per customer: anyone who already has one keeps their existing code.
                     </span>
                     <Button
                       type="button"
@@ -1605,7 +1616,7 @@ const AdminSettingsPage = () => {
                       {applyingOffers ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        `Issue offers (${selectedIds.size})`
+                        `Issue codes (${selectedIds.size})`
                       )}
                     </Button>
                   </div>
