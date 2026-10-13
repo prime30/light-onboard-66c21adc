@@ -82,6 +82,8 @@ export type FormDataContextType = {
   // True once the create-customer response has been read, with or without a
   // welcome code, so the success screen can tell "still loading" from "none".
   welcomeOfferSettled: boolean;
+  // The server refused a code for this customer (Method 50 holders).
+  welcomeOfferIneligible: boolean;
 };
 
 type FormStateWithValues = Partial<FormState<RegistrationFormData>> & {
@@ -161,6 +163,7 @@ export function FormDataProvider({
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountExpiry, setDiscountExpiry] = useState<string | null>(null);
   const [welcomeOfferSettled, setWelcomeOfferSettled] = useState(false);
+  const [welcomeOfferIneligible, setWelcomeOfferIneligible] = useState(false);
 
   const {
     register,
@@ -405,6 +408,9 @@ export function FormDataProvider({
           envelope?.data?.welcomeOffer ??
           envelope?.welcomeOffer ??
           null;
+        if ((envelope?.data?.welcomeOfferIneligible ?? envelope?.welcomeOfferIneligible) === true) {
+          setWelcomeOfferIneligible(true);
+        }
         if (welcomeOffer?.code) {
           setDiscountCode(welcomeOffer.code);
           setDiscountExpiry(welcomeOffer.endsAt ?? null);
@@ -798,6 +804,7 @@ export function FormDataProvider({
     discountCode,
     discountExpiry,
     welcomeOfferSettled,
+    welcomeOfferIneligible,
   };
 
   return <FormDataContext.Provider value={value}>{children}</FormDataContext.Provider>;

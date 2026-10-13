@@ -19,7 +19,7 @@ import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 
 export const SuccessForm = () => {
-  const { discountCode, discountExpiry, welcomeOfferSettled } = useFormData();
+  const { discountCode, discountExpiry, welcomeOfferSettled, welcomeOfferIneligible } = useFormData();
   const { enabled: autoApproved } = useAutoApproval();
   const { enabled: welcomeOfferEnabled } = useWelcomeOffer();
   const { enabled: founderHighVolumeOnly } = useFounderCallHighVolumeOnly();
@@ -218,7 +218,8 @@ export const SuccessForm = () => {
       : "loading";
   // The code is minted at approval: a manually approved applicant gets it
   // when they activate from the invite email, not here.
-  const showWelcomeOffer = welcomeOfferEnabled && (autoApproved || !!discountCode);
+  const showWelcomeOffer =
+    welcomeOfferEnabled && !welcomeOfferIneligible && (autoApproved || !!discountCode);
 
   return (
     <div className="space-y-[clamp(12px,2vh,25px)] animate-fade-in text-center">
@@ -449,7 +450,7 @@ export const SuccessForm = () => {
         />
       )}
 
-      {!showFounderCallNudge && !welcomeOfferEnabled && (
+      {!showFounderCallNudge && (!welcomeOfferEnabled || welcomeOfferIneligible) && (
         <div className="space-y-3 pt-1">
           {showSalonTrial15Nudge && (
             <div className="relative overflow-hidden p-5 rounded-[20px] border border-status-green/30 bg-muted/40 text-left">
