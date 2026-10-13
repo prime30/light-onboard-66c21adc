@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const FUNCTION_VERSION = "PRO25-20261012";
+const FUNCTION_VERSION = "PRO25-GUEST-20261013";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -131,6 +131,18 @@ const CUSTOMER_BY_ID_QUERY = `
       id
       email
       tags
+      guestOfferCode: metafield(namespace: "custom", key: "guest_offer_code") { value }
+      guestOfferEndsAt: metafield(namespace: "custom", key: "guest_offer_ends_at") { value }
+    }
+  }
+`;
+
+const DISCOUNT_BY_CODE_QUERY = `
+  query discountByCode($code: String!) {
+    codeDiscountNodeByCode(code: $code) {
+      codeDiscount {
+        ... on DiscountCodeBasic { status asyncUsageCount endsAt }
+      }
     }
   }
 `;
@@ -214,7 +226,14 @@ async function shopifyGraphQL<T>(
   return json;
 }
 
-type ResolvedCustomer = { gid: string; numericId: string; email: string; tags: string[] };
+type ResolvedCustomer = {
+  gid: string;
+  numericId: string;
+  email: string;
+  tags: string[];
+  guestOfferCode: string | null;
+  guestOfferEndsAt: string | null;
+};
 
 /**
  * Resolve the Shopify customer BEFORE minting: the code is locked to this
@@ -243,7 +262,13 @@ async function resolveCustomer(
   if (!gid) return null;
 
   const res = await shopifyGraphQL<{
-    customer: { id: string; email: string | null; tags: string[] } | null;
+    customer: {
+      id: string;
+      email: string | null;
+      tags: string[];
+      guestOfferCode: { value: string } | null;
+      guestOfferEndsAt: { value: string } | null;
+    } | null;
   }>(CUSTOMER_BY_ID_QUERY, { id: gid }, "customerById");
   const customer = res.data?.customer;
   if (!customer?.id) return null;
@@ -253,7 +278,37 @@ async function resolveCustomer(
     numericId: customer.id.split("/").pop() ?? "",
     email: (customer.email ?? email ?? "").trim().toLowerCase(),
     tags: customer.tags ?? [],
+    guestOfferCode: customer.guestOfferCode?.value?.trim() || null,
+    guestOfferEndsAt: customer.guestOfferEndsAt?.value || null,
   };
+}
+
+/**
+ * The METHOD50 code the theme's guest popup stored on the customer, returned
+ * only while Shopify still says it is active, unused and unexpired (contract:
+ * pro25-welcome-offer.md, Guest popup interaction). The metafields are never
+ * cleared on redemption, so the discount node is the source of truth.
+ */
+async function liveGuestOffer(
+  customer: ResolvedCustomer
+): Promise<{ code: string; endsAt: string | null } | null> {
+  const code = customer.guestOfferCode;
+  if (!code || !code.toUpperCase().startsWith("METHOD50-")) return null;
+  try {
+    const res = await shopifyGraphQL<{
+      codeDiscountNodeByCode: {
+        codeDiscount: { status?: string; asyncUsageCount?: number; endsAt?: string | null } | null;
+      } | null;
+    }>(DISCOUNT_BY_CODE_QUERY, { code }, "discountByCode");
+    const d = res.data?.codeDiscountNodeByCode?.codeDiscount;
+    if (!d || d.status !== "ACTIVE" || d.asyncUsageCount !== 0) return null;
+    const endsAt = d.endsAt ?? customer.guestOfferEndsAt;
+    if (endsAt && new Date(endsAt).getTime() <= Date.now()) return null;
+    return { code, endsAt: endsAt ?? null };
+  } catch (err) {
+    console.warn("[generate-discount] guest offer check failed:", err);
+    return null;
+  }
 }
 
 async function writeCustomerMetafields(
@@ -479,7 +534,7 @@ Deno.serve(async (req: Request) => {
       return json(403, { error: "rejected" });
     }
     if (customer.tags.some((t) => t.trim().toLowerCase() === METHOD50_TAG)) {
-      return json(403, { error: "method50_issued" });
+      return json(403, { error: "method50_issued", guestOffer: await liveGuestOffer(customer) });
     }
 
     const now = new Date();
