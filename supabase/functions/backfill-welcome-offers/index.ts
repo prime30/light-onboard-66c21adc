@@ -1,21 +1,21 @@
-// Admin-only tools for the $25 pro welcome code (PRO25). Every mint goes
-// through generate-discount, so terms and the one-live-code-per-customer rule
-// live in one place. Modes:
+// Admin-only tools for the $25 pro welcome code (PRO25). Only new
+// registrations mint (generate-discount at approval). Modes:
 //   - "list"       preview customers (no writes). Default: recently activated
 //                  customers; cohort "ring_last_30d": customers who got a
 //                  WELCOME- ring code in the last 30 days.
-//   - "apply"      issue PRO25 codes to the given customer IDs (max 100/call)
+//   - "apply"      disabled (410): existing customers are never backfilled
 //   - "deactivate" rollback: turn off live PRO25 codes, clear the welcome
 //                  metafields, mark the rows deactivated (max 100/call)
-//   - "retrack"    re-send the Klaviyo "Pro Welcome Code Issued" event for live
-//                  PRO25 codes minted before the welcome flow went live
+//   - "retrack"    send "Pro Account Approved" (offer_kind pro25) for live
+//                  PRO25 codes minted before the flow went live; same
+//                  unique_id as the approval event, so no double sends
 //
 // Auth: same admin email + ADMIN_PANEL_PASSWORD (or admin token) as
 // admin-toggle-setting.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const FUNCTION_VERSION = "PRO25-B-20261012";
+const FUNCTION_VERSION = "PRO25-B-APPROVED-20261013";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,17 +37,18 @@ const METAFIELD_KEY_CODE = "welcome_offer_code";
 const METAFIELD_KEY_ENDS_AT = "welcome_offer_ends_at";
 const METAFIELD_KEY_KIND = "welcome_offer_kind";
 
-// generate-discount must be the PRO25 build. If it was reverted to the ring
-// minter, apply would hand out ring codes, so apply refuses to run.
-const MINTER_VERSION_PREFIX = "PRO25-";
 const PRO25_PREFIX = "PRO25-";
 const RING_PREFIX = "WELCOME-";
 const BATCH_MAX = 100;
 
+// Same event, properties and unique_id as generate-discount sends at approval,
+// so Klaviyo drops a retrack for anyone who already got it.
 const KLAVIYO_REVISION = "2025-04-15";
-const KLAVIYO_METRIC = "Pro Welcome Code Issued";
+const KLAVIYO_APPROVED_METRIC = "Pro Account Approved";
+const APPROVED_EVENT_ID_PREFIX = "pro-account-approved-";
 const DISCOUNT_AMOUNT = 25;
 const DISCOUNT_MIN_SUBTOTAL = 100;
+const PRO25_URL = "/collections/all";
 
 // Defaults: customers created in the last 14 days who were also touched in
 // the last 48h (activation always bumps updated_at). Both windows are
@@ -306,66 +307,12 @@ async function listRingCohort(db: Db): Promise<{
   return { customers, rawRows: ringRows.length };
 }
 
-async function minterVersion(): Promise<string> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-discount`, { method: "POST" });
-  await res.body?.cancel();
-  return res.headers.get("x-function-version") ?? "";
-}
-
-type ApplyOutcome =
-  | "minted"
-  | "already_live"
-  | "already_issued"
-  | "pending"
-  | "no_customer"
-  | "rejected"
-  | "method50_issued"
-  | "error";
-
-async function issueViaMinter(numericId: string): Promise<{
-  success: boolean;
-  outcome: ApplyOutcome;
-  code?: string;
-  endsAt?: string;
-  error?: string;
-}> {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-discount`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-        "x-internal-key": SUPABASE_SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({ shopifyCustomerId: numericId, source: "backfill" }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (res.ok && body?.code) {
-      return {
-        success: true,
-        outcome: body.existing ? "already_live" : "minted",
-        code: body.code,
-        endsAt: body.endsAt,
-      };
-    }
-    const err = String(body?.error ?? `HTTP ${res.status}`);
-    const outcome: ApplyOutcome =
-      err === "already_issued" || err === "pending" || err === "no_customer" || err === "rejected" ||
-        err === "method50_issued"
-        ? err
-        : "error";
-    return { success: false, outcome, error: err };
-  } catch (err) {
-    return { success: false, outcome: "error", error: err instanceof Error ? err.message : String(err) };
-  }
-}
-
 async function klaviyoRetrack(row: CodeRow, apiKey: string): Promise<boolean> {
   const email = (row.email ?? "").trim().toLowerCase();
   if (!email || !/^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(email) || email.includes("..")) {
     return false;
   }
+  if (!row.shopify_customer_id) return false;
   // No `time`: Klaviyo flows ignore back-dated events, so the event is stamped now.
   const res = await fetch("https://a.klaviyo.com/api/events", {
     method: "POST",
@@ -380,13 +327,15 @@ async function klaviyoRetrack(row: CodeRow, apiKey: string): Promise<boolean> {
         type: "event",
         attributes: {
           properties: {
-            code: row.code,
-            expires_at: row.ends_at,
-            amount: DISCOUNT_AMOUNT,
-            minimum: DISCOUNT_MIN_SUBTOTAL,
-            source: "retrack",
+            offer_kind: "pro25",
+            offer_code: row.code,
+            offer_ends_at: row.ends_at,
+            offer_amount: DISCOUNT_AMOUNT,
+            offer_minimum: DISCOUNT_MIN_SUBTOTAL,
+            offer_url: PRO25_URL,
           },
-          metric: { data: { type: "metric", attributes: { name: KLAVIYO_METRIC } } },
+          unique_id: `${APPROVED_EVENT_ID_PREFIX}${row.shopify_customer_id}`,
+          metric: { data: { type: "metric", attributes: { name: KLAVIYO_APPROVED_METRIC } } },
           profile: { data: { type: "profile", attributes: { email } } },
         },
       },
@@ -497,51 +446,10 @@ Deno.serve(async (req: Request) => {
     }
 
     if (mode === "apply") {
-      const ids = Array.isArray(body.customerIds) ? body.customerIds : [];
-      if (ids.length === 0) {
-        return json({ success: false, error: "customerIds is required for apply mode" }, 400);
-      }
-      if (ids.length > BATCH_MAX) {
-        return json({ success: false, error: `At most ${BATCH_MAX} customers per call` }, 400);
-      }
-      const version = await minterVersion();
-      if (!version.startsWith(MINTER_VERSION_PREFIX)) {
-        return json({ success: false, error: `generate-discount is not the PRO25 build (version "${version}")` }, 409);
-      }
-
-      const results: Array<{
-        customerId: string;
-        success: boolean;
-        outcome: ApplyOutcome;
-        code?: string;
-        endsAt?: string;
-        error?: string;
-      }> = [];
-      for (const rawId of ids) {
-        const numeric = String(rawId).split("/").pop();
-        if (!numeric || !/^\d+$/.test(numeric)) {
-          results.push({ customerId: String(rawId), success: false, outcome: "error", error: "Invalid customer ID" });
-          continue;
-        }
-        results.push({ customerId: numeric, ...(await issueViaMinter(numeric)) });
-      }
-
-      const tally: Record<ApplyOutcome, number> = {
-        minted: 0, already_live: 0, already_issued: 0, pending: 0, no_customer: 0, rejected: 0, method50_issued: 0, error: 0,
-      };
-      for (const r of results) tally[r.outcome]++;
-      const created = tally.minted;
-      return json({
-        success: true,
-        mode: "apply",
-        processed: results.length,
-        created,
-        failed: results.length - created - tally.already_live,
-        tally,
-        results,
-      });
+      // Only new registrations mint PRO25 (owner decision, 2026-10-12);
+      // generate-discount refuses backfill calls too.
+      return json({ success: false, error: "backfill_disabled" }, 410);
     }
-
     if (mode === "deactivate") {
       const codes = Array.isArray(body.codes) ? body.codes.map((c) => String(c).trim().toUpperCase()) : [];
       if (codes.length === 0 && !body.createdAfter) {
