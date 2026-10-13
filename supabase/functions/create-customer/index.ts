@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "PRO25-GUEST-20261013";
+const FUNCTION_VERSION = "PRO25-APPROVED-20261013";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -3086,11 +3086,12 @@ Deno.serve(async (req: Request) => {
         if (welcomeRes.ok) welcomeEnabled = (await welcomeRes.json()) === true;
         if (metaRes.ok) metafieldsEnabled = (await metaRes.json()) === true;
       }
-      // The 30-day window starts at approval: mint here only when
-      // auto-approval activated the account and sign-in was verified.
-      // Manually approved applicants get their code in activate-account.
-      const shouldMint = (welcomeEnabled || metafieldsEnabled) && accountPasswordVerified === true;
-      if (shouldMint && _supabaseUrl && _serviceRoleKey) {
+      // Approval moment: auto-approval activated the account and sign-in was
+      // verified. generate-discount mints PRO25 when a flag is on and always
+      // sends the "Pro Account Approved" event. Manually approved applicants
+      // go through activate-account instead.
+      const mint = welcomeEnabled || metafieldsEnabled;
+      if (accountPasswordVerified === true && _supabaseUrl && _serviceRoleKey) {
         const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
         const discountRes = await fetch(discountUrl, {
           method: "POST",
@@ -3101,6 +3102,7 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             email: parseResult.data.email,
             shopifyCustomerId: shopifyCustomerId ?? null,
+            mint,
           }),
         });
         if (discountRes.ok) {

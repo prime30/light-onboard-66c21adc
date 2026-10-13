@@ -1,6 +1,9 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+const FUNCTION_VERSION = "PRO25-APPROVED-20261013";
+
 const corsHeaders = {
+  "X-Function-Version": FUNCTION_VERSION,
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -610,30 +613,31 @@ Deno.serve(async (req) => {
           ]);
           const welcomeEnabled = welcomeRes.ok && (await welcomeRes.json()) === true;
           const metafieldsEnabled = metaRes.ok && (await metaRes.json()) === true;
-          const shouldMint = welcomeEnabled || metafieldsEnabled;
-          if (shouldMint) {
-            const discountRes = await fetch(
-              `${supabaseUrl}/functions/v1/generate-discount`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "x-internal-key": serviceRoleKey,
-                },
-                body: JSON.stringify({
-                  email,
-                  shopifyCustomerId,
-                }),
-              }
-            );
-            if (discountRes.ok) {
-              const j = await discountRes.json();
-              if (welcomeEnabled && j?.success && j?.code) {
-                welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
-              }
-            } else {
-              console.warn("[activate-account] generate-discount failed:", discountRes.status);
+          // Approval moment for manual approvals: generate-discount mints PRO25
+          // when a flag is on and always sends "Pro Account Approved".
+          const mint = welcomeEnabled || metafieldsEnabled;
+          const discountRes = await fetch(
+            `${supabaseUrl}/functions/v1/generate-discount`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-internal-key": serviceRoleKey,
+              },
+              body: JSON.stringify({
+                email,
+                shopifyCustomerId,
+                mint,
+              }),
             }
+          );
+          if (discountRes.ok) {
+            const j = await discountRes.json();
+            if (welcomeEnabled && j?.success && j?.code) {
+              welcomeOffer = { code: j.code, endsAt: j.endsAt ?? null };
+            }
+          } else {
+            console.warn("[activate-account] generate-discount failed:", discountRes.status);
           }
         }
       } catch (err) {

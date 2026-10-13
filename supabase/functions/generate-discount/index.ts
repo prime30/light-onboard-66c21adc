@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const FUNCTION_VERSION = "PRO25-GUEST-20261013";
+const FUNCTION_VERSION = "PRO25-APPROVED-20261013";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -39,7 +39,12 @@ const CODE_UNIQUE_NAME = "welcome_offer_codes_code_key";
 
 const KLAVIYO_REVISION = "2025-04-15";
 const KLAVIYO_BASE = "https://a.klaviyo.com/api";
-const KLAVIYO_METRIC = "Pro Welcome Code Issued";
+const KLAVIYO_APPROVED_METRIC = "Pro Account Approved";
+const APPROVED_EVENT_ID_PREFIX = "pro-account-approved-";
+const PRO25_URL = "/collections/all";
+// METHOD50 terms live in the theme's guest-offer function (CODE_OFFERS "method-50").
+const METHOD50_AMOUNT = 50;
+const METHOD50_URL = "/products/learn-the-drop-dead-method-online-course";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -302,7 +307,7 @@ async function liveGuestOffer(
     }>(DISCOUNT_BY_CODE_QUERY, { code }, "discountByCode");
     const d = res.data?.codeDiscountNodeByCode?.codeDiscount;
     if (!d || d.status !== "ACTIVE" || d.asyncUsageCount !== 0) return null;
-    const endsAt = d.endsAt ?? customer.guestOfferEndsAt;
+    const endsAt = customer.guestOfferEndsAt ?? d.endsAt ?? null;
     if (endsAt && new Date(endsAt).getTime() <= Date.now()) return null;
     return { code, endsAt: endsAt ?? null };
   } catch (err) {
@@ -391,39 +396,73 @@ async function klaviyo(path: string, apiKey: string, body: unknown): Promise<Res
   });
 }
 
+type ApprovalOffer =
+  | { kind: "pro25"; code: string; endsAt: string }
+  | { kind: "method50"; code: string; endsAt: string | null }
+  | { kind: "none" };
+
+function approvalOfferProperties(offer: ApprovalOffer): Record<string, unknown> {
+  if (offer.kind === "pro25") {
+    return {
+      offer_kind: "pro25",
+      offer_code: offer.code,
+      offer_ends_at: offer.endsAt,
+      offer_amount: DISCOUNT_AMOUNT,
+      offer_minimum: DISCOUNT_MIN_SUBTOTAL,
+      offer_url: PRO25_URL,
+    };
+  }
+  if (offer.kind === "method50") {
+    return {
+      offer_kind: "method50",
+      offer_code: offer.code,
+      offer_ends_at: offer.endsAt,
+      offer_amount: METHOD50_AMOUNT,
+      offer_minimum: 0,
+      offer_url: METHOD50_URL,
+    };
+  }
+  return {
+    offer_kind: "none",
+    offer_code: null,
+    offer_ends_at: null,
+    offer_amount: null,
+    offer_minimum: null,
+    offer_url: null,
+  };
+}
+
 /**
- * Profile properties plus the event that triggers the welcome flow. Klaviyo
- * flows ignore back-dated events, so no `time` is sent (Klaviyo stamps now).
+ * One "Pro Account Approved" event per customer, sent at approval. The
+ * unique_id makes Klaviyo drop retries and repeat calls for the same
+ * customer. Klaviyo flows ignore back-dated events, so no `time` is sent.
  */
-async function syncKlaviyo(email: string, code: string, endsAtIso: string, source: string): Promise<void> {
+async function trackProAccountApproved(email: string, customerId: string, offer: ApprovalOffer): Promise<void> {
   const apiKey = Deno.env.get("KLAVIYO_PRIVATE_API_KEY");
   if (!apiKey || !email || !klaviyoEmailAcceptable(email)) return;
 
-  const profileRes = await klaviyo("/profile-import", apiKey, {
-    data: {
-      type: "profile",
-      attributes: {
-        email,
-        properties: { pro_welcome_code: code, pro_welcome_code_expires_at: endsAtIso },
+  if (offer.kind === "pro25") {
+    const profileRes = await klaviyo("/profile-import", apiKey, {
+      data: {
+        type: "profile",
+        attributes: {
+          email,
+          properties: { pro_welcome_code: offer.code, pro_welcome_code_expires_at: offer.endsAt },
+        },
       },
-    },
-  });
-  if (!profileRes.ok) {
-    console.error("[generate-discount] Klaviyo profile-import failed", profileRes.status, await profileRes.text());
+    });
+    if (!profileRes.ok) {
+      console.error("[generate-discount] Klaviyo profile-import failed", profileRes.status, await profileRes.text());
+    }
   }
 
   const eventRes = await klaviyo("/events", apiKey, {
     data: {
       type: "event",
       attributes: {
-        properties: {
-          code,
-          expires_at: endsAtIso,
-          amount: DISCOUNT_AMOUNT,
-          minimum: DISCOUNT_MIN_SUBTOTAL,
-          source,
-        },
-        metric: { data: { type: "metric", attributes: { name: KLAVIYO_METRIC } } },
+        properties: approvalOfferProperties(offer),
+        unique_id: `${APPROVED_EVENT_ID_PREFIX}${customerId}`,
+        metric: { data: { type: "metric", attributes: { name: KLAVIYO_APPROVED_METRIC } } },
         profile: { data: { type: "profile", attributes: { email } } },
       },
     },
@@ -431,8 +470,13 @@ async function syncKlaviyo(email: string, code: string, endsAtIso: string, sourc
   if (!eventRes.ok) {
     const text = await eventRes.text();
     console.error("[generate-discount] Klaviyo event failed", eventRes.status, text);
-    notifyError(`Klaviyo event ${eventRes.status}`, { email, code, body: text.slice(0, 500) });
+    notifyError(`Klaviyo event ${eventRes.status}`, { email, kind: offer.kind, body: text.slice(0, 500) });
   }
+}
+
+async function guestOfferOrNone(customer: ResolvedCustomer): Promise<ApprovalOffer> {
+  const guest = await liveGuestOffer(customer);
+  return guest ? { kind: "method50", code: guest.code, endsAt: guest.endsAt } : { kind: "none" };
 }
 
 type LiveRow = {
@@ -480,6 +524,174 @@ async function respondWithExisting(db: Db, customer: ResolvedCustomer): Promise<
   return json(200, { success: true, code: row.code, endsAt, kind: OFFER_KIND, existing: true });
 }
 
+/**
+ * Reserve, create in Shopify and confirm one PRO25 code for this customer.
+ */
+async function mintPro25(db: Db, customer: ResolvedCustomer, email: string): Promise<Response> {
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + DISCOUNT_DURATION_DAYS * 24 * 60 * 60 * 1000);
+  const endsAtIso = endsAt.toISOString();
+
+  // Phase 1: reserve the one live row for this customer. The partial unique
+  // index makes concurrent or retried calls collide here instead of minting
+  // a second code. A plain insert is required: upsert can't target a
+  // partial index.
+  await db
+    .from("welcome_offer_codes")
+    .delete()
+    .eq("shopify_customer_id", customer.numericId)
+    .like("code", `${CODE_PREFIX}%`)
+    .is("shopify_discount_id", null)
+    .is("deactivated_at", null)
+    .lt("created_at", new Date(now.getTime() - PENDING_RECLAIM_MS).toISOString());
+
+  let rowId: string | null = null;
+  let code = "";
+  for (let attempt = 1; attempt <= 3 && !rowId; attempt++) {
+    code = generateUniqueCode();
+    const { data, error } = await db
+      .from("welcome_offer_codes")
+      .insert({
+        code,
+        email: customer.email || email || null,
+        shopify_customer_id: customer.numericId,
+        ends_at: endsAtIso,
+      })
+      .select("id")
+      .single();
+    if (!error) {
+      rowId = (data as { id: string }).id;
+      break;
+    }
+    const msg = error.message ?? "";
+    if (error.code === "23505" && msg.includes(LIVE_INDEX_NAME)) {
+      // Phase 2: this customer already has a live (or pending) code.
+      return await respondWithExisting(db, customer);
+    }
+    if (error.code === "23505" && msg.includes(CODE_UNIQUE_NAME)) continue;
+    throw new Error(`reserve insert failed: ${msg}`);
+  }
+  if (!rowId) {
+    notifyError("code collision exhausted", { customer: customer.numericId });
+    return json(422, { error: "Failed to reserve a unique code." });
+  }
+
+  // Phase 3: create in Shopify, then confirm the row.
+  const deleteReservation = () =>
+    db.from("welcome_offer_codes").delete().eq("id", rowId).is("shopify_discount_id", null);
+
+  let confirmedDiscountId: string | null = null;
+  let confirmedEndsAt = endsAtIso;
+  let lastErrors: ShopifyUserError[] = [];
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const createRes = await shopifyGraphQL<{
+      discountCodeBasicCreate: {
+        codeDiscountNode: {
+          id: string;
+          codeDiscount: { codes: { nodes: Array<{ code: string }> }; endsAt: string };
+        } | null;
+        userErrors: ShopifyUserError[];
+      };
+    }>(
+      CREATE_DISCOUNT_MUTATION,
+      {
+        basicCodeDiscount: {
+          title: `Pro Welcome $${DISCOUNT_AMOUNT} - ${code}`,
+          code,
+          startsAt: now.toISOString(),
+          endsAt: endsAtIso,
+          customerSelection: { customers: { add: [customer.gid] } },
+          customerGets: {
+            value: {
+              discountAmount: { amount: DISCOUNT_AMOUNT.toFixed(2), appliesOnEachItem: false },
+            },
+            items: { all: true },
+          },
+          minimumRequirement: {
+            subtotal: { greaterThanOrEqualToSubtotal: DISCOUNT_MIN_SUBTOTAL.toFixed(2) },
+          },
+          usageLimit: 1,
+          appliesOncePerCustomer: true,
+          combinesWith: {
+            orderDiscounts: true,
+            productDiscounts: true,
+            shippingDiscounts: true,
+          },
+        },
+      },
+      `discountCodeBasicCreate (attempt ${attempt})`
+    );
+
+    const result = createRes.data?.discountCodeBasicCreate;
+    if (!result) {
+      await deleteReservation();
+      console.error("[generate-discount] unexpected Shopify response:", JSON.stringify(createRes));
+      notifyError("Unexpected Shopify response", { customer: customer.numericId, errors: createRes.errors });
+      return json(502, { error: "Unexpected response from Shopify." });
+    }
+
+    const userErrors = result.userErrors ?? [];
+    const isDuplicate = userErrors.some(
+      (e) => e.code === "TAKEN" || /already exists|taken/i.test(e.message ?? "")
+    );
+    if (userErrors.length > 0 && isDuplicate && attempt < 3) {
+      console.warn(`[generate-discount] code collision in Shopify on attempt ${attempt}, retrying`);
+      lastErrors = userErrors;
+      code = generateUniqueCode();
+      const { error: renameError } = await db
+        .from("welcome_offer_codes")
+        .update({ code })
+        .eq("id", rowId);
+      if (renameError) throw new Error(`reservation rename failed: ${renameError.message}`);
+      continue;
+    }
+    if (userErrors.length > 0) {
+      await deleteReservation();
+      const details = userErrors.map((e) => `${e.field?.join(".")}: ${e.message}`).join("; ");
+      console.error("[generate-discount] Shopify discount creation errors:", details);
+      notifyError("Shopify discount create failed", { customer: customer.numericId, details });
+      return json(422, { error: "Failed to create discount.", details });
+    }
+
+    const node = result.codeDiscountNode;
+    code = node?.codeDiscount?.codes?.nodes?.[0]?.code ?? code;
+    confirmedEndsAt = node?.codeDiscount?.endsAt ?? endsAtIso;
+    confirmedDiscountId = node?.id ?? null;
+    break;
+  }
+
+  if (!confirmedDiscountId) {
+    await deleteReservation();
+    console.error("[generate-discount] exhausted retries:", JSON.stringify(lastErrors));
+    notifyError("Shopify code collision exhausted", { customer: customer.numericId });
+    return json(422, { error: "Failed to mint unique discount code." });
+  }
+
+  const { data: confirmed, error: confirmError } = await db
+    .from("welcome_offer_codes")
+    .update({ shopify_discount_id: confirmedDiscountId, ends_at: confirmedEndsAt, code })
+    .eq("id", rowId)
+    .is("shopify_discount_id", null)
+    .select("id");
+  if (confirmError || !Array.isArray(confirmed) || confirmed.length !== 1) {
+    // Our reservation was reclaimed or the write failed: the code we just
+    // created has no row, so turn it off and defer to whatever row is live.
+    console.error("[generate-discount] confirm write-back failed", confirmError?.message);
+    notifyError("confirm write-back failed", {
+      customer: customer.numericId,
+      discountId: confirmedDiscountId,
+      error: confirmError?.message ?? "row count mismatch",
+    });
+    await shopifyGraphQL(DEACTIVATE_DISCOUNT_MUTATION, { id: confirmedDiscountId }, "discountCodeDeactivate")
+      .catch((e) => console.error("[generate-discount] orphan deactivate failed:", e));
+    return await respondWithExisting(db, customer);
+  }
+
+  await writeCustomerMetafields(customer.gid, code, confirmedEndsAt);
+
+  return json(200, { success: true, code, endsAt: confirmedEndsAt, kind: OFFER_KIND });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -489,8 +701,9 @@ Deno.serve(async (req: Request) => {
     return json(405, { error: "Method not allowed" });
   }
 
-  // Internal-only endpoint. Only trusted edge functions running with the
-  // service-role key may mint codes.
+  // Internal-only endpoint, called once per approval by create-customer
+  // (verified auto-approval) and activate-account (manual approval). Only
+  // trusted edge functions running with the service-role key may call it.
   const provided = req.headers.get("x-internal-key") ?? "";
   if (!SUPABASE_SERVICE_ROLE_KEY || provided !== SUPABASE_SERVICE_ROLE_KEY) {
     return json(401, { error: "Unauthorized" });
@@ -507,6 +720,7 @@ Deno.serve(async (req: Request) => {
   let email = "";
   let shopifyCustomerId: number | null = null;
   let source = "signup";
+  let mint = true;
   try {
     const body = await req.json().catch(() => ({}));
     if (typeof body?.email === "string") {
@@ -519,9 +733,12 @@ Deno.serve(async (req: Request) => {
       if (Number.isFinite(parsed) && parsed > 0) shopifyCustomerId = parsed;
     }
     if (body?.source === "backfill") source = "backfill";
+    if (body?.mint === false) mint = false;
   } catch {
     // No body / invalid JSON: resolveCustomer returns null below.
   }
+  // Only new registrations mint; existing customers are never backfilled.
+  if (source === "backfill") return json(403, { error: "backfill_disabled" });
 
   try {
     const customer = await resolveCustomer(shopifyCustomerId, email);
@@ -533,173 +750,28 @@ Deno.serve(async (req: Request) => {
     if (customer.tags.some((t) => t.trim().toLowerCase() === REJECTED_TAG)) {
       return json(403, { error: "rejected" });
     }
+    const track = (offer: ApprovalOffer) =>
+      runInBackground(trackProAccountApproved(customer.email || email, customer.numericId, offer));
+
     if (customer.tags.some((t) => t.trim().toLowerCase() === METHOD50_TAG)) {
-      return json(403, { error: "method50_issued", guestOffer: await liveGuestOffer(customer) });
+      const offer = await guestOfferOrNone(customer);
+      track(offer);
+      const guestOffer = offer.kind === "method50" ? { code: offer.code, endsAt: offer.endsAt } : null;
+      return json(403, { error: "method50_issued", guestOffer });
+    }
+    if (!mint) {
+      track(await guestOfferOrNone(customer));
+      return json(200, { success: false, skipped: "mint_off" });
     }
 
-    const now = new Date();
-    const endsAt = new Date(now.getTime() + DISCOUNT_DURATION_DAYS * 24 * 60 * 60 * 1000);
-    const endsAtIso = endsAt.toISOString();
-
-    // Phase 1: reserve the one live row for this customer. The partial unique
-    // index makes concurrent or retried calls collide here instead of minting
-    // a second code. A plain insert is required: upsert can't target a
-    // partial index.
-    await db
-      .from("welcome_offer_codes")
-      .delete()
-      .eq("shopify_customer_id", customer.numericId)
-      .like("code", `${CODE_PREFIX}%`)
-      .is("shopify_discount_id", null)
-      .is("deactivated_at", null)
-      .lt("created_at", new Date(now.getTime() - PENDING_RECLAIM_MS).toISOString());
-
-    let rowId: string | null = null;
-    let code = "";
-    for (let attempt = 1; attempt <= 3 && !rowId; attempt++) {
-      code = generateUniqueCode();
-      const { data, error } = await db
-        .from("welcome_offer_codes")
-        .insert({
-          code,
-          email: customer.email || email || null,
-          shopify_customer_id: customer.numericId,
-          ends_at: endsAtIso,
-        })
-        .select("id")
-        .single();
-      if (!error) {
-        rowId = (data as { id: string }).id;
-        break;
-      }
-      const msg = error.message ?? "";
-      if (error.code === "23505" && msg.includes(LIVE_INDEX_NAME)) {
-        // Phase 2: this customer already has a live (or pending) code.
-        return await respondWithExisting(db, customer);
-      }
-      if (error.code === "23505" && msg.includes(CODE_UNIQUE_NAME)) continue;
-      throw new Error(`reserve insert failed: ${msg}`);
-    }
-    if (!rowId) {
-      notifyError("code collision exhausted", { customer: customer.numericId });
-      return json(422, { error: "Failed to reserve a unique code." });
-    }
-
-    // Phase 3: create in Shopify, then confirm the row.
-    const deleteReservation = () =>
-      db.from("welcome_offer_codes").delete().eq("id", rowId).is("shopify_discount_id", null);
-
-    let confirmedDiscountId: string | null = null;
-    let confirmedEndsAt = endsAtIso;
-    let lastErrors: ShopifyUserError[] = [];
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      const createRes = await shopifyGraphQL<{
-        discountCodeBasicCreate: {
-          codeDiscountNode: {
-            id: string;
-            codeDiscount: { codes: { nodes: Array<{ code: string }> }; endsAt: string };
-          } | null;
-          userErrors: ShopifyUserError[];
-        };
-      }>(
-        CREATE_DISCOUNT_MUTATION,
-        {
-          basicCodeDiscount: {
-            title: `Pro Welcome $${DISCOUNT_AMOUNT} - ${code}`,
-            code,
-            startsAt: now.toISOString(),
-            endsAt: endsAtIso,
-            customerSelection: { customers: { add: [customer.gid] } },
-            customerGets: {
-              value: {
-                discountAmount: { amount: DISCOUNT_AMOUNT.toFixed(2), appliesOnEachItem: false },
-              },
-              items: { all: true },
-            },
-            minimumRequirement: {
-              subtotal: { greaterThanOrEqualToSubtotal: DISCOUNT_MIN_SUBTOTAL.toFixed(2) },
-            },
-            usageLimit: 1,
-            appliesOncePerCustomer: true,
-            combinesWith: {
-              orderDiscounts: true,
-              productDiscounts: true,
-              shippingDiscounts: true,
-            },
-          },
-        },
-        `discountCodeBasicCreate (attempt ${attempt})`
-      );
-
-      const result = createRes.data?.discountCodeBasicCreate;
-      if (!result) {
-        await deleteReservation();
-        console.error("[generate-discount] unexpected Shopify response:", JSON.stringify(createRes));
-        notifyError("Unexpected Shopify response", { customer: customer.numericId, errors: createRes.errors });
-        return json(502, { error: "Unexpected response from Shopify." });
-      }
-
-      const userErrors = result.userErrors ?? [];
-      const isDuplicate = userErrors.some(
-        (e) => e.code === "TAKEN" || /already exists|taken/i.test(e.message ?? "")
-      );
-      if (userErrors.length > 0 && isDuplicate && attempt < 3) {
-        console.warn(`[generate-discount] code collision in Shopify on attempt ${attempt}, retrying`);
-        lastErrors = userErrors;
-        code = generateUniqueCode();
-        const { error: renameError } = await db
-          .from("welcome_offer_codes")
-          .update({ code })
-          .eq("id", rowId);
-        if (renameError) throw new Error(`reservation rename failed: ${renameError.message}`);
-        continue;
-      }
-      if (userErrors.length > 0) {
-        await deleteReservation();
-        const details = userErrors.map((e) => `${e.field?.join(".")}: ${e.message}`).join("; ");
-        console.error("[generate-discount] Shopify discount creation errors:", details);
-        notifyError("Shopify discount create failed", { customer: customer.numericId, details });
-        return json(422, { error: "Failed to create discount.", details });
-      }
-
-      const node = result.codeDiscountNode;
-      code = node?.codeDiscount?.codes?.nodes?.[0]?.code ?? code;
-      confirmedEndsAt = node?.codeDiscount?.endsAt ?? endsAtIso;
-      confirmedDiscountId = node?.id ?? null;
-      break;
-    }
-
-    if (!confirmedDiscountId) {
-      await deleteReservation();
-      console.error("[generate-discount] exhausted retries:", JSON.stringify(lastErrors));
-      notifyError("Shopify code collision exhausted", { customer: customer.numericId });
-      return json(422, { error: "Failed to mint unique discount code." });
-    }
-
-    const { data: confirmed, error: confirmError } = await db
-      .from("welcome_offer_codes")
-      .update({ shopify_discount_id: confirmedDiscountId, ends_at: confirmedEndsAt, code })
-      .eq("id", rowId)
-      .is("shopify_discount_id", null)
-      .select("id");
-    if (confirmError || !Array.isArray(confirmed) || confirmed.length !== 1) {
-      // Our reservation was reclaimed or the write failed: the code we just
-      // created has no row, so turn it off and defer to whatever row is live.
-      console.error("[generate-discount] confirm write-back failed", confirmError?.message);
-      notifyError("confirm write-back failed", {
-        customer: customer.numericId,
-        discountId: confirmedDiscountId,
-        error: confirmError?.message ?? "row count mismatch",
-      });
-      await shopifyGraphQL(DEACTIVATE_DISCOUNT_MUTATION, { id: confirmedDiscountId }, "discountCodeDeactivate")
-        .catch((e) => console.error("[generate-discount] orphan deactivate failed:", e));
-      return await respondWithExisting(db, customer);
-    }
-
-    await writeCustomerMetafields(customer.gid, code, confirmedEndsAt);
-    runInBackground(syncKlaviyo(customer.email || email, code, confirmedEndsAt, source));
-
-    return json(200, { success: true, code, endsAt: confirmedEndsAt, kind: OFFER_KIND });
+    const mintResponse = await mintPro25(db, customer, email);
+    const minted = mintResponse.ok ? await mintResponse.clone().json().catch(() => null) : null;
+    track(
+      minted?.code && minted?.endsAt
+        ? { kind: "pro25", code: minted.code, endsAt: minted.endsAt }
+        : await guestOfferOrNone(customer)
+    );
+    return mintResponse;
   } catch (error) {
     console.error("generate-discount error:", error);
     notifyError(error instanceof Error ? error.message : String(error), { email, shopifyCustomerId, source });
