@@ -22,6 +22,9 @@ const DISCOUNT_DURATION_DAYS = 30;
 const CODE_PREFIX = "PRO25-";
 const OFFER_KIND = "pro25";
 const REJECTED_TAG = "review-rejected";
+// Set by the theme's guest-offer function on every METHOD50 issue. A customer
+// gets METHOD50 or PRO25, never both (theme docs/contracts/pro25-welcome-offer.md).
+const METHOD50_TAG = "dd-method50-issued";
 
 const METAFIELD_NAMESPACE = "custom";
 const METAFIELD_KEY_CODE = "welcome_offer_code";
@@ -474,6 +477,9 @@ Deno.serve(async (req: Request) => {
     }
     if (customer.tags.some((t) => t.trim().toLowerCase() === REJECTED_TAG)) {
       return json(403, { error: "rejected" });
+    }
+    if (customer.tags.some((t) => t.trim().toLowerCase() === METHOD50_TAG)) {
+      return json(403, { error: "method50_issued" });
     }
 
     const now = new Date();

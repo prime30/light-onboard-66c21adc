@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "T2-20261006";
+const FUNCTION_VERSION = "PRO25-20261012";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -3084,7 +3084,10 @@ Deno.serve(async (req: Request) => {
         if (welcomeRes.ok) welcomeEnabled = (await welcomeRes.json()) === true;
         if (metaRes.ok) metafieldsEnabled = (await metaRes.json()) === true;
       }
-      const shouldMint = welcomeEnabled || metafieldsEnabled;
+      // The 30-day window starts at approval: mint here only when
+      // auto-approval activated the account and sign-in was verified.
+      // Manually approved applicants get their code in activate-account.
+      const shouldMint = (welcomeEnabled || metafieldsEnabled) && accountPasswordVerified === true;
       if (shouldMint && _supabaseUrl && _serviceRoleKey) {
         const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
         const discountRes = await fetch(discountUrl, {
