@@ -10,11 +10,29 @@
 // failure row so the admin Stranded Accounts view and the weekly health check
 // can see it.
 
+const FUNCTION_VERSION = "REDACT-20261019";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Expose-Headers": "X-Function-Version",
+  "X-Function-Version": FUNCTION_VERSION,
 };
+
+// The landing href usually carries the reset URL URL-encoded inside a query
+// param (`reset_url=https%3A%2F%2F...%2Faccount%2Freset%2F<id>%2F<token>`), or
+// double-encoded after an email link wrapper, so the separators can be `/`,
+// `%2F` or `%252F`. A bare `token=` param is a credential too.
+const SEP = "(\\/|%2F|%252F)";
+const ACCOUNT_LINK_RE = new RegExp(`(reset|activate)${SEP}[^/?&#%\\s]+${SEP}[^/?&#%\\s]+`, "gi");
+const TOKEN_PARAM_RE = /([?&]token=)[^&#\s]*/gi;
+
+function redactLanding(href: string): string {
+  return href
+    .replace(ACCOUNT_LINK_RE, "$1$2<id>$3<token>")
+    .replace(TOKEN_PARAM_RE, "$1<token>");
+}
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -114,7 +132,7 @@ Deno.serve(async (req) => {
       hasResetUrl: !!resetUrl,
       tokenShape,
       // href minus any token value, so the wrapper mangling is visible.
-      landing: href ? href.replace(/(reset|activate)\/[^/]+\/[^/?&#]+/gi, "$1/<id>/<token>") : null,
+      landing: href ? redactLanding(href) : null,
       hasEmailHint: !!emailHint,
       deviceType,
       inAppBrowser,
