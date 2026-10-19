@@ -5,7 +5,11 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "PRO25-APPROVED-20261013";
+const FUNCTION_VERSION = "SMSTAG-20261019";
+
+// Same string as REGISTRATION_OPTIN_TAG in the theme's unlock-trial-offer
+// (docs/contracts/account-unlock-trial-offer.md).
+const REGISTRATION_SMS_OPTIN_TAG = "dd-registration-sms-optin";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -2514,6 +2518,12 @@ Deno.serve(async (req: Request) => {
 
 
           const mergedTags = Array.from(new Set([...existingTags, ...newTags]));
+          // The theme's unlock-trial-offer reads this tag and the SMS consent
+          // from the same customers/update webhook, so both must land in one
+          // PUT. A tag without consent permanently withholds INSIDER25.
+          const smsTaggedTags = canCollectSms
+            ? Array.from(new Set([...mergedTags, REGISTRATION_SMS_OPTIN_TAG]))
+            : mergedTags;
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const customerUpdate: Record<string, any> = { id: shopifyCustomerId };
@@ -2526,7 +2536,7 @@ Deno.serve(async (req: Request) => {
           if (applicationNote) customerUpdate.note = applicationNote;
 
 
-          if (newTags.length > 0) customerUpdate.tags = mergedTags.join(", ");
+          if (newTags.length > 0 || canCollectSms) customerUpdate.tags = smsTaggedTags.join(", ");
           if (taxExemptFlag) customerUpdate.tax_exempt = true;
 
           // Native default address - only set if the customer doesn't
@@ -2583,6 +2593,7 @@ Deno.serve(async (req: Request) => {
               }
             );
 
+          let smsTagWritten = canCollectSms;
           let updRes = await putCustomer(customerUpdate);
           let updResBodyText = "";
 
@@ -2598,7 +2609,9 @@ Deno.serve(async (req: Request) => {
                 "Shopify rejected phone on customer update; retrying without phone/SMS:",
                 updResBodyText
               );
-              const { phone: _p, sms_marketing_consent: _s, ...retryPayload } = customerUpdate;
+              const { phone: _p, sms_marketing_consent: _s, tags: _t, ...retryPayload } = customerUpdate;
+              if (newTags.length > 0) retryPayload.tags = mergedTags.join(", ");
+              smsTagWritten = false;
               updRes = await putCustomer(retryPayload);
               if (!updRes.ok) {
                 updResBodyText = await updRes.text();
@@ -2617,6 +2630,7 @@ Deno.serve(async (req: Request) => {
               shopifyCustomerId,
               fields: Object.keys(customerUpdate).filter((k) => k !== "id"),
               tags: newTags,
+              smsOptinTag: smsTagWritten,
             });
           }
 
