@@ -29,6 +29,7 @@ interface Report {
   resetSpiking?: boolean;
   activationSpiking?: boolean;
   postResetRefusals?: { email: string; resetAt: string; refusedAt: string; refusals: number }[];
+  postResetCleared?: { email: string; resetAt: string; refusedAt: string; refusals: number; signedInAt: string }[];
 }
 
 interface Resp {
@@ -118,6 +119,25 @@ export function ResetHealthPanel({ adminToken }: Props) {
                     <span className="text-foreground/80 break-all">{r.email}</span>
                     <span className="flex flex-wrap items-center gap-2.5 text-muted-foreground">
                       {r.refusals} {r.refusals === 1 ? "refusal" : "refusals"}, {new Date(r.refusedAt).toLocaleString()}
+                      <button type="button" className="text-foreground underline underline-offset-2 hover:text-foreground/70" onClick={() => setLookup({ email: r.email, n: Date.now() })}>
+                        View history
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {(report.postResetCleared?.length ?? 0) > 0 && (
+            <div className="rounded-[10px] border border-border bg-muted/40 p-5 space-y-2.5">
+              <p className="text-sm font-medium">Signed in since</p>
+              <p className="text-xs text-muted-foreground">Refused right after a reset, then got in on their own. No outreach needed.</p>
+              <ul className="space-y-1 text-sm">
+                {report.postResetCleared!.map((r) => (
+                  <li key={r.email + r.resetAt} className="flex flex-wrap justify-between gap-2.5">
+                    <span className="text-foreground/80 break-all">{r.email}</span>
+                    <span className="flex flex-wrap items-center gap-2.5 text-muted-foreground">
+                      Signed in {new Date(r.signedInAt).toLocaleString()} after {r.refusals} {r.refusals === 1 ? "refusal" : "refusals"}
                       <button type="button" className="text-foreground underline underline-offset-2 hover:text-foreground/70" onClick={() => setLookup({ email: r.email, n: Date.now() })}>
                         View history
                       </button>

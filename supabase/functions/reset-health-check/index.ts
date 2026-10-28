@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
   // Correct new password refused right after a reset. Mirrors
   // src/lib/post-reset-refusals.ts (edge functions cannot import src/).
   let postResetRefusals: { email: string; resetAt: string; refusedAt: string; refusals: number }[] = [];
+  let postResetCleared: { email: string; resetAt: string; refusedAt: string; refusals: number; signedInAt: string }[] = [];
   try {
     const r = await fetch(
       `${supabaseUrl}/rest/v1/sign_in_events?select=email,source,outcome,code,created_at&created_at=gte.${weekAgo}` +
@@ -137,7 +138,7 @@ Deno.serve(async (req) => {
         for (const e of rows) {
           const t = Date.parse(e.created_at);
           if (e.outcome === "reset_succeeded") { resetAt = t; resetIso = e.created_at; continue; }
-          if (latest && isSuccess(e) && e.created_at >= latest.refusedAt) { latest = null; continue; }
+          if (latest && isSuccess(e) && e.created_at >= latest.refusedAt) { postResetCleared.push({ ...latest, signedInAt: e.created_at }); latest = null; continue; }
           if (resetAt !== null && isRefusal(e) && t >= resetAt && t - resetAt <= 15 * 60 * 1000) {
             if (latest && latest.resetAt === resetIso) { latest.refusals++; latest.refusedAt = e.created_at; }
             else latest = { email, resetAt: resetIso, refusedAt: e.created_at, refusals: 1 };
@@ -149,6 +150,7 @@ Deno.serve(async (req) => {
     }
   } catch (e) { console.warn("post-reset refusal query failed:", e); }
   postResetRefusals = postResetRefusals.slice(0, 50);
+  postResetCleared = postResetCleared.sort((a, b) => b.signedInAt.localeCompare(a.signedInAt)).slice(0, 20);
 
   // In-app webview share: an Instagram/TikTok-only spike points at the webview
   // handoff rather than the invite links themselves, so surface it in the alert.
@@ -298,6 +300,7 @@ Deno.serve(async (req) => {
 
   const fullReport = {
     postResetRefusals,
+    postResetCleared,
     ...report,
     resetFailuresThisWeek: resetCount,
     activationFailuresThisWeek: activationCount,

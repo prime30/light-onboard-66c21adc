@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findPostResetRefusals } from "./post-reset-refusals";
+import { findClearedRefusals, findPostResetRefusals } from "./post-reset-refusals";
 
 const ev = (outcome: string, at: string, source = "customer-login", code: string | null = null) => ({ email: "a@b.com", source, outcome, code, created_at: at });
 
@@ -24,5 +24,10 @@ describe("findPostResetRefusals", () => {
   });
   it("keeps customers whose only success came before the refusal", () => {
     expect(findPostResetRefusals([ev("reset_succeeded", "2026-10-28T19:00:00Z"), ev("password_verified", "2026-10-28T19:00:01Z"), ev("invalid_credentials", "2026-10-28T19:02:00Z")])).toHaveLength(1);
+  });
+  it("lists customers who signed in after a refusal as cleared", () => {
+    const r = findClearedRefusals([ev("reset_succeeded", "2026-10-28T19:00:00Z"), ev("invalid_credentials", "2026-10-28T19:00:03Z"), ev("multipass_issued", "2026-10-28T19:05:00Z", "multipass-login")]);
+    expect(r).toHaveLength(1);
+    expect(r[0].signedInAt).toBe("2026-10-28T19:05:00Z");
   });
 });
