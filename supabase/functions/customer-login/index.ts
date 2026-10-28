@@ -8,7 +8,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "BUYERIP-20261028";
+const FUNCTION_VERSION = "BUYERIP2-20261028";
 
 // Keeps the word "activate": older SPA bundles classify by wording and match
 // "activate" before "password". Same text in multipass-login.
@@ -282,7 +282,7 @@ async function handleRequest(req: Request): Promise<Response> {
   }
 
   const { email, password, diagnostic, context } = parsed.data;
-  const buyerIp = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+  const buyerIp = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
   const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
   const storefrontToken = usePrivateToken ? null : await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
   if (!usePrivateToken && !storefrontToken) {

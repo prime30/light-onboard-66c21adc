@@ -1,6 +1,6 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const FUNCTION_VERSION = "PRO25-APPROVED-20261013";
+const FUNCTION_VERSION = "BUYERIP2-20261028";
 
 const corsHeaders = {
   "X-Function-Version": FUNCTION_VERSION,
@@ -76,21 +76,35 @@ async function getStorefrontToken(domain: string, adminToken: string): Promise<s
   }
 }
 
+// Same as customer-login: with SHOPIFY_STOREFRONT_PRIVATE_TOKEN set, Shopify
+// rate limits per buyer IP instead of counting every customer as this server.
+function storefrontHeaders(publicToken: string | null, buyerIp: string | null): Record<string, string> {
+  const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  if (privateToken) {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Shopify-Storefront-Private-Token": privateToken,
+    };
+    if (buyerIp) headers["Shopify-Storefront-Buyer-IP"] = buyerIp;
+    return headers;
+  }
+  return { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken ?? "" };
+}
+
 async function verifyLogin(
   domain: string,
   adminToken: string,
+  buyerIp: string | null,
   email: string,
   password: string
 ): Promise<{ ok: boolean; reason: string }> {
-  const storefrontToken = await getStorefrontToken(domain, adminToken);
-  if (!storefrontToken) return { ok: false, reason: "no_storefront_token" };
+  const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  const storefrontToken = usePrivateToken ? null : await getStorefrontToken(domain, adminToken);
+  if (!usePrivateToken && !storefrontToken) return { ok: false, reason: "no_storefront_token" };
   try {
     const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": storefrontToken,
-      },
+      headers: storefrontHeaders(storefrontToken, buyerIp),
       body: JSON.stringify({
         query: `mutation login($input: CustomerAccessTokenCreateInput!) {
           customerAccessTokenCreate(input: $input) {
@@ -287,6 +301,7 @@ Deno.serve(async (req) => {
 
   const { activationUrl: providedUrl, customerId, token, password, emailHint, device } = parsed.data;
   const uaHeader = req.headers.get("user-agent");
+  const buyerIp = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
   const failure = (reason: string, code?: string | null) =>
     recordActivationFailure({ email: emailHint, reason, code, device, userAgent: uaHeader });
 
@@ -326,15 +341,13 @@ Deno.serve(async (req) => {
     let canonicalActivated = false;
     const adminTokenForCanonical = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
     if (adminTokenForCanonical) {
-      const sfToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, adminTokenForCanonical);
-      if (sfToken) {
+      const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+      const sfToken = usePrivateToken ? null : await getStorefrontToken(SHOPIFY_STORE_DOMAIN, adminTokenForCanonical);
+      if (usePrivateToken || sfToken) {
         try {
           const res = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2024-10/graphql.json`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Shopify-Storefront-Access-Token": sfToken,
-            },
+            headers: storefrontHeaders(sfToken, buyerIp),
             body: JSON.stringify({
               query: `mutation activate($url: URL!, $password: String!) {
                 customerActivateByUrl(activationUrl: $url, password: $password) {
@@ -479,6 +492,7 @@ Deno.serve(async (req) => {
               let login = await verifyLogin(
                 SHOPIFY_STORE_DOMAIN,
                 adminToken,
+                buyerIp,
                 email,
                 password
               );
@@ -501,6 +515,7 @@ Deno.serve(async (req) => {
                   login = await verifyLogin(
                     SHOPIFY_STORE_DOMAIN,
                     adminToken,
+                    buyerIp,
                     email,
                     password
                   );

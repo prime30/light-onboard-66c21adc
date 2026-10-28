@@ -2,7 +2,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "B2-20261005";
+const FUNCTION_VERSION = "BUYERIP2-20261028";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,6 +94,21 @@ async function releaseResetSend(email: string, claimedAt: string): Promise<void>
 }
 
 const STOREFRONT_API_VERSION = "2024-10";
+
+// Same as customer-login: with SHOPIFY_STOREFRONT_PRIVATE_TOKEN set, Shopify
+// rate limits per buyer IP instead of counting every customer as this server.
+function storefrontHeaders(publicToken: string | null, buyerIp: string | null): Record<string, string> {
+  const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  if (privateToken) {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Shopify-Storefront-Private-Token": privateToken,
+    };
+    if (buyerIp) headers["Shopify-Storefront-Buyer-IP"] = buyerIp;
+    return headers;
+  }
+  return { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken ?? "" };
+}
 
 const RECOVER_MUTATION = `
   mutation customerRecover($email: String!) {
@@ -293,15 +308,17 @@ Deno.serve(async (req) => {
   }
 
   // Step 4: enabled / unknown customers → Storefront customerRecover.
-  const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
-  if (!storefrontToken) return sendError(500, ["Server configuration error"]);
+  const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  const storefrontToken = usePrivateToken ? null : await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
+  if (!usePrivateToken && !storefrontToken) return sendError(500, ["Server configuration error"]);
+  const buyerIp = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
 
   try {
     const response = await fetch(
       `https://${SHOPIFY_STORE_DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": storefrontToken },
+        headers: storefrontHeaders(storefrontToken, buyerIp),
         body: JSON.stringify({ query: RECOVER_MUTATION, variables: { email } }),
       }
     );

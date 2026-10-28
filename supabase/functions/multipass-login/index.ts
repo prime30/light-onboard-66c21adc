@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "BUYERIP-20261028";
+const FUNCTION_VERSION = "BUYERIP2-20261028";
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -276,7 +276,7 @@ async function handleRequest(req: Request): Promise<Response> {
   }
   const normEmail = email.trim().toLowerCase();
   const userAgent = req.headers.get("user-agent");
-  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+  const ip = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
 
   const SB_URL = Deno.env.get("SUPABASE_URL")!;
   const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
