@@ -770,6 +770,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sign_in_events: {
+        Row: {
+          attempt_id: string | null
+          code: string | null
+          created_at: string
+          email: string
+          evidence: string
+          id: string
+          outcome: string
+          password_source: string
+          source: string
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_id?: string | null
+          code?: string | null
+          created_at?: string
+          email: string
+          evidence?: string
+          id?: string
+          outcome: string
+          password_source?: string
+          source: string
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_id?: string | null
+          code?: string | null
+          created_at?: string
+          email?: string
+          evidence?: string
+          id?: string
+          outcome?: string
+          password_source?: string
+          source?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       welcome_offer_codes: {
         Row: {
           code: string
