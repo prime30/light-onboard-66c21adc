@@ -1,4 +1,4 @@
-function currentStorePath(): string {
+export function currentStorePath(): string {
   const safe = (p: string) => (/^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p) ? p : "/");
   try {
     const loc = window.top?.location;
@@ -42,6 +42,27 @@ function submitStoreLogin(email: string, password: string) {
   form.submit();
 }
 
+// Open a backend-minted Multipass URL in the top window. Only the store's own
+// Multipass login path is accepted, so a bad response can never redirect off-site.
+export function openMultipassUrl(url: string): boolean {
+  let target: URL;
+  try {
+    target = new URL(url);
+  } catch {
+    return false;
+  }
+  const host = target.hostname;
+  const storeHost = host === "dropdeadextensions.com" || host.endsWith(".dropdeadextensions.com") || host.endsWith(".myshopify.com");
+  if (target.protocol !== "https:" || !storeHost || !target.pathname.startsWith("/account/login/multipass/")) return false;
+  try {
+    if (window.top) window.top.location.href = url;
+    else window.location.href = url;
+  } catch {
+    window.location.href = url;
+  }
+  return true;
+}
+
 // Multipass sign-in: the backend verifies the password, then mints a signed
 // store URL that logs the customer in directly. No storefront form, so no
 // bot/human check can block it. Returns false when Multipass is not
@@ -63,15 +84,7 @@ async function multipassSignIn(email: string, password: string, metadata: Record
     const url = json?.data?.multipassUrl;
     if (res.status === 429) return "limited";
     if (!json?.success || !url) return "unavailable";
-    const target = new URL(url);
-    if (target.protocol !== "https:" || (target.hostname !== "dropdeadextensions.com" && !target.hostname.endsWith(".dropdeadextensions.com") && !target.hostname.endsWith(".myshopify.com")) || !target.pathname.startsWith("/account/login/multipass/")) return "unavailable";
-    try {
-      if (window.top) window.top.location.href = url;
-      else window.location.href = url;
-    } catch {
-      window.location.href = url;
-    }
-    return "navigating";
+    return openMultipassUrl(url) ? "navigating" : "unavailable";
   } catch {
     return "unavailable";
   }

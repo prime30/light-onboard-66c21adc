@@ -2,7 +2,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "B-20261005";
+const FUNCTION_VERSION = "RESET-MP-20261028";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,6 +53,8 @@ const bodySchema = z
     token: z.string().min(1).optional(),
     password: z.string().min(8, "Password must be at least 8 characters"),
     emailHint: z.string().email().optional(),
+    // Same-site store path to land on after the post-reset Multipass sign-in.
+    returnTo: z.string().max(500).optional(),
     device: z
       .object({
         type: z.string().max(20).optional(),
@@ -362,6 +364,37 @@ async function storefrontSignIn(
   }
 }
 
+// Shopify Multipass token: AES-256-CBC encrypt the customer JSON with the
+// first half of SHA256(secret), then HMAC-SHA256 the ciphertext with the
+// second half. URL-safe base64 of IV+ciphertext+signature.
+// Inlined copy of multipass-login's builder (edge functions cannot share code).
+function toBase64Url(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function buildMultipassUrl(domain: string, secret: string, customerData: Record<string, unknown>): Promise<string> {
+  const enc = new TextEncoder();
+  const keyBytes = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(secret)));
+  const iv = crypto.getRandomValues(new Uint8Array(16));
+  const aesKey = await crypto.subtle.importKey("raw", keyBytes.slice(0, 16), { name: "AES-CBC" }, false, ["encrypt"]);
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-CBC", iv }, aesKey, enc.encode(JSON.stringify(customerData))));
+  const payload = new Uint8Array(iv.length + ciphertext.length);
+  payload.set(iv, 0);
+  payload.set(ciphertext, iv.length);
+  const hmacKey = await crypto.subtle.importKey("raw", keyBytes.slice(16, 32), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, payload));
+  const token = new Uint8Array(payload.length + signature.length);
+  token.set(payload, 0);
+  token.set(signature, payload.length);
+  return `https://${domain}/account/login/multipass/${toBase64Url(token)}`;
+}
+
+// Same-site paths only: "/x" ok; "//host" and "/\host" are off-site.
+function isSameSitePath(p: string): boolean {
+  return /^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p);
+}
+
 const RESET_BY_URL_MUTATION = `
   mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
     customerResetByUrl(resetUrl: $resetUrl, password: $password) {
@@ -428,7 +461,7 @@ Deno.serve(async (req) => {
     return sendError(400, errors, "Validation failed");
   }
 
-  const { resetUrl: providedResetUrl, customerId, token, password, emailHint, device } = parsed.data;
+  const { resetUrl: providedResetUrl, customerId, token, password, emailHint, device, returnTo } = parsed.data;
 
 
   // Account-invite emails carry an ACTIVATION url (/account/activate/{id}/{token}).
@@ -665,7 +698,35 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log("RESET_OK", JSON.stringify({ customerId: resetCustomerId, hasEmail: !!email }));
+    // Sign the customer in from here instead of re-checking the new password.
+    // Holding a reset link Shopify just accepted already proves who they are,
+    // and a separate password check can be refused by the store right after a
+    // reset (seen on accounts with many failed attempts). Only Shopify's own
+    // email for this customer is used, never the client-supplied hint.
+    let multipassUrl: string | null = null;
+    const MULTIPASS_SECRET = Deno.env.get("SHOPIFY_MULTIPASS_SECRET");
+    // `email` here is Shopify-sourced only (reset response or Admin lookup).
+    const shopifyEmail = email;
+    if (MULTIPASS_SECRET && shopifyEmail) {
+      try {
+        const customerData: Record<string, unknown> = {
+          email: shopifyEmail.trim().toLowerCase(),
+          created_at: new Date().toISOString(),
+        };
+        if (returnTo && isSameSitePath(returnTo)) customerData.return_to = returnTo;
+        multipassUrl = await buildMultipassUrl(SHOPIFY_STORE_DOMAIN, MULTIPASS_SECRET, customerData);
+      } catch (e) {
+        console.warn("RESET_MULTIPASS_FAILED", e instanceof Error ? e.message : String(e));
+      }
+    }
+
+    console.log("RESET_OK", JSON.stringify({
+      customerId: resetCustomerId,
+      hasEmail: !!email,
+      // Shopify returns a session token when it accepted the new password.
+      hasAccessToken: !!result.customerAccessToken?.accessToken,
+      multipass: !!multipassUrl,
+    }));
 
     // Permanent record of the success, so a later "I reset it and still can't
     // get in" support case can be checked against facts instead of guesses.
@@ -683,6 +744,7 @@ Deno.serve(async (req) => {
         firstName,
         accessToken: result.customerAccessToken?.accessToken ?? null,
         expiresAt: result.customerAccessToken?.expiresAt ?? null,
+        multipassUrl,
       },
       "Password has been reset successfully"
     );
