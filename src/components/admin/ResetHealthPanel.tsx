@@ -29,6 +29,7 @@ interface Report {
   resetSpiking?: boolean;
   activationSpiking?: boolean;
   postResetRefusals?: { email: string; resetAt: string; refusedAt: string; refusals: number }[];
+  signInPaths?: { themeForm: { attempts: number; failed: number }; multipass: { attempts: number; failed: number } };
   postResetCleared?: { email: string; resetAt: string; refusedAt: string; refusals: number; signedInAt: string }[];
 }
 
@@ -145,6 +146,17 @@ export function ResetHealthPanel({ adminToken }: Props) {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {report.signInPaths && (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {([["Theme background form", report.signInPaths.themeForm], ["Multipass", report.signInPaths.multipass]] as const).map(([label, p]) => (
+                <div key={label} className="rounded-[10px] bg-muted/40 p-5">
+                  <p className="text-xs text-muted-foreground">{label} sign-ins (7d)</p>
+                  <p className="text-2xl font-medium">{p.attempts}</p>
+                  <p className="text-xs text-muted-foreground">{p.failed} failed{p.attempts ? `, ${Math.round((p.failed / p.attempts) * 100)}%` : ""}</p>
+                </div>
+              ))}
             </div>
           )}
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">

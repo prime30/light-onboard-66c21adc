@@ -112,6 +112,21 @@ Deno.serve(async (req) => {
     report.signInLimits = { throttled: await countOutcome("throttled"), capped: await countOutcome("capped") };
   } catch { /* leave zeros */ }
 
+  // Sign-ins by path, last 7 days. Theme form = the pop-up's old background
+  // login (browser reports), Multipass = signed store links we issued.
+  let signInPaths = { themeForm: { attempts: 0, failed: 0 }, multipass: { attempts: 0, failed: 0 } };
+  try {
+    const cnt = async (q: string) => {
+      const r = await fetch(`${supabaseUrl}/rest/v1/sign_in_events?select=id&created_at=gte.${weekAgo}&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com&${q}`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: "count=exact", Range: "0-0" } });
+      return parseInt((r.headers.get("content-range") || "*/0").split("/")[1] || "0", 10) || 0;
+    };
+    signInPaths = {
+      themeForm: { attempts: await cnt("source=eq.browser_report&outcome=in.(success,confirmed,error,timeout)"), failed: await cnt("source=eq.browser_report&outcome=in.(error,timeout)") },
+      multipass: { attempts: await cnt("source=eq.multipass-login"), failed: await cnt("source=eq.multipass-login&outcome=neq.multipass_issued") },
+    };
+  } catch { /* leave zeros */ }
+
   // Correct new password refused right after a reset. Mirrors
   // src/lib/post-reset-refusals.ts (edge functions cannot import src/).
   let postResetRefusals: { email: string; resetAt: string; refusedAt: string; refusals: number }[] = [];
@@ -301,6 +316,7 @@ Deno.serve(async (req) => {
   const fullReport = {
     postResetRefusals,
     postResetCleared,
+    signInPaths,
     ...report,
     resetFailuresThisWeek: resetCount,
     activationFailuresThisWeek: activationCount,

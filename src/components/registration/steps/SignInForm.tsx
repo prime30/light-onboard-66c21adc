@@ -471,13 +471,24 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
         lastCredsRef.current = { email: data.email, password: data.password };
         loginRetriedRef.current = false;
-        login({
-          email: data.email,
-          password: data.password,
-          attemptId: attemptRef.current.attemptId,
-          passwordSource: entry.source,
-          evidence: entry.evidence,
-        });
+        // Every sign-in: check the password directly with the store, then sign
+        // in with Multipass. The theme's background login form is no longer
+        // used (it hit bot checks and never reported its result).
+        const creds = { email: data.email, password: data.password };
+        const meta = attemptRef.current ?? {};
+        const result = await verifyPasswordWithStore(creds, "", { ...meta, context: "sign_in" });
+        if (result === "valid") {
+          const navigating = await finishSigningIn(creds.email, creds.password, meta);
+          if (navigating) return; // stay in the loading state while the store page opens
+          setIsSubmitting(false);
+          setLoginError(RATE_LIMITED_ERROR);
+          return;
+        }
+        setIsSubmitting(false);
+        if (result === "unactivated") setLoginError(UNACTIVATED_ERROR);
+        else if (result === "throttled") setLoginError({ kind: "rate_limited", message: "Too many sign-in attempts. Please wait a minute and try again." });
+        else if (result === "invalid") setLoginError(WRONG_PASSWORD_ERROR);
+        else setLoginError({ kind: "store_handoff", message: "We couldn't reach the store. Tap below to sign in on the store page." });
       }
       if (data.formType === "forgot_password") {
         // Pre-flight: avoid sending a "reset email sent" message when the
