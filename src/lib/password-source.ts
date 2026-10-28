@@ -11,6 +11,7 @@ export function observePasswordInput(previous: PasswordEvidence, event: Pick<Inp
 
 export function getPasswordSource(previous: PasswordEvidence, input: HTMLInputElement | null): PasswordEvidence {
   try {
+    if (previous.source === "mixed") return previous;
     if (input?.matches(":autofill") || input?.matches(":-webkit-autofill")) {
       return { source: "autofill", evidence: "browser_autofill" };
     }

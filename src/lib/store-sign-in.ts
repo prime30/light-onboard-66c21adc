@@ -9,7 +9,7 @@ function currentStorePath(): string {
   } catch { /* cross-origin */ }
   try {
     const ref = new URL(document.referrer);
-    if (ref.host.endsWith("dropdeadextensions.com")) return safe(ref.pathname + ref.search);
+    if (ref.hostname === "dropdeadextensions.com" || ref.hostname.endsWith(".dropdeadextensions.com")) return safe(ref.pathname + ref.search);
   } catch { /* no referrer */ }
   return "/";
 }
@@ -62,6 +62,8 @@ async function multipassSignIn(email: string, password: string, metadata: Record
       | null;
     const url = json?.data?.multipassUrl;
     if (!json?.success || !url) return false;
+    const target = new URL(url);
+    if (target.protocol !== "https:" || (target.hostname !== "dropdeadextensions.com" && !target.hostname.endsWith(".dropdeadextensions.com") && !target.hostname.endsWith(".myshopify.com")) || !target.pathname.startsWith("/account/login/multipass/")) return false;
     try {
       if (window.top) window.top.location.href = url;
       else window.location.href = url;
