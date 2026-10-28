@@ -226,7 +226,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
             if (result === "valid") {
               // Password is correct but the background sign-in failed. Go
               // straight to Multipass (no retry, no extra tap).
-              void finishSigningIn(creds.email, creds.password, attemptRef.current ?? {});
+              void finishSigningIn(creds.email, creds.password, attemptRef.current ?? {}).then((navigating) => {
+                if (!navigating) { setIsSubmitting(false); setLoginError(RATE_LIMITED_ERROR); }
+              });
               return;
             }
             setIsSubmitting(false);
