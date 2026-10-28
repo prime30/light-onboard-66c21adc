@@ -111,6 +111,18 @@ describe("Post-reset Multipass link", () => {
     expect(openMultipassUrl("https://dropdeadextensions.com/account/login/multipass/abc")).toBe(true);
     expect(location.href).toBe("https://dropdeadextensions.com/account/login/multipass/abc");
   });
+  it("opens a .myshopify.com link on the store's own domain", () => {
+    const location = { href: "", hostname: "dropdeadextensions.com", origin: "https://dropdeadextensions.com" };
+    vi.stubGlobal("window", { top: { location }, location });
+    expect(openMultipassUrl("https://drop-dead-2428.myshopify.com/account/login/multipass/abc")).toBe(true);
+    expect(location.href).toBe("https://dropdeadextensions.com/account/login/multipass/abc");
+  });
+  it("keeps the .myshopify.com link when the top window is not the store", () => {
+    const location = { href: "", hostname: "id-preview.lovable.app", origin: "https://id-preview.lovable.app" };
+    vi.stubGlobal("window", { top: { location }, location });
+    expect(openMultipassUrl("https://drop-dead-2428.myshopify.com/account/login/multipass/abc")).toBe(true);
+    expect(location.href).toBe("https://drop-dead-2428.myshopify.com/account/login/multipass/abc");
+  });
   it("refuses links that are not the store's Multipass path", () => {
     const location = { href: "" };
     vi.stubGlobal("window", { top: { location }, location });
