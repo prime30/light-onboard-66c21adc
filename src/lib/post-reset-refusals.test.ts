@@ -19,4 +19,10 @@ describe("findPostResetRefusals", () => {
     const r = findPostResetRefusals([ev("reset_succeeded", "2026-10-28T19:00:00Z"), ev("error", "2026-10-28T19:01:00Z", "browser_report", "rejected"), ev("invalid_credentials", "2026-10-28T19:02:00Z")]);
     expect(r[0].refusals).toBe(2);
   });
+  it("drops customers who signed in fine after the refusal", () => {
+    expect(findPostResetRefusals([ev("reset_succeeded", "2026-10-28T19:00:00Z"), ev("invalid_credentials", "2026-10-28T19:00:03Z"), ev("multipass_issued", "2026-10-28T19:05:00Z", "multipass-login")])).toHaveLength(0);
+  });
+  it("keeps customers whose only success came before the refusal", () => {
+    expect(findPostResetRefusals([ev("reset_succeeded", "2026-10-28T19:00:00Z"), ev("password_verified", "2026-10-28T19:00:01Z"), ev("invalid_credentials", "2026-10-28T19:02:00Z")])).toHaveLength(1);
+  });
 });

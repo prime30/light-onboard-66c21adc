@@ -10,6 +10,12 @@ export function isRefusal(e: SignInEventRow): boolean {
   return e.source === "browser_report" && e.outcome === "error" && e.code === "rejected";
 }
 
+/** A sign-in the store actually completed. */
+export function isSuccess(e: SignInEventRow): boolean {
+  if (e.outcome === "password_verified" || e.outcome === "multipass_issued") return true;
+  return e.source === "browser_report" && e.outcome === "confirmed";
+}
+
 /** Customers whose sign-in was refused within 15 minutes after a successful reset. */
 export function findPostResetRefusals(events: SignInEventRow[]): PostResetRefusal[] {
   const byEmail = new Map<string, SignInEventRow[]>();
@@ -23,6 +29,8 @@ export function findPostResetRefusals(events: SignInEventRow[]): PostResetRefusa
     for (const e of sorted) {
       const t = Date.parse(e.created_at);
       if (e.outcome === "reset_succeeded") { resetAt = t; resetIso = e.created_at; continue; }
+      // Signed in fine after being refused: no longer stuck.
+      if (latest && isSuccess(e) && e.created_at >= latest.refusedAt) { latest = null; continue; }
       if (resetAt !== null && isRefusal(e) && t >= resetAt && t - resetAt <= POST_RESET_WINDOW_MS) {
         if (latest && latest.resetAt === resetIso) { latest.refusals++; latest.refusedAt = e.created_at; }
         else latest = { email, resetAt: resetIso, refusedAt: e.created_at, refusals: 1 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { passwordSourceLabel } from "@/lib/password-source";
 
 type Event = { id: string; attempt_id: string | null; created_at: string; source: string; outcome: string; code: string | null; password_source: string; evidence: string; user_agent: string | null };
 
-export function SignInHistoryPanel({ adminToken }: { adminToken: string }) {
+export function SignInHistoryPanel({ adminToken, lookup }: { adminToken: string; lookup?: { email: string; n: number } }) {
+  const sectionRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
   const [searchedEmail, setSearchedEmail] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -15,9 +16,9 @@ export function SignInHistoryPanel({ adminToken }: { adminToken: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const load = async (more = false) => {
+  const load = async (more = false, forced?: string) => {
     setLoading(true); setError("");
-    const address = more ? searchedEmail : email.trim().toLowerCase();
+    const address = forced ?? (more ? searchedEmail : email.trim().toLowerCase());
     try {
       const { data, error: requestError } = await supabase.functions.invoke("sign-in-history", { body: { action: "history", token: adminToken, email: address, offset: more ? events.length : 0 } });
       if (requestError || !data?.events) throw new Error("Couldn't load sign-in history.");
@@ -26,8 +27,15 @@ export function SignInHistoryPanel({ adminToken }: { adminToken: string }) {
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't load history."); }
     finally { setLoading(false); }
   };
+  useEffect(() => {
+    if (!lookup) return;
+    setEmail(lookup.email);
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    void load(false, lookup.email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lookup?.n]);
   return (
-    <section className="space-y-5 border-t border-border pt-5">
+    <section ref={sectionRef} className="space-y-5 border-t border-border pt-5 scroll-mt-5">
       <h3 className="text-base font-medium">Customer sign-in history</h3>
       <form className="flex flex-wrap gap-2.5" onSubmit={(e) => { e.preventDefault(); void load(); }}>
         <Input type="email" required aria-label="Customer email" placeholder="Customer email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 min-w-[200px]" />
