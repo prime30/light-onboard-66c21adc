@@ -58,6 +58,52 @@ describe("Sign-in form Multipass", () => {
     expect(await multipassSignIn("customer@example.com", "pw")).toBe("unavailable");
   });
 });
+describe("Theme return target", () => {
+  const fresh = async () => {
+    vi.resetModules();
+    return import("./store-sign-in");
+  };
+  const minted = { status: 200, json: async () => ({ success: true, data: { multipassUrl: "https://dropdeadextensions.com/account/login/multipass/t" } }) };
+  it("returns a Syndicate sign-in to the IDP broker, not the page under the pop-up", async () => {
+    const mod = await fresh();
+    const location = { host: "dropdeadextensions.com", pathname: "/", search: "", href: "" };
+    vi.stubGlobal("window", { top: { location }, location });
+    const request = vi.fn().mockResolvedValue(minted);
+    vi.stubGlobal("fetch", request);
+    mod.setPostLoginReturn("/apps/idp/moas/broker/login/shopify/idp/proxy");
+    expect(await mod.multipassSignIn("customer@example.com", "pw", { context: "sign_in" })).toBe("navigating");
+    expect(JSON.parse(request.mock.calls[0][1].body).return_to).toBe("/apps/idp/moas/broker/login/shopify/idp/proxy");
+  });
+  it("turns an absolute store URL into its path", async () => {
+    const mod = await fresh();
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/", search: "" } } });
+    mod.setPostLoginReturn("https://dropdeadextensions.com/pages/pricing?x=1");
+    expect(mod.signInTarget()).toBe("/pages/pricing?x=1");
+  });
+  it("ignores targets outside the allowlist", async () => {
+    const mod = await fresh();
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/cart", search: "" } } });
+    mod.setPostLoginReturn("https://evil.example.com/");
+    mod.setPostLoginReturn("//evil.example.com/");
+    expect(mod.signInTarget()).toBe("/cart");
+  });
+  it("sends an off-store target through the store form instead of Multipass", async () => {
+    const mod = await fresh();
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/", search: "" } } });
+    const request = vi.fn();
+    vi.stubGlobal("fetch", request);
+    mod.setPostLoginReturn("https://syndicate.dropdeadextensions.com/c/welcome");
+    expect(await mod.multipassSignIn("customer@example.com", "pw")).toBe("unavailable");
+    expect(request).not.toHaveBeenCalled();
+    expect(mod.multipassReturnPath()).toBe("/");
+    const fields: Array<{ name: string; value: string }> = [];
+    const form = { appendChild: (input: { name: string; value: string }) => fields.push(input), submit: vi.fn(), target: "", action: "" };
+    vi.stubGlobal("document", { createElement: (tag: string) => tag === "form" ? form : {}, body: { appendChild: vi.fn() }, referrer: "" });
+    mod.submitStoreLogin("customer@example.com", "pw");
+    expect(fields.find((f) => f.name === "checkout_url")?.value).toBe("https://syndicate.dropdeadextensions.com/c/welcome");
+    expect(fields.find((f) => f.name === "return_to")?.value).toBe("/");
+  });
+});
 describe("Post-reset Multipass link", () => {
   it("opens the store's Multipass sign-in in the top window", () => {
     const location = { href: "" };

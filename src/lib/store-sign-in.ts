@@ -1,5 +1,15 @@
+import { isSafeReturnUrl } from "@/lib/sso-context";
+
+// Must match isSameSitePath() in supabase/functions/multipass-login/index.ts:
+// the server rejects any return_to that fails its check with 400.
+const isStorePath = (p: string) => /^\/(?![/\\])/.test(p) && !/[\\\s]/.test(p);
+// The storefront itself. Syndicate and apply are subdomains but not the store.
+const isStoreHost = (host: string) => host === "dropdeadextensions.com" || host === "www.dropdeadextensions.com";
+
+// The page underneath the pop-up (same site), so sign-in lands back there and
+// keeps the cart. Only same-site paths are returned.
 export function currentStorePath(): string {
-  const safe = (p: string) => (/^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p) ? p : "/");
+  const safe = (p: string) => (isStorePath(p) ? p : "/");
   try {
     const loc = window.top?.location;
     if (loc && (loc.host === "dropdeadextensions.com" || loc.host.endsWith(".dropdeadextensions.com"))) {
@@ -14,6 +24,37 @@ export function currentStorePath(): string {
   return "/";
 }
 
+// Where the theme wants the customer after signing in: the Syndicate IDP
+// broker (/apps/idp/...), a gated page, or checkout. The theme passes it as
+// the iframe's return_url and in SSO_CONTEXT.returnUrl.
+let postLoginReturn = "";
+export function setPostLoginReturn(raw: unknown) {
+  if (typeof raw === "string" && isSafeReturnUrl(raw)) postLoginReturn = raw;
+}
+
+// A store path Multipass can return to, or an absolute off-store URL that
+// only the store login form can reach (checkout_url). Falls back to the page
+// underneath the pop-up.
+export function signInTarget(): string {
+  if (postLoginReturn.startsWith("/")) {
+    if (isStorePath(postLoginReturn)) return postLoginReturn;
+  } else if (postLoginReturn) {
+    try {
+      const url = new URL(postLoginReturn);
+      if (!isStoreHost(url.hostname)) return url.href;
+      const path = url.pathname + url.search + url.hash;
+      if (isStorePath(path)) return path;
+    } catch { /* fall through */ }
+  }
+  return currentStorePath();
+}
+
+// Store path for a Multipass link minted elsewhere (reset-password).
+export function multipassReturnPath(): string {
+  const target = signInTarget();
+  return target.startsWith("/") ? target : currentStorePath();
+}
+
 // Real (top-level) sign-in on the store's own login page. Used when the
 // background sign-in fails but the password is verified correct: a full page
 // submit lets the customer pass any bot check the store shows.
@@ -24,14 +65,18 @@ export function submitStoreLogin(email: string, password: string) {
   form.action = STORE_LOGIN_URL;
   form.target = "_top";
   form.acceptCharset = "UTF-8";
+  const target = signInTarget();
+  const offStore = !target.startsWith("/");
   const fields: Record<string, string> = {
     form_type: "customer_login",
     utf8: "\u2713",
     "customer[email]": email,
     "customer[password]": password,
-    // Shopify's customer_login form reads return_to; anything else lands on /account.
-    return_to: currentStorePath(),
+    // Shopify's customer_login form reads return_to for paths and checkout_url
+    // for absolute URLs; anything else lands on /account.
+    return_to: offStore ? "/" : target,
   };
+  if (offStore) fields.checkout_url = target;
   for (const [name, value] of Object.entries(fields)) {
     const input = document.createElement("input");
     input.type = "hidden";
@@ -70,8 +115,11 @@ export type MultipassSignInResult = "navigating" | "limited" | "invalid" | "unac
 // check per sign-in), then mints a signed store URL that logs the customer in
 // directly. No storefront form, so no bot/human check can block it.
 // "unavailable" means Multipass could not answer (not configured, upstream
-// error), so the password is still unchecked and callers can fall back.
+// error, or an off-store target a Multipass link cannot return to), so the
+// password is still unchecked and callers can fall back.
 export async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<MultipassSignInResult> {
+  const target = signInTarget();
+  if (!target.startsWith("/")) return "unavailable";
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
       method: "POST",
@@ -80,7 +128,7 @@ export async function multipassSignIn(email: string, password: string, metadata:
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ email, password, return_to: currentStorePath(), ...metadata }),
+      body: JSON.stringify({ email, password, return_to: target, ...metadata }),
     });
     const json = (await res.json().catch(() => null)) as
       | { success?: boolean; kind?: string; data?: { multipassUrl?: string } }
