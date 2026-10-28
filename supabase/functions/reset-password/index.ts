@@ -705,7 +705,8 @@ Deno.serve(async (req) => {
     // email for this customer is used, never the client-supplied hint.
     let multipassUrl: string | null = null;
     const MULTIPASS_SECRET = Deno.env.get("SHOPIFY_MULTIPASS_SECRET");
-    const shopifyEmail = result.customer.email ?? (email && email !== emailHint ? email : null) ?? email;
+    // `email` here is Shopify-sourced only (reset response or Admin lookup).
+    const shopifyEmail = email;
     if (MULTIPASS_SECRET && shopifyEmail) {
       try {
         const customerData: Record<string, unknown> = {
