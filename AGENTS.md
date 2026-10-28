@@ -26,6 +26,7 @@ Lovable edits don't update either index. If a file you need isn't listed, regene
 ## Postmessage contract
 
 - Store sign-in navigation is shared in `src/lib/store-sign-in.ts` so reset and credential-recovery paths use the same first-party handoff.
+- After a successful reset, `reset-password` mints the Multipass URL itself from Shopify's own customer email, because the accepted reset link proves identity and a follow-up password check can be refused by the store right after a reset.
 - Keep authentication events append-only in `sign_in_events`, with admin-token-validated history access and explicitly unverified browser reports, because latest-state lead fields cannot explain repeated support incidents.
 - Password-source telemetry contains only entry classifications and evidence, never passwords or tokens, because browser autofill signals are incomplete and sensitive values are unnecessary.
 
