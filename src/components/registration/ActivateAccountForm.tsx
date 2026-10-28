@@ -552,6 +552,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         <TextInput
           name="password"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           register={register}
           error={errors.password}
@@ -571,6 +572,7 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
         <TextInput
           name="confirmPassword"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           register={register}
           error={errors.confirmPassword}

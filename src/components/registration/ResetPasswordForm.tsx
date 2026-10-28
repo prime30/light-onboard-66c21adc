@@ -555,9 +555,25 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
       </div>
 
       <div className="space-y-[clamp(12px,2.5vh,20px)] w-full">
+        {/* iPhone and password managers save the new password against this
+            email. Without it they keep the OLD saved password and autofill it
+            on the next sign-in, which then fails right after a good reset. */}
+        {freshLinkEmail && (
+          <input
+            type="email"
+            name="username"
+            autoComplete="username"
+            value={freshLinkEmail}
+            readOnly
+            tabIndex={-1}
+            aria-hidden="true"
+            className="sr-only"
+          />
+        )}
         <TextInput
           name="password"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           register={register}
           error={errors.password}
@@ -577,6 +593,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         <TextInput
           name="confirmPassword"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           register={register}
           error={errors.confirmPassword}
