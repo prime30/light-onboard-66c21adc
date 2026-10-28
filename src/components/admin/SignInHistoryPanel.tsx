@@ -7,6 +7,13 @@ import { passwordSourceLabel } from "@/lib/password-source";
 
 type Event = { id: string; attempt_id: string | null; created_at: string; source: string; outcome: string; code: string | null; password_source: string; evidence: string; user_agent: string | null };
 
+function visitLabel(e: Event): string {
+  const code = e.code ?? "";
+  const from = code.startsWith("sent_by_app") ? "Link likely from our app's email" : "Link sent by Shopify directly (Shopify admin or store sign-in page)";
+  const link = e.evidence.startsWith("link:") && e.evidence !== "link:none" ? `, link ${e.evidence.slice(5)}` : "";
+  return `${from}${code.endsWith(":broken_link") ? ", link arrived broken" : ""}${link}`;
+}
+
 export function SignInHistoryPanel({ adminToken, lookup }: { adminToken: string; lookup?: { email: string; n: number } }) {
   const sectionRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
@@ -51,7 +58,7 @@ export function SignInHistoryPanel({ adminToken, lookup }: { adminToken: string;
               <time className="text-muted-foreground">{new Date(event.created_at).toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC")}</time>
               <span className="font-medium break-words">{event.outcome}{event.code ? ` (${event.code})` : ""}</span>
             </div>
-            <p className="break-words">{passwordSourceLabel(event.password_source)}</p>
+            <p className="break-words">{event.source === "reset_link_visit" ? visitLabel(event) : passwordSourceLabel(event.password_source)}</p>
             <p className="text-xs text-muted-foreground break-all">{event.source === "browser_report" ? "Browser report, unverified" : event.source}{event.attempt_id ? ` · Attempt ${event.attempt_id.slice(0, 8)}` : ""}</p>
             {event.user_agent && <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Browser details</summary><p className="pt-2.5 break-all">{event.user_agent}</p></details>}
           </li>
