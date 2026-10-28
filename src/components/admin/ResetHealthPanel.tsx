@@ -28,6 +28,7 @@ interface Report {
   inAppBrowserCount?: number;
   resetSpiking?: boolean;
   activationSpiking?: boolean;
+  postResetRefusals?: { email: string; resetAt: string; refusedAt: string; refusals: number }[];
 }
 
 interface Resp {
@@ -104,6 +105,24 @@ export function ResetHealthPanel({ adminToken }: Props) {
 
       {report && (
         <div className="space-y-5">
+          {(report.postResetRefusals?.length ?? 0) > 0 && (
+            <div role="alert" className="rounded-[10px] border border-destructive/40 bg-destructive/5 p-5 space-y-2.5">
+              <p className="text-sm font-medium text-destructive">
+                {report.postResetRefusals!.length} {report.postResetRefusals!.length === 1 ? "customer was" : "customers were"} refused sign-in right after resetting their password
+              </p>
+              <p className="text-xs text-muted-foreground">Refused within 15 minutes of a successful reset, last 7 days. Reach out before they complain.</p>
+              <ul className="space-y-1 text-sm">
+                {report.postResetRefusals!.map((r) => (
+                  <li key={r.email + r.resetAt} className="flex flex-wrap justify-between gap-2.5">
+                    <span className="text-foreground/80 break-all">{r.email}</span>
+                    <span className="text-muted-foreground">
+                      {r.refusals} {r.refusals === 1 ? "refusal" : "refusals"}, {new Date(r.refusedAt).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
             <div className="rounded-[10px] bg-muted/40 p-5">
               <p className="text-xs text-muted-foreground">Accounts affected</p>

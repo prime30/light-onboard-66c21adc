@@ -294,6 +294,7 @@ Deno.serve(async (req) => {
 
 
   const fullReport = {
+    postResetRefusals,
     ...report,
     resetFailuresThisWeek: resetCount,
     activationFailuresThisWeek: activationCount,
