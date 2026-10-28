@@ -1,4 +1,4 @@
-import { finishSigningIn } from "@/lib/store-sign-in";
+import { finishSigningIn, multipassSignIn, submitStoreLogin } from "@/lib/store-sign-in";
 import { getPasswordSource, observePasswordInput, type PasswordEvidence } from "@/lib/password-source";
 import { recordSignInEvent } from "@/lib/sign-in-events";
 import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from "react";
@@ -471,17 +471,27 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
         lastCredsRef.current = { email: data.email, password: data.password };
         loginRetriedRef.current = false;
-        // Every sign-in: check the password directly with the store, then sign
-        // in with Multipass. The theme's background login form is no longer
-        // used (it hit bot checks and never reported its result).
+        // Every sign-in goes through Multipass. multipass-login checks the
+        // password once and mints the store link in the same call, so each
+        // tap costs one store password check. The theme's background login
+        // form is no longer used (it hit bot checks and never reported its
+        // result).
         const creds = { email: data.email, password: data.password };
         const meta = attemptRef.current ?? {};
+        const multipass = await multipassSignIn(creds.email, creds.password, { ...meta, context: "sign_in" });
+        if (multipass === "navigating") return; // stay in the loading state while the store page opens
+        if (multipass !== "unavailable") {
+          setIsSubmitting(false);
+          if (multipass === "limited") setLoginError(RATE_LIMITED_ERROR);
+          else if (multipass === "unactivated") setLoginError(UNACTIVATED_ERROR);
+          else setLoginError(WRONG_PASSWORD_ERROR);
+          return;
+        }
+        // Multipass could not answer, so the password is still unchecked:
+        // check it, then use the store's own login page.
         const result = await verifyPasswordWithStore(creds, "", { ...meta, context: "sign_in" });
         if (result === "valid") {
-          const navigating = await finishSigningIn(creds.email, creds.password, meta);
-          if (navigating) return; // stay in the loading state while the store page opens
-          setIsSubmitting(false);
-          setLoginError(RATE_LIMITED_ERROR);
+          submitStoreLogin(creds.email, creds.password);
           return;
         }
         setIsSubmitting(false);

@@ -18,7 +18,7 @@ export function currentStorePath(): string {
 // background sign-in fails but the password is verified correct: a full page
 // submit lets the customer pass any bot check the store shows.
 const STORE_LOGIN_URL = "https://dropdeadextensions.com/account/login";
-function submitStoreLogin(email: string, password: string) {
+export function submitStoreLogin(email: string, password: string) {
   const form = document.createElement("form");
   form.method = "POST";
   form.action = STORE_LOGIN_URL;
@@ -29,7 +29,8 @@ function submitStoreLogin(email: string, password: string) {
     utf8: "\u2713",
     "customer[email]": email,
     "customer[password]": password,
-    return_url: currentStorePath(),
+    // Shopify's customer_login form reads return_to; anything else lands on /account.
+    return_to: currentStorePath(),
   };
   for (const [name, value] of Object.entries(fields)) {
     const input = document.createElement("input");
@@ -63,11 +64,14 @@ export function openMultipassUrl(url: string): boolean {
   return true;
 }
 
-// Multipass sign-in: the backend verifies the password, then mints a signed
-// store URL that logs the customer in directly. No storefront form, so no
-// bot/human check can block it. Returns false when Multipass is not
-// configured or the mint fails, so callers can fall back to the form.
-async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<"navigating" | "unavailable" | "limited"> {
+export type MultipassSignInResult = "navigating" | "limited" | "invalid" | "unactivated" | "unavailable";
+
+// Multipass sign-in: the backend verifies the password (the only password
+// check per sign-in), then mints a signed store URL that logs the customer in
+// directly. No storefront form, so no bot/human check can block it.
+// "unavailable" means Multipass could not answer (not configured, upstream
+// error), so the password is still unchecked and callers can fall back.
+export async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<MultipassSignInResult> {
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
       method: "POST",
@@ -79,10 +83,12 @@ async function multipassSignIn(email: string, password: string, metadata: Record
       body: JSON.stringify({ email, password, return_to: currentStorePath(), ...metadata }),
     });
     const json = (await res.json().catch(() => null)) as
-      | { success?: boolean; data?: { multipassUrl?: string } }
+      | { success?: boolean; kind?: string; data?: { multipassUrl?: string } }
       | null;
     const url = json?.data?.multipassUrl;
-    if (res.status === 429) return "limited";
+    if (res.status === 429 || json?.kind === "rate_limited") return "limited";
+    if (json?.kind === "invalid_credentials") return "invalid";
+    if (json?.kind === "unactivated") return "unactivated";
     if (!json?.success || !url) return "unavailable";
     return openMultipassUrl(url) ? "navigating" : "unavailable";
   } catch {
@@ -91,11 +97,12 @@ async function multipassSignIn(email: string, password: string, metadata: Record
 }
 
 // Finish a verified-correct sign-in: prefer Multipass (no human check),
-// fall back to the store's own login form.
+// fall back to the store's own login form. A rejection here comes right after
+// the password was set or verified, so the store form gets the final say.
 export async function finishSigningIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<boolean> {
   const ok = await multipassSignIn(email, password, metadata);
   if (ok === "limited") return false;
-  if (ok === "unavailable") submitStoreLogin(email, password);
+  if (ok !== "navigating") submitStoreLogin(email, password);
   return true;
 }
 

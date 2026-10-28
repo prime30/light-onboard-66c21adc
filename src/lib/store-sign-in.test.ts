@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { finishSigningIn, openMultipassUrl } from "./store-sign-in";
+import { finishSigningIn, multipassSignIn, openMultipassUrl } from "./store-sign-in";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("Post-reset sign-in", () => {
@@ -28,8 +28,34 @@ describe("Post-reset sign-in", () => {
     vi.stubGlobal("document", { createElement: (tag: string) => tag === "form" ? form : {}, body: { appendChild: vi.fn() }, referrer: "" });
     await finishSigningIn("customer@example.com", "New password 123");
     expect(fields.find((field) => field.name === "customer[password]")?.value).toBe("New password 123");
+    expect(fields.find((field) => field.name === "return_to")?.value).toBe("/cart");
+    expect(fields.some((field) => field.name === "return_url")).toBe(false);
     expect(form.target).toBe("_top");
     expect(form.submit).toHaveBeenCalledOnce();
+  });
+});
+describe("Sign-in form Multipass", () => {
+  const answer = (status: number, body: unknown) => vi.fn().mockResolvedValue({ status, json: async () => body });
+  it("checks the password and mints in one request, then opens the store link", async () => {
+    const location = { host: "dropdeadextensions.com", pathname: "/collections/all", search: "", href: "" };
+    vi.stubGlobal("window", { top: { location }, location });
+    const request = answer(200, { success: true, data: { multipassUrl: "https://dropdeadextensions.com/account/login/multipass/t" } });
+    vi.stubGlobal("fetch", request);
+    expect(await multipassSignIn("customer@example.com", "pw", { context: "sign_in" })).toBe("navigating");
+    expect(request).toHaveBeenCalledOnce();
+    expect(JSON.parse(request.mock.calls[0][1].body).context).toBe("sign_in");
+    expect(location.href).toBe("https://dropdeadextensions.com/account/login/multipass/t");
+  });
+  it("reports why the store refused instead of falling back", async () => {
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/", search: "" } } });
+    vi.stubGlobal("fetch", answer(401, { success: false, kind: "invalid_credentials" }));
+    expect(await multipassSignIn("customer@example.com", "pw")).toBe("invalid");
+    vi.stubGlobal("fetch", answer(403, { success: false, kind: "unactivated" }));
+    expect(await multipassSignIn("customer@example.com", "pw")).toBe("unactivated");
+    vi.stubGlobal("fetch", answer(429, { success: false, kind: "rate_limited" }));
+    expect(await multipassSignIn("customer@example.com", "pw")).toBe("limited");
+    vi.stubGlobal("fetch", answer(500, { success: false, kind: "multipass_not_configured" }));
+    expect(await multipassSignIn("customer@example.com", "pw")).toBe("unavailable");
   });
 });
 describe("Post-reset Multipass link", () => {

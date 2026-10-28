@@ -8,7 +8,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "HISTORY-20261028";
+const FUNCTION_VERSION = "BUYERIP-20261028";
 
 // Keeps the word "activate": older SPA bundles classify by wording and match
 // "activate" before "password". Same text in multipass-login.
@@ -107,6 +107,23 @@ async function lookupCustomerState(
 }
 
 const STOREFRONT_API_VERSION = "2024-10";
+
+// Server-side Storefront calls must carry the buyer's IP, or Shopify counts
+// every customer as one client and throttles sign-ins for everyone. Shopify
+// only reads Shopify-Storefront-Buyer-IP alongside a private token, so the
+// public token stays as the fallback until SHOPIFY_STOREFRONT_PRIVATE_TOKEN is set.
+function storefrontHeaders(publicToken: string | null, buyerIp: string | null): Record<string, string> {
+  const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  if (privateToken) {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Shopify-Storefront-Private-Token": privateToken,
+    };
+    if (buyerIp) headers["Shopify-Storefront-Buyer-IP"] = buyerIp;
+    return headers;
+  }
+  return { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken ?? "" };
+}
 
 let cachedStorefrontToken: string | null = null;
 let inflightStorefrontToken: Promise<string | null> | null = null;
@@ -265,8 +282,10 @@ async function handleRequest(req: Request): Promise<Response> {
   }
 
   const { email, password, diagnostic, context } = parsed.data;
-  const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
-  if (!storefrontToken) {
+  const buyerIp = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+  const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  const storefrontToken = usePrivateToken ? null : await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
+  if (!usePrivateToken && !storefrontToken) {
     return sendError(500, ["Server configuration error"]);
   }
 
@@ -275,10 +294,7 @@ async function handleRequest(req: Request): Promise<Response> {
       `https://${SHOPIFY_STORE_DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": storefrontToken,
-        },
+        headers: storefrontHeaders(storefrontToken, buyerIp),
         body: JSON.stringify({
           query: ACCESS_TOKEN_CREATE_MUTATION,
           variables: { input: { email, password } },
