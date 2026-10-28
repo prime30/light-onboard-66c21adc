@@ -15,6 +15,13 @@
       "when": 1793209884410,
       "tag": "0001_sign_in_event_history",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793210004994,
+      "tag": "0002_lock_sign_in_history_grants",
+      "breakpoints": true
     }
   ]
 }
