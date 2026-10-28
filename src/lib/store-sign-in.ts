@@ -100,14 +100,31 @@ export function openMultipassUrl(url: string): boolean {
   const host = target.hostname;
   const storeHost = host === "dropdeadextensions.com" || host.endsWith(".dropdeadextensions.com") || host.endsWith(".myshopify.com");
   if (target.protocol !== "https:" || !storeHost || !target.pathname.startsWith("/account/login/multipass/")) return false;
+  const href = onStoreDomain(target);
   try {
-    if (window.top) window.top.location.href = url;
-    else window.location.href = url;
+    if (window.top) window.top.location.href = href;
+    else window.location.href = href;
   } catch {
-    window.location.href = url;
+    window.location.href = href;
   }
   return true;
 }
+
+// The storefront reroutes navigations to other hosts (the .myshopify.com link
+// the backend mints) through its /url interstitial, then 301s back to its own
+// domain. The same path on the store's domain skips both hops.
+function onStoreDomain(target: URL): string {
+  if (!target.hostname.endsWith(".myshopify.com")) return target.href;
+  try {
+    const top = window.top?.location;
+    if (top && isStoreHost(top.hostname)) return `${top.origin}${target.pathname}${target.search}`;
+  } catch { /* cross-origin top */ }
+  return target.href;
+}
+
+export type MultipassAnswer =
+  | { kind: "ok"; url: string }
+  | { kind: "limited" | "invalid" | "unactivated" | "unavailable" };
 
 export type MultipassSignInResult = "navigating" | "limited" | "invalid" | "unactivated" | "unavailable";
 
@@ -118,8 +135,16 @@ export type MultipassSignInResult = "navigating" | "limited" | "invalid" | "unac
 // error, or an off-store target a Multipass link cannot return to), so the
 // password is still unchecked and callers can fall back.
 export async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<MultipassSignInResult> {
+  const answer = await requestMultipassUrl(email, password, metadata);
+  if (answer.kind !== "ok") return answer.kind;
+  return openMultipassUrl(answer.url) ? "navigating" : "unavailable";
+}
+
+// The password check and store link without opening it, so a caller can
+// update the screen (or finish another check) before the page changes.
+export async function requestMultipassUrl(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<MultipassAnswer> {
   const target = signInTarget();
-  if (!target.startsWith("/")) return "unavailable";
+  if (!target.startsWith("/")) return { kind: "unavailable" };
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
       method: "POST",
@@ -134,13 +159,13 @@ export async function multipassSignIn(email: string, password: string, metadata:
       | { success?: boolean; kind?: string; data?: { multipassUrl?: string } }
       | null;
     const url = json?.data?.multipassUrl;
-    if (res.status === 429 || json?.kind === "rate_limited") return "limited";
-    if (json?.kind === "invalid_credentials") return "invalid";
-    if (json?.kind === "unactivated") return "unactivated";
-    if (!json?.success || !url) return "unavailable";
-    return openMultipassUrl(url) ? "navigating" : "unavailable";
+    if (res.status === 429 || json?.kind === "rate_limited") return { kind: "limited" };
+    if (json?.kind === "invalid_credentials") return { kind: "invalid" };
+    if (json?.kind === "unactivated") return { kind: "unactivated" };
+    if (!json?.success || !url) return { kind: "unavailable" };
+    return { kind: "ok", url };
   } catch {
-    return "unavailable";
+    return { kind: "unavailable" };
   }
 }
 

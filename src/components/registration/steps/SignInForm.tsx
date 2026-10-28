@@ -1,4 +1,4 @@
-import { finishSigningIn, multipassSignIn, submitStoreLogin } from "@/lib/store-sign-in";
+import { finishSigningIn, openMultipassUrl, requestMultipassUrl, submitStoreLogin } from "@/lib/store-sign-in";
 import { getPasswordSource, observePasswordInput, type PasswordEvidence } from "@/lib/password-source";
 import { recordSignInEvent } from "@/lib/sign-in-events";
 import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from "react";
@@ -445,14 +445,24 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           // Ignore storage errors (private mode / partitioned iframe)
         }
 
-        // Pre-flight: check whether the customer exists in Shopify so we can
-        // distinguish "no account" from "wrong password" (Shopify returns the
-        // same generic error for both). Fail-open: a degraded gate proceeds
-        // with the normal login attempt.
+        lastCredsRef.current = { email: data.email, password: data.password };
+        loginRetriedRef.current = false;
+        // Every sign-in goes through Multipass. multipass-login checks the
+        // password once and mints the store link in the same call, so each
+        // tap costs one store password check. The theme's background login
+        // form is no longer used (it hit bot checks and never reported its
+        // result). The customer gate runs alongside it so "no account" can be
+        // told apart from "wrong password" (Shopify answers the same for
+        // both). Fail-open: a degraded gate trusts the sign-in result.
+        const creds = { email: data.email, password: data.password };
+        const meta = attemptRef.current ?? {};
         setIsSubmitting(true);
-        const gate = await checkCustomerGate(data.email);
+        const [gate, multipass] = await Promise.all([
+          checkCustomerGate(data.email),
+          requestMultipassUrl(creds.email, creds.password, { ...meta, context: "sign_in" }),
+        ]);
 
-        if (!gate.found && !gate.degraded) {
+        if (multipass.kind !== "ok" && !gate.found && !gate.degraded) {
           setIsSubmitting(false);
           if (attemptRef.current) void recordSignInEvent({ ...attemptRef.current, outcome: "no_account" });
           setLoginError({
@@ -469,21 +479,17 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
           return;
         }
 
-        lastCredsRef.current = { email: data.email, password: data.password };
-        loginRetriedRef.current = false;
-        // Every sign-in goes through Multipass. multipass-login checks the
-        // password once and mints the store link in the same call, so each
-        // tap costs one store password check. The theme's background login
-        // form is no longer used (it hit bot checks and never reported its
-        // result).
-        const creds = { email: data.email, password: data.password };
-        const meta = attemptRef.current ?? {};
-        const multipass = await multipassSignIn(creds.email, creds.password, { ...meta, context: "sign_in" });
-        if (multipass === "navigating") return; // stay in the loading state while the store page opens
-        if (multipass !== "unavailable") {
+        if (multipass.kind === "ok" && openMultipassUrl(multipass.url)) {
+          // The store page takes a second or two to load: show the success
+          // state until it replaces this one.
           setIsSubmitting(false);
-          if (multipass === "limited") setLoginError(RATE_LIMITED_ERROR);
-          else if (multipass === "unactivated") setLoginError(UNACTIVATED_ERROR);
+          setIsLoginSuccessful(true);
+          return;
+        }
+        if (multipass.kind !== "ok" && multipass.kind !== "unavailable") {
+          setIsSubmitting(false);
+          if (multipass.kind === "limited") setLoginError(RATE_LIMITED_ERROR);
+          else if (multipass.kind === "unactivated") setLoginError(UNACTIVATED_ERROR);
           else setLoginError(WRONG_PASSWORD_ERROR);
           return;
         }

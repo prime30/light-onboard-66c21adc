@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "TIMING-20261028";
+const FUNCTION_VERSION = "FAST-20261028";
 
 // Per-request stage durations, returned as a Server-Timing header.
 class Timing {
@@ -27,6 +27,15 @@ class Timing {
     return this.parts.join(", ");
   }
 }
+// Bookkeeping the customer doesn't need to wait for. waitUntil keeps the
+// worker alive until it finishes after the response is sent.
+function runInBackground(promise: Promise<unknown>): void {
+  // deno-lint-ignore no-explicit-any
+  const er = (globalThis as any).EdgeRuntime;
+  const safe = promise.catch((e) => console.warn("background task failed:", e));
+  if (er && typeof er.waitUntil === "function") er.waitUntil(safe);
+}
+
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -301,7 +310,9 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
   // don't count: a customer signing in on several devices is never capped.
   // The password check in step 1 is what authorizes a mint; Multipass would
   // otherwise re-enable a disabled (pending approval) account.
-  let attemptId: string | null = null;
+  // The attempt row is written while the store checks the password; only
+  // the success path needs its id (to mark it "ok").
+  let attemptId: Promise<string | null> = Promise.resolve(null);
   try {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const countOf = async (filter: string) => {
@@ -311,18 +322,22 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
       const cr = r.headers.get("content-range") || "*/0";
       return parseInt(cr.split("/")[1] || "0", 10) || 0;
     };
-    const emailCount = await countOf(`email=eq.${encodeURIComponent(normEmail)}`);
-    const ipCount = ip ? await countOf(`ip=eq.${encodeURIComponent(ip)}`) : 0;
+    const [emailCount, ipCount] = await Promise.all([
+      countOf(`email=eq.${encodeURIComponent(normEmail)}`),
+      ip ? countOf(`ip=eq.${encodeURIComponent(ip)}`) : Promise.resolve(0),
+    ]);
     const capped = emailCount >= 5 || ipCount >= 20;
-    const inserted = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id`, {
+    attemptId = fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id`, {
       method: "POST",
       headers: { ...sbHeaders, Prefer: "return=representation" },
       body: JSON.stringify({ email: normEmail, ip, outcome: capped ? "capped" : "attempt" }),
-    });
-    const rows = (await inserted.json().catch(() => [])) as Array<{ id?: string }>;
-    attemptId = rows?.[0]?.id ?? null;
+    })
+      .then((r) => r.json())
+      .then((rows: Array<{ id?: string }>) => rows?.[0]?.id ?? null)
+      .catch(() => null);
+    runInBackground(attemptId);
     if (capped) {
-      await recordLoginOutcome({ email, reason: "multipass_capped", userAgent });
+      runInBackground(recordLoginOutcome({ email, reason: "multipass_capped", userAgent }));
       return sendError(429, ["Too many attempts. Please wait a while and try again."], "Rate limited", "rate_limited");
     }
   } catch { /* cap bookkeeping is best effort; step 1 still checks the password */ }
@@ -366,7 +381,7 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
       code === "THROTTLED" || /throttl|limit exceeded|too many/i.test(msg);
 
     if (topErrors.some((e) => isThrottle(e.extensions?.code || "", e.message || ""))) {
-      await recordLoginOutcome({ email, reason: "multipass_throttled", userAgent });
+      runInBackground(recordLoginOutcome({ email, reason: "multipass_throttled", userAgent }));
       return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
     }
 
@@ -375,17 +390,17 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
       const code: string = first.code || "";
       const msg: string = (first.message || "").toLowerCase();
       if (isThrottle(code, msg)) {
-        await recordLoginOutcome({ email, reason: "multipass_throttled", code, userAgent });
+        runInBackground(recordLoginOutcome({ email, reason: "multipass_throttled", code, userAgent }));
         return sendError(429, ["Too many login attempts. Please wait a moment."], "Rate limited", "rate_limited");
       }
-      await recordLoginOutcome({ email, reason: "multipass_rejected", code: `${code}:${(first.message || "").slice(0, 40)}`, userAgent });
+      runInBackground(recordLoginOutcome({ email, reason: "multipass_rejected", code: `${code}:${(first.message || "").slice(0, 40)}`, userAgent }));
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
         // Storefront answers the same for a wrong password and for an account
         // that never set one. Only the sign-in form asks Admin which.
         if (context === "sign_in") {
           const state = await lookupCustomerState(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION, email);
           if (state === "invited" || state === "disabled") {
-            await recordLoginOutcome({ email, reason: "login_unactivated", code: state, userAgent });
+            runInBackground(recordLoginOutcome({ email, reason: "login_unactivated", code: state, userAgent }));
             return sendError(403, ["Your account isn't activated yet. Request a setup link to set your password."], "Unactivated", "unactivated");
           }
         }
@@ -399,7 +414,7 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
     }
 
     if (!result?.customerAccessToken?.accessToken) {
-      await recordLoginOutcome({ email, reason: "multipass_no_token", userAgent });
+      runInBackground(recordLoginOutcome({ email, reason: "multipass_no_token", userAgent }));
       return sendError(502, ["Unable to reach the store. Please try again."], "Upstream error", "upstream");
     }
 
@@ -413,15 +428,15 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
     const multipassUrl = await buildMultipassUrl(SHOPIFY_STORE_DOMAIN, MULTIPASS_SECRET, customerData);
     timing.mark("mint");
 
-    if (attemptId) {
-      await fetch(`${SB_URL}/rest/v1/multipass_attempts?id=eq.${attemptId}`, {
+    runInBackground(attemptId.then((id) => {
+      if (!id) return;
+      return fetch(`${SB_URL}/rest/v1/multipass_attempts?id=eq.${id}`, {
         method: "PATCH",
         headers: sbHeaders,
         body: JSON.stringify({ outcome: "ok" }),
-      }).catch(() => {});
-    }
-    await recordLoginOutcome({ email, reason: "multipass_ok", userAgent });
-    timing.mark("record");
+      });
+    }));
+    runInBackground(recordLoginOutcome({ email, reason: "multipass_ok", userAgent }));
 
     return sendSuccess({ multipassUrl }, "Multipass URL created");
   } catch (error) {
@@ -450,11 +465,12 @@ Deno.serve(async (req: Request) => {
   const body = req.method === "POST" ? await req.clone().json().catch(() => null) : null;
   const response = await handleRequest(req, timing);
   const parsed = bodySchema.safeParse(body);
-  if (parsed.success) {
-    const result = await response.clone().json().catch(() => ({}));
-    const url = Deno.env.get("SUPABASE_URL");
-    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (url && key) {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (parsed.success && url && key) {
+    const resultPromise = response.clone().json().catch(() => ({}));
+    runInBackground((async () => {
+      const result = await resultPromise;
       try {
         const recorded = await fetch(`${url}/rest/v1/sign_in_events`, {
           method: "POST",
@@ -472,9 +488,8 @@ Deno.serve(async (req: Request) => {
         });
         if (!recorded.ok) console.warn("SIGN_IN_HISTORY_FAILED", recorded.status);
       } catch { console.warn("SIGN_IN_HISTORY_UNAVAILABLE"); }
-    }
+    })());
   }
-  timing.mark("history");
   const headers = new Headers(response.headers);
   headers.set("Server-Timing", timing.header());
   headers.set("Access-Control-Expose-Headers", "Server-Timing, X-Function-Version");
