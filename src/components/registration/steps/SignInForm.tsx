@@ -479,7 +479,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         const result = await verifyPasswordWithStore(creds, "multipass_primary", meta);
         if (result === "valid") {
           const navigating = await finishSigningIn(creds.email, creds.password, meta);
-          if (navigating) { setIsLoginSuccessful(true); return; }
+          if (navigating) return; // stay in the loading state while the store page opens
           setIsSubmitting(false);
           setLoginError(RATE_LIMITED_ERROR);
           return;
