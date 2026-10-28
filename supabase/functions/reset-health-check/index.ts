@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
   try {
     const r = await fetch(
       `${supabaseUrl}/rest/v1/sign_in_events?select=email,source,outcome,code,created_at&created_at=gte.${weekAgo}` +
-        `&outcome=in.(reset_succeeded,invalid_credentials,error)&order=created_at.asc&limit=5000` +
+        `&outcome=in.(reset_succeeded,invalid_credentials,error,password_verified,multipass_issued,confirmed)&order=created_at.asc&limit=5000` +
         `&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
     );
@@ -126,6 +126,8 @@ Deno.serve(async (req) => {
       const events: { email: string; source: string; outcome: string; code: string | null; created_at: string }[] = await r.json();
       const isRefusal = (e: typeof events[number]) =>
         e.outcome === "invalid_credentials" || (e.source === "browser_report" && e.outcome === "error" && e.code === "rejected");
+      const isSuccess = (e: typeof events[number]) =>
+        e.outcome === "password_verified" || e.outcome === "multipass_issued" || (e.source === "browser_report" && e.outcome === "confirmed");
       const byEmail = new Map<string, typeof events>();
       for (const e of events) byEmail.set(e.email, [...(byEmail.get(e.email) ?? []), e]);
       for (const [email, rows] of byEmail) {
@@ -135,6 +137,7 @@ Deno.serve(async (req) => {
         for (const e of rows) {
           const t = Date.parse(e.created_at);
           if (e.outcome === "reset_succeeded") { resetAt = t; resetIso = e.created_at; continue; }
+          if (latest && isSuccess(e) && e.created_at >= latest.refusedAt) { latest = null; continue; }
           if (resetAt !== null && isRefusal(e) && t >= resetAt && t - resetAt <= 15 * 60 * 1000) {
             if (latest && latest.resetAt === resetIso) { latest.refusals++; latest.refusedAt = e.created_at; }
             else latest = { email, resetAt: resetIso, refusedAt: e.created_at, refusals: 1 };
