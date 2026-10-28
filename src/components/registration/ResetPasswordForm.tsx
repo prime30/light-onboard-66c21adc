@@ -181,13 +181,13 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         }
         // Use exactly the password Shopify just accepted. Multipass creates
         // a first-party store session without retyping or a background cookie handoff.
-        await finishSigningIn(customerEmail, data.password, {
+        const navigating = await finishSigningIn(customerEmail, data.password, {
           context: "password_reset",
           attemptId: crypto.randomUUID(),
           passwordSource: "new_password",
           evidence: "new_password",
         });
-        setAutoLoginStatus("succeeded");
+        setAutoLoginStatus(navigating ? "succeeded" : "rate_limited");
         setFormState("success");
       } else {
         // Standalone: prefer the access token returned directly by

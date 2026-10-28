@@ -46,7 +46,7 @@ function submitStoreLogin(email: string, password: string) {
 // store URL that logs the customer in directly. No storefront form, so no
 // bot/human check can block it. Returns false when Multipass is not
 // configured or the mint fails, so callers can fall back to the form.
-async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<boolean> {
+async function multipassSignIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<"navigating" | "unavailable" | "limited"> {
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
       method: "POST",
@@ -61,18 +61,19 @@ async function multipassSignIn(email: string, password: string, metadata: Record
       | { success?: boolean; data?: { multipassUrl?: string } }
       | null;
     const url = json?.data?.multipassUrl;
-    if (!json?.success || !url) return false;
+    if (res.status === 429) return "limited";
+    if (!json?.success || !url) return "unavailable";
     const target = new URL(url);
-    if (target.protocol !== "https:" || (target.hostname !== "dropdeadextensions.com" && !target.hostname.endsWith(".dropdeadextensions.com") && !target.hostname.endsWith(".myshopify.com")) || !target.pathname.startsWith("/account/login/multipass/")) return false;
+    if (target.protocol !== "https:" || (target.hostname !== "dropdeadextensions.com" && !target.hostname.endsWith(".dropdeadextensions.com") && !target.hostname.endsWith(".myshopify.com")) || !target.pathname.startsWith("/account/login/multipass/")) return "unavailable";
     try {
       if (window.top) window.top.location.href = url;
       else window.location.href = url;
     } catch {
       window.location.href = url;
     }
-    return true;
+    return "navigating";
   } catch {
-    return false;
+    return "unavailable";
   }
 }
 
@@ -80,7 +81,8 @@ async function multipassSignIn(email: string, password: string, metadata: Record
 // fall back to the store's own login form.
 export async function finishSigningIn(email: string, password: string, metadata: Record<string, unknown> = {}): Promise<boolean> {
   const ok = await multipassSignIn(email, password, metadata);
-  if (!ok) submitStoreLogin(email, password);
+  if (ok === "limited") return false;
+  if (ok === "unavailable") submitStoreLogin(email, password);
   return true;
 }
 

@@ -3,6 +3,11 @@ import { finishSigningIn } from "./store-sign-in";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("Post-reset sign-in", () => {
+  it("does not bypass rate caps with another store login attempt", async () => {
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/", search: "" } } });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 429, json: async () => ({ success: false }) }));
+    expect(await finishSigningIn("customer@example.com", "New password 123")).toBe(false);
+  });
   it("uses exactly the newly submitted password and preserves the store page", async () => {
     const location = { host: "dropdeadextensions.com", pathname: "/products/hair", search: "?variant=123", href: "" };
     vi.stubGlobal("window", { top: { location }, location });

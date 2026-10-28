@@ -40,7 +40,7 @@ export function SignInHistoryPanel({ adminToken }: { adminToken: string }) {
         {events.map((event) => (
           <li key={event.id} className="py-5 space-y-2.5 text-sm min-w-0">
             <div className="flex flex-wrap justify-between gap-2.5">
-              <time className="text-muted-foreground">{new Date(event.created_at).toISOString().replace("T", " ").replace(".000Z", " UTC")}</time>
+              <time className="text-muted-foreground">{new Date(event.created_at).toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC")}</time>
               <span className="font-medium break-words">{event.outcome}{event.code ? ` (${event.code})` : ""}</span>
             </div>
             <p className="break-words">{passwordSourceLabel(event.password_source)}</p>
