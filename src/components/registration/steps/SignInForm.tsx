@@ -64,6 +64,7 @@ type UseSignInFormReturn = {
   isPrecheckingEmail: boolean;
   hasAttemptedSubmit: boolean;
   observePassword: React.FormEventHandler<HTMLInputElement>;
+  observePasswordFocus: React.FocusEventHandler<HTMLInputElement>;
 };
 
 type SignInFormProps = {
@@ -181,6 +182,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const passwordEvidence = useRef<PasswordEvidence>({ source: "unknown", evidence: "unknown" });
   const attemptRef = useRef<{ attemptId: string; email: string; passwordSource: string; evidence: string } | null>(null);
   const observePassword: React.FormEventHandler<HTMLInputElement> = (e) => { passwordEvidence.current = observePasswordInput(passwordEvidence.current, e.nativeEvent as InputEvent); };
+  const observePasswordFocus: React.FocusEventHandler<HTMLInputElement> = (e) => { passwordEvidence.current = getPasswordSource(passwordEvidence.current, e.currentTarget); };
   const loginRef = useRef<((c: { email: string; password: string }) => void) | null>(null);
   const clearSuccessWatchdog = useCallback(() => {
     if (successWatchdogRef.current) {
@@ -470,6 +472,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         login({
           email: data.email,
           password: data.password,
+          attemptId: attemptRef.current.attemptId,
+          passwordSource: entry.source,
+          evidence: entry.evidence,
         });
       }
       if (data.formType === "forgot_password") {
@@ -583,6 +588,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
   return {
     observePassword,
+    observePasswordFocus,
     register,
     watch,
     setValue,
@@ -642,6 +648,7 @@ export const SignInForm = () => {
   const ssoPresentation = resolveSsoPresentation(ssoContext);
   const {
     observePassword,
+    observePasswordFocus,
     register,
     watch,
     setValue,
@@ -852,6 +859,7 @@ export const SignInForm = () => {
             placeholder="••••••••"
             autoComplete="current-password"
             onInput={observePassword}
+            onFocus={observePasswordFocus}
             register={register}
             error={errors.password}
             label={
