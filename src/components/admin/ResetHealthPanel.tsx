@@ -63,6 +63,7 @@ export function ResetHealthPanel({ adminToken }: Props) {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
   const [alerted, setAlerted] = useState(false);
+  const [lookup, setLookup] = useState<{ email: string; n: number } | undefined>();
 
   const load = async () => {
     setLoading(true);
@@ -110,13 +111,16 @@ export function ResetHealthPanel({ adminToken }: Props) {
               <p className="text-sm font-medium text-destructive">
                 {report.postResetRefusals!.length} {report.postResetRefusals!.length === 1 ? "customer was" : "customers were"} refused sign-in right after resetting their password
               </p>
-              <p className="text-xs text-muted-foreground">Refused within 15 minutes of a successful reset, last 7 days. Reach out before they complain.</p>
+              <p className="text-xs text-muted-foreground">Refused within 15 minutes of a successful reset, last 7 days, and not signed in since. Reach out before they complain.</p>
               <ul className="space-y-1 text-sm">
                 {report.postResetRefusals!.map((r) => (
                   <li key={r.email + r.resetAt} className="flex flex-wrap justify-between gap-2.5">
                     <span className="text-foreground/80 break-all">{r.email}</span>
-                    <span className="text-muted-foreground">
+                    <span className="flex flex-wrap items-center gap-2.5 text-muted-foreground">
                       {r.refusals} {r.refusals === 1 ? "refusal" : "refusals"}, {new Date(r.refusedAt).toLocaleString()}
+                      <button type="button" className="text-foreground underline underline-offset-2 hover:text-foreground/70" onClick={() => setLookup({ email: r.email, n: Date.now() })}>
+                        View history
+                      </button>
                     </span>
                   </li>
                 ))}
@@ -213,7 +217,7 @@ export function ResetHealthPanel({ adminToken }: Props) {
           )}
         </div>
       )}
-      <SignInHistoryPanel adminToken={adminToken} />
+      <SignInHistoryPanel adminToken={adminToken} lookup={lookup} />
     </section>
   );
 }
