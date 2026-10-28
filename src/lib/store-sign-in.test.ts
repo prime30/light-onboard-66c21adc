@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { finishSigningIn } from "./store-sign-in";
+import { finishSigningIn, openMultipassUrl } from "./store-sign-in";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("Post-reset sign-in", () => {
@@ -30,5 +30,21 @@ describe("Post-reset sign-in", () => {
     expect(fields.find((field) => field.name === "customer[password]")?.value).toBe("New password 123");
     expect(form.target).toBe("_top");
     expect(form.submit).toHaveBeenCalledOnce();
+  });
+});
+describe("Post-reset Multipass link", () => {
+  it("opens the store's Multipass sign-in in the top window", () => {
+    const location = { href: "" };
+    vi.stubGlobal("window", { top: { location }, location });
+    expect(openMultipassUrl("https://dropdeadextensions.com/account/login/multipass/abc")).toBe(true);
+    expect(location.href).toBe("https://dropdeadextensions.com/account/login/multipass/abc");
+  });
+  it("refuses links that are not the store's Multipass path", () => {
+    const location = { href: "" };
+    vi.stubGlobal("window", { top: { location }, location });
+    expect(openMultipassUrl("https://evil.example.com/account/login/multipass/abc")).toBe(false);
+    expect(openMultipassUrl("https://dropdeadextensions.com/account/login")).toBe(false);
+    expect(openMultipassUrl("http://dropdeadextensions.com/account/login/multipass/abc")).toBe(false);
+    expect(location.href).toBe("");
   });
 });

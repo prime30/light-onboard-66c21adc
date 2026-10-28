@@ -12,7 +12,7 @@ import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { finishSigningIn } from "@/lib/store-sign-in";
+import { currentStorePath, finishSigningIn, openMultipassUrl } from "@/lib/store-sign-in";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
@@ -112,6 +112,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         firstName?: string | null;
         accessToken?: string | null;
         expiresAt?: string | null;
+        multipassUrl?: string | null;
       };
     }>(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
@@ -127,6 +128,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           // (see registration_leads.reset_failure_* columns).
           emailHint: emailHint ?? getResetEmailHint() ?? undefined,
           device: getDeviceContext(),
+          returnTo: currentStorePath(),
         }),
       }
     );
@@ -179,8 +181,15 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         } catch {
           // ignore storage failures
         }
-        // Use exactly the password Shopify just accepted. Multipass creates
-        // a first-party store session without retyping or a background cookie handoff.
+        // Preferred: the reset step already minted a Multipass sign-in, since
+        // the accepted reset link proves who this is. No second password check
+        // that the store can refuse right after a reset.
+        if (payload?.multipassUrl && openMultipassUrl(payload.multipassUrl)) {
+          setAutoLoginStatus("succeeded");
+          setFormState("success");
+          return;
+        }
+        // Fallback: use exactly the password Shopify just accepted.
         const navigating = await finishSigningIn(customerEmail, data.password, {
           context: "password_reset",
           attemptId: crypto.randomUUID(),
