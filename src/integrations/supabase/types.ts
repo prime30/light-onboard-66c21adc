@@ -356,6 +356,24 @@ export type Database = {
         }
         Relationships: []
       }
+      post_reset_followups: {
+        Row: {
+          email: string
+          reset_at: string
+          sent_at: string
+        }
+        Insert: {
+          email: string
+          reset_at: string
+          sent_at?: string
+        }
+        Update: {
+          email?: string
+          reset_at?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
@@ -851,6 +869,7 @@ export type Database = {
         Args: { _cooldown_seconds: number; _email: string; _source?: string }
         Returns: string
       }
+      describe_user_agent: { Args: { ua: string }; Returns: string }
       get_auto_approval_enabled: { Args: never; Returns: boolean }
       get_competitor_email_domains: { Args: never; Returns: string[] }
       get_discount_metafields_enabled: { Args: never; Returns: boolean }
@@ -862,6 +881,16 @@ export type Database = {
         Returns: undefined
       }
       match_and_recompute_order: { Args: { _order_id: string }; Returns: Json }
+      post_reset_followup_sweep: { Args: never; Returns: number }
+      post_reset_send_alert: {
+        Args: {
+          _email: string
+          _prefix: string
+          _refused_at: string
+          _reset_at: string
+        }
+        Returns: undefined
+      }
       record_competitor_block: {
         Args: {
           _device_type?: string
