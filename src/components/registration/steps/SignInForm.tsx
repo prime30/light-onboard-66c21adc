@@ -476,7 +476,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         // used (it hit bot checks and never reported its result).
         const creds = { email: data.email, password: data.password };
         const meta = attemptRef.current ?? {};
-        const result = await verifyPasswordWithStore(creds, "multipass_primary", meta);
+        const result = await verifyPasswordWithStore(creds, "", { ...meta, context: "sign_in" });
         if (result === "valid") {
           const navigating = await finishSigningIn(creds.email, creds.password, meta);
           if (navigating) return; // stay in the loading state while the store page opens
