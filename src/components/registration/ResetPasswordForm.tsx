@@ -12,7 +12,7 @@ import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { setPendingLogin } from "@/lib/pending-login";
+import { finishSigningIn } from "@/lib/store-sign-in";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
@@ -179,21 +179,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         } catch {
           // ignore storage failures
         }
-        // Iframe: parent Shopify theme owns the storefront session. Fire
-        // USER_LOGIN immediately and jump straight to the success screen  - 
-        // mirroring the registration flow (FormDataContext.submitForm).
-        // The parent reloads in the background while our success scrim
-        // stays on top; CLOSE_IFRAME (on "Close" click) reveals an
-        // already-logged-in storefront with no flash. We don't race a
-        // CUSTOMER_DATA watchdog because the parent ack arrives via a
-        // full reload, not via postback after a reset.
-        sendMessage("USER_LOGIN", {
-          email: customerEmail,
-          password: data.password,
+        // Use exactly the password Shopify just accepted. Multipass creates
+        // a first-party store session without retyping or a background cookie handoff.
+        await finishSigningIn(customerEmail, data.password, {
+          context: "password_reset",
+          attemptId: crypto.randomUUID(),
+          passwordSource: "new_password",
+          evidence: "new_password",
         });
-        // Queue same creds for re-flush on closeIframe() - safety net
-        // covering races where the parent dropped/ignored the first message.
-        setPendingLogin({ email: customerEmail, password: data.password });
         setAutoLoginStatus("succeeded");
         setFormState("success");
       } else {
@@ -214,6 +207,8 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             body: JSON.stringify({
               email: customerEmail,
               password: data.password,
+              passwordSource: "new_password",
+              evidence: "new_password",
             }),
           });
           const session = loginResult.success ? loginResult.data?.data : undefined;
@@ -230,14 +225,14 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
             accessToken,
             expiresAt: expiresAt ?? undefined,
             email: customerEmail,
-            firstName: resetCustomer.firstName,
+            firstName: payload?.firstName ?? null,
           });
           setCustomer({
             isLoggedIn: true,
             accessToken,
             expiresAt,
             email: customerEmail,
-            firstName: resetCustomer.firstName,
+            firstName: payload?.firstName ?? null,
           });
           setAutoLoginStatus("succeeded");
         } else {

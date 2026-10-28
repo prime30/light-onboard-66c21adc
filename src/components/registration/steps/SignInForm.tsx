@@ -1,3 +1,6 @@
+import { finishSigningIn } from "@/lib/store-sign-in";
+import { getPasswordSource, observePasswordInput, type PasswordEvidence } from "@/lib/password-source";
+import { recordSignInEvent } from "@/lib/sign-in-events";
 import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -60,6 +63,7 @@ type UseSignInFormReturn = {
   precheckEmailExists: (email: string) => void;
   isPrecheckingEmail: boolean;
   hasAttemptedSubmit: boolean;
+  observePassword: React.FormEventHandler<HTMLInputElement>;
 };
 
 type SignInFormProps = {
@@ -174,6 +178,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const successWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCredsRef = useRef<{ email: string; password: string } | null>(null);
   const loginRetriedRef = useRef(false);
+  const passwordEvidence = useRef<PasswordEvidence>({ source: "unknown", evidence: "unknown" });
+  const attemptRef = useRef<{ attemptId: string; email: string; passwordSource: string; evidence: string } | null>(null);
+  const observePassword: React.FormEventHandler<HTMLInputElement> = (e) => { passwordEvidence.current = observePasswordInput(passwordEvidence.current, e.nativeEvent as InputEvent); };
   const loginRef = useRef<((c: { email: string; password: string }) => void) | null>(null);
   const clearSuccessWatchdog = useCallback(() => {
     if (successWatchdogRef.current) {
@@ -191,6 +198,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         setIsSubmitting(false);
       }
 
+      if (attemptRef.current && message.status !== "submitting") {
+        void recordSignInEvent({ ...attemptRef.current, outcome: message.status, code: "reason" in message ? message.reason : undefined });
+      }
       if (message.status === "confirmed") {
         clearSuccessWatchdog();
         setLoginError(null);
@@ -210,11 +220,11 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         const isChallenge = message.reason === "challenge";
         if (isInIframe && (isChallenge || classified?.kind === "wrong_password") && creds) {
           setIsSubmitting(true);
-          void verifyPasswordWithStore(creds, isChallenge ? "parent_challenge" : "parent_rejected").then((result) => {
+          void verifyPasswordWithStore(creds, isChallenge ? "parent_challenge" : "parent_rejected", attemptRef.current ?? {}).then((result) => {
             if (result === "valid") {
               // Password is correct but the background sign-in failed. Go
               // straight to Multipass (no retry, no extra tap).
-              void finishSigningIn(creds.email, creds.password);
+              void finishSigningIn(creds.email, creds.password, attemptRef.current ?? {});
               return;
             }
             setIsSubmitting(false);
@@ -417,6 +427,9 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       setHasAttemptedSubmit(true);
 
       if (data.formType === "login") {
+        const entry = getPasswordSource(passwordEvidence.current, document.getElementById("password") as HTMLInputElement | null);
+        attemptRef.current = { attemptId: crypto.randomUUID(), email: data.email, passwordSource: entry.source, evidence: entry.evidence };
+        void recordSignInEvent({ ...attemptRef.current, outcome: "started" });
         // Persist or clear remembered email based on checkbox
         try {
           if (rememberMe && data.email) {
@@ -437,6 +450,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 
         if (!gate.found && !gate.degraded) {
           setIsSubmitting(false);
+          if (attemptRef.current) void recordSignInEvent({ ...attemptRef.current, outcome: "no_account" });
           setLoginError({
             kind: "no_account",
             message: "We couldn't find an account with this email.",
@@ -568,6 +582,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   );
 
   return {
+    observePassword,
     register,
     watch,
     setValue,
@@ -593,7 +608,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
 // change on the storefront). Returns true only when the password is correct.
 async function verifyPasswordWithStore(
   creds: { email: string; password: string },
-  diagnostic: string
+  diagnostic: string,
+  metadata: Record<string, unknown> = {}
 ): Promise<"valid" | "invalid" | "unactivated" | "throttled" | "error"> {
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-login`, {
@@ -603,7 +619,7 @@ async function verifyPasswordWithStore(
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ ...creds, diagnostic }),
+      body: JSON.stringify({ ...creds, diagnostic, ...metadata }),
     });
     const json = (await res.json().catch(() => null)) as { success?: boolean; kind?: string } | null;
     if (json?.success) return "valid";
@@ -620,93 +636,12 @@ async function verifyPasswordWithStore(
 // keeps the cart. Only same-site paths are returned.
 // Must match isSameSitePath() in supabase/functions/multipass-login/index.ts:
 // the server rejects any return_to that fails its check with 400.
-function currentStorePath(): string {
-  const safe = (p: string) => (/^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p) ? p : "/");
-  try {
-    const loc = window.top!.location;
-    if (loc.host === "dropdeadextensions.com" || loc.host.endsWith(".dropdeadextensions.com")) {
-      const p = loc.pathname + loc.search;
-      if (!p.startsWith("/apps/apply")) return safe(p);
-    }
-  } catch { /* cross-origin */ }
-  try {
-    const ref = new URL(document.referrer);
-    if (ref.host.endsWith("dropdeadextensions.com")) return safe(ref.pathname + ref.search);
-  } catch { /* no referrer */ }
-  return "/";
-}
-
-// Real (top-level) sign-in on the store's own login page. Used when the
-// background sign-in fails but the password is verified correct: a full page
-// submit lets the customer pass any bot check the store shows.
-const STORE_LOGIN_URL = "https://dropdeadextensions.com/account/login";
-function submitStoreLogin(email: string, password: string) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = STORE_LOGIN_URL;
-  form.target = "_top";
-  form.acceptCharset = "UTF-8";
-  const fields: Record<string, string> = {
-    form_type: "customer_login",
-    utf8: "\u2713",
-    "customer[email]": email,
-    "customer[password]": password,
-    return_url: currentStorePath(),
-  };
-  for (const [name, value] of Object.entries(fields)) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  }
-  document.body.appendChild(form);
-  form.submit();
-}
-
-// Multipass sign-in: the backend verifies the password, then mints a signed
-// store URL that logs the customer in directly. No storefront form, so no
-// bot/human check can block it. Returns false when Multipass is not
-// configured or the mint fails, so callers can fall back to the form.
-async function multipassSignIn(email: string, password: string): Promise<boolean> {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/multipass-login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ email, password, return_to: currentStorePath() }),
-    });
-    const json = (await res.json().catch(() => null)) as
-      | { success?: boolean; data?: { multipassUrl?: string } }
-      | null;
-    const url = json?.data?.multipassUrl;
-    if (!json?.success || !url) return false;
-    try {
-      window.top!.location.href = url;
-    } catch {
-      window.location.href = url;
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// Finish a verified-correct sign-in: prefer Multipass (no human check),
-// fall back to the store's own login form.
-async function finishSigningIn(email: string, password: string) {
-  const ok = await multipassSignIn(email, password);
-  if (!ok) submitStoreLogin(email, password);
-}
-
 export const SignInForm = () => {
   const navigate = useNavigate();
   const { email, ssoContext } = useGlobalApp();
   const ssoPresentation = resolveSsoPresentation(ssoContext);
   const {
+    observePassword,
     register,
     watch,
     setValue,
@@ -916,6 +851,7 @@ export const SignInForm = () => {
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
+            onInput={observePassword}
             register={register}
             error={errors.password}
             label={
