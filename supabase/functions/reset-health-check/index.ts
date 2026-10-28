@@ -112,6 +112,41 @@ Deno.serve(async (req) => {
     report.signInLimits = { throttled: await countOutcome("throttled"), capped: await countOutcome("capped") };
   } catch { /* leave zeros */ }
 
+  // Correct new password refused right after a reset. Mirrors
+  // src/lib/post-reset-refusals.ts (edge functions cannot import src/).
+  let postResetRefusals: { email: string; resetAt: string; refusedAt: string; refusals: number }[] = [];
+  try {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/sign_in_events?select=email,source,outcome,code,created_at&created_at=gte.${weekAgo}` +
+        `&outcome=in.(reset_succeeded,invalid_credentials,error)&order=created_at.asc&limit=5000` +
+        `&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (r.ok) {
+      const events: { email: string; source: string; outcome: string; code: string | null; created_at: string }[] = await r.json();
+      const isRefusal = (e: typeof events[number]) =>
+        e.outcome === "invalid_credentials" || (e.source === "browser_report" && e.outcome === "error" && e.code === "rejected");
+      const byEmail = new Map<string, typeof events>();
+      for (const e of events) byEmail.set(e.email, [...(byEmail.get(e.email) ?? []), e]);
+      for (const [email, rows] of byEmail) {
+        let latest: (typeof postResetRefusals)[number] | null = null;
+        let resetAt: number | null = null;
+        let resetIso = "";
+        for (const e of rows) {
+          const t = Date.parse(e.created_at);
+          if (e.outcome === "reset_succeeded") { resetAt = t; resetIso = e.created_at; continue; }
+          if (resetAt !== null && isRefusal(e) && t >= resetAt && t - resetAt <= 15 * 60 * 1000) {
+            if (latest && latest.resetAt === resetIso) { latest.refusals++; latest.refusedAt = e.created_at; }
+            else latest = { email, resetAt: resetIso, refusedAt: e.created_at, refusals: 1 };
+          }
+        }
+        if (latest) postResetRefusals.push(latest);
+      }
+      postResetRefusals.sort((a, b) => b.refusedAt.localeCompare(a.refusedAt));
+    }
+  } catch (e) { console.warn("post-reset refusal query failed:", e); }
+  postResetRefusals = postResetRefusals.slice(0, 50);
+
   // In-app webview share: an Instagram/TikTok-only spike points at the webview
   // handoff rather than the invite links themselves, so surface it in the alert.
   // Reason strings from activate-account are prefixed `activation_`, so the
