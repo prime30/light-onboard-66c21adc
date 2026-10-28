@@ -25,4 +25,8 @@ Lovable edits don't update either index. If a file you need isn't listed, regene
 
 ## Postmessage contract
 
+- Store sign-in navigation is shared in `src/lib/store-sign-in.ts` so reset and credential-recovery paths use the same first-party handoff.
+- Keep authentication events append-only in `sign_in_events`, with admin-token-validated history access and explicitly unverified browser reports, because latest-state lead fields cannot explain repeated support incidents.
+- Password-source telemetry contains only entry classifications and evidence, never passwords or tokens, because browser autofill signals are incomplete and sensitive values are unnecessary.
+
 Source of truth: `C:\Users\alexm\dawn-migration\docs\contracts\apply-spa-login-handoff.md` (theme repo, read-only). See the theme boundary rule.
