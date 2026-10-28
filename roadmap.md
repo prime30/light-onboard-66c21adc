@@ -1,0 +1,4 @@
+- [ ] Automatically sign in after reset with the newly submitted password.
+- [ ] Preserve append-only sign-in events and provide admin customer history.
+- [ ] Record password entry evidence without passwords or tokens.
+- [ ] Verify behavior, permissions, tests and screenshots.
