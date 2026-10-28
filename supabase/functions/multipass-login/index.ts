@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "FAST-20261028";
+const FUNCTION_VERSION = "RETURN2K-20261028";
 
 // Per-request stage durations, returned as a Server-Timing header.
 class Timing {
@@ -72,7 +72,9 @@ const bodySchema = z.object({
   attemptId: z.string().uuid().optional(),
   passwordSource: z.enum(["unknown", "typed", "autofill", "paste", "mixed", "new_password"]).optional(),
   evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]).optional(),
-  return_to: z.string().max(500).optional(),
+  // Ad landings carry long click ids (fbclid, gclid) on the page the
+  // customer signs in from; a short cap pushes them off Multipass.
+  return_to: z.string().max(2000).optional(),
   context: z.enum(["password_reset", "sign_in"]).optional(),
 });
 
