@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "D-20261005";
+const FUNCTION_VERSION = "HISTORY-20261028";
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -46,7 +46,11 @@ function isSameSitePath(p: string): boolean {
 const bodySchema = z.object({
   email: z.string().email("Valid email is required"),
   password: z.string().min(1, "Password is required"),
+  attemptId: z.string().uuid().optional(),
+  passwordSource: z.enum(["unknown", "typed", "autofill", "paste", "mixed", "new_password"]).optional(),
+  evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]).optional(),
   return_to: z.string().max(500).optional(),
+  context: z.enum(["password_reset"]).optional(),
 });
 
 const STOREFRONT_API_VERSION = "2024-10";
@@ -198,7 +202,7 @@ async function buildMultipassUrl(
   return `https://${domain}/account/login/multipass/${toBase64Url(token)}`;
 }
 
-Deno.serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -230,7 +234,7 @@ Deno.serve(async (req) => {
     return sendError(400, parsed.error.issues.map((i) => i.message), "Validation failed");
   }
 
-  const { email, password, return_to } = parsed.data;
+  const { email, password, return_to, context } = parsed.data;
   if (return_to && !isSameSitePath(return_to)) {
     return sendError(400, ["Invalid return path."], "Invalid return_to", "invalid_return_to");
   }
@@ -253,7 +257,7 @@ Deno.serve(async (req) => {
     );
     const rows = (await r.json()) as Array<{ reset_failure_reason: string | null; reset_failure_last_at: string | null }>;
     const row = rows?.[0];
-    if (!row || row.reset_failure_reason !== "login_rejected_password_valid" || !row.reset_failure_last_at || row.reset_failure_last_at < since) {
+    if (!row || (row.reset_failure_reason !== "login_rejected_password_valid" && !(context === "password_reset" && row.reset_failure_reason === "reset_succeeded")) || !row.reset_failure_last_at || row.reset_failure_last_at < since) {
       return sendError(403, ["Sign-in link not available."], "Not eligible", "not_eligible");
     }
   } catch {
@@ -381,4 +385,35 @@ Deno.serve(async (req) => {
     } catch { /* never throw */ }
     return sendError(500, ["An unexpected error occurred. Please try again."]);
   }
+}
+
+Deno.serve(async (req: Request) => {
+  const body = req.method === "POST" ? await req.clone().json().catch(() => null) : null;
+  const response = await handleRequest(req);
+  const parsed = bodySchema.safeParse(body);
+  if (parsed.success) {
+    const result = await response.clone().json().catch(() => ({}));
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (url && key) {
+      try {
+        const recorded = await fetch(`${url}/rest/v1/sign_in_events`, {
+          method: "POST",
+          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: parsed.data.email.trim().toLowerCase(),
+            attempt_id: parsed.data.attemptId ?? null,
+            source: "multipass-login",
+            outcome: result.success ? "multipass_issued" : (result.kind || (response.status === 429 ? "rate_limited" : "error")),
+            code: String(response.status),
+            password_source: parsed.data.passwordSource ?? "unknown",
+            evidence: parsed.data.evidence ?? "unknown",
+            user_agent: req.headers.get("user-agent")?.slice(0, 400) ?? null,
+          }),
+        });
+        if (!recorded.ok) console.warn("SIGN_IN_HISTORY_FAILED", recorded.status);
+      } catch { console.warn("SIGN_IN_HISTORY_UNAVAILABLE"); }
+    }
+  }
+  return response;
 });

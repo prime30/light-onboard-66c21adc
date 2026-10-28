@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { SignInHistoryPanel } from "./SignInHistoryPanel";
 
 interface Props {
   adminEmail: string;
@@ -193,6 +194,7 @@ export function ResetHealthPanel({ adminToken }: Props) {
           )}
         </div>
       )}
+      <SignInHistoryPanel adminToken={adminToken} />
     </section>
   );
 }

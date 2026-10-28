@@ -118,6 +118,7 @@
 | `HeliumSpikeInspectorPanel.tsx` | `admin-helium-customers-range` |
 | `KlaviyoBackfillPanel.tsx` | `backfill-klaviyo-completion` |
 | `ResetHealthPanel.tsx` | reset / invite link health |
+| `SignInHistoryPanel.tsx` | `sign-in-history`, paginated customer authentication events |
 | `StorefrontTokensPanel.tsx` | `list-storefront-tokens`, `cleanup-storefront-tokens` |
 | `StrandedAccountsPanel.tsx` | `admin-stranded-accounts` |
 
@@ -151,6 +152,9 @@
 | `imageCompression.ts` | Client-side image compression before upload |
 | `scroll-to-error.ts` | Auto-scroll to first validation error |
 | `pending-login.ts` | Queue for `USER_LOGIN` credentials, flushed on iframe close |
+| `store-sign-in.ts` | Shared Multipass and first-party login navigation |
+| `password-source.ts` | Password entry evidence without credential capture |
+| `sign-in-events.ts` | Browser-reported sign-in event writer |
 | `parent-origin.ts` | Safe target origin for `window.parent.postMessage` |
 | `parent-breadcrumb.ts` | Posts `APPLICATION_SUBMITTED` to the theme after registration |
 | `sso-context.ts` | Cross-origin SSO context from the theme |

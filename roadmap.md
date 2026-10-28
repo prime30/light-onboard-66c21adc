@@ -1,0 +1,4 @@
+- [x] Automatically initiate first-party sign-in after reset with the newly submitted password.
+- [x] Preserve append-only sign-in events and provide admin customer history.
+- [x] Record password entry evidence without passwords or tokens.
+- [x] Verify unit tests, authenticated event readback, permissions and preview screenshots. Real-customer Shopify reset/sign-in remains untested without changing customer credentials.

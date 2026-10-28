@@ -8,7 +8,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "D-20261005";
+const FUNCTION_VERSION = "HISTORY-20261028";
 
 // Keeps the word "activate": older SPA bundles classify by wording and match
 // "activate" before "password". Same text in multipass-login.
@@ -65,6 +65,9 @@ function sendSuccess<T>(data: T, message?: string) {
 const bodySchema = z.object({
   email: z.string().email("Valid email is required"),
   password: z.string().min(1, "Password is required"),
+  attemptId: z.string().uuid().optional(),
+  passwordSource: z.enum(["unknown", "typed", "autofill", "paste", "mixed", "new_password"]).optional(),
+  evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]).optional(),
   // Set by the embedded sign-in form after the storefront said "wrong
   // password", to check whether the password was actually right.
   diagnostic: z.string().max(40).optional(),
@@ -228,7 +231,7 @@ const ACCESS_TOKEN_CREATE_MUTATION = `
   }
 `;
 
-Deno.serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -419,4 +422,35 @@ Deno.serve(async (req) => {
     }
     return sendError(500, ["An unexpected error occurred. Please try again."]);
   }
+}
+
+Deno.serve(async (req: Request) => {
+  const body = req.method === "POST" ? await req.clone().json().catch(() => null) : null;
+  const response = await handleRequest(req);
+  const parsed = bodySchema.safeParse(body);
+  if (parsed.success) {
+    const result = await response.clone().json().catch(() => ({}));
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (url && key) {
+      try {
+        const recorded = await fetch(`${url}/rest/v1/sign_in_events`, {
+          method: "POST",
+          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: parsed.data.email.trim().toLowerCase(),
+            attempt_id: parsed.data.attemptId ?? null,
+            source: "customer-login",
+            outcome: result.success ? "password_verified" : (result.kind || (response.status === 429 ? "rate_limited" : "error")),
+            code: String(response.status),
+            password_source: parsed.data.passwordSource ?? "unknown",
+            evidence: parsed.data.evidence ?? "unknown",
+            user_agent: req.headers.get("user-agent")?.slice(0, 400) ?? null,
+          }),
+        });
+        if (!recorded.ok) console.warn("SIGN_IN_HISTORY_FAILED", recorded.status);
+      } catch { console.warn("SIGN_IN_HISTORY_UNAVAILABLE"); }
+    }
+  }
+  return response;
 });

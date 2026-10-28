@@ -63,6 +63,9 @@ export function useCloseIframe() {
 type LoginData = {
   email: string;
   password: string;
+  attemptId?: string;
+  passwordSource?: string;
+  evidence?: string;
 };
 
 type ForgotPasswordData = {
@@ -214,7 +217,7 @@ export function useCustomerLogin({
   }, [isInIframe, subscribeToType, customerHandler, loginUpdateHandler, forgotPasswordHandler]);
 
   const login = useCallback(
-    async ({ email, password }: LoginData) => {
+    async ({ email, password, attemptId, passwordSource, evidence }: LoginData) => {
       // In iframe: delegate to parent Shopify theme (it owns the storefront
       // session cookie). The parent posts back LOGIN_STATUS + CUSTOMER_DATA.
       if (isInIframe) {
@@ -241,7 +244,7 @@ export function useCustomerLogin({
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ email, password, context: "sign_in" }),
+            body: JSON.stringify({ email, password, context: "sign_in", attemptId, passwordSource, evidence }),
           }
         );
         const json = await res.json().catch(() => ({}));
