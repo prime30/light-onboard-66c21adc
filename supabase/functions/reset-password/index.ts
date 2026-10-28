@@ -2,7 +2,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "BUYERIP2-20261028";
+const FUNCTION_VERSION = "RETURN2K-20261028";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,7 +54,9 @@ const bodySchema = z
     password: z.string().min(8, "Password must be at least 8 characters"),
     emailHint: z.string().email().optional(),
     // Same-site store path to land on after the post-reset Multipass sign-in.
-    returnTo: z.string().max(500).optional(),
+    // Same cap as multipass-login: ad click ids make store paths long, and
+    // a longer path must not reject the reset itself.
+    returnTo: z.string().max(2000).optional(),
     device: z
       .object({
         type: z.string().max(20).optional(),
