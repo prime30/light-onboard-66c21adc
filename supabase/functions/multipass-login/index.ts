@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "HISTORY-20261028";
+const FUNCTION_VERSION = "BUYERIP-20261028";
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -50,10 +50,46 @@ const bodySchema = z.object({
   passwordSource: z.enum(["unknown", "typed", "autofill", "paste", "mixed", "new_password"]).optional(),
   evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]).optional(),
   return_to: z.string().max(500).optional(),
-  context: z.enum(["password_reset"]).optional(),
+  context: z.enum(["password_reset", "sign_in"]).optional(),
 });
 
 const STOREFRONT_API_VERSION = "2024-10";
+
+// Server-side Storefront calls must carry the buyer's IP, or Shopify counts
+// every customer as one client and throttles sign-ins for everyone. Shopify
+// only reads Shopify-Storefront-Buyer-IP alongside a private token, so the
+// public token stays as the fallback until SHOPIFY_STOREFRONT_PRIVATE_TOKEN is set.
+function storefrontHeaders(publicToken: string | null, buyerIp: string | null): Record<string, string> {
+  const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  if (privateToken) {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Shopify-Storefront-Private-Token": privateToken,
+    };
+    if (buyerIp) headers["Shopify-Storefront-Buyer-IP"] = buyerIp;
+    return headers;
+  }
+  return { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken ?? "" };
+}
+
+// Admin state for a storefront "wrong password": invited/disabled accounts
+// have no password yet. null on any lookup problem, so the caller keeps the
+// plain 401. Same lookup customer-login uses.
+async function lookupCustomerState(domain: string, adminToken: string, adminVersion: string, email: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://${domain}/admin/api/${adminVersion}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}&fields=id,email,state`,
+      { headers: { "X-Shopify-Access-Token": adminToken } }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const wanted = email.trim().toLowerCase();
+    const cust = (json?.customers ?? []).find((c: { email?: string }) => (c.email || "").toLowerCase() === wanted);
+    return cust?.state ?? "not_found";
+  } catch {
+    return null;
+  }
+}
 
 let cachedStorefrontToken: string | null = null;
 let inflightStorefrontToken: Promise<string | null> | null = null;
@@ -246,29 +282,16 @@ async function handleRequest(req: Request): Promise<Response> {
   const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const sbHeaders = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
 
-  // Gate 1: only mint for an email whose password the app just confirmed as
-  // correct while the store's background sign-in failed (recorded by
-  // customer-login as login_rejected_password_valid in the last 3 minutes).
-  try {
-    const since = new Date(Date.now() - 3 * 60 * 1000).toISOString();
-    const r = await fetch(
-      `${SB_URL}/rest/v1/registration_leads?select=reset_failure_reason,reset_failure_last_at&email=eq.${encodeURIComponent(normEmail)}&limit=1`,
-      { headers: sbHeaders }
-    );
-    const rows = (await r.json()) as Array<{ reset_failure_reason: string | null; reset_failure_last_at: string | null }>;
-    const row = rows?.[0];
-    if (!row || (row.reset_failure_reason !== "login_rejected_password_valid" && !(context === "password_reset" && row.reset_failure_reason === "reset_succeeded")) || !row.reset_failure_last_at || row.reset_failure_last_at < since) {
-      return sendError(403, ["Sign-in link not available."], "Not eligible", "not_eligible");
-    }
-  } catch {
-    return sendError(403, ["Sign-in link not available."], "Not eligible", "not_eligible");
-  }
-
-  // Gate 2: cap attempts per email (5/hour) and per IP (20/hour).
+  // Cap failed attempts per email (5/hour) and per IP (20/hour). This is the
+  // primary sign-in path, so successful sign-ins are marked "ok" below and
+  // don't count: a customer signing in on several devices is never capped.
+  // The password check in step 1 is what authorizes a mint; Multipass would
+  // otherwise re-enable a disabled (pending approval) account.
+  let attemptId: string | null = null;
   try {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const countOf = async (filter: string) => {
-      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&created_at=gte.${hourAgo}`, {
+      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&outcome=neq.ok&created_at=gte.${hourAgo}`, {
         headers: { ...sbHeaders, Prefer: "count=exact", Range: "0-0" },
       });
       const cr = r.headers.get("content-range") || "*/0";
@@ -276,21 +299,25 @@ async function handleRequest(req: Request): Promise<Response> {
     };
     const emailCount = await countOf(`email=eq.${encodeURIComponent(normEmail)}`);
     const ipCount = ip ? await countOf(`ip=eq.${encodeURIComponent(ip)}`) : 0;
-    await fetch(`${SB_URL}/rest/v1/multipass_attempts`, {
+    const capped = emailCount >= 5 || ipCount >= 20;
+    const inserted = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id`, {
       method: "POST",
-      headers: sbHeaders,
-      body: JSON.stringify({ email: normEmail, ip, outcome: emailCount >= 5 || ipCount >= 20 ? "capped" : "attempt" }),
+      headers: { ...sbHeaders, Prefer: "return=representation" },
+      body: JSON.stringify({ email: normEmail, ip, outcome: capped ? "capped" : "attempt" }),
     });
-    if (emailCount >= 5 || ipCount >= 20) {
+    const rows = (await inserted.json().catch(() => [])) as Array<{ id?: string }>;
+    attemptId = rows?.[0]?.id ?? null;
+    if (capped) {
       await recordLoginOutcome({ email, reason: "multipass_capped", userAgent });
       return sendError(429, ["Too many attempts. Please wait a while and try again."], "Rate limited", "rate_limited");
     }
-  } catch { /* fail closed below is too strict; gate 1 already passed */ }
+  } catch { /* cap bookkeeping is best effort; step 1 still checks the password */ }
 
   // Step 1: verify the password against the store. Never mint a Multipass
   // URL for credentials the store itself rejects.
-  const storefrontToken = await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
-  if (!storefrontToken) {
+  const usePrivateToken = !!Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  const storefrontToken = usePrivateToken ? null : await getStorefrontToken(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION);
+  if (!usePrivateToken && !storefrontToken) {
     return sendError(500, ["Server configuration error"]);
   }
 
@@ -299,10 +326,7 @@ async function handleRequest(req: Request): Promise<Response> {
       `https://${SHOPIFY_STORE_DOMAIN}/api/${STOREFRONT_API_VERSION}/graphql.json`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": storefrontToken,
-        },
+        headers: storefrontHeaders(storefrontToken, ip),
         body: JSON.stringify({
           query: ACCESS_TOKEN_CREATE_MUTATION,
           variables: { input: { email, password } },
@@ -340,6 +364,15 @@ async function handleRequest(req: Request): Promise<Response> {
       }
       await recordLoginOutcome({ email, reason: "multipass_rejected", code: `${code}:${(first.message || "").slice(0, 40)}`, userAgent });
       if (code === "UNIDENTIFIED_CUSTOMER" || msg.includes("unidentified")) {
+        // Storefront answers the same for a wrong password and for an account
+        // that never set one. Only the sign-in form asks Admin which.
+        if (context === "sign_in") {
+          const state = await lookupCustomerState(SHOPIFY_STORE_DOMAIN, ADMIN_TOKEN, ADMIN_VERSION, email);
+          if (state === "invited" || state === "disabled") {
+            await recordLoginOutcome({ email, reason: "login_unactivated", code: state, userAgent });
+            return sendError(403, ["Your account isn't activated yet. Request a setup link to set your password."], "Unactivated", "unactivated");
+          }
+        }
         return sendError(401, ["Incorrect email or password."], "Invalid credentials", "invalid_credentials");
       }
       if (code === "CUSTOMER_DISABLED" || msg.includes("disabled") || msg.includes("activate")) {
@@ -363,6 +396,13 @@ async function handleRequest(req: Request): Promise<Response> {
 
     const multipassUrl = await buildMultipassUrl(SHOPIFY_STORE_DOMAIN, MULTIPASS_SECRET, customerData);
 
+    if (attemptId) {
+      await fetch(`${SB_URL}/rest/v1/multipass_attempts?id=eq.${attemptId}`, {
+        method: "PATCH",
+        headers: sbHeaders,
+        body: JSON.stringify({ outcome: "ok" }),
+      }).catch(() => {});
+    }
     await recordLoginOutcome({ email, reason: "multipass_ok", userAgent });
 
     return sendSuccess({ multipassUrl }, "Multipass URL created");
