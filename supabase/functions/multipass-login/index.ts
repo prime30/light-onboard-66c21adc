@@ -12,7 +12,21 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "BUYERIP2-20261028";
+const FUNCTION_VERSION = "TIMING-20261028";
+
+// Per-request stage durations, returned as a Server-Timing header.
+class Timing {
+  private last = performance.now();
+  private parts: string[] = [];
+  mark(stage: string) {
+    const now = performance.now();
+    this.parts.push(`${stage};dur=${Math.round(now - this.last)}`);
+    this.last = now;
+  }
+  header() {
+    return this.parts.join(", ");
+  }
+}
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
 function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
@@ -238,7 +252,7 @@ async function buildMultipassUrl(
   return `https://${domain}/account/login/multipass/${toBase64Url(token)}`;
 }
 
-async function handleRequest(req: Request): Promise<Response> {
+async function handleRequest(req: Request, timing: Timing): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -312,6 +326,7 @@ async function handleRequest(req: Request): Promise<Response> {
       return sendError(429, ["Too many attempts. Please wait a while and try again."], "Rate limited", "rate_limited");
     }
   } catch { /* cap bookkeeping is best effort; step 1 still checks the password */ }
+  timing.mark("cap");
 
   // Step 1: verify the password against the store. Never mint a Multipass
   // URL for credentials the store itself rejects.
@@ -343,6 +358,7 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     const json = await response.json();
+    timing.mark("storefront");
     const result = json.data?.customerAccessTokenCreate;
     const userErrors = result?.customerUserErrors ?? [];
     const topErrors: Array<{ message?: string; extensions?: { code?: string } }> = json.errors ?? [];
@@ -395,6 +411,7 @@ async function handleRequest(req: Request): Promise<Response> {
     if (return_to) customerData.return_to = return_to;
 
     const multipassUrl = await buildMultipassUrl(SHOPIFY_STORE_DOMAIN, MULTIPASS_SECRET, customerData);
+    timing.mark("mint");
 
     if (attemptId) {
       await fetch(`${SB_URL}/rest/v1/multipass_attempts?id=eq.${attemptId}`, {
@@ -404,6 +421,7 @@ async function handleRequest(req: Request): Promise<Response> {
       }).catch(() => {});
     }
     await recordLoginOutcome({ email, reason: "multipass_ok", userAgent });
+    timing.mark("record");
 
     return sendSuccess({ multipassUrl }, "Multipass URL created");
   } catch (error) {
@@ -428,8 +446,9 @@ async function handleRequest(req: Request): Promise<Response> {
 }
 
 Deno.serve(async (req: Request) => {
+  const timing = new Timing();
   const body = req.method === "POST" ? await req.clone().json().catch(() => null) : null;
-  const response = await handleRequest(req);
+  const response = await handleRequest(req, timing);
   const parsed = bodySchema.safeParse(body);
   if (parsed.success) {
     const result = await response.clone().json().catch(() => ({}));
@@ -455,5 +474,9 @@ Deno.serve(async (req: Request) => {
       } catch { console.warn("SIGN_IN_HISTORY_UNAVAILABLE"); }
     }
   }
-  return response;
+  timing.mark("history");
+  const headers = new Headers(response.headers);
+  headers.set("Server-Timing", timing.header());
+  headers.set("Access-Control-Expose-Headers", "Server-Timing, X-Function-Version");
+  return new Response(response.body, { status: response.status, headers });
 });
