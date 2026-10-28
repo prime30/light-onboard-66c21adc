@@ -22,6 +22,13 @@
       "when": 1793210004994,
       "tag": "0002_lock_sign_in_history_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793216699461,
+      "tag": "0003_migration",
+      "breakpoints": true
     }
   ]
 }
