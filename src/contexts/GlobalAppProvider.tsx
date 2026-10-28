@@ -19,6 +19,7 @@ import {
   captureAttributionFromUrl,
 } from "@/lib/attribution";
 import { isTrustedParentOrigin } from "@/lib/parent-origin";
+import { setPostLoginReturn } from "@/lib/store-sign-in";
 
 
 type GlobalAppContextType = {
@@ -53,6 +54,7 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   // Initialise SSO context from URL params synchronously so first paint is
   // already branded (no flash of generic UI).
   const [ssoContext, setSsoContext] = useState<SsoContext | null>(() => {
+    setPostLoginReturn(new URLSearchParams(window.location.search).get("return_url"));
     const initial = readSsoContextFromUrl();
     if (initial) applySsoDocumentEffects(initial);
     return initial;
@@ -65,6 +67,8 @@ export const GlobalAppProvider = ({ children }: GlobalAppProviderProps) => {
   useEffect(() => {
     const unsubscribe = subscribeToType("SSO_CONTEXT", (message, event) => {
       if (event.origin !== SSO_PARENT_ORIGIN) return;
+      // The theme sends returnUrl without a source for gated pages and checkout.
+      setPostLoginReturn((message.data as { returnUrl?: unknown } | undefined)?.returnUrl);
       const ctx = parseSsoContextPayload(message.data);
       if (!ctx) return;
       applySsoDocumentEffects(ctx);

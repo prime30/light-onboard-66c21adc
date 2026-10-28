@@ -12,7 +12,7 @@ import { useCloseIframe } from "@/hooks/messages";
 import { useApiClient } from "@/hooks/use-api-client";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { currentStorePath, finishSigningIn, openMultipassUrl } from "@/lib/store-sign-in";
+import { finishSigningIn, multipassReturnPath, openMultipassUrl } from "@/lib/store-sign-in";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
@@ -128,7 +128,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           // (see registration_leads.reset_failure_* columns).
           emailHint: emailHint ?? getResetEmailHint() ?? undefined,
           device: getDeviceContext(),
-          returnTo: currentStorePath(),
+          returnTo: multipassReturnPath(),
         }),
       }
     );
