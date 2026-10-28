@@ -10,7 +10,7 @@
 // failure row so the admin Stranded Accounts view and the weekly health check
 // can see it.
 
-const FUNCTION_VERSION = "REDACT-20261019";
+const FUNCTION_VERSION = "VISITS-20261028";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,6 +93,53 @@ async function recordResetFailure(opts: {
   }
 }
 
+// Permanent record of every reset/activation link visit, including links
+// Shopify emailed directly (Shopify admin "send reset email" or the store's
+// own forgot-password page), which never pass through recover-password.
+// Source is inferred: if our app emailed this address in the 24h before the
+// visit it was probably our email, otherwise Shopify sent it directly.
+async function recordVisit(opts: { flow: string; resolved: boolean; resetUrl: string | null; emailHint: string | null; userAgent: string | null }): Promise<void> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+  const h = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+  try {
+    const m = opts.resetUrl?.match(/\/account\/(reset|activate)\/(\d+)\/([^/?#]+)/i);
+    let email = (opts.emailHint || "").toLowerCase() || null;
+    if (!email && m) {
+      const shop = Deno.env.get("SHOPIFY_SHOP_DOMAIN") ?? Deno.env.get("SHOPIFY_STORE_DOMAIN");
+      const token = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
+      const ver = Deno.env.get("SHOPIFY_ADMIN_API_VERSION") ?? "2024-10";
+      if (shop && token) {
+        const r = await fetch(`https://${shop}/admin/api/${ver}/customers/${m[2]}.json?fields=email`, { headers: { "X-Shopify-Access-Token": token } });
+        if (r.ok) email = ((await r.json())?.customer?.email || "").toLowerCase() || null;
+      }
+    }
+    if (!email) { console.log("RESET_VISIT_NO_EMAIL", JSON.stringify({ flow: opts.flow, hasLink: !!m })); return; }
+    // Fingerprint (not the token) so repeat visits of the same link group together.
+    let fp = "none";
+    if (m) {
+      const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(m[3]));
+      fp = Array.from(new Uint8Array(d)).slice(0, 5).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+    let source = "sent_by_shopify";
+    const sr = await fetch(`${url}/rest/v1/reset_email_sends?select=last_sent_at,prev_sent_at&email=eq.${encodeURIComponent(email)}`, { headers: h });
+    if (sr.ok) {
+      const row = (await sr.json())[0];
+      const now = Date.now();
+      const recent = (t?: string | null) => !!t && now - Date.parse(t) >= 0 && now - Date.parse(t) <= 24 * 3600 * 1000;
+      if (row && (recent(row.last_sent_at) || recent(row.prev_sent_at))) source = "sent_by_app";
+    }
+    const ins = await fetch(`${url}/rest/v1/sign_in_events`, {
+      method: "POST", headers: { ...h, Prefer: "return=minimal" },
+      body: JSON.stringify({ email, source: "reset_link_visit", outcome: opts.flow === "activation" ? "activation_link_opened" : "reset_link_opened", code: opts.resolved ? source : `${source}:broken_link`, evidence: `link:${fp}`, user_agent: opts.userAgent?.slice(0, 400) ?? null }),
+    });
+    if (!ins.ok) console.error("RESET_VISIT_RECORD_FAILED", ins.status, (await ins.text()).slice(0, 200));
+  } catch (err) {
+    console.error("RESET_VISIT_RECORD_ERROR", err instanceof Error ? err.message : String(err));
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -140,6 +187,8 @@ Deno.serve(async (req) => {
       width,
     })
   );
+
+  await recordVisit({ flow, resolved, resetUrl, emailHint, userAgent });
 
   if (!resolved) {
     await recordResetFailure({

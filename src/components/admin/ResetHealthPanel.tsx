@@ -95,9 +95,9 @@ export function ResetHealthPanel({ adminToken }: Props) {
     <section className="rounded-[15px] border border-border bg-background/60 p-5 space-y-5">
       <div className="flex items-start justify-between gap-5">
         <div>
-          <h3 className="text-base font-medium">Reset failures (7d)</h3>
+          <h3 className="text-base font-medium">Failed sign-ins and dead links (7d)</h3>
           <p className="text-sm text-muted-foreground">
-            Password reset and activation dead ends, by reason, device and in-app browser.
+            Refused sign-ins and reset or activation links that did not work, by reason, device and in-app browser. Not a count of emails sent.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
