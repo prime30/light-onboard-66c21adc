@@ -1699,6 +1699,13 @@ Deno.serve(async (req: Request) => {
             alreadyApplied = true;
             blockReason = blockReason ? `${blockReason}, enabled` : "enabled";
           }
+          // Signup never proves the applicant owns the email. An account with
+          // order history must be claimed through the reset email, not by
+          // setting the password typed on this form.
+          if (ordersCount > 0) {
+            alreadyApplied = true;
+            blockReason = blockReason ? `${blockReason}, has orders` : "has orders";
+          }
           if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
             isGhostShell = true;
             console.log(
@@ -2124,8 +2131,14 @@ Deno.serve(async (req: Request) => {
         console.warn("Shopify direct email lookup after Helium 422 failed:", e);
       }
       const hasAccountTypeTag = !!match?.tags.some((t) => /^account type:/i.test(t.trim()));
-      if (!match || match.state === "enabled" || hasAccountTypeTag) {
-        const reason = !match ? "lookup missed" : hasAccountTypeTag ? "account type tag" : "enabled";
+      if (!match || match.state === "enabled" || hasAccountTypeTag || match.ordersCount > 0) {
+        const reason = !match
+          ? "lookup missed"
+          : hasAccountTypeTag
+            ? "account type tag"
+            : match.state === "enabled"
+              ? "enabled"
+              : "has orders";
         recordAuditFailure(
           "email_already_applied_late",
           `Customer already has a prior application (${reason}, found at create)`
@@ -2798,7 +2811,24 @@ Deno.serve(async (req: Request) => {
       try {
         const { autoApprovalEnabled } = await appSettingsPromise;
 
-        if (autoApprovalEnabled) {
+        let hasOrderHistory = false;
+        if (autoApprovalEnabled && shopifyDomain && shopifyAdminToken) {
+          try {
+            const ordersRes = await shopifyFetch(
+              `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,orders_count`,
+              { method: "GET", headers: { "X-Shopify-Access-Token": shopifyAdminToken, "Content-Type": "application/json" } }
+            );
+            if (ordersRes.ok) hasOrderHistory = Number((await ordersRes.json())?.customer?.orders_count ?? 0) > 0;
+          } catch (ordersErr) {
+            console.warn("orders_count check before activation threw:", ordersErr);
+          }
+        }
+        if (hasOrderHistory) {
+          // Same rule as the soft-merge check: never set a typed password on
+          // an account with orders. The owner claims it through the reset email.
+          alreadyEnabledConflict = true;
+          recordAuditFailure("email_already_applied_late", "Existing account with orders; password not set from the form");
+        } else if (autoApprovalEnabled) {
           accountPasswordVerified = false;
           if (shopifyDomain && shopifyAdminToken) {
             // Step 1: ask Shopify Admin API for the activation URL.
