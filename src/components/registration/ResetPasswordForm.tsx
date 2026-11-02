@@ -297,17 +297,21 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     window.location.assign(withBasename("/login?forgot=1"));
   }, []);
 
-  // Once a fresh link is in their inbox, closing is the next step; requesting
-  // another one stays available as the secondary action.
+  // Once a fresh link is in their inbox, closing is the next step. Inside the
+  // resend cooldown another request only reaches the cooldown screen, so the
+  // secondary action is dropped; Log In > Forgot password still works.
   const deadLinkActions = () => {
     const closeLabel = isInIframe ? "Close" : "Back to store";
     const linkEmailed = freshLink === "sent" || freshLink === "recently_sent";
     const primary = linkEmailed
       ? { label: closeLabel, onClick: handleClose }
       : { label: "Request a new link", onClick: handleRequestNewLink };
-    const secondary = linkEmailed
-      ? { label: "Request a new link", onClick: handleRequestNewLink }
-      : { label: closeLabel, onClick: handleClose };
+    const secondary =
+      freshLink === "recently_sent"
+        ? null
+        : linkEmailed
+          ? { label: "Request a new link", onClick: handleRequestNewLink }
+          : { label: closeLabel, onClick: handleClose };
     return (
       <div className="w-full space-y-2">
         <Button
@@ -316,13 +320,15 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
         >
           {primary.label}
         </Button>
-        <Button
-          onClick={secondary.onClick}
-          variant="ghost"
-          className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
-        >
-          {secondary.label}
-        </Button>
+        {secondary && (
+          <Button
+            onClick={secondary.onClick}
+            variant="ghost"
+            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
+          >
+            {secondary.label}
+          </Button>
+        )}
       </div>
     );
   };
