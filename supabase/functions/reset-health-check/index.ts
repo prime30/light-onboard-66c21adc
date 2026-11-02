@@ -9,10 +9,14 @@
 // Also returns the same report as JSON so it can be called ad hoc from the
 // admin panel or by hand.
 
+const FUNCTION_VERSION = "TELEMETRY-20261102";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Access-Control-Expose-Headers": "X-Function-Version",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 // Alert when the trailing week has at least this many failures AND it is at
@@ -67,7 +71,8 @@ Deno.serve(async (req) => {
     const res = await fetch(
       `${supabaseUrl}/rest/v1/registration_leads?select=${select}` +
         `&reset_failure_last_at=gte.${twoWeeksAgo}&order=reset_failure_last_at.desc&limit=2000` +
-        `&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com`,
+        `&email=not.ilike.*-test@example.com&email=not.ilike.*probe*@example.com` +
+        `&reset_failure_reason=not.in.(login_ok,multipass_ok,reset_succeeded)`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
     );
     if (!res.ok) {
