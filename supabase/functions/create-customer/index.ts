@@ -5,7 +5,11 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "SMSTAG-20261019";
+const FUNCTION_VERSION = "SIGNUPMP-20261102";
+
+// Shopify classic accounts refuse longer passwords: the activation form still
+// answers 302 but saves nothing, and the Admin write returns 422 "too long".
+const SHOPIFY_PASSWORD_MAX = 40;
 
 // Same string as REGISTRATION_OPTIN_TAG in the theme's unlock-trial-offer
 // (docs/contracts/account-unlock-trial-offer.md).
@@ -17,6 +21,51 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
   "X-Function-Version": FUNCTION_VERSION,
 };
+
+// Shopify Multipass token: AES-256-CBC encrypt the customer JSON with the
+// first half of SHA256(secret), then HMAC-SHA256 the ciphertext with the
+// second half. URL-safe base64 of IV+ciphertext+signature.
+// Inlined copy of multipass-login's builder (edge functions cannot share code).
+function toBase64Url(bytes: Uint8Array): string {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function buildMultipassUrl(domain: string, secret: string, customerData: Record<string, unknown>): Promise<string> {
+  const enc = new TextEncoder();
+  const keyBytes = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(secret)));
+  const iv = crypto.getRandomValues(new Uint8Array(16));
+  const aesKey = await crypto.subtle.importKey("raw", keyBytes.slice(0, 16), { name: "AES-CBC" }, false, ["encrypt"]);
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-CBC", iv }, aesKey, enc.encode(JSON.stringify(customerData))));
+  const payload = new Uint8Array(iv.length + ciphertext.length);
+  payload.set(iv, 0);
+  payload.set(ciphertext, iv.length);
+  const hmacKey = await crypto.subtle.importKey("raw", keyBytes.slice(16, 32), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, payload));
+  const token = new Uint8Array(payload.length + signature.length);
+  token.set(payload, 0);
+  token.set(signature, payload.length);
+  return `https://${domain}/account/login/multipass/${toBase64Url(token)}`;
+}
+
+// Same-site paths only: "/x" ok; "//host" and "/\host" are off-site.
+function isSameSitePath(p: string): boolean {
+  return /^\/(?![\/\\])/.test(p) && !/[\\\s]/.test(p);
+}
+
+// Character classes and length only, never the password itself.
+function passwordShape(p: string): string {
+  const classes = [
+    /[a-z]/.test(p) && "lower",
+    /[A-Z]/.test(p) && "upper",
+    /\d/.test(p) && "digit",
+    /[!-\/:-@\[-`{-~]/.test(p) && "symbol",
+    /\s/.test(p) && "space",
+    /^\s|\s$/.test(p) && "edge-space",
+    /[^\x00-\x7f]/.test(p) && "non-ascii",
+  ].filter(Boolean).join("+");
+  return `len=${[...p].length} ${classes}`;
+}
 
 // ------------------------------------------------------------------
 // Spam prevention: disposable email blocklist (inlined for edge fn)
@@ -739,7 +788,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
     acceptsSmsMarketing: z.boolean().nullish().default(false),
-    password: z.string().min(8).optional(),
+    password: z.string().min(8).max(SHOPIFY_PASSWORD_MAX, "Password must be 40 characters or fewer").optional(),
   }),
   z.object({
     accountType: z.literal("salon"),
@@ -775,7 +824,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
     acceptsSmsMarketing: z.boolean().nullish().default(false),
-    password: z.string().min(8).optional(),
+    password: z.string().min(8).max(SHOPIFY_PASSWORD_MAX, "Password must be 40 characters or fewer").optional(),
   }),
   z.object({
     accountType: z.literal("student"),
@@ -799,7 +848,7 @@ const registrationSchema = z.discriminatedUnion("accountType", [
     subscribeOrderUpdates: z.boolean().nullish().default(false),
     acceptsMarketing: z.boolean().nullish().default(false),
     acceptsSmsMarketing: z.boolean().nullish().default(false),
-    password: z.string().min(8).optional(),
+    password: z.string().min(8).max(SHOPIFY_PASSWORD_MAX, "Password must be 40 characters or fewer").optional(),
   }),
 ]);
 
@@ -2479,6 +2528,8 @@ Deno.serve(async (req: Request) => {
     let activationFallback: "sent" | "recently_sent" | "failed" | null = null;
     // Chain C found the account already enabled: answer the guard's 409.
     let alreadyEnabledConflict = false;
+    // Multipass link minted when the store refuses a password it just accepted.
+    let signInFallbackUrl: string | null = null;
 
     // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
@@ -2785,9 +2836,12 @@ Deno.serve(async (req: Request) => {
                   // the customer back, then use an Admin password write as the
                   // deterministic fallback and verify the final state.
                   let verifiedState = "";
+                  let shopifyEmail = "";
+                  let passwordWriteOk = false;
+                  const checks: string[] = [];
                   const verifyCustomerState = async (): Promise<string> => {
                     const verifyRes = await shopifyFetch(
-                      `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,state`,
+                      `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,state,email`,
                       {
                         method: "GET",
                         headers: {
@@ -2798,6 +2852,7 @@ Deno.serve(async (req: Request) => {
                     );
                     if (!verifyRes.ok) return "";
                     const verifyJson = await verifyRes.json();
+                    shopifyEmail = verifyJson?.customer?.email ?? shopifyEmail;
                     return verifyJson?.customer?.state ?? "";
                   };
 
@@ -2805,6 +2860,7 @@ Deno.serve(async (req: Request) => {
                     const backendUrl = Deno.env.get("SUPABASE_URL");
                     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
                     if (!backendUrl || !serviceKey) return false;
+                    const startedAt = Date.now();
                     const loginRes = await fetch(`${backendUrl}/functions/v1/customer-login`, {
                       method: "POST",
                       headers: {
@@ -2814,12 +2870,14 @@ Deno.serve(async (req: Request) => {
                       },
                       body: JSON.stringify({ email: customer.email, password: submittedPassword }),
                     });
-                    if (!loginRes.ok) return false;
-                    const loginJson = await loginRes.json();
-                    return loginJson?.success === true && !!loginJson?.data?.accessToken;
+                    const loginJson = await loginRes.json().catch(() => null);
+                    const ok = loginRes.ok && loginJson?.success === true && !!loginJson?.data?.accessToken;
+                    checks.push(`${ok ? "ok" : `${loginRes.status}:${loginJson?.kind ?? "?"}`} ${Date.now() - startedAt}ms`);
+                    return ok;
                   };
 
                   verifiedState = await verifyCustomerState();
+                  checks.push(`after activation state=${verifiedState || "unknown"}`);
                   let credentialsVerified =
                     verifiedState === "enabled" && await verifySubmittedCredentials();
                   if (!credentialsVerified) {
@@ -2847,7 +2905,9 @@ Deno.serve(async (req: Request) => {
                       activationFailureDetail = `Admin password write returned ${passwordWriteRes.status}: ${writeText.substring(0, 200)}`;
                       recordAuditFailure("auto_activation", activationFailureDetail);
                     } else {
+                      passwordWriteOk = true;
                       verifiedState = await verifyCustomerState();
+                      checks.push(`after admin write state=${verifiedState || "unknown"}`);
                       credentialsVerified =
                         verifiedState === "enabled" && await verifySubmittedCredentials();
                     }
@@ -2858,8 +2918,34 @@ Deno.serve(async (req: Request) => {
                     activated = true;
                     accountPasswordVerified = true;
                   } else {
-                    activationFailureDetail = `Password activation could not be verified by storefront sign-in; customer state=${verifiedState || "unknown"}`;
+                    const location = (activateRes.headers.get("location") || "").replace(/^https?:\/\/[^/]+/, "").split("?")[0];
+                    activationFailureDetail =
+                      `Password activation could not be verified by storefront sign-in; customer state=${verifiedState || "unknown"}` +
+                      `; activation ${activateRes.status} ${location || "-"}; ${checks.join("; ")}; password ${passwordShape(submittedPassword)}`;
                     recordAuditFailure("auto_activation", activationFailureDetail);
+
+                    // The account exists, is enabled, and Shopify accepted this
+                    // request's own password write, yet the store refuses that
+                    // password. Sign the applicant in with Shopify's email for
+                    // this customer instead of stranding them on an error.
+                    const multipassSecret = Deno.env.get("SHOPIFY_MULTIPASS_SECRET");
+                    if (verifiedState === "enabled" && passwordWriteOk && shopifyEmail && multipassSecret) {
+                      try {
+                        const customerData: Record<string, unknown> = {
+                          email: shopifyEmail.trim().toLowerCase(),
+                          created_at: new Date().toISOString(),
+                        };
+                        const returnTo = (requestBody as { returnTo?: unknown }).returnTo;
+                        if (typeof returnTo === "string" && returnTo.length <= 2000 && isSameSitePath(returnTo)) {
+                          customerData.return_to = returnTo;
+                        }
+                        signInFallbackUrl = await buildMultipassUrl(shopifyDomain, multipassSecret, customerData);
+                        activated = true;
+                        recordAuditFailure("signin_fallback", "store refused the new password; signed in with Multipass");
+                      } catch (mpErr) {
+                        recordAuditFailure("signin_fallback", `multipass mint threw: ${mpErr instanceof Error ? mpErr.message : String(mpErr)}`);
+                      }
+                    }
                   }
                 } else {
                   const txt = await activateRes.text();
@@ -2993,7 +3079,31 @@ Deno.serve(async (req: Request) => {
     // cannot sign in. This was the silent failure that stranded accounts while
     // Shopify returned a successful-looking redirect without saving the
     // password. Keep the audit row actionable and stop the success screen.
-    if (accountPasswordVerified === false) {
+    if (accountPasswordVerified === false && signInFallbackUrl) {
+      try {
+        if (_supabaseUrl && _serviceRoleKey) {
+          await fetch(`${_supabaseUrl}/functions/v1/notify-error`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${_serviceRoleKey}`,
+              apikey: _serviceRoleKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              source: "create-customer-password-refused",
+              message: "Store refused the new applicant's password; signed them in with Multipass instead",
+              context: {
+                email: parseResult.data.email,
+                shopifyCustomerId: shopifyCustomerId ?? null,
+                detail: auditErrors.filter((e) => e.step === "auto_activation").map((e) => e.message).join(" | "),
+              },
+            }),
+          });
+        }
+      } catch (alertErr) {
+        console.warn("password-refused alert threw (non-blocking):", alertErr);
+      }
+    } else if (accountPasswordVerified === false) {
       await updateAuditRow({
         status: "shopify_ok",
         shopify_customer_id: shopifyCustomerId ?? null,
@@ -3105,7 +3215,7 @@ Deno.serve(async (req: Request) => {
       // sends the "Pro Account Approved" event. Manually approved applicants
       // go through activate-account instead.
       const mint = welcomeEnabled || metafieldsEnabled;
-      if (accountPasswordVerified === true && _supabaseUrl && _serviceRoleKey) {
+      if ((accountPasswordVerified === true || signInFallbackUrl) && _supabaseUrl && _serviceRoleKey) {
         const discountUrl = `${_supabaseUrl}/functions/v1/generate-discount`;
         const discountRes = await fetch(discountUrl, {
           method: "POST",
@@ -3146,10 +3256,17 @@ Deno.serve(async (req: Request) => {
         welcomeOffer?: typeof welcomeOffer;
         welcomeOfferIneligible?: boolean;
         guestOffer?: typeof guestOffer;
+        multipassUrl?: string;
       }
     > = {
       success: true,
-      data: { ...customerFieldsData, welcomeOffer, welcomeOfferIneligible, guestOffer },
+      data: {
+        ...customerFieldsData,
+        welcomeOffer,
+        welcomeOfferIneligible,
+        guestOffer,
+        ...(signInFallbackUrl ? { multipassUrl: signInFallbackUrl } : {}),
+      },
       statusCode: 200,
     };
 

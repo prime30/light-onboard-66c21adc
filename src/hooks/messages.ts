@@ -5,7 +5,8 @@ import { Customer, customerAtom } from "@/contexts/store";
 import { useGlobalApp } from "@/contexts";
 import { useNavigate } from "react-router";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { takePendingLogin } from "@/lib/pending-login";
+import { takePendingLogin, takePendingMultipass } from "@/lib/pending-login";
+import { openMultipassUrl } from "@/lib/store-sign-in";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 
 export function useCloseIframe() {
@@ -23,8 +24,9 @@ export function useCloseIframe() {
           console.warn("[useCloseIframe] Parent origin not allowlisted; skipping postMessage");
           return;
         }
+        const multipassUrl = takePendingMultipass();
         const pending = takePendingLogin();
-        if (pending) {
+        if (pending && !multipassUrl) {
           window.parent.postMessage(
             {
               type: IframeMessageTypes.USER_LOGIN,
@@ -50,6 +52,7 @@ export function useCloseIframe() {
         console.log(
           `[useCloseIframe] Posted CLOSE_IFRAME to ${targetOrigin} (reason: ${reason ?? "User requested closure"})`
         );
+        if (multipassUrl) openMultipassUrl(multipassUrl);
       } catch (error) {
         console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
       }

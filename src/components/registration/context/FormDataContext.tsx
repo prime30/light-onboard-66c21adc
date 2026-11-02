@@ -28,7 +28,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { readHoneypotValue, readFormStartedAt, readFormElapsedMs } from "@/components/registration/HoneypotField";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { setPendingLogin } from "@/lib/pending-login";
+import { setPendingLogin, setPendingMultipass } from "@/lib/pending-login";
+import { multipassReturnPath } from "@/lib/store-sign-in";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
@@ -229,6 +230,9 @@ export function FormDataProvider({
             // Campaign attribution (utm_*, click ids, landing page) so the
             // server can label the signup's acquisition channel.
             attribution: getAttributionContext(),
+            // Landing page for the Multipass sign-in create-customer mints when
+            // the store refuses the new password.
+            returnTo: multipassReturnPath(),
 
             auGeoToken:
               ((values as { countryCode?: string }).countryCode || "").toUpperCase() === "AU" &&
@@ -345,8 +349,20 @@ export function FormDataProvider({
       // directly via the Storefront API. Failures do NOT block success.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const password = (values as any).password as string | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fallbackMultipassUrl = ((result.data as any)?.data?.multipassUrl ?? (result.data as any)?.multipassUrl) as string | undefined;
       if (password && values.email) {
-        if (isInIframe) {
+        if (isInIframe && fallbackMultipassUrl) {
+          // The store refused the password it just saved, so a USER_LOGIN
+          // would fail. The success screen opens this link on close instead.
+          try {
+            sessionStorage.setItem("dde_on_success_screen", "1");
+          } catch {
+            // ignore storage failures
+          }
+          setPendingMultipass(fallbackMultipassUrl);
+          setPendingLogin({ email: values.email, password });
+        } else if (isInIframe) {
           // Set the success-screen flag SYNCHRONOUSLY before USER_LOGIN
           // fires. The parent's CUSTOMER_DATA(isLoggedIn=true) reply can
           // arrive before SuccessForm mounts and sets it via useEffect  - 
