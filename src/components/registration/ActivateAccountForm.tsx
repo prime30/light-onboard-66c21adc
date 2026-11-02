@@ -49,9 +49,11 @@ interface ActivateAccountFormProps {
   token: string | null;
   customerId: string | null;
   activationUrl?: string | null;
+  emailHint?: string | null;
 }
 
-export function ActivateAccountForm({ token, customerId, activationUrl }: ActivateAccountFormProps) {
+export function ActivateAccountForm({ token, customerId, activationUrl, emailHint }: ActivateAccountFormProps) {
+  const savedPasswordEmail = emailHint ?? getResetEmailHint() ?? null;
   const { isInIframe, sendMessage } = useGlobalApp();
   const { closeIframe } = useCloseIframe();
   const { apiCall } = useApiClient();
@@ -603,6 +605,22 @@ export function ActivateAccountForm({ token, customerId, activationUrl }: Activa
             "Activate Account"
           )}
         </Button>
+        {/* iPhone and password managers save the new password against this
+            email. Without it they keep nothing (or an old password) and
+            autofill that on the next sign-in. Last child, so the spacing
+            utilities above never shift a visible field. */}
+        {savedPasswordEmail && (
+          <input
+            type="email"
+            name="username"
+            autoComplete="username"
+            value={savedPasswordEmail}
+            readOnly
+            tabIndex={-1}
+            aria-hidden="true"
+            className="sr-only"
+          />
+        )}
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 mt-auto pt-[clamp(16px,3vh,64px)] pb-4">
