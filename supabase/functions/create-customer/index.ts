@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "SIGNUPMP-20261102";
+const FUNCTION_VERSION = "ORDERSGUARD-20261102";
 
 // Shopify classic accounts refuse longer passwords: the activation form still
 // answers 302 but saves nothing, and the Admin write returns 422 "too long".
