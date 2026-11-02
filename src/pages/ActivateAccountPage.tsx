@@ -62,6 +62,7 @@ export function ActivateAccountPage() {
       token={token ?? null}
       customerId={customerId ?? null}
       activationUrl={activationUrl ?? null}
+      emailHint={emailHint ?? null}
     />
   );
 

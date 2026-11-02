@@ -81,6 +81,7 @@ export const CreatePasswordStep = () => {
   const navigate = useNavigate();
 
   
+  const email = ((watch("email") as string | undefined) ?? "").trim();
   const password = (watch("password") as string | undefined) ?? "";
   const confirmPassword = (watch("confirmPassword") as string | undefined) ?? "";
 
@@ -126,7 +127,16 @@ export const CreatePasswordStep = () => {
         </p>
       </div>
 
-      <div className="space-y-5">
+      {/* iPhone and password managers only save a new password against an
+          email in the same <form>. Without it the keychain keeps nothing (or
+          an old password) and autofills that on the next sign-in. Submission
+          is handled by the step footer, so Enter is a no-op here. */}
+      <form
+        autoComplete="on"
+        noValidate
+        onSubmit={(event) => event.preventDefault()}
+        className="space-y-5"
+      >
         {/* Password */}
         <div className="space-y-2.5 animate-stagger-2 group">
           <Label
@@ -246,7 +256,20 @@ export const CreatePasswordStep = () => {
             <p className="text-xs text-destructive">Passwords do not match</p>
           ) : null}
         </div>
-      </div>
+        {/* Last child, so space-y never shifts a visible field. */}
+        {email && (
+          <input
+            type="email"
+            name="username"
+            autoComplete="username"
+            value={email}
+            readOnly
+            tabIndex={-1}
+            aria-hidden="true"
+            className="sr-only"
+          />
+        )}
+      </form>
 
       {/* Account creation failed on the review screen: show why, and let the
           applicant try again without re-entering anything. */}
