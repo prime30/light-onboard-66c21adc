@@ -124,7 +124,8 @@ function onStoreDomain(target: URL): string {
 
 export type MultipassAnswer =
   | { kind: "ok"; url: string }
-  | { kind: "limited" | "invalid" | "unactivated" | "unavailable" };
+  | { kind: "limited"; retryAfterSeconds?: number }
+  | { kind: "invalid" | "unactivated" | "unavailable" };
 
 export type MultipassSignInResult = "navigating" | "limited" | "invalid" | "unactivated" | "unavailable";
 
@@ -156,10 +157,15 @@ export async function requestMultipassUrl(email: string, password: string, metad
       body: JSON.stringify({ email, password, return_to: target, ...metadata }),
     });
     const json = (await res.json().catch(() => null)) as
-      | { success?: boolean; kind?: string; data?: { multipassUrl?: string } }
+      | { success?: boolean; kind?: string; retry_after_seconds?: number; data?: { multipassUrl?: string } }
       | null;
     const url = json?.data?.multipassUrl;
-    if (res.status === 429 || json?.kind === "rate_limited") return { kind: "limited" };
+    if (res.status === 429 || json?.kind === "rate_limited") {
+      const retryAfterSeconds = Number(json?.retry_after_seconds);
+      return Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? { kind: "limited", retryAfterSeconds }
+        : { kind: "limited" };
+    }
     if (json?.kind === "invalid_credentials") return { kind: "invalid" };
     if (json?.kind === "unactivated") return { kind: "unactivated" };
     if (!json?.success || !url) return { kind: "unavailable" };

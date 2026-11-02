@@ -29,6 +29,7 @@ import { resolveSsoPresentation, isSafeReturnUrl } from "@/lib/sso-context";
 import { checkCustomerGate } from "@/lib/customer-gate";
 import { setResetEmailHint } from "@/lib/reset-email-hint";
 import { takePendingLogin } from "@/lib/pending-login";
+import { signInPausedMessage } from "@/lib/retry-after";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 
@@ -490,7 +491,13 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         }
         if (multipass.kind !== "ok" && multipass.kind !== "unavailable") {
           setIsSubmitting(false);
-          if (multipass.kind === "limited") setLoginError(RATE_LIMITED_ERROR);
+          if (multipass.kind === "limited") {
+            setLoginError(
+              multipass.retryAfterSeconds
+                ? { kind: "rate_limited", message: signInPausedMessage(multipass.retryAfterSeconds) }
+                : RATE_LIMITED_ERROR
+            );
+          }
           else if (multipass.kind === "unactivated") setLoginError(UNACTIVATED_ERROR);
           else setLoginError(WRONG_PASSWORD_ERROR);
           return;
@@ -1013,7 +1020,7 @@ export const SignInForm = () => {
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               )}
-              {loginError.kind === "wrong_password" && (
+              {(loginError.kind === "wrong_password" || loginError.kind === "rate_limited") && (
                 <button type="button" onClick={switchToForgotPassword} className={INLINE_ACTION_CLASS}>
                   Reset your password
                   <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1067,7 +1074,7 @@ export const SignInForm = () => {
           ) : hasAttemptedSubmit && loginError && loginError.kind !== "store_handoff" ? (
             <>
               <AlertCircle className="w-4 h-4 mr-2" />
-              Login failed
+              {loginError.kind === "rate_limited" ? "Sign-in paused" : "Login failed"}
             </>
           ) : (
             "Log In"
