@@ -36,6 +36,13 @@
       "when": 1793216867384,
       "tag": "0004_post_reset_alert_context_and_followup",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793652480927,
+      "tag": "0005_reset_telemetry_append_only",
+      "breakpoints": true
     }
   ]
 }
