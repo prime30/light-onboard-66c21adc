@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Mail,
+  MailCheck,
   Lock,
   Check,
   Headphones,
@@ -59,6 +60,8 @@ type UseSignInFormReturn = {
   loginError: LoginErrorState;
   forgotPasswordError: LoginErrorState;
   switchToForgotPassword: () => void;
+  sendAnotherResetLink: () => void;
+  backToLogin: () => void;
   goToApply: () => void;
   precheckEmailExists: (email: string) => void;
   isPrecheckingEmail: boolean;
@@ -344,11 +347,10 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       if (message.status === "success") {
         setForgotPasswordError(null);
         setResetRecentlySent(message.reason === "recently_sent");
-        setValue("formType", "login");
         setIsPasswordReset(true);
       }
     },
-    [setValue]
+    []
   );
 
   const { login, forgotPassword } = useCustomerLogin({
@@ -543,7 +545,18 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const switchToForgotPassword = useCallback(() => {
     setLoginError(null);
     setForgotPasswordError(null);
+    setIsPasswordReset(false);
     setValue("formType", "forgot_password");
+  }, [setValue]);
+
+  const sendAnotherResetLink = useCallback(() => {
+    setIsPasswordReset(false);
+  }, []);
+
+  const backToLogin = useCallback(() => {
+    setIsPasswordReset(false);
+    setForgotPasswordError(null);
+    setValue("formType", "login");
   }, [setValue]);
 
   const goToApply = useCallback(() => {
@@ -632,6 +645,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
     loginError,
     forgotPasswordError,
     switchToForgotPassword,
+    sendAnotherResetLink,
+    backToLogin,
     goToApply,
     precheckEmailExists,
     isPrecheckingEmail,
@@ -688,6 +703,8 @@ export const SignInForm = () => {
     loginError,
     forgotPasswordError,
     switchToForgotPassword,
+    sendAnotherResetLink,
+    backToLogin,
     goToApply,
     precheckEmailExists,
     hasAttemptedSubmit,
@@ -724,6 +741,68 @@ export const SignInForm = () => {
     },
     [setValue, precheckEmailExists]
   );
+
+  if (showForgotPassword && isPasswordReset) {
+    const sentTo = (watch("email") || "").trim();
+    return (
+      <div
+        key="reset-sent"
+        className="flex-1 flex flex-col items-center px-5 md:px-6 lg:px-8 pb-10 lg:pb-5 overflow-y-auto scrollbar-hide pt-2 animate-step-enter-right text-center space-y-[clamp(15px,4vh,30px)] max-w-[38rem] mx-auto w-full"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="w-14 h-14 rounded-full bg-status-green/10 border border-status-green/30 flex items-center justify-center">
+          <MailCheck className="w-6 h-6 text-status-green" aria-hidden="true" />
+        </div>
+
+        <div className="space-y-[6px]">
+          <FadeText
+            as="h1"
+            className="font-termina font-medium uppercase text-2xl sm:text-3xl md:text-4xl text-foreground leading-[1.1] text-balance"
+          >
+            Check your email
+          </FadeText>
+          <p className="text-sm sm:text-base text-muted-foreground/70 leading-relaxed text-balance">
+            {resetRecentlySent ? "We already sent a reset link to" : "We sent a reset link to"}
+            {sentTo ? (
+              <>
+                {" "}
+                <span className="font-medium text-foreground break-all">{sentTo}</span>
+              </>
+            ) : (
+              " your email"
+            )}
+            {resetRecentlySent ? " a few minutes ago." : "."}
+          </p>
+        </div>
+
+        <ul className="w-full text-left text-sm text-muted-foreground space-y-2 py-3 px-4 rounded-form bg-muted/50 border border-border">
+          <li>Open the newest email from us and tap the link to choose a new password.</li>
+          <li>Each link works only once, so links in older emails won't work.</li>
+          <li>Not there? Check your spam or junk folder.</li>
+        </ul>
+
+        <div className="w-full space-y-2">
+          <Button
+            type="button"
+            onClick={backToLogin}
+            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to login
+          </Button>
+          <button
+            type="button"
+            onClick={sendAnotherResetLink}
+            className="w-full min-h-[45px] touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Nothing after 10 minutes?{" "}
+            <span className="underline underline-offset-2 font-medium text-foreground">Send another link</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (showForgotPassword) {
     return (
@@ -846,14 +925,6 @@ export const SignInForm = () => {
               : "Login to access your pro account"}
           </FadeText>
         </div>
-
-        {isPasswordReset && (
-          <div className="text-status-green text-sm text-left py-2 px-3 rounded-form bg-status-green/10 border border-status-green/30 w-full">
-            {resetRecentlySent
-              ? "We just sent you a link a few minutes ago. Use the newest email from us (check spam too). Nothing after 10 minutes? Request another."
-              : "Password reset email sent! Check your email for a link to reset your password."}
-          </div>
-        )}
 
         <div className="space-y-[clamp(12px,2.5vh,20px)] animate-stagger-3 w-full">
           <TextInput
