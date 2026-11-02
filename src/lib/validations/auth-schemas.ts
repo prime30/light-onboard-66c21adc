@@ -232,7 +232,8 @@ const createPasswordValidators = {
   password: z
     .string({ error: "Password is required" })
     .min(8, "Password must be at least 8 characters")
-    .max(72, "Password must be less than 72 characters")
+    // Shopify accounts refuse longer passwords without saying so.
+    .max(40, "Password must be 40 characters or fewer")
     .regex(/[a-z]/, "Password must include a lowercase letter")
     .regex(/[A-Z]/, "Password must include an uppercase letter")
     .regex(/\d/, "Password must include a number"),

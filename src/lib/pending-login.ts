@@ -29,3 +29,20 @@ export function takePendingLogin(): PendingLogin | null {
 export function clearPendingLogin(): void {
   pending = null;
 }
+
+// A backend-minted Multipass link that replaces the credential handoff, for
+// signups whose new password the store refuses. Shopify tokens last 15
+// minutes, so an older link falls back to the queued credentials.
+const MULTIPASS_MAX_AGE_MS = 10 * 60 * 1000;
+
+let pendingMultipass: { url: string; at: number } | null = null;
+
+export function setPendingMultipass(url: string): void {
+  pendingMultipass = { url, at: Date.now() };
+}
+
+export function takePendingMultipass(now = Date.now()): string | null {
+  const value = pendingMultipass;
+  pendingMultipass = null;
+  return value && now - value.at < MULTIPASS_MAX_AGE_MS ? value.url : null;
+}
