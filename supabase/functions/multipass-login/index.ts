@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "RETURN2K-20261028";
+const FUNCTION_VERSION = "CAPFIX-20261102";
 
 // Per-request stage durations, returned as a Server-Timing header.
 class Timing {
@@ -310,6 +310,8 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
   // Cap failed attempts per email (5/hour) and per IP (20/hour). This is the
   // primary sign-in path, so successful sign-ins are marked "ok" below and
   // don't count: a customer signing in on several devices is never capped.
+  // Only "attempt" rows (a real password check) count. "capped" rows must
+  // not, or every retry while capped restarts the hour.
   // The password check in step 1 is what authorizes a mint; Multipass would
   // otherwise re-enable a disabled (pending approval) account.
   // The attempt row is written while the store checks the password; only
@@ -318,7 +320,7 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
   try {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const countOf = async (filter: string) => {
-      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&outcome=neq.ok&created_at=gte.${hourAgo}`, {
+      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&outcome=eq.attempt&created_at=gte.${hourAgo}`, {
         headers: { ...sbHeaders, Prefer: "count=exact", Range: "0-0" },
       });
       const cr = r.headers.get("content-range") || "*/0";
