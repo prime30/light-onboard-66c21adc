@@ -297,6 +297,36 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
     window.location.assign(withBasename("/login?forgot=1"));
   }, []);
 
+  // Once a fresh link is in their inbox, closing is the next step; requesting
+  // another one stays available as the secondary action.
+  const deadLinkActions = () => {
+    const closeLabel = isInIframe ? "Close" : "Back to store";
+    const linkEmailed = freshLink === "sent" || freshLink === "recently_sent";
+    const primary = linkEmailed
+      ? { label: closeLabel, onClick: handleClose }
+      : { label: "Request a new link", onClick: handleRequestNewLink };
+    const secondary = linkEmailed
+      ? { label: "Request a new link", onClick: handleRequestNewLink }
+      : { label: closeLabel, onClick: handleClose };
+    return (
+      <div className="w-full space-y-2">
+        <Button
+          onClick={primary.onClick}
+          className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
+        >
+          {primary.label}
+        </Button>
+        <Button
+          onClick={secondary.onClick}
+          variant="ghost"
+          className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
+        >
+          {secondary.label}
+        </Button>
+      </div>
+    );
+  };
+
 
   // Success state
   if (formState === "success") {
@@ -394,22 +424,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           </FadeText>
         </div>
         <InAppBrowserNotice />
-        <div className="w-full space-y-2">
-
-          <Button
-            onClick={handleRequestNewLink}
-            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
-          >
-            Request a new link
-          </Button>
-          <Button
-            onClick={handleClose}
-            variant="ghost"
-            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
-          >
-            {isInIframe ? "Close" : "Back to store"}
-          </Button>
-        </div>
+        {deadLinkActions()}
       </div>
     );
   }
@@ -435,22 +450,7 @@ export function ResetPasswordForm({ token, customerId, resetUrl, emailHint }: Re
           </FadeText>
         </div>
         <InAppBrowserNotice />
-        <div className="w-full space-y-2">
-
-          <Button
-            onClick={handleRequestNewLink}
-            className="w-full h-button rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium text-base"
-          >
-            Request a new link
-          </Button>
-          <Button
-            onClick={handleClose}
-            variant="ghost"
-            className="w-full h-button rounded-full text-foreground/60 hover:text-foreground hover:bg-transparent font-medium text-sm"
-          >
-            {isInIframe ? "Close" : "Back to store"}
-          </Button>
-        </div>
+        {deadLinkActions()}
       </div>
     );
   }
