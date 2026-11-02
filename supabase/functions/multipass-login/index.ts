@@ -12,7 +12,7 @@ const corsHeaders = {
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "CAPFIX-20261102";
+const FUNCTION_VERSION = "RETRYAFTER-20261102";
 
 // Per-request stage durations, returned as a Server-Timing header.
 class Timing {
@@ -38,7 +38,14 @@ function runInBackground(promise: Promise<unknown>): void {
 
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION };
 
-function sendError(statusCode: number, errors: string[], message?: string, kind?: string) {
+function sendError(
+  statusCode: number,
+  errors: string[],
+  message?: string,
+  kind?: string,
+  extra: Record<string, unknown> = {},
+  extraHeaders: Record<string, string> = {}
+) {
   return new Response(
     JSON.stringify({
       success: false,
@@ -47,8 +54,9 @@ function sendError(statusCode: number, errors: string[], message?: string, kind?
       errorMessage: errors,
       error: errors[0],
       kind,
+      ...extra,
     }),
-    { status: statusCode, headers: jsonHeaders }
+    { status: statusCode, headers: { ...jsonHeaders, ...extraHeaders } }
   );
 }
 
@@ -319,18 +327,24 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
   let attemptId: Promise<string | null> = Promise.resolve(null);
   try {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const countOf = async (filter: string) => {
-      const r = await fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id&${filter}&outcome=eq.attempt&created_at=gte.${hourAgo}`, {
-        headers: { ...sbHeaders, Prefer: "count=exact", Range: "0-0" },
-      });
-      const cr = r.headers.get("content-range") || "*/0";
-      return parseInt(cr.split("/")[1] || "0", 10) || 0;
+    // Newest attempts first, up to the cap. At the cap, the oldest of these
+    // leaving the one-hour window is what unlocks sign-in again.
+    const unlockAtOf = async (filter: string, cap: number): Promise<number> => {
+      const r = await fetch(
+        `${SB_URL}/rest/v1/multipass_attempts?select=created_at&${filter}&outcome=eq.attempt&created_at=gte.${hourAgo}&order=created_at.desc&limit=${cap}`,
+        { headers: sbHeaders }
+      );
+      const rows = (await r.json().catch(() => null)) as Array<{ created_at?: string }> | null;
+      if (!Array.isArray(rows) || rows.length < cap) return 0;
+      const oldest = Date.parse(rows[cap - 1]?.created_at || "");
+      return Number.isFinite(oldest) ? oldest + 60 * 60 * 1000 : Date.now() + 60 * 60 * 1000;
     };
-    const [emailCount, ipCount] = await Promise.all([
-      countOf(`email=eq.${encodeURIComponent(normEmail)}`),
-      ip ? countOf(`ip=eq.${encodeURIComponent(ip)}`) : Promise.resolve(0),
+    const [emailUnlockAt, ipUnlockAt] = await Promise.all([
+      unlockAtOf(`email=eq.${encodeURIComponent(normEmail)}`, 5),
+      ip ? unlockAtOf(`ip=eq.${encodeURIComponent(ip)}`, 20) : Promise.resolve(0),
     ]);
-    const capped = emailCount >= 5 || ipCount >= 20;
+    const unlockAt = Math.max(emailUnlockAt, ipUnlockAt);
+    const capped = unlockAt > 0;
     attemptId = fetch(`${SB_URL}/rest/v1/multipass_attempts?select=id`, {
       method: "POST",
       headers: { ...sbHeaders, Prefer: "return=representation" },
@@ -342,7 +356,16 @@ async function handleRequest(req: Request, timing: Timing): Promise<Response> {
     runInBackground(attemptId);
     if (capped) {
       runInBackground(recordLoginOutcome({ email, reason: "multipass_capped", userAgent }));
-      return sendError(429, ["Too many attempts. Please wait a while and try again."], "Rate limited", "rate_limited");
+      const retryAfter = Math.max(1, Math.ceil((unlockAt - Date.now()) / 1000));
+      const minutes = Math.ceil(retryAfter / 60);
+      return sendError(
+        429,
+        [`Too many attempts. Please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`],
+        "Rate limited",
+        "rate_limited",
+        { retry_after_seconds: retryAfter },
+        { "Retry-After": String(retryAfter) }
+      );
     }
   } catch { /* cap bookkeeping is best effort; step 1 still checks the password */ }
   timing.mark("cap");
@@ -496,6 +519,6 @@ Deno.serve(async (req: Request) => {
   }
   const headers = new Headers(response.headers);
   headers.set("Server-Timing", timing.header());
-  headers.set("Access-Control-Expose-Headers", "Server-Timing, X-Function-Version");
+  headers.set("Access-Control-Expose-Headers", "Server-Timing, X-Function-Version, Retry-After");
   return new Response(response.body, { status: response.status, headers });
 });

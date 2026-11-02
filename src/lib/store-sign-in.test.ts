@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { finishSigningIn, multipassSignIn, openMultipassUrl } from "./store-sign-in";
+import { finishSigningIn, multipassSignIn, openMultipassUrl, requestMultipassUrl } from "./store-sign-in";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("Post-reset sign-in", () => {
@@ -56,6 +56,13 @@ describe("Sign-in form Multipass", () => {
     expect(await multipassSignIn("customer@example.com", "pw")).toBe("limited");
     vi.stubGlobal("fetch", answer(500, { success: false, kind: "multipass_not_configured" }));
     expect(await multipassSignIn("customer@example.com", "pw")).toBe("unavailable");
+  });
+  it("passes on how long a capped customer has to wait", async () => {
+    vi.stubGlobal("window", { top: { location: { host: "dropdeadextensions.com", pathname: "/", search: "" } } });
+    vi.stubGlobal("fetch", answer(429, { success: false, kind: "rate_limited", retry_after_seconds: 1811 }));
+    expect(await requestMultipassUrl("customer@example.com", "pw")).toEqual({ kind: "limited", retryAfterSeconds: 1811 });
+    vi.stubGlobal("fetch", answer(429, { success: false, kind: "rate_limited" }));
+    expect(await requestMultipassUrl("customer@example.com", "pw")).toEqual({ kind: "limited" });
   });
 });
 describe("Theme return target", () => {
