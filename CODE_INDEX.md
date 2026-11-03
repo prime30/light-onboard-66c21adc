@@ -313,6 +313,7 @@ Playwright loads the app in an iframe on a fake theme page (`http://localhost:92
 | `tests/reset-dead-link.e2e.ts` | Dead reset link buttons for every `freshLink` value; Close and Request a new link |
 | `tests/reset-and-activate.e2e.ts` | Reset signs in with the minted Multipass link, 40 character cap, hidden username field |
 | `tests/sign-in-and-forgot.e2e.ts` | Sign-in outcomes and paused-until message; forgot password sent, cooldown, unknown email, outage fallback, `/login?forgot=1` first paint |
+| `tests/chunk-reload.e2e.ts` | `AppErrorBoundary` reload cap for a stale tab (one reload) versus a live build with a dropped connection (two), report fields, crawlers not reported |
 
 ---
 
