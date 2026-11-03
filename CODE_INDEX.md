@@ -315,6 +315,18 @@ Playwright loads the app in an iframe on a fake theme page (`http://localhost:92
 | `tests/sign-in-and-forgot.e2e.ts` | Sign-in outcomes and paused-until message; forgot password sent, cooldown, unknown email, outage fallback, `/login?forgot=1` first paint |
 | `tests/chunk-reload.e2e.ts` | `AppErrorBoundary` reload cap for a stale tab (one reload) versus a live build with a dropped connection (two), report fields, crawlers not reported |
 
+### `supabase/functions/_tests/` - Edge function tests (Deno)
+
+Black-box: the harness captures the handler each function passes to `Deno.serve`, replaces `fetch` with scripted fakes for Shopify, the database, and other functions, and awaits `EdgeRuntime.waitUntil` work. No function code is changed for testing and nothing reaches the network. The `_` prefix keeps the folder from deploying as a function. Runs on PRs that touch `supabase/functions/` via `.github/workflows/functions-tests.yml`. Locally: `cd supabase/functions/_tests; deno task test`. Test files end in `_test.ts` so Vitest ignores them.
+
+| File | Purpose |
+|------|---------|
+| `harness.ts` | `FakeNet` (routes, recorded calls, unmatched calls fail loudly), `FakeTable` (tiny PostgREST table), `withFunction`, `readMultipass` (decrypts and verifies a minted link) |
+| `create-customer_test.ts` | Store refuses the new password: Multipass fallback and alert, or reset email when the Admin write fails; orders guard at all three points; ghost shell; 40 character cap |
+| `multipass-login_test.ts` | 5 per hour cap with Retry-After, capped retries and successes not counting, minted link contents, return_to checks, unactivated, throttling |
+| `recover-password_test.ts` | Cooldown claim kept on send and released when nothing was sent, unknown email, kill switch, `force` only for the service role, invited account preparation |
+| `reset-password_test.ts` | Multipass from Shopify's email (never the hint), dead link self-heal for every `freshLink`, password rule errors keep the link, same password signs in |
+
 ---
 
 ## Key Files by Concern
