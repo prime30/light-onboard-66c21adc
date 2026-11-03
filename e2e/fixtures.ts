@@ -33,6 +33,10 @@ export class Harness {
   private parentMessages: ParentMessage[] = [];
   /** Store URLs the app tried to load (top-window navigations such as Multipass). */
   readonly storeNavigations: string[] = [];
+  /** App documents loaded in the iframe, including reloads. */
+  readonly appDocuments: string[] = [];
+  private blockedAssets: RegExp[] = [];
+  private newerBuildLive = false;
 
   constructor(readonly page: Page) {}
 
@@ -44,6 +48,16 @@ export class Harness {
   /** Request bodies the app sent to an edge function, in order. */
   calls(fn: string) {
     return this.bodies.get(fn) ?? [];
+  }
+
+  /** Fail every request for app assets whose path matches, as a dropped connection would. */
+  blockAppAsset(pattern: RegExp) {
+    this.blockedAssets.push(pattern);
+  }
+
+  /** Make the app's own page check see a newer build, as after a Publish. */
+  publishNewerBuild() {
+    this.newerBuildLive = true;
   }
 
   /** Load the app at `appPath` inside an iframe on the fake theme page. */
@@ -87,7 +101,16 @@ export class Harness {
     const req = route.request();
     const url = new URL(req.url());
 
-    if (url.origin === APP_ORIGIN) return route.continue();
+    if (url.origin === APP_ORIGIN) {
+      if (req.isNavigationRequest()) this.appDocuments.push(req.url());
+      if (this.blockedAssets.some((re) => re.test(url.pathname))) return route.abort("connectionfailed");
+      if (this.newerBuildLive && req.resourceType() === "fetch" && !url.pathname.includes("/assets/")) {
+        const res = await route.fetch();
+        const html = (await res.text()).replace(/assets\/index-[\w-]+\.js/g, "assets/index-newer.js");
+        return route.fulfill({ response: res, body: html });
+      }
+      return route.continue();
+    }
 
     if (url.origin === PARENT_ORIGIN) {
       return route.fulfill({ contentType: "text/html", body: harnessHtml(url.searchParams.get("app") ?? "/") });
