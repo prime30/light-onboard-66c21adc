@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import { saveStoredSession } from "@/lib/standalone-session";
 import { takePendingLogin, takePendingMultipass } from "@/lib/pending-login";
 import { openMultipassUrl } from "@/lib/store-sign-in";
+import { recordSignInEvent } from "@/lib/sign-in-events";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 
 export function useCloseIframe() {
@@ -52,7 +53,18 @@ export function useCloseIframe() {
         console.log(
           `[useCloseIframe] Posted CLOSE_IFRAME to ${targetOrigin} (reason: ${reason ?? "User requested closure"})`
         );
-        if (multipassUrl) openMultipassUrl(multipassUrl);
+        if (multipassUrl) {
+          if (pending?.email) {
+            void recordSignInEvent({
+              email: pending.email,
+              attemptId: crypto.randomUUID(),
+              outcome: "multipass_opened",
+              passwordSource: "new_password",
+              evidence: "new_password",
+            });
+          }
+          openMultipassUrl(multipassUrl);
+        }
       } catch (error) {
         console.error("[useCloseIframe] Failed to post CLOSE_IFRAME:", error);
       }

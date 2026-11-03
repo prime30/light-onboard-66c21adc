@@ -4,7 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const entry = z.object({
   action: z.literal("record"), email: z.string().email().max(254), attemptId: z.string().uuid(),
-  outcome: z.enum(["started", "success", "confirmed", "error", "no_account", "timeout"]),
+  outcome: z.enum(["started", "success", "confirmed", "error", "no_account", "timeout", "multipass_opened"]),
   code: z.enum(["rejected", "rate_limited", "challenge", "store_error", "network", "unactivated", "recently_sent"]).optional(),
   passwordSource: z.enum(["typed", "autofill", "paste", "mixed", "unknown", "new_password"]),
   evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]),

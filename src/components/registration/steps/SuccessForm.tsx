@@ -18,6 +18,7 @@ import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
 import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
 import { resolveParentOrigin } from "@/lib/parent-origin";
+import { hasPendingMultipass } from "@/lib/pending-login";
 
 export const SuccessForm = () => {
   const { discountCode, discountExpiry, welcomeOfferSettled, welcomeOfferIneligible, guestOffer } =
@@ -204,6 +205,14 @@ export const SuccessForm = () => {
       navigate("/");
     }
   };
+
+  // The store refused the new password, so only the Multipass link can sign
+  // them in. Open it now: leaving this screen any other way strands them, and
+  // the signed-in store shows the welcome code from the customer record.
+  useEffect(() => {
+    if (isInIframeClose && hasPendingMultipass()) closeToShop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The code lives in memory only, so after a reload nothing will ever settle it.
   const [welcomeOfferTimedOut, setWelcomeOfferTimedOut] = useState(false);
