@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setPendingMultipass, takePendingMultipass } from "./pending-login";
+import { hasPendingMultipass, setPendingMultipass, takePendingMultipass } from "./pending-login";
 
 describe("pending Multipass link", () => {
   it("hands the link out once while it is fresh", () => {
@@ -11,5 +11,13 @@ describe("pending Multipass link", () => {
   it("drops a link older than ten minutes", () => {
     setPendingMultipass("https://dropdeadextensions.com/account/login/multipass/t");
     expect(takePendingMultipass(Date.now() + 10 * 60 * 1000 + 1)).toBeNull();
+  });
+
+  it("reports a fresh link without handing it out", () => {
+    setPendingMultipass("https://dropdeadextensions.com/account/login/multipass/t");
+    expect(hasPendingMultipass()).toBe(true);
+    expect(hasPendingMultipass(Date.now() + 10 * 60 * 1000 + 1)).toBe(false);
+    expect(takePendingMultipass()).toBe("https://dropdeadextensions.com/account/login/multipass/t");
+    expect(hasPendingMultipass()).toBe(false);
   });
 });

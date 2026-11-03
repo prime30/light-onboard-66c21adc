@@ -354,7 +354,7 @@ export function FormDataProvider({
       if (password && values.email) {
         if (isInIframe && fallbackMultipassUrl) {
           // The store refused the password it just saved, so a USER_LOGIN
-          // would fail. The success screen opens this link on close instead.
+          // would fail. The success screen opens this link as soon as it mounts.
           try {
             sessionStorage.setItem("dde_on_success_screen", "1");
           } catch {

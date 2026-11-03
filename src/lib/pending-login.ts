@@ -41,6 +41,10 @@ export function setPendingMultipass(url: string): void {
   pendingMultipass = { url, at: Date.now() };
 }
 
+export function hasPendingMultipass(now = Date.now()): boolean {
+  return !!pendingMultipass && now - pendingMultipass.at < MULTIPASS_MAX_AGE_MS;
+}
+
 export function takePendingMultipass(now = Date.now()): string | null {
   const value = pendingMultipass;
   pendingMultipass = null;
