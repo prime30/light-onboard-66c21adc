@@ -303,6 +303,17 @@ Not imported by any edge function. Functions inline their helpers instead; don't
 
 69 SQL migrations. Whether migrations merged from GitHub get applied is unverified (see `.cursor/rules/lovable-sync-workflow.mdc`).
 
+### `e2e/` - Browser tests (own `package.json`, kept out of the app's dependencies)
+
+Playwright loads the app in an iframe on a fake theme page (`http://localhost:9292`, allowlisted for dev builds) and fakes every edge function, so a run never sends email, locks an account, or touches Shopify. Runs on every PR via `.github/workflows/e2e.yml`. Locally: `cd e2e; npm ci; npx playwright install chromium; npx playwright test`.
+
+| File | Purpose |
+|------|---------|
+| `fixtures.ts` | `Harness`: fake theme page, `fake(fn, reply)`, `calls(fn)` request bodies, `messages()` posted to the theme, `storeNavigations` (Multipass) |
+| `tests/reset-dead-link.e2e.ts` | Dead reset link buttons for every `freshLink` value; Close and Request a new link |
+| `tests/reset-and-activate.e2e.ts` | Reset signs in with the minted Multipass link, 40 character cap, hidden username field |
+| `tests/sign-in-and-forgot.e2e.ts` | Sign-in outcomes and paused-until message; forgot password sent, cooldown, unknown email, outage fallback, `/login?forgot=1` first paint |
+
 ---
 
 ## Key Files by Concern
