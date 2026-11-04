@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
   };
 
   const modes: Mode[] = body.modes?.length ? body.modes : ["form", "admin_write", "activate_by_url"];
-  const passwords = (body.testPasswords?.length ? body.testPasswords : [null]).slice(0, 6);
-  const runs = passwords.flatMap((p) => modes.map((mode) => ({ mode, password: p ?? randomPassword(), label: p ? `custom#${passwords.indexOf(p)}` : "random" })));
+  const passwords: (string | null)[] = (body.testPasswords?.length ? body.testPasswords : [null]).slice(0, 6);
+  const runs = passwords.flatMap((p, i) => modes.map((mode) => ({ mode, password: p ?? randomPassword(), label: p ? `custom#${i}` : "random" })));
   const results: Record<string, unknown>[] = [];
   for (const { mode, password, label } of runs) {
     const email = `ddtest-act-${mode.replace(/_/g, "")}-${Date.now()}@spamok.com`;
