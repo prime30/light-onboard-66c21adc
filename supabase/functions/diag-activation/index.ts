@@ -21,7 +21,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[] };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -55,6 +55,26 @@ Deno.serve(async (req) => {
     const out = r.body?.data?.customerAccessTokenCreate;
     return out?.customerAccessToken?.accessToken ? "ok" : `${r.status} ${JSON.stringify(out?.customerUserErrors ?? r.body?.errors ?? null)}`;
   };
+
+  // Read-only: what Shopify stores for one customer, plus any other record
+  // under the same email.
+  if (body.lookupId || body.lookupEmail) {
+    const fields = "id,email,state,created_at,updated_at,verified_email,tags,phone,email_marketing_consent";
+    const byId = body.lookupId
+      ? await (await fetch(`https://${domain}/admin/api/2024-10/customers/${encodeURIComponent(body.lookupId)}.json?fields=${fields}`, { headers: adminHeaders })).json().catch(() => null)
+      : null;
+    const byEmail = body.lookupEmail
+      ? await (await fetch(`https://${domain}/admin/api/2024-10/customers/search.json?query=${encodeURIComponent(`email:${body.lookupEmail}`)}&fields=${fields}`, { headers: adminHeaders })).json().catch(() => null)
+      : null;
+    const gql = body.lookupId
+      ? await (await fetch(`https://${domain}/admin/api/2024-10/graphql.json`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({ query: `{ customer(id: "gid://shopify/Customer/${body.lookupId}") { email state createdAt updatedAt canDelete events(first: 30, reverse: true) { nodes { createdAt message } } } }` }),
+      })).json().catch(() => null)
+      : null;
+    return json(200, { byId, byEmail, gql });
+  }
 
   const modes: Mode[] = body.modes?.length ? body.modes : ["form", "admin_write", "activate_by_url"];
   const passwords: (string | null)[] = (body.testPasswords?.length ? body.testPasswords : [null]).slice(0, 6);
