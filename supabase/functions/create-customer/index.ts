@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "ORDERSGUARD-20261102";
+const FUNCTION_VERSION = "ACTIVATEBYURL-20261103";
 
 // Shopify classic accounts refuse longer passwords: the activation form still
 // answers 302 but saves nothing, and the Admin write returns 422 "too long".
@@ -190,6 +190,42 @@ function sendAlreadyHasAccount() {
       { type: "RESET_PASSWORD", label: "Reset password", url: "/login?forgot=1" },
     ]
   );
+}
+
+// Shopify's API for activating an account with a chosen password. A returned
+// customer access token proves the store accepts the password; a refusal
+// carries Shopify's reason, which the activation form POST never reports.
+async function activateByUrl(
+  domain: string,
+  activationUrl: string,
+  password: string,
+  buyerIp: string | null
+): Promise<{ ok: true } | { ok: false; detail: string }> {
+  const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
+  const publicToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  if (!privateToken && !publicToken) return { ok: false, detail: "no storefront token" };
+  const headers: Record<string, string> = privateToken
+    ? { "Content-Type": "application/json", "Shopify-Storefront-Private-Token": privateToken }
+    : { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken! };
+  if (privateToken && buyerIp) headers["Shopify-Storefront-Buyer-IP"] = buyerIp;
+  try {
+    const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query:
+          "mutation Activate($url: URL!, $password: String!) { customerActivateByUrl(activationUrl: $url, password: $password) { customerAccessToken { accessToken } customerUserErrors { code field message } } }",
+        variables: { url: activationUrl, password },
+      }),
+    });
+    const json = await res.json().catch(() => null);
+    const out = json?.data?.customerActivateByUrl;
+    if (out?.customerAccessToken?.accessToken) return { ok: true };
+    const reason = out?.customerUserErrors?.length ? out.customerUserErrors : json?.errors ?? null;
+    return { ok: false, detail: `HTTP ${res.status} ${JSON.stringify(reason).slice(0, 300)}` };
+  } catch (e) {
+    return { ok: false, detail: `threw ${e instanceof Error ? e.message : String(e)}` };
+  }
 }
 
 type ShopifyCustomerMatch = { id: number; state: string; tags: string[]; ordersCount: number };
@@ -2849,7 +2885,19 @@ Deno.serve(async (req: Request) => {
             if (urlRes.ok) {
               const json = await urlRes.json();
               const activationUrl: string | undefined = json?.account_activation_url;
-              if (activationUrl) {
+              const buyerIp =
+                req.headers.get("cf-connecting-ip") ??
+                req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+                null;
+              const viaApi = activationUrl
+                ? await activateByUrl(shopifyDomain, activationUrl, submittedPassword, buyerIp)
+                : null;
+              const apiRefusal = viaApi && !viaApi.ok ? viaApi.detail : "-";
+              if (viaApi?.ok) {
+                console.log("Activated Shopify customer through customerActivateByUrl:", shopifyCustomerId);
+                activated = true;
+                accountPasswordVerified = true;
+              } else if (activationUrl) {
                 const activateRes = await fetch(activationUrl, {
                   method: "POST",
                   headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -2951,7 +2999,7 @@ Deno.serve(async (req: Request) => {
                     const location = (activateRes.headers.get("location") || "").replace(/^https?:\/\/[^/]+/, "").split("?")[0];
                     activationFailureDetail =
                       `Password activation could not be verified by storefront sign-in; customer state=${verifiedState || "unknown"}` +
-                      `; activation ${activateRes.status} ${location || "-"}; ${checks.join("; ")}; password ${passwordShape(submittedPassword)}`;
+                      `; api ${apiRefusal}; activation ${activateRes.status} ${location || "-"}; ${checks.join("; ")}; password ${passwordShape(submittedPassword)}`;
                     recordAuditFailure("auto_activation", activationFailureDetail);
 
                     // The account exists, is enabled, and Shopify accepted this
@@ -2979,7 +3027,7 @@ Deno.serve(async (req: Request) => {
                   }
                 } else {
                   const txt = await activateRes.text();
-                  activationFailureDetail = `activation POST returned ${activateRes.status}: ${txt.substring(0, 200)}`;
+                  activationFailureDetail = `api ${apiRefusal}; activation POST returned ${activateRes.status}: ${txt.substring(0, 200)}`;
                   recordAuditFailure("auto_activation", activationFailureDetail);
                 }
               } else {

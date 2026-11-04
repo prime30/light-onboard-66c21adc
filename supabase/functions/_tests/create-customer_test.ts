@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertMatch } from "jsr:@std/assert@1";
-import { FakeNet, SB_URL, admin, fn, readMultipass, reply, rest, withFunction } from "./harness.ts";
+import { FakeNet, SB_URL, admin, fn, readMultipass, reply, rest, storefront, withFunction } from "./harness.ts";
 
 const EMAIL = "pat@example.com";
 const HELIUM_ENV = { HELIUM_PRIVATE_FORM_ID: "form", HELIUM_PRIVATE_ACCESS_TOKEN: "helium" };
@@ -16,6 +16,8 @@ type World = {
   storeAcceptsPassword: boolean;
   /** Whether the Admin password write succeeds. */
   adminWriteOk?: boolean;
+  /** customerActivateByUrl refuses even though the form path would work. */
+  apiActivationRefused?: boolean;
 };
 
 function signupWorld(w: World) {
@@ -67,6 +69,13 @@ function signupWorld(w: World) {
     customer.state = "enabled";
     return new Response(null, { status: 302, headers: { location: "https://store.test/account" } });
   });
+  net.on("POST", storefront, () => {
+    if (w.apiActivationRefused || !w.storeAcceptsPassword) {
+      return { data: { customerActivateByUrl: { customerAccessToken: null, customerUserErrors: [{ code: "TOKEN_INVALID", field: null, message: "Invalid activation url" }] } } };
+    }
+    customer.state = "enabled";
+    return { data: { customerActivateByUrl: { customerAccessToken: { accessToken: "tok" }, customerUserErrors: [] } } };
+  });
   return net;
 }
 
@@ -87,6 +96,8 @@ const application = (extra: Record<string, unknown> = {}) => ({
 const passwordWrites = (net: FakeNet) =>
   net.to("PUT", admin("customers/42\\.json")).filter((c) => (c.body as { customer: Record<string, unknown> }).customer.password);
 const activationPosts = (net: FakeNet) => net.to("POST", new RegExp(`^${ACTIVATION_URL}$`));
+const apiActivations = (net: FakeNet) =>
+  net.to("POST", storefront).filter((c) => String((c.body as { query?: string }).query).includes("customerActivateByUrl"));
 const alerts = (net: FakeNet) => net.to("POST", fn("notify-error")).map((c) => (c.body as { source: string }).source);
 
 Deno.test("activation verified: success, no Multipass fallback, no reset email", async () => {
@@ -149,7 +160,46 @@ Deno.test("orders guard, ghost shell without orders: treated as a new applicant 
     const res = await call(application());
     assertEquals(res.status, 200, await res.clone().text());
     assertEquals(net.to("PUT", /customerfields\.com\/api\/v2\/customers\/42\.json$/).length, 1);
+    assertEquals(apiActivations(net).length, 1);
+  }, HELIUM_ENV);
+});
+
+Deno.test("activation through customerActivateByUrl: no form POST, no Admin write, no customer-login check", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    const body = await res.json();
+    assertEquals(res.status, 200, JSON.stringify(body));
+    assertEquals(body.data.multipassUrl, undefined);
+    assertEquals(apiActivations(net).length, 1);
+    assertEquals((apiActivations(net)[0].body as { variables: unknown }).variables, { url: ACTIVATION_URL, password: "GoodPass123" });
+    assertEquals(activationPosts(net).length, 0);
+    assertEquals(passwordWrites(net).length, 0);
+    assertEquals(net.to("POST", fn("customer-login")).length, 0);
+    assertEquals(net.to("POST", fn("generate-discount")).length, 1);
+  }, HELIUM_ENV);
+});
+
+Deno.test("customerActivateByUrl refuses: falls back to the activation form and still succeeds", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, apiActivationRefused: true });
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    const body = await res.json();
+    assertEquals(res.status, 200, JSON.stringify(body));
+    assertEquals(apiActivations(net).length, 1);
     assertEquals(activationPosts(net).length, 1);
+    assertEquals(net.to("POST", fn("customer-login")).length, 1);
+  }, HELIUM_ENV);
+});
+
+Deno.test("store refuses everywhere: the audit detail carries Shopify's API reason", async () => {
+  const net = signupWorld({ storeAcceptsPassword: false });
+  net.on("POST", rest("registration_submissions"), [{ id: "sub-1" }]);
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    await call(application());
+    await settle();
+    const audit = JSON.stringify(net.to("PATCH", rest("registration_submissions")).map((c) => c.body));
+    assertMatch(audit, /api HTTP 200 .*TOKEN_INVALID/);
   }, HELIUM_ENV);
 });
 
