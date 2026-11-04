@@ -11,7 +11,7 @@ const json = (status: number, body: unknown) =>
     headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" },
   });
 
-type Mode = "form" | "admin_write" | "activate_by_url";
+type Mode = "form" | "admin_write" | "activate_by_url" | "race_form" | "race_activate_by_url";
 
 function randomPassword(): string {
   const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnpqrstuvwxyz", "23456789"];
@@ -21,7 +21,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[] };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -78,9 +78,13 @@ Deno.serve(async (req) => {
 
   const modes: Mode[] = body.modes?.length ? body.modes : ["form", "admin_write", "activate_by_url"];
   const passwords: (string | null)[] = (body.testPasswords?.length ? body.testPasswords : [null]).slice(0, 6);
-  const runs = passwords.flatMap((p, i) => modes.map((mode) => ({ mode, password: p ?? randomPassword(), label: p ? `custom#${i}` : "random" })));
+  const repeat = Math.min(Math.max(Number(body.repeat) || 1, 1), 10);
+  const delays = body.delaysMs?.length ? body.delaysMs : [0];
+  const runs = Array.from({ length: repeat }, (_, r) => r).flatMap((r) =>
+    passwords.flatMap((p, i) => modes.map((mode) => ({ mode, password: p ?? randomPassword(), label: p ? `custom#${i}` : "random", delay: delays[r % delays.length] })))
+  );
   const results: Record<string, unknown>[] = [];
-  for (const { mode, password, label } of runs) {
+  for (const { mode, password, label, delay } of runs) {
     const email = `ddtest-act-${mode.replace(/_/g, "")}-${Date.now()}@spamok.com`;
     const steps: string[] = [];
     let id: number | null = null;
@@ -88,7 +92,14 @@ Deno.serve(async (req) => {
       const created = await fetch(`https://${domain}/admin/api/2024-10/customers.json`, {
         method: "POST",
         headers: adminHeaders,
-        body: JSON.stringify({ customer: { email, first_name: "Diag", last_name: "Activation", tags: "diag-activation", send_email_invite: false } }),
+        body: JSON.stringify({
+          customer: {
+            email,
+            tags: "diag-activation",
+            send_email_invite: false,
+            ...(mode.startsWith("race") ? { email_marketing_consent: { state: "subscribed", opt_in_level: "single_opt_in", consent_updated_at: new Date().toISOString() } } : { first_name: "Diag", last_name: "Activation" }),
+          },
+        }),
       });
       const cj = await created.json().catch(() => null);
       id = cj?.customer?.id ?? null;
@@ -117,6 +128,61 @@ Deno.serve(async (req) => {
           steps.push(`bounce_page ${page.status} errors=${JSON.stringify(errors.slice(0, 4))}`);
         }
       }
+      if (mode.startsWith("race") && activationUrl && id) {
+        const cid = id;
+        const t0 = Date.now();
+        const enrich = async () => {
+          const g = await fetch(`https://${domain}/admin/api/2024-10/customers/${cid}.json`, { headers: adminHeaders });
+          const existing = (await g.json().catch(() => null))?.customer;
+          const p = await fetch(`https://${domain}/admin/api/2024-10/customers/${cid}.json`, {
+            method: "PUT",
+            headers: adminHeaders,
+            body: JSON.stringify({
+              customer: {
+                id: cid,
+                first_name: "Diag",
+                last_name: "Race",
+                note: "diag race enrichment",
+                tags: [existing?.tags, "Account type: Diag", "wholesale"].filter(Boolean).join(", "),
+                email_marketing_consent: { state: "subscribed", opt_in_level: "single_opt_in", consent_updated_at: new Date().toISOString() },
+                addresses: [{ first_name: "Diag", last_name: "Race", address1: "1 Test St", city: "Austin", province_code: "TX", zip: "78701", country_code: "US", default: true }],
+              },
+            }),
+          });
+          return `enrich get ${g.status} put ${p.status} at ${Date.now() - t0}ms`;
+        };
+        const activate = async () => {
+          if (delay) await new Promise((r) => setTimeout(r, delay));
+          if (mode === "race_activate_by_url") {
+            const r = await storefront(
+              `mutation a($url: URL!, $password: String!) { customerActivateByUrl(activationUrl: $url, password: $password) { customerAccessToken { accessToken } customerUserErrors { code field message } } }`,
+              { url: activationUrl, password },
+            );
+            const out = r.body?.data?.customerActivateByUrl;
+            return `activate_by_url ${r.status} token=${out?.customerAccessToken?.accessToken ? "yes" : "no"} errors=${JSON.stringify(out?.customerUserErrors ?? r.body?.errors ?? null)} at ${Date.now() - t0}ms`;
+          }
+          const r = await fetch(activationUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ "customer[password]": password, "customer[password_confirmation]": password }).toString(),
+            redirect: "manual",
+          });
+          const loc = (r.headers.get("location") || "-").replace(/^https?:\/\/[^/]+/, "").split("?")[0].replace(/\/[a-f0-9]{20,}.*$/, "/<token>");
+          return `form ${r.status} ${loc} at ${Date.now() - t0}ms`;
+        };
+        steps.push(`delay ${delay}ms`, ...(await Promise.all([enrich(), activate()])));
+        steps.push(`state_after_race=${await state(cid)}`);
+        const first = await signIn(email, password);
+        steps.push(`sign_in_after_race=${first}`);
+        if (first !== "ok" && mode === "race_form") {
+          const w = await fetch(`https://${domain}/admin/api/2024-10/customers/${cid}.json`, {
+            method: "PUT",
+            headers: adminHeaders,
+            body: JSON.stringify({ customer: { id: cid, password, password_confirmation: password, send_email_welcome: false } }),
+          });
+          steps.push(`admin_write ${w.status} state=${await state(cid)} sign_in=${await signIn(email, password)}`);
+        }
+      }
       if (mode === "admin_write") {
         const r = await fetch(`https://${domain}/admin/api/2024-10/customers/${id}.json`, {
           method: "PUT",
@@ -134,10 +200,12 @@ Deno.serve(async (req) => {
         steps.push(`activate_by_url ${r.status} token=${out?.customerAccessToken?.accessToken ? "yes" : "no"} errors=${JSON.stringify(out?.customerUserErrors ?? r.body?.errors ?? null)}`);
       }
 
-      steps.push(`state=${await state(id)}`);
-      steps.push(`sign_in_now=${await signIn(email, password)}`);
-      await new Promise((r) => setTimeout(r, 5000));
-      steps.push(`sign_in_5s=${await signIn(email, password)}`);
+      if (!mode.startsWith("race")) {
+        steps.push(`state=${await state(id)}`);
+        steps.push(`sign_in_now=${await signIn(email, password)}`);
+        await new Promise((r) => setTimeout(r, 5000));
+        steps.push(`sign_in_5s=${await signIn(email, password)}`);
+      }
     } catch (e) {
       steps.push(`threw ${e instanceof Error ? e.message : String(e)}`);
     } finally {
