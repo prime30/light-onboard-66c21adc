@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "ACTIVATEBYURL-20261103";
+const FUNCTION_VERSION = "VERIFIEDSIGNIN-20261104";
 
 // Shopify classic accounts refuse longer passwords: the activation form still
 // answers 302 but saves nothing, and the Admin write returns 422 "too long".
@@ -200,7 +200,7 @@ async function activateByUrl(
   activationUrl: string,
   password: string,
   buyerIp: string | null
-): Promise<{ ok: true } | { ok: false; detail: string }> {
+): Promise<{ ok: true; email: string | null } | { ok: false; detail: string }> {
   const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
   const publicToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
   if (!privateToken && !publicToken) return { ok: false, detail: "no storefront token" };
@@ -214,13 +214,15 @@ async function activateByUrl(
       headers,
       body: JSON.stringify({
         query:
-          "mutation Activate($url: URL!, $password: String!) { customerActivateByUrl(activationUrl: $url, password: $password) { customerAccessToken { accessToken } customerUserErrors { code field message } } }",
+          "mutation Activate($url: URL!, $password: String!) { customerActivateByUrl(activationUrl: $url, password: $password) { customer { email } customerAccessToken { accessToken } customerUserErrors { code field message } } }",
         variables: { url: activationUrl, password },
       }),
     });
     const json = await res.json().catch(() => null);
     const out = json?.data?.customerActivateByUrl;
-    if (out?.customerAccessToken?.accessToken) return { ok: true };
+    if (out?.customerAccessToken?.accessToken) {
+      return { ok: true, email: typeof out.customer?.email === "string" ? out.customer.email : null };
+    }
     const reason = out?.customerUserErrors?.length ? out.customerUserErrors : json?.errors ?? null;
     return { ok: false, detail: `HTTP ${res.status} ${JSON.stringify(reason).slice(0, 300)}` };
   } catch (e) {
@@ -2579,6 +2581,23 @@ Deno.serve(async (req: Request) => {
     let alreadyEnabledConflict = false;
     // Multipass link minted when the store refuses a password it just accepted.
     let signInFallbackUrl: string | null = null;
+    // Multipass link for an account the activation API verified. The SPA uses
+    // it only if the theme's sign-in with the same password fails: the store
+    // has refused passwords seconds after accepting them at activation.
+    let verifiedSignInUrl: string | null = null;
+    const mintSignInUrl = async (email: string): Promise<string | null> => {
+      const multipassSecret = Deno.env.get("SHOPIFY_MULTIPASS_SECRET");
+      if (!shopifyDomain || !multipassSecret) return null;
+      const customerData: Record<string, unknown> = {
+        email: email.trim().toLowerCase(),
+        created_at: new Date().toISOString(),
+      };
+      const returnTo = (requestBody as { returnTo?: unknown }).returnTo;
+      if (typeof returnTo === "string" && returnTo.length <= 2000 && isSameSitePath(returnTo)) {
+        customerData.return_to = returnTo;
+      }
+      return await buildMultipassUrl(shopifyDomain, multipassSecret, customerData);
+    };
 
     // ---- Chain A: Shopify enrichment -------------------------------
     if (needsShopifyUpdate) {
@@ -2897,6 +2916,13 @@ Deno.serve(async (req: Request) => {
                 console.log("Activated Shopify customer through customerActivateByUrl:", shopifyCustomerId);
                 activated = true;
                 accountPasswordVerified = true;
+                if (viaApi.email) {
+                  try {
+                    verifiedSignInUrl = await mintSignInUrl(viaApi.email);
+                  } catch (mpErr) {
+                    console.warn("verified sign-in link mint threw:", mpErr);
+                  }
+                }
               } else if (activationUrl) {
                 const activateRes = await fetch(activationUrl, {
                   method: "POST",
@@ -3006,20 +3032,13 @@ Deno.serve(async (req: Request) => {
                     // request's own password write, yet the store refuses that
                     // password. Sign the applicant in with Shopify's email for
                     // this customer instead of stranding them on an error.
-                    const multipassSecret = Deno.env.get("SHOPIFY_MULTIPASS_SECRET");
-                    if (verifiedState === "enabled" && passwordWriteOk && shopifyEmail && multipassSecret) {
+                    if (verifiedState === "enabled" && passwordWriteOk && shopifyEmail) {
                       try {
-                        const customerData: Record<string, unknown> = {
-                          email: shopifyEmail.trim().toLowerCase(),
-                          created_at: new Date().toISOString(),
-                        };
-                        const returnTo = (requestBody as { returnTo?: unknown }).returnTo;
-                        if (typeof returnTo === "string" && returnTo.length <= 2000 && isSameSitePath(returnTo)) {
-                          customerData.return_to = returnTo;
+                        signInFallbackUrl = await mintSignInUrl(shopifyEmail);
+                        if (signInFallbackUrl) {
+                          activated = true;
+                          recordAuditFailure("signin_fallback", "store refused the new password; signed in with Multipass");
                         }
-                        signInFallbackUrl = await buildMultipassUrl(shopifyDomain, multipassSecret, customerData);
-                        activated = true;
-                        recordAuditFailure("signin_fallback", "store refused the new password; signed in with Multipass");
                       } catch (mpErr) {
                         recordAuditFailure("signin_fallback", `multipass mint threw: ${mpErr instanceof Error ? mpErr.message : String(mpErr)}`);
                       }
@@ -3335,6 +3354,7 @@ Deno.serve(async (req: Request) => {
         welcomeOfferIneligible?: boolean;
         guestOffer?: typeof guestOffer;
         multipassUrl?: string;
+        verifiedSignInUrl?: string;
       }
     > = {
       success: true,
@@ -3344,6 +3364,7 @@ Deno.serve(async (req: Request) => {
         welcomeOfferIneligible,
         guestOffer,
         ...(signInFallbackUrl ? { multipassUrl: signInFallbackUrl } : {}),
+        ...(verifiedSignInUrl ? { verifiedSignInUrl } : {}),
       },
       statusCode: 200,
     };

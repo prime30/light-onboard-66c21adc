@@ -74,7 +74,7 @@ function signupWorld(w: World) {
       return { data: { customerActivateByUrl: { customerAccessToken: null, customerUserErrors: [{ code: "TOKEN_INVALID", field: null, message: "Invalid activation url" }] } } };
     }
     customer.state = "enabled";
-    return { data: { customerActivateByUrl: { customerAccessToken: { accessToken: "tok" }, customerUserErrors: [] } } };
+    return { data: { customerActivateByUrl: { customer: { email: customer.email }, customerAccessToken: { accessToken: "tok" }, customerUserErrors: [] } } };
   });
   return net;
 }
@@ -167,10 +167,14 @@ Deno.test("orders guard, ghost shell without orders: treated as a new applicant 
 Deno.test("activation through customerActivateByUrl: no form POST, no Admin write, no customer-login check", async () => {
   const net = signupWorld({ storeAcceptsPassword: true });
   await withFunction("create-customer", net, async ({ call }) => {
-    const res = await call(application());
+    const res = await call({ ...application(), returnTo: "/collections/new" });
     const body = await res.json();
     assertEquals(res.status, 200, JSON.stringify(body));
     assertEquals(body.data.multipassUrl, undefined);
+    // Standby sign-in link from Shopify's email, for when the theme's sign-in fails.
+    const standby = await readMultipass(body.data.verifiedSignInUrl);
+    assertEquals(standby.email, EMAIL);
+    assertEquals(standby.return_to, "/collections/new");
     assertEquals(apiActivations(net).length, 1);
     assertEquals((apiActivations(net)[0].body as { variables: unknown }).variables, { url: ACTIVATION_URL, password: "GoodPass123" });
     assertEquals(activationPosts(net).length, 0);
@@ -189,6 +193,7 @@ Deno.test("customerActivateByUrl refuses: falls back to the activation form and 
     assertEquals(apiActivations(net).length, 1);
     assertEquals(activationPosts(net).length, 1);
     assertEquals(net.to("POST", fn("customer-login")).length, 1);
+    assertEquals(body.data.verifiedSignInUrl, undefined);
   }, HELIUM_ENV);
 });
 
