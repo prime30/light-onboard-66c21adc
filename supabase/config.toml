@@ -79,6 +79,9 @@ verify_jwt = false
 [functions.admin-stranded-accounts]
 verify_jwt = false
 
+[functions.diag-activation]
+verify_jwt = false
+
 [functions.admin-fix-customer-email]
 verify_jwt = false
 
