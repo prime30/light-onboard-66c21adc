@@ -21,7 +21,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[] };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[]; buyerIp?: string };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -35,10 +35,11 @@ Deno.serve(async (req) => {
     ? { "Content-Type": "application/json", "Shopify-Storefront-Private-Token": privateToken }
     : { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken ?? "" };
 
-  const storefront = async (query: string, variables: unknown) => {
+  const buyerIp = privateToken && body.buyerIp ? body.buyerIp : null;
+  const storefront = async (query: string, variables: unknown, withIp = true) => {
     const res = await fetch(`https://${domain}/api/${STOREFRONT_VERSION}/graphql.json`, {
       method: "POST",
-      headers: storefrontHeaders,
+      headers: withIp && buyerIp ? { ...storefrontHeaders, "Shopify-Storefront-Buyer-IP": buyerIp } : storefrontHeaders,
       body: JSON.stringify({ query, variables }),
     });
     return { status: res.status, body: await res.json().catch(() => null) };
@@ -47,14 +48,19 @@ Deno.serve(async (req) => {
     const res = await fetch(`https://${domain}/admin/api/2024-10/customers/${id}.json?fields=id,state`, { headers: adminHeaders });
     return (await res.json().catch(() => null))?.customer?.state ?? `http ${res.status}`;
   };
-  const signIn = async (email: string, password: string) => {
+  const signInOnce = async (email: string, password: string, withIp: boolean) => {
     const r = await storefront(
       `mutation t($input: CustomerAccessTokenCreateInput!) { customerAccessTokenCreate(input: $input) { customerAccessToken { accessToken } customerUserErrors { code message } } }`,
       { input: { email, password } },
+      withIp,
     );
     const out = r.body?.data?.customerAccessTokenCreate;
     return out?.customerAccessToken?.accessToken ? "ok" : `${r.status} ${JSON.stringify(out?.customerUserErrors ?? r.body?.errors ?? null)}`;
   };
+  const signIn = async (email: string, password: string) =>
+    buyerIp
+      ? `with_ip:${await signInOnce(email, password, true)} no_ip:${await signInOnce(email, password, false)}`
+      : signInOnce(email, password, false);
 
   // Read-only: what Shopify stores for one customer, plus any other record
   // under the same email.
