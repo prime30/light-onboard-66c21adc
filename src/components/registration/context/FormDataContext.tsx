@@ -28,7 +28,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { readHoneypotValue, readFormStartedAt, readFormElapsedMs } from "@/components/registration/HoneypotField";
 import { customerAtom } from "@/contexts/store";
 import { saveStoredSession } from "@/lib/standalone-session";
-import { setPendingLogin, setPendingMultipass } from "@/lib/pending-login";
+import {
+  clearStandbyMultipass,
+  promoteStandbyMultipass,
+  setPendingLogin,
+  setPendingMultipass,
+  setStandbyMultipass,
+} from "@/lib/pending-login";
 import { multipassReturnPath } from "@/lib/store-sign-in";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
@@ -137,7 +143,7 @@ export function FormDataProvider({
 }: FormDataProviderProps) {
   const [storedForm, setStoredForm] = useAtom(formAtom);
   const { apiCall } = useApiClient();
-  const { isInIframe, sendMessage } = useGlobalApp();
+  const { isInIframe, sendMessage, subscribeToType } = useGlobalApp();
   const [, setCustomer] = useAtom(customerAtom);
   const [errorActions, setErrorActions] = useState<
     Array<{ type: string; label: string; url?: string }>
@@ -230,8 +236,7 @@ export function FormDataProvider({
             // Campaign attribution (utm_*, click ids, landing page) so the
             // server can label the signup's acquisition channel.
             attribution: getAttributionContext(),
-            // Landing page for the Multipass sign-in create-customer mints when
-            // the store refuses the new password.
+            // Landing page for the Multipass sign-in links create-customer mints.
             returnTo: multipassReturnPath(),
 
             auGeoToken:
@@ -351,6 +356,8 @@ export function FormDataProvider({
       const password = (values as any).password as string | undefined;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fallbackMultipassUrl = ((result.data as any)?.data?.multipassUrl ?? (result.data as any)?.multipassUrl) as string | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const verifiedSignInUrl = ((result.data as any)?.data?.verifiedSignInUrl ?? (result.data as any)?.verifiedSignInUrl) as string | undefined;
       if (password && values.email) {
         if (isInIframe && fallbackMultipassUrl) {
           // The store refused the password it just saved, so a USER_LOGIN
@@ -373,6 +380,37 @@ export function FormDataProvider({
             sessionStorage.setItem("dde_on_success_screen", "1");
           } catch {
             // ignore storage failures
+          }
+          if (verifiedSignInUrl) {
+            // The store can refuse a password seconds after accepting it at
+            // activation. If the theme reports that, closing the success
+            // screen opens this link instead of leaving them signed out.
+            setStandbyMultipass(verifiedSignInUrl);
+            let done = false;
+            const stop = () => {
+              if (done) return;
+              done = true;
+              unsubStatus();
+              unsubCustomer();
+              window.clearTimeout(expiry);
+            };
+            const unsubStatus = subscribeToType(IframeMessageTypes.LOGIN_STATUS, (msg) => {
+              const d = msg.data as { status?: string } | undefined;
+              if (d?.status === "error") {
+                promoteStandbyMultipass();
+                stop();
+              } else if (d?.status === "success" || d?.status === "confirmed") {
+                clearStandbyMultipass();
+                stop();
+              }
+            });
+            const unsubCustomer = subscribeToType(IframeMessageTypes.CUSTOMER_DATA, (msg) => {
+              if ((msg.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn) {
+                clearStandbyMultipass();
+                stop();
+              }
+            });
+            const expiry = window.setTimeout(stop, 60_000);
           }
           sendMessage(IframeMessageTypes.USER_LOGIN, {
             email: values.email,
