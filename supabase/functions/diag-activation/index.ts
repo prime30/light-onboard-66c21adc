@@ -21,7 +21,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[] };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -57,10 +57,11 @@ Deno.serve(async (req) => {
   };
 
   const modes: Mode[] = body.modes?.length ? body.modes : ["form", "admin_write", "activate_by_url"];
+  const passwords = (body.testPasswords?.length ? body.testPasswords : [null]).slice(0, 6);
+  const runs = passwords.flatMap((p) => modes.map((mode) => ({ mode, password: p ?? randomPassword(), label: p ? `custom#${passwords.indexOf(p)}` : "random" })));
   const results: Record<string, unknown>[] = [];
-  for (const mode of modes) {
+  for (const { mode, password, label } of runs) {
     const email = `ddtest-act-${mode.replace(/_/g, "")}-${Date.now()}@spamok.com`;
-    const password = randomPassword();
     const steps: string[] = [];
     let id: number | null = null;
     try {
@@ -85,7 +86,16 @@ Deno.serve(async (req) => {
           body: new URLSearchParams({ "customer[password]": password, "customer[password_confirmation]": password }).toString(),
           redirect: "manual",
         });
-        steps.push(`form ${r.status} ${(r.headers.get("location") || "-").replace(/^https?:\/\/[^/]+/, "").split("?")[0].replace(/\/[a-f0-9]{20,}.*$/, "/<token>")}`);
+        const location = r.headers.get("location") || "";
+        steps.push(`form ${r.status} ${(location || "-").replace(/^https?:\/\/[^/]+/, "").split("?")[0].replace(/\/[a-f0-9]{20,}.*$/, "/<token>")}`);
+        if (location.includes("/account/activate")) {
+          const cookies = (r.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
+          const page = await fetch(new URL(location, activationUrl).href, { headers: cookies ? { Cookie: cookies } : {} });
+          const html = await page.text();
+          const errors = [...html.matchAll(/class="[^"]*(?:errors?|form-message)[^"]*"[^>]*>([\s\S]{0,400}?)<\/(?:div|ul|p|h2)>/gi)]
+            .map((m) => m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean);
+          steps.push(`bounce_page ${page.status} errors=${JSON.stringify(errors.slice(0, 4))}`);
+        }
       }
       if (mode === "admin_write") {
         const r = await fetch(`https://${domain}/admin/api/2024-10/customers/${id}.json`, {
@@ -116,7 +126,7 @@ Deno.serve(async (req) => {
         steps.push(`deleted ${d.status}`);
       }
     }
-    results.push({ mode, email, id, steps });
+    results.push({ mode, password: label, email, id, steps });
   }
   return json(200, { storefrontToken: privateToken ? "private" : "public", results });
 });
