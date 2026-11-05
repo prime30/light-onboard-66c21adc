@@ -1553,8 +1553,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Instagram handle is required for every registration (contact basics
-    // step). We validate format here as a backstop; the client also runs a
-    // live profile-existence check via verify-instagram-handle.
+    // step). Only the format is checked, here and on the client.
     {
       const handle = ((parseResult.data as { socialMediaHandle?: string | null })
         .socialMediaHandle ?? "")
