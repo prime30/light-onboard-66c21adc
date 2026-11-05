@@ -210,8 +210,7 @@ const contactBasicsValidators = {
       return phoneCountryCode;
     }),
   // Instagram handle is required for every registration. Users type just
-  // the handle; the client verifies it resolves to a real profile via the
-  // verify-instagram-handle edge function and shows the confirmed URL.
+  // the handle; only the format is checked.
   socialMediaHandle: z
     .string({ error: "Instagram handle is required" })
     .trim()

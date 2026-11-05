@@ -227,7 +227,6 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `check-email/` | Email-exists check for ContactBasicsStep |
 | `check-phone/` | Phone validity + uniqueness check |
 | `verify-au-geo/` | Confirms Australia applicants are in AU |
-| `verify-instagram-handle/` | Instagram handle check |
 | `upload-file/` | Uploads to Supabase storage |
 | `get-image/` | Reads stored images |
 | `address-autocomplete/` | Google Places autocomplete proxy |
