@@ -36,6 +36,7 @@ import {
   setStandbyMultipass,
 } from "@/lib/pending-login";
 import { multipassReturnPath } from "@/lib/store-sign-in";
+import { recordSignInEvent } from "@/lib/sign-in-events";
 import { useGlobalApp } from "@/contexts";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
@@ -386,6 +387,17 @@ export function FormDataProvider({
             // activation. If the theme reports that, closing the success
             // screen opens this link instead of leaving them signed out.
             setStandbyMultipass(verifiedSignInUrl);
+            const standbyEmail = values.email;
+            const standbyAttemptId = crypto.randomUUID();
+            const reportStandby = (outcome: string) =>
+              void recordSignInEvent({
+                email: standbyEmail,
+                attemptId: standbyAttemptId,
+                outcome,
+                passwordSource: "new_password",
+                evidence: "new_password",
+              });
+            reportStandby("standby_armed");
             let done = false;
             const stop = () => {
               if (done) return;
@@ -397,7 +409,9 @@ export function FormDataProvider({
             const unsubStatus = subscribeToType(IframeMessageTypes.LOGIN_STATUS, (msg) => {
               const d = msg.data as { status?: string } | undefined;
               if (d?.status === "error") {
-                promoteStandbyMultipass();
+                // A false return means the success screen already closed
+                // without the link.
+                reportStandby(promoteStandbyMultipass() ? "standby_promoted" : "standby_late");
                 stop();
               } else if (d?.status === "success" || d?.status === "confirmed") {
                 clearStandbyMultipass();
@@ -410,7 +424,10 @@ export function FormDataProvider({
                 stop();
               }
             });
-            const expiry = window.setTimeout(stop, 60_000);
+            const expiry = window.setTimeout(() => {
+              reportStandby("standby_unanswered");
+              stop();
+            }, 60_000);
           }
           sendMessage(IframeMessageTypes.USER_LOGIN, {
             email: values.email,
