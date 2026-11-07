@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "VERIFIEDSIGNIN-20261104";
+const FUNCTION_VERSION = "REFUSEDPW-20261107";
 
 // Shopify classic accounts refuse longer passwords: the activation form still
 // answers 302 but saves nothing, and the Admin write returns 422 "too long".
@@ -200,10 +200,10 @@ async function activateByUrl(
   activationUrl: string,
   password: string,
   buyerIp: string | null
-): Promise<{ ok: true; email: string | null } | { ok: false; detail: string }> {
+): Promise<{ ok: true; email: string | null } | { ok: false; detail: string; passwordRefused: boolean }> {
   const privateToken = Deno.env.get("SHOPIFY_STOREFRONT_PRIVATE_TOKEN");
   const publicToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-  if (!privateToken && !publicToken) return { ok: false, detail: "no storefront token" };
+  if (!privateToken && !publicToken) return { ok: false, detail: "no storefront token", passwordRefused: false };
   const headers: Record<string, string> = privateToken
     ? { "Content-Type": "application/json", "Shopify-Storefront-Private-Token": privateToken }
     : { "Content-Type": "application/json", "X-Shopify-Storefront-Access-Token": publicToken! };
@@ -223,10 +223,23 @@ async function activateByUrl(
     if (out?.customerAccessToken?.accessToken) {
       return { ok: true, email: typeof out.customer?.email === "string" ? out.customer.email : null };
     }
-    const reason = out?.customerUserErrors?.length ? out.customerUserErrors : json?.errors ?? null;
-    return { ok: false, detail: `HTTP ${res.status} ${JSON.stringify(reason).slice(0, 300)}` };
+    const userErrors: Array<{ code?: unknown; message?: unknown }> = Array.isArray(out?.customerUserErrors)
+      ? out.customerUserErrors
+      : [];
+    // Shopify refuses some passwords outright ("Password must be different.
+    // For the security of your account you cannot use this password.").
+    // Only that sentence counts: other INVALID wording, TOKEN_INVALID and
+    // ALREADY_ACTIVATED keep the existing fallbacks.
+    const passwordRefused = userErrors.some(
+      (e) =>
+        e?.code === "INVALID" &&
+        typeof e?.message === "string" &&
+        e.message.toLowerCase().includes("cannot use this password")
+    );
+    const reason = userErrors.length ? userErrors : json?.errors ?? null;
+    return { ok: false, detail: `HTTP ${res.status} ${JSON.stringify(reason).slice(0, 300)}`, passwordRefused };
   } catch (e) {
-    return { ok: false, detail: `threw ${e instanceof Error ? e.message : String(e)}` };
+    return { ok: false, detail: `threw ${e instanceof Error ? e.message : String(e)}`, passwordRefused: false };
   }
 }
 
@@ -311,6 +324,38 @@ async function writeStandaloneAuditFailure(args: {
     });
   } catch (e) {
     console.warn("Standalone audit-failure write threw (non-blocking):", e);
+  }
+}
+
+// True when an earlier attempt for this email was stopped because Shopify
+// refused the password, and no later attempt succeeded. That attempt already
+// tagged the customer, so the resubmit must not be blocked as a repeat
+// application. Same query and conditions as check-email's copy. Any error
+// means false (today's behaviour).
+async function hasPendingPasswordRefusal(email: string): Promise<boolean> {
+  try {
+    const _url = Deno.env.get("SUPABASE_URL");
+    const _key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const normalized = email.toLowerCase().trim();
+    if (!_url || !_key || !normalized) return false;
+    const pattern = normalized.replace(/[\\%_*]/g, (c) => `\\${c}`);
+    const res = await fetch(
+      `${_url}/rest/v1/registration_submissions?email=ilike.${encodeURIComponent(pattern)}` +
+        `&select=email,created_at,status,error_log&order=created_at.desc&limit=20`,
+      { headers: { apikey: _key, Authorization: `Bearer ${_key}` } }
+    );
+    if (!res.ok) return false;
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return false;
+    const mine = rows.filter((r) => String(r?.email ?? "").toLowerCase().trim() === normalized);
+    const refusedIdx = mine.findIndex(
+      (r) => Array.isArray(r?.error_log) && r.error_log.some((e: { step?: unknown }) => e?.step === "password_refused")
+    );
+    if (refusedIdx < 0) return false;
+    return !mine.slice(0, refusedIdx).some((r) => r?.status === "succeeded" || r?.status === "shopify_ok");
+  } catch (e) {
+    console.warn("Password-refusal lookup threw (treating as none):", e);
+    return false;
   }
 }
 
@@ -1578,6 +1623,9 @@ Deno.serve(async (req: Request) => {
   // parallel with the Helium write - both the enrichment and activation
   // tails need it later, but we don't want to block on it sequentially.
   const appSettingsPromise = loadAppSettings();
+  // Read before this request writes its own audit row, so the gates below
+  // only see earlier attempts.
+  const refusedRowPendingPromise = hasPendingPasswordRefusal(requestBody.data.email);
 
   // First, check if customer already exists in Helium / Customer Fields.
   const existingCustomerSearch = await searchCustomerByEmail(
@@ -1692,6 +1740,10 @@ Deno.serve(async (req: Request) => {
   // `isGhostShell` is hoisted so the enrichment block below can append a
   // marker tag ("ghost-shell-recovered") to the Shopify customer.
   let isGhostShell = false;
+  const refusedRowPending = await refusedRowPendingPromise;
+  // A resubmit after Shopify refused the password finishes the same disabled
+  // customer the earlier attempt created and tagged.
+  let passwordRefusedResume = false;
   if (existingCustomerId) {
     let alreadyApplied = false;
     let blockReason = "";
@@ -1743,7 +1795,15 @@ Deno.serve(async (req: Request) => {
             alreadyApplied = true;
             blockReason = blockReason ? `${blockReason}, has orders` : "has orders";
           }
-          if (!alreadyApplied && custState === "disabled" && ordersCount === 0) {
+          if (alreadyApplied && blockReason === "account type tag" && custState === "disabled" && refusedRowPending) {
+            alreadyApplied = false;
+            passwordRefusedResume = true;
+            console.log("Resuming after a refused password:", {
+              email: requestBody.data.email,
+              shopify_customer_id: existingShopifyId,
+            });
+          }
+          if (!alreadyApplied && !passwordRefusedResume && custState === "disabled" && ordersCount === 0) {
             isGhostShell = true;
             console.log(
               "Detected ghost-shell (third-party auto-provisioned Shopify customer) - treating as brand-new applicant:",
@@ -2168,7 +2228,10 @@ Deno.serve(async (req: Request) => {
         console.warn("Shopify direct email lookup after Helium 422 failed:", e);
       }
       const hasAccountTypeTag = !!match?.tags.some((t) => /^account type:/i.test(t.trim()));
-      if (!match || match.state === "enabled" || hasAccountTypeTag || match.ordersCount > 0) {
+      const lateResume =
+        !!match && hasAccountTypeTag && match.state === "disabled" && match.ordersCount === 0 && refusedRowPending;
+      if (lateResume) passwordRefusedResume = true;
+      if (!match || match.state === "enabled" || (hasAccountTypeTag && !lateResume) || match.ordersCount > 0) {
         const reason = !match
           ? "lookup missed"
           : hasAccountTypeTag
@@ -2190,7 +2253,7 @@ Deno.serve(async (req: Request) => {
       );
       existingCustomerId = match.id;
       existingShopifyId = match.id;
-      isGhostShell = match.state === "disabled" && match.ordersCount === 0;
+      isGhostShell = !passwordRefusedResume && match.state === "disabled" && match.ordersCount === 0;
       apiResponse = await fetch(`${customerFieldsApiUrl}/${match.id}.json`, {
         method: "PUT",
         headers: apiHeaders,
@@ -2578,6 +2641,13 @@ Deno.serve(async (req: Request) => {
     let activationFallback: "sent" | "recently_sent" | "failed" | null = null;
     // Chain C found the account already enabled: answer the guard's 409.
     let alreadyEnabledConflict = false;
+    // Shopify refused this password at activation and left the account
+    // disabled: ask for a different one instead of forcing it with an Admin
+    // write, which the store then refuses at sign-in.
+    let passwordRefused = false;
+    // A second refusal for the same email may not be about the password, so
+    // it takes the usual recovery path instead of asking again.
+    let passwordRefusedRepeat = false;
     // Multipass link minted when the store refuses a password it just accepted.
     let signInFallbackUrl: string | null = null;
     // Multipass link for an account the activation API verified. The SPA uses
@@ -2911,7 +2981,33 @@ Deno.serve(async (req: Request) => {
                 ? await activateByUrl(shopifyDomain, activationUrl, submittedPassword, buyerIp)
                 : null;
               const apiRefusal = viaApi && !viaApi.ok ? viaApi.detail : "-";
-              if (viaApi?.ok) {
+              let stopForRefusal = false;
+              if (viaApi && !viaApi.ok && viaApi.passwordRefused) {
+                if (refusedRowPending) {
+                  passwordRefusedRepeat = true;
+                  recordAuditFailure("password_refused_repeat", `Shopify refused the password again; using the usual recovery. api ${apiRefusal}`);
+                } else {
+                  let stateAfterRefusal = "";
+                  try {
+                    const stateRes = await shopifyFetch(
+                      `https://${shopifyDomain}/admin/api/2024-10/customers/${shopifyCustomerId}.json?fields=id,state`,
+                      { method: "GET", headers: { "X-Shopify-Access-Token": shopifyAdminToken, "Content-Type": "application/json" } }
+                    );
+                    if (stateRes.ok) stateAfterRefusal = String((await stateRes.json())?.customer?.state ?? "");
+                  } catch (stateErr) {
+                    console.warn("Customer state check after password refusal threw:", stateErr);
+                  }
+                  if (stateAfterRefusal === "disabled") {
+                    stopForRefusal = true;
+                  } else {
+                    console.warn("Password refused but customer state is not disabled; using the usual path:", stateAfterRefusal || "unknown");
+                  }
+                }
+              }
+              if (stopForRefusal) {
+                passwordRefused = true;
+                recordAuditFailure("password_refused", `Shopify refused the password at activation; asked for a new one. api ${apiRefusal}; password ${passwordShape(submittedPassword)}`);
+              } else if (viaApi?.ok) {
                 console.log("Activated Shopify customer through customerActivateByUrl:", shopifyCustomerId);
                 activated = true;
                 accountPasswordVerified = true;
@@ -3089,7 +3185,7 @@ Deno.serve(async (req: Request) => {
             // verified recovery function. That function prepares and verifies
             // invited/disabled accounts before sending a reset email. It never
             // uses the broken storefront account-invite template.
-            if (!activated && !alreadyEnabledConflict) {
+            if (!activated && !alreadyEnabledConflict && !passwordRefused) {
               try {
                 const backendUrl = Deno.env.get("SUPABASE_URL");
                 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -3165,6 +3261,50 @@ Deno.serve(async (req: Request) => {
     // Wait for all independent tails to complete before finalizing
     // the audit row. allSettled - one failure mustn't poison the others.
     await Promise.allSettled(tailTasks);
+
+    if (passwordRefused || passwordRefusedRepeat) {
+      try {
+        if (_supabaseUrl && _serviceRoleKey) {
+          await fetch(`${_supabaseUrl}/functions/v1/notify-error`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${_serviceRoleKey}`,
+              apikey: _serviceRoleKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              source: passwordRefused ? "create-customer-password-refused-ask" : "create-customer-password-refused-repeat",
+              message: passwordRefused
+                ? "Store refused the applicant's password at activation; asked them to choose a different one"
+                : "Store refused the applicant's password again after they chose a new one; used the usual recovery",
+              context: {
+                email: parseResult.data.email,
+                shopifyCustomerId: shopifyCustomerId ?? null,
+                detail: auditErrors
+                  .filter((e) => e.step === "password_refused" || e.step === "password_refused_repeat")
+                  .map((e) => e.message)
+                  .join(" | "),
+              },
+            }),
+          });
+        }
+      } catch (alertErr) {
+        console.warn("password-refused alert threw (non-blocking):", alertErr);
+      }
+    }
+
+    if (passwordRefused) {
+      await updateAuditRow({
+        status: "failed",
+        shopify_customer_id: shopifyCustomerId ?? null,
+        error_log: auditErrors,
+      });
+      return sendError(
+        400,
+        ["password: The store won't accept this password for security reasons. Type a new one, ideally one you don't use on other sites."],
+        "Password refused"
+      );
+    }
 
     if (alreadyEnabledConflict) {
       await updateAuditRow({ status: "failed", error_log: auditErrors });

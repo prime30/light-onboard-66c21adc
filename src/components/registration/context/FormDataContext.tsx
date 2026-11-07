@@ -273,6 +273,16 @@ export function FormDataProvider({
           if (m) fieldErrors.push({ field: m[1], message: m[2] });
         }
 
+        // The store refused the password itself. Empty both fields before
+        // setting any error: setValue notifies the subscriber that clears
+        // root.form and the banner, and an empty field stops the refused
+        // password from being resent.
+        const isLonePasswordError = fieldErrors.length === 1 && fieldErrors[0].field === "password";
+        if (isLonePasswordError) {
+          setValue("password", "", { shouldValidate: false });
+          setValue("confirmPassword", "", { shouldValidate: false });
+        }
+
         if (fieldErrors.length > 0) {
           for (const { field, message } of fieldErrors) {
             // Strip array indexes ("licenseProofFiles.0" → "licenseProofFiles")
@@ -291,7 +301,9 @@ export function FormDataProvider({
             })
             .join("\n");
           reportSubmitErrorMessage(
-            `Some required information is missing or invalid:\n${friendlyList}`
+            isLonePasswordError
+              ? fieldErrors[0].message
+              : `Some required information is missing or invalid:\n${friendlyList}`
           );
           // Signal FormContext to navigate to the first offending field.
           const firstTop = fieldErrors[0].field.split(".")[0] as ValidFieldNames;

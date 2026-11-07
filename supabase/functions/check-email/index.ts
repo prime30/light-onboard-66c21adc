@@ -4,7 +4,7 @@
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "B-20261005";
+const FUNCTION_VERSION = "REFUSEDPW-20261107";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +14,36 @@ const corsHeaders = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// True when an earlier signup attempt for this email was stopped because
+// Shopify refused the password, and no later attempt succeeded. Same query
+// and conditions as create-customer's copy. Any error means false.
+async function hasPendingPasswordRefusal(email: string): Promise<boolean> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const normalized = email.toLowerCase().trim();
+    if (!url || !key || !normalized) return false;
+    const pattern = normalized.replace(/[\\%_*]/g, (c) => `\\${c}`);
+    const res = await fetch(
+      `${url}/rest/v1/registration_submissions?email=ilike.${encodeURIComponent(pattern)}` +
+        `&select=email,created_at,status,error_log&order=created_at.desc&limit=20`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    if (!res.ok) return false;
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return false;
+    const mine = rows.filter((r) => String(r?.email ?? "").toLowerCase().trim() === normalized);
+    const refusedIdx = mine.findIndex(
+      (r) => Array.isArray(r?.error_log) && r.error_log.some((e: { step?: unknown }) => e?.step === "password_refused")
+    );
+    if (refusedIdx < 0) return false;
+    return !mine.slice(0, refusedIdx).some((r) => r?.status === "succeeded" || r?.status === "shopify_ok");
+  } catch (e) {
+    console.warn("check-email: password-refusal lookup threw (treating as none):", e);
+    return false;
+  }
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -214,6 +244,20 @@ Deno.serve(async (req: Request) => {
        // Do not use send_invite here because the storefront activation route
        // is the broken path this recovery is intended to bypass.
       const state: string = json?.customer?.state ?? "";
+      // An attempt stopped because Shopify refused the password left this
+      // customer tagged and disabled. The applicant is choosing a new
+      // password: let them continue and send nothing.
+      if (
+        hasAppliedTag &&
+        state === "disabled" &&
+        Number(json?.customer?.orders_count ?? 0) === 0 &&
+        (await hasPendingPasswordRefusal(email))
+      ) {
+        return new Response(JSON.stringify({ exists: false, needsActivation: false }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const needsActivation = hasAppliedTag && (state === "invited" || state === "disabled");
        let inviteSent = false;
       if (needsActivation) {

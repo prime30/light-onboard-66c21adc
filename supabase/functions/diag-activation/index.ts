@@ -21,7 +21,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[]; buyerIp?: string };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[]; buyerIp?: string; seedRefused?: { withRefusedRow?: boolean }; deleteId?: string };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -80,6 +80,50 @@ Deno.serve(async (req) => {
       })).json().catch(() => null)
       : null;
     return json(200, { byId, byEmail, gql });
+  }
+
+  // The state a refused signup leaves behind: a disabled, tagged customer and,
+  // optionally, the audit row that lets a resubmit through. Throwaway emails
+  // only; remove with deleteId.
+  if (body.seedRefused) {
+    const seedEmail = `ddtest-refused-${Date.now()}@spamok.com`;
+    const created = await fetch(`https://${domain}/admin/api/2024-10/customers.json`, {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({
+        customer: { email: seedEmail, first_name: "Diag", last_name: "Refused", tags: "Account type: Professional", send_email_invite: false },
+      }),
+    });
+    const customer = (await created.json().catch(() => null))?.customer;
+    let auditRow: number | null = null;
+    if (customer?.id && body.seedRefused.withRefusedRow) {
+      const sbUrl = Deno.env.get("SUPABASE_URL");
+      const sbKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (sbUrl && sbKey) {
+        const ins = await fetch(`${sbUrl}/rest/v1/registration_submissions`, {
+          method: "POST",
+          headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({
+            email: seedEmail,
+            account_type: "professional",
+            status: "failed",
+            shopify_customer_id: String(customer.id),
+            payload: { seeded_by: "diag-activation" },
+            error_log: [{ step: "password_refused", status: "error", field: "password", message: "seeded by diag-activation", at: new Date().toISOString() }],
+          }),
+        });
+        auditRow = ins.status;
+      }
+    }
+    return json(created.ok ? 200 : 502, { email: seedEmail, id: customer?.id ?? null, state: customer?.state ?? null, createStatus: created.status, auditRow });
+  }
+
+  if (body.deleteId) {
+    const res = await fetch(`https://${domain}/admin/api/2024-10/customers/${encodeURIComponent(body.deleteId)}.json?fields=id,email`, { headers: adminHeaders });
+    const email: string = (await res.json().catch(() => null))?.customer?.email ?? "";
+    if (!/^ddtest-[a-z0-9-]+@spamok\.com$/.test(email)) return json(400, { error: "Only ddtest- throwaway customers can be deleted", email });
+    const d = await fetch(`https://${domain}/admin/api/2024-10/customers/${encodeURIComponent(body.deleteId)}.json`, { method: "DELETE", headers: adminHeaders });
+    return json(200, { deleted: d.status, email });
   }
 
   const modes: Mode[] = body.modes?.length ? body.modes : ["form", "admin_write", "activate_by_url"];

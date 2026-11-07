@@ -152,6 +152,20 @@
 
 ---
 
+## PSL-010: Admin Password Writes Bypass the Store's Password Rules
+
+**Symptom**: New applicants (marl, paig, lind, Nov 2026) finished signup, then could not sign in with the password they had just chosen. Some looped between the reset screen and the sign-in screen.
+
+**Root Cause**: Shopify's `customerActivateByUrl` refused the password ("Password must be different. For the security of your account you cannot use this password."). `create-customer` then fell through to the form POST and an Admin `PUT customers/{id}.json` with the same password. The Admin write is accepted and enables the account, but the storefront still refuses that password at sign-in. Shopify did not say which rule it applies; new passwords worked for every affected customer.
+
+**Fix**: `activateByUrl` flags `passwordRefused` only for `code: INVALID` with "cannot use this password". If the account is still disabled, `create-customer` skips the form POST, Admin write, Multipass and reset email, records `password_refused`, alerts (`create-customer-password-refused-ask`) and answers 400 `password: ...`. The client empties both password fields and shows the message under Password. The resubmit is let through the "already applied" tag gate, the Helium 422 late guard and `check-email` when the customer is disabled with no orders, an earlier row has `password_refused`, and no later row succeeded. A second refusal for the same email records `password_refused_repeat`, alerts (`create-customer-password-refused-repeat`) and takes the old path, in case the refusal is not about the password.
+
+**Key Rule**: Never force a password the storefront refused. An Admin write that succeeds does not prove the customer can sign in.
+
+**Files**: `supabase/functions/create-customer/index.ts`, `supabase/functions/check-email/index.ts`, `src/components/registration/context/FormDataContext.tsx`, `src/components/registration/steps/CreatePasswordStep.tsx`
+
+---
+
 ## Anti-Patterns to Avoid
 
 1. **Never use `opacity-0 animate-fade-in` for initial renders** - causes FOUC. Use it only for elements entering *after* user interaction.

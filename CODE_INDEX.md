@@ -222,9 +222,9 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 **Registration and sign-up**
 | Function | Purpose |
 |----------|---------|
-| `create-customer/` | Creates Shopify customer + Supabase profile; activates server-side when auto-approval is on (Chain C). An enabled Shopify account (found up front, or late when Chain C can't get an activation URL) gets a 409 with Sign in / Reset password actions and never a reset email. Existing Shopify customers are found by exact email (`customerByIdentifier`, search as fallback); a Helium "email already taken" 422 soft-merges onto a not-yet-activated account instead of failing |
+| `create-customer/` | Creates Shopify customer + Supabase profile; activates server-side when auto-approval is on (Chain C). An enabled Shopify account (found up front, or late when Chain C can't get an activation URL) gets a 409 with Sign in / Reset password actions and never a reset email. Existing Shopify customers are found by exact email (`customerByIdentifier`, search as fallback); a Helium "email already taken" 422 soft-merges onto a not-yet-activated account instead of failing. When `customerActivateByUrl` refuses the password ("cannot use this password") and the account stays disabled, it answers 400 `password:` (audit step `password_refused`) instead of forcing it with an Admin write; the resubmit is let through the "already applied" gates. A second refusal for the same email takes the usual path (`password_refused_repeat`) |
 | `track-registration-lead/` | Captures incomplete registrations and syncs to Klaviyo |
-| `check-email/` | Email-exists check for ContactBasicsStep |
+| `check-email/` | Email-exists check for ContactBasicsStep and the password step preflight. After a `password_refused` attempt it answers `exists: false` and sends no reset email |
 | `check-phone/` | Phone validity + uniqueness check |
 | `verify-au-geo/` | Confirms Australia applicants are in AU |
 | `upload-file/` | Uploads to Supabase storage |
@@ -321,7 +321,8 @@ Black-box: the harness captures the handler each function passes to `Deno.serve`
 | File | Purpose |
 |------|---------|
 | `harness.ts` | `FakeNet` (routes, recorded calls, unmatched calls fail loudly), `FakeTable` (tiny PostgREST table), `withFunction`, `readMultipass` (decrypts and verifies a minted link) |
-| `create-customer_test.ts` | Store refuses the new password: Multipass fallback and alert, or reset email when the Admin write fails; orders guard at all three points; ghost shell; 40 character cap |
+| `create-customer_test.ts` | Store refuses the new password: Multipass fallback and alert, or reset email when the Admin write fails; refused at activation: 400 asking for a different password, resubmit resumes (tag gate and late guard), second refusal takes the usual path, other wording unchanged; orders guard at all three points; ghost shell; 40 character cap |
+| `check-email_test.ts` | After a refused password the applicant continues with no reset email; otherwise unchanged |
 | `multipass-login_test.ts` | 5 per hour cap with Retry-After, capped retries and successes not counting, minted link contents, return_to checks, unactivated, throttling |
 | `recover-password_test.ts` | Cooldown claim kept on send and released when nothing was sent, unknown email, kill switch, `force` only for the service role, invited account preparation |
 | `reset-password_test.ts` | Multipass from Shopify's email (never the hint), dead link self-heal for every `freshLink`, password rule errors keep the link, same password signs in |
