@@ -71,8 +71,21 @@ export class FakeNet {
   };
 }
 
+/** ILIKE pattern as PostgREST reads it: `%` or `*` any run, `_` one char, backslash escapes. */
+function likeToRegExp(pattern: string): RegExp {
+  let out = "";
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === "\\" && i + 1 < pattern.length) out += pattern[++i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    else if (c === "%" || c === "*") out += ".*";
+    else if (c === "_") out += ".";
+    else out += c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  return new RegExp(`^${out}$`, "i");
+}
+
 /**
- * A tiny PostgREST table: eq/gte filters, order, limit on GET; insert with
+ * A tiny PostgREST table: eq/gte/ilike filters, order, limit on GET; insert with
  * return=representation on POST; PATCH by filter.
  */
 export class FakeTable {
@@ -111,6 +124,7 @@ export class FakeTable {
         const v = String(r[key] ?? "");
         if (op === "eq") return v === target;
         if (op === "gte") return v >= target;
+        if (op === "ilike") return likeToRegExp(target).test(v);
         return true;
       });
     }

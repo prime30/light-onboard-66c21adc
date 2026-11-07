@@ -182,6 +182,11 @@ export const CreatePasswordStep = () => {
             </button>
             <CheckMarkIcon show={passwordValid} />
           </div>
+          {e.password?.type === "server" && e.password?.message && (
+            <p className="text-xs text-destructive" data-testid="password-server-error">
+              {e.password.message}
+            </p>
+          )}
 
           {/* Requirements checklist - only shows rules that are still
               unmet after the user has typed at least 3 characters. */}

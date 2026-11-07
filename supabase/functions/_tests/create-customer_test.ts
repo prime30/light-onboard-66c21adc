@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertMatch } from "jsr:@std/assert@1";
-import { FakeNet, SB_URL, admin, fn, readMultipass, reply, rest, storefront, withFunction } from "./harness.ts";
+import { FakeNet, FakeTable, SB_URL, admin, fn, readMultipass, reply, rest, storefront, withFunction } from "./harness.ts";
 
 const EMAIL = "pat@example.com";
 const HELIUM_ENV = { HELIUM_PRIVATE_FORM_ID: "form", HELIUM_PRIVATE_ACCESS_TOKEN: "helium" };
@@ -18,6 +18,8 @@ type World = {
   adminWriteOk?: boolean;
   /** customerActivateByUrl refuses even though the form path would work. */
   apiActivationRefused?: boolean;
+  /** customerActivateByUrl answers with this user error. */
+  apiActivationError?: { code: string; message: string };
 };
 
 function signupWorld(w: World) {
@@ -70,6 +72,9 @@ function signupWorld(w: World) {
     return new Response(null, { status: 302, headers: { location: "https://store.test/account" } });
   });
   net.on("POST", storefront, () => {
+    if (w.apiActivationError) {
+      return { data: { customerActivateByUrl: { customerAccessToken: null, customerUserErrors: [{ ...w.apiActivationError, field: null }] } } };
+    }
     if (w.apiActivationRefused || !w.storeAcceptsPassword) {
       return { data: { customerActivateByUrl: { customerAccessToken: null, customerUserErrors: [{ code: "TOKEN_INVALID", field: null, message: "Invalid activation url" }] } } };
     }
@@ -237,5 +242,130 @@ Deno.test("a 41 character password is refused by validation", async () => {
     assertEquals(res.status, 400);
     assertMatch(body.errorMessage.join(" "), /40 characters or fewer/);
     assertEquals(net.to("POST", /customerfields\.com/).length, 0);
+  }, HELIUM_ENV);
+});
+
+const REFUSED = { code: "INVALID", message: "Password must be different. For the security of your account you cannot use this password." };
+const APPLIED = { state: "disabled", numberOfOrders: 0, tags: ["Account type: Professional"] };
+
+/** Audit table with earlier attempts for this email, oldest first. */
+function submissions(net: FakeNet, earlier: { status: string; step?: string }[] = []) {
+  const table = new FakeTable("registration_submissions").install(net);
+  earlier.forEach((r, i) =>
+    table.insert({
+      email: "Pat@Example.com",
+      status: r.status,
+      error_log: r.step ? [{ step: r.step, status: "error", message: "earlier attempt" }] : [],
+      created_at: `2026-01-01T10:0${i}:00.000Z`,
+    }));
+  return table;
+}
+const steps = (table: FakeTable) => table.rows.flatMap((r) => ((r.error_log ?? []) as { step: string }[]).map((e) => e.step));
+const ghostTagged = (net: FakeNet) =>
+  net.to("PUT", admin("customers/42\\.json")).some((c) =>
+    String((c.body as { customer: { tags?: unknown } }).customer.tags ?? "").includes("ghost-shell-recovered"));
+
+Deno.test("store refuses the password at activation: asks for a new one and never forces it", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, apiActivationError: REFUSED });
+  const table = submissions(net);
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    const res = await call(application());
+    const body = await res.json();
+    assertEquals(res.status, 400, JSON.stringify(body));
+    assertEquals(body.errorMessage, [
+      "password: The store won't accept this password for security reasons. Type a new one, ideally one you don't use on other sites.",
+    ]);
+    assertEquals(activationPosts(net).length, 0);
+    assertEquals(passwordWrites(net).length, 0);
+    assertEquals(net.to("POST", fn("recover-password")).length, 0);
+    assertEquals(net.to("POST", fn("generate-discount")).length, 0);
+    assertEquals(body.data?.verifiedSignInUrl, undefined);
+    assertEquals(body.data?.multipassUrl, undefined);
+    assert(alerts(net).includes("create-customer-password-refused-ask"), JSON.stringify(alerts(net)));
+    await settle();
+    const row = table.rows.at(-1)!;
+    assertEquals(row.status, "failed");
+    assert(steps(table).includes("password_refused"), JSON.stringify(row.error_log));
+  }, HELIUM_ENV);
+});
+
+Deno.test("resubmit after a refused password: the tagged customer is finished, not blocked", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED });
+  submissions(net, [{ status: "failed", step: "password_refused" }]);
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    const body = await res.json();
+    assertEquals(res.status, 200, JSON.stringify(body));
+    assert(body.data.verifiedSignInUrl);
+    assertEquals(passwordWrites(net).length, 0);
+    assertEquals(ghostTagged(net), false);
+  }, HELIUM_ENV);
+});
+
+Deno.test("resubmit after a refused password that collides at create: the late guard lets it through", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, heliumEmailTaken: true, existing: APPLIED });
+  submissions(net, [{ status: "failed", step: "password_refused" }]);
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    const body = await res.json();
+    assertEquals(res.status, 200, JSON.stringify(body));
+    assert(body.data.verifiedSignInUrl);
+    assertEquals(ghostTagged(net), false);
+  }, HELIUM_ENV);
+});
+
+Deno.test("an unrelated failure after the refusal still allows the resume", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED });
+  submissions(net, [{ status: "failed", step: "password_refused" }, { status: "failed", step: "phone_in_use" }]);
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    assertEquals(res.status, 200, await res.clone().text());
+  }, HELIUM_ENV);
+});
+
+Deno.test("a success after the refusal ends the resume: 409 already applied", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED });
+  submissions(net, [{ status: "failed", step: "password_refused" }, { status: "succeeded" }]);
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    assertEquals(res.status, 409);
+    assertEquals(passwordWrites(net).length, 0);
+  }, HELIUM_ENV);
+});
+
+Deno.test("an applied customer without a refused attempt is still blocked: 409", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED });
+  submissions(net, [{ status: "failed", step: "phone_in_use" }]);
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application());
+    assertEquals(res.status, 409);
+    assertEquals(apiActivations(net).length, 0);
+  }, HELIUM_ENV);
+});
+
+for (const message of ["Invalid activation url", "Password must be different"]) {
+  Deno.test(`other INVALID wording ("${message}") keeps the usual fallback`, async () => {
+    const net = signupWorld({ storeAcceptsPassword: true, apiActivationError: { code: "INVALID", message } });
+    submissions(net);
+    await withFunction("create-customer", net, async ({ call }) => {
+      const res = await call(application());
+      assertEquals(res.status, 200, await res.clone().text());
+      assertEquals(activationPosts(net).length, 1);
+      assert(!alerts(net).includes("create-customer-password-refused-ask"));
+    }, HELIUM_ENV);
+  });
+}
+
+Deno.test("a second refusal for the same email takes the usual recovery path instead of asking again", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED, apiActivationError: REFUSED });
+  const table = submissions(net, [{ status: "failed", step: "password_refused" }]);
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    const res = await call(application());
+    assertEquals(res.status, 200, await res.clone().text());
+    assertEquals(activationPosts(net).length, 1);
+    assert(alerts(net).includes("create-customer-password-refused-repeat"), JSON.stringify(alerts(net)));
+    assert(!alerts(net).includes("create-customer-password-refused-ask"));
+    await settle();
+    assert(steps(table).includes("password_refused_repeat"));
   }, HELIUM_ENV);
 });
