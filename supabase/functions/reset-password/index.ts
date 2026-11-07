@@ -2,7 +2,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "RETURN2K-20261028";
+const FUNCTION_VERSION = "REFUSEDPW-20261106";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -585,9 +585,9 @@ Deno.serve(async (req) => {
       );
 
 
-      // "Password must be different" means the password they just typed is
-      // ALREADY their password, so their login was right all along. Instead of
-      // a dead end, sign them in with it.
+      // Shopify sends "Password must be different" both for the current
+      // password and for passwords its security rules refuse outright. Signing
+      // in with it tells the two apart.
       const isSamePassword =
         msg.includes("must be different") ||
         msg.includes("used before") ||
@@ -617,8 +617,8 @@ Deno.serve(async (req) => {
           );
         }
         return sendError(400, [
-          "That's already your password. Go back and sign in with it, or choose a different new password.",
-        ], "Same password");
+          "The store won't accept this password for security reasons. Tap Try Again and choose a different password, one you don't use on other sites.",
+        ], "Password refused");
       }
 
       const isExpired = msg.includes("expired") || code === "EXPIRED";
