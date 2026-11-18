@@ -242,7 +242,7 @@ Each function inlines its own helpers in `index.ts` (see `mem/index.md`).
 | `reset-password/` | Shopify reset via `customerResetByUrl`; dead links self-heal through `recover-password` and report `freshLink` |
 | `recover-password/` | Sends a Shopify reset email (`customerRecover`). One email per address per `RESET_EMAIL_COOLDOWN_SECONDS` (default 600) via `reset_email_sends`; `force` for service-role callers only (PSL-009) |
 | `activate-account/` | Shopify account activation + storefront sign-in check |
-| `customer-gate/` | Circle/Syndicate SSO eligibility (at least 1 order) |
+| `customer-gate/` | Circle/Syndicate SSO eligibility (at least 1 order), and the sign-in "no account" check. Exact `customerByIdentifier` lookup first, search as backup; not found only when both agree. Sign-in records `no_account_precheck` events to `sign-in-history` |
 | `log-reset-landing/` | Logs what arrives on the reset screen |
 | `reset-health-check/` | Weekly reset / invite link health check (pg_cron) |
 | `list-storefront-tokens/`, `cleanup-storefront-tokens/` | Inspect / prune SPA-minted Storefront tokens (100 token cap) |
