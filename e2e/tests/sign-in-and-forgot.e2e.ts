@@ -47,7 +47,7 @@ test.describe("sign in", () => {
     harness.fake("customer-gate", NOT_FOUND);
     harness.fake("multipass-login", { status: 401, body: { success: false, kind: "invalid_credentials" } });
     const app = await signIn(harness);
-    await expect(app.getByText("We couldn't find an account with this email.")).toBeVisible();
+    await expect(app.getByText(`We couldn't find an account for ${EMAIL}. Check the spelling, or apply for access.`)).toBeVisible();
   });
 });
 
@@ -87,7 +87,7 @@ test.describe("forgot password", () => {
   test("unknown email sends nothing", async ({ harness }) => {
     harness.fake("customer-gate", NOT_FOUND);
     const app = await requestReset(harness);
-    await expect(app.getByText("We couldn't find an account with this email.")).toBeVisible();
+    await expect(app.getByText(`We couldn't find an account for ${EMAIL}. Check the spelling, or apply for access.`)).toBeVisible();
     expect(harness.calls("recover-password")).toHaveLength(0);
   });
 

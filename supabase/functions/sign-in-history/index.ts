@@ -4,13 +4,15 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const entry = z.object({
   action: z.literal("record"), email: z.string().email().max(254), attemptId: z.string().uuid(),
-  outcome: z.enum(["started", "success", "confirmed", "error", "no_account", "timeout", "multipass_opened", "standby_armed", "standby_promoted", "standby_late", "standby_unanswered"]),
-  code: z.enum(["rejected", "rate_limited", "challenge", "store_error", "network", "unactivated", "recently_sent"]).optional(),
+  outcome: z.enum(["started", "success", "confirmed", "error", "no_account", "no_account_precheck", "timeout", "multipass_opened", "standby_armed", "standby_promoted", "standby_late", "standby_unanswered"]),
+  code: z.enum(["rejected", "rate_limited", "challenge", "store_error", "network", "unactivated", "recently_sent", "prefilled"]).optional(),
   passwordSource: z.enum(["typed", "autofill", "paste", "mixed", "unknown", "new_password"]),
   evidence: z.enum(["unknown", "input_event", "browser_autofill", "new_password"]),
 }).strict();
 const history = z.object({ action: z.literal("history"), token: z.string().max(2000), email: z.string().email().max(254), offset: z.number().int().min(0).max(100000).default(0) }).strict();
-const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+const FUNCTION_VERSION = "PRECHECK-20261118";
+const headers = { ...corsHeaders, "X-Function-Version": FUNCTION_VERSION };
+const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...headers, "Content-Type": "application/json" } });
 
 async function verifyAdminToken(token: string, secret: string): Promise<boolean> {
   const parts = token.split(".");
@@ -31,7 +33,7 @@ async function verifyAdminToken(token: string, secret: string): Promise<boolean>
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
   const parsed = z.union([entry, history]).safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json(400, { error: "Invalid request" });

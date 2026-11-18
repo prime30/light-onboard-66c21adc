@@ -21,10 +21,15 @@ function parseEmail(raw: unknown): string | null {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 320 ? v : null;
 }
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EXACTLOOKUP-20261118";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 
@@ -52,6 +57,33 @@ interface GateResult {
 }
 
 const SHOPIFY_API_VERSION = "2025-01";
+const EXACT_LOOKUP_API_VERSION = "2026-07";
+
+const toResult = (raw: string | number | null | undefined): GateResult => {
+  const count = typeof raw === "string" ? parseInt(raw, 10) : (raw ?? 0);
+  const numberOfOrders = Number.isFinite(count) ? count : 0;
+  return { eligible: numberOfOrders >= 1, numberOfOrders, found: true };
+};
+
+// Exact email lookup. Unlike customers(query:) it does not go through the
+// search index, which can miss customers that exist. Returns null when no
+// customer has this email; throws on API errors.
+async function findByIdentifier(domain: string, token: string, email: string): Promise<GateResult | null> {
+  const resp = await fetch(`https://${domain}/admin/api/${EXACT_LOOKUP_API_VERSION}/graphql.json`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Shopify-Access-Token": token },
+    body: JSON.stringify({
+      query:
+        "query CustomerGateExact($email: String!) { customer: customerByIdentifier(identifier: { emailAddress: $email }) { id numberOfOrders } }",
+      variables: { email },
+    }),
+  });
+  if (!resp.ok) throw new Error(`customerByIdentifier HTTP ${resp.status}`);
+  const json = await resp.json();
+  if (json?.errors?.length) throw new Error(`customerByIdentifier: ${JSON.stringify(json.errors).slice(0, 200)}`);
+  const node = json?.data?.customer;
+  return node ? toResult(node.numberOfOrders) : null;
+}
 
 async function lookupCustomer(email: string): Promise<GateResult> {
   const token = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -62,6 +94,14 @@ async function lookupCustomer(email: string): Promise<GateResult> {
     return { eligible: true, numberOfOrders: 0, found: false, degraded: true };
   }
 
+  try {
+    const exact = await findByIdentifier(domain, token, email);
+    if (exact) return exact;
+  } catch (err) {
+    console.warn("[customer-gate] exact lookup failed, using search:", err);
+  }
+
+  // The search also runs after an exact miss, so "not found" needs both to agree.
   // Escape quotes in email for the Shopify search query string.
   const safeEmail = email.replace(/"/g, '\\"');
   const query = `
@@ -113,15 +153,7 @@ async function lookupCustomer(email: string): Promise<GateResult> {
       return { eligible: false, numberOfOrders: 0, found: false };
     }
 
-    const raw = node.numberOfOrders;
-    const count = typeof raw === "string" ? parseInt(raw, 10) : (raw ?? 0);
-    const numberOfOrders = Number.isFinite(count) ? count : 0;
-
-    return {
-      eligible: numberOfOrders >= 1,
-      numberOfOrders,
-      found: true,
-    };
+    return toResult(node.numberOfOrders);
   } catch (err) {
     console.error("[customer-gate] Network/parse error:", err);
     return { eligible: true, numberOfOrders: 0, found: false, degraded: true };

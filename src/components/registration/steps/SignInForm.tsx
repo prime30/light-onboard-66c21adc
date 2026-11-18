@@ -32,6 +32,7 @@ import { takePendingLogin } from "@/lib/pending-login";
 import { signInPausedMessage } from "@/lib/retry-after";
 import { resolveParentOrigin } from "@/lib/parent-origin";
 import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
+import { suggestEmailDomainFix } from "@/lib/validations/email-typos";
 
 export type LoginErrorKind =
   | "no_account"
@@ -44,7 +45,11 @@ export type LoginErrorKind =
 export type LoginErrorState = {
   kind: LoginErrorKind;
   message: string;
+  /** Likely intended email when the domain looks mistyped. */
+  suggestion?: string;
 } | null;
+
+type EmailEntry = PasswordEvidence & { prefilled?: boolean };
 
 type UseSignInFormReturn = {
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
@@ -64,7 +69,7 @@ type UseSignInFormReturn = {
   sendAnotherResetLink: () => void;
   backToLogin: () => void;
   goToApply: () => void;
-  precheckEmailExists: (email: string) => void;
+  precheckEmailExists: (email: string, entry?: EmailEntry) => void;
   isPrecheckingEmail: boolean;
   hasAttemptedSubmit: boolean;
   observePassword: React.FormEventHandler<HTMLInputElement>;
@@ -91,6 +96,15 @@ const UNACTIVATED_ERROR: LoginErrorState = {
   kind: "unactivated",
   message: "Your account isn't activated yet. Request a setup link to set your password.",
 };
+
+function noAccountError(rawEmail: string): NonNullable<LoginErrorState> {
+  const email = (rawEmail || "").trim().toLowerCase();
+  return {
+    kind: "no_account",
+    message: `We couldn't find an account for ${email}. Check the spelling, or apply for access.`,
+    suggestion: suggestEmailDomainFix(email) ?? undefined,
+  };
+}
 
 function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const { initialEmail } = props;
@@ -468,10 +482,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         if (multipass.kind !== "ok" && !gate.found && !gate.degraded) {
           setIsSubmitting(false);
           if (attemptRef.current) void recordSignInEvent({ ...attemptRef.current, outcome: "no_account" });
-          setLoginError({
-            kind: "no_account",
-            message: "We couldn't find an account with this email.",
-          });
+          setLoginError(noAccountError(data.email));
           return;
         }
 
@@ -522,10 +533,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
         const gate = await checkCustomerGate(data.email);
         if (!gate.found && !gate.degraded) {
           setIsSubmitting(false);
-          setForgotPasswordError({
-            kind: "no_account",
-            message: "We couldn't find an account with this email.",
-          });
+          setForgotPasswordError(noAccountError(data.email));
           return;
         }
 
@@ -579,7 +587,7 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
   const precheckTokenRef = useRef(0);
 
   const precheckEmailExists = useCallback(
-    (rawEmail: string) => {
+    (rawEmail: string, entry: EmailEntry = { source: "unknown", evidence: "unknown" }) => {
       const normalized = (rawEmail || "").trim().toLowerCase();
       // Skip empty / obviously invalid emails - let zod handle that path.
       if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
@@ -590,14 +598,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       const cached = precheckCacheRef.current.get(normalized);
       if (cached !== undefined) {
         if (cached === false) {
-          setLoginError({
-            kind: "no_account",
-            message: "We couldn't find an account with this email.",
-          });
-          setForgotPasswordError({
-            kind: "no_account",
-            message: "We couldn't find an account with this email.",
-          });
+          setLoginError(noAccountError(normalized));
+          setForgotPasswordError(noAccountError(normalized));
         }
         return;
       }
@@ -606,6 +608,19 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
       setIsPrecheckingEmail(true);
       checkCustomerGate(normalized)
         .then((gate) => {
+          // Recorded once per email (the cache short-circuits repeats). For
+          // this outcome passwordSource and evidence describe the email entry,
+          // and code "prefilled" marks a remembered or handed-off email.
+          if (!gate.found && !gate.degraded) {
+            void recordSignInEvent({
+              email: normalized,
+              attemptId: crypto.randomUUID(),
+              outcome: "no_account_precheck",
+              code: entry.prefilled ? "prefilled" : undefined,
+              passwordSource: entry.source,
+              evidence: entry.evidence,
+            });
+          }
           // Stale response - a newer precheck has started or email changed.
           if (token !== precheckTokenRef.current) return;
           // Don't cache degraded results so we'll retry next time.
@@ -613,14 +628,8 @@ function useSignInForm(props: SignInFormProps = {}): UseSignInFormReturn {
             precheckCacheRef.current.set(normalized, gate.found);
           }
           if (!gate.found && !gate.degraded) {
-            setLoginError({
-              kind: "no_account",
-              message: "We couldn't find an account with this email.",
-            });
-            setForgotPasswordError({
-              kind: "no_account",
-              message: "We couldn't find an account with this email.",
-            });
+            setLoginError(noAccountError(normalized));
+            setForgotPasswordError(noAccountError(normalized));
           }
         })
         .catch(() => {
@@ -723,10 +732,12 @@ export const SignInForm = () => {
   // (e.g. remembered email or hand-off from another form).
   useEffect(() => {
     if (email) {
-      precheckEmailExists(email);
+      precheckEmailExists(email, { source: "unknown", evidence: "unknown", prefilled: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const emailEvidence = useRef<PasswordEvidence>({ source: "unknown", evidence: "unknown" });
 
   useEffect(() => {
     register("formType");
@@ -736,6 +747,7 @@ export const SignInForm = () => {
   const onEmailChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
       // Handle email change
+      emailEvidence.current = observePasswordInput(emailEvidence.current, e.nativeEvent as InputEvent);
       setValue("email", e.target.value, { ...dirtyFieldOptions, shouldValidate: false });
     },
     [setValue]
@@ -744,7 +756,16 @@ export const SignInForm = () => {
   const onEmailBlur: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
       setValue("email", e.target.value, dirtyFieldOptions);
-      precheckEmailExists(e.target.value);
+      precheckEmailExists(e.target.value, getPasswordSource(emailEvidence.current, e.target));
+    },
+    [setValue, precheckEmailExists]
+  );
+
+  const applySuggestedEmail = useCallback(
+    (suggestion: string) => {
+      setValue("email", suggestion, dirtyFieldOptions);
+      emailEvidence.current = { source: "unknown", evidence: "unknown" };
+      precheckEmailExists(suggestion);
     },
     [setValue, precheckEmailExists]
   );
@@ -861,6 +882,15 @@ export const SignInForm = () => {
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <div className="flex-1">
                 <p>{forgotPasswordError.message}</p>
+                {forgotPasswordError.suggestion && (
+                  <button
+                    type="button"
+                    onClick={() => applySuggestedEmail(forgotPasswordError.suggestion!)}
+                    className="mt-1 mr-3 inline-flex items-center gap-1 text-foreground underline underline-offset-2 hover:no-underline font-medium"
+                  >
+                    Use {forgotPasswordError.suggestion}
+                  </button>
+                )}
                 {forgotPasswordError.kind === "no_account" && (
                   <button
                     type="button"
@@ -1014,6 +1044,11 @@ export const SignInForm = () => {
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <div className="flex-1 space-y-1">
               <p>{loginError.message}</p>
+              {loginError.suggestion && (
+                <button type="button" onClick={() => applySuggestedEmail(loginError.suggestion!)} className={`${INLINE_ACTION_CLASS} mr-3`}>
+                  Use {loginError.suggestion}
+                </button>
+              )}
               {loginError.kind === "no_account" && (
                 <button type="button" onClick={goToApply} className={INLINE_ACTION_CLASS}>
                   Apply for access
