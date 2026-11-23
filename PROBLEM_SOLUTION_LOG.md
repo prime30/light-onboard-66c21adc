@@ -176,6 +176,8 @@
 
 **Key Rule**: Radix `Select` calls `onValueChange("")` when its value is changed from code. Any picker seeded with `setValue` must ignore the empty value or the seed is wiped a moment later.
 
+**Follow-up**: Every non-US lead (Canada included) was stored as `country_code = US`. The post-submit `reset()` in `FormContext.tsx` kept name, email, phone and opt-ins but not `countryCode`, so it fell back to the "US" default and the next lead ping overwrote the row. The assessing screen showed the US milestone for the same reason. `countryCode` is now kept through that reset.
+
 **Files**: `src/data/locations.ts`, `src/data/qualifications.ts`, `src/hooks/useGeoCountry.ts`, `src/components/registration/steps/ContactBasicsStep.tsx`, `src/lib/validations/auth-schemas.ts`, `src/lib/phone-e164.ts`, `supabase/functions/create-customer/index.ts`
 
 ---
