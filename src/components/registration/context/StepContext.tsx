@@ -16,8 +16,13 @@ import {
 } from "@/data/step-order";
 import { useToast } from "@/hooks/use-toast";
 import { Step, IncompleteStepInfo } from "@/types/auth";
-import { QUALIFICATION_REQUIRED_COUNTRIES, ValidFieldNames } from "@/lib/validations/auth-schemas";
-import { isCurrentQualificationForCountry } from "@/data/qualifications";
+import {
+  QUALIFICATION_REQUIRED_COUNTRIES,
+  SCHOOL_STATE_REQUIRED_MESSAGE,
+  ValidFieldNames,
+} from "@/lib/validations/auth-schemas";
+import { isCurrentQualificationForCountry, licenseRequiredMessage } from "@/data/qualifications";
+import { isEuCountry, requiresSubdivision } from "@/data/locations";
 import { useFormData, ValidationStatus } from "./FormDataContext";
 import { useModeContext } from "./ModeContext";
 import { useOutletContext } from "react-router";
@@ -244,6 +249,12 @@ export function StepProvider({ children }: StepProviderProps) {
             return false;
           }
         }
+        if (step === "school-info") {
+          const v = values as { schoolState?: string; schoolCountryCode?: string };
+          if (requiresSubdivision(v.schoolCountryCode || "US") && !v.schoolState) {
+            return false;
+          }
+        }
         return true;
       })();
 
@@ -418,11 +429,13 @@ export function StepProvider({ children }: StepProviderProps) {
         // missing, so set the field error manually to get the red highlight.
         setError("licenseNumber" as never, {
           type: "manual",
-          message: "License number is required",
+          message: licenseRequiredMessage(country),
         });
         setFocus?.("licenseNumber" as never);
         toast({
-          title: "Please enter your license number",
+          title: isEuCountry(country)
+            ? licenseRequiredMessage(country)
+            : "Please enter your license number",
           variant: "destructive",
         });
         return;
@@ -450,6 +463,19 @@ export function StepProvider({ children }: StepProviderProps) {
           title: "Please select a current qualification for your country",
           variant: "destructive",
         });
+        return;
+      }
+    }
+
+    if (currentStep === "school-info") {
+      const { schoolState, schoolCountryCode } = watch() as {
+        schoolState?: string;
+        schoolCountryCode?: string;
+      };
+      if (requiresSubdivision(schoolCountryCode || "US") && !schoolState) {
+        setShowValidationErrors(true);
+        setError("schoolState" as never, { type: "manual", message: SCHOOL_STATE_REQUIRED_MESSAGE });
+        toast({ title: "Please complete all required fields", variant: "destructive" });
         return;
       }
     }

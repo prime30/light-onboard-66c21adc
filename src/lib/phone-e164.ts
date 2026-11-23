@@ -25,7 +25,8 @@ const NATIONAL_LENGTHS: Record<string, number[]> = {
   "27": [9],           // South Africa
   "33": [9],           // France
   "49": [10, 11],      // Germany (variable)
-  "39": [9, 10, 11],   // Italy (variable)
+  // Italy is deliberately absent: Italian numbers keep their leading 0 in
+  // E.164 (+39 06...), so it must never be stripped.
   "34": [9],           // Spain
   "81": [10],          // Japan
   "86": [11],          // China
@@ -33,6 +34,10 @@ const NATIONAL_LENGTHS: Record<string, number[]> = {
   "52": [10],          // Mexico
   "55": [10, 11],      // Brazil
 };
+
+// EU dial codes without a length rule above whose national format starts
+// with a trunk "0" (AT BE BG HR FI NL RO SK SI SE). One leading 0 is dropped.
+const TRUNK_ZERO_DIALS = new Set(["43", "32", "359", "385", "358", "31", "40", "421", "386", "46"]);
 
 export type E164Result =
   | { ok: true; value: string }
@@ -69,6 +74,11 @@ export function toE164(
   // the country's national-length rule (common in AU/GB/IE/NZ/ZA input).
   if (allowed && digits.startsWith("0") && allowed.includes(digits.length - 1)) {
     digits = digits.slice(1);
+  } else if (TRUNK_ZERO_DIALS.has(dialDigits) && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  } else if (dialDigits === "36" && digits.startsWith("06")) {
+    // Hungary's national prefix is "06".
+    digits = digits.slice(2);
   }
 
   if (allowed) {

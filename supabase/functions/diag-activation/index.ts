@@ -3,13 +3,36 @@
 // customerActivateByUrl), then check whether the store accepts each password.
 // Test customers are deleted afterwards unless keep is true.
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EU-20261123";
+
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
 const STOREFRONT_VERSION = "2024-10";
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body, null, 2), {
     status,
-    headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" },
+    headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json", "X-Function-Version": FUNCTION_VERSION },
   });
+
+// One real address per EU member state, with no province, for the
+// probeEuAddresses check (does Shopify accept the country without a zone?).
+const EU_PROBE_ADDRESSES: Record<string, { city: string; zip: string }> = {
+  AT: { city: "Vienna", zip: "1010" }, BE: { city: "Brussels", zip: "1000" },
+  BG: { city: "Sofia", zip: "1000" }, HR: { city: "Zagreb", zip: "10000" },
+  CY: { city: "Nicosia", zip: "1010" }, CZ: { city: "Prague", zip: "110 00" },
+  DK: { city: "Copenhagen", zip: "1050" }, EE: { city: "Tallinn", zip: "10111" },
+  FI: { city: "Helsinki", zip: "00100" }, FR: { city: "Paris", zip: "75001" },
+  DE: { city: "Berlin", zip: "10115" }, GR: { city: "Athens", zip: "105 52" },
+  HU: { city: "Budapest", zip: "1051" }, IE: { city: "Dublin", zip: "D02 X285" },
+  IT: { city: "Rome", zip: "00184" }, LV: { city: "Riga", zip: "LV-1050" },
+  LT: { city: "Vilnius", zip: "01100" }, LU: { city: "Luxembourg", zip: "1009" },
+  MT: { city: "Valletta", zip: "VLT 1010" }, NL: { city: "Amsterdam", zip: "1012 AB" },
+  PL: { city: "Warsaw", zip: "00-001" }, PT: { city: "Lisbon", zip: "1100-148" },
+  RO: { city: "Bucharest", zip: "010011" }, SK: { city: "Bratislava", zip: "811 01" },
+  SI: { city: "Ljubljana", zip: "1000" }, ES: { city: "Madrid", zip: "28013" },
+  SE: { city: "Stockholm", zip: "111 22" },
+};
 
 type Mode = "form" | "admin_write" | "activate_by_url" | "race_form" | "race_activate_by_url";
 
@@ -21,7 +44,7 @@ function randomPassword(): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } });
-  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[]; buyerIp?: string; seedRefused?: { withRefusedRow?: boolean }; deleteId?: string };
+  const body = await req.json().catch(() => ({})) as { email?: string; password?: string; modes?: Mode[]; keep?: boolean; testPasswords?: string[]; lookupId?: string; lookupEmail?: string; repeat?: number; delaysMs?: number[]; buyerIp?: string; seedRefused?: { withRefusedRow?: boolean }; deleteId?: string; probeEuAddresses?: boolean };
   const adminPassword = Deno.env.get("ADMIN_PANEL_PASSWORD");
   if (!adminPassword || (body.email ?? "").trim().toLowerCase() !== ADMIN_EMAIL || body.password !== adminPassword) {
     return json(401, { error: "Unauthorized" });
@@ -65,7 +88,7 @@ Deno.serve(async (req) => {
   // Read-only: what Shopify stores for one customer, plus any other record
   // under the same email.
   if (body.lookupId || body.lookupEmail) {
-    const fields = "id,email,state,created_at,updated_at,verified_email,tags,phone,email_marketing_consent";
+    const fields = "id,email,state,created_at,updated_at,verified_email,tags,phone,email_marketing_consent,default_address";
     const byId = body.lookupId
       ? await (await fetch(`https://${domain}/admin/api/2024-10/customers/${encodeURIComponent(body.lookupId)}.json?fields=${fields}`, { headers: adminHeaders })).json().catch(() => null)
       : null;
@@ -116,6 +139,40 @@ Deno.serve(async (req) => {
       }
     }
     return json(created.ok ? 200 : 502, { email: seedEmail, id: customer?.id ?? null, state: customer?.state ?? null, createStatus: created.status, auditRow });
+  }
+
+  // Which EU countries does Shopify refuse without a province? One throwaway
+  // customer created straight in Shopify (no signup side effects), one
+  // address per country, then the customer is always deleted.
+  if (body.probeEuAddresses) {
+    const probeEmail = `ddtest-eu-probe-${Date.now()}@spamok.com`;
+    const results: { code: string; ok: boolean; status: number; errors: unknown }[] = [];
+    let id: number | null = null;
+    let deleted: number | null = null;
+    try {
+      const created = await fetch(`https://${domain}/admin/api/2024-10/customers.json`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({ customer: { email: probeEmail, first_name: "Diag", last_name: "EuProbe", send_email_invite: false } }),
+      });
+      id = (await created.json().catch(() => null))?.customer?.id ?? null;
+      if (!id) return json(502, { error: "probe customer not created", createStatus: created.status });
+      for (const [code, a] of Object.entries(EU_PROBE_ADDRESSES)) {
+        const r = await fetch(`https://${domain}/admin/api/2024-10/customers/${id}/addresses.json`, {
+          method: "POST",
+          headers: adminHeaders,
+          body: JSON.stringify({ address: { first_name: "Diag", last_name: "EuProbe", address1: "1 Test Street", city: a.city, zip: a.zip, country_code: code } }),
+        });
+        const rj = await r.json().catch(() => null);
+        results.push({ code, ok: r.ok, status: r.status, errors: r.ok ? null : rj?.errors ?? rj });
+      }
+    } finally {
+      if (id) {
+        const d = await fetch(`https://${domain}/admin/api/2024-10/customers/${id}.json`, { method: "DELETE", headers: adminHeaders });
+        deleted = d.status;
+      }
+    }
+    return json(200, { email: probeEmail, id, deleted, rejected: results.filter((r) => !r.ok).map((r) => r.code), results });
   }
 
   if (body.deleteId) {

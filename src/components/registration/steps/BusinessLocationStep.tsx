@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Building2, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiFileUpload } from "../MultiFileUpload";
@@ -11,7 +11,7 @@ import { TextInput } from "@/components/TextInput";
 import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { dirtyFieldOptions, useForm } from "../context";
-import { countries, states, provinces } from "@/data/locations";
+import { countries, getCountry, isSubdivisionOf } from "@/data/locations";
 import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
 import type { AddressDetails } from "@/services/address";
 
@@ -132,9 +132,13 @@ export const BusinessLocationStep = () => {
         if (details.city) setValue("city", details.city, opts);
         if (details.postalCode) setValue("zipCode", details.postalCode, opts);
 
-        // Set country
-        if (details.country) {
-          const matchedCountry = countries.find((c) => [c.name, c.code].includes(details.country));
+        // Set country: by ISO code first, then by English name (older
+        // address-details versions only return the name).
+        if (details.country || details.countryCode) {
+          const iso = (details.countryCode ?? "").toUpperCase();
+          const matchedCountry =
+            (iso ? getCountry(iso === "GB" ? "UK" : iso) : undefined) ??
+            countries.find((c) => [c.name, c.code].includes(details.country));
 
           if (matchedCountry) {
             setValue("countryCode", matchedCountry.code, opts);
@@ -161,12 +165,34 @@ export const BusinessLocationStep = () => {
     label: c.name,
   }));
 
-  // Get subdivisions based on selected country
-  const subdivisions = selectedCountry?.subdivisions ?? states;
+  const subdivisions = selectedCountry?.subdivisions ?? [];
+  const showProvince = subdivisions.length > 0;
   const subdivisionOptions = subdivisions.map((s) => ({
     value: s.code,
     label: s.name,
   }));
+
+  // Switching country (here or via the phone country) must not carry a
+  // province from the old country into the address.
+  useEffect(() => {
+    if (provinceCode && !isSubdivisionOf(countryCode, provinceCode)) {
+      setValue("provinceCode", "", dirtyFieldOptions);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryCode, provinceCode]);
+
+  const zipInput = (
+    <TextInput
+      name="zipCode"
+      type="text"
+      register={register}
+      error={errors.zipCode}
+      placeholder={selectedCountry?.postalCodeLabel || "Zip/Postal code"}
+      label={`${selectedCountry?.postalCodeLabel || "Zip/Postal code"}*`}
+      isValid={isZipValid}
+      autoComplete="postal-code"
+    />
+  );
 
   // Handle address input change
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,7 +299,7 @@ export const BusinessLocationStep = () => {
           />
         </div>
 
-        {/* City + State */}
+        {/* City + State, or City + Postcode when the country has no subdivisions */}
         <div className="grid grid-cols-2 gap-2.5 animate-stagger-6">
           <TextInput
             name="city"
@@ -286,7 +312,10 @@ export const BusinessLocationStep = () => {
             autoComplete="address-level2"
           />
 
+          {!showProvince && zipInput}
+
           {/* State/Province - Custom implementation for state icon */}
+          {showProvince && (
           <div className="space-y-2.5 group">
             <Label
               htmlFor="stateProvince"
@@ -319,21 +348,11 @@ export const BusinessLocationStep = () => {
               />
             </div>
           </div>
+          )}
         </div>
 
         {/* Zip Code */}
-        <div className="animate-stagger-7">
-          <TextInput
-            name="zipCode"
-            type="text"
-            register={register}
-            error={errors.zipCode}
-            placeholder={selectedCountry?.postalCodeLabel || "Zip/Postal code"}
-            label={`${selectedCountry?.postalCodeLabel || "Zip/Postal code"}*`}
-            isValid={isZipValid}
-            autoComplete="postal-code"
-          />
-        </div>
+        {showProvince && <div className="animate-stagger-7">{zipInput}</div>}
 
         {/* Tax exemption (US only) */}
         {showTaxExemption && (

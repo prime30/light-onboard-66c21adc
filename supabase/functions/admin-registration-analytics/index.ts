@@ -2,10 +2,15 @@
 // Auth: same email + ADMIN_PANEL_PASSWORD pattern as admin-toggle-setting.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EU-20261123";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 const ADMIN_EMAIL = "alex@dropdeadhair.com";
@@ -365,9 +370,9 @@ Deno.serve(async (req: Request) => {
   void VOLUME_STEP_INDEX_BY_FLOW;
 
   // ---- Country cohorts ----
-  // Groups leads by their captured country_code (US/CA/AU/UK/IE/NZ/ZA).
-  // Rows with no captured country (pre-country-capture launch, or bounced
-  // before ContactBasics) collapse into an "Unknown" bucket.
+  // Groups leads by their captured country_code (US/CA/AU/UK/NZ/ZA and the
+  // 27 EU member states). Rows with no captured country (pre-country-capture
+  // launch, or bounced before ContactBasics) collapse into an "Unknown" bucket.
   const COUNTRY_LABEL: Record<string, string> = {
     US: "United States",
     CA: "Canada",
@@ -377,6 +382,12 @@ Deno.serve(async (req: Request) => {
     IE: "Ireland",
     NZ: "New Zealand",
     ZA: "South Africa",
+    AT: "Austria", BE: "Belgium", BG: "Bulgaria", HR: "Croatia", CY: "Cyprus",
+    CZ: "Czechia", DK: "Denmark", EE: "Estonia", FI: "Finland", FR: "France",
+    DE: "Germany", GR: "Greece", HU: "Hungary", IT: "Italy", LV: "Latvia",
+    LT: "Lithuania", LU: "Luxembourg", MT: "Malta", NL: "Netherlands", PL: "Poland",
+    PT: "Portugal", RO: "Romania", SK: "Slovakia", SI: "Slovenia", ES: "Spain",
+    SE: "Sweden",
   };
   const byCountry = new Map<string, { started: number; completed: number; purchasers: number }>();
   for (const r of leads) {

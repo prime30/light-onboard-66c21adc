@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { AuthMode, Step } from "@/types/auth";
 import { QUALIFICATION_REQUIRED_COUNTRIES, type ValidFieldNames } from "@/lib/validations/auth-schemas";
+import { licenseRequiredMessage } from "@/data/qualifications";
+import { requiresSubdivision } from "@/data/locations";
 import { FIELD_DISPLAY_NAMES } from "@/data/step-order";
 import { useForm } from "./context";
 import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly } from "@/lib/app-settings";
@@ -349,7 +351,7 @@ export function AuthFooter({
         if (isCredentialFlow && country !== "AU" && !((watch("licenseNumber") as string | undefined) ?? "").trim()) {
           setError("licenseNumber" as ValidFieldNames, {
             type: "manual",
-            message: "License number is required",
+            message: licenseRequiredMessage(country),
           });
           credentialMissing.push("licenseNumber" as ValidFieldNames);
         }
@@ -364,6 +366,24 @@ export function AuthFooter({
           shakeMissingFields([...new Set([...missing, ...credentialMissing])]);
           return;
         }
+      }
+
+      // Region fields are optional in the schema (only some countries have
+      // subdivisions), so they never land in `missingFields` either.
+      const regionField: ValidFieldNames | null =
+        currentStep === "school-info" &&
+        requiresSubdivision((watch("schoolCountryCode" as ValidFieldNames) as string | undefined) || "US") &&
+        !watch("schoolState" as ValidFieldNames)
+          ? ("schoolState" as ValidFieldNames)
+          : currentStep === "business-location" &&
+              requiresSubdivision(watch("countryCode") as string | undefined) &&
+              !watch("provinceCode" as ValidFieldNames)
+            ? ("provinceCode" as ValidFieldNames)
+            : null;
+      if (regionField) {
+        setError(regionField, { type: "manual", message: "State/Province is required" });
+        shakeMissingFields([...new Set([...missing, regionField])]);
+        return;
       }
 
       if (isFinalGateStep) setSubmitTooltipOpen(true);

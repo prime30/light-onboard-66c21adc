@@ -5,7 +5,19 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "REFUSEDPW-20261107";
+const FUNCTION_VERSION = "EU-20261123";
+
+// EU member states. Keep in sync with the `group: "eu"` entries in
+// src/data/locations.ts (edge functions cannot import src/).
+const EU_COUNTRIES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+  "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+]);
+// EU countries whose address keeps a province: the EU entries in
+// src/data/locations.ts that carry subdivisions. Every other EU country gets
+// province_code "" so a stale state from another country never reaches
+// Shopify, Helium or Meta.
+const EU_PROVINCE_COUNTRIES = new Set(["IE"]);
 
 // Shopify classic accounts refuse longer passwords: the activation form still
 // answers 302 but saves nothing, and the Admin write returns 422 "too long".
@@ -809,7 +821,17 @@ function formatPhoneNumber(countryCode?: string, phoneNumber?: string): string |
     ) {
       digits = digits.slice(codeDigits.length);
     }
-    return `${code}${digits}`;
+    const candidate = `${code}${digits}`;
+    // Canonical E.164 drops a typed trunk 0 ("+49 0151..." is "+49151...").
+    // Only trust libphonenumber when it calls the number valid; otherwise
+    // keep the candidate exactly as before.
+    try {
+      const parsed = parsePhoneNumberFromString(candidate);
+      if (parsed && parsed.isValid()) return parsed.number;
+    } catch {
+      /* keep candidate */
+    }
+    return candidate;
   }
   // ISO region path: let libphonenumber attach the right dial code.
   if (/^[A-Za-z]{2}$/.test(cc)) {
@@ -912,7 +934,10 @@ const registrationSchema = z.discriminatedUnion("accountType", [
   z.object({
     accountType: z.literal("student"),
     schoolName: z.string().min(1),
-    schoolState: z.string().min(1),
+    // Empty for countries without subdivisions (most of the EU).
+    schoolState: z.string().nullish().default(""),
+    // Not countryCode: students must keep skipping the AU geo gate.
+    schoolCountryCode: z.string().nullish(),
     enrollmentProofFiles: z.array(z.string()).min(1),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
@@ -2038,6 +2063,13 @@ Deno.serve(async (req: Request) => {
     "+61": "AU",
     "+64": "NZ",
     "+44": "GB",
+    "+353": "IE",
+    "+27": "ZA",
+    "+43": "AT", "+32": "BE", "+359": "BG", "+385": "HR", "+357": "CY", "+420": "CZ",
+    "+45": "DK", "+372": "EE", "+358": "FI", "+33": "FR", "+49": "DE", "+30": "GR",
+    "+36": "HU", "+39": "IT", "+371": "LV", "+370": "LT", "+352": "LU", "+356": "MT",
+    "+31": "NL", "+48": "PL", "+351": "PT", "+40": "RO", "+421": "SK", "+386": "SI",
+    "+34": "ES", "+46": "SE",
   };
   // Canadian NANP area codes. +1 alone can't distinguish US from CA, so use
   // the area code to split them before falling back to US.
@@ -2057,9 +2089,26 @@ Deno.serve(async (req: Request) => {
       : localDigits.slice(0, 3);
     if (CA_AREA_CODES.has(areaCode)) derivedCountry = "CA";
   }
+  // Students have no countryCode (it would trip the AU gate), so an EU
+  // student's country comes from schoolCountryCode. Anything else keeps the
+  // dial-code derivation above.
+  const studentEuCountry = (customer.school_country_code ?? "").toString().trim().toUpperCase();
+  if (customer.account_type === "student" && EU_COUNTRIES.has(studentEuCountry)) {
+    derivedCountry = studentEuCountry;
+  }
   const resolvedCountryCode =
     (customer.country_code ?? "").toString().trim().toUpperCase() || derivedCountry || "US";
   customer.country_code = resolvedCountryCode;
+  const isEuApplicant = EU_COUNTRIES.has(resolvedCountryCode);
+
+  // Old clients can carry a US state into an EU address.
+  if (isEuApplicant && !EU_PROVINCE_COUNTRIES.has(resolvedCountryCode)) {
+    customer.province_code = "";
+  }
+
+  // No EU SMS program yet: the sender, opt-in rules and the logged
+  // disclosure are US-only, so EU applicants never get SMS consent.
+  if (isEuApplicant) customer.accepts_sms_marketing = false;
 
   // AU landline area codes map to a state. Mobiles (04x) are nationwide and
   // carry no state signal, so those stay blank for manual review.
@@ -2470,6 +2519,7 @@ Deno.serve(async (req: Request) => {
       IE: "country-ie",
       NZ: "country-nz",
       ZA: "country-za",
+      ...Object.fromEntries([...EU_COUNTRIES].map((c) => [c, `country-${c.toLowerCase()}`])),
     };
     const internationalTags: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -3395,7 +3445,8 @@ Deno.serve(async (req: Request) => {
         lastName: (d.lastName as string) ?? null,
         phoneE164: (d.phoneE164 as string) ?? null,
         city: (d.city as string) ?? null,
-        provinceCode: (d.provinceCode as string) ?? null,
+        // The cleaned value: EU addresses drop stale provinces above.
+        provinceCode: (customer.province_code as string) || null,
         zip: (d.zipCode as string) ?? null,
         countryCode: (d.countryCode as string) ?? null,
         accountType: parseResult.data.accountType ?? null,

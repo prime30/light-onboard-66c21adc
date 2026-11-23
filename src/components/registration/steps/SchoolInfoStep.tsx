@@ -8,31 +8,11 @@ import { SelectInput } from "@/components/SelectInput";
 import { cn } from "@/lib/utils";
 import { useForm } from "../context";
 import { UploadFileItem } from "@/contexts";
-import {
-  states,
-  provinces,
-  australianStates,
-  ukNations,
-  irishCounties,
-  nzRegions,
-  zaProvinces,
-} from "@/data/locations";
-
-// Combine and sort all English-speaking-country subdivisions alphabetically
-const allLocations = [
-  ...states,
-  ...provinces,
-  ...australianStates,
-  ...ukNations,
-  ...irishCounties,
-  ...nzRegions,
-  ...zaProvinces,
-]
-  .map((location) => location.name)
-  .sort();
+import { useEffect } from "react";
+import { getCountry, isEuCountry } from "@/data/locations";
 
 // Per-country copy for the training-institution step. Countries not listed
-// fall through to the US default.
+// fall through to EU (member states) or the US default.
 const SCHOOL_COPY: Record<
   string,
   {
@@ -108,6 +88,15 @@ const SCHOOL_COPY: Record<
     uploadLabel: "Upload proof of enrollment*",
     uploadHint: "Upload your student ID, learnership agreement, or enrollment letter.",
   },
+  EU: {
+    h1: "Which academy or vocational school do you attend?",
+    schoolLabel: "Academy / school name*",
+    schoolPlaceholder: "Enter your academy or school name",
+    regionLabel: "Region",
+    regionPlaceholder: "Select your region",
+    uploadLabel: "Upload proof of enrollment*",
+    uploadHint: "Upload your student ID, enrollment letter, or apprenticeship contract.",
+  },
 };
 
 function SchoolNamePrefixIcon({ error }: { error: boolean }) {
@@ -147,12 +136,26 @@ export const SchoolInfoStep = () => {
   
 
   // Watch form values
-  const [enrollmentProofFiles, countryCode] = watch(["enrollmentProofFiles", "countryCode"]);
-  const country = (countryCode ?? "US").toUpperCase();
-  const copy = SCHOOL_COPY[country] ?? SCHOOL_COPY.US;
+  const [enrollmentProofFiles, schoolCountryCode, schoolState] = watch([
+    "enrollmentProofFiles",
+    "schoolCountryCode",
+    "schoolState",
+  ]);
+  const country = String(schoolCountryCode || "US").toUpperCase();
+  const copy = SCHOOL_COPY[country] ?? (isEuCountry(country) ? SCHOOL_COPY.EU : SCHOOL_COPY.US);
+  const regionNames = (getCountry(country)?.subdivisions ?? []).map((s) => s.name).sort();
+  const showRegion = regionNames.length > 0;
 
-  // Create location options with icons
-  const locationOptions = allLocations.map((location) => ({
+  // A region from another country (changed phone country, or a restored
+  // draft) would pass the optional schema but mean nothing.
+  useEffect(() => {
+    if (schoolState && !regionNames.includes(String(schoolState))) {
+      setValue("schoolState", "", { shouldDirty: true, shouldValidate: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country, schoolState]);
+
+  const locationOptions = regionNames.map((location) => ({
     value: location,
     label: (
       <div className="flex items-center gap-2.5">
@@ -192,17 +195,19 @@ export const SchoolInfoStep = () => {
           />
         </div>
 
-        <div className="animate-stagger-3">
-          <SelectInput
-            name="schoolState"
-            control={control}
-            error={errors.schoolState}
-            options={locationOptions}
-            label={copy.regionLabel}
-            placeholder={copy.regionPlaceholder}
-            isValid={getValidationStatus("schoolState") === "complete"}
-          />
-        </div>
+        {showRegion && (
+          <div className="animate-stagger-3">
+            <SelectInput
+              name="schoolState"
+              control={control}
+              error={errors.schoolState}
+              options={locationOptions}
+              label={copy.regionLabel}
+              placeholder={copy.regionPlaceholder}
+              isValid={getValidationStatus("schoolState") === "complete"}
+            />
+          </div>
+        )}
 
         <div className="space-y-2.5 animate-stagger-4">
           <Label className="text-sm font-medium">{copy.uploadLabel}</Label>

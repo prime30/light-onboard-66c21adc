@@ -8,7 +8,9 @@ import { suggestEmailDomainFix } from "./email-typos.ts";
 import {
   ALL_QUALIFICATION_VALUES,
   isCurrentQualificationForCountry,
+  licenseRequiredMessage,
 } from "../../data/qualifications.ts";
+import { requiresSubdivision } from "../../data/locations.ts";
 
 const DISPOSABLE_EMAIL_MESSAGE =
   "Please use a permanent email address - disposable inboxes aren't accepted";
@@ -156,11 +158,13 @@ const schoolInfoValidators = {
     .trim()
     .min(1, "School/Apprenticeship name is required")
     .max(200, "Name must be less than 200 characters"),
-  schoolState: z
-    .string({ error: "State/Province is required" })
-    .min(1, "State/Province is required"),
+  // Required only for countries with a subdivision list (see
+  // requiresSubdivision). Enforced in registrationSchema.superRefine and the
+  // StepContext school-info gate.
+  schoolState: z.string().optional(),
   enrollmentProofFiles: fileUploadSchema(false),
 };
+export const SCHOOL_STATE_REQUIRED_MESSAGE = "State/Province is required";
 export const schoolInfoSchema = z.object(schoolInfoValidators);
 
 // Contact Basics Schema
@@ -277,9 +281,8 @@ const businessLocationValidators = {
     .trim()
     .min(1, "City is required")
     .max(100, "City must be less than 100 characters"),
-  provinceCode: z
-    .string({ error: "State/Province is required" })
-    .min(1, "State/Province is required"),
+  // Required only when the country has subdivisions (superRefine below).
+  provinceCode: z.string().optional(),
   zipCode: z
     .string({ error: "Zip/Postal code is required" })
     .trim()
@@ -292,6 +295,9 @@ export const businessLocationSchema = z
     const result = isValidZipForCountry(data.zipCode, data.countryCode);
     if (result !== true) {
       ctx.addIssue({ code: "custom", message: result, path: ["zipCode"] });
+    }
+    if (requiresSubdivision(data.countryCode) && !data.provinceCode) {
+      ctx.addIssue({ code: "custom", message: "State/Province is required", path: ["provinceCode"] });
     }
     if (data.taxExempt) {
       const files = data.taxExemptFile;
@@ -501,6 +507,9 @@ export const registrationSchema = z
     z.object({ accountType: z.literal("student") }).extend({
       ...baseValidators,
       ...schoolInfoValidators,
+      // Not named countryCode: students must keep skipping the AU geo gate,
+      // which keys on countryCode.
+      schoolCountryCode: z.string().optional(),
     }),
   ])
   .superRefine((data, ctx) => {
@@ -519,7 +528,16 @@ export const registrationSchema = z
       salonSize?: string;
       salonStructure?: string;
       socialMediaHandle?: string;
+      schoolState?: string;
+      schoolCountryCode?: string;
     };
+    if (
+      d.accountType === "student" &&
+      requiresSubdivision(d.schoolCountryCode || "US") &&
+      !d.schoolState
+    ) {
+      ctx.addIssue({ code: "custom", message: SCHOOL_STATE_REQUIRED_MESSAGE, path: ["schoolState"] });
+    }
     if (d.password && d.confirmPassword && d.password !== d.confirmPassword) {
       ctx.addIssue({
         code: "custom",
@@ -547,7 +565,7 @@ export const registrationSchema = z
         if (!d.licenseNumber || d.licenseNumber.trim().length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: "License number is required",
+            message: licenseRequiredMessage(country),
             path: ["licenseNumber"],
           });
         }

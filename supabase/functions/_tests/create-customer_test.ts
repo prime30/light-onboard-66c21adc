@@ -356,6 +356,110 @@ for (const message of ["Invalid activation url", "Password must be different"]) 
   });
 }
 
+// ---- EU applicants ----
+const heliumCustomer = (net: FakeNet) =>
+  (net.to("POST", /customerfields\.com\/api\/v2\/customers$/)[0]?.body as { customer: Record<string, unknown> } | undefined)
+    ?.customer ?? {};
+const heliumAddress = (net: FakeNet) => (heliumCustomer(net).default_address ?? {}) as Record<string, unknown>;
+const shopifyTags = (net: FakeNet) =>
+  net.to("PUT", admin("customers/42\\.json"))
+    .map((c) => String((c.body as { customer: { tags?: string } }).customer.tags ?? ""))
+    .join(", ");
+const smsConsentRows = (net: FakeNet) =>
+  net.to("POST", rest("marketing_consent_log")).flatMap((c) => (Array.isArray(c.body) ? c.body : [c.body]) as { channel?: string }[])
+    .filter((r) => r.channel === "sms");
+const student = (extra: Record<string, unknown> = {}) =>
+  application({
+    accountType: "student",
+    licenseNumber: undefined,
+    schoolName: "Friseur Akademie",
+    enrollmentProofFiles: ["https://files.test/enrollment.pdf"],
+    ...extra,
+  });
+
+Deno.test("EU professional: canonical +49 phone, country DE, no province, country-de tag, no SMS consent", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    const res = await call(application({
+      phoneCountryCode: "+49",
+      phoneNumber: "0151 23456789",
+      countryCode: "DE",
+      provinceCode: "NY",
+      businessAddress: "Hauptstrasse 12",
+      city: "Berlin",
+      zipCode: "10115",
+      acceptsMarketing: true,
+      acceptsSmsMarketing: true,
+    }));
+    assertEquals(res.status, 200, await res.clone().text());
+    await settle();
+    const address = heliumAddress(net);
+    assertEquals(address.phone, "+4915123456789");
+    assertEquals(address.country_code, "DE");
+    assertEquals(address.province_code, "");
+    assertEquals(heliumCustomer(net).accepts_sms_marketing, false);
+    assert(shopifyTags(net).includes("country-de"), shopifyTags(net));
+    assertEquals(smsConsentRows(net).length, 0);
+    const shopifyAddress = net.to("PUT", admin("customers/42\\.json"))
+      .map((c) => (c.body as { customer: { addresses?: Record<string, unknown>[] } }).customer.addresses?.[0])
+      .find(Boolean);
+    assertEquals(shopifyAddress?.country_code, "DE");
+    assertEquals(shopifyAddress?.province_code, "");
+  }, HELIUM_ENV);
+});
+
+Deno.test("EU student with no region: 200 with address country DE", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(student({ phoneCountryCode: "+49", phoneNumber: "0151 23456789", schoolCountryCode: "DE" }));
+    assertEquals(res.status, 200, await res.clone().text());
+    assertEquals(heliumAddress(net).country_code, "DE");
+    assertEquals(heliumCustomer(net).school_state, "");
+  }, HELIUM_ENV);
+});
+
+Deno.test("AU student with +61 and no geo token: still 200, the AU gate only applies to countryCode", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(student({ phoneCountryCode: "+61", phoneNumber: "0412345678", schoolState: "New South Wales", schoolCountryCode: "AU" }));
+    assertEquals(res.status, 200, await res.clone().text());
+    assertEquals(heliumAddress(net).country_code, "AU");
+  }, HELIUM_ENV);
+});
+
+Deno.test("+1 student with a Canadian area code is still tagged country-ca", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    const res = await call(student({ phoneNumber: "4165550123", schoolState: "Ontario", schoolCountryCode: "US" }));
+    assertEquals(res.status, 200, await res.clone().text());
+    await settle();
+    assertEquals(heliumAddress(net).country_code, "CA");
+    assert(shopifyTags(net).includes("country-ca"), shopifyTags(net));
+  }, HELIUM_ENV);
+});
+
+Deno.test("US professional: the +1 phone and province are unchanged", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call }) => {
+    const res = await call(application({ countryCode: "US", provinceCode: "NY", city: "New York", zipCode: "10001" }));
+    assertEquals(res.status, 200, await res.clone().text());
+    assertEquals(heliumAddress(net).phone, "+16502530000");
+    assertEquals(heliumAddress(net).province_code, "NY");
+  }, HELIUM_ENV);
+});
+
+Deno.test("EU lists match src/data/locations.ts: 27 members, only IE keeps a province", async () => {
+  const src = await Deno.readTextFile(new URL("../create-customer/index.ts", import.meta.url));
+  const list = (name: string) =>
+    [...(src.match(new RegExp(`const ${name} = new Set\\(\\[([\\s\\S]*?)\\]\\)`))?.[1] ?? "").matchAll(/"([A-Z]{2})"/g)].map((m) => m[1]);
+  const locations = await Deno.readTextFile(new URL("../../../src/data/locations.ts", import.meta.url));
+  const clientEu = [...locations.matchAll(/euCountry\("([A-Z]{2})"/g)].map((m) => m[1]);
+  const clientEuWithSubdivisions = /code: "IE"[^}]*group: "eu"/.test(locations) ? ["IE"] : [];
+  assertEquals(list("EU_COUNTRIES").length, 27);
+  assertEquals([...list("EU_COUNTRIES")].sort(), [...clientEu, ...clientEuWithSubdivisions].sort());
+  assertEquals(list("EU_PROVINCE_COUNTRIES"), clientEuWithSubdivisions);
+});
+
 Deno.test("a second refusal for the same email takes the usual recovery path instead of asking again", async () => {
   const net = signupWorld({ storeAcceptsPassword: true, existing: APPLIED, apiActivationError: REFUSED });
   const table = submissions(net, [{ status: "failed", step: "password_refused" }]);

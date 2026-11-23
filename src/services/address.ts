@@ -17,6 +17,8 @@ export interface AddressDetails {
   state: string;
   stateShort: string;
   country: string;
+  /** ISO 3166-1 alpha-2 ("GB" for the UK). Missing from older function versions. */
+  countryCode?: string;
   postalCode: string;
   formattedAddress: string;
 }
