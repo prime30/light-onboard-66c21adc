@@ -42,7 +42,7 @@ const phoneTrigger = (app: FrameLocator) => app.locator('button[role="combobox"]
 test.describe("EU signup", () => {
   test("German professional: +49 seeded, EU credential label and message", async ({ harness, page }) => {
     const app = await openSignup(harness, page, "DE");
-    await pickAccountType(app, /Licensed stylist/);
+    await pickAccountType(app, /Professional stylist/);
     await expect(phoneTrigger(app)).toHaveText("+49");
     await expect(app.getByText("VAT, trade registration or qualification cert #*")).toBeVisible();
     await expect(app.getByPlaceholder("e.g. DE123456789")).toBeVisible();
