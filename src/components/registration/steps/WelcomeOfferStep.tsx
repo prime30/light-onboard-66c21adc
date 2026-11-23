@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { formatPhoneNumber, isNanpPhoneCountry } from "@/lib/validations/form-utils";
 import { toE164 } from "@/lib/phone-e164";
 
 import { TextInput } from "@/components/TextInput";
@@ -265,7 +265,7 @@ export const WelcomeOfferStep = () => {
                 type="tel"
                 register={register}
                 error={errors.phoneNumber}
-                placeholder="(555) 123-4567"
+                placeholder={isNanpPhoneCountry(phoneCountryCode) ? "(555) 123-4567" : "Mobile number"}
                 autoComplete="tel-national"
                 autoFocus
                 onBlur={(event) => {

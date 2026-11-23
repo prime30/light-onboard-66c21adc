@@ -97,3 +97,80 @@ test.describe("EU signup", () => {
     await expect(app.getByText("License number*")).toBeVisible();
   });
 });
+
+test.describe("EU copy", () => {
+  async function accountTypeOptions(app: FrameLocator) {
+    await app.getByRole("button", { name: "Select an option..." }).click();
+    return (await app.getByRole("option").allInnerTexts()).map((t) => t.trim());
+  }
+
+  test("German geo: trade wording in the account type list", async ({ harness, page }) => {
+    const app = await openSignup(harness, page, "DE");
+    const options = await accountTypeOptions(app);
+    expect(options).toContain("Professional stylist");
+    expect(options).toContain("Student or apprentice");
+    expect(options).not.toContain("Licensed stylist");
+    await app.getByRole("option", { name: "I am not a stylist" }).click();
+    await expect(app.getByRole("heading", { name: "We only sell to trade professionals" })).toBeVisible();
+    await expect(app.getByText(/sold to trade professionals/)).toBeVisible();
+  });
+
+  test("US geo: licensed stylist wording unchanged", async ({ harness, page }) => {
+    const app = await openSignup(harness, page, "US");
+    const options = await accountTypeOptions(app);
+    expect(options).toContain("Licensed stylist");
+    expect(options).toContain("Cosmetology student or apprentice");
+  });
+
+  // Shortest auto-approved path to the success screen: contact basics, password, review.
+  const SHORT_FLOW = {
+    body: {
+      autoApprovalEnabled: true,
+      welcomeOfferEnabled: true,
+      welcomeOfferStepEnabled: false,
+      businessLocationStepEnabled: false,
+      businessOperationStepEnabled: false,
+      orderVolumeStepEnabled: false,
+      preferredMethodStepEnabled: false,
+      referralStepEnabled: false,
+      summaryStepEnabled: false,
+    },
+  };
+
+  async function reachSuccess(harness: Harness, page: Page, geoCountry: string, phone: string) {
+    harness.fake("public-app-flags", SHORT_FLOW);
+    harness.fake("check-email", { body: { exists: false } });
+    harness.fake("check-phone", { body: { valid: true, inUse: false } });
+    harness.fake("create-customer", {
+      body: { success: true, data: { welcomeOffer: { code: "PRO25-TEST1", endsAt: "2026-12-23T12:00:00Z" } } },
+    });
+    await geo(page, geoCountry);
+    const app = await harness.open("/auth");
+    await app.getByRole("button", { name: "Select an option..." }).click();
+    await app.getByRole("option").first().click();
+    await app.getByLabel("Legal First Name*").fill("Lena");
+    await app.getByLabel("Legal Last Name*").fill("Schmidt");
+    await app.getByLabel("Email*").fill(`lena-${geoCountry.toLowerCase()}@stylist-example.com`);
+    await app.locator('input[name="phoneNumber"]').fill(phone);
+    await app.locator('input[name="socialMediaHandle"]').fill("lenahair");
+    await app.locator('input[name="licenseNumber"]').fill("DE123456789");
+    await app.getByRole("button", { name: /^Continue/ }).click();
+    await app.locator("#password").fill("Sturdy-Pass-2026");
+    await app.locator("#confirmPassword").fill("Sturdy-Pass-2026");
+    await app.getByRole("button", { name: /^(Continue|Submit application|Create account)/ }).last().click();
+    await expect(app.getByText("PRO25-TEST1")).toBeVisible({ timeout: 20_000 });
+    return app;
+  }
+
+  test("German applicant: welcome credit in US$ with a day-first date", async ({ harness, page }) => {
+    const app = await reachSuccess(harness, page, "DE", "0151 23456789");
+    await expect(app.getByText("US$25 off your next order of US$100+")).toBeVisible();
+    await expect(app.getByText(/23 December 2026/)).toBeVisible();
+  });
+
+  test("US applicant: welcome credit copy unchanged", async ({ harness, page }) => {
+    const app = await reachSuccess(harness, page, "US", "(512) 555-0142");
+    await expect(app.getByText("$25 off your next order of $100+", { exact: true })).toBeVisible();
+    await expect(app.getByText(/December 23, 2026/)).toBeVisible();
+  });
+});

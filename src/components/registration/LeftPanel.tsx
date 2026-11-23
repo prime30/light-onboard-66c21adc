@@ -1,7 +1,9 @@
 import { BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { FadeText } from "./FadeText";
 import { CircularProgress, MagneticFeatureBox } from "./helpers";
-import { slides, features } from "@/data/auth-constants";
+import { slides, features, euShippingFeature } from "@/data/auth-constants";
+import { useGeoCountry } from "@/hooks/useGeoCountry";
+import { isEuCountry } from "@/data/locations";
 import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 
 // Lazy-load below-the-fold panel children - they don't need to block first paint
@@ -207,9 +209,12 @@ export function LeftPanel({ formProgress }: LeftPanelProps) {
   // The "15% off" pill is part of the gated first-order promo, so it follows
   // the same admin switch.
   const { enabled: gatedOfferEnabled } = useGatedOfferEnabled();
-  const visibleFeatures = gatedOfferEnabled
+  const geoCountry = useGeoCountry();
+  const isEu = isEuCountry(geoCountry);
+  const visibleFeatures = (gatedOfferEnabled
     ? features
-    : features.filter((f) => f.label !== "15% off");
+    : features.filter((f) => f.label !== "15% off")
+  ).map((f) => (isEu && f.label === "Free shipping" ? euShippingFeature : f));
 
 
 

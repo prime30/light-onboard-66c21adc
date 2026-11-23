@@ -18,6 +18,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { dirtyFieldOptions, useForm } from "../context";
 import { useGeoCountry } from "@/hooks/useGeoCountry";
+import { isEuCountry } from "@/data/locations";
 
 type AccountTypeConfirmationOverlayProps = {
   showAccountTypeConfirm: boolean;
@@ -113,6 +114,9 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
   const currentCountry = watch("countryCode");
   const effectiveCountry = (currentCountry || geoCountry || "US").toUpperCase();
   const isAU = effectiveCountry === "AU";
+  // AU and the EU have no US-style cosmetology license, so the copy speaks
+  // to trade professionals instead.
+  const isTrade = isAU || isEuCountry(effectiveCountry);
 
   const accountType = watch("accountType");
 
@@ -184,8 +188,8 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
     {
       id: "professional",
       icon: Scissors,
-      title: isAU ? "Professional stylist" : "Licensed stylist",
-      description: isAU
+      title: isTrade ? "Professional stylist" : "Licensed stylist",
+      description: isTrade
         ? "Salon-employed, mobile, or independent"
         : "Commission, or independent stylist",
       features: [
@@ -209,8 +213,8 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
     {
       id: "student",
       icon: GraduationCap,
-      title: isAU ? "Student or apprentice" : "Cosmetology student or apprentice",
-      description: isAU ? "In training or learnership" : "Currently enrolled",
+      title: isTrade ? "Student or apprentice" : "Cosmetology student or apprentice",
+      description: isTrade ? "In training or apprenticeship" : "Currently enrolled",
       features: [
         { label: "Student pricing", icon: Tag },
         { label: "Learning resources", icon: FileCheck },
@@ -248,10 +252,11 @@ export const AccountTypeForm = ({ embedded = false }: { embedded?: boolean } = {
       <div className="rounded-form border border-border bg-card p-5 md:p-10 space-y-5 animate-stagger-1 text-center">
         <div className="space-y-[clamp(5px,1vh,10px)]">
           <h1 className="font-termina font-medium uppercase text-xl sm:text-2xl md:text-3xl text-foreground leading-[1.1] text-balance">
-            {isAU ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
+            {isTrade ? "We only sell to trade professionals" : "We only sell to licensed stylists"}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground/80 leading-relaxed text-balance max-w-md mx-auto">
-            Drop Dead is a trade-only brand, so these products are sold to licensed stylists. If
+            Drop Dead is a trade-only brand, so these products are sold to{" "}
+            {isTrade ? "trade professionals" : "licensed stylists"}. If
             you have a stylist, ask them about Drop Dead. If not, a salon near you that offers
             extensions can help.
           </p>

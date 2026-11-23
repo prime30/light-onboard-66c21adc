@@ -11,12 +11,13 @@ interface OfferCodeCardProps {
   endsAt: string | null;
   status: WelcomeOfferStatus;
   onShop?: () => void;
+  dateLocale?: "en-US" | "en-GB";
 }
 
-export function OfferCodeCard({ eyebrow, title, blurb, code, endsAt, status, onShop }: OfferCodeCardProps) {
+export function OfferCodeCard({ eyebrow, title, blurb, code, endsAt, status, onShop, dateLocale }: OfferCodeCardProps) {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<number | null>(null);
-  const expiry = formatWelcomeOfferExpiry(endsAt);
+  const expiry = formatWelcomeOfferExpiry(endsAt, dateLocale);
 
   useEffect(() => () => {
     if (resetTimer.current) window.clearTimeout(resetTimer.current);

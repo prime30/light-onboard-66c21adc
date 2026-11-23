@@ -464,6 +464,7 @@ export const SuccessForm = () => {
           endsAt={discountExpiry}
           status={welcomeOfferStatus}
           onShop={closeToShop}
+          eu={!smsAllowed}
         />
       )}
 
@@ -581,8 +582,9 @@ export const SuccessForm = () => {
                       </button>
                     )}
                     <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
-                      Message and data rates may apply. Unsubscribe any time by replying STOP or
-                      using the unsubscribe link.
+                      {smsAllowed
+                        ? "Message and data rates may apply. Unsubscribe any time by replying STOP or using the unsubscribe link."
+                        : "Unsubscribe any time using the unsubscribe link."}
                     </p>
                   </div>
                 </>

@@ -26,3 +26,6 @@ export const features = [
   { icon: Truck, label: "Free shipping", desc: "2-day delivery on $500+" },
   { icon: Tag, label: "Pro prices", desc: "Wholesale rates" },
 ];
+
+// EU shipping terms aren't published, so this claims no price or speed.
+export const euShippingFeature = { icon: Truck, label: "EU shipping", desc: "Delivered to your salon" };
