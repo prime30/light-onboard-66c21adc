@@ -15,9 +15,12 @@ export function welcomeOfferKind(code: string): string | null {
 
 export type WelcomeOfferStatus = "loading" | "ready" | "failed";
 
-export function formatWelcomeOfferExpiry(endsAt: string | null | undefined): string | null {
+export function formatWelcomeOfferExpiry(
+  endsAt: string | null | undefined,
+  locale: "en-US" | "en-GB" = "en-US"
+): string | null {
   if (!endsAt) return null;
   const date = new Date(endsAt);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString(locale, { month: "long", day: "numeric", year: "numeric" });
 }
