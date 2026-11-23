@@ -99,6 +99,9 @@ function FormContextProvider({ children }: { children: ReactNode }) {
     const lastName = watch("lastName");
     const phoneNumber = watch("phoneNumber");
     const phoneCountryCode = watch("phoneCountryCode");
+    // The lead ping after submit sends countryCode; letting it fall back to
+    // the "US" default overwrote every non-US lead's country.
+    const countryCode = watch("countryCode");
     // Preserve the marketing opt-ins so the success screen's gated 15% code
     // reveal matches what the user selected on the welcome-offer step. The
     // post-submit reset used to wipe these, re-locking the code in production.
@@ -121,6 +124,7 @@ function FormContextProvider({ children }: { children: ReactNode }) {
         lastName,
         phoneNumber,
         phoneCountryCode,
+        countryCode,
         acceptsMarketing,
         acceptsSmsMarketing,
       } as Partial<AllRegistrationFormData>);
