@@ -3,10 +3,15 @@
 // Shopify Admin customers/search lookup. Mirrors check-email shape.
 import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EU-20261123";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 function toE164(countryCode?: string, phoneNumber?: string): string | undefined {
@@ -28,7 +33,16 @@ function toE164(countryCode?: string, phoneNumber?: string): string | undefined 
     ) {
       digits = digits.slice(codeDigits.length);
     }
-    return `${code}${digits}`;
+    const candidate = `${code}${digits}`;
+    // Same canonicalization as create-customer's formatPhoneNumber, so the
+    // uniqueness search key matches what create-customer stores.
+    try {
+      const parsed = parsePhoneNumberFromString(candidate);
+      if (parsed && parsed.isValid()) return parsed.number;
+    } catch {
+      /* keep candidate */
+    }
+    return candidate;
   }
   // ISO region path ("US", "CA"): resolve via libphonenumber.
   if (/^[A-Za-z]{2}$/.test(cc)) {

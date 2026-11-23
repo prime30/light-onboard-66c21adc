@@ -557,7 +557,7 @@ export const RegistrationAnalyticsPanel = ({ adminEmail, adminToken }: Props) =>
             By country
           </div>
           <p className="text-[10px] text-muted-foreground mb-2">
-            Country captured on the Business location step. "Unknown" covers leads who bounced before that step (or predate country capture).
+            Country comes from the phone country on Contact basics, or the address country when the Business location step is on. "Unknown" covers leads who left before entering a phone (or predate country capture).
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">

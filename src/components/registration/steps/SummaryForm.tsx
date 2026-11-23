@@ -336,7 +336,7 @@ export const SummaryForm = () => {
               />
               <SummaryRow
                 label="City, State Postal"
-                value={`${city}, ${provinceCode} ${zipCode}`}
+                value={[city, [provinceCode, zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
               />
               <SummaryRow label="Country" value={countryCode} />
             </SummarySection>

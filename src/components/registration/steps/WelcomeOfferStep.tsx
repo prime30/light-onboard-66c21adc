@@ -14,6 +14,7 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { PrivacyPolicyContent, TermsOfServiceContent } from "../legal-content";
 import { CountryFlag } from "./ContactBasicsStep";
 import { countryCodes } from "@/data/country-codes";
+import { isEuCountry } from "@/data/locations";
 import { useAutoApproval, useSummaryStepEnabled, useGatedOfferEnabled } from "@/lib/app-settings";
 
 export const WelcomeOfferStep = () => {
@@ -51,8 +52,16 @@ export const WelcomeOfferStep = () => {
   
 
   const phoneValid = toE164(phoneNumber, phoneCountryCode).ok;
+  // No EU SMS program yet (sender, opt-in rules and disclosure are US-only),
+  // so EU phone countries get an email-only opt-in. The server also refuses
+  // SMS consent for EU.
+  const smsAllowed = !isEuCountry(countryCodes.find((c) => c.iso === phoneCountryCode)?.country);
+  useEffect(() => {
+    if (!smsAllowed && acceptsSmsMarketing) setValue("acceptsSmsMarketing", false, dirtyFieldOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [smsAllowed, acceptsSmsMarketing]);
 
-  const smsOn = !!acceptsSmsMarketing;
+  const smsOn = smsAllowed && !!acceptsSmsMarketing;
   const emailOn = !!acceptsMarketing;
   const subscribed = smsOn || emailOn;
   const { enabled: offerOn } = useGatedOfferEnabled();
@@ -83,6 +92,10 @@ export const WelcomeOfferStep = () => {
       return;
     }
     setPhoneError(null);
+    if (!smsAllowed) {
+      setValue("acceptsMarketing", true, dirtyFieldOptions);
+      return;
+    }
     if (!phoneValid) {
       setPhoneError("Add a valid mobile number so we can text you when you're approved.");
       setIsEditingPhone(true);
@@ -185,6 +198,7 @@ export const WelcomeOfferStep = () => {
             </h2>
           </div>
 
+          {smsAllowed ? (
           <OptInRow
             checked={subscribed}
             onClick={toggleSubscribe}
@@ -215,6 +229,18 @@ export const WelcomeOfferStep = () => {
               </>
             }
           />
+          ) : (
+          <OptInRow
+            checked={subscribed}
+            onClick={toggleSubscribe}
+            badge={offerOn ? "Save 15%" : undefined}
+            title="Email me when I'm approved to shop & with pro-only deals"
+            description="We'll email you the moment you're approved, plus pro-only deals."
+            // Must stay word for word with EMAIL_DISCLOSURE in create-customer,
+            // which is logged as the text the applicant saw.
+            legal="Email me about promotions, new products & deals - Marketing emails from Drop Dead Extensions. Unsubscribe anytime."
+          />
+          )}
         </div>
 
 

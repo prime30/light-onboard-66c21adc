@@ -166,6 +166,20 @@
 
 ---
 
+## PSL-011: EU Applicants Could Not Register
+
+**Symptom**: German stylists (Nov 2026) said they could not apply. Their phone number was rejected and the form asked for a US state and a US license number.
+
+**Root Cause**: Germany and most of the EU were missing from `countries`, so the form fell back to the US. The phone picker stayed on +1, so a German mobile failed validation with no hint, and the business location and school steps required a state from the US list. The geo lookup also wrote the IP country into `countryCode`, which then fought the phone country.
+
+**Fix**: All 27 member states are in `countries` (`group: "eu"`, no subdivisions) and `country-codes.ts`. State and school state are required only where `requiresSubdivision` says the country has a list. Geo only seeds the dial code for EU visitors while the phone is empty and still on +1; the phone country drives `countryCode` and `schoolCountryCode`. EU applicants get one credential field (VAT, trade registration or qualification certificate number) and an email-only welcome opt-in. `create-customer` tags `country-xx`, blanks the province except for Ireland, and never sets SMS consent for EU applicants. `phone-e164.ts` and the functions drop the national trunk 0 (Hungary 06).
+
+**Key Rule**: Radix `Select` calls `onValueChange("")` when its value is changed from code. Any picker seeded with `setValue` must ignore the empty value or the seed is wiped a moment later.
+
+**Files**: `src/data/locations.ts`, `src/data/qualifications.ts`, `src/hooks/useGeoCountry.ts`, `src/components/registration/steps/ContactBasicsStep.tsx`, `src/lib/validations/auth-schemas.ts`, `src/lib/phone-e164.ts`, `supabase/functions/create-customer/index.ts`
+
+---
+
 ## Anti-Patterns to Avoid
 
 1. **Never use `opacity-0 animate-fade-in` for initial renders** - causes FOUC. Use it only for elements entering *after* user interaction.

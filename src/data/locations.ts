@@ -78,8 +78,33 @@ export const zaProvinces = [
   { code: "WC", name: "Western Cape" },
 ];
 
+export type Subdivision = { code: string; name: string };
+
+export type Country = {
+  code: string;
+  name: string;
+  subdivisionType: string;
+  subdivisionLabel: string;
+  postalCodeLabel: string;
+  subdivisions: Subdivision[];
+  group?: "eu";
+};
+
+// EU member states without a required province. If Shopify starts requiring
+// a province for one of these, give it subdivisions here AND add its code to
+// EU_PROVINCE_COUNTRIES in supabase/functions/create-customer/index.ts.
+const euCountry = (code: string, name: string): Country => ({
+  code,
+  name,
+  subdivisionType: "",
+  subdivisionLabel: "",
+  postalCodeLabel: "Postcode",
+  subdivisions: [],
+  group: "eu",
+});
+
 // Countries with additional metadata
-export const countries = [
+export const countries: Country[] = [
   { code: "US", name: "United States", subdivisionType: "state",
     subdivisionLabel: "State", postalCodeLabel: "ZIP Code", subdivisions: states },
   { code: "CA", name: "Canada", subdivisionType: "province",
@@ -87,18 +112,63 @@ export const countries = [
   { code: "UK", name: "United Kingdom", subdivisionType: "nation",
     subdivisionLabel: "Nation", postalCodeLabel: "Postcode", subdivisions: ukNations },
   { code: "IE", name: "Ireland", subdivisionType: "county",
-    subdivisionLabel: "County", postalCodeLabel: "Eircode", subdivisions: irishCounties },
+    subdivisionLabel: "County", postalCodeLabel: "Eircode", subdivisions: irishCounties, group: "eu" },
   { code: "AU", name: "Australia", subdivisionType: "state",
     subdivisionLabel: "State/Territory", postalCodeLabel: "Postcode", subdivisions: australianStates },
   { code: "NZ", name: "New Zealand", subdivisionType: "region",
     subdivisionLabel: "Region", postalCodeLabel: "Postcode", subdivisions: nzRegions },
   { code: "ZA", name: "South Africa", subdivisionType: "province",
     subdivisionLabel: "Province", postalCodeLabel: "Postal code", subdivisions: zaProvinces },
+  euCountry("AT", "Austria"),
+  euCountry("BE", "Belgium"),
+  euCountry("BG", "Bulgaria"),
+  euCountry("HR", "Croatia"),
+  euCountry("CY", "Cyprus"),
+  euCountry("CZ", "Czechia"),
+  euCountry("DK", "Denmark"),
+  euCountry("EE", "Estonia"),
+  euCountry("FI", "Finland"),
+  euCountry("FR", "France"),
+  euCountry("DE", "Germany"),
+  euCountry("GR", "Greece"),
+  euCountry("HU", "Hungary"),
+  euCountry("IT", "Italy"),
+  euCountry("LV", "Latvia"),
+  euCountry("LT", "Lithuania"),
+  euCountry("LU", "Luxembourg"),
+  euCountry("MT", "Malta"),
+  euCountry("NL", "Netherlands"),
+  euCountry("PL", "Poland"),
+  euCountry("PT", "Portugal"),
+  euCountry("RO", "Romania"),
+  euCountry("SK", "Slovakia"),
+  euCountry("SI", "Slovenia"),
+  euCountry("ES", "Spain"),
+  euCountry("SE", "Sweden"),
 ];
+
+export function getCountry(code: string | null | undefined): Country | undefined {
+  if (!code) return undefined;
+  const upper = code.toUpperCase();
+  return countries.find((c) => c.code === upper);
+}
+
+export function isEuCountry(code: string | null | undefined): boolean {
+  return getCountry(code)?.group === "eu";
+}
+
+/** True when the country has a subdivision list the applicant must pick from. Unknown codes are false. */
+export function requiresSubdivision(code: string | null | undefined): boolean {
+  return (getCountry(code)?.subdivisions.length ?? 0) > 0;
+}
+
+export function isSubdivisionOf(countryCode: string | null | undefined, provinceCode: string): boolean {
+  return getCountry(countryCode)?.subdivisions.some((s) => s.code === provinceCode) ?? false;
+}
 
 export function getProvinceName(
   code: string,
-  countryCode: (typeof countries)[number]["code"]
+  countryCode: string
 ): string | undefined {
   const country = countries.find((c) => c.code === countryCode);
   if (!country) return undefined;

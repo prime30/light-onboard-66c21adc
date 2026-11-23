@@ -16,7 +16,7 @@ import { dirtyFieldOptions, useForm } from "../context";
 import { Controller } from "react-hook-form";
 import type { UploadFileItem } from "@/contexts";
 import { countryCodes } from "@/data/country-codes";
-import { countries } from "@/data/locations";
+import { getCountry, isEuCountry, isSubdivisionOf } from "@/data/locations";
 import { MultiFileUpload } from "@/components/registration/MultiFileUpload";
 import { AccountTypeForm } from "./AccountTypeForm";
 import { getCredentialConfig, getQualificationOptions } from "@/data/qualifications";
@@ -376,10 +376,29 @@ export const ContactBasicsStep = () => {
     if (!raw) return;
     const match = countryCodes.find((c) => c.iso === raw);
     const iso = (match?.country ?? raw.toUpperCase()).toUpperCase();
-    if (!countries.some((c) => c.code === iso)) return;
+    const target = getCountry(iso);
+    if (!target) return;
     setValue("countryCode", iso, dirtyFieldOptions);
+    // The submit schema drops countryCode for students, so their country
+    // travels separately.
+    setValue("schoolCountryCode", iso, dirtyFieldOptions);
+    const province = watch("provinceCode");
+    if (province && !isSubdivisionOf(target.code, province)) {
+      setValue("provinceCode", "", dirtyFieldOptions);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phoneCountryCode]);
+
+  // EU visitors otherwise start on +1 and their number is rejected with no
+  // hint. Only seed while the phone is untouched and still on the default.
+  useEffect(() => {
+    if (!geoCountry || !isEuCountry(geoCountry)) return;
+    if (String(phoneNumber ?? "").trim()) return;
+    if (String(phoneCountryCode ?? "").toLowerCase() !== "us") return;
+    const match = countryCodes.find((c) => c.country === geoCountry);
+    if (match) setValue("phoneCountryCode", match.iso, dirtyFieldOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoCountry]);
 
   const country = String(
     watch("countryCode") ?? geoCountry ?? "US"
@@ -600,7 +619,11 @@ export const ContactBasicsStep = () => {
                   return (
                     <Select
                       value={field.value?.toString() || ""}
-                      onValueChange={field.onChange}
+                      // Radix reports "" when the value is changed from code
+                      // (the EU geo seed); that would wipe the seeded dial.
+                      onValueChange={(v) => {
+                        if (v) field.onChange(v);
+                      }}
                     >
                       <SelectPrimitive.Trigger
                         className={cn(

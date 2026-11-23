@@ -1,11 +1,22 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EU-20261123";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
-serve(async (req) => {
+// Countries that write the street before the house number ("Hauptstrasse 12").
+// France and Luxembourg write "12 Rue de Rivoli", like the English-speaking
+// countries, so they are not listed.
+const ROUTE_FIRST_COUNTRIES = new Set([
+  "DE", "AT", "NL", "BE", "IT", "ES", "PT", "GR", "CY", "CZ", "SK", "PL", "HU", "HR",
+  "SI", "DK", "SE", "FI", "EE", "LV", "LT", "BG", "RO", "MT",
+]);
+
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -52,6 +63,7 @@ serve(async (req) => {
       state: "",
       stateShort: "",
       country: "",
+      countryCode: "",
       postalCode: "",
       formattedAddress: data.formattedAddress || "",
     };
@@ -74,15 +86,17 @@ serve(async (req) => {
         addressDetails.stateShort = shortText;
       } else if (types.includes("country")) {
         addressDetails.country = longText;
+        addressDetails.countryCode = shortText.toUpperCase();
       } else if (types.includes("postal_code")) {
         addressDetails.postalCode = longText;
       }
     }
 
     // Build street address
-    addressDetails.streetAddress = [addressDetails.streetNumber, addressDetails.route]
-      .filter(Boolean)
-      .join(" ");
+    const parts = ROUTE_FIRST_COUNTRIES.has(addressDetails.countryCode)
+      ? [addressDetails.route, addressDetails.streetNumber]
+      : [addressDetails.streetNumber, addressDetails.route];
+    addressDetails.streetAddress = parts.filter(Boolean).join(" ");
 
     console.log("Parsed address details:", addressDetails);
 

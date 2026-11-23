@@ -1,3 +1,5 @@
+import { isEuCountry } from "./locations.ts";
+
 // Hairdressing qualifications per country. Countries without a national
 // qualification (US, CA) don't render a dropdown - just the license number.
 export type QualificationOption = { value: string; label: string; tag: string };
@@ -210,9 +212,30 @@ export const CREDENTIAL_CONFIG: Record<string, CredentialConfig> = {
   },
 };
 
+// One config for every EU member state without its own entry (IE keeps its
+// own). Any one of a VAT number, trade/business registration, or hairdressing
+// qualification certificate number is accepted.
+export const EU_CREDENTIAL_CONFIG: CredentialConfig = {
+  h1: "Provide your credentials",
+  sub: "Enter your VAT, registration or qualification details",
+  wholesaleCopy: "Wholesale pricing is exclusive to verified salon professionals.",
+  licenseFieldLabel: (s) =>
+    s ? "VAT number or business registration*" : "VAT, trade registration or qualification cert #*",
+  licenseFieldPlaceholder: () => "e.g. DE123456789",
+  uploadCopy: () => "Upload your qualification certificate or business registration",
+  hasQualification: false,
+};
+
 export function getCredentialConfig(countryCode: string | undefined): CredentialConfig {
   const key = (countryCode ?? "US").toUpperCase();
-  return CREDENTIAL_CONFIG[key] ?? CREDENTIAL_CONFIG.US;
+  return CREDENTIAL_CONFIG[key] ?? (isEuCountry(key) ? EU_CREDENTIAL_CONFIG : CREDENTIAL_CONFIG.US);
+}
+
+export function licenseRequiredMessage(countryCode: string | undefined): string {
+  const key = (countryCode ?? "US").toUpperCase();
+  return getCredentialConfig(key) === EU_CREDENTIAL_CONFIG
+    ? "Please enter your VAT, registration or certificate number"
+    : "License number is required";
 }
 
 export function getQualificationOptions(countryCode: string | undefined): QualificationOption[] {

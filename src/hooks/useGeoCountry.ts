@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
+import { countries } from "@/data/locations";
 
 const CACHE_KEY = "dd:geo:country";
-const SUPPORTED = ["US", "CA", "AU", "GB", "IE", "NZ", "ZA"] as const;
-type Supported = (typeof SUPPORTED)[number];
 
-function readCache(): Supported | null {
+// The form uses "UK" while ipwho.is (and the cache, which stores the raw
+// response) uses ISO "GB".
+function normalize(raw: string | null | undefined): string | null {
+  const code = (raw || "").toUpperCase();
+  const mapped = code === "GB" ? "UK" : code;
+  return countries.some((c) => c.code === mapped) ? mapped : null;
+}
+
+function readCache(): string | null {
   try {
-    const v = sessionStorage.getItem(CACHE_KEY);
-    if (v && (SUPPORTED as readonly string[]).includes(v)) return v as Supported;
+    return normalize(sessionStorage.getItem(CACHE_KEY));
   } catch {
-    /* ignore */
+    return null;
   }
-  return null;
 }
 
 function writeCache(v: string) {
@@ -25,10 +30,12 @@ function writeCache(v: string) {
 /**
  * Lightweight IP-based country detection.
  * Uses ipwho.is (CORS-enabled, no key). Cached per session.
- * Returns ISO-2 uppercase or null if unknown/unsupported.
+ * Returns a `countries` code ("UK" for Great Britain) or null if
+ * unknown/unsupported. Copy and the EU phone dial seed only: never write it
+ * into countryCode.
  */
-export function useGeoCountry(): Supported | null {
-  const [country, setCountry] = useState<Supported | null>(() => readCache());
+export function useGeoCountry(): string | null {
+  const [country, setCountry] = useState<string | null>(() => readCache());
 
   useEffect(() => {
     if (country) return;
@@ -46,9 +53,8 @@ export function useGeoCountry(): Supported | null {
         const code = (data?.country_code || "").toUpperCase();
         if (cancelled) return;
         writeCache(code);
-        if ((SUPPORTED as readonly string[]).includes(code)) {
-          setCountry(code as Supported);
-        }
+        const normalized = normalize(code);
+        if (normalized) setCountry(normalized);
       } catch {
         /* ignore */
       } finally {

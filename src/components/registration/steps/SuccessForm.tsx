@@ -14,6 +14,8 @@ import { IframeMessageTypes } from "@/hooks/use-iframe-comm";
 import { useAutoApproval, useWelcomeOffer, useFounderCallHighVolumeOnly, useFounderCallEnabled, useGatedOfferEnabled } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 import { formatPhoneNumber } from "@/lib/validations/form-utils";
+import { countryCodes } from "@/data/country-codes";
+import { isEuCountry } from "@/data/locations";
 import { prefetchStep } from "@/lib/step-prefetch";
 import { prefetchSlots, defaultScheduleWindow } from "@/lib/calendly-proxy";
 import { computeFounderCallEligible } from "@/lib/founder-call-eligibility";
@@ -54,7 +56,11 @@ export const SuccessForm = () => {
   // The pro trial code is gated behind BOTH marketing opt-ins captured during
   // registration (texts + email): subscribers see the code, everyone else sees
   // it locked.
-  const smsOptedIn = watch("acceptsSmsMarketing") === true;
+  // EU phone countries have no SMS program, so email alone unlocks for them.
+  const smsAllowed = !isEuCountry(
+    countryCodes.find((c) => c.iso === (watch("phoneCountryCode") as string | undefined))?.country
+  );
+  const smsOptedIn = smsAllowed ? watch("acceptsSmsMarketing") === true : true;
   const emailOptedIn = watch("acceptsMarketing") === true;
   const smsSubscribed = smsOptedIn && emailOptedIn;
 
@@ -67,7 +73,7 @@ export const SuccessForm = () => {
   // both are on, re-emits SUBSCRIPTION_STATUS so the parent theme unlocks the
   // 15% off code too.
   const handleLateOptIn = (which: "sms" | "email") => {
-    const nextSms = which === "sms" ? true : smsOptedIn;
+    const nextSms = which === "sms" ? true : watch("acceptsSmsMarketing") === true;
     const nextEmail = which === "email" ? true : emailOptedIn;
     setValue(which === "sms" ? "acceptsSmsMarketing" : "acceptsMarketing", true, {
       shouldDirty: true,
@@ -76,7 +82,7 @@ export const SuccessForm = () => {
     try {
       const targetOrigin = resolveParentOrigin();
       if (!targetOrigin) return;
-      const unlocked = nextSms && nextEmail;
+      const unlocked = (nextSms || !smsAllowed) && nextEmail;
       window.parent.postMessage(
         {
           type: IframeMessageTypes.SUBSCRIPTION_STATUS,

@@ -1,8 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Bumped by every PR that changes this function, so a probe can tell which
+// version is live (GitHub merges do not redeploy functions).
+const FUNCTION_VERSION = "EU-20261123";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "X-Function-Version": FUNCTION_VERSION,
 };
 
 // Module-scope IP-geo cache. Survives across warm invocations of the same
@@ -84,6 +89,32 @@ serve(async (req) => {
       IE: "IE", IRL: "IE", IRELAND: "IE",
       NZ: "NZ", NZL: "NZ", "NEW ZEALAND": "NZ",
       ZA: "ZA", ZAF: "ZA", "SOUTH AFRICA": "ZA",
+      AT: "AT", AUT: "AT", AUSTRIA: "AT",
+      BE: "BE", BEL: "BE", BELGIUM: "BE",
+      BG: "BG", BGR: "BG", BULGARIA: "BG",
+      HR: "HR", HRV: "HR", CROATIA: "HR",
+      CY: "CY", CYP: "CY", CYPRUS: "CY",
+      CZ: "CZ", CZE: "CZ", CZECHIA: "CZ", "CZECH REPUBLIC": "CZ",
+      DK: "DK", DNK: "DK", DENMARK: "DK",
+      EE: "EE", EST: "EE", ESTONIA: "EE",
+      FI: "FI", FIN: "FI", FINLAND: "FI",
+      FR: "FR", FRA: "FR", FRANCE: "FR",
+      DE: "DE", DEU: "DE", GERMANY: "DE",
+      GR: "GR", GRC: "GR", GREECE: "GR",
+      HU: "HU", HUN: "HU", HUNGARY: "HU",
+      IT: "IT", ITA: "IT", ITALY: "IT",
+      LV: "LV", LVA: "LV", LATVIA: "LV",
+      LT: "LT", LTU: "LT", LITHUANIA: "LT",
+      LU: "LU", LUX: "LU", LUXEMBOURG: "LU",
+      MT: "MT", MLT: "MT", MALTA: "MT",
+      NL: "NL", NLD: "NL", NETHERLANDS: "NL",
+      PL: "PL", POL: "PL", POLAND: "PL",
+      PT: "PT", PRT: "PT", PORTUGAL: "PT",
+      RO: "RO", ROU: "RO", ROMANIA: "RO",
+      SK: "SK", SVK: "SK", SLOVAKIA: "SK",
+      SI: "SI", SVN: "SI", SLOVENIA: "SI",
+      ES: "ES", ESP: "ES", SPAIN: "ES",
+      SE: "SE", SWE: "SE", SWEDEN: "SE",
     };
     if (country) {
       const normalizedCountry = String(country).trim().toUpperCase();

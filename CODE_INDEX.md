@@ -172,11 +172,13 @@
 | `meta-tracking.ts` | Meta conversion tracking context |
 | `calendly-proxy.ts` | Calendly client (`calendly-slots`, `calendly-book`) |
 | `founder-call-eligibility.ts` | Founder call qualification rules |
-| `phone-e164.ts` | E.164 phone formatting |
+| `phone-e164.ts` | E.164 phone formatting; drops the national trunk 0 (HU 06) for EU dial codes that use one |
+| `phone-e164.test.ts` | Vitest: +1 unchanged, EU trunk prefixes, Italy keeps its leading 0 |
 | `step-prefetch.ts` | Warms lazy step assets |
 | `admin/support-reply.ts` | Admin support reply helper |
 | `mcp/` | Lovable MCP server tools (registration, marketing consent, preferences) |
-| `validations/auth-schemas.ts` | Zod schemas for auth forms |
+| `validations/auth-schemas.ts` | Zod schemas for auth forms; state/province and school state required only where the country has a subdivision list |
+| `validations/auth-schemas.test.ts` | Vitest: EU business location and student school state optional, US/CA/AU still required |
 | `validations/password-schemas.ts` | Password validation (min 5 chars) |
 | `validations/file-schema.ts` | File upload validation |
 | `validations/form-utils.ts` | Shared form validation helpers |
@@ -188,9 +190,10 @@
 |------|---------|
 | `auth-constants.ts` | Carousel slide content + feature pills data |
 | `step-order.ts` | Step sequence definitions per account type |
-| `qualifications.ts` | Hairdressing qualifications per country |
-| `country-codes.ts` | Phone country codes |
-| `locations.ts` | US states list |
+| `qualifications.ts` | Hairdressing qualifications and credential field copy per country; EU fallback (VAT, registration or certificate number), `licenseRequiredMessage` |
+| `country-codes.ts` | Phone country codes (all 27 EU member states) |
+| `locations.ts` | Countries with subdivisions (US, CA, AU, UK, IE, ZA) plus the EU (`group: "eu"`, no subdivisions); `getCountry`, `isEuCountry`, `requiresSubdivision`, `isSubdivisionOf` |
+| `locations.test.ts` | Vitest: 27 EU members, subdivision helpers |
 | `allowed-origins.ts` | Allowed iframe parent origins |
 | `welcome-offer.ts` | $25 pro welcome code display terms, `kind` from the code prefix |
 | `guest-offer.ts` | METHOD50 display terms (amount, product), mirrored from the theme's guest-offer function |
@@ -312,6 +315,7 @@ Playwright loads the app in an iframe on a fake theme page (`http://localhost:92
 | `tests/reset-dead-link.e2e.ts` | Dead reset link buttons for every `freshLink` value; Close and Request a new link |
 | `tests/reset-and-activate.e2e.ts` | Reset signs in with the minted Multipass link, 40 character cap, hidden username field |
 | `tests/sign-in-and-forgot.e2e.ts` | Sign-in outcomes and paused-until message; forgot password sent, cooldown, unknown email, outage fallback, `/login?forgot=1` first paint |
+| `tests/eu-signup.e2e.ts` | German geo seeds +49, EU credential label and empty message, no state field and City/Postcode in one row, no school region; US unchanged |
 | `tests/chunk-reload.e2e.ts` | `AppErrorBoundary` reload cap for a stale tab (one reload) versus a live build with a dropped connection (two), report fields, crawlers not reported |
 
 ### `supabase/functions/_tests/` - Edge function tests (Deno)
@@ -322,6 +326,9 @@ Black-box: the harness captures the handler each function passes to `Deno.serve`
 |------|---------|
 | `harness.ts` | `FakeNet` (routes, recorded calls, unmatched calls fail loudly), `FakeTable` (tiny PostgREST table), `withFunction`, `readMultipass` (decrypts and verifies a minted link) |
 | `create-customer_test.ts` | Store refuses the new password: Multipass fallback and alert, or reset email when the Admin write fails; refused at activation: 400 asking for a different password, resubmit resumes (tag gate and late guard), second refusal takes the usual path, other wording unchanged; orders guard at all three points; ghost shell; 40 character cap |
+| `check-phone_test.ts` | EU numbers with a trunk 0 canonicalize to E.164; +1 unchanged |
+| `address-details_test.ts` | Returns `countryCode`; street order route-first for EU countries, number-first for FR and LU |
+| `diag-activation_test.ts` | `probeEuAddresses`: one address per EU country on a throwaway customer, deleted in `finally`, rejections reported |
 | `check-email_test.ts` | After a refused password the applicant continues with no reset email; otherwise unchanged |
 | `multipass-login_test.ts` | 5 per hour cap with Retry-After, capped retries and successes not counting, minted link contents, return_to checks, unactivated, throttling |
 | `recover-password_test.ts` | Cooldown claim kept on send and released when nothing was sent, unknown email, kill switch, `force` only for the service role, invited account preparation |
