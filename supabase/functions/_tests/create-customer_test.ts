@@ -438,6 +438,31 @@ Deno.test("+1 student with a Canadian area code is still tagged country-ca", asy
   }, HELIUM_ENV);
 });
 
+Deno.test("UK professional: form country UK reaches Helium and Shopify as GB with a +44 phone and the country-uk tag", async () => {
+  const net = signupWorld({ storeAcceptsPassword: true });
+  await withFunction("create-customer", net, async ({ call, settle }) => {
+    const res = await call(application({
+      phoneCountryCode: "+44",
+      phoneNumber: "07911 123456",
+      countryCode: "UK",
+      provinceCode: "ENG",
+      businessAddress: "10 Downing Street",
+      city: "London",
+      zipCode: "SW1A 2AA",
+    }));
+    assertEquals(res.status, 200, await res.clone().text());
+    await settle();
+    const address = heliumAddress(net);
+    assertEquals(address.country_code, "GB");
+    assertEquals(address.phone, "+447911123456");
+    assert(shopifyTags(net).includes("country-uk"), shopifyTags(net));
+    const shopifyAddress = net.to("PUT", admin("customers/42\\.json"))
+      .map((c) => (c.body as { customer: { addresses?: Record<string, unknown>[] } }).customer.addresses?.[0])
+      .find(Boolean);
+    assertEquals(shopifyAddress?.country_code, "GB");
+  }, HELIUM_ENV);
+});
+
 Deno.test("US professional: the +1 phone and province are unchanged", async () => {
   const net = signupWorld({ storeAcceptsPassword: true });
   await withFunction("create-customer", net, async ({ call }) => {
