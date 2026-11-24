@@ -1,6 +1,6 @@
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "EU-20261123";
+const FUNCTION_VERSION = "UK-20261124";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,6 +78,9 @@ Deno.serve(async (req) => {
       } else if (types.includes("route")) {
         addressDetails.route = longText;
       } else if (types.includes("locality")) {
+        addressDetails.city = longText;
+      } else if (types.includes("postal_town") && !addressDetails.city) {
+        // UK addresses carry the town as postal_town and often no locality.
         addressDetails.city = longText;
       } else if (types.includes("sublocality_level_1") && !addressDetails.city) {
         addressDetails.city = longText;

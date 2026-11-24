@@ -18,7 +18,7 @@ async function details(body: unknown) {
   let out: Record<string, string> = {};
   await withFunction("address-details", net, async ({ call }) => {
     const res = await call({ placeId: "p1" });
-    assertEquals(res.headers.get("X-Function-Version"), "EU-20261123");
+    assertEquals(res.headers.get("X-Function-Version"), "UK-20261124");
     out = (await res.json()).details;
   }, { GOOGLE_PLACES_API_KEY: "key" });
   return out;
@@ -34,6 +34,35 @@ Deno.test("United States keeps number then street", async () => {
   const d = await details(place(["United States", "US"], "Main St", "12"));
   assertEquals(d.countryCode, "US");
   assertEquals(d.streetAddress, "12 Main St");
+});
+
+Deno.test("United Kingdom: city comes from postal_town when there is no locality", async () => {
+  const d = await details({
+    formattedAddress: "",
+    addressComponents: [
+      { types: ["street_number"], longText: "10", shortText: "10" },
+      { types: ["route"], longText: "Downing Street", shortText: "Downing St" },
+      { types: ["postal_town"], longText: "London", shortText: "London" },
+      { types: ["administrative_area_level_1", "political"], longText: "England", shortText: "England" },
+      { types: ["country", "political"], longText: "United Kingdom", shortText: "GB" },
+      { types: ["postal_code"], longText: "SW1A 2AA", shortText: "SW1A 2AA" },
+    ],
+  });
+  assertEquals(d.city, "London");
+  assertEquals(d.countryCode, "GB");
+  assertEquals(d.streetAddress, "10 Downing Street");
+});
+
+Deno.test("locality still wins over postal_town", async () => {
+  const d = await details({
+    formattedAddress: "",
+    addressComponents: [
+      { types: ["postal_town"], longText: "Guildford", shortText: "Guildford" },
+      { types: ["locality"], longText: "Shalford", shortText: "Shalford" },
+      { types: ["country"], longText: "United Kingdom", shortText: "GB" },
+    ],
+  });
+  assertEquals(d.city, "Shalford");
 });
 
 Deno.test("France keeps number then street", async () => {

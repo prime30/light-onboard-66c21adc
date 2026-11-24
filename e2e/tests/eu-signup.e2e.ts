@@ -11,6 +11,21 @@ const FLAGS = {
   },
 };
 
+// Shortest auto-approved path to the success screen: contact basics, password, review.
+const SHORT_FLOW = {
+  body: {
+    autoApprovalEnabled: true,
+    welcomeOfferEnabled: true,
+    welcomeOfferStepEnabled: false,
+    businessLocationStepEnabled: false,
+    businessOperationStepEnabled: false,
+    orderVolumeStepEnabled: false,
+    preferredMethodStepEnabled: false,
+    referralStepEnabled: false,
+    summaryStepEnabled: false,
+  },
+};
+
 async function geo(page: Page, countryCode: string | null) {
   await page.route("https://ipwho.is/**", (route) =>
     countryCode
@@ -122,21 +137,6 @@ test.describe("EU copy", () => {
     expect(options).toContain("Cosmetology student or apprentice");
   });
 
-  // Shortest auto-approved path to the success screen: contact basics, password, review.
-  const SHORT_FLOW = {
-    body: {
-      autoApprovalEnabled: true,
-      welcomeOfferEnabled: true,
-      welcomeOfferStepEnabled: false,
-      businessLocationStepEnabled: false,
-      businessOperationStepEnabled: false,
-      orderVolumeStepEnabled: false,
-      preferredMethodStepEnabled: false,
-      referralStepEnabled: false,
-      summaryStepEnabled: false,
-    },
-  };
-
   async function reachSuccess(harness: Harness, page: Page, geoCountry: string, phone: string) {
     harness.fake("public-app-flags", SHORT_FLOW);
     harness.fake("check-email", { body: { exists: false } });
@@ -172,5 +172,54 @@ test.describe("EU copy", () => {
     const app = await reachSuccess(harness, page, "US", "(512) 555-0142");
     await expect(app.getByText("$25 off your next order of $100+", { exact: true })).toBeVisible();
     await expect(app.getByText(/December 23, 2026/)).toBeVisible();
+  });
+});
+
+test.describe("UK signup", () => {
+  async function fillUkContact(app: FrameLocator, accountType: RegExp) {
+    await pickAccountType(app, accountType);
+    await phoneTrigger(app).click();
+    await app.getByRole("option", { name: /\+44/ }).click();
+    await expect(phoneTrigger(app)).toHaveText("+44");
+    await app.getByLabel("Legal First Name*").fill("Amelia");
+    await app.getByLabel("Legal Last Name*").fill("Clarke");
+    await app.getByLabel("Email*").fill("amelia@salon-example.co.uk");
+    await app.locator('input[name="phoneNumber"]').fill("07911 123456");
+    await app.locator('input[name="socialMediaHandle"]').fill("ameliahair");
+    await app.locator('input[name="licenseNumber"]').fill("12345678");
+    await app.getByRole("combobox").filter({ hasText: "Select your qualification" }).click();
+    await app.getByRole("option", { name: /Level 3 NVQ/ }).click();
+  }
+
+  test("UK salon: +44, UK credential, then Nation and Postcode on business location", async ({ harness, page }) => {
+    const app = await openSignup(harness, page, "GB");
+    await fillUkContact(app, /Salon owner/);
+    await expect(app.getByText("Companies House / VAT / UTR*")).toBeVisible();
+    await app.getByRole("button", { name: /^Continue/ }).click();
+
+    await expect(app.getByRole("heading", { level: 1, name: /Where is your business located/i })).toBeVisible();
+    await expect(app.getByText("Nation*")).toBeVisible();
+    await expect(app.getByText("Postcode*")).toBeVisible();
+  });
+
+  test("UK applicant: create-customer gets country UK and the +44 phone as typed", async ({ harness, page }) => {
+    harness.fake("public-app-flags", SHORT_FLOW);
+    harness.fake("check-email", { body: { exists: false } });
+    harness.fake("check-phone", { body: { valid: true, inUse: false } });
+    harness.fake("create-customer", { body: { success: true, data: {} } });
+    await geo(page, "GB");
+    const app = await harness.open("/auth");
+    await fillUkContact(app, /Licensed stylist/);
+    await app.getByRole("button", { name: /^Continue/ }).click();
+    await app.locator("#password").fill("Sturdy-Pass-2026");
+    await app.locator("#confirmPassword").fill("Sturdy-Pass-2026");
+    await app.getByRole("button", { name: /^(Continue|Submit application|Create account)/ }).last().click();
+
+    await expect.poll(() => harness.calls("create-customer").length, { timeout: 20_000 }).toBeGreaterThan(0);
+    const data = (harness.calls("create-customer")[0] as { data: Record<string, unknown> }).data;
+    expect(data.countryCode).toBe("UK");
+    expect(data.phoneCountryCode).toBe("+44");
+    expect(data.phoneNumber).toBe("07911 123456");
+    expect(data.qualification).toBeTruthy();
   });
 });

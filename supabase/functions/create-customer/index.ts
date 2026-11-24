@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from "npm:libphonenumber-js@1.11.0";
 // CORS headers
 // Bumped by every PR that changes this function, so a probe can tell which
 // version is live (GitHub merges do not redeploy functions).
-const FUNCTION_VERSION = "EU-20261123";
+const FUNCTION_VERSION = "UK-20261124";
 
 // EU member states. Keep in sync with the `group: "eu"` entries in
 // src/data/locations.ts (edge functions cannot import src/).
@@ -2096,8 +2096,11 @@ Deno.serve(async (req: Request) => {
   if (customer.account_type === "student" && EU_COUNTRIES.has(studentEuCountry)) {
     derivedCountry = studentEuCountry;
   }
+  // The form uses "UK"; Shopify only accepts ISO "GB" and Helium answers a
+  // bare 500 for "UK".
+  const submittedCountry = (customer.country_code ?? "").toString().trim().toUpperCase();
   const resolvedCountryCode =
-    (customer.country_code ?? "").toString().trim().toUpperCase() || derivedCountry || "US";
+    (submittedCountry === "UK" ? "GB" : submittedCountry) || derivedCountry || "US";
   customer.country_code = resolvedCountryCode;
   const isEuApplicant = EU_COUNTRIES.has(resolvedCountryCode);
 

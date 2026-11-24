@@ -182,6 +182,20 @@
 
 ---
 
+## PSL-012: UK Professionals and Salons Could Not Register
+
+**Symptom**: No UK application ever completed. In a live test, a valid +44 mobile went through every screen, then the password step showed "We couldn't complete your registration right now." The audit row had `helium_create` failing with `HTTP 500: Internal Server Error`.
+
+**Root Cause**: The form's country code for the United Kingdom is `UK`, and `create-customer` passed it straight into the Helium default address. Shopify only accepts ISO `GB`, and Helium turns that rejection into a bare 500. Live runs with the request rewritten in flight confirmed it: `UK` failed with and without a province, while `GB` succeeded with and without `ENG`. Students were not affected because their country is derived from the dial code (`+44` maps to `GB`). Separately, `address-details` read only `locality`, but Google returns UK towns as `postal_town`, so City was always blank after picking a UK address.
+
+**Fix**: `create-customer` maps a submitted `UK` to `GB` before building the address. The `country-uk` tag already accepts both. `address-details` falls back to `postal_town` when there is no `locality`.
+
+**Key Rule**: Country codes sent to Shopify or Helium must be ISO 3166 alpha-2. The form's own codes (`UK`) are display keys, not ISO codes.
+
+**Files**: `supabase/functions/create-customer/index.ts`, `supabase/functions/address-details/index.ts`
+
+---
+
 ## Anti-Patterns to Avoid
 
 1. **Never use `opacity-0 animate-fade-in` for initial renders** - causes FOUC. Use it only for elements entering *after* user interaction.
